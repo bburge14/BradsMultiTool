@@ -22,27 +22,30 @@ public class VoiceAlertService {
      * FEMALE and MALE keep their names so existing saved settings still load.
      */
     public enum VoicePersona {
-        FEMALE("Zira (US female)", 1, 0, "Zira"),
-        MALE("David (US male)", 1, 0, "David"),
-        MARK("Mark (US male)", 1, 0, "Mark"),
-        HAZEL("Hazel (UK female)", 1, 0, "Hazel", "Susan", "Libby"),
-        GEORGE("George (UK male)", 1, 0, "George", "Ryan"),
-        CATHERINE("Catherine (Australian female)", 1, 0, "Catherine", "Natasha"),
-        JAMES("James (Australian male)", 1, 0, "James", "William"),
-        COMMANDER("Commander (deep David)", 0, -6, "David"),
-        PIXIE("Pixie (high & quick Zira)", 3, 8, "Zira"),
-        ROBOT("Robot (low & flat David)", -1, -10, "David");
+        FEMALE("Zira", true, 1, 0, "Zira"),
+        MALE("David", false, 1, 0, "David"),
+        MARK("Mark", false, 1, 0, "Mark"),
+        HAZEL("Hazel", true, 1, 0, "Hazel", "Susan", "Libby"),
+        GEORGE("George", false, 1, 0, "George", "Ryan"),
+        CATHERINE("Catherine", true, 1, 0, "Catherine", "Natasha"),
+        JAMES("James", false, 1, 0, "James", "William"),
+        COMMANDER("Commander", false, 0, -6, "David"),
+        PIXIE("Pixie", true, 3, 8, "Zira"),
+        ROBOT("Robot", false, -1, -10, "David");
 
         private final String displayName;
         final int rate;
         final int pitch;
         final String[] voiceNames;
 
-        VoicePersona(String displayName, int rate, int pitch, String... voiceNames) {
+        VoicePersona(String displayName, boolean female, int rate, int pitch, String... preferred) {
             this.displayName = displayName;
             this.rate = rate;
             this.pitch = pitch;
-            this.voiceNames = voiceNames;
+            // If none of the preferred voices is installed, fall back to the built-in voice of the same gender
+            String[] names = java.util.Arrays.copyOf(preferred, preferred.length + 1);
+            names[preferred.length] = female ? "Zira" : "David";
+            this.voiceNames = names;
         }
 
         @Override
