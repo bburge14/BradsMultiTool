@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import javax.inject.Inject;
 import net.runelite.api.Client;
@@ -12,7 +11,6 @@ import net.runelite.api.GameState;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
-import net.runelite.api.Point;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.FontManager;
@@ -22,6 +20,7 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
+import net.runelite.client.util.Text;
 
 /**
  * Tooltip-style card next to the cursor when hovering an attackable monster: level (coloured like the
@@ -29,9 +28,6 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
  */
 public class BradsMultiToolHoverOverlay extends Overlay {
 
-    // Sit well below the cursor so the game's hover text ("Attack Guard (level-21)") stays readable
-    private static final int CURSOR_OFFSET_X = 0;
-    private static final int CURSOR_OFFSET_Y = 52;
     private static final int WIDTH = 205;
 
     private final Client client;
@@ -70,36 +66,21 @@ public class BradsMultiToolHoverOverlay extends Overlay {
         graphics.setFont(FontManager.getRunescapeSmallFont());
         buildPanel(npc);
 
-        // Measure first (drawing clipped away), then place next to the cursor, kept on screen
-        Graphics2D measure = (Graphics2D) graphics.create();
-        measure.setClip(new Rectangle(0, 0, 0, 0));
-        Dimension size = panel.render(measure);
-        measure.dispose();
-
-        Point mouse = client.getMouseCanvasPosition();
-        int x = mouse.getX() + CURSOR_OFFSET_X;
-        int y = mouse.getY() + CURSOR_OFFSET_Y;
-        if (x + size.width > client.getCanvasWidth()) {
-            x = mouse.getX() - CURSOR_OFFSET_X - size.width;
-        }
-        if (y + size.height > client.getCanvasHeight()) {
-            y = mouse.getY() - CURSOR_OFFSET_Y - size.height;
-        }
-
-        Graphics2D placed = (Graphics2D) graphics.create();
-        placed.translate(Math.max(0, x), Math.max(0, y));
-        panel.render(placed);
-        placed.dispose();
+        CursorTooltip.render(client, graphics, panel);
         return null;
     }
 
-    /** The NPC under the cursor, from the top-most menu entry that targets one. */
+    /**
+     * The NPC under the cursor, from the top-most menu entry that targets one. Skipped when its top
+     * option is Pickpocket, which the skilling card covers instead.
+     */
     private NPC hoveredNpc() {
         MenuEntry[] entries = client.getMenu().getMenuEntries();
         for (int i = entries.length - 1; i >= 0; i--) {
             NPC npc = entries[i].getNpc();
             if (npc != null) {
-                return npc;
+                boolean pickpocket = "pickpocket".equalsIgnoreCase(Text.removeTags(entries[i].getOption()));
+                return pickpocket && config.showSkillingHover() ? null : npc;
             }
         }
         return null;

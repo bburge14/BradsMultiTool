@@ -6,6 +6,9 @@ A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 - **General PvM HUD** – target HP bar, aggro timer, weakness hint, combat style, DPS (per encounter / per monster type / continuous session), last/max hit. Lingers after combat for a configurable time.
 - **Buff & prayer alerts** – detects when combat potion boosts expire and when prayer runs low or out, with optional repeats, chat messages, and an overhead "OUT OF PRAYER" flash.
 - **Idle logout warning** – desktop notification, voice and chat alert, and HUD countdown before the idle logout (follows RuneLite's Logout Timer plugin if you've lengthened the timeout).
+- **Combat alerts** – special attack ready, antifire / poison protection running out, poisoned / venomed, stamina worn off, low ammo, out of runes, cannon low.
+- **Slayer** – task card with kills left, kill rate and time to finish; warns when fighting a task monster without its required item (rock hammer, nose peg, mirror shield…); superior and task-complete alerts.
+- **Skilling** – hover card for trees, rocks, stalls, pickpocket targets and fishing spots (level, XP, tools, respawn, your rate), a time-left estimate over the tree you're chopping, and inventory-full / tree-gone / rock-depleted / fishing-spot-moved alerts.
 - **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, level progress bar, XP remaining, and time-to-level; right-click a skill to pause, reset, or hide it.
 
 Voice alerts are pre-recorded clips bundled with the plugin (7 personas generated with [Piper](https://github.com/rhasspy/piper); see [VOICE_CREDITS.md](VOICE_CREDITS.md)), so they work on any OS. Regenerate them with `scripts/generate_voice_clips.py` after changing a line.
@@ -77,6 +80,10 @@ The dev client can't log in through the Jagex Launcher directly, but it reuses a
 4. Close it and run `.\gradlew.bat runBrad`. The dev client picks up the credentials file automatically.
 
 `credentials.properties` is a live login session token. Never share or commit it. To revoke it, delete the file (and remove the client argument if you no longer need it); if it may have leaked, end your sessions from your Jagex account settings.
+
+## Skilling data
+
+`src/main/resources/com/bradsmultitool/skilling.json` holds trees, rocks and thievable stalls (by object id) and pickpocket targets from the OSRS Wiki. Refresh it with `python scripts/update_skilling_data.py`.
 
 ## Monster data
 

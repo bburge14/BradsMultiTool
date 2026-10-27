@@ -354,6 +354,126 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigSection(
+        name = "Combat Alerts",
+        description = "Special attack, antifire, poison, stamina, ammo, runes and cannon alerts",
+        position = 29,
+        closedByDefault = true
+    )
+    String combatAlertsSection = "combatAlertsSection";
+
+    @ConfigItem(
+        keyName = "specReadyAlert",
+        name = "Special Attack Ready",
+        description = "Alert when special attack energy reaches the threshold",
+        section = combatAlertsSection,
+        position = 0
+    )
+    default boolean specReadyAlert() {
+        return true;
+    }
+
+    @Range(min = 10, max = 100)
+    @ConfigItem(
+        keyName = "specThreshold",
+        name = "Spec Alert At",
+        description = "Special attack energy that counts as ready",
+        section = combatAlertsSection,
+        position = 1
+    )
+    @Units(Units.PERCENT)
+    default int specThreshold() {
+        return 100;
+    }
+
+    @ConfigItem(
+        keyName = "antifireAlert",
+        name = "Antifire Running Out",
+        description = "Alert shortly before antifire / super antifire protection ends",
+        section = combatAlertsSection,
+        position = 2
+    )
+    default boolean antifireAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "poisonAlert",
+        name = "Poison & Venom",
+        description = "Alert when you are poisoned or venomed, and when poison protection is running out",
+        section = combatAlertsSection,
+        position = 3
+    )
+    default boolean poisonAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "staminaAlert",
+        name = "Stamina Worn Off",
+        description = "Alert when a stamina potion wears off",
+        section = combatAlertsSection,
+        position = 4
+    )
+    default boolean staminaAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "ammoAlert",
+        name = "Low Ammo",
+        description = "Alert when your ammo or thrown weapons run low while using ranged",
+        section = combatAlertsSection,
+        position = 5
+    )
+    default boolean ammoAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "ammoThreshold",
+        name = "Low Ammo At",
+        description = "Ammo count that counts as low",
+        section = combatAlertsSection,
+        position = 6
+    )
+    default int ammoThreshold() {
+        return 50;
+    }
+
+    @ConfigItem(
+        keyName = "runesAlert",
+        name = "Out of Runes",
+        description = "Alert when a spell fails for lack of runes",
+        section = combatAlertsSection,
+        position = 7
+    )
+    default boolean runesAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "cannonAlert",
+        name = "Cannon Low",
+        description = "Alert when your cannon is running low on cannonballs",
+        section = combatAlertsSection,
+        position = 8
+    )
+    default boolean cannonAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "cannonThreshold",
+        name = "Cannon Low At",
+        description = "Cannonballs left that counts as low",
+        section = combatAlertsSection,
+        position = 9
+    )
+    default int cannonThreshold() {
+        return 10;
+    }
+
+    @ConfigSection(
         name = "Idle",
         description = "Idle character and idle logout warnings",
         position = 30,
@@ -573,6 +693,58 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigSection(
+        name = "Slayer",
+        description = "Task tracker, required items, superior and task-complete alerts",
+        position = 48,
+        closedByDefault = true
+    )
+    String slayerSection = "slayerSection";
+
+    @ConfigItem(
+        keyName = "showSlayerTask",
+        name = "Show Task Tracker",
+        description = "Show your task, kills left, kill rate and time to finish",
+        section = slayerSection,
+        position = 0
+    )
+    default boolean showSlayerTask() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerItemAlert",
+        name = "Missing Item Warning",
+        description = "Warn when fighting a task monster without its required item (e.g. rock hammer)",
+        section = slayerSection,
+        position = 1
+    )
+    default boolean slayerItemAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "superiorAlert",
+        name = "Superior Spawned",
+        description = "Alert when a superior slayer monster appears",
+        section = slayerSection,
+        position = 2
+    )
+    default boolean superiorAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "taskCompleteAlert",
+        name = "Task Complete",
+        description = "Alert when your slayer task is finished",
+        section = slayerSection,
+        position = 3
+    )
+    default boolean taskCompleteAlert() {
+        return true;
+    }
+
+    @ConfigSection(
         name = "Gemstone Crab",
         description = "Crab HUD, radar, alerts and outlines",
         position = 49,
@@ -699,6 +871,58 @@ public interface BradsMultiToolConfig extends Config {
     )
     default Color tunnelColor() {
         return new Color(40, 230, 80, 140);
+    }
+
+    @ConfigSection(
+        name = "Skilling",
+        description = "Hover info for trees, rocks, fishing spots and thieving, plus skilling alerts",
+        position = 59,
+        closedByDefault = true
+    )
+    String skillingSection = "skillingSection";
+
+    @ConfigItem(
+        keyName = "showSkillingHover",
+        name = "Skilling Hover Info",
+        description = "When hovering a tree, rock, fishing spot, stall or pickpocket target, show level, XP, tools and more",
+        section = skillingSection,
+        position = 0
+    )
+    default boolean showSkillingHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTreeTimer",
+        name = "Tree Time Left",
+        description = "Estimate how long the tree you are chopping has left before it falls",
+        section = skillingSection,
+        position = 1
+    )
+    default boolean showTreeTimer() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "inventoryFullAlert",
+        name = "Inventory Full",
+        description = "Alert when your inventory fills up while skilling",
+        section = skillingSection,
+        position = 2
+    )
+    default boolean inventoryFullAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "resourceGoneAlert",
+        name = "Resource Gone",
+        description = "Alert when your tree falls, rock depletes or fishing spot moves",
+        section = skillingSection,
+        position = 3
+    )
+    default boolean resourceGoneAlert() {
+        return true;
     }
 
     @ConfigSection(

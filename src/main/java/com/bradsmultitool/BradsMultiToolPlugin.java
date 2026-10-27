@@ -59,6 +59,7 @@ import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.plugins.Plugin;
@@ -132,6 +133,28 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private BradsMultiToolOrbOverlay orbOverlay;
+
+    @Inject
+    private BradsMultiToolSlayerOverlay slayerOverlay;
+
+    @Inject
+    private BradsMultiToolSkillingOverlay skillingOverlay;
+
+    @Inject
+    private EventBus eventBus;
+
+    @Inject
+    private ExtraAlerts extraAlerts;
+
+    @Inject
+    @Getter
+    private SlayerTracker slayerTracker;
+
+    @Inject
+    private TreeTimer treeTimer;
+
+    @Inject
+    private SkillingData skillingData;
 
     @Inject
     private BradsMultiToolConfig config;
@@ -348,11 +371,15 @@ public class BradsMultiToolPlugin extends Plugin {
     @Override
     protected void startUp() throws Exception {
         monsterData.load(gson);
+        skillingData.load(gson);
+        eventBus.register(extraAlerts);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
         overlayManager.add(idleWarningOverlay);
         overlayManager.add(hoverOverlay);
         overlayManager.add(orbOverlay);
+        overlayManager.add(slayerOverlay);
+        overlayManager.add(skillingOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -373,6 +400,9 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(idleWarningOverlay);
         overlayManager.remove(hoverOverlay);
         overlayManager.remove(orbOverlay);
+        overlayManager.remove(slayerOverlay);
+        overlayManager.remove(skillingOverlay);
+        eventBus.unregister(extraAlerts);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);
         }
@@ -397,7 +427,7 @@ public class BradsMultiToolPlugin extends Plugin {
         speak(lines[ThreadLocalRandom.current().nextInt(lines.length)]);
     }
 
-    private void speak(VoiceAlertService.VoiceLine line) {
+    void speak(VoiceAlertService.VoiceLine line) {
         voiceService.speakAsync(line, config.voicePersona(), config.voiceVolume());
     }
 
@@ -409,7 +439,7 @@ public class BradsMultiToolPlugin extends Plugin {
         return crabCombatXpType;
     }
 
-    private void sendGameChatMessage(String message) {
+    void sendGameChatMessage(String message) {
         if (config.sendChatMessages()) {
             client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> " + message, null);
         }
@@ -594,6 +624,7 @@ public class BradsMultiToolPlugin extends Plugin {
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
             characterWasActive = false;
+            slayerTracker.reset();
             lastPlayerLocation = null;
             activeCrab = null;
             dormantCrabShellNpc = null;
@@ -924,6 +955,8 @@ public class BradsMultiToolPlugin extends Plugin {
             scanForCrab();
             updateSpatialPresence(player, wp);
             updateCrabHealth();
+            slayerTracker.update();
+            treeTimer.update();
             updateTargetCrabStatus(player);
             updateGeneralPvmTarget(player);
             updateAggroCountdown(wp);
