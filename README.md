@@ -10,6 +10,40 @@ A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 
 Voice alerts use Windows SAPI (Zira/David) via `wscript.exe`; on other operating systems they are skipped.
 
+## First-time setup (Windows, PowerShell)
+
+**1. Install Java and Git** (skip what you already have; check with `java -version` and `git --version`):
+
+```powershell
+winget install --id EclipseAdoptium.Temurin.17.JDK -e
+winget install --id Git.Git -e
+```
+
+Close and reopen PowerShell afterwards so `java` and `git` are on your PATH.
+
+**2. Download the project and launch it:**
+
+```powershell
+New-Item -ItemType Directory -Force C:\dev | Out-Null
+Set-Location C:\dev
+git clone https://github.com/bburge14/bradsmultitool.git BradsMultiTool
+Set-Location C:\dev\BradsMultiTool
+git checkout claude/nifty-feynman-izouon   # skip once this branch is merged into main
+.\gradlew.bat runBrad
+```
+
+The first run downloads Gradle and RuneLite, so it takes a few minutes. If the repo is private, Git opens a browser window to sign in to GitHub.
+
+**3. Log in:** follow [Logging in with a Jagex Account](#logging-in-with-a-jagex-account) below (once per PC).
+
+**Getting updates later:**
+
+```powershell
+Set-Location C:\dev\BradsMultiTool
+git pull
+.\gradlew.bat runBrad
+```
+
 ## Running
 
 Requires JDK 11 or newer.
