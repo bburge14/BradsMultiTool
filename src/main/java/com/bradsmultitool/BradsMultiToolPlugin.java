@@ -142,6 +142,11 @@ public class BradsMultiToolPlugin extends Plugin {
     @Getter
     private NPC dormantCrabShellNpc = null;
 
+    /** Active crab's health 0-100, or -1 before its health bar has been seen. */
+    @Getter
+    private int crabHpPercent = -1;
+    private boolean crabLowHealthAlerted = false;
+
     @Getter
     private final List<TileObject> trackedShellObjects = new ArrayList<>();
 
@@ -378,6 +383,11 @@ public class BradsMultiToolPlugin extends Plugin {
             case "voicePrayerLow":
                 if (config.voicePrayerLow()) {
                     speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
+                }
+                break;
+            case "voiceCrabLowHealth":
+                if (config.voiceCrabLowHealth()) {
+                    speak(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH);
                 }
                 break;
             case "voiceIdleLogout":
@@ -671,10 +681,37 @@ public class BradsMultiToolPlugin extends Plugin {
         if (activeCrab != npc) {
             log.debug("Gemstone Crab detected: id={} at {}", npc.getId(), npc.getWorldLocation());
             resetFightTracking();
+            crabHpPercent = -1;
+            crabLowHealthAlerted = false;
         }
         activeCrab = npc;
         wasDirectlyTrackingCrab = true;
         dormantCrabShellNpc = null;
+    }
+
+    // The health bar is only sent while the crab is in view and in combat, so keep the last known value
+    private void updateCrabHealth() {
+        if (activeCrab == null) {
+            return;
+        }
+        int ratio = activeCrab.getHealthRatio();
+        int scale = activeCrab.getHealthScale();
+        if (ratio >= 0 && scale > 0) {
+            crabHpPercent = (ratio * 100) / scale;
+        }
+        if (crabHpPercent < 0) {
+            return;
+        }
+
+        if (crabHpPercent > config.crabLowHealthPercent()) {
+            crabLowHealthAlerted = false;
+        } else if (!crabLowHealthAlerted && inSpawnVicinity) {
+            crabLowHealthAlerted = true;
+            if (config.voiceCrabLowHealth()) {
+                speak(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH);
+            }
+            sendGameChatMessage("The Gemstone Crab is about to burrow (" + crabHpPercent + "% health).");
+        }
     }
 
     // Spawn events can be missed (e.g. arriving through a cave reloads the scene and clears tracking),
@@ -796,6 +833,7 @@ public class BradsMultiToolPlugin extends Plugin {
             WorldPoint wp = player.getWorldLocation();
             scanForCrab();
             updateSpatialPresence(player, wp);
+            updateCrabHealth();
             updateTargetCrabStatus(player);
             updateGeneralPvmTarget(player);
             updateAggroCountdown(wp);

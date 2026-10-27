@@ -165,11 +165,22 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "voiceCrabLowHealth",
+        name = "Voice: Crab Low Health",
+        description = "Announce when the Gemstone Crab is about to burrow (click to preview)",
+        section = voiceSection,
+        position = 12
+    )
+    default boolean voiceCrabLowHealth() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "voiceIdleLogout",
         name = "Voice: Idle Logout",
         description = "Announce when you are about to be logged out for inactivity (click to preview)",
         section = voiceSection,
-        position = 12
+        position = 13
     )
     default boolean voiceIdleLogout() {
         return true;
@@ -181,7 +192,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Warn Before Logout",
         description = "How many seconds before the 5-minute idle logout to warn you",
         section = voiceSection,
-        position = 13
+        position = 14
     )
     @Units(Units.SECONDS)
     default int idleWarningSeconds() {
@@ -193,7 +204,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Repeat Idle Logout Alert",
         description = "Repeat the idle logout announcement until you move",
         section = voiceSection,
-        position = 14
+        position = 15
     )
     default boolean repeatIdleAlert() {
         return true;
@@ -204,7 +215,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Idle Repeat Delay",
         description = "Seconds between repeat idle logout alerts",
         section = voiceSection,
-        position = 15
+        position = 16
     )
     @Units(Units.SECONDS)
     default int repeatIdleInterval() {
@@ -216,7 +227,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Max Idle Repeats",
         description = "How many times to repeat the idle logout alert after the first",
         section = voiceSection,
-        position = 16
+        position = 17
     )
     default int maxIdleRepeats() {
         return 2;
@@ -427,12 +438,25 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @Range(min = 1, max = 99)
+    @ConfigItem(
+        keyName = "crabLowHealthPercent",
+        name = "Crab Low Health Alert",
+        description = "Alert when the crab's health falls to this percentage or below",
+        section = crabSection,
+        position = 52
+    )
+    @Units(Units.PERCENT)
+    default int crabLowHealthPercent() {
+        return 5;
+    }
+
     @ConfigItem(
         keyName = "showCrabLastHit",
         name = "Show Crab Last Hit",
         description = "Display continuous most recent hit dealt to Gemstone Crabs",
         section = crabSection,
-        position = 52
+        position = 53
     )
     default boolean showCrabLastHit() {
         return true;
@@ -443,7 +467,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show Crab Max Hit",
         description = "Display continuous highest hit dealt to Gemstone Crabs",
         section = crabSection,
-        position = 53
+        position = 54
     )
     default boolean showCrabMaxHit() {
         return true;
@@ -455,7 +479,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Active Crab Color",
         description = "Soft translucent outline for active fighting crab",
         section = crabSection,
-        position = 54
+        position = 55
     )
     default Color activeCrabColor() {
         return new Color(0, 220, 255, 130);
@@ -467,7 +491,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Mineable Shell Color",
         description = "Outline for a crab shell you can still mine",
         section = crabSection,
-        position = 55
+        position = 56
     )
     default Color mineableShellColor() {
         return new Color(40, 230, 80, 140);
@@ -479,7 +503,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Unmineable Shell Color",
         description = "Outline for a crab shell that can't be mined",
         section = crabSection,
-        position = 56
+        position = 57
     )
     default Color depletedShellColor() {
         return new Color(255, 60, 60, 140);
@@ -491,7 +515,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Tunnel Color",
         description = "Soft translucent outline for cave tunnels when crab is burrowed",
         section = crabSection,
-        position = 57
+        position = 58
     )
     default Color tunnelColor() {
         return new Color(40, 230, 80, 140);

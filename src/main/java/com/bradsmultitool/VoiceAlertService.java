@@ -24,7 +24,8 @@ public class VoiceAlertService {
         PRAYER_LOW("prayer_low", "Prayer is low."),
         OUT_OF_PRAYER("out_of_prayer", "Out of prayer points."),
         CRAB_MOVED("crab_moved", "The crab has moved!"),
-        IDLE_LOGOUT("idle_logout", "You are about to be logged out.");
+        IDLE_LOGOUT("idle_logout", "You are about to be logged out."),
+        CRAB_LOW_HEALTH("crab_low_health", "The crab is about to burrow.");
 
         final String fileName;
         final String text;

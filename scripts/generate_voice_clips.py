@@ -38,6 +38,7 @@ LINES = {
     "out_of_prayer": "Out of prayer points.",
     "crab_moved": "The crab has moved!",
     "idle_logout": "You are about to be logged out.",
+    "crab_low_health": "The crab is about to burrow.",
 }
 
 

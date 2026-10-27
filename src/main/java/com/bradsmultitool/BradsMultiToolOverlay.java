@@ -222,10 +222,15 @@ public class BradsMultiToolOverlay extends Overlay {
                 .color(new Color(0, 220, 220))
                 .build());
 
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Target:")
-                .right(plugin.getTargetCrabHp())
-                .build());
+            if (plugin.getCrabHpPercent() >= 0) {
+                // No max HP for the crab, so the bar shows just the percentage
+                panelComponent.getChildren().add(new CenteredHealthBarComponent(plugin.getCrabHpPercent(), 0, 0));
+            } else {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Target:")
+                    .right(plugin.getTargetCrabHp())
+                    .build());
+            }
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Burrows in:")
