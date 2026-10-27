@@ -38,7 +38,7 @@ public class BradsMultiToolPanel extends PluginPanel {
     private static final Color LEVEL_COLOR = new Color(80, 200, 255);
     private static final Color LABEL_COLOR = new Color(190, 190, 190);
     private static final Color BAR_FILL = new Color(15, 165, 105);
-    private static final Color BAR_BACKGROUND = new Color(30, 30, 30);
+    private static final Color BAR_BACKGROUND = new Color(60, 60, 60);
 
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
@@ -50,7 +50,7 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
 
     public BradsMultiToolPanel(BradsMultiToolPlugin plugin, BradsMultiToolConfig config, SkillIconManager skillIconManager) {
-        super(false);
+        super();
         this.plugin = plugin;
         this.config = config;
         this.skillIconManager = skillIconManager;
@@ -86,8 +86,13 @@ public class BradsMultiToolPanel extends PluginPanel {
         emptyLabel.setForeground(Color.GRAY);
         cardsContainer.add(emptyLabel);
 
+        // Pin cards to the top so they keep their natural height instead of stretching to fill the sidebar
+        JPanel cardsWrapper = new JPanel(new BorderLayout());
+        cardsWrapper.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        cardsWrapper.add(cardsContainer, BorderLayout.NORTH);
+
         add(header, BorderLayout.NORTH);
-        add(cardsContainer, BorderLayout.CENTER);
+        add(cardsWrapper, BorderLayout.CENTER);
 
         updatePanel();
     }
