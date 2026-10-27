@@ -536,7 +536,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "mineableShellColor",
         name = "Mineable Shell Color",
-        description = "Outline for a crab shell you can still mine",
+        description = "Outline for a crab shell you can mine (you were in the top 16 damage dealers and have gems left)",
         section = crabSection,
         position = 56
     )
@@ -548,7 +548,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "depletedShellColor",
         name = "Unmineable Shell Color",
-        description = "Outline for a crab shell that can't be mined",
+        description = "Outline for a crab shell you can't mine (not in the top 16 damage dealers, or already mined)",
         section = crabSection,
         position = 57
     )

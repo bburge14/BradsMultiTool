@@ -42,6 +42,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GroundObjectDespawned;
 import net.runelite.api.events.GroundObjectSpawned;
@@ -89,6 +90,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
     private static final int GEMSTONE_CRAB_ID = 14779;
     private static final int GEMSTONE_CRAB_SHELL_ID = 14780;
+    // The shell lasts 90 seconds (150 ticks); allow a little slack
+    private static final int SHELL_LIFETIME_TICKS = 160;
+    private static final int GEMS_PER_SHELL = 3;
 
     public enum BuffState {
         UNPOTTED,
@@ -101,7 +105,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private Gson gson;
-
 
     @Inject
     private OverlayManager overlayManager;
@@ -147,6 +150,10 @@ public class BradsMultiToolPlugin extends Plugin {
     @Getter
     private int crabHpPercent = -1;
     private boolean crabLowHealthAlerted = false;
+
+    // Tick of the "enough understanding" message for the latest shell, -1 when not eligible
+    private int shellEligibleTick = -1;
+    private int shellGemsMined = 0;
 
     @Getter
     private final List<TileObject> trackedShellObjects = new ArrayList<>();
@@ -671,35 +678,31 @@ public class BradsMultiToolPlugin extends Plugin {
         return CrabForm.ACTIVE;
     }
 
-    /** True while the shell still offers a "Mine" option. */
-    public boolean isShellMineable(NPC shell) {
-        NPCComposition comp = shell.getTransformedComposition();
-        if (comp == null) {
-            comp = shell.getComposition();
-        }
-        return comp != null && hasAction(comp.getActions(), "Mine");
+    /**
+     * Whether you can mine the current shell. Only the 16 players who dealt the most damage may mine it,
+     * which the game announces in chat when the crab burrows; the shell lasts 90 seconds and gives each
+     * eligible player 3 gems.
+     */
+    public boolean isShellMineable() {
+        return shellEligibleTick >= 0
+            && client.getTickCount() - shellEligibleTick <= SHELL_LIFETIME_TICKS
+            && shellGemsMined < GEMS_PER_SHELL;
     }
 
-    public boolean isShellMineable(TileObject shell) {
-        ObjectComposition def = client.getObjectDefinition(shell.getId());
-        if (def != null && def.getImpostorIds() != null) {
-            ObjectComposition impostor = def.getImpostor();
-            if (impostor != null) {
-                def = impostor;
-            }
+    @Subscribe
+    public void onChatMessage(ChatMessage event) {
+        if (event.getType() != ChatMessageType.GAMEMESSAGE && event.getType() != ChatMessageType.SPAM) {
+            return;
         }
-        return def != null && hasAction(def.getActions(), "Mine");
-    }
-
-    private static boolean hasAction(String[] actions, String wanted) {
-        if (actions != null) {
-            for (String action : actions) {
-                if (wanted.equalsIgnoreCase(action)) {
-                    return true;
-                }
-            }
+        String message = Text.removeTags(event.getMessage()).toLowerCase();
+        if (message.contains("enough understanding of the crab to mine")) {
+            shellEligibleTick = client.getTickCount();
+            shellGemsMined = 0;
+        } else if (message.contains("understanding of the gemstone crab is not great enough")) {
+            shellEligibleTick = -1;
+        } else if (message.contains("from the crab shell")) {
+            shellGemsMined++;
         }
-        return false;
     }
 
     private void evaluateNpc(NPC npc) {

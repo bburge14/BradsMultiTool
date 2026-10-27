@@ -197,11 +197,11 @@ public class BradsMultiToolOverlay extends Overlay {
 
         NPC shellNpc = plugin.getDormantCrabShellNpc();
         if (shellNpc != null && !shellNpc.isDead()) {
-            modelOutlineRenderer.drawOutline(shellNpc, 2, shellColor(plugin.isShellMineable(shellNpc)), 1);
+            modelOutlineRenderer.drawOutline(shellNpc, 2, shellColor(plugin.isShellMineable()), 1);
         }
 
         for (TileObject shellObj : plugin.getTrackedShellObjects()) {
-            modelOutlineRenderer.drawOutline(shellObj, 2, shellColor(plugin.isShellMineable(shellObj)), 1);
+            modelOutlineRenderer.drawOutline(shellObj, 2, shellColor(plugin.isShellMineable()), 1);
         }
 
         if (plugin.isCrabBurrowed()) {
