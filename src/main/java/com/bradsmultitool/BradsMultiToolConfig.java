@@ -23,30 +23,32 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigSection(
-        name = "Voice Alerts & Persona",
-        description = "Spoken voice warnings, persona selection, and preview",
+        name = "General",
+        description = "Voice and chat settings shared by all alerts",
         position = 0
     )
-    String voiceSection = "voiceSection";
+    String generalSection = "generalSection";
 
     @ConfigItem(
         keyName = "voicePersona",
         name = "Voice Persona",
         description = "Voice used for spoken alerts; changing it plays a sample alert",
-        section = voiceSection,
-        position = 0
+        section = generalSection,
+        position = 1
     )
     default VoiceAlertService.VoicePersona voicePersona() {
         return VoiceAlertService.VoicePersona.AMY;
     }
 
-    @Range(max = 100)
+    @Range(max
+    =
+    100)
     @ConfigItem(
         keyName = "voiceVolume",
         name = "Voice Volume",
         description = "Volume of spoken alerts (0-100)",
-        section = voiceSection,
-        position = 1
+        section = generalSection,
+        position = 2
     )
     default int voiceVolume() {
         return 80;
@@ -54,21 +56,77 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "sendChatMessages",
-        name = "Send In-Game Chat Messages",
-        description = "Print an in-game chat message for alerts alongside voice",
-        section = voiceSection,
-        position = 2
+        name = "Chat Messages",
+        description = "Also post alerts as in-game chat messages",
+        section = generalSection,
+        position = 3
     )
     default boolean sendChatMessages() {
         return true;
     }
 
+    @ConfigSection(
+        name = "Potion Buffs",
+        description = "Buff timers on the HUD and running-out / expired alerts",
+        position = 4,
+        closedByDefault = true
+    )
+    String buffSection = "buffSection";
+
+    @ConfigItem(
+        keyName = "enableBuffStatus",
+        name = "Show Buffs on HUD",
+        description = "Show each active potion buff with its boost and time left",
+        section = buffSection,
+        position = 5
+    )
+    default boolean enableBuffStatus() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "flashExpiredBuff",
+        name = "Flash When Expired",
+        description = "Flash the Buff line on the HUD when buff is expired",
+        section = buffSection,
+        position = 6
+    )
+    default boolean flashExpiredBuff() {
+        return true;
+    }
+
+    @Range(max
+    =
+    600)
+    @ConfigItem(
+        keyName = "buffWarningSeconds",
+        name = "Warn Before Ending",
+        description = "Warn this many seconds before a buff runs out (0 = off)",
+        section = buffSection,
+        position = 7
+    )
+    @Units(Units.SECONDS)
+    default int buffWarningSeconds() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "voiceBuffLow",
+        name = "Voice: Running Out",
+        description = "Announce shortly before your combat boost runs out (click to preview)",
+        section = buffSection,
+        position = 8
+    )
+    default boolean voiceBuffLow() {
+        return true;
+    }
+
     @ConfigItem(
         keyName = "voiceBuffExpired",
-        name = "Voice: Buff Expired",
-        description = "Announce when combat potion boost runs out (click to preview)",
-        section = voiceSection,
-        position = 3
+        name = "Voice: Expired",
+        description = "Announce when your combat buff has run out (click to preview)",
+        section = buffSection,
+        position = 9
     )
     default boolean voiceBuffExpired() {
         return true;
@@ -76,10 +134,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "repeatBuffAlert",
-        name = "Repeat Buff Expired Alert",
+        name = "Repeat Expired Alert",
         description = "Repeat the expired buff announcement",
-        section = voiceSection,
-        position = 4
+        section = buffSection,
+        position = 10
     )
     default boolean repeatBuffAlert() {
         return false;
@@ -87,10 +145,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "repeatBuffInterval",
-        name = "Buff Repeat Delay",
+        name = "Repeat Every",
         description = "Seconds between repeat buff alerts",
-        section = voiceSection,
-        position = 5
+        section = buffSection,
+        position = 11
     )
     @Units(Units.SECONDS)
     default int repeatBuffInterval() {
@@ -99,168 +157,64 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "maxBuffRepeats",
-        name = "Max Buff Repeats",
+        name = "Max Repeats",
         description = "How many times to repeat the expired buff alert after the first",
-        section = voiceSection,
-        position = 6
+        section = buffSection,
+        position = 12
     )
     default int maxBuffRepeats() {
         return 2;
     }
 
-    @ConfigItem(
-        keyName = "voicePrayerLow",
-        name = "Voice: Prayer Low",
-        description = "Announce when prayer falls below threshold (click to preview)",
-        section = voiceSection,
-        position = 7
+    @ConfigSection(
+        name = "Health",
+        description = "Low health warnings",
+        position = 13,
+        closedByDefault = true
     )
-    default boolean voicePrayerLow() {
-        return true;
-    }
+    String healthSection = "healthSection";
 
     @ConfigItem(
-        keyName = "repeatPrayerAlert",
-        name = "Repeat Prayer Low Alert",
-        description = "Repeat low prayer alert until restored",
-        section = voiceSection,
-        position = 8
-    )
-    default boolean repeatPrayerAlert() {
-        return false;
-    }
-
-    @ConfigItem(
-        keyName = "repeatPrayerInterval",
-        name = "Prayer Repeat Delay",
-        description = "Seconds between low prayer alerts",
-        section = voiceSection,
-        position = 9
-    )
-    @Units(Units.SECONDS)
-    default int repeatPrayerInterval() {
-        return 30;
-    }
-
-    @ConfigItem(
-        keyName = "maxPrayerRepeats",
-        name = "Max Prayer Repeats",
-        description = "How many times to repeat the low prayer alert after the first",
-        section = voiceSection,
-        position = 10
-    )
-    default int maxPrayerRepeats() {
-        return 2;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCrabMoved",
-        name = "Voice: Crab Relocated",
-        description = "Announce when Gemstone Crab burrows to another cove (click to preview)",
-        section = voiceSection,
-        position = 11
-    )
-    default boolean voiceCrabMoved() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCrabLowHealth",
-        name = "Voice: Crab Low Health",
-        description = "Announce when the Gemstone Crab is about to burrow (click to preview)",
-        section = voiceSection,
-        position = 12
-    )
-    default boolean voiceCrabLowHealth() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceIdleLogout",
-        name = "Voice: Idle Logout",
-        description = "Announce when you are about to be logged out for inactivity (click to preview)",
-        section = voiceSection,
-        position = 13
-    )
-    default boolean voiceIdleLogout() {
-        return true;
-    }
-
-    @Range(min = 5, max = 295)
-    @ConfigItem(
-        keyName = "idleWarningSeconds",
-        name = "Warn Before Logout",
-        description = "How many seconds before the idle logout to warn you (follows RuneLite's Logout Timer plugin if you use it)",
-        section = voiceSection,
+        keyName = "enableLowHealthAlert",
+        name = "Low Health Alert",
+        description = "Alert when your hitpoints fall to the threshold or below",
+        section = healthSection,
         position = 14
     )
-    @Units(Units.SECONDS)
-    default int idleWarningSeconds() {
-        return 30;
+    default boolean enableLowHealthAlert() {
+        return true;
     }
 
+    @Range(min = 1, max = 99)
     @ConfigItem(
-        keyName = "repeatIdleAlert",
-        name = "Repeat Idle Logout Alert",
-        description = "Repeat the idle logout announcement until you move",
-        section = voiceSection,
+        keyName = "lowHealthPercent",
+        name = "Alert Below",
+        description = "Alert when hitpoints fall to this percentage of your level or below",
+        section = healthSection,
         position = 15
     )
-    default boolean repeatIdleAlert() {
-        return true;
+    @Units(Units.PERCENT)
+    default int lowHealthPercent() {
+        return 25;
     }
 
     @ConfigItem(
-        keyName = "repeatIdleInterval",
-        name = "Idle Repeat Delay",
-        description = "Seconds between repeat idle logout alerts",
-        section = voiceSection,
+        keyName = "flashHealthOrb",
+        name = "Flash Health Orb",
+        description = "Flash the hitpoints orb by the minimap while health is low",
+        section = healthSection,
         position = 16
     )
-    @Units(Units.SECONDS)
-    default int repeatIdleInterval() {
-        return 10;
-    }
-
-    @ConfigItem(
-        keyName = "maxIdleRepeats",
-        name = "Max Idle Repeats",
-        description = "How many times to repeat the idle logout alert after the first",
-        section = voiceSection,
-        position = 17
-    )
-    default int maxIdleRepeats() {
-        return 2;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCharacterIdle",
-        name = "Voice: Character Idle",
-        description = "Announce when your character has been idle (click to preview)",
-        section = voiceSection,
-        position = 18
-    )
-    default boolean voiceCharacterIdle() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceBuffLow",
-        name = "Voice: Buff Running Out",
-        description = "Announce shortly before your combat boost runs out (click to preview)",
-        section = voiceSection,
-        position = 19
-    )
-    default boolean voiceBuffLow() {
+    default boolean flashHealthOrb() {
         return true;
     }
 
     @ConfigItem(
         keyName = "voiceHealthLow",
-        name = "Voice: Health Low",
+        name = "Voice Alert",
         description = "Announce when your hitpoints fall below the threshold (click to preview)",
-        section = voiceSection,
-        position = 20
+        section = healthSection,
+        position = 17
     )
     default boolean voiceHealthLow() {
         return true;
@@ -268,10 +222,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "repeatHealthAlert",
-        name = "Repeat Health Low Alert",
+        name = "Repeat Voice Alert",
         description = "Repeat the low health alert until you heal",
-        section = voiceSection,
-        position = 21
+        section = healthSection,
+        position = 18
     )
     default boolean repeatHealthAlert() {
         return false;
@@ -279,10 +233,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "repeatHealthInterval",
-        name = "Health Repeat Delay",
+        name = "Repeat Every",
         description = "Seconds between low health alerts",
-        section = voiceSection,
-        position = 22
+        section = healthSection,
+        position = 19
     )
     @Units(Units.SECONDS)
     default int repeatHealthInterval() {
@@ -291,151 +245,252 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "maxHealthRepeats",
-        name = "Max Health Repeats",
+        name = "Max Repeats",
         description = "How many times to repeat the low health alert after the first",
-        section = voiceSection,
-        position = 23
+        section = healthSection,
+        position = 20
     )
     default int maxHealthRepeats() {
         return 2;
     }
 
     @ConfigSection(
-        name = "Combat Buff & Maintenance",
-        description = "Potion status and low prayer settings",
-        position = 20
+        name = "Prayer",
+        description = "Low and empty prayer warnings",
+        position = 21,
+        closedByDefault = true
     )
-    String buffSection = "buffSection";
-
-    @ConfigItem(
-        keyName = "enableBuffStatus",
-        name = "Show Buff Status on HUD",
-        description = "Show active boost status and alert on the HUD",
-        section = buffSection,
-        position = 21
-    )
-    default boolean enableBuffStatus() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "flashExpiredBuff",
-        name = "Flash Expired Buff",
-        description = "Flash the Buff line on the HUD when buff is expired",
-        section = buffSection,
-        position = 22
-    )
-    default boolean flashExpiredBuff() {
-        return true;
-    }
-
-    @Range(max = 600)
-    @ConfigItem(
-        keyName = "buffWarningSeconds",
-        name = "Warn Before Buff Ends",
-        description = "Warn this many seconds before your combat boost runs out (0 = off)",
-        section = buffSection,
-        position = 23
-    )
-    @Units(Units.SECONDS)
-    default int buffWarningSeconds() {
-        return 60;
-    }
+    String prayerSection = "prayerSection";
 
     @ConfigItem(
         keyName = "enableLowPrayerAlert",
         name = "Low Prayer Alert",
         description = "Alert when prayer points fall below warning threshold",
-        section = buffSection,
-        position = 24
+        section = prayerSection,
+        position = 22
     )
     default boolean enableLowPrayerAlert() {
         return true;
     }
 
+    @Range(min = 1, max = 99)
     @ConfigItem(
-        keyName = "lowPrayerThreshold",
-        name = "Prayer Alert Threshold",
-        description = "Points remaining to trigger low prayer notification",
-        section = buffSection,
-        position = 25
+        keyName = "lowPrayerPercent",
+        name = "Alert Below",
+        description = "Alert when prayer points fall to this percentage of your level or below",
+        section = prayerSection,
+        position = 23
     )
-    default int lowPrayerThreshold() {
-        return 15;
+    @Units(Units.PERCENT)
+    default int lowPrayerPercent() {
+        return 25;
+    }
+
+    @ConfigItem(
+        keyName = "flashPrayerOrb",
+        name = "Flash Prayer Orb",
+        description = "Flash the prayer orb by the minimap while prayer is low",
+        section = prayerSection,
+        position = 24
+    )
+    default boolean flashPrayerOrb() {
+        return true;
     }
 
     @ConfigItem(
         keyName = "flashOutOfPrayerOverhead",
         name = "Overhead 'Out of Prayer' Flash",
         description = "Flash an 'OUT OF PRAYER' box above the player in the game world",
-        section = buffSection,
-        position = 26
+        section = prayerSection,
+        position = 25
     )
     default boolean flashOutOfPrayerOverhead() {
         return true;
     }
 
     @ConfigItem(
-        keyName = "enableLowHealthAlert",
-        name = "Low Health Alert",
-        description = "Alert when your hitpoints fall to the threshold or below",
-        section = buffSection,
-        position = 27
+        keyName = "voicePrayerLow",
+        name = "Voice Alert",
+        description = "Announce low and empty prayer (click to preview)",
+        section = prayerSection,
+        position = 26
     )
-    default boolean enableLowHealthAlert() {
+    default boolean voicePrayerLow() {
         return true;
     }
 
     @ConfigItem(
-        keyName = "lowHealthThreshold",
-        name = "Health Alert Threshold",
-        description = "Hitpoints remaining to trigger the low health alert",
-        section = buffSection,
+        keyName = "repeatPrayerAlert",
+        name = "Repeat Voice Alert",
+        description = "Repeat low prayer alert until restored",
+        section = prayerSection,
+        position = 27
+    )
+    default boolean repeatPrayerAlert() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "repeatPrayerInterval",
+        name = "Repeat Every",
+        description = "Seconds between low prayer alerts",
+        section = prayerSection,
         position = 28
     )
-    default int lowHealthThreshold() {
-        return 20;
+    @Units(Units.SECONDS)
+    default int repeatPrayerInterval() {
+        return 30;
     }
+
+    @ConfigItem(
+        keyName = "maxPrayerRepeats",
+        name = "Max Repeats",
+        description = "How many times to repeat the low prayer alert after the first",
+        section = prayerSection,
+        position = 29
+    )
+    default int maxPrayerRepeats() {
+        return 2;
+    }
+
+    @ConfigSection(
+        name = "Idle",
+        description = "Idle character and idle logout warnings",
+        position = 30,
+        closedByDefault = true
+    )
+    String idleSection = "idleSection";
 
     @ConfigItem(
         keyName = "characterIdleAlert",
         name = "Character Idle Alert",
         description = "Alert when your character stops doing anything (fighting, skilling, moving) for a while",
-        section = buffSection,
-        position = 29
+        section = idleSection,
+        position = 31
     )
     default boolean characterIdleAlert() {
         return true;
     }
 
-    @Range(min = 3, max = 120)
+    @Range(min
+    =
+    3,
+    max
+    =
+    120)
     @ConfigItem(
         keyName = "characterIdleSeconds",
         name = "Idle Alert After",
         description = "Seconds of doing nothing before the character idle alert",
-        section = buffSection,
-        position = 30
+        section = idleSection,
+        position = 32
     )
     @Units(Units.SECONDS)
     default int characterIdleSeconds() {
         return 10;
     }
 
+    @ConfigItem(
+        keyName = "voiceCharacterIdle",
+        name = "Voice: Character Idle",
+        description = "Announce when your character has been idle (click to preview)",
+        section = idleSection,
+        position = 33
+    )
+    default boolean voiceCharacterIdle() {
+        return true;
+    }
+
+    @Range(min
+    =
+    5,
+    max
+    =
+    295)
+    @ConfigItem(
+        keyName = "idleWarningSeconds",
+        name = "Warn Before Logout",
+        description = "How many seconds before the idle logout to warn you (follows RuneLite's Logout Timer plugin if you use it)",
+        section = idleSection,
+        position = 34
+    )
+    @Units(Units.SECONDS)
+    default int idleWarningSeconds() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "voiceIdleLogout",
+        name = "Voice: Logout Warning",
+        description = "Announce when you are about to be logged out for inactivity (click to preview)",
+        section = idleSection,
+        position = 35
+    )
+    default boolean voiceIdleLogout() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "repeatIdleAlert",
+        name = "Repeat Logout Warning",
+        description = "Repeat the idle logout announcement until you move",
+        section = idleSection,
+        position = 36
+    )
+    default boolean repeatIdleAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "repeatIdleInterval",
+        name = "Repeat Every",
+        description = "Seconds between repeat idle logout alerts",
+        section = idleSection,
+        position = 37
+    )
+    @Units(Units.SECONDS)
+    default int repeatIdleInterval() {
+        return 10;
+    }
+
+    @ConfigItem(
+        keyName = "maxIdleRepeats",
+        name = "Max Repeats",
+        description = "How many times to repeat the idle logout alert after the first",
+        section = idleSection,
+        position = 38
+    )
+    default int maxIdleRepeats() {
+        return 2;
+    }
+
     @ConfigSection(
-        name = "General PvM Combat HUD",
-        description = "Combat target overlay for non-crab monsters",
-        position = 30
+        name = "PvM HUD",
+        description = "Combat HUD and monster hover info for non-crab monsters",
+        position = 39,
+        closedByDefault = true
     )
     String pvmSection = "pvmSection";
 
     @ConfigItem(
         keyName = "enablePvmOverlay",
-        name = "Enable General PvM HUD",
+        name = "Enable PvM HUD",
         description = "Show combat HUD (DPS, target HP bar, aggro state, weaknesses) when attacking any monster",
         section = pvmSection,
-        position = 31
+        position = 40
     )
     default boolean enablePvmOverlay() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showHoverInfo",
+        name = "Monster Hover Info",
+        description = "When hovering an attackable monster, show its level, health, weakness, attack style and  aggression next to the cursor (hidden for the monster type you're already fighting)",
+        section = pvmSection,
+        position = 41
+    )
+    default boolean showHoverInfo() {
         return true;
     }
 
@@ -444,7 +499,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "DPS Tracking Mode",
         description = "Per Individual Target vs Per Monster Type vs Continuous Session",
         section = pvmSection,
-        position = 32
+        position = 42
     )
     default DpsTrackingMode dpsMode() {
         return DpsTrackingMode.PER_TARGET_TYPE;
@@ -452,10 +507,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "pvmLingerSeconds",
-        name = "Overlay Linger Duration",
+        name = "Linger After Combat",
         description = "Seconds the PvM HUD and DPS history remain visible after combat ends",
         section = pvmSection,
-        position = 33
+        position = 43
     )
     @Units(Units.SECONDS)
     default int pvmLingerSeconds() {
@@ -464,10 +519,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "showPvmWeakness",
-        name = "Show Monster Weakness",
+        name = "Show Weakness",
         description = "Show style, elemental, or slayer bane weakness on the PvM overlay",
         section = pvmSection,
-        position = 34
+        position = 44
     )
     default boolean showPvmWeakness() {
         return true;
@@ -478,7 +533,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show DPS",
         description = "Display live or rolling session DPS on the PvM overlay",
         section = pvmSection,
-        position = 35
+        position = 45
     )
     default boolean showPvmDps() {
         return true;
@@ -486,10 +541,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "showPvmLastHit",
-        name = "Show PvM Last Hit",
+        name = "Show Last Hit",
         description = "Display continuous most recent hit dealt to PvM monsters",
         section = pvmSection,
-        position = 36
+        position = 46
     )
     default boolean showPvmLastHit() {
         return true;
@@ -497,10 +552,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "showPvmMaxHit",
-        name = "Show PvM Max Hit",
+        name = "Show Max Hit",
         description = "Display continuous highest hit dealt to PvM monsters",
         section = pvmSection,
-        position = 37
+        position = 47
     )
     default boolean showPvmMaxHit() {
         return true;
@@ -511,78 +566,43 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show Aggro Status",
         description = "Show whether the monster is aggressive and its tolerance timer",
         section = pvmSection,
-        position = 39
+        position = 48
     )
     default boolean showPvmAggro() {
         return true;
     }
 
-    @ConfigItem(
-        keyName = "showHoverInfo",
-        name = "Monster Hover Info",
-        description = "When hovering an attackable monster, show its level, health, weakness, attack style and "
-            + "aggression next to the cursor (hidden for the monster type you're already fighting)",
-        section = pvmSection,
-        position = 40
-    )
-    default boolean showHoverInfo() {
-        return true;
-    }
-
     @ConfigSection(
-        name = "Skill Tracker",
-        description = "Sidebar panel configuration",
-        position = 40
-    )
-    String trackerSection = "trackerSection";
-
-    @ConfigItem(
-        keyName = "showXpPerMinute",
-        name = "Show XP/Min",
-        description = "Display XP per minute alongside XP/hr inside each skill card",
-        section = trackerSection,
-        position = 41
-    )
-    default boolean showXpPerMinute() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "ignoredSkills",
-        name = "Ignored Skills",
-        description = "Comma-separated list of skills to filter out",
-        section = trackerSection,
-        position = 42
-    )
-    default String ignoredSkills() {
-        return "";
-    }
-
-    @ConfigSection(
-        name = "Gemstone Crab Features",
-        description = "Unified Crab HUD, Radar, and entity outlines",
-        position = 50
+        name = "Gemstone Crab",
+        description = "Crab HUD, radar, alerts and outlines",
+        position = 49,
+        closedByDefault = true
     )
     String crabSection = "crabSection";
 
     @ConfigItem(
         keyName = "enableCrabFeatures",
-        name = "Enable Gemstone Crab Features",
+        name = "Enable Crab Features",
         description = "Master toggle for Crab HUD, Radar, and 3D highlights in the caves",
         section = crabSection,
-        position = 51
+        position = 50
     )
     default boolean enableCrabFeatures() {
         return true;
     }
 
-    @Range(min = 1, max = 99)
+    @Range(min
+    =
+    1,
+    max
+    =
+    99)
     @ConfigItem(
         keyName = "crabLowHealthPercent",
-        name = "Crab Low Health Alert",
+        name = "Low Health Alert",
         description = "Alert when the crab's health falls to this percentage or below",
         section = crabSection,
-        position = 52
+        position = 51
     )
     @Units(Units.PERCENT)
     default int crabLowHealthPercent() {
@@ -590,11 +610,33 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
-        keyName = "showCrabLastHit",
-        name = "Show Crab Last Hit",
-        description = "Display continuous most recent hit dealt to Gemstone Crabs",
+        keyName = "voiceCrabLowHealth",
+        name = "Voice: About to Burrow",
+        description = "Announce when the Gemstone Crab is about to burrow (click to preview)",
+        section = crabSection,
+        position = 52
+    )
+    default boolean voiceCrabLowHealth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCrabMoved",
+        name = "Voice: Crab Relocated",
+        description = "Announce when Gemstone Crab burrows to another cove (click to preview)",
         section = crabSection,
         position = 53
+    )
+    default boolean voiceCrabMoved() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showCrabLastHit",
+        name = "Show Last Hit",
+        description = "Display continuous most recent hit dealt to Gemstone Crabs",
+        section = crabSection,
+        position = 54
     )
     default boolean showCrabLastHit() {
         return true;
@@ -602,10 +644,10 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "showCrabMaxHit",
-        name = "Show Crab Max Hit",
+        name = "Show Max Hit",
         description = "Display continuous highest hit dealt to Gemstone Crabs",
         section = crabSection,
-        position = 54
+        position = 55
     )
     default boolean showCrabMaxHit() {
         return true;
@@ -617,7 +659,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Active Crab Color",
         description = "Soft translucent outline for active fighting crab",
         section = crabSection,
-        position = 55
+        position = 56
     )
     default Color activeCrabColor() {
         return new Color(0, 220, 255, 130);
@@ -629,7 +671,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Mineable Shell Color",
         description = "Outline for a crab shell you can mine (you were in the top 16 damage dealers and have gems left)",
         section = crabSection,
-        position = 56
+        position = 57
     )
     default Color mineableShellColor() {
         return new Color(40, 230, 80, 140);
@@ -641,7 +683,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Unmineable Shell Color",
         description = "Outline for a crab shell you can't mine (not in the top 16 damage dealers, or already mined)",
         section = crabSection,
-        position = 57
+        position = 58
     )
     default Color depletedShellColor() {
         return new Color(255, 60, 60, 140);
@@ -653,9 +695,39 @@ public interface BradsMultiToolConfig extends Config {
         name = "Tunnel Color",
         description = "Soft translucent outline for cave tunnels when crab is burrowed",
         section = crabSection,
-        position = 58
+        position = 59
     )
     default Color tunnelColor() {
         return new Color(40, 230, 80, 140);
+    }
+
+    @ConfigSection(
+        name = "Skill Tracker",
+        description = "Sidebar XP tracker",
+        position = 60,
+        closedByDefault = true
+    )
+    String trackerSection = "trackerSection";
+
+    @ConfigItem(
+        keyName = "showXpPerMinute",
+        name = "Show XP/Min",
+        description = "Display XP per minute alongside XP/hr inside each skill card",
+        section = trackerSection,
+        position = 61
+    )
+    default boolean showXpPerMinute() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "ignoredSkills",
+        name = "Ignored Skills",
+        description = "Comma-separated list of skills to filter out",
+        section = trackerSection,
+        position = 62
+    )
+    default String ignoredSkills() {
+        return "";
     }
 }

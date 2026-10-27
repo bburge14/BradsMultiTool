@@ -215,7 +215,7 @@ public class BradsMultiToolOverlay extends Overlay {
 
         // Mode A: Active fighting crab in cove
         if (plugin.isCrabActive()) {
-            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", " (In Vicinity)", new Color(0, 220, 220)));
+            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", "", Color.WHITE));
 
             if (plugin.getCrabHpPercent() >= 0) {
                 // No max HP for the crab, so the bar shows just the percentage

@@ -131,6 +131,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private BradsMultiToolHoverOverlay hoverOverlay;
 
     @Inject
+    private BradsMultiToolOrbOverlay orbOverlay;
+
+    @Inject
     private BradsMultiToolConfig config;
 
     @Inject
@@ -348,6 +351,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(prayerOverlay);
         overlayManager.add(idleWarningOverlay);
         overlayManager.add(hoverOverlay);
+        overlayManager.add(orbOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -367,6 +371,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(prayerOverlay);
         overlayManager.remove(idleWarningOverlay);
         overlayManager.remove(hoverOverlay);
+        overlayManager.remove(orbOverlay);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);
         }
@@ -1131,9 +1136,14 @@ public class BradsMultiToolPlugin extends Plugin {
         return buffStatusText;
     }
 
+    /** Points equal to {@code percent}% of the skill's real level (at least 1). */
+    private int threshold(Skill skill, int percent) {
+        return Math.max(1, (int) Math.ceil(client.getRealSkillLevel(skill) * percent / 100.0));
+    }
+
     private void monitorHealth() {
         int hp = client.getBoostedSkillLevel(Skill.HITPOINTS);
-        if (!config.enableLowHealthAlert() || hp > config.lowHealthThreshold() || hp <= 0) {
+        if (!config.enableLowHealthAlert() || hp > threshold(Skill.HITPOINTS, config.lowHealthPercent()) || hp <= 0) {
             lowHealthAlert = false;
             timesHealthAlertSounded = 0;
             return;
@@ -1175,7 +1185,7 @@ public class BradsMultiToolPlugin extends Plugin {
             zeroPrayerAlert = false;
         }
 
-        if (!isZero && config.enableLowPrayerAlert() && currentPrayer <= config.lowPrayerThreshold()) {
+        if (!isZero && config.enableLowPrayerAlert() && currentPrayer <= threshold(Skill.PRAYER, config.lowPrayerPercent())) {
             lowPrayerAlert = true;
 
             boolean canSound = false;
@@ -1198,7 +1208,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 }
                 sendGameChatMessage("Prayer points low (" + currentPrayer + " remaining).");
             }
-        } else if (currentPrayer > config.lowPrayerThreshold()) {
+        } else if (currentPrayer > threshold(Skill.PRAYER, config.lowPrayerPercent())) {
             lowPrayerAlert = false;
             timesPrayerAlertSounded = 0;
         }
