@@ -30,6 +30,14 @@ dependencies {
 group = 'com.bradsmultitool'
 version = '1.0.0'
 
+// Compile and run with JDK 17 no matter which Java is on PATH / JAVA_HOME.
+// Gradle finds an installed JDK 17 automatically, or downloads one if none exists.
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release.set(11)

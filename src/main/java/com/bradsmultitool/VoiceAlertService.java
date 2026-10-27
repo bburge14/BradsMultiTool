@@ -1,48 +1,106 @@
 package com.bradsmultitool;
 
-import java.io.File;
-import java.io.FileWriter;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Plays pre-recorded voice alerts bundled with the plugin (generated with Piper TTS by
+ * scripts/generate_voice_clips.py), so voices sound natural and work on any OS.
+ */
 @Slf4j
 public class VoiceAlertService {
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    /** The fixed lines the plugin can say. Text is what the clips were generated from. */
+    public enum VoiceLine {
+        BUFF_EXPIRED("buff_expired", "Buff has run out."),
+        PRAYER_LOW("prayer_low", "Prayer is low."),
+        OUT_OF_PRAYER("out_of_prayer", "Out of prayer points."),
+        CRAB_MOVED("crab_moved", "The crab has moved!");
 
-    public enum VoiceGender {
-        FEMALE,
-        MALE
+        final String fileName;
+        final String text;
+
+        VoiceLine(String fileName, String text) {
+            this.fileName = fileName;
+            this.text = text;
+        }
     }
 
-    public void speakAsync(String phrase, VoiceGender gender) {
-        executor.submit(() -> {
-            try {
-                String sanitized = phrase.replace("\"", "").replace("'", "");
-                File tempVbs = File.createTempFile("runelite_tts_", ".vbs");
-                tempVbs.deleteOnExit();
+    /** Voice personas; each folder under resources/voices holds one clip per VoiceLine. */
+    public enum VoicePersona {
+        AMY("Amy"),
+        KRISTIN("Kristin"),
+        CORI("Cori"),
+        ALBA("Alba"),
+        NORMAN("Norman"),
+        ALAN("Alan"),
+        NORTHERN("Northern");
 
-                try (FileWriter writer = new FileWriter(tempVbs)) {
-                    writer.write("Set voice = CreateObject(\"SAPI.SpVoice\")\r\n");
-                    writer.write("For Each v In voice.GetVoices\r\n");
-                    writer.write("  If InStr(1, v.GetDescription, \"" + (gender == VoiceGender.MALE ? "David" : "Zira") + "\", 1) > 0 Then\r\n");
-                    writer.write("    Set voice.Voice = v\r\n");
-                    writer.write("    Exit For\r\n");
-                    writer.write("  End If\r\n");
-                    writer.write("Next\r\n");
-                    writer.write("voice.Rate = 1\r\n");
-                    writer.write("voice.Speak \"" + sanitized + "\"\r\n");
-                }
+        private final String displayName;
 
-                ProcessBuilder pb = new ProcessBuilder("wscript.exe", "//B", tempVbs.getAbsolutePath());
-                Process process = pb.start();
-                process.waitFor();
-                tempVbs.delete();
-            } catch (Exception e) {
-                log.warn("SAPI voice speech error: {}", e.getMessage());
+        VoicePersona(String displayName) {
+            this.displayName = displayName;
+        }
+
+        String folder() {
+            return name().toLowerCase();
+        }
+
+        @Override
+        public String toString() {
+            return displayName;
+        }
+    }
+
+    // One clip at a time so overlapping alerts queue instead of talking over each other
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    /**
+     * @param volumePercent 0-100
+     */
+    public void speakAsync(VoiceLine line, VoicePersona persona, int volumePercent) {
+        executor.submit(() -> play(line, persona, volumePercent));
+    }
+
+    private void play(VoiceLine line, VoicePersona persona, int volumePercent) {
+        String resource = "voices/" + persona.folder() + "/" + line.fileName + ".wav";
+        try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
+            if (raw == null) {
+                log.warn("Missing voice clip {}", resource);
+                return;
             }
-        });
+            try (AudioInputStream audio = AudioSystem.getAudioInputStream(new BufferedInputStream(raw));
+                 Clip clip = AudioSystem.getClip()) {
+                clip.open(audio);
+                setVolume(clip, volumePercent);
+                clip.start();
+                // Wait for the clip to finish so the next alert doesn't overlap it
+                TimeUnit.MICROSECONDS.sleep(clip.getMicrosecondLength() + 50_000);
+                clip.stop();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            log.warn("Could not play voice clip {}: {}", resource, e.getMessage());
+        }
+    }
+
+    private static void setVolume(Clip clip, int volumePercent) {
+        if (!clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            return;
+        }
+        FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+        float linear = Math.max(0.0001f, Math.min(100, volumePercent) / 100f);
+        float db = (float) (20 * Math.log10(linear));
+        gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), db)));
     }
 
     public void shutdown() {

@@ -2,7 +2,11 @@ package com.bradsmultitool;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
@@ -14,10 +18,14 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import net.runelite.api.Experience;
 import net.runelite.api.Skill;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.ColorScheme;
@@ -27,18 +35,25 @@ import net.runelite.client.ui.PluginPanel;
 public class BradsMultiToolPanel extends PluginPanel {
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
+    private static final Color ACCENT_COLOR = new Color(0, 220, 220);
+    private static final Color LEVEL_COLOR = new Color(80, 200, 255);
+    private static final Color LABEL_COLOR = new Color(190, 190, 190);
+    private static final Color BAR_FILL = new Color(15, 165, 105);
+    private static final Color BAR_BACKGROUND = new Color(60, 60, 60);
 
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
     private final SkillIconManager skillIconManager;
 
     private final JLabel totalXpLabel = new JLabel();
-    private final JLabel emptyLabel = new JLabel("Gain XP to start tracking skills.");
+    private final JLabel totalRateLabel = new JLabel();
+    private final JLabel skillCountLabel = new JLabel();
+    private final JLabel emptyLabel = new JLabel("<html>Gain XP to start tracking skills.<br>Right-click a skill for options.</html>");
     private final JPanel cardsContainer = new JPanel();
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
 
     public BradsMultiToolPanel(BradsMultiToolPlugin plugin, BradsMultiToolConfig config, SkillIconManager skillIconManager) {
-        super(false);
+        super();
         this.plugin = plugin;
         this.config = config;
         this.skillIconManager = skillIconManager;
@@ -47,29 +62,30 @@ public class BradsMultiToolPanel extends PluginPanel {
         setBorder(new EmptyBorder(10, 10, 10, 10));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JPanel header = new JPanel();
-        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
-        header.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        JPanel header = new JPanel(new BorderLayout(0, 8));
+        header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, ACCENT_COLOR),
+            new EmptyBorder(8, 8, 8, 8)));
 
+        JPanel titles = new JPanel(new GridLayout(2, 1));
+        titles.setOpaque(false);
         JLabel title = new JLabel("Brad's Multi-Tool");
         title.setFont(FontManager.getRunescapeBoldFont());
-        title.setForeground(new Color(0, 220, 220));
-        header.add(title);
+        title.setForeground(ACCENT_COLOR);
+        JLabel subtitle = new JLabel("Skill Tracker");
+        subtitle.setFont(FontManager.getRunescapeSmallFont());
+        subtitle.setForeground(Color.GRAY);
+        titles.add(title);
+        titles.add(subtitle);
+        header.add(titles, BorderLayout.NORTH);
 
-        totalXpLabel.setFont(FontManager.getRunescapeSmallFont());
-        totalXpLabel.setForeground(Color.WHITE);
-        totalXpLabel.setBorder(new EmptyBorder(4, 0, 6, 0));
-        header.add(totalXpLabel);
-
-        JPanel buttons = new JPanel(new GridLayout(1, 2, 6, 0));
-        buttons.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        JButton resetSession = new JButton("Reset Session");
-        resetSession.addActionListener(e -> plugin.resetSession());
-        JButton testVoice = new JButton("Test Voice");
-        testVoice.addActionListener(e -> plugin.testVoiceAlert());
-        buttons.add(resetSession);
-        buttons.add(testVoice);
-        header.add(buttons);
+        JPanel stats = new JPanel(new GridLayout(1, 3, 6, 0));
+        stats.setOpaque(false);
+        stats.add(statBlock("TOTAL XP", totalXpLabel));
+        stats.add(statBlock("XP / HR", totalRateLabel));
+        stats.add(statBlock("SKILLS", skillCountLabel));
+        header.add(stats, BorderLayout.CENTER);
 
         cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
         cardsContainer.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -79,8 +95,13 @@ public class BradsMultiToolPanel extends PluginPanel {
         emptyLabel.setForeground(Color.GRAY);
         cardsContainer.add(emptyLabel);
 
+        // Pin cards to the top so they keep their natural height instead of stretching to fill the sidebar
+        JPanel cardsWrapper = new JPanel(new BorderLayout());
+        cardsWrapper.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        cardsWrapper.add(cardsContainer, BorderLayout.NORTH);
+
         add(header, BorderLayout.NORTH);
-        add(cardsContainer, BorderLayout.CENTER);
+        add(cardsWrapper, BorderLayout.CENTER);
 
         updatePanel();
     }
@@ -89,9 +110,17 @@ public class BradsMultiToolPanel extends PluginPanel {
      * Must be called on the Swing EDT.
      */
     public void updatePanel() {
-        totalXpLabel.setText("Total XP gained: " + NUMBER_FORMAT.format(plugin.getTotalCombatXp()));
-
         List<Skill> tracked = plugin.getTrackedSkills();
+        int totalRate = 0;
+        for (Skill skill : tracked) {
+            if (!plugin.isSkillPaused(skill)) {
+                totalRate += plugin.getSkillXpPerHour(skill);
+            }
+        }
+        totalXpLabel.setText(NUMBER_FORMAT.format(plugin.getTotalCombatXp()));
+        totalRateLabel.setText(NUMBER_FORMAT.format(totalRate));
+        skillCountLabel.setText(String.valueOf(tracked.size()));
+
         Set<Skill> trackedSet = new HashSet<>(tracked);
         boolean layoutChanged = cards.keySet().removeIf(skill -> {
             if (!trackedSet.contains(skill)) {
@@ -128,82 +157,192 @@ public class BradsMultiToolPanel extends PluginPanel {
         }
     }
 
+    private static JPanel statBlock(String caption, JLabel value) {
+        JPanel block = new JPanel(new GridLayout(2, 1));
+        block.setOpaque(false);
+        JLabel captionLabel = new JLabel(caption);
+        captionLabel.setFont(FontManager.getRunescapeSmallFont());
+        captionLabel.setForeground(Color.GRAY);
+        value.setFont(FontManager.getRunescapeBoldFont());
+        value.setForeground(Color.WHITE);
+        block.add(captionLabel);
+        block.add(value);
+        return block;
+    }
+
+    private static String formatDuration(long seconds) {
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        if (hours > 0) {
+            return hours + "h " + minutes + "m";
+        }
+        return minutes + "m " + (seconds % 60) + "s";
+    }
+
     private class SkillCard extends JPanel {
         private final Skill skill;
-        private final JLabel gainedLabel = new JLabel();
-        private final JLabel rateLabel = new JLabel();
-        private final JLabel lastDropLabel = new JLabel();
-        private final JButton pauseButton = new JButton();
+        private final JLabel levelLabel = new JLabel();
+        private final LevelProgressBar progressBar = new LevelProgressBar();
+        private final JLabel gainedValue = valueLabel();
+        private final JLabel remainingValue = valueLabel();
+        private final JLabel perHourValue = valueLabel();
+        private final JLabel perMinuteLabel = rowLabel("Rate (XP/Min):");
+        private final JLabel perMinuteValue = valueLabel();
+        private final JLabel ttlValue = valueLabel();
+        private final JMenuItem pauseItem = new JMenuItem();
 
         SkillCard(Skill skill) {
             this.skill = skill;
-            setLayout(new BorderLayout(8, 0));
+            setLayout(new BorderLayout(0, 4));
             setBackground(ColorScheme.DARKER_GRAY_COLOR);
             setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 6, 0, ColorScheme.DARK_GRAY_COLOR),
-                new EmptyBorder(6, 6, 6, 6)));
+                new EmptyBorder(6, 8, 8, 8)));
 
-            BufferedImage icon = skillIconManager.getSkillImage(skill, false);
-            JLabel iconLabel = new JLabel(icon != null ? new ImageIcon(icon) : null);
-            iconLabel.setPreferredSize(new Dimension(28, 28));
-            add(iconLabel, BorderLayout.WEST);
-
-            JPanel stats = new JPanel(new GridLayout(4, 1));
-            stats.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+            JPanel top = new JPanel(new BorderLayout(6, 0));
+            top.setOpaque(false);
+            BufferedImage icon = skillIconManager.getSkillImage(skill, true);
             JLabel nameLabel = new JLabel(skill.getName());
-            nameLabel.setFont(FontManager.getRunescapeBoldFont());
-            nameLabel.setForeground(new Color(255, 185, 0));
-            stats.add(nameLabel);
-            for (JLabel label : new JLabel[]{gainedLabel, rateLabel, lastDropLabel}) {
-                label.setFont(FontManager.getRunescapeSmallFont());
-                label.setForeground(Color.WHITE);
-                stats.add(label);
+            if (icon != null) {
+                nameLabel.setIcon(new ImageIcon(icon));
+                nameLabel.setIconTextGap(6);
             }
-            add(stats, BorderLayout.CENTER);
+            nameLabel.setFont(FontManager.getRunescapeBoldFont());
+            nameLabel.setForeground(Color.WHITE);
+            levelLabel.setFont(FontManager.getRunescapeBoldFont());
+            levelLabel.setForeground(LEVEL_COLOR);
+            top.add(nameLabel, BorderLayout.WEST);
+            top.add(levelLabel, BorderLayout.EAST);
 
-            JPanel actions = new JPanel(new GridLayout(2, 2, 2, 2));
-            actions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-            pauseButton.addActionListener(e -> plugin.toggleSkillPause(skill));
-            JButton rateButton = smallButton("Rate", "Restart the XP/hr measurement from now");
-            rateButton.addActionListener(e -> plugin.resetSkillRate(skill));
-            JButton resetButton = smallButton("Reset", "Stop tracking this skill until it gains XP again");
-            resetButton.addActionListener(e -> plugin.resetSkill(skill));
-            JButton ignoreButton = smallButton("Hide", "Add this skill to the ignored list");
-            ignoreButton.addActionListener(e -> plugin.addIgnoredSkill(skill));
-            styleSmall(pauseButton);
-            actions.add(pauseButton);
-            actions.add(rateButton);
-            actions.add(resetButton);
-            actions.add(ignoreButton);
-            add(actions, BorderLayout.EAST);
+            JPanel body = new JPanel(new BorderLayout(0, 4));
+            body.setOpaque(false);
+            body.add(progressBar, BorderLayout.NORTH);
+
+            JPanel rows = new JPanel(new GridLayout(0, 2, 0, 1));
+            rows.setOpaque(false);
+            rows.add(rowLabel("XP Gained:"));
+            rows.add(gainedValue);
+            rows.add(rowLabel("XP Remaining:"));
+            rows.add(remainingValue);
+            rows.add(rowLabel("Rate (XP/Hr):"));
+            rows.add(perHourValue);
+            rows.add(perMinuteLabel);
+            rows.add(perMinuteValue);
+            rows.add(rowLabel("TTL (Est Time):"));
+            rows.add(ttlValue);
+            body.add(rows, BorderLayout.CENTER);
+
+            add(top, BorderLayout.NORTH);
+            add(body, BorderLayout.CENTER);
+
+            JPopupMenu menu = new JPopupMenu();
+            pauseItem.addActionListener(e -> plugin.toggleSkillPause(skill));
+            menu.add(pauseItem);
+            menu.add(menuItem("Reset rate", () -> plugin.resetSkillRate(skill)));
+            menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
+            menu.add(menuItem("Hide " + skill.getName(), () -> plugin.addIgnoredSkill(skill)));
+            menu.addSeparator();
+            menu.add(menuItem("Reset all skills", plugin::resetSession));
+            setComponentPopupMenu(menu);
+            setToolTipText("Right-click for options");
+            inheritPopupMenu(this);
         }
 
         void refresh() {
-            gainedLabel.setText("Gained: " + NUMBER_FORMAT.format(plugin.getSkillGained(skill)));
-            String rate = NUMBER_FORMAT.format(plugin.getSkillXpPerHour(skill)) + " XP/hr";
-            if (config.showXpPerMinute()) {
-                rate += " (" + NUMBER_FORMAT.format(plugin.getSkillXpPerMinute(skill)) + "/min)";
-            }
-            rateLabel.setText(rate);
-            lastDropLabel.setText("Last drop: " + NUMBER_FORMAT.format(plugin.getLastXpDrop(skill)));
+            int xp = plugin.getCurrentSkillXp(skill);
+            int level = Experience.getLevelForXp(xp);
+            levelLabel.setText("Lvl " + level);
 
+            int xpPerHour = plugin.getSkillXpPerHour(skill);
             boolean paused = plugin.isSkillPaused(skill);
-            pauseButton.setText(paused ? "Go" : "Pause");
-            pauseButton.setToolTipText(paused ? "Resume XP/hr timing" : "Pause XP/hr timing");
-            rateLabel.setForeground(paused ? Color.GRAY : Color.WHITE);
+            gainedValue.setText(NUMBER_FORMAT.format(plugin.getSkillGained(skill)));
+            perHourValue.setText(paused ? "Paused" : NUMBER_FORMAT.format(xpPerHour) + " /hr");
+            perMinuteValue.setText(NUMBER_FORMAT.format(plugin.getSkillXpPerMinute(skill)) + " /min");
+            perMinuteLabel.setVisible(config.showXpPerMinute());
+            perMinuteValue.setVisible(config.showXpPerMinute());
+
+            if (level >= Experience.MAX_REAL_LEVEL) {
+                progressBar.setProgress(1.0);
+                remainingValue.setText("--");
+                ttlValue.setText("--");
+            } else {
+                int levelStart = Experience.getXpForLevel(level);
+                int levelEnd = Experience.getXpForLevel(level + 1);
+                int remaining = levelEnd - xp;
+                progressBar.setProgress((double) (xp - levelStart) / (levelEnd - levelStart));
+                remainingValue.setText(NUMBER_FORMAT.format(remaining) + " XP");
+                ttlValue.setText(xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
+            }
+
+            pauseItem.setText(paused ? "Resume tracking" : "Pause tracking");
         }
 
-        private JButton smallButton(String text, String tooltip) {
-            JButton button = new JButton(text);
-            button.setToolTipText(tooltip);
-            styleSmall(button);
-            return button;
+        private JMenuItem menuItem(String text, Runnable action) {
+            JMenuItem item = new JMenuItem(text);
+            item.addActionListener(e -> action.run());
+            return item;
         }
 
-        private void styleSmall(JButton button) {
-            button.setFont(FontManager.getRunescapeSmallFont());
-            button.setMargin(new java.awt.Insets(0, 2, 0, 2));
-            button.setFocusPainted(false);
+        private void inheritPopupMenu(Container parent) {
+            for (Component child : parent.getComponents()) {
+                if (child instanceof JComponent) {
+                    ((JComponent) child).setInheritsPopupMenu(true);
+                }
+                if (child instanceof Container) {
+                    inheritPopupMenu((Container) child);
+                }
+            }
+        }
+
+        private JLabel rowLabel(String text) {
+            JLabel label = new JLabel(text);
+            label.setFont(FontManager.getRunescapeSmallFont());
+            label.setForeground(LABEL_COLOR);
+            return label;
+        }
+
+        private JLabel valueLabel() {
+            JLabel label = new JLabel();
+            label.setFont(FontManager.getRunescapeSmallFont());
+            label.setForeground(Color.WHITE);
+            label.setHorizontalAlignment(SwingConstants.RIGHT);
+            return label;
+        }
+    }
+
+    private static class LevelProgressBar extends JComponent {
+        private double progress;
+
+        LevelProgressBar() {
+            setPreferredSize(new Dimension(0, 16));
+            setFont(FontManager.getRunescapeSmallFont());
+        }
+
+        void setProgress(double progress) {
+            double clamped = Math.max(0, Math.min(1, progress));
+            if (clamped != this.progress) {
+                this.progress = clamped;
+                repaint();
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            int w = getWidth();
+            int h = getHeight();
+            g.setColor(BAR_BACKGROUND);
+            g.fillRect(0, 0, w, h);
+            g.setColor(BAR_FILL);
+            g.fillRect(0, 0, (int) (w * progress), h);
+
+            String text = String.format("%.1f%%", progress * 100);
+            FontMetrics fm = g.getFontMetrics();
+            int x = (w - fm.stringWidth(text)) / 2;
+            int y = (h - fm.getHeight()) / 2 + fm.getAscent();
+            g.setColor(Color.BLACK);
+            g.drawString(text, x + 1, y + 1);
+            g.setColor(Color.WHITE);
+            g.drawString(text, x, y);
         }
     }
 }

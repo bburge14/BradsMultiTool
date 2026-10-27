@@ -1,0 +1,73 @@
+package com.bradsmultitool;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import org.junit.Test;
+
+public class WeaponStylesTest {
+
+    @Test
+    public void stabSwordThirdButtonIsSlash() {
+        WeaponStyles.Style style = WeaponStyles.resolve(17, 2, false, 0);
+        assertEquals(MonsterWeakness.Type.MELEE, style.type());
+        assertEquals("Slash", style.label());
+    }
+
+    @Test
+    public void rangedWeaponsReportAmmoType() {
+        assertEquals("Rapid (Bow)", WeaponStyles.resolve(3, 1, false, 0).label());
+        assertEquals("Rapid (Thrown)", WeaponStyles.resolve(19, 1, false, 0).label());
+        assertEquals("Heavy", WeaponStyles.resolve(7, 0, false, 0).damageType);
+        assertEquals("Heavy", WeaponStyles.resolve(5, 0, false, 0).damageType);
+        assertEquals("Light", WeaponStyles.resolve(19, 3, false, 0).damageType);
+    }
+
+    @Test
+    public void thrownWeaponsAreNamedFromTheEquippedItem() {
+        WeaponStyles.Style thrown = WeaponStyles.resolve(19, 1, false, 0);
+        assertEquals("Rapid (Dart)", WeaponStyles.withEquippedWeapon(thrown, "Dragon dart").label());
+        assertEquals("Rapid (Knife)", WeaponStyles.withEquippedWeapon(thrown, "Rune knife(p++)").label());
+        assertEquals("Rapid (Thrownaxe)", WeaponStyles.withEquippedWeapon(thrown, "Morrigan's throwing axe").label());
+        assertEquals("Rapid (Blowpipe)", WeaponStyles.withEquippedWeapon(thrown, "Toxic blowpipe").label());
+        assertEquals("Rapid (Toktz-xil-ul)", WeaponStyles.withEquippedWeapon(thrown, "Toktz-xil-ul").label());
+        assertEquals("Rapid (Tonalztics)", WeaponStyles.withEquippedWeapon(thrown, "Tonalztics of ralos").label());
+        assertEquals("Light", WeaponStyles.withEquippedWeapon(thrown, "Rune thrownaxe").damageType);
+
+        WeaponStyles.Style bow = WeaponStyles.resolve(3, 1, false, 0);
+        assertEquals("Rapid (Bow)", WeaponStyles.withEquippedWeapon(bow, "Magic shortbow").label());
+    }
+
+    @Test
+    public void manualCastsAreNamedAndElementalSpellsGetTheirElement() {
+        WeaponStyles.Style fireBolt = WeaponStyles.manualCast("Fire Bolt");
+        assertEquals(MonsterWeakness.Type.MAGIC, fireBolt.type());
+        assertEquals(MonsterWeakness.Element.FIRE, fireBolt.element);
+        assertEquals("Fire Bolt", fireBolt.label());
+        assertEquals(MonsterWeakness.Element.AIR, WeaponStyles.manualCast("Wind Surge").element);
+
+        WeaponStyles.Style barrage = WeaponStyles.manualCast("Ice Barrage");
+        assertNull(barrage.element);
+        assertEquals("Ice Barrage", barrage.label());
+        assertNull(WeaponStyles.manualCast("Fire Bloom").element);
+        assertEquals("Ice Barrage (Def)", WeaponStyles.spellStyle("Ice Barrage", true).label());
+        assertEquals(MonsterWeakness.Element.WATER, WeaponStyles.spellStyle("Water Surge", false).element);
+    }
+
+    @Test
+    public void autocastSpellElement() {
+        assertEquals(MonsterWeakness.Element.AIR, WeaponStyles.autocastElement(1));
+        assertEquals(MonsterWeakness.Element.FIRE, WeaponStyles.autocastElement(12));
+        assertEquals(MonsterWeakness.Element.WATER, WeaponStyles.autocastElement(14));
+        assertEquals(MonsterWeakness.Element.EARTH, WeaponStyles.autocastElement(50));
+        assertNull(WeaponStyles.autocastElement(0));
+
+        WeaponStyles.Style casting = WeaponStyles.resolve(18, 4, false, 4);
+        assertEquals(MonsterWeakness.Type.MAGIC, casting.type());
+        assertEquals("Fire Strike", casting.label());
+        assertEquals("Water Wave", WeaponStyles.resolve(18, 4, false, 14).label());
+        assertEquals("Earth Surge", WeaponStyles.resolve(18, 4, false, 50).label());
+        assertEquals("Wind Strike", WeaponStyles.resolve(18, 4, false, 1).label());
+        assertEquals("Fire Wave (Def)", WeaponStyles.resolve(18, 4, true, 16).label());
+    }
+}

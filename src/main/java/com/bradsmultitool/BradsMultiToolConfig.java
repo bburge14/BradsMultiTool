@@ -6,6 +6,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
 @ConfigGroup("bradsmultitool")
@@ -29,14 +30,26 @@ public interface BradsMultiToolConfig extends Config {
     String voiceSection = "voiceSection";
 
     @ConfigItem(
-        keyName = "voiceGender",
+        keyName = "voicePersona",
         name = "Voice Persona",
-        description = "Select Male (David) or Female (Zira) voice",
+        description = "Voice used for spoken alerts; changing it plays a sample alert",
+        section = voiceSection,
+        position = 0
+    )
+    default VoiceAlertService.VoicePersona voicePersona() {
+        return VoiceAlertService.VoicePersona.AMY;
+    }
+
+    @Range(max = 100)
+    @ConfigItem(
+        keyName = "voiceVolume",
+        name = "Voice Volume",
+        description = "Volume of spoken alerts (0-100)",
         section = voiceSection,
         position = 1
     )
-    default VoiceAlertService.VoiceGender voiceGender() {
-        return VoiceAlertService.VoiceGender.FEMALE;
+    default int voiceVolume() {
+        return 80;
     }
 
     @ConfigItem(
@@ -295,17 +308,6 @@ public interface BradsMultiToolConfig extends Config {
         position = 37
     )
     default boolean showPvmMaxHit() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "showPvmKillTime",
-        name = "Show Estimated Kill Time",
-        description = "Show estimated time to kill based on DPS and health ratio",
-        section = pvmSection,
-        position = 38
-    )
-    default boolean showPvmKillTime() {
         return true;
     }
 

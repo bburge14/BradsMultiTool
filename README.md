@@ -3,12 +3,12 @@
 A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 
 - **Gemstone Crab HUD & radar** – outlines the active crab, dormant shell, and cave tunnels; shows crab HP, burrow ETA, XP type (from same-tick XP drops), crab damage/DPS, and session last/max hit. Voice + chat alert when the crab relocates.
-- **General PvM HUD** – target HP bar, aggro timer, weakness hint, combat style, DPS (per encounter / per monster type / continuous session), last/max hit, estimated kill time. Lingers after combat for a configurable time.
+- **General PvM HUD** – target HP bar, aggro timer, weakness hint, combat style, DPS (per encounter / per monster type / continuous session), last/max hit. Lingers after combat for a configurable time.
 - **Buff & prayer alerts** – detects when combat potion boosts expire and when prayer runs low or out, with optional repeats, chat messages, and an overhead "OUT OF PRAYER" flash.
 - **Idle logout warning** – desktop notification, chat message, and HUD countdown 30 seconds before the 5-minute idle logout.
-- **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, last drop, plus pause/reset/hide per skill.
+- **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, level progress bar, XP remaining, and time-to-level; right-click a skill to pause, reset, or hide it.
 
-Voice alerts use Windows SAPI (Zira/David) via `wscript.exe`; on other operating systems they are skipped.
+Voice alerts are pre-recorded clips bundled with the plugin (7 personas generated with [Piper](https://github.com/rhasspy/piper); see [VOICE_CREDITS.md](VOICE_CREDITS.md)), so they work on any OS. Regenerate them with `scripts/generate_voice_clips.py` after changing a line.
 
 ## First-time setup (Windows, PowerShell)
 
@@ -77,3 +77,11 @@ The dev client can't log in through the Jagex Launcher directly, but it reuses a
 4. Close it and run `.\gradlew.bat runBrad`. The dev client picks up the credentials file automatically.
 
 `credentials.properties` is a live login session token. Never share or commit it. To revoke it, delete the file (and remove the client argument if you no longer need it); if it may have leaked, end your sessions from your Jagex account settings.
+
+## Monster data
+
+`src/main/resources/com/bradsmultitool/monsters.json` holds every monster's hitpoints, aggressiveness, defence stats, elemental weakness and attributes, pulled from the [OSRS Wiki](https://oldschool.runescape.wiki). The PvM HUD uses it for the HP bar, aggro line and weakness. A weakness is the style with the lowest effective defence roll. To refresh it after a game update (needs Python 3):
+
+```powershell
+python scripts/update_monster_data.py
+```

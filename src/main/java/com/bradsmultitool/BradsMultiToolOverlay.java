@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import javax.inject.Inject;
@@ -13,6 +14,8 @@ import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.TileObject;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -29,14 +32,18 @@ public class BradsMultiToolOverlay extends Overlay {
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
     private final ModelOutlineRenderer modelOutlineRenderer;
+    private final ItemManager itemManager;
+    private final SpriteManager spriteManager;
     private final PanelComponent panelComponent = new PanelComponent();
 
     @Inject
-    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer) {
+    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer, ItemManager itemManager, SpriteManager spriteManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.modelOutlineRenderer = modelOutlineRenderer;
+        this.itemManager = itemManager;
+        this.spriteManager = spriteManager;
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
@@ -82,19 +89,37 @@ public class BradsMultiToolOverlay extends Overlay {
             }
 
             if (config.showPvmWeakness()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Weakness:")
-                    .right(plugin.getPvmTargetWeakness())
-                    .rightColor(new Color(0, 220, 255))
-                    .build());
+                MonsterWeakness weakness = plugin.getPvmTargetWeakness();
+                panelComponent.getChildren().add(new IconLineComponent(
+                    "Weakness:",
+                    icon(weakness.type == MonsterWeakness.Type.MAGIC && weakness.element != null
+                        ? plugin.elementSpellIcon(weakness.element)
+                        : CombatIcons.forWeakness(weakness)),
+                    weakness.label(),
+                    weakness.type == MonsterWeakness.Type.UNKNOWN ? new Color(160, 160, 160) : new Color(0, 220, 255)));
+
+                if (weakness.hasSeparateElement()) {
+                    panelComponent.getChildren().add(new IconLineComponent(
+                        "Elemental:",
+                        icon(plugin.elementSpellIcon(weakness.element)),
+                        weakness.elementLabel(),
+                        new Color(0, 220, 255)));
+                }
+
+                if (weakness.note != null) {
+                    panelComponent.getChildren().add(LineComponent.builder()
+                        .left("Bane:")
+                        .right(weakness.note)
+                        .rightColor(new Color(200, 140, 255))
+                        .build());
+                }
             }
 
-            String fullCombatDisplay = "[" + plugin.getCombatDiscipline() + "] " + plugin.getCombatMethod();
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Combat Method:")
-                .right(fullCombatDisplay)
-                .rightColor(plugin.getCombatMethodColor())
-                .build());
+            panelComponent.getChildren().add(new IconLineComponent(
+                "Style:",
+                icon(plugin.getCombatMethodIcon()),
+                plugin.getCombatMethod(),
+                plugin.getCombatMethodColor()));
 
             if (config.showPvmDps()) {
                 String dpsLabel = "Encounter DPS:";
@@ -126,13 +151,6 @@ public class BradsMultiToolOverlay extends Overlay {
                     .build());
             }
 
-            if (config.showPvmKillTime()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Est Kill Time:")
-                    .right(plugin.getPvmKillTime())
-                    .build());
-            }
-
             if (config.enableBuffStatus()) {
                 Color buffColor = getBuffColor(plugin.getBuffState());
                 boolean isFlashingState = (plugin.getBuffState() == BradsMultiToolPlugin.BuffState.EXPIRED);
@@ -152,7 +170,7 @@ public class BradsMultiToolOverlay extends Overlay {
             if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Prayer:")
-                    .right("LOW - SIP RESTORE")
+                    .right("LOW")
                     .rightColor(new Color(255, 50, 50))
                     .build());
             }
@@ -254,7 +272,7 @@ public class BradsMultiToolOverlay extends Overlay {
             if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Prayer:")
-                    .right("LOW - SIP POTION")
+                    .right("LOW")
                     .rightColor(new Color(255, 50, 50))
                     .build());
             }
@@ -313,6 +331,93 @@ public class BradsMultiToolOverlay extends Overlay {
         }
         return client.getWidget(378, 87) != null 
             || client.getWidget(378, 0) != null;
+    }
+
+    private Image icon(CombatIcons.Icon icon) {
+        if (icon == null) {
+            return null;
+        }
+        return icon.sprite ? spriteManager.getSprite(icon.id, 0) : itemManager.getImage(icon.id);
+    }
+
+    /**
+     * A label on the left and an icon followed by coloured text on the right, sized like a LineComponent row.
+     */
+    private static class IconLineComponent implements LayoutableRenderableEntity {
+        private static final int ICON_SIZE = 16;
+        private static final int ICON_GAP = 3;
+        private static final int LABEL_GAP = 6;
+
+        private final String left;
+        private final Image icon;
+        private final String right;
+        private final Color rightColor;
+        private final Rectangle bounds = new Rectangle();
+
+        IconLineComponent(String left, Image icon, String right, Color rightColor) {
+            this.left = left;
+            this.icon = icon;
+            this.right = right;
+            this.rightColor = rightColor;
+        }
+
+        @Override
+        public Dimension render(Graphics2D graphics) {
+            FontMetrics fm = graphics.getFontMetrics();
+            int width = bounds.width > 0 ? bounds.width : 185;
+            int height = Math.max(ICON_SIZE, fm.getHeight());
+            int x = bounds.x;
+            int baseline = bounds.y + (height - fm.getHeight()) / 2 + fm.getAscent();
+
+            drawShadowed(graphics, left, x, baseline, Color.WHITE);
+
+            // Never let the right side run into the label: trim it with "..." if it doesn't fit
+            int available = width - fm.stringWidth(left) - LABEL_GAP - (icon != null ? ICON_SIZE + ICON_GAP : 0);
+            String text = fitText(right, fm, available);
+            int textX = x + width - fm.stringWidth(text);
+            drawShadowed(graphics, text, textX, baseline, rightColor);
+
+            if (icon != null) {
+                int iconX = textX - ICON_GAP - ICON_SIZE;
+                graphics.drawImage(icon, iconX, bounds.y, ICON_SIZE, ICON_SIZE, null);
+            }
+
+            return new Dimension(width, height);
+        }
+
+        private static String fitText(String text, FontMetrics fm, int maxWidth) {
+            if (fm.stringWidth(text) <= maxWidth) {
+                return text;
+            }
+            String ellipsis = "...";
+            int end = text.length();
+            while (end > 0 && fm.stringWidth(text.substring(0, end) + ellipsis) > maxWidth) {
+                end--;
+            }
+            return text.substring(0, end) + ellipsis;
+        }
+
+        private static void drawShadowed(Graphics2D graphics, String text, int x, int y, Color color) {
+            graphics.setColor(Color.BLACK);
+            graphics.drawString(text, x + 1, y + 1);
+            graphics.setColor(color);
+            graphics.drawString(text, x, y);
+        }
+
+        @Override
+        public void setPreferredLocation(java.awt.Point position) {
+            bounds.setLocation(position);
+        }
+
+        @Override
+        public void setPreferredSize(Dimension dimension) {
+            bounds.setSize(dimension);
+        }
+
+        @Override
+        public Rectangle getBounds() {
+            return bounds;
+        }
     }
 
     private static class CenteredHealthBarComponent implements LayoutableRenderableEntity {

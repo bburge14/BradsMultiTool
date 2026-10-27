@@ -1,5 +1,6 @@
 package com.bradsmultitool;
 
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -11,11 +12,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
@@ -28,7 +29,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.Hitsplat;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
-import net.runelite.api.ItemComposition;
+import net.runelite.api.MenuAction;
 import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
@@ -36,6 +37,7 @@ import net.runelite.api.Player;
 import net.runelite.api.Skill;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
@@ -43,6 +45,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GroundObjectDespawned;
 import net.runelite.api.events.GroundObjectSpawned;
 import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.StatChanged;
@@ -52,13 +55,13 @@ import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(
@@ -69,13 +72,22 @@ import net.runelite.client.ui.overlay.OverlayManager;
 public class BradsMultiToolPlugin extends Plugin {
 
     private static final String CONFIG_GROUP = "bradsmultitool";
+
     private static final int AGGRO_DURATION_SECONDS = 600;
 
     // Raw ids rather than the deprecated VarPlayer/Varbits/InventoryID constants
     private static final int VARP_ATTACK_STYLE = 43;
     private static final int VARBIT_EQUIPPED_WEAPON_TYPE = 357;
+    private static final int VARBIT_DEFENSIVE_CASTING = 2668;
+    private static final int VARBIT_AUTOCAST_SPELL = 276;
     private static final int CONTAINER_EQUIPMENT = 94;
+    // A manual cast stays the "active" style this long; casting repeats every 5 ticks
+    private static final int MANUAL_CAST_TIMEOUT_TICKS = 10;
     private static final int EQUIPMENT_WEAPON_SLOT = 3;
+
+    private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
+    private static final int GEMSTONE_CRAB_ID = 14779;
+    private static final int GEMSTONE_CRAB_SHELL_ID = 14780;
 
     // The client logs out after 15000 idle client cycles (20ms each = 5 minutes)
     private static final int IDLE_LOGOUT_SECONDS = 300;
@@ -89,6 +101,10 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private Client client;
+
+    @Inject
+    private Gson gson;
+
 
     @Inject
     private OverlayManager overlayManager;
@@ -116,9 +132,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private SkillIconManager skillIconManager;
-
-    @Inject
-    private ItemManager itemManager;
 
     private final VoiceAlertService voiceService = new VoiceAlertService();
     private NavigationButton navButton;
@@ -162,6 +175,14 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private Color combatMethodColor = new Color(255, 215, 0);
+
+    @Getter
+    private CombatIcons.Icon combatMethodIcon = null;
+
+    private final SpellbookReader spellbook = new SpellbookReader();
+    private String manualSpellName = null;
+    private int manualSpellSpriteId = -1;
+    private int manualCastTick = -1;
 
     @Getter
     private String targetCrabHp = "No Target";
@@ -213,16 +234,13 @@ public class BradsMultiToolPlugin extends Plugin {
     private double pvmLiveDps = 0.0;
 
     @Getter
-    private String pvmKillTime = "--:--";
-
-    @Getter
     private boolean pvmTargetIsAggressive = false;
 
     @Getter
     private String pvmAggroStatusText = "Passive";
 
     @Getter
-    private String pvmTargetWeakness = "None";
+    private MonsterWeakness pvmTargetWeakness = MonsterWeakness.UNKNOWN;
 
     @Getter
     private boolean pvmOverlayActive = false;
@@ -234,7 +252,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private Instant pvmFightStart = null;
     private int pvmEncounterDamage = 0;
-    private int pvmInitialRatio = -1;
     private boolean pvmFightEnded = false;
 
     private String currentTargetType = "";
@@ -243,7 +260,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private long sessionPvmActiveSeconds = 0;
     private Instant sessionCombatSecondMarker = null;
 
-    private final Map<String, Integer> knownMonsterMaxHp = new HashMap<>();
+    private final MonsterData monsterData = new MonsterData();
 
     // Buff state
     @Getter
@@ -277,7 +294,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Override
     protected void startUp() throws Exception {
-        populateKnownMonsterHp();
+        monsterData.load(gson);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
         overlayManager.add(idleWarningOverlay);
@@ -292,26 +309,6 @@ public class BradsMultiToolPlugin extends Plugin {
             .build();
 
         clientToolbar.addNavigation(navButton);
-    }
-
-    private void populateKnownMonsterHp() {
-        knownMonsterMaxHp.put("guard", 22);
-        knownMonsterMaxHp.put("gemstone crab", 100);
-        knownMonsterMaxHp.put("gem crab", 100);
-        knownMonsterMaxHp.put("rock crab", 50);
-        knownMonsterMaxHp.put("sand crab", 60);
-        knownMonsterMaxHp.put("ammonite crab", 100);
-        knownMonsterMaxHp.put("man", 7);
-        knownMonsterMaxHp.put("woman", 7);
-        knownMonsterMaxHp.put("goblin", 5);
-        knownMonsterMaxHp.put("skeleton", 25);
-        knownMonsterMaxHp.put("zombie", 30);
-        knownMonsterMaxHp.put("hill giant", 35);
-        knownMonsterMaxHp.put("moss giant", 60);
-        knownMonsterMaxHp.put("fire giant", 111);
-        knownMonsterMaxHp.put("lesser demon", 79);
-        knownMonsterMaxHp.put("greater demon", 87);
-        knownMonsterMaxHp.put("black demon", 157);
     }
 
     @Override
@@ -337,8 +334,14 @@ public class BradsMultiToolPlugin extends Plugin {
         resetFightTracking();
     }
 
-    public void testVoiceAlert() {
-        voiceService.speakAsync("Voice test online.", config.voiceGender());
+    // Plays a random real alert in the newly selected voice
+    private void previewVoice() {
+        VoiceAlertService.VoiceLine[] lines = VoiceAlertService.VoiceLine.values();
+        speak(lines[ThreadLocalRandom.current().nextInt(lines.length)]);
+    }
+
+    private void speak(VoiceAlertService.VoiceLine line) {
+        voiceService.speakAsync(line, config.voicePersona(), config.voiceVolume());
     }
 
     public String getPvmTargetHp() {
@@ -362,19 +365,23 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         switch (event.getKey()) {
+            case "voicePersona":
+            case "voiceVolume":
+                previewVoice();
+                break;
             case "voiceBuffExpired":
                 if (config.voiceBuffExpired()) {
-                    voiceService.speakAsync("Combat buff has expired. Re-pot!", config.voiceGender());
+                    speak(VoiceAlertService.VoiceLine.BUFF_EXPIRED);
                 }
                 break;
             case "voicePrayerLow":
                 if (config.voicePrayerLow()) {
-                    voiceService.speakAsync("Prayer points low.", config.voiceGender());
+                    speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
                 }
                 break;
             case "voiceCrabMoved":
                 if (config.voiceCrabMoved()) {
-                    voiceService.speakAsync("The crab has moved!", config.voiceGender());
+                    speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
                 }
                 break;
         }
@@ -532,9 +539,9 @@ public class BradsMultiToolPlugin extends Plugin {
             playerAttackingCrab = false;
             resetFightTracking();
 
-            if (inSpawnVicinity && wasDirectlyTrackingCrab) {
+            if (inSpawnVicinity && wasDirectlyTrackingCrab && isNearPlayer(npc, CRAB_BURROW_ALERT_DISTANCE)) {
                 if (config.voiceCrabMoved()) {
-                    voiceService.speakAsync("The crab has moved!", config.voiceGender());
+                    speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
                 }
                 sendGameChatMessage("<col=ff9900>The Gemstone Crab has relocated to another cave!</col>");
             }
@@ -547,43 +554,107 @@ public class BradsMultiToolPlugin extends Plugin {
             currentPvmTarget = null;
             pvmHpPercent = 0;
             pvmCurrentHp = 0;
-            pvmKillTime = "00:00";
             pvmFightEnded = true;
             lastPvmCombatActivity = Instant.now();
         }
     }
 
-    private void evaluateNpc(NPC npc) {
-        if (npc == null || npc.getName() == null) return;
-        String name = npc.getName().toLowerCase();
+    // NPCs also despawn when they leave the player's view (~15 tiles), so only a despawn
+    // well inside that range is the crab actually burrowing rather than the player walking away.
+    private boolean isNearPlayer(NPC npc, int maxDistance) {
+        Player player = client.getLocalPlayer();
+        if (player == null || npc.getWorldLocation() == null) {
+            return false;
+        }
+        WorldPoint playerLocation = player.getWorldLocation();
+        return playerLocation != null && playerLocation.distanceTo(npc.getWorldLocation()) <= maxDistance;
+    }
 
-        if (name.contains("gemstone crab") || name.contains("gem crab")) {
-            boolean isMineableShell = false;
-            NPCComposition comp = npc.getTransformedComposition();
-            if (comp == null) comp = npc.getComposition();
-            if (comp != null && comp.getActions() != null) {
-                for (String a : comp.getActions()) {
-                    if (a != null && a.equalsIgnoreCase("Mine")) {
-                        isMineableShell = true;
-                        break;
-                    }
+    private enum CrabForm {
+        NONE,
+        ACTIVE,
+        SHELL
+    }
+
+    private CrabForm classifyCrab(NPC npc) {
+        if (npc == null) {
+            return CrabForm.NONE;
+        }
+        if (npc.getId() == GEMSTONE_CRAB_ID) {
+            return CrabForm.ACTIVE;
+        }
+        if (npc.getId() == GEMSTONE_CRAB_SHELL_ID) {
+            return CrabForm.SHELL;
+        }
+
+        // Fallback in case the ids change: match the name and tell the shell apart by its "Mine" option
+        NPCComposition comp = npc.getTransformedComposition();
+        if (comp == null) {
+            comp = npc.getComposition();
+        }
+        String name = comp != null && comp.getName() != null ? comp.getName() : npc.getName();
+        if (name == null) {
+            return CrabForm.NONE;
+        }
+        name = name.toLowerCase();
+        if (!name.contains("gemstone crab") && !name.contains("gem crab")) {
+            return CrabForm.NONE;
+        }
+        if (comp != null && comp.getActions() != null) {
+            for (String action : comp.getActions()) {
+                if ("Mine".equalsIgnoreCase(action)) {
+                    return CrabForm.SHELL;
                 }
             }
+        }
+        return CrabForm.ACTIVE;
+    }
 
-            if (!isMineableShell) {
-                if (activeCrab != npc) {
-                    resetFightTracking();
-                }
-                activeCrab = npc;
-                wasDirectlyTrackingCrab = true;
-                dormantCrabShellNpc = null;
-            } else {
+    private void evaluateNpc(NPC npc) {
+        switch (classifyCrab(npc)) {
+            case ACTIVE:
+                setActiveCrab(npc);
+                break;
+            case SHELL:
                 dormantCrabShellNpc = npc;
                 if (activeCrab == npc) {
                     activeCrab = null;
                     resetFightTracking();
                 }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void setActiveCrab(NPC npc) {
+        if (activeCrab != npc) {
+            log.debug("Gemstone Crab detected: id={} at {}", npc.getId(), npc.getWorldLocation());
+            resetFightTracking();
+        }
+        activeCrab = npc;
+        wasDirectlyTrackingCrab = true;
+        dormantCrabShellNpc = null;
+    }
+
+    // Spawn events can be missed (e.g. arriving through a cave reloads the scene and clears tracking),
+    // so re-check the NPCs around the player every tick.
+    private void scanForCrab() {
+        NPC crab = null;
+        NPC shell = null;
+        for (NPC npc : client.getTopLevelWorldView().npcs()) {
+            CrabForm form = classifyCrab(npc);
+            if (form == CrabForm.ACTIVE && !npc.isDead()) {
+                crab = npc;
+            } else if (form == CrabForm.SHELL) {
+                shell = npc;
             }
+        }
+
+        if (crab != null) {
+            setActiveCrab(crab);
+        } else if (shell != null) {
+            dormantCrabShellNpc = shell;
         }
     }
 
@@ -683,6 +754,7 @@ public class BradsMultiToolPlugin extends Plugin {
         Player player = client.getLocalPlayer();
         if (player != null) {
             WorldPoint wp = player.getWorldLocation();
+            scanForCrab();
             updateSpatialPresence(player, wp);
             updateTargetCrabStatus(player);
             updateGeneralPvmTarget(player);
@@ -793,26 +865,26 @@ public class BradsMultiToolPlugin extends Plugin {
         } else if (currentMax == 0) {
             if (buffState == BuffState.ACTIVE) {
                 buffState = BuffState.EXPIRED;
-                buffStatusText = "EXPIRED (Re-pot)";
+                buffStatusText = "EXPIRED";
 
                 boolean canSound = false;
                 if (timesBuffExpiredSounded == 0) {
                     timesBuffExpiredSounded = 1;
                     lastBuffExpiredSoundTime = Instant.now();
                     canSound = true;
-                    sendGameChatMessage("<col=ff0000>Alert: Combat potion buff has expired! Re-pot now.</col>");
+                    sendGameChatMessage("<col=ff0000>Your combat buff has run out.</col>");
                 } else if (config.repeatBuffAlert()) {
                     long delay = Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds();
                     if (delay >= config.repeatBuffInterval() && timesBuffExpiredSounded < config.maxBuffRepeats()) {
                         timesBuffExpiredSounded++;
                         lastBuffExpiredSoundTime = Instant.now();
                         canSound = true;
-                        sendGameChatMessage("<col=ff0000>Reminder: Combat potion buff is still expired! Re-pot.</col>");
+                        sendGameChatMessage("<col=ff0000>Your combat buff is still out.</col>");
                     }
                 }
 
                 if (canSound && config.voiceBuffExpired()) {
-                    voiceService.speakAsync("Combat buff has expired. Re-pot!", config.voiceGender());
+                    speak(VoiceAlertService.VoiceLine.BUFF_EXPIRED);
                 }
             } else if (buffState == BuffState.UNPOTTED) {
                 buffStatusText = "No Buffs";
@@ -829,7 +901,7 @@ public class BradsMultiToolPlugin extends Plugin {
             zeroPrayerAlert = true;
             lowPrayerAlert = false;
             if (config.voicePrayerLow()) {
-                voiceService.speakAsync("Out of prayer points!", config.voiceGender());
+                speak(VoiceAlertService.VoiceLine.OUT_OF_PRAYER);
             }
             sendGameChatMessage("<col=ff0000>Alert: Out of prayer points!</col>");
             return;
@@ -856,7 +928,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
             if (canSound) {
                 if (config.voicePrayerLow()) {
-                    voiceService.speakAsync("Prayer points low.", config.voiceGender());
+                    speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
                 }
                 sendGameChatMessage("<col=ff3333>Warning: Prayer points low (" + currentPrayer + " remaining)!</col>");
             }
@@ -886,10 +958,9 @@ public class BradsMultiToolPlugin extends Plugin {
         Actor target = player.getInteracting();
 
         NPC attackingNpc = null;
-        for (NPC npc : client.getNpcs()) {
+        for (NPC npc : client.getTopLevelWorldView().npcs()) {
             if (npc != null && npc.getInteracting() == player && !npc.isDead()) {
-                String name = npc.getName() != null ? npc.getName().toLowerCase() : "";
-                if (!name.contains("gemstone crab") && !name.contains("gem crab") && hasAttackOption(npc)) {
+                if (classifyCrab(npc) == CrabForm.NONE && hasAttackOption(npc)) {
                     attackingNpc = npc;
                     break;
                 }
@@ -905,9 +976,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
         if (activeFightNpc != null) {
             String name = activeFightNpc.getName() != null ? activeFightNpc.getName() : "Monster";
-            String lowerName = name.toLowerCase();
-
-            if (lowerName.contains("gemstone crab") || lowerName.contains("gem crab")) {
+            if (classifyCrab(activeFightNpc) != CrabForm.NONE) {
                 currentPvmTarget = null;
                 pvmOverlayActive = false;
                 return;
@@ -920,12 +989,12 @@ public class BradsMultiToolPlugin extends Plugin {
                 currentPvmTarget = activeFightNpc;
                 lastPvmTargetName = name;
                 lastPvmCombatLevel = activeFightNpc.getCombatLevel();
-                pvmInitialRatio = activeFightNpc.getHealthRatio();
                 pvmFightEnded = false;
                 resolveNpcWeaknessAndAggression(activeFightNpc);
 
-                int baseHp = knownMonsterMaxHp.getOrDefault(lowerName, 0);
-                if (baseHp == 0) {
+                MonsterData.Stats stats = monsterData.get(activeFightNpc.getId());
+                int baseHp = stats != null ? stats.hitpoints : 0;
+                if (baseHp <= 0) {
                     baseHp = Math.max(10, activeFightNpc.getCombatLevel() * 2);
                 }
                 pvmMaxHp = baseHp;
@@ -976,23 +1045,8 @@ public class BradsMultiToolPlugin extends Plugin {
                     pvmLiveDps = (double) pvmEncounterDamage / elapsed;
                 }
             }
-
-            if (pvmFightStart != null && pvmInitialRatio > 0 && ratio > 0) {
-                long elapsed = Duration.between(pvmFightStart, Instant.now()).getSeconds();
-                if (elapsed >= 2) {
-                    int lost = pvmInitialRatio - ratio;
-                    if (lost > 0) {
-                        double burnRate = (double) lost / elapsed;
-                        int secLeft = (int) Math.ceil(ratio / burnRate);
-                        pvmKillTime = String.format("%02d:%02d", secLeft / 60, secLeft % 60);
-                    } else {
-                        pvmKillTime = "--:--";
-                    }
-                }
-            }
         } else {
             currentPvmTarget = null;
-            pvmKillTime = "--:--";
             sessionCombatSecondMarker = null;
 
             long lingerDuration = config.pvmLingerSeconds();
@@ -1010,7 +1064,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private void resolveNpcWeaknessAndAggression(NPC npc) {
         if (npc == null || npc.getName() == null) {
-            pvmTargetWeakness = "None";
+            pvmTargetWeakness = MonsterWeakness.UNKNOWN;
             pvmTargetIsAggressive = false;
             return;
         }
@@ -1029,133 +1083,122 @@ public class BradsMultiToolPlugin extends Plugin {
                 aggressive = (local.getCombatLevel() <= (npc.getCombatLevel() * 2 + 1));
             }
         }
-        pvmTargetIsAggressive = aggressive;
-
-        if (n.contains("demon") || n.contains("nechryael") || n.contains("cerberus") || n.contains("skotizo") || n.contains("kril")) {
-            pvmTargetWeakness = "Demonbane / Slash";
-            return;
+        MonsterData.Stats stats = monsterData.get(npc.getId());
+        if (stats != null) {
+            pvmTargetIsAggressive = stats.aggressive;
+            pvmTargetWeakness = MonsterData.weaknessOf(stats);
+        } else {
+            pvmTargetIsAggressive = aggressive;
+            pvmTargetWeakness = MonsterWeakness.fromName(npc.getName());
         }
-        if (n.contains("dragon") || n.contains("wyvern") || n.contains("drake") || n.contains("vorkath")) {
-            pvmTargetWeakness = "Dragonbane / Stab";
-            return;
-        }
-        if (n.contains("zombie") || n.contains("skeleton") || n.contains("ghost") || n.contains("ankou") || n.contains("vet'ion")) {
-            pvmTargetWeakness = "Undead / Crush";
-            return;
-        }
-        if (n.contains("vampyre") || n.contains("vyre")) {
-            pvmTargetWeakness = "Blisterwood / Silver";
-            return;
-        }
-        if (n.contains("kalphite") || n.contains("scarab")) {
-            pvmTargetWeakness = "Kerapac / Crush";
-            return;
-        }
-        if (n.contains("kurask") || n.contains("turoth")) {
-            pvmTargetWeakness = "Leaf-Bladed Weapon";
-            return;
-        }
-        if (n.contains("gargoyle") || n.contains("golem")) {
-            pvmTargetWeakness = "Crush (Rock Hammer)";
-            return;
-        }
-        if (n.contains("ice") || n.contains("fire giant") || n.contains("moss giant")) {
-            pvmTargetWeakness = "Slash / Fire Magic";
-            return;
-        }
-
-        pvmTargetWeakness = "Standard (Slash/Stab)";
     }
 
     public void updateRealtimeCombatMethod() {
-        int attackStyleVarp = client.getVarpValue(VARP_ATTACK_STYLE);
-        int weaponTypeVarbit = client.getVarbitValue(VARBIT_EQUIPPED_WEAPON_TYPE);
+        WeaponStyles.Style style = WeaponStyles.resolve(
+            client.getVarbitValue(VARBIT_EQUIPPED_WEAPON_TYPE),
+            client.getVarpValue(VARP_ATTACK_STYLE),
+            client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1,
+            client.getVarbitValue(VARBIT_AUTOCAST_SPELL));
 
-        ItemContainer equipContainer = client.getItemContainer(CONTAINER_EQUIPMENT);
-        String weaponName = "";
-        if (equipContainer != null) {
-            Item weaponItem = equipContainer.getItem(EQUIPMENT_WEAPON_SLOT);
-            if (weaponItem != null) {
-                ItemComposition def = itemManager.getItemComposition(weaponItem.getId());
-                if (def != null && def.getName() != null) {
-                    weaponName = def.getName().toLowerCase();
-                }
+        int weaponId = equippedWeaponId();
+        if (weaponId > 0) {
+            style = WeaponStyles.withEquippedWeapon(style, client.getItemDefinition(weaponId).getName());
+        }
+
+        spellbook.refresh(client);
+
+        // Which spell is being cast: a recent hand cast wins, then the combat tab's autocast slot
+        String spellName = null;
+        int fallbackSprite = -1;
+        if (manualSpellName != null && client.getTickCount() - manualCastTick <= MANUAL_CAST_TIMEOUT_TICKS) {
+            spellName = manualSpellName;
+            fallbackSprite = manualSpellSpriteId;
+            style = WeaponStyles.manualCast(spellName);
+        } else if ("Spell Cast".equals(style.buttonName) || "Defensive Cast".equals(style.buttonName)) {
+            boolean defensive = "Defensive Cast".equals(style.buttonName);
+            spellName = spellbook.autocastSpell(client, defensive);
+            if (spellName != null) {
+                style = WeaponStyles.spellStyle(spellName, defensive);
             }
         }
 
-        String discipline = "Melee";
-        String style = "Slash";
+        combatDiscipline = style.discipline;
+        combatMethod = style.label();
 
-        // Query weapon category via type varbit
-        switch (weaponTypeVarbit) {
-            case 3: // Bows
-            case 5: // Crossbows
-            case 7: // Thrown
-            case 19: // Chinchompas
-                discipline = "Ranged";
-                switch (attackStyleVarp) {
-                    case 0: style = "Accurate"; break;
-                    case 1: style = "Rapid"; break;
-                    case 2: style = "Longrange"; break;
-                    default: style = "Ranged"; break;
-                }
-                break;
-            case 18: // Powered staves (Trident, Sanguinesti)
-            case 21: // Standard magic staves
-                discipline = "Magic";
-                style = (attackStyleVarp == 3) ? "Defensive Cast" : "Spell Cast";
-                break;
-            default:
-                discipline = "Melee";
-                // Inspect specific melee weapon classifications
-                if (weaponName.contains("scythe") || weaponName.contains("axe") || weaponName.contains("scimitar") || weaponName.contains("blade") || weaponName.contains("sword") || weaponName.contains("whip")) {
-                    switch (attackStyleVarp) {
-                        case 0: style = weaponName.contains("whip") ? "Flick" : "Chop (Slash)"; break;
-                        case 1: style = "Slash"; break;
-                        case 2: style = "Lunge (Stab)"; break;
-                        case 3: style = "Block"; break;
-                        default: style = "Slash"; break;
-                    }
-                } else if (weaponName.contains("spear") || weaponName.contains("hasta") || weaponName.contains("dagger") || weaponName.contains("rapier") || weaponName.contains("fang")) {
-                    switch (attackStyleVarp) {
-                        case 0: style = "Stab"; break;
-                        case 1: style = "Lunge (Stab)"; break;
-                        case 2: style = "Slash"; break;
-                        case 3: style = "Block"; break;
-                        default: style = "Stab"; break;
-                    }
-                } else if (weaponName.contains("mace") || weaponName.contains("warhammer") || weaponName.contains("maul") || weaponName.contains("flail") || weaponName.contains("club")) {
-                    switch (attackStyleVarp) {
-                        case 0: style = "Pound (Crush)"; break;
-                        case 1: style = "Pummel (Crush)"; break;
-                        case 2: style = "Block"; break;
-                        default: style = "Crush"; break;
-                    }
-                } else {
-                    switch (attackStyleVarp) {
-                        case 0: style = "Stab"; break;
-                        case 1: style = "Slash"; break;
-                        case 2: style = "Crush"; break;
-                        default: style = "Slash"; break;
-                    }
-                }
-                break;
+        int spellSprite = spellName != null ? spellbook.spriteFor(spellName) : -1;
+        if (spellSprite <= 0) {
+            spellSprite = fallbackSprite;
+        }
+        combatMethodIcon = spellSprite > 0 ? CombatIcons.sprite(spellSprite) : CombatIcons.forStyle(style, weaponId);
+
+        combatMethodColor = weaknessMatchColor(style);
+    }
+
+    // Spells cast by hand (not autocast) override the weapon's style for a few ticks after each cast
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (event.getMenuAction() != MenuAction.WIDGET_TARGET_ON_NPC || !"Cast".equals(event.getMenuOption())) {
+            return;
         }
 
-        combatDiscipline = discipline;
-        combatMethod = style;
-
-        String weakness = pvmTargetWeakness.toLowerCase();
-        String styleLower = style.toLowerCase();
-        String discLower = discipline.toLowerCase();
-
-        if (weakness.contains(styleLower) || weakness.contains(discLower)) {
-            combatMethodColor = new Color(50, 230, 50);
-        } else if (weakness.contains("standard") || weakness.equals("none")) {
-            combatMethodColor = new Color(255, 215, 0);
-        } else {
-            combatMethodColor = new Color(255, 75, 75);
+        String target = Text.removeTags(event.getMenuTarget());
+        int arrow = target.indexOf("->");
+        String spell = (arrow >= 0 ? target.substring(0, arrow) : target).trim();
+        if (spell.isEmpty()) {
+            return;
         }
+
+        Widget selectedSpell = client.getSelectedWidget();
+        manualSpellName = spell;
+        manualSpellSpriteId = selectedSpell != null ? selectedSpell.getSpriteId() : -1;
+        manualCastTick = client.getTickCount();
+    }
+
+    /** Spellbook icon of the Strike spell for an element, as shown in the player's own spellbook. */
+    public CombatIcons.Icon elementSpellIcon(MonsterWeakness.Element element) {
+        int sprite = spellbook.spriteFor(WeaponStyles.spellName(element, "Strike"));
+        return sprite > 0 ? CombatIcons.sprite(sprite) : CombatIcons.spell(element, null);
+    }
+
+    private int equippedWeaponId() {
+        ItemContainer equipment = client.getItemContainer(CONTAINER_EQUIPMENT);
+        if (equipment == null) {
+            return -1;
+        }
+        Item weapon = equipment.getItem(EQUIPMENT_WEAPON_SLOT);
+        return weapon != null ? weapon.getId() : -1;
+    }
+
+    // Green = your style hits the weakness, red = it doesn't, yellow = can't tell
+    // (weakness unknown, or the ammo type / spell element couldn't be detected).
+    private Color weaknessMatchColor(WeaponStyles.Style style) {
+        Color match = new Color(50, 230, 50);
+        Color mismatch = new Color(255, 75, 75);
+        Color unsure = new Color(255, 215, 0);
+
+        MonsterWeakness weakness = pvmTargetWeakness;
+        if (weakness.type == MonsterWeakness.Type.UNKNOWN) {
+            return unsure;
+        }
+        if (weakness.type != style.type()) {
+            return mismatch;
+        }
+        if (weakness.type == MonsterWeakness.Type.MAGIC) {
+            if (weakness.element == null) {
+                return match;
+            }
+            if (style.element == null) {
+                return unsure;
+            }
+            return weakness.element == style.element ? match : mismatch;
+        }
+        if (weakness.subType == null) {
+            return match;
+        }
+        if (style.damageType == null) {
+            return unsure;
+        }
+        return weakness.subType.equalsIgnoreCase(style.damageType) ? match : mismatch;
     }
 
     private void updateSpatialPresence(Player player, WorldPoint wp) {
@@ -1221,8 +1264,7 @@ public class BradsMultiToolPlugin extends Plugin {
         if (hitsplat.isMine()) {
             int dmg = hitsplat.getAmount();
 
-            String n = npc.getName() != null ? npc.getName().toLowerCase() : "";
-            if (npc == activeCrab || n.contains("gemstone crab") || n.contains("gem crab")) {
+            if (npc == activeCrab || classifyCrab(npc) == CrabForm.ACTIVE) {
                 activeCrab = npc;
                 playerAttackingCrab = true;
                 wasDirectlyTrackingCrab = true;
@@ -1380,8 +1422,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
         if (target instanceof NPC) {
             NPC targetNpc = (NPC) target;
-            String name = targetNpc.getName() != null ? targetNpc.getName().toLowerCase() : "";
-            if (name.contains("gemstone crab") || name.contains("gem crab")) {
+            if (classifyCrab(targetNpc) == CrabForm.ACTIVE) {
                 interactingWithCrab = true;
                 activeCrab = targetNpc;
             }
