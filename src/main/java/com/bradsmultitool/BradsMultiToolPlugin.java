@@ -72,6 +72,8 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int VARBIT_EQUIPPED_WEAPON_TYPE = 357;
     private static final int VARBIT_DEFENSIVE_CASTING = 2668;
 
+    private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
+
     // The client logs out after 15000 idle client cycles (20ms each = 5 minutes)
     private static final int IDLE_LOGOUT_SECONDS = 300;
     private static final int IDLE_WARNING_SECONDS = 270;
@@ -528,7 +530,7 @@ public class BradsMultiToolPlugin extends Plugin {
             playerAttackingCrab = false;
             resetFightTracking();
 
-            if (inSpawnVicinity && wasDirectlyTrackingCrab) {
+            if (inSpawnVicinity && wasDirectlyTrackingCrab && isNearPlayer(npc, CRAB_BURROW_ALERT_DISTANCE)) {
                 if (config.voiceCrabMoved()) {
                     voiceService.speakAsync("The crab has moved!", config.voiceGender());
                 }
@@ -547,6 +549,17 @@ public class BradsMultiToolPlugin extends Plugin {
             pvmFightEnded = true;
             lastPvmCombatActivity = Instant.now();
         }
+    }
+
+    // NPCs also despawn when they leave the player's view (~15 tiles), so only a despawn
+    // well inside that range is the crab actually burrowing rather than the player walking away.
+    private boolean isNearPlayer(NPC npc, int maxDistance) {
+        Player player = client.getLocalPlayer();
+        if (player == null || npc.getWorldLocation() == null) {
+            return false;
+        }
+        WorldPoint playerLocation = player.getWorldLocation();
+        return playerLocation != null && playerLocation.distanceTo(npc.getWorldLocation()) <= maxDistance;
     }
 
     private void evaluateNpc(NPC npc) {
