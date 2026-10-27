@@ -1,0 +1,80 @@
+package com.bradsmultitool;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import javax.inject.Inject;
+import net.runelite.api.Client;
+import net.runelite.api.GameState;
+import net.runelite.api.Perspective;
+import net.runelite.api.Player;
+import net.runelite.api.Point;
+import net.runelite.api.coords.LocalPoint;
+import net.runelite.client.ui.FontManager;
+import net.runelite.client.ui.overlay.Overlay;
+import net.runelite.client.ui.overlay.OverlayLayer;
+import net.runelite.client.ui.overlay.OverlayPosition;
+
+public class BradsMultiToolPrayerOverlay extends Overlay {
+
+    private final Client client;
+    private final BradsMultiToolPlugin plugin;
+    private final BradsMultiToolConfig config;
+
+    @Inject
+    public BradsMultiToolPrayerOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config) {
+        this.client = client;
+        this.plugin = plugin;
+        this.config = config;
+        setPosition(OverlayPosition.DYNAMIC);
+        setLayer(OverlayLayer.ALWAYS_ON_TOP);
+        setPriority(PRIORITY_HIGH);
+    }
+
+    @Override
+    public Dimension render(Graphics2D graphics) {
+        if (client.getGameState() != GameState.LOGGED_IN || !config.flashOutOfPrayerOverhead() || !plugin.isZeroPrayerAlert()) {
+            return null;
+        }
+
+        Player player = client.getLocalPlayer();
+        if (player == null) return null;
+
+        if ((System.currentTimeMillis() / 300) % 2 == 0) {
+            return null;
+        }
+
+        LocalPoint lp = player.getLocalLocation();
+        if (lp == null) return null;
+
+        Point p = Perspective.getCanvasTextLocation(client, graphics, lp, "OUT OF PRAYER", player.getLogicalHeight() + 35);
+        if (p == null) return null;
+
+        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        Font boldFont = FontManager.getRunescapeBoldFont();
+        graphics.setFont(boldFont);
+        FontMetrics fm = graphics.getFontMetrics(boldFont);
+        int textWidth = fm.stringWidth("OUT OF PRAYER");
+
+        int boxWidth = textWidth + 16;
+        int boxHeight = fm.getAscent() + fm.getDescent() + 6;
+        int boxX = p.getX() - 8;
+        int boxY = p.getY() - fm.getAscent() - 3;
+
+        graphics.setColor(new Color(0, 0, 0, 225));
+        graphics.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 6, 6);
+
+        graphics.setColor(new Color(255, 30, 30));
+        graphics.setStroke(new BasicStroke(1.5f));
+        graphics.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 6, 6);
+
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("OUT OF PRAYER", p.getX(), p.getY());
+
+        return null;
+    }
+}
