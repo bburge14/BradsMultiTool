@@ -32,6 +32,7 @@ public class BuffTimerTest {
     public void formatsTicksAsMinutesAndSeconds() {
         assertEquals("16:00", BuffTimer.format(1600));
         assertEquals("0:36", BuffTimer.format(60));
-        assertEquals("0:01", BuffTimer.format(1));
+        assertEquals("0:00", BuffTimer.format(1));
+        assertEquals("4:04", BuffTimer.formatMillis(244_999));
     }
 }

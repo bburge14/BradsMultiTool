@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.client.Notifier;
@@ -99,6 +101,7 @@ public class BradsMultiToolPlugin extends Plugin {
         EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC);
     // Divine potion time left in game ticks (VarbitID.DIVINEATTACK/STRENGTH/DEFENCE/RANGE/MAGIC_POTION_TIME)
     private static final int[] DIVINE_POTION_TIME_VARBITS = {8429, 8430, 8431, 8432, 8433};
+    private static final Skill[] DIVINE_POTION_SKILLS = {Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC};
 
     public enum BuffState {
         UNPOTTED,
@@ -300,11 +303,12 @@ public class BradsMultiToolPlugin extends Plugin {
     private BuffState buffState = BuffState.UNPOTTED;
 
     private String buffStatusText = "No Buffs";
-    // Boost size and time left as of the last game tick; the HUD counts down between ticks
-    private int buffBoost = 0;
-    private int buffTicksRemaining = 0;
-    private boolean buffTimeExact = false;
-    private boolean buffLowAlerted = false;
+    /** Buffs active as of the last game tick, each with its own end time (see ActiveBuffs). */
+    @Getter
+    private List<ActiveBuffs.Buff> activeBuffs = Collections.emptyList();
+    private final Map<Skill, Long> divineEndMillis = new EnumMap<>(Skill.class);
+    // Buff name -> boost when its running-out warning played; a bigger boost (re-pot) re-arms it
+    private final Map<String, Integer> buffWarnedAtBoost = new HashMap<>();
     private long lastTickMillis = 0;
 
     private int previousMaxBoost = 0;
@@ -580,6 +584,7 @@ public class BradsMultiToolPlugin extends Plugin {
         if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
             buffTimer.reset();
             lastBoostedLevels.clear();
+            divineEndMillis.clear();
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
             characterWasActive = false;
@@ -1020,25 +1025,23 @@ public class BradsMultiToolPlugin extends Plugin {
             return;
         }
 
-        int atkBoost = Math.max(0, client.getBoostedSkillLevel(Skill.ATTACK) - client.getRealSkillLevel(Skill.ATTACK));
-        int strBoost = Math.max(0, client.getBoostedSkillLevel(Skill.STRENGTH) - client.getRealSkillLevel(Skill.STRENGTH));
-        int defBoost = Math.max(0, client.getBoostedSkillLevel(Skill.DEFENCE) - client.getRealSkillLevel(Skill.DEFENCE));
-        int rngBoost = Math.max(0, client.getBoostedSkillLevel(Skill.RANGED) - client.getRealSkillLevel(Skill.RANGED));
-        int magBoost = Math.max(0, client.getBoostedSkillLevel(Skill.MAGIC) - client.getRealSkillLevel(Skill.MAGIC));
-
-        int currentMax = Math.max(atkBoost, Math.max(strBoost, Math.max(defBoost, Math.max(rngBoost, magBoost))));
+        Map<Skill, Integer> boosts = new EnumMap<>(Skill.class);
+        for (Skill skill : BOOSTABLE_COMBAT_SKILLS) {
+            boosts.put(skill, Math.max(0, client.getBoostedSkillLevel(skill) - client.getRealSkillLevel(skill)));
+        }
+        int currentMax = Collections.max(boosts.values());
 
         if (currentMax >= 4 || (currentMax > 0 && buffState == BuffState.ACTIVE)) {
             buffState = BuffState.ACTIVE;
-            if (currentMax > previousMaxBoost) {
-                buffLowAlerted = false;
-            }
-            buffBoost = currentMax;
-            updateBuffTime(currentMax);
+            syncDivineTimers();
+            boolean preserve = client.getVarbitValue(Prayer.PRESERVE.getVarbit()) == 1;
+            activeBuffs = ActiveBuffs.detect(boosts, divineEndMillis, buffTimer, client.getTickCount(), lastTickMillis, preserve);
             buffStatusText = "ACTIVE";
             timesBuffExpiredSounded = 0;
             checkBuffRunningOut();
         } else if (currentMax == 0) {
+            activeBuffs = Collections.emptyList();
+            buffWarnedAtBoost.clear();
             if (buffState == BuffState.ACTIVE) {
                 buffState = BuffState.EXPIRED;
                 buffStatusText = "EXPIRED";
@@ -1073,42 +1076,59 @@ public class BradsMultiToolPlugin extends Plugin {
      * Time left on the boost: exact for divine potions (the game counts it down), exact for regular
      * potions once a stat drop has been seen, and "~" plus an upper bound before that.
      */
-    private void updateBuffTime(int boost) {
-        int divineTicks = 0;
-        for (int varbit : DIVINE_POTION_TIME_VARBITS) {
-            divineTicks = Math.max(divineTicks, client.getVarbitValue(varbit));
+    // Catch divine potions already running when the plugin starts; changes arrive via onVarbitChanged
+    private void syncDivineTimers() {
+        Skill[] skills = DIVINE_POTION_SKILLS;
+        for (int i = 0; i < skills.length; i++) {
+            int ticks = client.getVarbitValue(DIVINE_POTION_TIME_VARBITS[i]);
+            if (ticks <= 0) {
+                divineEndMillis.remove(skills[i]);
+            } else {
+                divineEndMillis.putIfAbsent(skills[i], System.currentTimeMillis() + ticks * 600L);
+            }
         }
-        if (divineTicks > 0) {
-            // A divine potion's boost ends outright when its timer does
-            buffTicksRemaining = divineTicks;
-            buffTimeExact = true;
-            return;
-        }
-        boolean preserve = client.getVarbitValue(Prayer.PRESERVE.getVarbit()) == 1;
-        buffTicksRemaining = buffTimer.ticksRemaining(client.getTickCount(), boost, preserve);
-        buffTimeExact = buffTimer.isSynced();
     }
 
-    // Warn once per potion dose, only when the time left is exact
+    // Like RuneLite's Timers plugin: start the countdown when the game sets the divine timer
+    @Subscribe
+    public void onVarbitChanged(VarbitChanged event) {
+        for (int i = 0; i < DIVINE_POTION_TIME_VARBITS.length; i++) {
+            if (event.getVarbitId() == DIVINE_POTION_TIME_VARBITS[i]) {
+                if (event.getValue() > 0) {
+                    divineEndMillis.put(DIVINE_POTION_SKILLS[i], System.currentTimeMillis() + event.getValue() * 600L);
+                } else {
+                    divineEndMillis.remove(DIVINE_POTION_SKILLS[i]);
+                }
+            }
+        }
+    }
+
+    // Warn once per dose for each buff, only when its time left is exact
     private void checkBuffRunningOut() {
         int warnSeconds = config.buffWarningSeconds();
-        if (warnSeconds <= 0 || buffLowAlerted || !buffTimeExact || buffTicksRemaining * 0.6 > warnSeconds) {
-            return;
+        long now = System.currentTimeMillis();
+        for (ActiveBuffs.Buff buff : activeBuffs) {
+            Integer warnedAt = buffWarnedAtBoost.get(buff.name);
+            if (warnedAt != null && buff.boost <= warnedAt) {
+                continue;
+            }
+            if (warnSeconds <= 0 || !buff.exact || buff.millisLeft(now) > warnSeconds * 1000L) {
+                if (warnedAt != null) {
+                    buffWarnedAtBoost.remove(buff.name);
+                }
+                continue;
+            }
+            buffWarnedAtBoost.put(buff.name, buff.boost);
+            if (config.voiceBuffLow()) {
+                speak(VoiceAlertService.VoiceLine.BUFF_LOW);
+            }
+            sendGameChatMessage("Your " + buff.name + " buff runs out in " + BuffTimer.formatMillis(buff.millisLeft(now)) + ".");
         }
-        buffLowAlerted = true;
-        if (config.voiceBuffLow()) {
-            speak(VoiceAlertService.VoiceLine.BUFF_LOW);
-        }
-        sendGameChatMessage("Your combat buff runs out in " + BuffTimer.format(buffTicksRemaining) + ".");
     }
 
-    /** e.g. "ACTIVE (+16) 15:22", counting down smoothly between game ticks. */
+    /** Text for the Buff Status line when no buff rows are shown ("No Buffs", "EXPIRED", ...). */
     public String getBuffStatusText() {
-        if (buffState != BuffState.ACTIVE) {
-            return buffStatusText;
-        }
-        long millis = buffTicksRemaining * 600L - (System.currentTimeMillis() - lastTickMillis);
-        return "ACTIVE (+" + buffBoost + ") " + (buffTimeExact ? "" : "~") + BuffTimer.formatMillis(millis);
+        return buffStatusText;
     }
 
     private void monitorHealth() {

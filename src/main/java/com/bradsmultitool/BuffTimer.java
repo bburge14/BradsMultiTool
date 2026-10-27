@@ -47,9 +47,9 @@ final class BuffTimer {
         return formatMillis(ticks * 600L);
     }
 
-    /** Milliseconds as m:ss, rounding up so it reads 0:00 only when time is up. */
+    /** Milliseconds as m:ss, rounding down like RuneLite's own timers. */
     static String formatMillis(long millis) {
-        int seconds = (int) Math.ceil(Math.max(0, millis) / 1000.0);
+        int seconds = (int) (Math.max(0, millis) / 1000);
         return String.format("%d:%02d", seconds / 60, seconds % 60);
     }
 }

@@ -161,19 +161,7 @@ public class BradsMultiToolOverlay extends Overlay {
             }
 
             if (config.enableBuffStatus()) {
-                Color buffColor = getBuffColor(plugin.getBuffState());
-                boolean isFlashingState = (plugin.getBuffState() == BradsMultiToolPlugin.BuffState.EXPIRED);
-                long millis = System.currentTimeMillis();
-
-                if (config.flashExpiredBuff() && isFlashingState && (millis / 350) % 2 == 0) {
-                    buffColor = Color.WHITE;
-                }
-
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Buff Status:")
-                    .right(plugin.getBuffStatusText())
-                    .rightColor(buffColor)
-                    .build());
+                addBuffRows();
             }
 
             if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
@@ -224,12 +212,6 @@ public class BradsMultiToolOverlay extends Overlay {
             }
         }
 
-        Color buffColor = getBuffColor(plugin.getBuffState());
-        boolean isFlashingState = (plugin.getBuffState() == BradsMultiToolPlugin.BuffState.EXPIRED);
-        long millis = System.currentTimeMillis();
-        if (config.flashExpiredBuff() && isFlashingState && (millis / 350) % 2 == 0) {
-            buffColor = Color.WHITE;
-        }
 
         // Mode A: Active fighting crab in cove
         if (plugin.isCrabActive()) {
@@ -280,11 +262,7 @@ public class BradsMultiToolOverlay extends Overlay {
             }
 
             if (config.enableBuffStatus()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Buff Status:")
-                    .right(plugin.getBuffStatusText())
-                    .rightColor(buffColor)
-                    .build());
+                addBuffRows();
             }
 
             if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
@@ -383,6 +361,33 @@ public class BradsMultiToolOverlay extends Overlay {
 
     private Color shellColor(boolean mineable) {
         return mineable ? config.mineableShellColor() : config.depletedShellColor();
+    }
+
+    /**
+     * One row per active buff with its potion icon, boost and time left (counting down smoothly
+     * between game ticks); otherwise a single Buff Status line, flashing when expired.
+     */
+    private void addBuffRows() {
+        if (plugin.getBuffState() == BradsMultiToolPlugin.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
+            long now = System.currentTimeMillis();
+            for (ActiveBuffs.Buff buff : plugin.getActiveBuffs()) {
+                String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(buff.millisLeft(now));
+                panelComponent.getChildren().add(new IconLineComponent(buff.name + ":",
+                    itemManager.getImage(buff.iconItemId), "+" + buff.boost + " " + time, GOOD));
+            }
+            return;
+        }
+
+        Color color = getBuffColor(plugin.getBuffState());
+        boolean flashing = plugin.getBuffState() == BradsMultiToolPlugin.BuffState.EXPIRED;
+        if (config.flashExpiredBuff() && flashing && (System.currentTimeMillis() / 350) % 2 == 0) {
+            color = Color.WHITE;
+        }
+        panelComponent.getChildren().add(LineComponent.builder()
+            .left("Buff Status:")
+            .right(plugin.getBuffStatusText())
+            .rightColor(color)
+            .build());
     }
 
     private Color getBuffColor(BradsMultiToolPlugin.BuffState state) {
