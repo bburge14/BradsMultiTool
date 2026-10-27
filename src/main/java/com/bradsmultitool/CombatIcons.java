@@ -7,13 +7,13 @@ final class CombatIcons {
 
     static final int NONE = -1;
 
-    private static final int BRONZE_DAGGER = 1205;
-    private static final int BRONZE_SCIMITAR = 1321;
-    private static final int BRONZE_MACE = 1422;
-    private static final int BRONZE_SWORD = 1277;
-    private static final int BRONZE_DART = 806;
-    private static final int BRONZE_ARROW = 882;
-    private static final int BRONZE_BOLTS = 877;
+    private static final int STEEL_DAGGER = 1207;
+    private static final int STEEL_SCIMITAR = 1325;
+    private static final int STEEL_MACE = 1424;
+    private static final int STEEL_SWORD = 1281;
+    private static final int STEEL_DART = 808;
+    private static final int STEEL_ARROW = 886;
+    private static final int STEEL_BOLTS = 9141;
     private static final int SHORTBOW = 841;
     private static final int WIZARD_HAT = 579;
     private static final int AIR_RUNE = 556;
@@ -33,16 +33,16 @@ final class CombatIcons {
         switch (type) {
             case MELEE:
                 switch (sub) {
-                    case "stab": return BRONZE_DAGGER;
-                    case "slash": return BRONZE_SCIMITAR;
-                    case "crush": return BRONZE_MACE;
-                    default: return BRONZE_SWORD;
+                    case "stab": return STEEL_DAGGER;
+                    case "slash": return STEEL_SCIMITAR;
+                    case "crush": return STEEL_MACE;
+                    default: return STEEL_SWORD;
                 }
             case RANGED:
                 switch (sub) {
-                    case "light": return BRONZE_DART;
-                    case "standard": return BRONZE_ARROW;
-                    case "heavy": return BRONZE_BOLTS;
+                    case "light": return STEEL_DART;
+                    case "standard": return STEEL_ARROW;
+                    case "heavy": return STEEL_BOLTS;
                     default: return SHORTBOW;
                 }
             case MAGIC:
