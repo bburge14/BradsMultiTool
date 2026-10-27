@@ -26,9 +26,6 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Hitsplat;
-import net.runelite.api.Item;
-import net.runelite.api.ItemContainer;
-import net.runelite.api.ItemComposition;
 import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
@@ -52,7 +49,6 @@ import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -74,8 +70,7 @@ public class BradsMultiToolPlugin extends Plugin {
     // Raw ids rather than the deprecated VarPlayer/Varbits/InventoryID constants
     private static final int VARP_ATTACK_STYLE = 43;
     private static final int VARBIT_EQUIPPED_WEAPON_TYPE = 357;
-    private static final int CONTAINER_EQUIPMENT = 94;
-    private static final int EQUIPMENT_WEAPON_SLOT = 3;
+    private static final int VARBIT_DEFENSIVE_CASTING = 2668;
 
     // The client logs out after 15000 idle client cycles (20ms each = 5 minutes)
     private static final int IDLE_LOGOUT_SECONDS = 300;
@@ -116,9 +111,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private SkillIconManager skillIconManager;
-
-    @Inject
-    private ItemManager itemManager;
 
     private final VoiceAlertService voiceService = new VoiceAlertService();
     private NavigationButton navButton;
@@ -362,6 +354,10 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         switch (event.getKey()) {
+            case "testVoice":
+            case "voiceGender":
+                testVoiceAlert();
+                break;
             case "voiceBuffExpired":
                 if (config.voiceBuffExpired()) {
                     voiceService.speakAsync("Combat buff has expired. Re-pot!", config.voiceGender());
@@ -1068,88 +1064,18 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     public void updateRealtimeCombatMethod() {
-        int attackStyleVarp = client.getVarpValue(VARP_ATTACK_STYLE);
-        int weaponTypeVarbit = client.getVarbitValue(VARBIT_EQUIPPED_WEAPON_TYPE);
+        WeaponStyles.Style style = WeaponStyles.resolve(
+            client.getVarbitValue(VARBIT_EQUIPPED_WEAPON_TYPE),
+            client.getVarpValue(VARP_ATTACK_STYLE),
+            client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1);
 
-        ItemContainer equipContainer = client.getItemContainer(CONTAINER_EQUIPMENT);
-        String weaponName = "";
-        if (equipContainer != null) {
-            Item weaponItem = equipContainer.getItem(EQUIPMENT_WEAPON_SLOT);
-            if (weaponItem != null) {
-                ItemComposition def = itemManager.getItemComposition(weaponItem.getId());
-                if (def != null && def.getName() != null) {
-                    weaponName = def.getName().toLowerCase();
-                }
-            }
-        }
-
-        String discipline = "Melee";
-        String style = "Slash";
-
-        // Query weapon category via type varbit
-        switch (weaponTypeVarbit) {
-            case 3: // Bows
-            case 5: // Crossbows
-            case 7: // Thrown
-            case 19: // Chinchompas
-                discipline = "Ranged";
-                switch (attackStyleVarp) {
-                    case 0: style = "Accurate"; break;
-                    case 1: style = "Rapid"; break;
-                    case 2: style = "Longrange"; break;
-                    default: style = "Ranged"; break;
-                }
-                break;
-            case 18: // Powered staves (Trident, Sanguinesti)
-            case 21: // Standard magic staves
-                discipline = "Magic";
-                style = (attackStyleVarp == 3) ? "Defensive Cast" : "Spell Cast";
-                break;
-            default:
-                discipline = "Melee";
-                // Inspect specific melee weapon classifications
-                if (weaponName.contains("scythe") || weaponName.contains("axe") || weaponName.contains("scimitar") || weaponName.contains("blade") || weaponName.contains("sword") || weaponName.contains("whip")) {
-                    switch (attackStyleVarp) {
-                        case 0: style = weaponName.contains("whip") ? "Flick" : "Chop (Slash)"; break;
-                        case 1: style = "Slash"; break;
-                        case 2: style = "Lunge (Stab)"; break;
-                        case 3: style = "Block"; break;
-                        default: style = "Slash"; break;
-                    }
-                } else if (weaponName.contains("spear") || weaponName.contains("hasta") || weaponName.contains("dagger") || weaponName.contains("rapier") || weaponName.contains("fang")) {
-                    switch (attackStyleVarp) {
-                        case 0: style = "Stab"; break;
-                        case 1: style = "Lunge (Stab)"; break;
-                        case 2: style = "Slash"; break;
-                        case 3: style = "Block"; break;
-                        default: style = "Stab"; break;
-                    }
-                } else if (weaponName.contains("mace") || weaponName.contains("warhammer") || weaponName.contains("maul") || weaponName.contains("flail") || weaponName.contains("club")) {
-                    switch (attackStyleVarp) {
-                        case 0: style = "Pound (Crush)"; break;
-                        case 1: style = "Pummel (Crush)"; break;
-                        case 2: style = "Block"; break;
-                        default: style = "Crush"; break;
-                    }
-                } else {
-                    switch (attackStyleVarp) {
-                        case 0: style = "Stab"; break;
-                        case 1: style = "Slash"; break;
-                        case 2: style = "Crush"; break;
-                        default: style = "Slash"; break;
-                    }
-                }
-                break;
-        }
-
-        combatDiscipline = discipline;
-        combatMethod = style;
+        combatDiscipline = style.discipline;
+        combatMethod = style.label();
 
         String weakness = pvmTargetWeakness.toLowerCase();
-        String styleLower = style.toLowerCase();
-        String discLower = discipline.toLowerCase();
+        String matchTerm = (style.damageType != null ? style.damageType : style.discipline).toLowerCase();
 
-        if (weakness.contains(styleLower) || weakness.contains(discLower)) {
+        if (weakness.contains(matchTerm)) {
             combatMethodColor = new Color(50, 230, 50);
         } else if (weakness.contains("standard") || weakness.equals("none")) {
             combatMethodColor = new Color(255, 215, 0);

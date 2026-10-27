@@ -33,10 +33,21 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice Persona",
         description = "Select Male (David) or Female (Zira) voice",
         section = voiceSection,
-        position = 1
+        position = 0
     )
     default VoiceAlertService.VoiceGender voiceGender() {
         return VoiceAlertService.VoiceGender.FEMALE;
+    }
+
+    @ConfigItem(
+        keyName = "testVoice",
+        name = "Test Voice",
+        description = "Click this checkbox (on or off) to hear the selected voice",
+        section = voiceSection,
+        position = 1
+    )
+    default boolean testVoice() {
+        return false;
     }
 
     @ConfigItem(
