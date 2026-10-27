@@ -23,7 +23,8 @@ public class VoiceAlertService {
         BUFF_EXPIRED("buff_expired", "Buff has run out."),
         PRAYER_LOW("prayer_low", "Prayer is low."),
         OUT_OF_PRAYER("out_of_prayer", "Out of prayer points."),
-        CRAB_MOVED("crab_moved", "The crab has moved!");
+        CRAB_MOVED("crab_moved", "The crab has moved!"),
+        IDLE_LOGOUT("idle_logout", "You are about to be logged out.");
 
         final String fileName;
         final String text;

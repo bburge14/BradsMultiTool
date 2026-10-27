@@ -28,6 +28,11 @@ import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 public class BradsMultiToolOverlay extends Overlay {
 
+    // Text is white unless colour carries meaning: good/bad state, or a warning
+    static final Color GOOD = new Color(50, 220, 50);
+    static final Color BAD = new Color(255, 70, 70);
+    static final Color WARN = new Color(255, 150, 0);
+
     private final Client client;
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
@@ -70,7 +75,7 @@ public class BradsMultiToolOverlay extends Overlay {
 
             panelComponent.getChildren().add(TitleComponent.builder()
                 .text(name + (cbLvl > 0 ? " (Lvl " + cbLvl + ")" : ""))
-                .color(new Color(255, 185, 0))
+                .color(Color.WHITE)
                 .build());
 
             // Embedded Health Bar: <current> / <total> (<percent>%)
@@ -84,7 +89,7 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Aggro:")
                     .right(plugin.getPvmAggroStatusText())
-                    .rightColor(plugin.isPvmTargetIsAggressive() ? new Color(255, 140, 0) : new Color(160, 160, 160))
+                    .rightColor(plugin.isPvmTargetIsAggressive() ? WARN : Color.WHITE)
                     .build());
             }
 
@@ -96,21 +101,20 @@ public class BradsMultiToolOverlay extends Overlay {
                         ? plugin.elementSpellIcon(weakness.element)
                         : CombatIcons.forWeakness(weakness)),
                     weakness.label(),
-                    weakness.type == MonsterWeakness.Type.UNKNOWN ? new Color(160, 160, 160) : new Color(0, 220, 255)));
+                    Color.WHITE));
 
                 if (weakness.hasSeparateElement()) {
                     panelComponent.getChildren().add(new IconLineComponent(
                         "Elemental:",
                         icon(plugin.elementSpellIcon(weakness.element)),
                         weakness.elementLabel(),
-                        new Color(0, 220, 255)));
+                        Color.WHITE));
                 }
 
                 if (weakness.note != null) {
                     panelComponent.getChildren().add(LineComponent.builder()
                         .left("Bane:")
                         .right(weakness.note)
-                        .rightColor(new Color(200, 140, 255))
                         .build());
                 }
             }
@@ -131,7 +135,6 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left(dpsLabel)
                     .right(String.format("%.1f", plugin.getPvmLiveDps()))
-                    .rightColor(new Color(255, 215, 0))
                     .build());
             }
 
@@ -139,7 +142,6 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Last Hit:")
                     .right(String.valueOf(plugin.getPvmLastHit()))
-                    .rightColor(new Color(255, 215, 0))
                     .build());
             }
 
@@ -147,7 +149,6 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Max Hit:")
                     .right(String.valueOf(plugin.getPvmMaxHit()))
-                    .rightColor(new Color(255, 90, 90))
                     .build());
             }
 
@@ -171,7 +172,7 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Prayer:")
                     .right("LOW")
-                    .rightColor(new Color(255, 50, 50))
+                    .rightColor(BAD)
                     .build());
             }
 
@@ -192,11 +193,11 @@ public class BradsMultiToolOverlay extends Overlay {
 
         NPC shellNpc = plugin.getDormantCrabShellNpc();
         if (shellNpc != null && !shellNpc.isDead()) {
-            modelOutlineRenderer.drawOutline(shellNpc, 2, config.shellColor(), 1);
+            modelOutlineRenderer.drawOutline(shellNpc, 2, shellColor(plugin.isShellMineable(shellNpc)), 1);
         }
 
         for (TileObject shellObj : plugin.getTrackedShellObjects()) {
-            modelOutlineRenderer.drawOutline(shellObj, 2, config.shellColor(), 1);
+            modelOutlineRenderer.drawOutline(shellObj, 2, shellColor(plugin.isShellMineable(shellObj)), 1);
         }
 
         if (plugin.isCrabBurrowed()) {
@@ -218,7 +219,7 @@ public class BradsMultiToolOverlay extends Overlay {
         if (plugin.isCrabActive()) {
             panelComponent.getChildren().add(TitleComponent.builder()
                 .text("Gemstone Crab (In Vicinity)")
-                .color(new Color(0, 220, 220))
+                .color(Color.WHITE)
                 .build());
 
             panelComponent.getChildren().add(LineComponent.builder()
@@ -230,14 +231,13 @@ public class BradsMultiToolOverlay extends Overlay {
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Attacking:")
                 .right(attacking ? "YES" : "NO (Idle)")
-                .rightColor(attacking ? new Color(50, 220, 50) : new Color(255, 75, 75))
+                .rightColor(attacking ? GOOD : BAD)
                 .build());
 
             // Preserved: Exact XP Type ground truth
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("XP Type:")
                 .right(plugin.getCrabCombatXpType())
-                .rightColor(new Color(255, 215, 0))
                 .build());
 
             panelComponent.getChildren().add(LineComponent.builder()
@@ -249,7 +249,6 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Last Hit:")
                     .right(String.valueOf(plugin.getCrabLastHit()))
-                    .rightColor(new Color(255, 215, 0))
                     .build());
             }
 
@@ -257,7 +256,6 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Max Hit:")
                     .right(String.valueOf(plugin.getCrabMaxHit()))
-                    .rightColor(new Color(255, 90, 90))
                     .build());
             }
 
@@ -273,7 +271,7 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Prayer:")
                     .right("LOW")
-                    .rightColor(new Color(255, 50, 50))
+                    .rightColor(BAD)
                     .build());
             }
 
@@ -284,14 +282,13 @@ public class BradsMultiToolOverlay extends Overlay {
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Crab Dmg:")
                 .right(damageLine)
-                .rightColor(new Color(255, 215, 0))
                 .build());
         }
         // Mode B: Crab Radar
         else {
             panelComponent.getChildren().add(TitleComponent.builder()
                 .text("Gemstone Crab Radar")
-                .color(new Color(255, 180, 0))
+                .color(Color.WHITE)
                 .build());
 
             panelComponent.getChildren().add(LineComponent.builder()
@@ -303,24 +300,26 @@ public class BradsMultiToolOverlay extends Overlay {
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Crab Status:")
                 .right(shellPresent ? "Burrowed (Shell)" : "In Other Cave")
-                .rightColor(new Color(255, 140, 0))
                 .build());
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Next Action:")
                 .right("Use Tunnel")
-                .rightColor(new Color(50, 220, 50))
                 .build());
         }
 
         return panelComponent.render(graphics);
     }
 
+    private Color shellColor(boolean mineable) {
+        return mineable ? config.mineableShellColor() : config.depletedShellColor();
+    }
+
     private Color getBuffColor(BradsMultiToolPlugin.BuffState state) {
         switch (state) {
-            case EXPIRED: return new Color(255, 60, 60);
-            case ACTIVE: return new Color(100, 240, 100);
-            default: return new Color(180, 180, 180);
+            case EXPIRED: return BAD;
+            case ACTIVE: return GOOD;
+            default: return Color.WHITE;
         }
     }
 

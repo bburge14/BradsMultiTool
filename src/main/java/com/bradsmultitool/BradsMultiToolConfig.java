@@ -100,7 +100,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "maxBuffRepeats",
         name = "Max Buff Repeats",
-        description = "Maximum repeat count for expired buff alert",
+        description = "How many times to repeat the expired buff alert after the first",
         section = voiceSection,
         position = 6
     )
@@ -145,7 +145,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "maxPrayerRepeats",
         name = "Max Prayer Repeats",
-        description = "Maximum repeat count for low prayer alert",
+        description = "How many times to repeat the low prayer alert after the first",
         section = voiceSection,
         position = 10
     )
@@ -162,6 +162,64 @@ public interface BradsMultiToolConfig extends Config {
     )
     default boolean voiceCrabMoved() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceIdleLogout",
+        name = "Voice: Idle Logout",
+        description = "Announce when you are about to be logged out for inactivity (click to preview)",
+        section = voiceSection,
+        position = 12
+    )
+    default boolean voiceIdleLogout() {
+        return true;
+    }
+
+    @Range(min = 5, max = 295)
+    @ConfigItem(
+        keyName = "idleWarningSeconds",
+        name = "Warn Before Logout",
+        description = "How many seconds before the 5-minute idle logout to warn you",
+        section = voiceSection,
+        position = 13
+    )
+    @Units(Units.SECONDS)
+    default int idleWarningSeconds() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "repeatIdleAlert",
+        name = "Repeat Idle Logout Alert",
+        description = "Repeat the idle logout announcement until you move",
+        section = voiceSection,
+        position = 14
+    )
+    default boolean repeatIdleAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "repeatIdleInterval",
+        name = "Idle Repeat Delay",
+        description = "Seconds between repeat idle logout alerts",
+        section = voiceSection,
+        position = 15
+    )
+    @Units(Units.SECONDS)
+    default int repeatIdleInterval() {
+        return 10;
+    }
+
+    @ConfigItem(
+        keyName = "maxIdleRepeats",
+        name = "Max Idle Repeats",
+        description = "How many times to repeat the idle logout alert after the first",
+        section = voiceSection,
+        position = 16
+    )
+    default int maxIdleRepeats() {
+        return 2;
     }
 
     @ConfigSection(
@@ -405,14 +463,26 @@ public interface BradsMultiToolConfig extends Config {
 
     @Alpha
     @ConfigItem(
-        keyName = "shellColor",
-        name = "Shell Color",
-        description = "Soft translucent outline for dormant minable shell",
+        keyName = "mineableShellColor",
+        name = "Mineable Shell Color",
+        description = "Outline for a crab shell you can still mine",
         section = crabSection,
         position = 55
     )
-    default Color shellColor() {
-        return new Color(255, 150, 0, 130);
+    default Color mineableShellColor() {
+        return new Color(40, 230, 80, 140);
+    }
+
+    @Alpha
+    @ConfigItem(
+        keyName = "depletedShellColor",
+        name = "Unmineable Shell Color",
+        description = "Outline for a crab shell that can't be mined",
+        section = crabSection,
+        position = 56
+    )
+    default Color depletedShellColor() {
+        return new Color(255, 60, 60, 140);
     }
 
     @Alpha
@@ -421,7 +491,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Tunnel Color",
         description = "Soft translucent outline for cave tunnels when crab is burrowed",
         section = crabSection,
-        position = 56
+        position = 57
     )
     default Color tunnelColor() {
         return new Color(40, 230, 80, 140);

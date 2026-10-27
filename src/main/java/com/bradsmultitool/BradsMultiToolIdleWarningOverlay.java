@@ -48,7 +48,6 @@ public class BradsMultiToolIdleWarningOverlay extends Overlay {
         panelComponent.getChildren().add(LineComponent.builder()
             .left("Logout in:")
             .right(String.format("%d:%02d", remaining / 60, remaining % 60))
-            .rightColor(new Color(255, 215, 0))
             .build());
 
         return panelComponent.render(graphics);

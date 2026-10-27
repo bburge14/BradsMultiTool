@@ -91,7 +91,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     // The client logs out after 15000 idle client cycles (20ms each = 5 minutes)
     private static final int IDLE_LOGOUT_SECONDS = 300;
-    private static final int IDLE_WARNING_SECONDS = 270;
 
     public enum BuffState {
         UNPOTTED,
@@ -174,7 +173,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private String crabCombatXpType = "Strength";
 
     @Getter
-    private Color combatMethodColor = new Color(255, 215, 0);
+    private Color combatMethodColor = Color.WHITE;
 
     @Getter
     private CombatIcons.Icon combatMethodIcon = null;
@@ -192,6 +191,8 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private boolean logoutImminent = false;
+    private int timesIdleAlerted = 0;
+    private Instant lastIdleAlertTime = Instant.EPOCH;
 
     @Getter
     private int engineIdleSeconds = 0;
@@ -379,6 +380,11 @@ public class BradsMultiToolPlugin extends Plugin {
                     speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
                 }
                 break;
+            case "voiceIdleLogout":
+                if (config.voiceIdleLogout()) {
+                    speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
+                }
+                break;
             case "voiceCrabMoved":
                 if (config.voiceCrabMoved()) {
                     speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
@@ -543,7 +549,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 if (config.voiceCrabMoved()) {
                     speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
                 }
-                sendGameChatMessage("<col=ff9900>The Gemstone Crab has relocated to another cave!</col>");
+                sendGameChatMessage("The Gemstone Crab has relocated to another cave!");
             }
             wasDirectlyTrackingCrab = false;
         }
@@ -600,6 +606,9 @@ public class BradsMultiToolPlugin extends Plugin {
         if (!name.contains("gemstone crab") && !name.contains("gem crab")) {
             return CrabForm.NONE;
         }
+        if (name.contains("shell")) {
+            return CrabForm.SHELL;
+        }
         if (comp != null && comp.getActions() != null) {
             for (String action : comp.getActions()) {
                 if ("Mine".equalsIgnoreCase(action)) {
@@ -608,6 +617,37 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
         return CrabForm.ACTIVE;
+    }
+
+    /** True while the shell still offers a "Mine" option. */
+    public boolean isShellMineable(NPC shell) {
+        NPCComposition comp = shell.getTransformedComposition();
+        if (comp == null) {
+            comp = shell.getComposition();
+        }
+        return comp != null && hasAction(comp.getActions(), "Mine");
+    }
+
+    public boolean isShellMineable(TileObject shell) {
+        ObjectComposition def = client.getObjectDefinition(shell.getId());
+        if (def != null && def.getImpostorIds() != null) {
+            ObjectComposition impostor = def.getImpostor();
+            if (impostor != null) {
+                def = impostor;
+            }
+        }
+        return def != null && hasAction(def.getActions(), "Mine");
+    }
+
+    private static boolean hasAction(String[] actions, String wanted) {
+        if (actions != null) {
+            for (String action : actions) {
+                if (wanted.equalsIgnoreCase(action)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void evaluateNpc(NPC npc) {
@@ -872,14 +912,14 @@ public class BradsMultiToolPlugin extends Plugin {
                     timesBuffExpiredSounded = 1;
                     lastBuffExpiredSoundTime = Instant.now();
                     canSound = true;
-                    sendGameChatMessage("<col=ff0000>Your combat buff has run out.</col>");
+                    sendGameChatMessage("Your combat buff has run out.");
                 } else if (config.repeatBuffAlert()) {
                     long delay = Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds();
-                    if (delay >= config.repeatBuffInterval() && timesBuffExpiredSounded < config.maxBuffRepeats()) {
+                    if (delay >= config.repeatBuffInterval() && timesBuffExpiredSounded <= config.maxBuffRepeats()) {
                         timesBuffExpiredSounded++;
                         lastBuffExpiredSoundTime = Instant.now();
                         canSound = true;
-                        sendGameChatMessage("<col=ff0000>Your combat buff is still out.</col>");
+                        sendGameChatMessage("Your combat buff is still out.");
                     }
                 }
 
@@ -903,7 +943,7 @@ public class BradsMultiToolPlugin extends Plugin {
             if (config.voicePrayerLow()) {
                 speak(VoiceAlertService.VoiceLine.OUT_OF_PRAYER);
             }
-            sendGameChatMessage("<col=ff0000>Alert: Out of prayer points!</col>");
+            sendGameChatMessage("Out of prayer points.");
             return;
         } else if (!isZero) {
             zeroPrayerAlert = false;
@@ -919,7 +959,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 canSound = true;
             } else if (config.repeatPrayerAlert()) {
                 long delay = Duration.between(lastPrayerAlertTime, Instant.now()).getSeconds();
-                if (delay >= config.repeatPrayerInterval() && timesPrayerAlertSounded < config.maxPrayerRepeats()) {
+                if (delay >= config.repeatPrayerInterval() && timesPrayerAlertSounded <= config.maxPrayerRepeats()) {
                     timesPrayerAlertSounded++;
                     lastPrayerAlertTime = Instant.now();
                     canSound = true;
@@ -930,7 +970,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 if (config.voicePrayerLow()) {
                     speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
                 }
-                sendGameChatMessage("<col=ff3333>Warning: Prayer points low (" + currentPrayer + " remaining)!</col>");
+                sendGameChatMessage("Prayer points low (" + currentPrayer + " remaining).");
             }
         } else if (currentPrayer > config.lowPrayerThreshold()) {
             lowPrayerAlert = false;
@@ -942,12 +982,33 @@ public class BradsMultiToolPlugin extends Plugin {
         int idleCycles = Math.min(client.getKeyboardIdleTicks(), client.getMouseIdleTicks());
         engineIdleSeconds = idleCycles / 50;
 
-        boolean imminent = engineIdleSeconds >= IDLE_WARNING_SECONDS;
-        if (imminent && !logoutImminent) {
-            notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
-            sendGameChatMessage("<col=ff0000>Warning: Idle logout imminent! Move the mouse or press a key.</col>");
+        int warnAt = IDLE_LOGOUT_SECONDS - Math.max(5, Math.min(IDLE_LOGOUT_SECONDS - 5, config.idleWarningSeconds()));
+        boolean imminent = engineIdleSeconds >= warnAt;
+        if (!imminent) {
+            logoutImminent = false;
+            timesIdleAlerted = 0;
+            return;
         }
-        logoutImminent = imminent;
+
+        boolean alert = false;
+        if (!logoutImminent) {
+            alert = true;
+            notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
+            sendGameChatMessage("You will be logged out for inactivity soon.");
+        } else if (config.repeatIdleAlert()
+            && Duration.between(lastIdleAlertTime, Instant.now()).getSeconds() >= config.repeatIdleInterval()
+            && timesIdleAlerted <= config.maxIdleRepeats()) {
+            alert = true;
+        }
+        logoutImminent = true;
+
+        if (alert) {
+            timesIdleAlerted++;
+            lastIdleAlertTime = Instant.now();
+            if (config.voiceIdleLogout()) {
+                speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
+            }
+        }
     }
 
     public int getSecondsUntilIdleLogout() {
@@ -1169,12 +1230,12 @@ public class BradsMultiToolPlugin extends Plugin {
         return weapon != null ? weapon.getId() : -1;
     }
 
-    // Green = your style hits the weakness, red = it doesn't, yellow = can't tell
+    // Green = your style hits the weakness, red = it doesn't, white = can't tell
     // (weakness unknown, or the ammo type / spell element couldn't be detected).
     private Color weaknessMatchColor(WeaponStyles.Style style) {
-        Color match = new Color(50, 230, 50);
-        Color mismatch = new Color(255, 75, 75);
-        Color unsure = new Color(255, 215, 0);
+        Color match = BradsMultiToolOverlay.GOOD;
+        Color mismatch = BradsMultiToolOverlay.BAD;
+        Color unsure = Color.WHITE;
 
         MonsterWeakness weakness = pvmTargetWeakness;
         if (weakness.type == MonsterWeakness.Type.UNKNOWN) {
