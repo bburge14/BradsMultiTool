@@ -96,7 +96,7 @@ public class BradsMultiToolOverlay extends Overlay {
                 if (weakness.hasSeparateElement()) {
                     panelComponent.getChildren().add(new IconLineComponent(
                         "Elemental:",
-                        itemManager.getImage(runeFor(weakness.element)),
+                        icon(CombatIcons.rune(weakness.element)),
                         weakness.elementLabel(),
                         new Color(0, 220, 255)));
                 }
@@ -110,12 +110,11 @@ public class BradsMultiToolOverlay extends Overlay {
                 }
             }
 
-            String fullCombatDisplay = "[" + plugin.getCombatDiscipline() + "] " + plugin.getCombatMethod();
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Combat Method:")
-                .right(fullCombatDisplay)
-                .rightColor(plugin.getCombatMethodColor())
-                .build());
+            panelComponent.getChildren().add(new IconLineComponent(
+                "Combat Method:",
+                icon(plugin.getCombatMethodIconId()),
+                plugin.getCombatMethod(),
+                plugin.getCombatMethodColor()));
 
             if (config.showPvmDps()) {
                 String dpsLabel = "Encounter DPS:";
@@ -336,44 +335,12 @@ public class BradsMultiToolOverlay extends Overlay {
             || client.getWidget(378, 0) != null;
     }
 
-    // Item sprites used as weakness icons
-    private static final int ICON_BRONZE_SWORD = 1277;
-    private static final int ICON_SHORTBOW = 841;
-    private static final int ICON_WIZARD_HAT = 579;
-    private static final int ICON_AIR_RUNE = 556;
-    private static final int ICON_WATER_RUNE = 555;
-    private static final int ICON_EARTH_RUNE = 557;
-    private static final int ICON_FIRE_RUNE = 554;
-
     private Image weaknessIcon(MonsterWeakness weakness) {
-        int itemId;
-        switch (weakness.type) {
-            case MELEE:
-                itemId = ICON_BRONZE_SWORD;
-                break;
-            case RANGED:
-                itemId = ICON_SHORTBOW;
-                break;
-            case MAGIC:
-                if (weakness.element == null) {
-                    itemId = ICON_WIZARD_HAT;
-                    break;
-                }
-                itemId = runeFor(weakness.element);
-                break;
-            default:
-                return null;
-        }
-        return itemManager.getImage(itemId);
+        return icon(CombatIcons.itemId(weakness.type, weakness.subType, weakness.element));
     }
 
-    private static int runeFor(MonsterWeakness.Element element) {
-        switch (element) {
-            case AIR: return ICON_AIR_RUNE;
-            case WATER: return ICON_WATER_RUNE;
-            case EARTH: return ICON_EARTH_RUNE;
-            default: return ICON_FIRE_RUNE;
-        }
+    private Image icon(int itemId) {
+        return itemId == CombatIcons.NONE ? null : itemManager.getImage(itemId);
     }
 
     /**

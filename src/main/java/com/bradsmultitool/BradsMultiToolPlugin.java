@@ -71,6 +71,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int VARP_ATTACK_STYLE = 43;
     private static final int VARBIT_EQUIPPED_WEAPON_TYPE = 357;
     private static final int VARBIT_DEFENSIVE_CASTING = 2668;
+    private static final int VARBIT_AUTOCAST_SPELL = 276;
 
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
 
@@ -159,6 +160,9 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private Color combatMethodColor = new Color(255, 215, 0);
+
+    @Getter
+    private int combatMethodIconId = CombatIcons.NONE;
 
     @Getter
     private String targetCrabHp = "No Target";
@@ -1036,27 +1040,46 @@ public class BradsMultiToolPlugin extends Plugin {
         WeaponStyles.Style style = WeaponStyles.resolve(
             client.getVarbitValue(VARBIT_EQUIPPED_WEAPON_TYPE),
             client.getVarpValue(VARP_ATTACK_STYLE),
-            client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1);
+            client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1,
+            client.getVarbitValue(VARBIT_AUTOCAST_SPELL));
 
         combatDiscipline = style.discipline;
         combatMethod = style.label();
+        combatMethodIconId = CombatIcons.itemId(style.type(), style.damageType, style.element);
 
         combatMethodColor = weaknessMatchColor(style);
     }
 
-    // Green = your style hits the weakness, red = it doesn't, yellow = weakness unknown.
-    // Magic only compares discipline for now; the autocast spell's element isn't read yet.
+    // Green = your style hits the weakness, red = it doesn't, yellow = can't tell
+    // (weakness unknown, or the ammo type / spell element couldn't be detected).
     private Color weaknessMatchColor(WeaponStyles.Style style) {
+        Color match = new Color(50, 230, 50);
+        Color mismatch = new Color(255, 75, 75);
+        Color unsure = new Color(255, 215, 0);
+
         MonsterWeakness weakness = pvmTargetWeakness;
         if (weakness.type == MonsterWeakness.Type.UNKNOWN) {
-            return new Color(255, 215, 0);
+            return unsure;
         }
-
-        boolean disciplineMatches = weakness.type.name().equalsIgnoreCase(style.discipline);
-        // Ranged ammo type (light/standard/heavy) isn't detected, so ranged matches on discipline alone
-        boolean damageTypeMatches = weakness.type != MonsterWeakness.Type.MELEE
-            || weakness.subType == null || weakness.subType.equalsIgnoreCase(style.damageType);
-        return disciplineMatches && damageTypeMatches ? new Color(50, 230, 50) : new Color(255, 75, 75);
+        if (weakness.type != style.type()) {
+            return mismatch;
+        }
+        if (weakness.type == MonsterWeakness.Type.MAGIC) {
+            if (weakness.element == null) {
+                return match;
+            }
+            if (style.element == null) {
+                return unsure;
+            }
+            return weakness.element == style.element ? match : mismatch;
+        }
+        if (weakness.subType == null) {
+            return match;
+        }
+        if (style.damageType == null) {
+            return unsure;
+        }
+        return weakness.subType.equalsIgnoreCase(style.damageType) ? match : mismatch;
     }
 
     private void updateSpatialPresence(Player player, WorldPoint wp) {
