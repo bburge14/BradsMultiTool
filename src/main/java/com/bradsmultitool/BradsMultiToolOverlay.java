@@ -170,7 +170,7 @@ public class BradsMultiToolOverlay extends Overlay {
             if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Prayer:")
-                    .right("LOW - SIP RESTORE")
+                    .right("LOW")
                     .rightColor(new Color(255, 50, 50))
                     .build());
             }
@@ -272,7 +272,7 @@ public class BradsMultiToolOverlay extends Overlay {
             if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Prayer:")
-                    .right("LOW - SIP POTION")
+                    .right("LOW")
                     .rightColor(new Color(255, 50, 50))
                     .build());
             }
