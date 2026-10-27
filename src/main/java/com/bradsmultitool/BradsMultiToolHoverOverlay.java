@@ -139,17 +139,11 @@ public class BradsMultiToolHoverOverlay extends Overlay {
             weakness.type == MonsterWeakness.Type.MAGIC && weakness.element != null
                 ? plugin.elementSpellIcon(weakness.element)
                 : CombatIcons.forWeakness(weakness)),
-            weakness.label(), Color.WHITE));
+            weakness.label(), weaknessColor(weakness)));
 
         if (weakness.hasSeparateElement()) {
             panel.getChildren().add(new IconLineComponent("Elemental:",
                 icon(plugin.elementSpellIcon(weakness.element)), weakness.elementLabel(), Color.WHITE));
-        }
-
-        WeaponStyles.Style style = plugin.getCurrentStyle();
-        if (style != null) {
-            panel.getChildren().add(new IconLineComponent("Style:", icon(plugin.getCombatMethodIcon()),
-                style.label(), plugin.weaknessMatchColor(style, weakness)));
         }
 
         if (stats != null && !stats.attackStyles.isEmpty()) {
@@ -164,6 +158,12 @@ public class BradsMultiToolHoverOverlay extends Overlay {
             .right(stats == null ? "Unknown" : aggressive ? "Yes" : "No")
             .rightColor(aggressive ? BradsMultiToolOverlay.WARN : Color.WHITE)
             .build());
+    }
+
+    // Green/red when your current style does/doesn't hit the weakness, white when it can't be told
+    private Color weaknessColor(MonsterWeakness weakness) {
+        WeaponStyles.Style style = plugin.getCurrentStyle();
+        return style != null ? plugin.weaknessMatchColor(style, weakness) : Color.WHITE;
     }
 
     private Color levelColor(int npcLevel) {

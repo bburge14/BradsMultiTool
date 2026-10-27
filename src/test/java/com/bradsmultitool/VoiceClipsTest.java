@@ -18,7 +18,9 @@ public class VoiceClipsTest {
                 String resource = "voices/" + persona.folder() + "/" + line.fileName + ".wav";
                 try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
                     assertNotNull("missing " + resource, raw);
-                    try (AudioInputStream audio = AudioSystem.getAudioInputStream(new BufferedInputStream(raw))) {
+                    try (AudioInputStream audio = VoiceAlertService.toPcm(
+                        AudioSystem.getAudioInputStream(new BufferedInputStream(raw)))) {
+                        assertTrue(resource, audio.getFormat().getSampleSizeInBits() == 16);
                         float seconds = audio.getFrameLength() / audio.getFormat().getFrameRate();
                         assertTrue(resource + " is " + seconds + "s", seconds > 0.3 && seconds < 5);
                     }

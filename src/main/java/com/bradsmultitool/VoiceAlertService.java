@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -28,7 +29,31 @@ public class VoiceAlertService {
         CRAB_LOW_HEALTH("crab_low_health", "The crab is about to burrow."),
         CHARACTER_IDLE("character_idle", "You are idle."),
         BUFF_LOW("buff_low", "Buff is running out."),
-        HEALTH_LOW("health_low", "Health is low.");
+        HEALTH_LOW("health_low", "Health is low."),
+        MELEE_BUFF_LOW("melee_buff_low", "Melee boost is running out."),
+        MELEE_BUFF_EXPIRED("melee_buff_expired", "Melee boost has run out."),
+        RANGED_BUFF_LOW("ranged_buff_low", "Ranged boost is running out."),
+        RANGED_BUFF_EXPIRED("ranged_buff_expired", "Ranged boost has run out."),
+        MAGIC_BUFF_LOW("magic_buff_low", "Magic boost is running out."),
+        MAGIC_BUFF_EXPIRED("magic_buff_expired", "Magic boost has run out."),
+        DEFENCE_BUFF_LOW("defence_buff_low", "Defence boost is running out."),
+        DEFENCE_BUFF_EXPIRED("defence_buff_expired", "Defence boost has run out."),
+        SPEC_READY("spec_ready", "Special attack is ready."),
+        ANTIFIRE_LOW("antifire_low", "Antifire is running out."),
+        ANTIPOISON_LOW("antipoison_low", "Poison protection is running out."),
+        POISONED("poisoned", "You have been poisoned."),
+        VENOMED("venomed", "You have been venomed."),
+        STAMINA_EXPIRED("stamina_expired", "Stamina has worn off."),
+        AMMO_LOW("ammo_low", "Ammo is running low."),
+        OUT_OF_RUNES("out_of_runes", "You are out of runes."),
+        CANNON_LOW("cannon_low", "Your cannon is running low."),
+        SUPERIOR_SPAWNED("superior_spawned", "A superior has spawned!"),
+        TASK_COMPLETE("task_complete", "Slayer task complete."),
+        SLAYER_ITEM_MISSING("slayer_item_missing", "You are missing your slayer item."),
+        INVENTORY_FULL("inventory_full", "Inventory is full."),
+        TREE_GONE("tree_gone", "The tree is gone."),
+        ROCK_DEPLETED("rock_depleted", "The rock is depleted."),
+        FISHING_SPOT_MOVED("fishing_spot_moved", "The fishing spot has moved.");
 
         final String fileName;
         final String text;
@@ -87,7 +112,7 @@ public class VoiceAlertService {
                 log.warn("Missing voice clip {}", resource);
                 return;
             }
-            try (AudioInputStream audio = AudioSystem.getAudioInputStream(new BufferedInputStream(raw));
+            try (AudioInputStream audio = toPcm(AudioSystem.getAudioInputStream(new BufferedInputStream(raw)));
                  Clip clip = AudioSystem.getClip()) {
                 clip.open(audio);
                 setVolume(clip, volumePercent);
@@ -101,6 +126,17 @@ public class VoiceAlertService {
         } catch (Exception e) {
             log.warn("Could not play voice clip {}: {}", resource, e.getMessage());
         }
+    }
+
+    /** Clips are stored as 16 kHz mu-law to keep the plugin small; decode to 16-bit PCM for playback. */
+    static AudioInputStream toPcm(AudioInputStream in) {
+        AudioFormat f = in.getFormat();
+        if (AudioFormat.Encoding.PCM_SIGNED.equals(f.getEncoding())) {
+            return in;
+        }
+        AudioFormat pcm = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, f.getSampleRate(), 16,
+            f.getChannels(), f.getChannels() * 2, f.getSampleRate(), false);
+        return AudioSystem.getAudioInputStream(pcm, in);
     }
 
     private static void setVolume(Clip clip, int volumePercent) {
