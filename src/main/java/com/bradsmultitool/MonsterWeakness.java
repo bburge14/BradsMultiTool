@@ -59,6 +59,10 @@ public final class MonsterWeakness {
         return new MonsterWeakness(Type.RANGED, ammoType, element, elementPercent, note);
     }
 
+    static MonsterWeakness unknown(Element element, int elementPercent, String note) {
+        return new MonsterWeakness(Type.UNKNOWN, null, element, elementPercent, note);
+    }
+
     static MonsterWeakness magic(Element element, int elementPercent, String note) {
         return new MonsterWeakness(Type.MAGIC, null, element, elementPercent, note);
     }
@@ -71,7 +75,7 @@ public final class MonsterWeakness {
             case RANGED:
                 return subType != null ? subType + " Ranged" : "Ranged";
             case MAGIC:
-                return element != null ? element.toString() : "Magic";
+                return element != null ? element.toString() : "Magic (any element)";
             default:
                 return "Unknown";
         }

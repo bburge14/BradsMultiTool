@@ -27,6 +27,7 @@ public class MonsterDataTest {
     public void guardIsWeakToMagic() {
         assertEquals(22, DATA.get(3254).hitpoints);
         assertEquals(MonsterWeakness.Type.MAGIC, weaknessOf(3254).type);
+        assertEquals("Magic (any element)", weaknessOf(3254).label());
     }
 
     @Test
@@ -41,6 +42,11 @@ public class MonsterDataTest {
     @Test
     public void greaterDemonHasDemonbaneNote() {
         assertEquals("Demonbane", weaknessOf(2025).note);
+    }
+
+    @Test
+    public void missingWikiStatsGiveUnknownRatherThanAGuess() {
+        assertEquals(MonsterWeakness.Type.UNKNOWN, weaknessOf(10841).type);
     }
 
     @Test

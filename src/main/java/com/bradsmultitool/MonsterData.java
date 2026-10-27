@@ -26,15 +26,16 @@ public class MonsterData {
 
     public static final class Stats {
         public final int hitpoints;
-        final int defenceLevel;
-        final int magicLevel;
-        final int stabDefence;
-        final int slashDefence;
-        final int crushDefence;
-        final int magicDefence;
-        final int lightRangedDefence;
-        final int standardRangedDefence;
-        final int heavyRangedDefence;
+        // Combat stats are null where the wiki has no value
+        final Integer defenceLevel;
+        final Integer magicLevel;
+        final Integer stabDefence;
+        final Integer slashDefence;
+        final Integer crushDefence;
+        final Integer magicDefence;
+        final Integer lightRangedDefence;
+        final Integer standardRangedDefence;
+        final Integer heavyRangedDefence;
         final MonsterWeakness.Element elementalWeakness;
         final int elementalWeaknessPercent;
         public final boolean aggressive;
@@ -42,15 +43,15 @@ public class MonsterData {
 
         private Stats(JsonArray a) {
             hitpoints = intAt(a, 0);
-            defenceLevel = intAt(a, 1);
-            magicLevel = intAt(a, 2);
-            stabDefence = intAt(a, 3);
-            slashDefence = intAt(a, 4);
-            crushDefence = intAt(a, 5);
-            magicDefence = intAt(a, 6);
-            lightRangedDefence = intAt(a, 7);
-            standardRangedDefence = intAt(a, 8);
-            heavyRangedDefence = intAt(a, 9);
+            defenceLevel = nullableIntAt(a, 1);
+            magicLevel = nullableIntAt(a, 2);
+            stabDefence = nullableIntAt(a, 3);
+            slashDefence = nullableIntAt(a, 4);
+            crushDefence = nullableIntAt(a, 5);
+            magicDefence = nullableIntAt(a, 6);
+            lightRangedDefence = nullableIntAt(a, 7);
+            standardRangedDefence = nullableIntAt(a, 8);
+            heavyRangedDefence = nullableIntAt(a, 9);
             elementalWeakness = elementAt(a, 10);
             elementalWeaknessPercent = intAt(a, 11);
             aggressive = intAt(a, 12) == 1;
@@ -64,8 +65,13 @@ public class MonsterData {
         }
 
         private static int intAt(JsonArray a, int i) {
+            Integer value = nullableIntAt(a, i);
+            return value != null ? value : 0;
+        }
+
+        private static Integer nullableIntAt(JsonArray a, int i) {
             JsonElement e = i < a.size() ? a.get(i) : null;
-            return e == null || e.isJsonNull() ? 0 : e.getAsInt();
+            return e == null || e.isJsonNull() ? null : e.getAsInt();
         }
 
         private static MonsterWeakness.Element elementAt(JsonArray a, int i) {
@@ -115,30 +121,44 @@ public class MonsterData {
         MonsterWeakness.Element element = s.elementalWeakness;
         int elementPercent = s.elementalWeaknessPercent;
 
-        int meleeLevel = s.defenceLevel + 9;
-        long best = (long) (s.magicLevel + 9) * (s.magicDefence + 64);
-        MonsterWeakness result = MonsterWeakness.magic(element, elementPercent, note);
+        if (s.defenceLevel == null || s.magicLevel == null) {
+            return MonsterWeakness.unknown(element, elementPercent, note);
+        }
+
+        long best = Long.MAX_VALUE;
+        MonsterWeakness result = MonsterWeakness.unknown(element, elementPercent, note);
+
+        Long magicRoll = defenceRoll(s.magicLevel, s.magicDefence);
+        if (magicRoll != null) {
+            best = magicRoll;
+            result = MonsterWeakness.magic(element, elementPercent, note);
+        }
 
         String[] meleeNames = {"Stab", "Slash", "Crush"};
-        int[] meleeBonuses = {s.stabDefence, s.slashDefence, s.crushDefence};
+        Integer[] meleeBonuses = {s.stabDefence, s.slashDefence, s.crushDefence};
         for (int i = 0; i < meleeNames.length; i++) {
-            long roll = (long) meleeLevel * (meleeBonuses[i] + 64);
-            if (roll < best) {
+            Long roll = defenceRoll(s.defenceLevel, meleeBonuses[i]);
+            if (roll != null && roll < best) {
                 best = roll;
                 result = MonsterWeakness.melee(meleeNames[i], element, elementPercent, note);
             }
         }
 
         String[] rangedNames = {"Light", "Standard", "Heavy"};
-        int[] rangedBonuses = {s.lightRangedDefence, s.standardRangedDefence, s.heavyRangedDefence};
+        Integer[] rangedBonuses = {s.lightRangedDefence, s.standardRangedDefence, s.heavyRangedDefence};
         for (int i = 0; i < rangedNames.length; i++) {
-            long roll = (long) meleeLevel * (rangedBonuses[i] + 64);
-            if (roll < best) {
+            Long roll = defenceRoll(s.defenceLevel, rangedBonuses[i]);
+            if (roll != null && roll < best) {
                 best = roll;
                 result = MonsterWeakness.ranged(rangedNames[i], element, elementPercent, note);
             }
         }
         return result;
+    }
+
+    // Skipped (null) when the wiki has no bonus for this style
+    private static Long defenceRoll(int level, Integer bonus) {
+        return bonus == null ? null : (long) (level + 9) * (bonus + 64);
     }
 
     private static String baneNote(List<String> attributes) {
