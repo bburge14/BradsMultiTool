@@ -233,6 +233,17 @@ public interface BradsMultiToolConfig extends Config {
         return 2;
     }
 
+    @ConfigItem(
+        keyName = "voiceCharacterIdle",
+        name = "Voice: Character Idle",
+        description = "Announce when your character has been idle (click to preview)",
+        section = voiceSection,
+        position = 18
+    )
+    default boolean voiceCharacterIdle() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Combat Buff & Maintenance",
         description = "Potion status and low prayer settings",
@@ -293,6 +304,30 @@ public interface BradsMultiToolConfig extends Config {
     )
     default boolean flashOutOfPrayerOverhead() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "characterIdleAlert",
+        name = "Character Idle Alert",
+        description = "Alert when your character stops doing anything (fighting, skilling, moving) for a while",
+        section = buffSection,
+        position = 26
+    )
+    default boolean characterIdleAlert() {
+        return true;
+    }
+
+    @Range(min = 3, max = 120)
+    @ConfigItem(
+        keyName = "characterIdleSeconds",
+        name = "Idle Alert After",
+        description = "Seconds of doing nothing before the character idle alert",
+        section = buffSection,
+        position = 27
+    )
+    @Units(Units.SECONDS)
+    default int characterIdleSeconds() {
+        return 10;
     }
 
     @ConfigSection(

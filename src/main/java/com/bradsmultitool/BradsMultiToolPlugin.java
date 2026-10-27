@@ -194,6 +194,11 @@ public class BradsMultiToolPlugin extends Plugin {
     @Getter
     private boolean logoutImminent = false;
     private int timesIdleAlerted = 0;
+
+    private WorldPoint lastPlayerLocation = null;
+    private boolean characterWasActive = false;
+    private boolean characterIdleAlerted = false;
+    private int lastActiveTick = 0;
     private Instant lastIdleAlertTime = Instant.EPOCH;
 
     @Getter
@@ -387,6 +392,11 @@ public class BradsMultiToolPlugin extends Plugin {
                     speak(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH);
                 }
                 break;
+            case "voiceCharacterIdle":
+                if (config.voiceCharacterIdle()) {
+                    speak(VoiceAlertService.VoiceLine.CHARACTER_IDLE);
+                }
+                break;
             case "voiceIdleLogout":
                 if (config.voiceIdleLogout()) {
                     speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
@@ -518,6 +528,8 @@ public class BradsMultiToolPlugin extends Plugin {
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
         if (event.getGameState() != GameState.LOGGED_IN) {
+            characterWasActive = false;
+            lastPlayerLocation = null;
             activeCrab = null;
             dormantCrabShellNpc = null;
             currentPvmTarget = null;
@@ -842,6 +854,9 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         processSimpleBuffStatus();
+        if (player != null) {
+            updateCharacterIdle(player);
+        }
         monitorPrayer();
         updateIdleState();
         updateRealtimeCombatMethod();
@@ -1010,6 +1025,35 @@ public class BradsMultiToolPlugin extends Plugin {
         } else if (currentPrayer > config.lowPrayerThreshold()) {
             lowPrayerAlert = false;
             timesPrayerAlertSounded = 0;
+        }
+    }
+
+    // Active = animating (attacking, skilling), targeting something, or moving. After being active,
+    // standing around for the configured time alerts once; doing anything re-arms it.
+    private void updateCharacterIdle(Player player) {
+        WorldPoint location = player.getWorldLocation();
+        boolean moved = lastPlayerLocation != null && !lastPlayerLocation.equals(location);
+        lastPlayerLocation = location;
+        boolean active = player.getAnimation() != -1 || player.getInteracting() != null || moved;
+
+        int tick = client.getTickCount();
+        if (active) {
+            characterWasActive = true;
+            characterIdleAlerted = false;
+            lastActiveTick = tick;
+            return;
+        }
+        if (!config.characterIdleAlert() || !characterWasActive || characterIdleAlerted) {
+            return;
+        }
+
+        int idleSeconds = (int) ((tick - lastActiveTick) * 0.6);
+        if (idleSeconds >= config.characterIdleSeconds()) {
+            characterIdleAlerted = true;
+            if (config.voiceCharacterIdle()) {
+                speak(VoiceAlertService.VoiceLine.CHARACTER_IDLE);
+            }
+            sendGameChatMessage("You have been idle for " + idleSeconds + " seconds.");
         }
     }
 
