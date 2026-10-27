@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import javax.inject.Inject;
@@ -13,6 +14,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.TileObject;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -29,14 +31,16 @@ public class BradsMultiToolOverlay extends Overlay {
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
     private final ModelOutlineRenderer modelOutlineRenderer;
+    private final ItemManager itemManager;
     private final PanelComponent panelComponent = new PanelComponent();
 
     @Inject
-    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer) {
+    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer, ItemManager itemManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.modelOutlineRenderer = modelOutlineRenderer;
+        this.itemManager = itemManager;
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
@@ -82,11 +86,12 @@ public class BradsMultiToolOverlay extends Overlay {
             }
 
             if (config.showPvmWeakness()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Weakness:")
-                    .right(plugin.getPvmTargetWeakness())
-                    .rightColor(new Color(0, 220, 255))
-                    .build());
+                MonsterWeakness weakness = plugin.getPvmTargetWeakness();
+                panelComponent.getChildren().add(new IconLineComponent(
+                    "Weakness:",
+                    weaknessIcon(weakness),
+                    weakness.label(),
+                    weakness.type == MonsterWeakness.Type.UNKNOWN ? new Color(160, 160, 160) : new Color(0, 220, 255)));
             }
 
             String fullCombatDisplay = "[" + plugin.getCombatDiscipline() + "] " + plugin.getCombatMethod();
@@ -313,6 +318,106 @@ public class BradsMultiToolOverlay extends Overlay {
         }
         return client.getWidget(378, 87) != null 
             || client.getWidget(378, 0) != null;
+    }
+
+    // Item sprites used as weakness icons
+    private static final int ICON_BRONZE_SWORD = 1277;
+    private static final int ICON_SHORTBOW = 841;
+    private static final int ICON_WIZARD_HAT = 579;
+    private static final int ICON_AIR_RUNE = 556;
+    private static final int ICON_WATER_RUNE = 555;
+    private static final int ICON_EARTH_RUNE = 557;
+    private static final int ICON_FIRE_RUNE = 554;
+
+    private Image weaknessIcon(MonsterWeakness weakness) {
+        int itemId;
+        switch (weakness.type) {
+            case MELEE:
+                itemId = ICON_BRONZE_SWORD;
+                break;
+            case RANGED:
+                itemId = ICON_SHORTBOW;
+                break;
+            case MAGIC:
+                if (weakness.element == null) {
+                    itemId = ICON_WIZARD_HAT;
+                    break;
+                }
+                switch (weakness.element) {
+                    case AIR: itemId = ICON_AIR_RUNE; break;
+                    case WATER: itemId = ICON_WATER_RUNE; break;
+                    case EARTH: itemId = ICON_EARTH_RUNE; break;
+                    default: itemId = ICON_FIRE_RUNE; break;
+                }
+                break;
+            default:
+                return null;
+        }
+        return itemManager.getImage(itemId);
+    }
+
+    /**
+     * A label on the left and an icon followed by coloured text on the right, sized like a LineComponent row.
+     */
+    private static class IconLineComponent implements LayoutableRenderableEntity {
+        private static final int ICON_SIZE = 16;
+        private static final int ICON_GAP = 3;
+
+        private final String left;
+        private final Image icon;
+        private final String right;
+        private final Color rightColor;
+        private final Rectangle bounds = new Rectangle();
+
+        IconLineComponent(String left, Image icon, String right, Color rightColor) {
+            this.left = left;
+            this.icon = icon;
+            this.right = right;
+            this.rightColor = rightColor;
+        }
+
+        @Override
+        public Dimension render(Graphics2D graphics) {
+            FontMetrics fm = graphics.getFontMetrics();
+            int width = bounds.width > 0 ? bounds.width : 185;
+            int height = Math.max(ICON_SIZE, fm.getHeight());
+            int x = bounds.x;
+            int baseline = bounds.y + (height - fm.getHeight()) / 2 + fm.getAscent();
+
+            drawShadowed(graphics, left, x, baseline, Color.WHITE);
+
+            int textX = x + width - fm.stringWidth(right);
+            drawShadowed(graphics, right, textX, baseline, rightColor);
+
+            if (icon != null) {
+                int iconX = textX - ICON_GAP - ICON_SIZE;
+                graphics.drawImage(icon, iconX, bounds.y, ICON_SIZE, ICON_SIZE, null);
+            }
+
+            return new Dimension(width, height);
+        }
+
+        private static void drawShadowed(Graphics2D graphics, String text, int x, int y, Color color) {
+            graphics.setColor(Color.BLACK);
+            graphics.drawString(text, x + 1, y + 1);
+            graphics.setColor(color);
+            graphics.drawString(text, x, y);
+        }
+
+        @Override
+        public void setPreferredLocation(java.awt.Point position) {
+            bounds.setLocation(position);
+        }
+
+        @Override
+        public void setPreferredSize(Dimension dimension) {
+            bounds.setSize(dimension);
+        }
+
+        @Override
+        public Rectangle getBounds() {
+            return bounds;
+        }
     }
 
     private static class CenteredHealthBarComponent implements LayoutableRenderableEntity {

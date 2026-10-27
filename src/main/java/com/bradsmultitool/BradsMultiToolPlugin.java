@@ -216,7 +216,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private String pvmAggroStatusText = "Passive";
 
     @Getter
-    private String pvmTargetWeakness = "None";
+    private MonsterWeakness pvmTargetWeakness = MonsterWeakness.UNKNOWN;
 
     @Getter
     private boolean pvmOverlayActive = false;
@@ -1019,7 +1019,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private void resolveNpcWeaknessAndAggression(NPC npc) {
         if (npc == null || npc.getName() == null) {
-            pvmTargetWeakness = "None";
+            pvmTargetWeakness = MonsterWeakness.UNKNOWN;
             pvmTargetIsAggressive = false;
             return;
         }
@@ -1040,40 +1040,7 @@ public class BradsMultiToolPlugin extends Plugin {
         }
         pvmTargetIsAggressive = aggressive;
 
-        if (n.contains("demon") || n.contains("nechryael") || n.contains("cerberus") || n.contains("skotizo") || n.contains("kril")) {
-            pvmTargetWeakness = "Demonbane / Slash";
-            return;
-        }
-        if (n.contains("dragon") || n.contains("wyvern") || n.contains("drake") || n.contains("vorkath")) {
-            pvmTargetWeakness = "Dragonbane / Stab";
-            return;
-        }
-        if (n.contains("zombie") || n.contains("skeleton") || n.contains("ghost") || n.contains("ankou") || n.contains("vet'ion")) {
-            pvmTargetWeakness = "Undead / Crush";
-            return;
-        }
-        if (n.contains("vampyre") || n.contains("vyre")) {
-            pvmTargetWeakness = "Blisterwood / Silver";
-            return;
-        }
-        if (n.contains("kalphite") || n.contains("scarab")) {
-            pvmTargetWeakness = "Kerapac / Crush";
-            return;
-        }
-        if (n.contains("kurask") || n.contains("turoth")) {
-            pvmTargetWeakness = "Leaf-Bladed Weapon";
-            return;
-        }
-        if (n.contains("gargoyle") || n.contains("golem")) {
-            pvmTargetWeakness = "Crush (Rock Hammer)";
-            return;
-        }
-        if (n.contains("ice") || n.contains("fire giant") || n.contains("moss giant")) {
-            pvmTargetWeakness = "Slash / Fire Magic";
-            return;
-        }
-
-        pvmTargetWeakness = "Standard (Slash/Stab)";
+        pvmTargetWeakness = MonsterWeakness.fromName(npc.getName());
     }
 
     public void updateRealtimeCombatMethod() {
@@ -1085,16 +1052,20 @@ public class BradsMultiToolPlugin extends Plugin {
         combatDiscipline = style.discipline;
         combatMethod = style.label();
 
-        String weakness = pvmTargetWeakness.toLowerCase();
-        String matchTerm = (style.damageType != null ? style.damageType : style.discipline).toLowerCase();
+        combatMethodColor = weaknessMatchColor(style);
+    }
 
-        if (weakness.contains(matchTerm)) {
-            combatMethodColor = new Color(50, 230, 50);
-        } else if (weakness.contains("standard") || weakness.equals("none")) {
-            combatMethodColor = new Color(255, 215, 0);
-        } else {
-            combatMethodColor = new Color(255, 75, 75);
+    // Green = your style hits the weakness, red = it doesn't, yellow = weakness unknown.
+    // Magic only compares discipline for now; the autocast spell's element isn't read yet.
+    private Color weaknessMatchColor(WeaponStyles.Style style) {
+        MonsterWeakness weakness = pvmTargetWeakness;
+        if (weakness.type == MonsterWeakness.Type.UNKNOWN) {
+            return new Color(255, 215, 0);
         }
+
+        boolean disciplineMatches = weakness.type.name().equalsIgnoreCase(style.discipline);
+        boolean damageTypeMatches = weakness.damageType == null || weakness.damageType.equalsIgnoreCase(style.damageType);
+        return disciplineMatches && damageTypeMatches ? new Color(50, 230, 50) : new Color(255, 75, 75);
     }
 
     private void updateSpatialPresence(Player player, WorldPoint wp) {
