@@ -2,11 +2,8 @@ package com.bradsmultitool;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import javax.inject.Inject;
 import net.runelite.api.Client;
@@ -20,7 +17,6 @@ import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.components.LayoutableRenderableEntity;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
@@ -342,147 +338,5 @@ public class BradsMultiToolOverlay extends Overlay {
             return null;
         }
         return icon.sprite ? spriteManager.getSprite(icon.id, 0) : itemManager.getImage(icon.id);
-    }
-
-    /**
-     * A label on the left and an icon followed by coloured text on the right, sized like a LineComponent row.
-     */
-    private static class IconLineComponent implements LayoutableRenderableEntity {
-        private static final int ICON_SIZE = 16;
-        private static final int ICON_GAP = 3;
-        private static final int LABEL_GAP = 6;
-
-        private final String left;
-        private final Image icon;
-        private final String right;
-        private final Color rightColor;
-        private final Rectangle bounds = new Rectangle();
-
-        IconLineComponent(String left, Image icon, String right, Color rightColor) {
-            this.left = left;
-            this.icon = icon;
-            this.right = right;
-            this.rightColor = rightColor;
-        }
-
-        @Override
-        public Dimension render(Graphics2D graphics) {
-            FontMetrics fm = graphics.getFontMetrics();
-            int width = bounds.width > 0 ? bounds.width : 185;
-            int height = Math.max(ICON_SIZE, fm.getHeight());
-            int x = bounds.x;
-            int baseline = bounds.y + (height - fm.getHeight()) / 2 + fm.getAscent();
-
-            drawShadowed(graphics, left, x, baseline, Color.WHITE);
-
-            // Never let the right side run into the label: trim it with "..." if it doesn't fit
-            int available = width - fm.stringWidth(left) - LABEL_GAP - (icon != null ? ICON_SIZE + ICON_GAP : 0);
-            String text = fitText(right, fm, available);
-            int textX = x + width - fm.stringWidth(text);
-            drawShadowed(graphics, text, textX, baseline, rightColor);
-
-            if (icon != null) {
-                int iconX = textX - ICON_GAP - ICON_SIZE;
-                graphics.drawImage(icon, iconX, bounds.y, ICON_SIZE, ICON_SIZE, null);
-            }
-
-            return new Dimension(width, height);
-        }
-
-        private static String fitText(String text, FontMetrics fm, int maxWidth) {
-            if (fm.stringWidth(text) <= maxWidth) {
-                return text;
-            }
-            String ellipsis = "...";
-            int end = text.length();
-            while (end > 0 && fm.stringWidth(text.substring(0, end) + ellipsis) > maxWidth) {
-                end--;
-            }
-            return text.substring(0, end) + ellipsis;
-        }
-
-        private static void drawShadowed(Graphics2D graphics, String text, int x, int y, Color color) {
-            graphics.setColor(Color.BLACK);
-            graphics.drawString(text, x + 1, y + 1);
-            graphics.setColor(color);
-            graphics.drawString(text, x, y);
-        }
-
-        @Override
-        public void setPreferredLocation(java.awt.Point position) {
-            bounds.setLocation(position);
-        }
-
-        @Override
-        public void setPreferredSize(Dimension dimension) {
-            bounds.setSize(dimension);
-        }
-
-        @Override
-        public Rectangle getBounds() {
-            return bounds;
-        }
-    }
-
-    private static class CenteredHealthBarComponent implements LayoutableRenderableEntity {
-        private final int percent;
-        private final int curHp;
-        private final int maxHp;
-        private Rectangle bounds = new Rectangle();
-
-        CenteredHealthBarComponent(int percent, int curHp, int maxHp) {
-            this.percent = Math.max(0, Math.min(100, percent));
-            this.curHp = curHp;
-            this.maxHp = maxHp;
-        }
-
-        @Override
-        public Dimension render(Graphics2D graphics) {
-            int width = bounds.width > 0 ? bounds.width : 185;
-            int height = 15;
-
-            int x = bounds.x;
-            int y = bounds.y + 3;
-
-            graphics.setColor(new Color(30, 30, 30, 230));
-            graphics.fillRect(x, y, width, height);
-
-            int fillWidth = (int) ((width * percent) / 100.0);
-            Color fillColor = (percent > 50) ? new Color(0, 190, 80) : ((percent > 20) ? new Color(240, 170, 0) : new Color(230, 40, 40));
-            graphics.setColor(fillColor);
-            graphics.fillRect(x, y, fillWidth, height);
-
-            graphics.setColor(new Color(15, 15, 15, 240));
-            graphics.drawRect(x, y, width, height);
-
-            String text = (maxHp > 0) ? (curHp + " / " + maxHp + " (" + percent + "%)") : (percent + "%");
-            Font font = FontManager.getRunescapeSmallFont();
-            graphics.setFont(font);
-            FontMetrics fm = graphics.getFontMetrics(font);
-            int textX = x + (width - fm.stringWidth(text)) / 2;
-            int textY = y + ((height - fm.getHeight()) / 2) + fm.getAscent();
-
-            graphics.setColor(Color.BLACK);
-            graphics.drawString(text, textX + 1, textY + 1);
-            graphics.setColor(Color.WHITE);
-            graphics.drawString(text, textX, textY);
-
-            return new Dimension(width, height + 6);
-        }
-
-        @Override
-        public void setPreferredLocation(java.awt.Point position) {
-            this.bounds.setLocation(position);
-        }
-
-        @Override
-        public void setPreferredSize(Dimension dimension) {
-            this.bounds.setSize(dimension);
-        }
-
-        @Override
-        public Rectangle getBounds() {
-            return bounds;
-        }
     }
 }

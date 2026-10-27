@@ -115,6 +115,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private BradsMultiToolIdleWarningOverlay idleWarningOverlay;
 
     @Inject
+    private BradsMultiToolHoverOverlay hoverOverlay;
+
+    @Inject
     private BradsMultiToolConfig config;
 
     @Inject
@@ -179,6 +182,10 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private CombatIcons.Icon combatMethodIcon = null;
+
+    /** The player's current combat style (weapon style, autocast or hand-cast spell). */
+    @Getter
+    private WeaponStyles.Style currentStyle = null;
 
     private final SpellbookReader spellbook = new SpellbookReader();
     private String manualSpellName = null;
@@ -306,6 +313,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
         overlayManager.add(idleWarningOverlay);
+        overlayManager.add(hoverOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -324,6 +332,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(overlay);
         overlayManager.remove(prayerOverlay);
         overlayManager.remove(idleWarningOverlay);
+        overlayManager.remove(hoverOverlay);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);
         }
@@ -599,6 +608,25 @@ public class BradsMultiToolPlugin extends Plugin {
         NONE,
         ACTIVE,
         SHELL
+    }
+
+    public boolean isGemstoneCrab(NPC npc) {
+        return classifyCrab(npc) != CrabForm.NONE;
+    }
+
+    /** Wiki stats for an NPC, or null if it isn't in the bundled data. */
+    public MonsterData.Stats statsFor(NPC npc) {
+        return monsterData.get(npc.getId());
+    }
+
+    public MonsterWeakness weaknessFor(NPC npc) {
+        MonsterData.Stats stats = statsFor(npc);
+        return stats != null ? MonsterData.weaknessOf(stats) : MonsterWeakness.fromName(npc.getName());
+    }
+
+    /** True for an NPC offering an "Attack" option. */
+    public boolean isAttackable(NPC npc) {
+        return hasAttackOption(npc);
     }
 
     private CrabForm classifyCrab(NPC npc) {
@@ -1281,7 +1309,8 @@ public class BradsMultiToolPlugin extends Plugin {
         }
         combatMethodIcon = spellSprite > 0 ? CombatIcons.sprite(spellSprite) : CombatIcons.forStyle(style, weaponId);
 
-        combatMethodColor = weaknessMatchColor(style);
+        currentStyle = style;
+        combatMethodColor = weaknessMatchColor(style, pvmTargetWeakness);
     }
 
     // Spells cast by hand (not autocast) override the weapon's style for a few ticks after each cast
@@ -1321,12 +1350,11 @@ public class BradsMultiToolPlugin extends Plugin {
 
     // Green = your style hits the weakness, red = it doesn't, white = can't tell
     // (weakness unknown, or the ammo type / spell element couldn't be detected).
-    private Color weaknessMatchColor(WeaponStyles.Style style) {
+    public Color weaknessMatchColor(WeaponStyles.Style style, MonsterWeakness weakness) {
         Color match = BradsMultiToolOverlay.GOOD;
         Color mismatch = BradsMultiToolOverlay.BAD;
         Color unsure = Color.WHITE;
 
-        MonsterWeakness weakness = pvmTargetWeakness;
         if (weakness.type == MonsterWeakness.Type.UNKNOWN) {
             return unsure;
         }

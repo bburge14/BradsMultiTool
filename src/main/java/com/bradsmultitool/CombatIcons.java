@@ -87,6 +87,23 @@ final class CombatIcons {
         }
     }
 
+    /** Icon for a monster's attack style as written on the wiki ("Slash", "Magic", ...), or null. */
+    static Icon forAttackStyle(String attackStyle) {
+        String s = attackStyle.toLowerCase();
+        if (s.contains("ranged") && !s.contains("magic")) {
+            return MAPLE_SHORTBOW;
+        }
+        if (s.contains("magic")) {
+            return WIZARD_HAT;
+        }
+        for (String type : new String[]{"stab", "slash", "crush"}) {
+            if (s.contains(type)) {
+                return melee(type);
+            }
+        }
+        return s.contains("melee") ? STEEL_SWORD : null;
+    }
+
     /** Spell icon for an element; uses the Strike spell when no tier is given. */
     static Icon spell(MonsterWeakness.Element element, String tier) {
         int row = 0;

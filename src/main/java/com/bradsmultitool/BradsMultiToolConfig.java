@@ -426,6 +426,18 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "showHoverInfo",
+        name = "Monster Hover Info",
+        description = "When hovering an attackable monster, show its level, health, weakness, attack style and "
+            + "aggression next to the cursor (hidden for the monster type you're already fighting)",
+        section = pvmSection,
+        position = 40
+    )
+    default boolean showHoverInfo() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Skill Tracker",
         description = "Sidebar panel configuration",
