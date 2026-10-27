@@ -8,7 +8,7 @@ A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 - **Idle logout warning** – desktop notification, chat message, and HUD countdown 30 seconds before the 5-minute idle logout.
 - **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, level progress bar, XP remaining, and time-to-level; right-click a skill to pause, reset, or hide it.
 
-Voice alerts use Windows SAPI (Zira/David) via `wscript.exe`; on other operating systems they are skipped.
+Voice alerts are pre-recorded clips bundled with the plugin (7 personas generated with [Piper](https://github.com/rhasspy/piper); see [VOICE_CREDITS.md](VOICE_CREDITS.md)), so they work on any OS. Regenerate them with `scripts/generate_voice_clips.py` after changing a line.
 
 ## First-time setup (Windows, PowerShell)
 

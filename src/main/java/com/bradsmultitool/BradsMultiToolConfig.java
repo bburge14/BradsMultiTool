@@ -6,6 +6,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
 @ConfigGroup("bradsmultitool")
@@ -29,26 +30,26 @@ public interface BradsMultiToolConfig extends Config {
     String voiceSection = "voiceSection";
 
     @ConfigItem(
-        keyName = "voiceGender",
+        keyName = "voicePersona",
         name = "Voice Persona",
-        description = "Voice, speed and pitch for spoken alerts; changing it plays a sample alert",
+        description = "Voice used for spoken alerts; changing it plays a sample alert",
         section = voiceSection,
         position = 0
     )
     default VoiceAlertService.VoicePersona voicePersona() {
-        return VoiceAlertService.VoicePersona.FEMALE;
+        return VoiceAlertService.VoicePersona.AMY;
     }
 
+    @Range(max = 100)
     @ConfigItem(
-        keyName = "customVoice",
-        name = "Custom Installed Voice",
-        description = "Optional: part of the name of another Windows voice to use (e.g. Hazel, George). "
-            + "Keeps the persona's speed and pitch. Leave blank for the persona's own voice.",
+        keyName = "voiceVolume",
+        name = "Voice Volume",
+        description = "Volume of spoken alerts (0-100)",
         section = voiceSection,
         position = 1
     )
-    default String customVoice() {
-        return "";
+    default int voiceVolume() {
+        return 80;
     }
 
     @ConfigItem(

@@ -73,11 +73,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private static final String CONFIG_GROUP = "bradsmultitool";
 
-    private static final String VOICE_BUFF_EXPIRED = "Buff has run out.";
-    private static final String VOICE_PRAYER_LOW = "Prayer is low.";
-    private static final String VOICE_OUT_OF_PRAYER = "Out of prayer points.";
-    private static final String VOICE_CRAB_MOVED = "The crab has moved!";
-    private static final String[] VOICE_LINES = {VOICE_BUFF_EXPIRED, VOICE_PRAYER_LOW, VOICE_OUT_OF_PRAYER, VOICE_CRAB_MOVED};
     private static final int AGGRO_DURATION_SECONDS = 600;
 
     // Raw ids rather than the deprecated VarPlayer/Varbits/InventoryID constants
@@ -341,8 +336,12 @@ public class BradsMultiToolPlugin extends Plugin {
 
     // Plays a random real alert in the newly selected voice
     private void previewVoice() {
-        String line = VOICE_LINES[ThreadLocalRandom.current().nextInt(VOICE_LINES.length)];
-        voiceService.speakAsync(line, config.voicePersona(), config.customVoice());
+        VoiceAlertService.VoiceLine[] lines = VoiceAlertService.VoiceLine.values();
+        speak(lines[ThreadLocalRandom.current().nextInt(lines.length)]);
+    }
+
+    private void speak(VoiceAlertService.VoiceLine line) {
+        voiceService.speakAsync(line, config.voicePersona(), config.voiceVolume());
     }
 
     public String getPvmTargetHp() {
@@ -366,23 +365,23 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         switch (event.getKey()) {
-            case "voiceGender":
-            case "customVoice":
+            case "voicePersona":
+            case "voiceVolume":
                 previewVoice();
                 break;
             case "voiceBuffExpired":
                 if (config.voiceBuffExpired()) {
-                    voiceService.speakAsync(VOICE_BUFF_EXPIRED, config.voicePersona(), config.customVoice());
+                    speak(VoiceAlertService.VoiceLine.BUFF_EXPIRED);
                 }
                 break;
             case "voicePrayerLow":
                 if (config.voicePrayerLow()) {
-                    voiceService.speakAsync(VOICE_PRAYER_LOW, config.voicePersona(), config.customVoice());
+                    speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
                 }
                 break;
             case "voiceCrabMoved":
                 if (config.voiceCrabMoved()) {
-                    voiceService.speakAsync(VOICE_CRAB_MOVED, config.voicePersona(), config.customVoice());
+                    speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
                 }
                 break;
         }
@@ -542,7 +541,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
             if (inSpawnVicinity && wasDirectlyTrackingCrab && isNearPlayer(npc, CRAB_BURROW_ALERT_DISTANCE)) {
                 if (config.voiceCrabMoved()) {
-                    voiceService.speakAsync(VOICE_CRAB_MOVED, config.voicePersona(), config.customVoice());
+                    speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
                 }
                 sendGameChatMessage("<col=ff9900>The Gemstone Crab has relocated to another cave!</col>");
             }
@@ -885,7 +884,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 }
 
                 if (canSound && config.voiceBuffExpired()) {
-                    voiceService.speakAsync(VOICE_BUFF_EXPIRED, config.voicePersona(), config.customVoice());
+                    speak(VoiceAlertService.VoiceLine.BUFF_EXPIRED);
                 }
             } else if (buffState == BuffState.UNPOTTED) {
                 buffStatusText = "No Buffs";
@@ -902,7 +901,7 @@ public class BradsMultiToolPlugin extends Plugin {
             zeroPrayerAlert = true;
             lowPrayerAlert = false;
             if (config.voicePrayerLow()) {
-                voiceService.speakAsync(VOICE_OUT_OF_PRAYER, config.voicePersona(), config.customVoice());
+                speak(VoiceAlertService.VoiceLine.OUT_OF_PRAYER);
             }
             sendGameChatMessage("<col=ff0000>Alert: Out of prayer points!</col>");
             return;
@@ -929,7 +928,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
             if (canSound) {
                 if (config.voicePrayerLow()) {
-                    voiceService.speakAsync(VOICE_PRAYER_LOW, config.voicePersona(), config.customVoice());
+                    speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
                 }
                 sendGameChatMessage("<col=ff3333>Warning: Prayer points low (" + currentPrayer + " remaining)!</col>");
             }
