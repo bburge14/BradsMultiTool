@@ -5,13 +5,17 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.util.ArrayList;
+import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
+import net.runelite.api.Skill;
 import net.runelite.api.TileObject;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
@@ -35,16 +39,18 @@ public class BradsMultiToolOverlay extends Overlay {
     private final ModelOutlineRenderer modelOutlineRenderer;
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
+    private final SkillIconManager skillIconManager;
     private final PanelComponent panelComponent = new PanelComponent();
 
     @Inject
-    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer, ItemManager itemManager, SpriteManager spriteManager) {
+    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.modelOutlineRenderer = modelOutlineRenderer;
         this.itemManager = itemManager;
         this.spriteManager = spriteManager;
+        this.skillIconManager = skillIconManager;
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
@@ -215,14 +221,11 @@ public class BradsMultiToolOverlay extends Overlay {
 
         // Mode A: Active fighting crab in cove
         if (plugin.isCrabActive()) {
-            panelComponent.getChildren().add(TitleComponent.builder()
-                .text("Gemstone Crab (In Vicinity)")
-                .color(new Color(0, 220, 220))
-                .build());
+            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", " (In Vicinity)", new Color(0, 220, 220)));
 
             if (plugin.getCrabHpPercent() >= 0) {
                 // No max HP for the crab, so the bar shows just the percentage
-                panelComponent.getChildren().add(new CenteredHealthBarComponent(plugin.getCrabHpPercent(), 0, 0));
+                panelComponent.getChildren().add(new CenteredHealthBarComponent(plugin.getCrabHpPercent(), 0, 0, true));
             } else {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Target:")
@@ -243,10 +246,12 @@ public class BradsMultiToolOverlay extends Overlay {
                 .build());
 
             // Preserved: Exact XP Type ground truth
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("XP Type:")
-                .right(plugin.getCrabCombatXpType())
-                .build());
+            List<Image> skillIcons = new ArrayList<>();
+            for (Skill skill : plugin.getCrabCombatXpSkills()) {
+                skillIcons.add(skillIconManager.getSkillImage(skill, true));
+            }
+            panelComponent.getChildren().add(new IconLineComponent("XP Type:", skillIcons,
+                plugin.getCrabCombatXpType(), Color.WHITE));
 
             if (config.showCrabLastHit() && plugin.getCrabLastHit() > 0) {
                 panelComponent.getChildren().add(LineComponent.builder()
@@ -289,10 +294,7 @@ public class BradsMultiToolOverlay extends Overlay {
         }
         // Mode B: Crab Radar
         else {
-            panelComponent.getChildren().add(TitleComponent.builder()
-                .text("Gemstone Crab Radar")
-                .color(new Color(255, 180, 0))
-                .build());
+            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", " Radar", new Color(255, 180, 0)));
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Current Cove:")

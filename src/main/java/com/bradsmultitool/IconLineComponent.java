@@ -6,6 +6,9 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import net.runelite.client.ui.overlay.components.LayoutableRenderableEntity;
 
 /**
@@ -17,14 +20,24 @@ class IconLineComponent implements LayoutableRenderableEntity {
     private static final int LABEL_GAP = 6;
 
     private final String left;
-    private final Image icon;
+    private final List<Image> icons;
     private final String right;
     private final Color rightColor;
     private final Rectangle bounds = new Rectangle();
 
     IconLineComponent(String left, Image icon, String right, Color rightColor) {
+        this(left, icon != null ? Collections.singletonList(icon) : Collections.emptyList(), right, rightColor);
+    }
+
+    /** Several icons in a row before the text, e.g. one per skill. Null entries are skipped. */
+    IconLineComponent(String left, List<Image> icons, String right, Color rightColor) {
         this.left = left;
-        this.icon = icon;
+        this.icons = new ArrayList<>();
+        for (Image icon : icons) {
+            if (icon != null) {
+                this.icons.add(icon);
+            }
+        }
         this.right = right;
         this.rightColor = rightColor;
     }
@@ -40,17 +53,31 @@ class IconLineComponent implements LayoutableRenderableEntity {
         drawShadowed(graphics, left, x, baseline, Color.WHITE);
 
         // Never let the right side run into the label: trim it with "..." if it doesn't fit
-        int available = width - fm.stringWidth(left) - LABEL_GAP - (icon != null ? ICON_SIZE + ICON_GAP : 0);
+        int available = width - fm.stringWidth(left) - LABEL_GAP - icons.size() * (ICON_SIZE + ICON_GAP);
         String text = fitText(right, fm, available);
         int textX = x + width - fm.stringWidth(text);
         drawShadowed(graphics, text, textX, baseline, rightColor);
 
-        if (icon != null) {
-            int iconX = textX - ICON_GAP - ICON_SIZE;
-            graphics.drawImage(icon, iconX, bounds.y, ICON_SIZE, ICON_SIZE, null);
+        int iconX = textX;
+        for (int i = icons.size() - 1; i >= 0; i--) {
+            iconX -= ICON_GAP + ICON_SIZE;
+            drawFitted(graphics, icons.get(i), iconX, bounds.y);
         }
 
         return new Dimension(width, height);
+    }
+
+    // Scale the icon to fit the slot without stretching it
+    private static void drawFitted(Graphics2D graphics, Image icon, int x, int y) {
+        int w = icon.getWidth(null);
+        int h = icon.getHeight(null);
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+        double scale = Math.min((double) ICON_SIZE / w, (double) ICON_SIZE / h);
+        int dw = (int) Math.round(w * scale);
+        int dh = (int) Math.round(h * scale);
+        graphics.drawImage(icon, x + (ICON_SIZE - dw) / 2, y + (ICON_SIZE - dh) / 2, dw, dh, null);
     }
 
     private static String fitText(String text, FontMetrics fm, int maxWidth) {

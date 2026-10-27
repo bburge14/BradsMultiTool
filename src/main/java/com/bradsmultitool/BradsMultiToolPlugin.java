@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -176,6 +177,10 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private String crabCombatXpType = "Strength";
+
+    /** The skills behind crabCombatXpType, for showing their icons. */
+    @Getter
+    private List<Skill> crabCombatXpSkills = Collections.singletonList(Skill.STRENGTH);
 
     @Getter
     private Color combatMethodColor = Color.WHITE;
@@ -909,22 +914,31 @@ public class BradsMultiToolPlugin extends Plugin {
         boolean hasRng = tickXpChanges.contains(Skill.RANGED);
         boolean hasMag = tickXpChanges.contains(Skill.MAGIC);
 
+        crabCombatXpSkills = new ArrayList<>();
         if (hasAtk && hasStr && hasDef) {
             crabCombatXpType = "Shared";
+            crabCombatXpSkills.addAll(Arrays.asList(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE));
         } else if (hasRng && hasDef) {
             crabCombatXpType = "Ranged / Def";
+            crabCombatXpSkills.addAll(Arrays.asList(Skill.RANGED, Skill.DEFENCE));
         } else if (hasMag && hasDef) {
             crabCombatXpType = "Magic / Def";
+            crabCombatXpSkills.addAll(Arrays.asList(Skill.MAGIC, Skill.DEFENCE));
         } else if (hasAtk) {
             crabCombatXpType = "Attack";
+            crabCombatXpSkills.add(Skill.ATTACK);
         } else if (hasStr) {
             crabCombatXpType = "Strength";
+            crabCombatXpSkills.add(Skill.STRENGTH);
         } else if (hasDef) {
             crabCombatXpType = "Defence";
+            crabCombatXpSkills.add(Skill.DEFENCE);
         } else if (hasRng) {
             crabCombatXpType = "Ranged";
+            crabCombatXpSkills.add(Skill.RANGED);
         } else if (hasMag) {
             crabCombatXpType = "Magic";
+            crabCombatXpSkills.add(Skill.MAGIC);
         }
     }
 
