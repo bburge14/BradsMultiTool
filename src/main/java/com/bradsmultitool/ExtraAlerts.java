@@ -5,12 +5,14 @@ import javax.inject.Singleton;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
+import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
@@ -50,6 +52,7 @@ class ExtraAlerts {
     private final BradsMultiToolPlugin plugin;
 
     private boolean specAlerted = false;
+    private boolean specKnown = false;
     private boolean antifireAlerted = false;
     private boolean antipoisonAlerted = false;
     private boolean ammoAlerted = false;
@@ -116,6 +119,12 @@ class ExtraAlerts {
     }
 
     private void checkSpec(int percent) {
+        // The first value after login is just the energy loading in, not a fresh recharge
+        if (!specKnown) {
+            specKnown = true;
+            specAlerted = percent >= config.specThreshold();
+            return;
+        }
         if (percent < config.specThreshold()) {
             specAlerted = false;
         } else if (!specAlerted) {
@@ -169,6 +178,16 @@ class ExtraAlerts {
             if (config.cannonAlert()) {
                 alert(VoiceAlertService.VoiceLine.CANNON_LOW, "Your cannon has " + cannonballs + " cannonballs left.");
             }
+        }
+    }
+
+    @Subscribe
+    public void onGameStateChanged(GameStateChanged event) {
+        if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
+            specKnown = false;
+            lastPoisonValue = 0;
+            resourceObjectId = -1;
+            resourceNpc = null;
         }
     }
 
