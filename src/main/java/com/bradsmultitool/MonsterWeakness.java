@@ -67,17 +67,27 @@ public final class MonsterWeakness {
         return new MonsterWeakness(Type.MAGIC, null, element, elementPercent, note);
     }
 
-    /** Main weakness text shown next to the icon, e.g. "Slash", "Light Ranged", "Water", "Unknown". */
+    /** Main weakness text shown next to the icon, e.g. "Slash", "Light (Thrown)", "Water", "Unknown". */
     public String label() {
         switch (type) {
             case MELEE:
                 return subType != null ? subType : "Melee";
             case RANGED:
-                return subType != null ? subType + " Ranged" : "Ranged";
+                return subType != null ? subType + " (" + rangedWeaponFor(subType) + ")" : "Ranged";
             case MAGIC:
                 return element != null ? element.toString() : "Magic (any element)";
             default:
                 return "Unknown";
+        }
+    }
+
+    // Which weapons fire each ammo class (OSRS Wiki, "Ranged")
+    private static String rangedWeaponFor(String ammoType) {
+        switch (ammoType) {
+            case "Light": return "Thrown";
+            case "Standard": return "Bow";
+            case "Heavy": return "Crossbow";
+            default: return "Ranged";
         }
     }
 

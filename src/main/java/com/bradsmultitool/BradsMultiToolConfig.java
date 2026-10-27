@@ -310,17 +310,6 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
-        keyName = "showPvmKillTime",
-        name = "Show Estimated Kill Time",
-        description = "Show estimated time to kill based on DPS and health ratio",
-        section = pvmSection,
-        position = 38
-    )
-    default boolean showPvmKillTime() {
-        return true;
-    }
-
-    @ConfigItem(
         keyName = "showPvmAggro",
         name = "Show Aggro Status",
         description = "Show whether the monster is aggressive and its tolerance timer",

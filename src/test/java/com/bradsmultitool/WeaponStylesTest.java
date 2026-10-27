@@ -16,7 +16,9 @@ public class WeaponStylesTest {
 
     @Test
     public void rangedWeaponsReportAmmoType() {
-        assertEquals("Rapid (Standard)", WeaponStyles.resolve(3, 1, false, 0).label());
+        assertEquals("Rapid (Bow)", WeaponStyles.resolve(3, 1, false, 0).label());
+        assertEquals("Rapid (Thrown)", WeaponStyles.resolve(19, 1, false, 0).label());
+        assertEquals("Heavy", WeaponStyles.resolve(7, 0, false, 0).damageType);
         assertEquals("Heavy", WeaponStyles.resolve(5, 0, false, 0).damageType);
         assertEquals("Light", WeaponStyles.resolve(19, 3, false, 0).damageType);
     }
@@ -31,6 +33,8 @@ public class WeaponStylesTest {
 
         WeaponStyles.Style casting = WeaponStyles.resolve(18, 4, false, 4);
         assertEquals(MonsterWeakness.Type.MAGIC, casting.type());
-        assertEquals("Spell Cast (Fire)", casting.label());
+        assertEquals("Spell Cast (Fire Strike)", casting.label());
+        assertEquals("Spell Cast (Water Wave)", WeaponStyles.resolve(18, 4, false, 14).label());
+        assertEquals("Spell Cast (Earth Surge)", WeaponStyles.resolve(18, 4, false, 50).label());
     }
 }

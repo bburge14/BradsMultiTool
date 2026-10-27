@@ -162,7 +162,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private Color combatMethodColor = new Color(255, 215, 0);
 
     @Getter
-    private int combatMethodIconId = CombatIcons.NONE;
+    private CombatIcons.Icon combatMethodIcon = null;
 
     @Getter
     private String targetCrabHp = "No Target";
@@ -214,9 +214,6 @@ public class BradsMultiToolPlugin extends Plugin {
     private double pvmLiveDps = 0.0;
 
     @Getter
-    private String pvmKillTime = "--:--";
-
-    @Getter
     private boolean pvmTargetIsAggressive = false;
 
     @Getter
@@ -235,7 +232,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private Instant pvmFightStart = null;
     private int pvmEncounterDamage = 0;
-    private int pvmInitialRatio = -1;
     private boolean pvmFightEnded = false;
 
     private String currentTargetType = "";
@@ -532,7 +528,6 @@ public class BradsMultiToolPlugin extends Plugin {
             currentPvmTarget = null;
             pvmHpPercent = 0;
             pvmCurrentHp = 0;
-            pvmKillTime = "00:00";
             pvmFightEnded = true;
             lastPvmCombatActivity = Instant.now();
         }
@@ -916,7 +911,6 @@ public class BradsMultiToolPlugin extends Plugin {
                 currentPvmTarget = activeFightNpc;
                 lastPvmTargetName = name;
                 lastPvmCombatLevel = activeFightNpc.getCombatLevel();
-                pvmInitialRatio = activeFightNpc.getHealthRatio();
                 pvmFightEnded = false;
                 resolveNpcWeaknessAndAggression(activeFightNpc);
 
@@ -973,23 +967,8 @@ public class BradsMultiToolPlugin extends Plugin {
                     pvmLiveDps = (double) pvmEncounterDamage / elapsed;
                 }
             }
-
-            if (pvmFightStart != null && pvmInitialRatio > 0 && ratio > 0) {
-                long elapsed = Duration.between(pvmFightStart, Instant.now()).getSeconds();
-                if (elapsed >= 2) {
-                    int lost = pvmInitialRatio - ratio;
-                    if (lost > 0) {
-                        double burnRate = (double) lost / elapsed;
-                        int secLeft = (int) Math.ceil(ratio / burnRate);
-                        pvmKillTime = String.format("%02d:%02d", secLeft / 60, secLeft % 60);
-                    } else {
-                        pvmKillTime = "--:--";
-                    }
-                }
-            }
         } else {
             currentPvmTarget = null;
-            pvmKillTime = "--:--";
             sessionCombatSecondMarker = null;
 
             long lingerDuration = config.pvmLingerSeconds();
@@ -1045,7 +1024,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
         combatDiscipline = style.discipline;
         combatMethod = style.label();
-        combatMethodIconId = CombatIcons.itemId(style.type(), style.damageType, style.element);
+        combatMethodIcon = CombatIcons.forStyle(style);
 
         combatMethodColor = weaknessMatchColor(style);
     }

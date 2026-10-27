@@ -1,63 +1,109 @@
 package com.bradsmultitool;
 
 /**
- * Item sprites used as icons for combat styles and weaknesses.
+ * Icons for combat styles and weaknesses: item sprites for weapons, spellbook sprites for spells.
  */
 final class CombatIcons {
 
-    static final int NONE = -1;
+    static final class Icon {
+        /** True for a game sprite (SpriteManager), false for an item image (ItemManager). */
+        final boolean sprite;
+        final int id;
 
-    private static final int STEEL_DAGGER = 1207;
-    private static final int STEEL_SCIMITAR = 1325;
-    private static final int STEEL_MACE = 1424;
-    private static final int STEEL_SWORD = 1281;
-    private static final int STEEL_DART = 808;
-    private static final int STEEL_ARROW = 886;
-    private static final int STEEL_BOLTS = 9141;
-    private static final int SHORTBOW = 841;
-    private static final int WIZARD_HAT = 579;
-    private static final int AIR_RUNE = 556;
-    private static final int WATER_RUNE = 555;
-    private static final int EARTH_RUNE = 557;
-    private static final int FIRE_RUNE = 554;
+        private Icon(boolean sprite, int id) {
+            this.sprite = sprite;
+            this.id = id;
+        }
+    }
+
+    private static final Icon STEEL_DAGGER = item(1207);
+    private static final Icon STEEL_SCIMITAR = item(1325);
+    private static final Icon STEEL_MACE = item(1424);
+    private static final Icon STEEL_SWORD = item(1281);
+    private static final Icon STEEL_KNIFE = item(865);
+    private static final Icon MAPLE_SHORTBOW = item(853);
+    private static final Icon STEEL_CROSSBOW = item(9179);
+    private static final Icon CHINCHOMPA = item(10033);
+    private static final Icon WIZARD_HAT = item(579);
+
+    // Spellbook sprite ids (net.runelite.api.SpriteID.SPELL_*), rows by tier, columns Air/Water/Earth/Fire
+    private static final String[] TIERS = {"Strike", "Bolt", "Blast", "Wave", "Surge"};
+    private static final int[][] SPELL_SPRITES = {
+        {15, 17, 19, 21},
+        {23, 26, 29, 32},
+        {35, 38, 40, 44},
+        {46, 48, 51, 52},
+        {362, 363, 364, 365},
+    };
 
     private CombatIcons() {
     }
 
-    /**
-     * @param subType melee damage type (Stab/Slash/Crush) or ranged ammo type (Light/Standard/Heavy), may be null
-     * @param element magic element, may be null
-     */
-    static int itemId(MonsterWeakness.Type type, String subType, MonsterWeakness.Element element) {
-        String sub = subType != null ? subType.toLowerCase() : "";
-        switch (type) {
+    private static Icon item(int itemId) {
+        return new Icon(false, itemId);
+    }
+
+    /** Icon for the player's current combat style, or null. */
+    static Icon forStyle(WeaponStyles.Style style) {
+        switch (style.type()) {
             case MELEE:
-                switch (sub) {
-                    case "stab": return STEEL_DAGGER;
-                    case "slash": return STEEL_SCIMITAR;
-                    case "crush": return STEEL_MACE;
-                    default: return STEEL_SWORD;
-                }
+                return melee(style.damageType);
             case RANGED:
-                switch (sub) {
-                    case "light": return STEEL_DART;
-                    case "standard": return STEEL_ARROW;
-                    case "heavy": return STEEL_BOLTS;
-                    default: return SHORTBOW;
+                if ("Thrown".equals(style.weaponKind)) {
+                    return STEEL_KNIFE;
                 }
+                if ("Chinchompa".equals(style.weaponKind)) {
+                    return CHINCHOMPA;
+                }
+                return rangedAmmo(style.damageType);
             case MAGIC:
-                return element != null ? rune(element) : WIZARD_HAT;
+                return style.element != null ? spell(style.element, style.spellTier) : WIZARD_HAT;
             default:
-                return NONE;
+                return null;
         }
     }
 
-    static int rune(MonsterWeakness.Element element) {
-        switch (element) {
-            case AIR: return AIR_RUNE;
-            case WATER: return WATER_RUNE;
-            case EARTH: return EARTH_RUNE;
-            default: return FIRE_RUNE;
+    /** Icon for a monster's weakness, or null when unknown. */
+    static Icon forWeakness(MonsterWeakness weakness) {
+        switch (weakness.type) {
+            case MELEE:
+                return melee(weakness.subType);
+            case RANGED:
+                return rangedAmmo(weakness.subType);
+            case MAGIC:
+                return weakness.element != null ? spell(weakness.element, null) : WIZARD_HAT;
+            default:
+                return null;
+        }
+    }
+
+    /** Spell icon for an element; uses the Strike spell when no tier is given. */
+    static Icon spell(MonsterWeakness.Element element, String tier) {
+        int row = 0;
+        for (int i = 0; i < TIERS.length; i++) {
+            if (TIERS[i].equals(tier)) {
+                row = i;
+            }
+        }
+        return new Icon(true, SPELL_SPRITES[row][element.ordinal()]);
+    }
+
+    private static Icon melee(String damageType) {
+        String type = damageType != null ? damageType.toLowerCase() : "";
+        switch (type) {
+            case "stab": return STEEL_DAGGER;
+            case "slash": return STEEL_SCIMITAR;
+            case "crush": return STEEL_MACE;
+            default: return STEEL_SWORD;
+        }
+    }
+
+    private static Icon rangedAmmo(String ammoType) {
+        String type = ammoType != null ? ammoType.toLowerCase() : "";
+        switch (type) {
+            case "light": return STEEL_KNIFE;
+            case "heavy": return STEEL_CROSSBOW;
+            default: return MAPLE_SHORTBOW;
         }
     }
 }

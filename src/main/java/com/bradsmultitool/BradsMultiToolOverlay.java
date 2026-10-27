@@ -15,6 +15,7 @@ import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.TileObject;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -32,15 +33,17 @@ public class BradsMultiToolOverlay extends Overlay {
     private final BradsMultiToolConfig config;
     private final ModelOutlineRenderer modelOutlineRenderer;
     private final ItemManager itemManager;
+    private final SpriteManager spriteManager;
     private final PanelComponent panelComponent = new PanelComponent();
 
     @Inject
-    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer, ItemManager itemManager) {
+    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer, ItemManager itemManager, SpriteManager spriteManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.modelOutlineRenderer = modelOutlineRenderer;
         this.itemManager = itemManager;
+        this.spriteManager = spriteManager;
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
@@ -89,14 +92,14 @@ public class BradsMultiToolOverlay extends Overlay {
                 MonsterWeakness weakness = plugin.getPvmTargetWeakness();
                 panelComponent.getChildren().add(new IconLineComponent(
                     "Weakness:",
-                    weaknessIcon(weakness),
+                    icon(CombatIcons.forWeakness(weakness)),
                     weakness.label(),
                     weakness.type == MonsterWeakness.Type.UNKNOWN ? new Color(160, 160, 160) : new Color(0, 220, 255)));
 
                 if (weakness.hasSeparateElement()) {
                     panelComponent.getChildren().add(new IconLineComponent(
                         "Elemental:",
-                        icon(CombatIcons.rune(weakness.element)),
+                        icon(CombatIcons.spell(weakness.element, null)),
                         weakness.elementLabel(),
                         new Color(0, 220, 255)));
                 }
@@ -112,7 +115,7 @@ public class BradsMultiToolOverlay extends Overlay {
 
             panelComponent.getChildren().add(new IconLineComponent(
                 "Combat Method:",
-                icon(plugin.getCombatMethodIconId()),
+                icon(plugin.getCombatMethodIcon()),
                 plugin.getCombatMethod(),
                 plugin.getCombatMethodColor()));
 
@@ -143,13 +146,6 @@ public class BradsMultiToolOverlay extends Overlay {
                     .left("Max Hit:")
                     .right(String.valueOf(plugin.getPvmMaxHit()))
                     .rightColor(new Color(255, 90, 90))
-                    .build());
-            }
-
-            if (config.showPvmKillTime()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Est Kill Time:")
-                    .right(plugin.getPvmKillTime())
                     .build());
             }
 
@@ -335,12 +331,11 @@ public class BradsMultiToolOverlay extends Overlay {
             || client.getWidget(378, 0) != null;
     }
 
-    private Image weaknessIcon(MonsterWeakness weakness) {
-        return icon(CombatIcons.itemId(weakness.type, weakness.subType, weakness.element));
-    }
-
-    private Image icon(int itemId) {
-        return itemId == CombatIcons.NONE ? null : itemManager.getImage(itemId);
+    private Image icon(CombatIcons.Icon icon) {
+        if (icon == null) {
+            return null;
+        }
+        return icon.sprite ? spriteManager.getSprite(icon.id, 0) : itemManager.getImage(icon.id);
     }
 
     /**

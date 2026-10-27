@@ -14,18 +14,25 @@ public final class WeaponStyles {
         public final String buttonName;
         /** Melee damage type (Stab/Slash/Crush) or ranged ammo type (Light/Standard/Heavy), or null. */
         public final String damageType;
+        /** Ranged weapon kind shown to the player ("Thrown", "Bow", ...), or null. */
+        public final String weaponKind;
         /** Element of the autocast spell, or null. */
         public final MonsterWeakness.Element element;
+        /** Autocast spell tier ("Strike", "Bolt", "Blast", "Wave", "Surge"), or null. */
+        public final String spellTier;
 
         Style(String discipline, String buttonName, String damageType) {
-            this(discipline, buttonName, damageType, null);
+            this(discipline, buttonName, damageType, null, null, null);
         }
 
-        Style(String discipline, String buttonName, String damageType, MonsterWeakness.Element element) {
+        Style(String discipline, String buttonName, String damageType, String weaponKind,
+              MonsterWeakness.Element element, String spellTier) {
             this.discipline = discipline;
             this.buttonName = buttonName;
             this.damageType = damageType;
+            this.weaponKind = weaponKind;
             this.element = element;
+            this.spellTier = spellTier;
         }
 
         public MonsterWeakness.Type type() {
@@ -37,9 +44,16 @@ public final class WeaponStyles {
             }
         }
 
-        /** e.g. "Slash", "Lunge (Stab)", "Rapid (Heavy)", "Spell Cast (Fire)". */
+        /** e.g. "Slash", "Lunge (Stab)", "Rapid (Thrown)", "Spell Cast (Fire Blast)". */
         public String label() {
-            String detail = element != null ? element.toString() : damageType;
+            String detail;
+            if (element != null) {
+                detail = spellTier != null ? element + " " + spellTier : element.toString();
+            } else if (weaponKind != null) {
+                detail = weaponKind;
+            } else {
+                detail = damageType;
+            }
             if (detail == null || detail.equalsIgnoreCase(buttonName)) {
                 return buttonName;
             }
@@ -60,20 +74,20 @@ public final class WeaponStyles {
         melee(0, "Punch", "Crush", "Kick", "Crush", null, null, "Block", "Crush");           // Unarmed
         melee(1, "Chop", "Slash", "Hack", "Slash", "Smash", "Crush", "Block", "Slash");       // Axe
         melee(2, "Pound", "Crush", "Pummel", "Crush", null, null, "Block", "Crush");          // Blunt
-        ranged(3, "Standard");                                                                // Bow (arrows)
+        ranged(3, "Standard", "Bow");                                                         // Bow (arrows)
         melee(4, "Chop", "Slash", "Slash", "Slash", "Lunge", "Stab", "Block", "Slash");       // Claws
-        ranged(5, "Heavy");                                                                   // Crossbow (bolts)
+        ranged(5, "Heavy", "Crossbow");                                                       // Crossbow (bolts)
         CATEGORIES.put(6, new Style[]{                                                        // Salamander
             new Style(MELEE, "Scorch", "Slash"),
-            new Style(RANGED, "Flare", null),
+            new Style(RANGED, "Flare", "Standard", "Salamander", null, null),
             new Style(MAGIC, "Blaze", null),
             null
         });
         CATEGORIES.put(7, new Style[]{                                                        // Chinchompa
-            new Style(RANGED, "Short fuse", null),
-            new Style(RANGED, "Medium fuse", null),
+            new Style(RANGED, "Short fuse", "Heavy", "Chinchompa", null, null),
+            new Style(RANGED, "Medium fuse", "Heavy", "Chinchompa", null, null),
             null,
-            new Style(RANGED, "Long fuse", null)
+            new Style(RANGED, "Long fuse", "Heavy", "Chinchompa", null, null)
         });
         melee(9, "Chop", "Slash", "Slash", "Slash", "Lunge", "Stab", "Block", "Slash");       // Slash sword
         melee(10, "Chop", "Slash", "Slash", "Slash", "Smash", "Crush", "Block", "Slash");     // 2h sword
@@ -85,7 +99,7 @@ public final class WeaponStyles {
         melee(16, "Pound", "Crush", "Pummel", "Crush", "Spike", "Stab", "Block", "Crush");    // Spiked
         melee(17, "Stab", "Stab", "Lunge", "Stab", "Slash", "Slash", "Block", "Stab");        // Stab sword
         melee(18, "Bash", "Crush", "Pound", "Crush", null, null, "Focus", "Crush");           // Staff
-        ranged(19, "Light");                                                                  // Thrown (darts, knives)
+        ranged(19, "Light", "Thrown");                                                        // Darts, knives, thrownaxes, blowpipe
         melee(20, "Flick", "Slash", "Lash", "Slash", null, null, "Deflect", "Slash");         // Whip
         melee(21, "Jab", "Stab", "Swipe", "Slash", null, null, "Fend", "Crush");              // Bladed staff
         CATEGORIES.put(23, new Style[]{                                                       // Powered staff
@@ -115,13 +129,26 @@ public final class WeaponStyles {
         CATEGORIES.put(category, styles);
     }
 
-    private static void ranged(int category, String ammoType) {
+    private static void ranged(int category, String ammoType, String weaponKind) {
         CATEGORIES.put(category, new Style[]{
-            new Style(RANGED, "Accurate", ammoType),
-            new Style(RANGED, "Rapid", ammoType),
+            new Style(RANGED, "Accurate", ammoType, weaponKind, null, null),
+            new Style(RANGED, "Rapid", ammoType, weaponKind, null, null),
             null,
-            new Style(RANGED, "Longrange", ammoType)
+            new Style(RANGED, "Longrange", ammoType, weaponKind, null, null)
         });
+    }
+
+    private static final String[] SPELL_TIERS = {"Strike", "Bolt", "Blast", "Wave"};
+
+    /** Tier of the autocast spell (varbit 276), or null when it isn't an elemental combat spell. */
+    static String autocastTier(int spellId) {
+        if (spellId >= 1 && spellId <= 16) {
+            return SPELL_TIERS[(spellId - 1) / 4];
+        }
+        if (spellId >= 48 && spellId <= 51) {
+            return "Surge";
+        }
+        return null;
     }
 
     /**
@@ -147,7 +174,8 @@ public final class WeaponStyles {
 
     public static Style resolve(int category, int styleIndex, boolean defensiveCasting, int autocastSpellId) {
         if (styleIndex == AUTOCAST_INDEX) {
-            return new Style(MAGIC, defensiveCasting ? "Defensive Cast" : "Spell Cast", null, autocastElement(autocastSpellId));
+            return new Style(MAGIC, defensiveCasting ? "Defensive Cast" : "Spell Cast", null, null,
+                autocastElement(autocastSpellId), autocastTier(autocastSpellId));
         }
 
         Style[] styles = CATEGORIES.get(category);
