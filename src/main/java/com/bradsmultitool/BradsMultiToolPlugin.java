@@ -52,7 +52,6 @@ import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.client.Notifier;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.eventbus.Subscribe;
@@ -111,8 +110,6 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     private Gson gson;
 
-    @Inject
-    private ClientThread clientThread;
 
     @Inject
     private OverlayManager overlayManager;
@@ -342,15 +339,10 @@ public class BradsMultiToolPlugin extends Plugin {
         resetFightTracking();
     }
 
-    // Plays a random real alert and reports in chat which Windows voice was actually used
+    // Plays a random real alert in the newly selected voice
     private void previewVoice() {
         String line = VOICE_LINES[ThreadLocalRandom.current().nextInt(VOICE_LINES.length)];
-        voiceService.speakAsync(line, config.voicePersona(), config.customVoice(), voice ->
-            clientThread.invokeLater(() -> {
-                if (client.getGameState() == GameState.LOGGED_IN) {
-                    sendGameChatMessage("Voice preview using: " + voice);
-                }
-            }));
+        voiceService.speakAsync(line, config.voicePersona(), config.customVoice());
     }
 
     public String getPvmTargetHp() {
