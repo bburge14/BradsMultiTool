@@ -34,7 +34,18 @@ git checkout claude/nifty-feynman-izouon   # skip once this branch is merged int
 
 The first run downloads Gradle and RuneLite, so it takes a few minutes. If the repo is private, Git opens a browser window to sign in to GitHub.
 
-**3. Log in:** follow [Logging in with a Jagex Account](#logging-in-with-a-jagex-account) below (once per PC).
+**3. (Optional) Desktop shortcut:** after cloning, run this once to put a launch button on your desktop:
+
+```powershell
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Brad's Multi-Tool.lnk")
+$s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
+$s.WorkingDirectory = "C:\dev\BradsMultiTool"
+$s.Save()
+```
+
+Double-clicking it (or `Launch-BradsMultiTool.bat` itself) checks your Jagex session file is present, then builds and launches RuneLite with the plugin.
+
+**4. Log in:** follow [Logging in with a Jagex Account](#logging-in-with-a-jagex-account) below (once per PC).
 
 **Getting updates later:**
 
