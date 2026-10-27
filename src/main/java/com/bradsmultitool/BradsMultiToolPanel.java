@@ -35,6 +35,7 @@ import net.runelite.client.ui.PluginPanel;
 public class BradsMultiToolPanel extends PluginPanel {
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
+    private static final Color ACCENT_COLOR = new Color(0, 220, 220);
     private static final Color LEVEL_COLOR = new Color(80, 200, 255);
     private static final Color LABEL_COLOR = new Color(190, 190, 190);
     private static final Color BAR_FILL = new Color(15, 165, 105);
@@ -45,7 +46,9 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final SkillIconManager skillIconManager;
 
     private final JLabel totalXpLabel = new JLabel();
-    private final JLabel emptyLabel = new JLabel("Gain XP to start tracking skills.");
+    private final JLabel totalRateLabel = new JLabel();
+    private final JLabel skillCountLabel = new JLabel();
+    private final JLabel emptyLabel = new JLabel("<html>Gain XP to start tracking skills.<br>Right-click a skill for options.</html>");
     private final JPanel cardsContainer = new JPanel();
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
 
@@ -59,24 +62,30 @@ public class BradsMultiToolPanel extends PluginPanel {
         setBorder(new EmptyBorder(10, 10, 10, 10));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JPanel header = new JPanel();
-        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
-        header.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        JPanel header = new JPanel(new BorderLayout(0, 8));
+        header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, ACCENT_COLOR),
+            new EmptyBorder(8, 8, 8, 8)));
 
+        JPanel titles = new JPanel(new GridLayout(2, 1));
+        titles.setOpaque(false);
         JLabel title = new JLabel("Brad's Multi-Tool");
         title.setFont(FontManager.getRunescapeBoldFont());
-        title.setForeground(new Color(0, 220, 220));
-        header.add(title);
+        title.setForeground(ACCENT_COLOR);
+        JLabel subtitle = new JLabel("Skill Tracker");
+        subtitle.setFont(FontManager.getRunescapeSmallFont());
+        subtitle.setForeground(Color.GRAY);
+        titles.add(title);
+        titles.add(subtitle);
+        header.add(titles, BorderLayout.NORTH);
 
-        totalXpLabel.setFont(FontManager.getRunescapeSmallFont());
-        totalXpLabel.setForeground(Color.WHITE);
-        totalXpLabel.setBorder(new EmptyBorder(4, 0, 0, 0));
-        header.add(totalXpLabel);
-
-        JLabel hint = new JLabel("Right-click a skill for options");
-        hint.setFont(FontManager.getRunescapeSmallFont());
-        hint.setForeground(Color.GRAY);
-        header.add(hint);
+        JPanel stats = new JPanel(new GridLayout(1, 3, 6, 0));
+        stats.setOpaque(false);
+        stats.add(statBlock("TOTAL XP", totalXpLabel));
+        stats.add(statBlock("XP / HR", totalRateLabel));
+        stats.add(statBlock("SKILLS", skillCountLabel));
+        header.add(stats, BorderLayout.CENTER);
 
         cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
         cardsContainer.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -101,9 +110,17 @@ public class BradsMultiToolPanel extends PluginPanel {
      * Must be called on the Swing EDT.
      */
     public void updatePanel() {
-        totalXpLabel.setText("Total XP gained: " + NUMBER_FORMAT.format(plugin.getTotalCombatXp()));
-
         List<Skill> tracked = plugin.getTrackedSkills();
+        int totalRate = 0;
+        for (Skill skill : tracked) {
+            if (!plugin.isSkillPaused(skill)) {
+                totalRate += plugin.getSkillXpPerHour(skill);
+            }
+        }
+        totalXpLabel.setText(NUMBER_FORMAT.format(plugin.getTotalCombatXp()));
+        totalRateLabel.setText(NUMBER_FORMAT.format(totalRate));
+        skillCountLabel.setText(String.valueOf(tracked.size()));
+
         Set<Skill> trackedSet = new HashSet<>(tracked);
         boolean layoutChanged = cards.keySet().removeIf(skill -> {
             if (!trackedSet.contains(skill)) {
@@ -138,6 +155,19 @@ public class BradsMultiToolPanel extends PluginPanel {
             cardsContainer.revalidate();
             cardsContainer.repaint();
         }
+    }
+
+    private static JPanel statBlock(String caption, JLabel value) {
+        JPanel block = new JPanel(new GridLayout(2, 1));
+        block.setOpaque(false);
+        JLabel captionLabel = new JLabel(caption);
+        captionLabel.setFont(FontManager.getRunescapeSmallFont());
+        captionLabel.setForeground(Color.GRAY);
+        value.setFont(FontManager.getRunescapeBoldFont());
+        value.setForeground(Color.WHITE);
+        block.add(captionLabel);
+        block.add(value);
+        return block;
     }
 
     private static String formatDuration(long seconds) {
@@ -214,6 +244,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             menu.addSeparator();
             menu.add(menuItem("Reset all skills", plugin::resetSession));
             setComponentPopupMenu(menu);
+            setToolTipText("Right-click for options");
             inheritPopupMenu(this);
         }
 
