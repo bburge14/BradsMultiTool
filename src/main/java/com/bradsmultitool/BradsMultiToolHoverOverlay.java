@@ -164,41 +164,9 @@ public class BradsMultiToolHoverOverlay extends Overlay {
             .build());
     }
 
-    /**
-     * The game's right-click colour for a combat level relative to yours: green when lower, yellow when
-     * equal, through orange to red when higher.
-     */
     private Color levelColor(int npcLevel) {
         Player local = client.getLocalPlayer();
-        if (local == null || npcLevel <= 0) {
-            return Color.WHITE;
-        }
-        int diff = local.getCombatLevel() - npcLevel;
-        if (diff < -9) {
-            return new Color(0xff0000);
-        }
-        if (diff < -6) {
-            return new Color(0xff3000);
-        }
-        if (diff < -3) {
-            return new Color(0xff7000);
-        }
-        if (diff < 0) {
-            return new Color(0xffb000);
-        }
-        if (diff > 9) {
-            return new Color(0x00ff00);
-        }
-        if (diff > 6) {
-            return new Color(0x40ff00);
-        }
-        if (diff > 3) {
-            return new Color(0x80ff00);
-        }
-        if (diff > 0) {
-            return new Color(0xc0ff00);
-        }
-        return new Color(0xffff00);
+        return local != null ? BradsMultiToolOverlay.combatLevelColor(local.getCombatLevel(), npcLevel) : Color.WHITE;
     }
 
     private Image icon(CombatIcons.Icon icon) {

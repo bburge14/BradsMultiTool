@@ -71,7 +71,9 @@ public class BradsMultiToolOverlay extends Overlay {
 
             panelComponent.getChildren().add(TitleComponent.builder()
                 .text(name + (cbLvl > 0 ? " (Lvl " + cbLvl + ")" : ""))
-                .color(new Color(255, 185, 0))
+                .color(client.getLocalPlayer() != null
+                    ? combatLevelColor(client.getLocalPlayer().getCombatLevel(), cbLvl)
+                    : Color.WHITE)
                 .build());
 
             // Embedded Health Bar: <current> / <total> (<percent>%)
@@ -310,6 +312,42 @@ public class BradsMultiToolOverlay extends Overlay {
         }
 
         return panelComponent.render(graphics);
+    }
+
+    /**
+     * The game's right-click colour for a monster's combat level relative to the player's: green when
+     * lower, yellow when equal, through orange to red when higher.
+     */
+    static Color combatLevelColor(int playerLevel, int npcLevel) {
+        if (npcLevel <= 0) {
+            return Color.WHITE;
+        }
+        int diff = playerLevel - npcLevel;
+        if (diff < -9) {
+            return new Color(0xff0000);
+        }
+        if (diff < -6) {
+            return new Color(0xff3000);
+        }
+        if (diff < -3) {
+            return new Color(0xff7000);
+        }
+        if (diff < 0) {
+            return new Color(0xffb000);
+        }
+        if (diff > 9) {
+            return new Color(0x00ff00);
+        }
+        if (diff > 6) {
+            return new Color(0x40ff00);
+        }
+        if (diff > 3) {
+            return new Color(0x80ff00);
+        }
+        if (diff > 0) {
+            return new Color(0xc0ff00);
+        }
+        return new Color(0xffff00);
     }
 
     private Color shellColor(boolean mineable) {
