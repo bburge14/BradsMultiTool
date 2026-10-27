@@ -84,6 +84,8 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int EQUIPMENT_WEAPON_SLOT = 3;
 
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
+    private static final int GEMSTONE_CRAB_ID = 14779;
+    private static final int GEMSTONE_CRAB_SHELL_ID = 14780;
 
     // The client logs out after 15000 idle client cycles (20ms each = 5 minutes)
     private static final int IDLE_LOGOUT_SECONDS = 300;
@@ -559,37 +561,91 @@ public class BradsMultiToolPlugin extends Plugin {
         return playerLocation != null && playerLocation.distanceTo(npc.getWorldLocation()) <= maxDistance;
     }
 
-    private void evaluateNpc(NPC npc) {
-        if (npc == null || npc.getName() == null) return;
-        String name = npc.getName().toLowerCase();
+    private enum CrabForm {
+        NONE,
+        ACTIVE,
+        SHELL
+    }
 
-        if (name.contains("gemstone crab") || name.contains("gem crab")) {
-            boolean isMineableShell = false;
-            NPCComposition comp = npc.getTransformedComposition();
-            if (comp == null) comp = npc.getComposition();
-            if (comp != null && comp.getActions() != null) {
-                for (String a : comp.getActions()) {
-                    if (a != null && a.equalsIgnoreCase("Mine")) {
-                        isMineableShell = true;
-                        break;
-                    }
+    private CrabForm classifyCrab(NPC npc) {
+        if (npc == null) {
+            return CrabForm.NONE;
+        }
+        if (npc.getId() == GEMSTONE_CRAB_ID) {
+            return CrabForm.ACTIVE;
+        }
+        if (npc.getId() == GEMSTONE_CRAB_SHELL_ID) {
+            return CrabForm.SHELL;
+        }
+
+        // Fallback in case the ids change: match the name and tell the shell apart by its "Mine" option
+        NPCComposition comp = npc.getTransformedComposition();
+        if (comp == null) {
+            comp = npc.getComposition();
+        }
+        String name = comp != null && comp.getName() != null ? comp.getName() : npc.getName();
+        if (name == null) {
+            return CrabForm.NONE;
+        }
+        name = name.toLowerCase();
+        if (!name.contains("gemstone crab") && !name.contains("gem crab")) {
+            return CrabForm.NONE;
+        }
+        if (comp != null && comp.getActions() != null) {
+            for (String action : comp.getActions()) {
+                if ("Mine".equalsIgnoreCase(action)) {
+                    return CrabForm.SHELL;
                 }
             }
+        }
+        return CrabForm.ACTIVE;
+    }
 
-            if (!isMineableShell) {
-                if (activeCrab != npc) {
-                    resetFightTracking();
-                }
-                activeCrab = npc;
-                wasDirectlyTrackingCrab = true;
-                dormantCrabShellNpc = null;
-            } else {
+    private void evaluateNpc(NPC npc) {
+        switch (classifyCrab(npc)) {
+            case ACTIVE:
+                setActiveCrab(npc);
+                break;
+            case SHELL:
                 dormantCrabShellNpc = npc;
                 if (activeCrab == npc) {
                     activeCrab = null;
                     resetFightTracking();
                 }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void setActiveCrab(NPC npc) {
+        if (activeCrab != npc) {
+            log.debug("Gemstone Crab detected: id={} at {}", npc.getId(), npc.getWorldLocation());
+            resetFightTracking();
+        }
+        activeCrab = npc;
+        wasDirectlyTrackingCrab = true;
+        dormantCrabShellNpc = null;
+    }
+
+    // Spawn events can be missed (e.g. arriving through a cave reloads the scene and clears tracking),
+    // so re-check the NPCs around the player every tick.
+    private void scanForCrab() {
+        NPC crab = null;
+        NPC shell = null;
+        for (NPC npc : client.getTopLevelWorldView().npcs()) {
+            CrabForm form = classifyCrab(npc);
+            if (form == CrabForm.ACTIVE && !npc.isDead()) {
+                crab = npc;
+            } else if (form == CrabForm.SHELL) {
+                shell = npc;
             }
+        }
+
+        if (crab != null) {
+            setActiveCrab(crab);
+        } else if (shell != null) {
+            dormantCrabShellNpc = shell;
         }
     }
 
@@ -689,6 +745,7 @@ public class BradsMultiToolPlugin extends Plugin {
         Player player = client.getLocalPlayer();
         if (player != null) {
             WorldPoint wp = player.getWorldLocation();
+            scanForCrab();
             updateSpatialPresence(player, wp);
             updateTargetCrabStatus(player);
             updateGeneralPvmTarget(player);
@@ -894,8 +951,7 @@ public class BradsMultiToolPlugin extends Plugin {
         NPC attackingNpc = null;
         for (NPC npc : client.getTopLevelWorldView().npcs()) {
             if (npc != null && npc.getInteracting() == player && !npc.isDead()) {
-                String name = npc.getName() != null ? npc.getName().toLowerCase() : "";
-                if (!name.contains("gemstone crab") && !name.contains("gem crab") && hasAttackOption(npc)) {
+                if (classifyCrab(npc) == CrabForm.NONE && hasAttackOption(npc)) {
                     attackingNpc = npc;
                     break;
                 }
@@ -911,9 +967,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
         if (activeFightNpc != null) {
             String name = activeFightNpc.getName() != null ? activeFightNpc.getName() : "Monster";
-            String lowerName = name.toLowerCase();
-
-            if (lowerName.contains("gemstone crab") || lowerName.contains("gem crab")) {
+            if (classifyCrab(activeFightNpc) != CrabForm.NONE) {
                 currentPvmTarget = null;
                 pvmOverlayActive = false;
                 return;
@@ -1201,8 +1255,7 @@ public class BradsMultiToolPlugin extends Plugin {
         if (hitsplat.isMine()) {
             int dmg = hitsplat.getAmount();
 
-            String n = npc.getName() != null ? npc.getName().toLowerCase() : "";
-            if (npc == activeCrab || n.contains("gemstone crab") || n.contains("gem crab")) {
+            if (npc == activeCrab || classifyCrab(npc) == CrabForm.ACTIVE) {
                 activeCrab = npc;
                 playerAttackingCrab = true;
                 wasDirectlyTrackingCrab = true;
@@ -1360,8 +1413,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
         if (target instanceof NPC) {
             NPC targetNpc = (NPC) target;
-            String name = targetNpc.getName() != null ? targetNpc.getName().toLowerCase() : "";
-            if (name.contains("gemstone crab") || name.contains("gem crab")) {
+            if (classifyCrab(targetNpc) == CrabForm.ACTIVE) {
                 interactingWithCrab = true;
                 activeCrab = targetNpc;
             }
