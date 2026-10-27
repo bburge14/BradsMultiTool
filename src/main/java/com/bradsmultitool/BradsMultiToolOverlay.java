@@ -75,7 +75,7 @@ public class BradsMultiToolOverlay extends Overlay {
 
             panelComponent.getChildren().add(TitleComponent.builder()
                 .text(name + (cbLvl > 0 ? " (Lvl " + cbLvl + ")" : ""))
-                .color(Color.WHITE)
+                .color(new Color(255, 185, 0))
                 .build());
 
             // Embedded Health Bar: <current> / <total> (<percent>%)
@@ -219,12 +219,17 @@ public class BradsMultiToolOverlay extends Overlay {
         if (plugin.isCrabActive()) {
             panelComponent.getChildren().add(TitleComponent.builder()
                 .text("Gemstone Crab (In Vicinity)")
-                .color(Color.WHITE)
+                .color(new Color(0, 220, 220))
                 .build());
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Target:")
                 .right(plugin.getTargetCrabHp())
+                .build());
+
+            panelComponent.getChildren().add(LineComponent.builder()
+                .left("Burrows in:")
+                .right(plugin.getEstimatedBurrowTime())
                 .build());
 
             boolean attacking = plugin.isPlayerAttackingCrab();
@@ -238,11 +243,6 @@ public class BradsMultiToolOverlay extends Overlay {
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("XP Type:")
                 .right(plugin.getCrabCombatXpType())
-                .build());
-
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Burrows in:")
-                .right(plugin.getEstimatedBurrowTime())
                 .build());
 
             if (config.showCrabLastHit() && plugin.getCrabLastHit() > 0) {
@@ -288,7 +288,7 @@ public class BradsMultiToolOverlay extends Overlay {
         else {
             panelComponent.getChildren().add(TitleComponent.builder()
                 .text("Gemstone Crab Radar")
-                .color(Color.WHITE)
+                .color(new Color(255, 180, 0))
                 .build());
 
             panelComponent.getChildren().add(LineComponent.builder()
