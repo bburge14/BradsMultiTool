@@ -47,7 +47,12 @@ public class VoiceAlertService {
         CORI("Cori"),
         ALBA("Alba"),
         ALAN("Alan"),
-        NORTHERN("Northern");
+        NORTHERN("Northern"),
+        // Character voices: the voices above pitch-shifted with effects (see generate_voice_clips.py)
+        GNOME("Gnome"),
+        OGRE("Ogre"),
+        WIZARD("Old Wizard"),
+        ROBOT("Robot");
 
         private final String displayName;
 

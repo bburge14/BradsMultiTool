@@ -14,3 +14,12 @@ The spoken alerts in `src/main/resources/com/bradsmultitool/voices/` were genera
 | Mike | en_US-mike-medium | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | Alan | en_GB-alan-medium | See the [mimic3-voices](https://github.com/MycroftAI/mimic3-voices) model card |
 | Northern | en_GB-northern_english_male-medium | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) ([OpenSLR 83](http://www.openslr.org/83/)) |
+
+Character voices are the voices above with pitch, speed and effects applied by the generator:
+
+| Character | Based on | Effect |
+|---|---|---|
+| Gnome | Cori | Pitched up, quicker |
+| Ogre | Joe | Pitched down, slower |
+| Old Wizard | Alan | Slower, slightly lower, wavering, light echo |
+| Robot | Mike | Ring modulation |
