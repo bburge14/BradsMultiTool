@@ -26,7 +26,9 @@ public class VoiceAlertService {
         CRAB_MOVED("crab_moved", "The crab has moved!"),
         IDLE_LOGOUT("idle_logout", "You are about to be logged out."),
         CRAB_LOW_HEALTH("crab_low_health", "The crab is about to burrow."),
-        CHARACTER_IDLE("character_idle", "You are idle.");
+        CHARACTER_IDLE("character_idle", "You are idle."),
+        BUFF_LOW("buff_low", "Buff is running out."),
+        HEALTH_LOW("health_low", "Health is low.");
 
         final String fileName;
         final String text;
@@ -40,10 +42,10 @@ public class VoiceAlertService {
     /** Voice personas; each folder under resources/voices holds one clip per VoiceLine. */
     public enum VoicePersona {
         AMY("Amy"),
-        KRISTIN("Kristin"),
+        JOE("Joe"),
+        MIKE("Mike"),
         CORI("Cori"),
         ALBA("Alba"),
-        NORMAN("Norman"),
         ALAN("Alan"),
         NORTHERN("Northern");
 

@@ -44,7 +44,12 @@ final class BuffTimer {
 
     /** Game ticks as m:ss. */
     static String format(int ticks) {
-        int seconds = (int) Math.ceil(ticks * 0.6);
+        return formatMillis(ticks * 600L);
+    }
+
+    /** Milliseconds as m:ss, rounding up so it reads 0:00 only when time is up. */
+    static String formatMillis(long millis) {
+        int seconds = (int) Math.ceil(Math.max(0, millis) / 1000.0);
         return String.format("%d:%02d", seconds / 60, seconds % 60);
     }
 }

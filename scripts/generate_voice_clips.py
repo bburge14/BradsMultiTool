@@ -23,11 +23,12 @@ HF = "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
 
 # persona folder -> Piper voice (language/name/quality); licences are in VOICE_CREDITS.md
 PERSONAS = {
+    # US voices must use espeak "en-us" in their .onnx.json; several en_US models use British "en"
     "amy": "en/en_US/amy/medium",
-    "kristin": "en/en_US/kristin/medium",
+    "joe": "en/en_US/joe/medium",
+    "mike": "en/en_US/mike/medium",
     "cori": "en/en_GB/cori/high",
     "alba": "en/en_GB/alba/medium",
-    "norman": "en/en_US/norman/medium",
     "alan": "en/en_GB/alan/medium",
     "northern": "en/en_GB/northern_english_male/medium",
 }
@@ -40,6 +41,8 @@ LINES = {
     "idle_logout": "You are about to be logged out.",
     "crab_low_health": "The crab is about to burrow.",
     "character_idle": "You are idle.",
+    "buff_low": "Buff is running out.",
+    "health_low": "Health is low.",
 }
 
 

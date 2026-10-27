@@ -244,6 +244,62 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceBuffLow",
+        name = "Voice: Buff Running Out",
+        description = "Announce shortly before your combat boost runs out (click to preview)",
+        section = voiceSection,
+        position = 19
+    )
+    default boolean voiceBuffLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceHealthLow",
+        name = "Voice: Health Low",
+        description = "Announce when your hitpoints fall below the threshold (click to preview)",
+        section = voiceSection,
+        position = 20
+    )
+    default boolean voiceHealthLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "repeatHealthAlert",
+        name = "Repeat Health Low Alert",
+        description = "Repeat the low health alert until you heal",
+        section = voiceSection,
+        position = 21
+    )
+    default boolean repeatHealthAlert() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "repeatHealthInterval",
+        name = "Health Repeat Delay",
+        description = "Seconds between low health alerts",
+        section = voiceSection,
+        position = 22
+    )
+    @Units(Units.SECONDS)
+    default int repeatHealthInterval() {
+        return 10;
+    }
+
+    @ConfigItem(
+        keyName = "maxHealthRepeats",
+        name = "Max Health Repeats",
+        description = "How many times to repeat the low health alert after the first",
+        section = voiceSection,
+        position = 23
+    )
+    default int maxHealthRepeats() {
+        return 2;
+    }
+
     @ConfigSection(
         name = "Combat Buff & Maintenance",
         description = "Potion status and low prayer settings",
@@ -273,12 +329,25 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @Range(max = 600)
+    @ConfigItem(
+        keyName = "buffWarningSeconds",
+        name = "Warn Before Buff Ends",
+        description = "Warn this many seconds before your combat boost runs out (0 = off)",
+        section = buffSection,
+        position = 23
+    )
+    @Units(Units.SECONDS)
+    default int buffWarningSeconds() {
+        return 60;
+    }
+
     @ConfigItem(
         keyName = "enableLowPrayerAlert",
         name = "Low Prayer Alert",
         description = "Alert when prayer points fall below warning threshold",
         section = buffSection,
-        position = 23
+        position = 24
     )
     default boolean enableLowPrayerAlert() {
         return true;
@@ -289,7 +358,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Prayer Alert Threshold",
         description = "Points remaining to trigger low prayer notification",
         section = buffSection,
-        position = 24
+        position = 25
     )
     default int lowPrayerThreshold() {
         return 15;
@@ -300,10 +369,32 @@ public interface BradsMultiToolConfig extends Config {
         name = "Overhead 'Out of Prayer' Flash",
         description = "Flash an 'OUT OF PRAYER' box above the player in the game world",
         section = buffSection,
-        position = 25
+        position = 26
     )
     default boolean flashOutOfPrayerOverhead() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "enableLowHealthAlert",
+        name = "Low Health Alert",
+        description = "Alert when your hitpoints fall to the threshold or below",
+        section = buffSection,
+        position = 27
+    )
+    default boolean enableLowHealthAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "lowHealthThreshold",
+        name = "Health Alert Threshold",
+        description = "Hitpoints remaining to trigger the low health alert",
+        section = buffSection,
+        position = 28
+    )
+    default int lowHealthThreshold() {
+        return 20;
     }
 
     @ConfigItem(
@@ -311,7 +402,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Character Idle Alert",
         description = "Alert when your character stops doing anything (fighting, skilling, moving) for a while",
         section = buffSection,
-        position = 26
+        position = 29
     )
     default boolean characterIdleAlert() {
         return true;
@@ -323,7 +414,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Idle Alert After",
         description = "Seconds of doing nothing before the character idle alert",
         section = buffSection,
-        position = 27
+        position = 30
     )
     @Units(Units.SECONDS)
     default int characterIdleSeconds() {

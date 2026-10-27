@@ -299,8 +299,13 @@ public class BradsMultiToolPlugin extends Plugin {
     @Getter
     private BuffState buffState = BuffState.UNPOTTED;
 
-    @Getter
     private String buffStatusText = "No Buffs";
+    // Boost size and time left as of the last game tick; the HUD counts down between ticks
+    private int buffBoost = 0;
+    private int buffTicksRemaining = 0;
+    private boolean buffTimeExact = false;
+    private boolean buffLowAlerted = false;
+    private long lastTickMillis = 0;
 
     private int previousMaxBoost = 0;
     private final BuffTimer buffTimer = new BuffTimer();
@@ -312,6 +317,11 @@ public class BradsMultiToolPlugin extends Plugin {
     private boolean lowPrayerAlert = false;
     @Getter
     private boolean zeroPrayerAlert = false;
+
+    @Getter
+    private boolean lowHealthAlert = false;
+    private int timesHealthAlertSounded = 0;
+    private Instant lastHealthAlertTime = Instant.EPOCH;
     private int timesPrayerAlertSounded = 0;
     private Instant lastPrayerAlertTime = Instant.EPOCH;
 
@@ -424,6 +434,16 @@ public class BradsMultiToolPlugin extends Plugin {
             case "voiceCharacterIdle":
                 if (config.voiceCharacterIdle()) {
                     speak(VoiceAlertService.VoiceLine.CHARACTER_IDLE);
+                }
+                break;
+            case "voiceBuffLow":
+                if (config.voiceBuffLow()) {
+                    speak(VoiceAlertService.VoiceLine.BUFF_LOW);
+                }
+                break;
+            case "voiceHealthLow":
+                if (config.voiceHealthLow()) {
+                    speak(VoiceAlertService.VoiceLine.HEALTH_LOW);
                 }
                 break;
             case "voiceIdleLogout":
@@ -878,6 +898,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Subscribe
     public void onGameTick(GameTick tick) {
+        lastTickMillis = System.currentTimeMillis();
         if (client.getGameState() != GameState.LOGGED_IN) {
             return;
         }
@@ -907,6 +928,7 @@ public class BradsMultiToolPlugin extends Plugin {
             updateCharacterIdle(player);
         }
         monitorPrayer();
+        monitorHealth();
         updateIdleState();
         updateRealtimeCombatMethod();
 
@@ -1008,8 +1030,14 @@ public class BradsMultiToolPlugin extends Plugin {
 
         if (currentMax >= 4 || (currentMax > 0 && buffState == BuffState.ACTIVE)) {
             buffState = BuffState.ACTIVE;
-            buffStatusText = "ACTIVE (+" + currentMax + ") " + buffTimeText(currentMax);
+            if (currentMax > previousMaxBoost) {
+                buffLowAlerted = false;
+            }
+            buffBoost = currentMax;
+            updateBuffTime(currentMax);
+            buffStatusText = "ACTIVE";
             timesBuffExpiredSounded = 0;
+            checkBuffRunningOut();
         } else if (currentMax == 0) {
             if (buffState == BuffState.ACTIVE) {
                 buffState = BuffState.EXPIRED;
@@ -1045,16 +1073,70 @@ public class BradsMultiToolPlugin extends Plugin {
      * Time left on the boost: exact for divine potions (the game counts it down), exact for regular
      * potions once a stat drop has been seen, and "~" plus an upper bound before that.
      */
-    private String buffTimeText(int boost) {
+    private void updateBuffTime(int boost) {
         int divineTicks = 0;
         for (int varbit : DIVINE_POTION_TIME_VARBITS) {
             divineTicks = Math.max(divineTicks, client.getVarbitValue(varbit));
         }
         if (divineTicks > 0) {
-            return BuffTimer.format(divineTicks);
+            // A divine potion's boost ends outright when its timer does
+            buffTicksRemaining = divineTicks;
+            buffTimeExact = true;
+            return;
         }
-        int ticks = buffTimer.ticksRemaining(client.getTickCount(), boost, client.getVarbitValue(Prayer.PRESERVE.getVarbit()) == 1);
-        return (buffTimer.isSynced() ? "" : "~") + BuffTimer.format(ticks);
+        boolean preserve = client.getVarbitValue(Prayer.PRESERVE.getVarbit()) == 1;
+        buffTicksRemaining = buffTimer.ticksRemaining(client.getTickCount(), boost, preserve);
+        buffTimeExact = buffTimer.isSynced();
+    }
+
+    // Warn once per potion dose, only when the time left is exact
+    private void checkBuffRunningOut() {
+        int warnSeconds = config.buffWarningSeconds();
+        if (warnSeconds <= 0 || buffLowAlerted || !buffTimeExact || buffTicksRemaining * 0.6 > warnSeconds) {
+            return;
+        }
+        buffLowAlerted = true;
+        if (config.voiceBuffLow()) {
+            speak(VoiceAlertService.VoiceLine.BUFF_LOW);
+        }
+        sendGameChatMessage("Your combat buff runs out in " + BuffTimer.format(buffTicksRemaining) + ".");
+    }
+
+    /** e.g. "ACTIVE (+16) 15:22", counting down smoothly between game ticks. */
+    public String getBuffStatusText() {
+        if (buffState != BuffState.ACTIVE) {
+            return buffStatusText;
+        }
+        long millis = buffTicksRemaining * 600L - (System.currentTimeMillis() - lastTickMillis);
+        return "ACTIVE (+" + buffBoost + ") " + (buffTimeExact ? "" : "~") + BuffTimer.formatMillis(millis);
+    }
+
+    private void monitorHealth() {
+        int hp = client.getBoostedSkillLevel(Skill.HITPOINTS);
+        if (!config.enableLowHealthAlert() || hp > config.lowHealthThreshold() || hp <= 0) {
+            lowHealthAlert = false;
+            timesHealthAlertSounded = 0;
+            return;
+        }
+        lowHealthAlert = true;
+
+        boolean canSound = false;
+        if (timesHealthAlertSounded == 0) {
+            canSound = true;
+        } else if (config.repeatHealthAlert()
+            && Duration.between(lastHealthAlertTime, Instant.now()).getSeconds() >= config.repeatHealthInterval()
+            && timesHealthAlertSounded <= config.maxHealthRepeats()) {
+            canSound = true;
+        }
+
+        if (canSound) {
+            timesHealthAlertSounded++;
+            lastHealthAlertTime = Instant.now();
+            if (config.voiceHealthLow()) {
+                speak(VoiceAlertService.VoiceLine.HEALTH_LOW);
+            }
+            sendGameChatMessage("Health low (" + hp + " hitpoints).");
+        }
     }
 
     private void monitorPrayer() {

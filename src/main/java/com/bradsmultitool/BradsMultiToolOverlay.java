@@ -83,11 +83,15 @@ public class BradsMultiToolOverlay extends Overlay {
                 .build());
 
             // Embedded Health Bar: <current> / <total> (<percent>%)
-            panelComponent.getChildren().add(new CenteredHealthBarComponent(
-                plugin.getPvmHpPercent(),
-                plugin.getPvmCurrentHp(),
-                plugin.getPvmMaxHp()
-            ));
+            // Read the target's health bar live each frame so the HUD doesn't trail the game by a tick
+            int hpPercent = plugin.getPvmHpPercent();
+            int currentHp = plugin.getPvmCurrentHp();
+            NPC target = plugin.getCurrentPvmTarget();
+            if (target != null && target.getHealthRatio() >= 0 && target.getHealthScale() > 0) {
+                hpPercent = target.getHealthRatio() * 100 / target.getHealthScale();
+                currentHp = (int) Math.ceil((double) target.getHealthRatio() * plugin.getPvmMaxHp() / target.getHealthScale());
+            }
+            panelComponent.getChildren().add(new CenteredHealthBarComponent(hpPercent, currentHp, plugin.getPvmMaxHp()));
 
             if (config.showPvmAggro()) {
                 panelComponent.getChildren().add(LineComponent.builder()
@@ -180,6 +184,14 @@ public class BradsMultiToolOverlay extends Overlay {
                     .build());
             }
 
+            if (config.enableLowHealthAlert() && plugin.isLowHealthAlert()) {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Health:")
+                    .right("LOW")
+                    .rightColor(BAD)
+                    .build());
+            }
+
             return panelComponent.render(graphics);
         }
 
@@ -225,7 +237,7 @@ public class BradsMultiToolOverlay extends Overlay {
 
             if (plugin.getCrabHpPercent() >= 0) {
                 // No max HP for the crab, so the bar shows just the percentage
-                panelComponent.getChildren().add(new CenteredHealthBarComponent(plugin.getCrabHpPercent(), 0, 0, true));
+                panelComponent.getChildren().add(new CenteredHealthBarComponent(liveCrabHpPercent(), 0, 0, true));
             } else {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Target:")
@@ -283,6 +295,14 @@ public class BradsMultiToolOverlay extends Overlay {
                     .build());
             }
 
+            if (config.enableLowHealthAlert() && plugin.isLowHealthAlert()) {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Health:")
+                    .right("LOW")
+                    .rightColor(BAD)
+                    .build());
+            }
+
             String dpsFormatted = String.format("%.1f", plugin.getCrabLiveDps());
             String damageLine = String.format("%,d (%s DPS)", plugin.getCurrentCrabDamage(), dpsFormatted);
 
@@ -320,6 +340,15 @@ public class BradsMultiToolOverlay extends Overlay {
      * The game's right-click colour for a monster's combat level relative to the player's: green when
      * lower, yellow when equal, through orange to red when higher.
      */
+    // Live health bar reading, falling back to the last known value while the bar isn't shown
+    private int liveCrabHpPercent() {
+        NPC crab = plugin.getActiveCrab();
+        if (crab != null && crab.getHealthRatio() >= 0 && crab.getHealthScale() > 0) {
+            return crab.getHealthRatio() * 100 / crab.getHealthScale();
+        }
+        return plugin.getCrabHpPercent();
+    }
+
     static Color combatLevelColor(int playerLevel, int npcLevel) {
         if (npcLevel <= 0) {
             return Color.WHITE;
