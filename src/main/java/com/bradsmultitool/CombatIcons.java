@@ -43,14 +43,17 @@ final class CombatIcons {
         return new Icon(false, itemId);
     }
 
-    /** Icon for the player's current combat style, or null. */
-    static Icon forStyle(WeaponStyles.Style style) {
+    /**
+     * Icon for the player's current combat style, or null.
+     * Thrown weapons (light ammo) show the equipped item itself when its id is known (> 0).
+     */
+    static Icon forStyle(WeaponStyles.Style style, int equippedWeaponId) {
         switch (style.type()) {
             case MELEE:
                 return melee(style.damageType);
             case RANGED:
-                if ("Thrown".equals(style.weaponKind)) {
-                    return STEEL_KNIFE;
+                if ("Light".equals(style.damageType)) {
+                    return equippedWeaponId > 0 ? item(equippedWeaponId) : STEEL_KNIFE;
                 }
                 if ("Chinchompa".equals(style.weaponKind)) {
                     return CHINCHOMPA;

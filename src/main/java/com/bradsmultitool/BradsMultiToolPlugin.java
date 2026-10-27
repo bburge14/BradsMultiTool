@@ -26,6 +26,8 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Hitsplat;
+import net.runelite.api.Item;
+import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
@@ -72,6 +74,8 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int VARBIT_EQUIPPED_WEAPON_TYPE = 357;
     private static final int VARBIT_DEFENSIVE_CASTING = 2668;
     private static final int VARBIT_AUTOCAST_SPELL = 276;
+    private static final int CONTAINER_EQUIPMENT = 94;
+    private static final int EQUIPMENT_WEAPON_SLOT = 3;
 
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
 
@@ -1022,11 +1026,25 @@ public class BradsMultiToolPlugin extends Plugin {
             client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1,
             client.getVarbitValue(VARBIT_AUTOCAST_SPELL));
 
+        int weaponId = equippedWeaponId();
+        if (weaponId > 0) {
+            style = WeaponStyles.withEquippedWeapon(style, client.getItemDefinition(weaponId).getName());
+        }
+
         combatDiscipline = style.discipline;
         combatMethod = style.label();
-        combatMethodIcon = CombatIcons.forStyle(style);
+        combatMethodIcon = CombatIcons.forStyle(style, weaponId);
 
         combatMethodColor = weaknessMatchColor(style);
+    }
+
+    private int equippedWeaponId() {
+        ItemContainer equipment = client.getItemContainer(CONTAINER_EQUIPMENT);
+        if (equipment == null) {
+            return -1;
+        }
+        Item weapon = equipment.getItem(EQUIPMENT_WEAPON_SLOT);
+        return weapon != null ? weapon.getId() : -1;
     }
 
     // Green = your style hits the weakness, red = it doesn't, yellow = can't tell

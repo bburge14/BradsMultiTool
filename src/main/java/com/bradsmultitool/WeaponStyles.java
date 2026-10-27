@@ -35,6 +35,10 @@ public final class WeaponStyles {
             this.spellTier = spellTier;
         }
 
+        Style withWeaponKind(String kind) {
+            return new Style(discipline, buttonName, damageType, kind, element, spellTier);
+        }
+
         public MonsterWeakness.Type type() {
             switch (discipline) {
                 case MELEE: return MonsterWeakness.Type.MELEE;
@@ -64,6 +68,7 @@ public final class WeaponStyles {
     private static final String MELEE = "Melee";
     private static final String RANGED = "Ranged";
     private static final String MAGIC = "Magic";
+    private static final String THROWN = "Thrown";
 
     // Combat tab button index 4 means a spell is being autocast
     private static final int AUTOCAST_INDEX = 4;
@@ -99,7 +104,7 @@ public final class WeaponStyles {
         melee(16, "Pound", "Crush", "Pummel", "Crush", "Spike", "Stab", "Block", "Crush");    // Spiked
         melee(17, "Stab", "Stab", "Lunge", "Stab", "Slash", "Slash", "Block", "Stab");        // Stab sword
         melee(18, "Bash", "Crush", "Pound", "Crush", null, null, "Focus", "Crush");           // Staff
-        ranged(19, "Light", "Thrown");                                                        // Darts, knives, thrownaxes, blowpipe
+        ranged(19, "Light", THROWN);                                                        // Darts, knives, thrownaxes, blowpipe
         melee(20, "Flick", "Slash", "Lash", "Slash", null, null, "Deflect", "Slash");         // Whip
         melee(21, "Jab", "Stab", "Swipe", "Slash", null, null, "Fend", "Crush");              // Bladed staff
         CATEGORIES.put(23, new Style[]{                                                       // Powered staff
@@ -136,6 +141,44 @@ public final class WeaponStyles {
             null,
             new Style(RANGED, "Longrange", ammoType, weaponKind, null, null)
         });
+    }
+
+    /**
+     * Names the thrown weapon from its item name, since the game puts every thrown weapon in one category.
+     * Returns "Thrown" for anything unrecognised.
+     */
+    static String thrownKind(String itemName) {
+        if (itemName == null) {
+            return THROWN;
+        }
+        String n = itemName.toLowerCase();
+        if (n.contains("blowpipe")) {
+            return "Blowpipe";
+        }
+        if (n.contains("toktz-xil-ul")) {
+            return "Toktz-xil-ul";
+        }
+        if (n.contains("tonalztics")) {
+            return "Tonalztics";
+        }
+        if (n.contains("thrownaxe") || n.contains("throwing axe")) {
+            return "Thrownaxe";
+        }
+        if (n.contains("knife")) {
+            return "Knife";
+        }
+        if (n.contains("dart")) {
+            return "Dart";
+        }
+        return THROWN;
+    }
+
+    /** Adds the specific thrown weapon to a thrown-category style; other styles are returned unchanged. */
+    public static Style withEquippedWeapon(Style style, String weaponName) {
+        if (!THROWN.equals(style.weaponKind)) {
+            return style;
+        }
+        return style.withWeaponKind(thrownKind(weaponName));
     }
 
     private static final String[] SPELL_TIERS = {"Strike", "Bolt", "Blast", "Wave"};

@@ -24,6 +24,21 @@ public class WeaponStylesTest {
     }
 
     @Test
+    public void thrownWeaponsAreNamedFromTheEquippedItem() {
+        WeaponStyles.Style thrown = WeaponStyles.resolve(19, 1, false, 0);
+        assertEquals("Rapid (Dart)", WeaponStyles.withEquippedWeapon(thrown, "Dragon dart").label());
+        assertEquals("Rapid (Knife)", WeaponStyles.withEquippedWeapon(thrown, "Rune knife(p++)").label());
+        assertEquals("Rapid (Thrownaxe)", WeaponStyles.withEquippedWeapon(thrown, "Morrigan's throwing axe").label());
+        assertEquals("Rapid (Blowpipe)", WeaponStyles.withEquippedWeapon(thrown, "Toxic blowpipe").label());
+        assertEquals("Rapid (Toktz-xil-ul)", WeaponStyles.withEquippedWeapon(thrown, "Toktz-xil-ul").label());
+        assertEquals("Rapid (Tonalztics)", WeaponStyles.withEquippedWeapon(thrown, "Tonalztics of ralos").label());
+        assertEquals("Light", WeaponStyles.withEquippedWeapon(thrown, "Rune thrownaxe").damageType);
+
+        WeaponStyles.Style bow = WeaponStyles.resolve(3, 1, false, 0);
+        assertEquals("Rapid (Bow)", WeaponStyles.withEquippedWeapon(bow, "Magic shortbow").label());
+    }
+
+    @Test
     public void autocastSpellElement() {
         assertEquals(MonsterWeakness.Element.AIR, WeaponStyles.autocastElement(1));
         assertEquals(MonsterWeakness.Element.FIRE, WeaponStyles.autocastElement(12));
