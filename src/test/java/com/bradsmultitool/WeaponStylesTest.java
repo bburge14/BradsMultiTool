@@ -50,6 +50,8 @@ public class WeaponStylesTest {
         assertNull(barrage.element);
         assertEquals("Ice Barrage", barrage.label());
         assertNull(WeaponStyles.manualCast("Fire Bloom").element);
+        assertEquals("Ice Barrage (Def)", WeaponStyles.spellStyle("Ice Barrage", true).label());
+        assertEquals(MonsterWeakness.Element.WATER, WeaponStyles.spellStyle("Water Surge", false).element);
     }
 
     @Test

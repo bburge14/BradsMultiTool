@@ -184,6 +184,11 @@ public final class WeaponStyles {
      * Standard elemental spells get their element and tier; other spells only their name.
      */
     public static Style manualCast(String spellName) {
+        return spellStyle(spellName, false);
+    }
+
+    /** Style for a named spell (cast by hand or autocast); defensive autocasts get "(Def)". */
+    public static Style spellStyle(String spellName, boolean defensive) {
         MonsterWeakness.Element element = null;
         String tier = null;
         String[] words = spellName.trim().split("\\s+");
@@ -198,7 +203,7 @@ public final class WeaponStyles {
                 element = null;
             }
         }
-        return new Style(MAGIC, "Cast", null, spellName.trim(), element, tier);
+        return new Style(MAGIC, defensive ? "Defensive Cast" : "Cast", null, spellName.trim(), element, tier);
     }
 
     private static final String[] SPELL_TIERS_WITH_SURGE = {"Strike", "Bolt", "Blast", "Wave", "Surge"};

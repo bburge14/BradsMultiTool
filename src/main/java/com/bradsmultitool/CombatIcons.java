@@ -49,15 +49,18 @@ final class CombatIcons {
 
     /**
      * Icon for the player's current combat style, or null.
-     * Thrown weapons (light ammo) show the equipped item itself when its id is known (> 0).
+     * Melee and ranged show the equipped weapon itself when its id is known (> 0).
      */
     static Icon forStyle(WeaponStyles.Style style, int equippedWeaponId) {
         switch (style.type()) {
             case MELEE:
-                return melee(style.damageType);
+                return equippedWeaponId > 0 ? item(equippedWeaponId) : melee(style.damageType);
             case RANGED:
+                if (equippedWeaponId > 0) {
+                    return item(equippedWeaponId);
+                }
                 if ("Light".equals(style.damageType)) {
-                    return equippedWeaponId > 0 ? item(equippedWeaponId) : STEEL_KNIFE;
+                    return STEEL_KNIFE;
                 }
                 if ("Chinchompa".equals(style.weaponKind)) {
                     return CHINCHOMPA;

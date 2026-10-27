@@ -174,6 +174,7 @@ public class BradsMultiToolPlugin extends Plugin {
     @Getter
     private CombatIcons.Icon combatMethodIcon = null;
 
+    private final SpellbookReader spellbook = new SpellbookReader();
     private String manualSpellName = null;
     private int manualSpellSpriteId = -1;
     private int manualCastTick = -1;
@@ -1041,17 +1042,31 @@ public class BradsMultiToolPlugin extends Plugin {
             style = WeaponStyles.withEquippedWeapon(style, client.getItemDefinition(weaponId).getName());
         }
 
-        boolean castingByHand = manualSpellName != null
-            && client.getTickCount() - manualCastTick <= MANUAL_CAST_TIMEOUT_TICKS;
-        if (castingByHand) {
-            style = WeaponStyles.manualCast(manualSpellName);
+        spellbook.refresh(client);
+
+        // Which spell is being cast: a recent hand cast wins, then the combat tab's autocast slot
+        String spellName = null;
+        int fallbackSprite = -1;
+        if (manualSpellName != null && client.getTickCount() - manualCastTick <= MANUAL_CAST_TIMEOUT_TICKS) {
+            spellName = manualSpellName;
+            fallbackSprite = manualSpellSpriteId;
+            style = WeaponStyles.manualCast(spellName);
+        } else if ("Spell Cast".equals(style.buttonName) || "Defensive Cast".equals(style.buttonName)) {
+            boolean defensive = "Defensive Cast".equals(style.buttonName);
+            spellName = spellbook.autocastSpell(client, defensive);
+            if (spellName != null) {
+                style = WeaponStyles.spellStyle(spellName, defensive);
+            }
         }
 
         combatDiscipline = style.discipline;
         combatMethod = style.label();
-        combatMethodIcon = castingByHand && manualSpellSpriteId > 0
-            ? CombatIcons.sprite(manualSpellSpriteId)
-            : CombatIcons.forStyle(style, weaponId);
+
+        int spellSprite = spellName != null ? spellbook.spriteFor(spellName) : -1;
+        if (spellSprite <= 0) {
+            spellSprite = fallbackSprite;
+        }
+        combatMethodIcon = spellSprite > 0 ? CombatIcons.sprite(spellSprite) : CombatIcons.forStyle(style, weaponId);
 
         combatMethodColor = weaknessMatchColor(style);
     }
@@ -1074,6 +1089,12 @@ public class BradsMultiToolPlugin extends Plugin {
         manualSpellName = spell;
         manualSpellSpriteId = selectedSpell != null ? selectedSpell.getSpriteId() : -1;
         manualCastTick = client.getTickCount();
+    }
+
+    /** Spellbook icon of the Strike spell for an element, as shown in the player's own spellbook. */
+    public CombatIcons.Icon elementSpellIcon(MonsterWeakness.Element element) {
+        int sprite = spellbook.spriteFor(WeaponStyles.spellName(element, "Strike"));
+        return sprite > 0 ? CombatIcons.sprite(sprite) : CombatIcons.spell(element, null);
     }
 
     private int equippedWeaponId() {

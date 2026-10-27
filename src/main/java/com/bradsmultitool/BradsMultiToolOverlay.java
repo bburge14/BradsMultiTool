@@ -92,14 +92,16 @@ public class BradsMultiToolOverlay extends Overlay {
                 MonsterWeakness weakness = plugin.getPvmTargetWeakness();
                 panelComponent.getChildren().add(new IconLineComponent(
                     "Weakness:",
-                    icon(CombatIcons.forWeakness(weakness)),
+                    icon(weakness.type == MonsterWeakness.Type.MAGIC && weakness.element != null
+                        ? plugin.elementSpellIcon(weakness.element)
+                        : CombatIcons.forWeakness(weakness)),
                     weakness.label(),
                     weakness.type == MonsterWeakness.Type.UNKNOWN ? new Color(160, 160, 160) : new Color(0, 220, 255)));
 
                 if (weakness.hasSeparateElement()) {
                     panelComponent.getChildren().add(new IconLineComponent(
                         "Elemental:",
-                        icon(CombatIcons.spell(weakness.element, null)),
+                        icon(plugin.elementSpellIcon(weakness.element)),
                         weakness.elementLabel(),
                         new Color(0, 220, 255)));
                 }
