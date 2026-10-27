@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -15,13 +17,14 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
 /**
- * Pulses a red glow over the minimap hitpoints / prayer orb while that stat is below its alert threshold.
+ * Pulses a red glow over the round part of the minimap hitpoints / prayer orb while that stat is below
+ * its alert threshold.
  */
 public class BradsMultiToolOrbOverlay extends Overlay {
 
-    // Orb backing circles in each orb layout (InterfaceID.Orbs, OrbsNomap, OrbsOsm, OrbsOsmNomap)
-    private static final int[] HEALTH_ORB_BACKINGS = {10485768, 58654726, 58785796, 58851333};
-    private static final int[] PRAYER_ORB_BACKINGS = {10485779, 58654737, 58785807, 58851344};
+    // Orb containers (number + circle) in each orb layout (InterfaceID.Orbs, OrbsNomap, OrbsOsm, OrbsOsmNomap)
+    private static final int[] HEALTH_ORBS = {10485767, 58654725, 58785795, 58851332};
+    private static final int[] PRAYER_ORBS = {10485778, 58654736, 58785806, 58851343};
     private static final long PULSE_MILLIS = 900;
 
     private final Client client;
@@ -43,11 +46,11 @@ public class BradsMultiToolOrbOverlay extends Overlay {
             return null;
         }
         if (config.enableLowHealthAlert() && config.flashHealthOrb() && plugin.isLowHealthAlert()) {
-            pulse(graphics, visibleWidget(HEALTH_ORB_BACKINGS));
+            pulse(graphics, circleOf(visibleWidget(HEALTH_ORBS)));
         }
         if (config.enableLowPrayerAlert() && config.flashPrayerOrb()
             && (plugin.isLowPrayerAlert() || plugin.isZeroPrayerAlert())) {
-            pulse(graphics, visibleWidget(PRAYER_ORB_BACKINGS));
+            pulse(graphics, circleOf(visibleWidget(PRAYER_ORBS)));
         }
         return null;
     }
@@ -62,11 +65,41 @@ public class BradsMultiToolOrbOverlay extends Overlay {
         return null;
     }
 
-    private static void pulse(Graphics2D graphics, Widget orb) {
-        if (orb == null) {
+    /**
+     * The orb's round part: the largest roughly square visible piece inside the orb container
+     * (the container itself also holds the number box).
+     */
+    private static Rectangle circleOf(Widget container) {
+        if (container == null) {
+            return null;
+        }
+        Rectangle best = null;
+        Deque<Widget> pending = new ArrayDeque<>();
+        pending.add(container);
+        while (!pending.isEmpty()) {
+            Widget w = pending.poll();
+            Rectangle b = w.getBounds();
+            if (w != container && !w.isHidden() && b.width >= 10 && Math.abs(b.width - b.height) <= 3
+                && (best == null || b.width * b.height > best.width * best.height)) {
+                best = b;
+            }
+            for (Widget[] children : new Widget[][]{w.getStaticChildren(), w.getDynamicChildren(), w.getNestedChildren()}) {
+                if (children != null) {
+                    for (Widget child : children) {
+                        if (child != null) {
+                            pending.add(child);
+                        }
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    private static void pulse(Graphics2D graphics, Rectangle b) {
+        if (b == null) {
             return;
         }
-        Rectangle b = orb.getBounds();
         if (b.width <= 0 || b.height <= 0) {
             return;
         }
