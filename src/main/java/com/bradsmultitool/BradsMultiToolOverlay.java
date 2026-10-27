@@ -92,6 +92,22 @@ public class BradsMultiToolOverlay extends Overlay {
                     weaknessIcon(weakness),
                     weakness.label(),
                     weakness.type == MonsterWeakness.Type.UNKNOWN ? new Color(160, 160, 160) : new Color(0, 220, 255)));
+
+                if (weakness.hasSeparateElement()) {
+                    panelComponent.getChildren().add(new IconLineComponent(
+                        "Elemental:",
+                        itemManager.getImage(runeFor(weakness.element)),
+                        weakness.elementLabel(),
+                        new Color(0, 220, 255)));
+                }
+
+                if (weakness.note != null) {
+                    panelComponent.getChildren().add(LineComponent.builder()
+                        .left("Bane:")
+                        .right(weakness.note)
+                        .rightColor(new Color(200, 140, 255))
+                        .build());
+                }
             }
 
             String fullCombatDisplay = "[" + plugin.getCombatDiscipline() + "] " + plugin.getCombatMethod();
@@ -343,17 +359,21 @@ public class BradsMultiToolOverlay extends Overlay {
                     itemId = ICON_WIZARD_HAT;
                     break;
                 }
-                switch (weakness.element) {
-                    case AIR: itemId = ICON_AIR_RUNE; break;
-                    case WATER: itemId = ICON_WATER_RUNE; break;
-                    case EARTH: itemId = ICON_EARTH_RUNE; break;
-                    default: itemId = ICON_FIRE_RUNE; break;
-                }
+                itemId = runeFor(weakness.element);
                 break;
             default:
                 return null;
         }
         return itemManager.getImage(itemId);
+    }
+
+    private static int runeFor(MonsterWeakness.Element element) {
+        switch (element) {
+            case AIR: return ICON_AIR_RUNE;
+            case WATER: return ICON_WATER_RUNE;
+            case EARTH: return ICON_EARTH_RUNE;
+            default: return ICON_FIRE_RUNE;
+        }
     }
 
     /**

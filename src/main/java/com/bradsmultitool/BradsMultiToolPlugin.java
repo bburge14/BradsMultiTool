@@ -1,5 +1,6 @@
 package com.bradsmultitool;
 
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +86,9 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private Client client;
+
+    @Inject
+    private Gson gson;
 
     @Inject
     private OverlayManager overlayManager;
@@ -237,7 +240,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private long sessionPvmActiveSeconds = 0;
     private Instant sessionCombatSecondMarker = null;
 
-    private final Map<String, Integer> knownMonsterMaxHp = new HashMap<>();
+    private final MonsterData monsterData = new MonsterData();
 
     // Buff state
     @Getter
@@ -271,7 +274,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Override
     protected void startUp() throws Exception {
-        populateKnownMonsterHp();
+        monsterData.load(gson);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
         overlayManager.add(idleWarningOverlay);
@@ -286,26 +289,6 @@ public class BradsMultiToolPlugin extends Plugin {
             .build();
 
         clientToolbar.addNavigation(navButton);
-    }
-
-    private void populateKnownMonsterHp() {
-        knownMonsterMaxHp.put("guard", 22);
-        knownMonsterMaxHp.put("gemstone crab", 100);
-        knownMonsterMaxHp.put("gem crab", 100);
-        knownMonsterMaxHp.put("rock crab", 50);
-        knownMonsterMaxHp.put("sand crab", 60);
-        knownMonsterMaxHp.put("ammonite crab", 100);
-        knownMonsterMaxHp.put("man", 7);
-        knownMonsterMaxHp.put("woman", 7);
-        knownMonsterMaxHp.put("goblin", 5);
-        knownMonsterMaxHp.put("skeleton", 25);
-        knownMonsterMaxHp.put("zombie", 30);
-        knownMonsterMaxHp.put("hill giant", 35);
-        knownMonsterMaxHp.put("moss giant", 60);
-        knownMonsterMaxHp.put("fire giant", 111);
-        knownMonsterMaxHp.put("lesser demon", 79);
-        knownMonsterMaxHp.put("greater demon", 87);
-        knownMonsterMaxHp.put("black demon", 157);
     }
 
     @Override
@@ -895,7 +878,7 @@ public class BradsMultiToolPlugin extends Plugin {
         Actor target = player.getInteracting();
 
         NPC attackingNpc = null;
-        for (NPC npc : client.getNpcs()) {
+        for (NPC npc : client.getTopLevelWorldView().npcs()) {
             if (npc != null && npc.getInteracting() == player && !npc.isDead()) {
                 String name = npc.getName() != null ? npc.getName().toLowerCase() : "";
                 if (!name.contains("gemstone crab") && !name.contains("gem crab") && hasAttackOption(npc)) {
@@ -933,8 +916,9 @@ public class BradsMultiToolPlugin extends Plugin {
                 pvmFightEnded = false;
                 resolveNpcWeaknessAndAggression(activeFightNpc);
 
-                int baseHp = knownMonsterMaxHp.getOrDefault(lowerName, 0);
-                if (baseHp == 0) {
+                MonsterData.Stats stats = monsterData.get(activeFightNpc.getId());
+                int baseHp = stats != null ? stats.hitpoints : 0;
+                if (baseHp <= 0) {
                     baseHp = Math.max(10, activeFightNpc.getCombatLevel() * 2);
                 }
                 pvmMaxHp = baseHp;
@@ -1038,9 +1022,14 @@ public class BradsMultiToolPlugin extends Plugin {
                 aggressive = (local.getCombatLevel() <= (npc.getCombatLevel() * 2 + 1));
             }
         }
-        pvmTargetIsAggressive = aggressive;
-
-        pvmTargetWeakness = MonsterWeakness.fromName(npc.getName());
+        MonsterData.Stats stats = monsterData.get(npc.getId());
+        if (stats != null) {
+            pvmTargetIsAggressive = stats.aggressive;
+            pvmTargetWeakness = MonsterData.weaknessOf(stats);
+        } else {
+            pvmTargetIsAggressive = aggressive;
+            pvmTargetWeakness = MonsterWeakness.fromName(npc.getName());
+        }
     }
 
     public void updateRealtimeCombatMethod() {
@@ -1064,7 +1053,9 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         boolean disciplineMatches = weakness.type.name().equalsIgnoreCase(style.discipline);
-        boolean damageTypeMatches = weakness.damageType == null || weakness.damageType.equalsIgnoreCase(style.damageType);
+        // Ranged ammo type (light/standard/heavy) isn't detected, so ranged matches on discipline alone
+        boolean damageTypeMatches = weakness.type != MonsterWeakness.Type.MELEE
+            || weakness.subType == null || weakness.subType.equalsIgnoreCase(style.damageType);
         return disciplineMatches && damageTypeMatches ? new Color(50, 230, 50) : new Color(255, 75, 75);
     }
 

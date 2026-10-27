@@ -77,3 +77,11 @@ The dev client can't log in through the Jagex Launcher directly, but it reuses a
 4. Close it and run `.\gradlew.bat runBrad`. The dev client picks up the credentials file automatically.
 
 `credentials.properties` is a live login session token. Never share or commit it. To revoke it, delete the file (and remove the client argument if you no longer need it); if it may have leaked, end your sessions from your Jagex account settings.
+
+## Monster data
+
+`src/main/resources/com/bradsmultitool/monsters.json` holds every monster's hitpoints, aggressiveness, defence stats, elemental weakness and attributes, pulled from the [OSRS Wiki](https://oldschool.runescape.wiki). The PvM HUD uses it for the HP bar, aggro line and weakness. A weakness is the style with the lowest effective defence roll. To refresh it after a game update (needs Python 3):
+
+```powershell
+python scripts/update_monster_data.py
+```
