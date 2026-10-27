@@ -184,6 +184,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JLabel levelLabel = new JLabel();
         private final LevelProgressBar progressBar = new LevelProgressBar();
         private final JLabel gainedValue = valueLabel();
+        private final JLabel remainingLabel = rowLabel("XP Remaining:");
         private final JLabel remainingValue = valueLabel();
         private final JLabel perHourValue = valueLabel();
         private final JLabel perMinuteLabel = rowLabel("Rate (XP/Min):");
@@ -222,7 +223,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             rows.setOpaque(false);
             rows.add(rowLabel("XP Gained:"));
             rows.add(gainedValue);
-            rows.add(rowLabel("XP Remaining:"));
+            rows.add(remainingLabel);
             rows.add(remainingValue);
             rows.add(rowLabel("Rate (XP/Hr):"));
             rows.add(perHourValue);
@@ -263,6 +264,7 @@ public class BradsMultiToolPanel extends PluginPanel {
 
             if (level >= Experience.MAX_REAL_LEVEL) {
                 progressBar.setProgress(1.0);
+                remainingLabel.setText("XP Remaining:");
                 remainingValue.setText("--");
                 ttlValue.setText("--");
             } else {
@@ -270,6 +272,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 int levelEnd = Experience.getXpForLevel(level + 1);
                 int remaining = levelEnd - xp;
                 progressBar.setProgress((double) (xp - levelStart) / (levelEnd - levelStart));
+                remainingLabel.setText("XP to Lvl " + (level + 1) + ":");
                 remainingValue.setText(NUMBER_FORMAT.format(remaining) + " XP");
                 ttlValue.setText(xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
             }
