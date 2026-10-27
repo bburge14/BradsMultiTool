@@ -41,8 +41,8 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "testVoice",
-        name = "Test Voice",
-        description = "Click this checkbox (on or off) to hear the selected voice",
+        name = "Test Voice (click to play)",
+        description = "Click to hear the selected voice; the box unticks itself afterwards",
         section = voiceSection,
         position = 1
     )

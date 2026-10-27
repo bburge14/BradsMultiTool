@@ -357,6 +357,12 @@ public class BradsMultiToolPlugin extends Plugin {
 
         switch (event.getKey()) {
             case "testVoice":
+                // Acts as a button: play once, then untick the box so it's ready for the next click
+                if (config.testVoice()) {
+                    testVoiceAlert();
+                    configManager.setConfiguration(CONFIG_GROUP, "testVoice", false);
+                }
+                break;
             case "voiceGender":
                 testVoiceAlert();
                 break;
