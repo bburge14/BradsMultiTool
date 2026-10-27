@@ -29,7 +29,9 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
  */
 public class BradsMultiToolHoverOverlay extends Overlay {
 
-    private static final int CURSOR_OFFSET = 18;
+    // Sit well below the cursor so the game's hover text ("Attack Guard (level-21)") stays readable
+    private static final int CURSOR_OFFSET_X = 12;
+    private static final int CURSOR_OFFSET_Y = 40;
     private static final int WIDTH = 205;
 
     private final Client client;
@@ -75,13 +77,13 @@ public class BradsMultiToolHoverOverlay extends Overlay {
         measure.dispose();
 
         Point mouse = client.getMouseCanvasPosition();
-        int x = mouse.getX() + CURSOR_OFFSET;
-        int y = mouse.getY() + CURSOR_OFFSET;
+        int x = mouse.getX() + CURSOR_OFFSET_X;
+        int y = mouse.getY() + CURSOR_OFFSET_Y;
         if (x + size.width > client.getCanvasWidth()) {
-            x = mouse.getX() - CURSOR_OFFSET - size.width;
+            x = mouse.getX() - CURSOR_OFFSET_X - size.width;
         }
         if (y + size.height > client.getCanvasHeight()) {
-            y = mouse.getY() - CURSOR_OFFSET - size.height;
+            y = mouse.getY() - CURSOR_OFFSET_Y - size.height;
         }
 
         Graphics2D placed = (Graphics2D) graphics.create();
