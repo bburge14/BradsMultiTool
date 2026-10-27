@@ -31,12 +31,24 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "voiceGender",
         name = "Voice Persona",
-        description = "Select Male (David) or Female (Zira) voice; changing it plays a sample alert",
+        description = "Voice, speed and pitch for spoken alerts; changing it plays a sample alert",
         section = voiceSection,
         position = 0
     )
-    default VoiceAlertService.VoiceGender voiceGender() {
-        return VoiceAlertService.VoiceGender.FEMALE;
+    default VoiceAlertService.VoicePersona voicePersona() {
+        return VoiceAlertService.VoicePersona.FEMALE;
+    }
+
+    @ConfigItem(
+        keyName = "customVoice",
+        name = "Custom Installed Voice",
+        description = "Optional: part of the name of another Windows voice to use (e.g. Hazel, George). "
+            + "Keeps the persona's speed and pitch. Leave blank for the persona's own voice.",
+        section = voiceSection,
+        position = 1
+    )
+    default String customVoice() {
+        return "";
     }
 
     @ConfigItem(

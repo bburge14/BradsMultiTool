@@ -340,7 +340,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private void previewVoice() {
         String line = VOICE_LINES[ThreadLocalRandom.current().nextInt(VOICE_LINES.length)];
-        voiceService.speakAsync(line, config.voiceGender());
+        voiceService.speakAsync(line, config.voicePersona(), config.customVoice());
     }
 
     public String getPvmTargetHp() {
@@ -365,21 +365,22 @@ public class BradsMultiToolPlugin extends Plugin {
 
         switch (event.getKey()) {
             case "voiceGender":
+            case "customVoice":
                 previewVoice();
                 break;
             case "voiceBuffExpired":
                 if (config.voiceBuffExpired()) {
-                    voiceService.speakAsync(VOICE_BUFF_EXPIRED, config.voiceGender());
+                    voiceService.speakAsync(VOICE_BUFF_EXPIRED, config.voicePersona(), config.customVoice());
                 }
                 break;
             case "voicePrayerLow":
                 if (config.voicePrayerLow()) {
-                    voiceService.speakAsync(VOICE_PRAYER_LOW, config.voiceGender());
+                    voiceService.speakAsync(VOICE_PRAYER_LOW, config.voicePersona(), config.customVoice());
                 }
                 break;
             case "voiceCrabMoved":
                 if (config.voiceCrabMoved()) {
-                    voiceService.speakAsync(VOICE_CRAB_MOVED, config.voiceGender());
+                    voiceService.speakAsync(VOICE_CRAB_MOVED, config.voicePersona(), config.customVoice());
                 }
                 break;
         }
@@ -539,7 +540,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
             if (inSpawnVicinity && wasDirectlyTrackingCrab && isNearPlayer(npc, CRAB_BURROW_ALERT_DISTANCE)) {
                 if (config.voiceCrabMoved()) {
-                    voiceService.speakAsync(VOICE_CRAB_MOVED, config.voiceGender());
+                    voiceService.speakAsync(VOICE_CRAB_MOVED, config.voicePersona(), config.customVoice());
                 }
                 sendGameChatMessage("<col=ff9900>The Gemstone Crab has relocated to another cave!</col>");
             }
@@ -882,7 +883,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 }
 
                 if (canSound && config.voiceBuffExpired()) {
-                    voiceService.speakAsync(VOICE_BUFF_EXPIRED, config.voiceGender());
+                    voiceService.speakAsync(VOICE_BUFF_EXPIRED, config.voicePersona(), config.customVoice());
                 }
             } else if (buffState == BuffState.UNPOTTED) {
                 buffStatusText = "No Buffs";
@@ -899,7 +900,7 @@ public class BradsMultiToolPlugin extends Plugin {
             zeroPrayerAlert = true;
             lowPrayerAlert = false;
             if (config.voicePrayerLow()) {
-                voiceService.speakAsync(VOICE_OUT_OF_PRAYER, config.voiceGender());
+                voiceService.speakAsync(VOICE_OUT_OF_PRAYER, config.voicePersona(), config.customVoice());
             }
             sendGameChatMessage("<col=ff0000>Alert: Out of prayer points!</col>");
             return;
@@ -926,7 +927,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
             if (canSound) {
                 if (config.voicePrayerLow()) {
-                    voiceService.speakAsync(VOICE_PRAYER_LOW, config.voiceGender());
+                    voiceService.speakAsync(VOICE_PRAYER_LOW, config.voicePersona(), config.customVoice());
                 }
                 sendGameChatMessage("<col=ff3333>Warning: Prayer points low (" + currentPrayer + " remaining)!</col>");
             }
