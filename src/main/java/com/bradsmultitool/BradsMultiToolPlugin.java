@@ -35,6 +35,7 @@ import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
 import net.runelite.api.Player;
+import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldPoint;
@@ -93,6 +94,11 @@ public class BradsMultiToolPlugin extends Plugin {
     // The shell lasts 90 seconds (150 ticks); allow a little slack
     private static final int SHELL_LIFETIME_TICKS = 160;
     private static final int GEMS_PER_SHELL = 3;
+
+    private static final Set<Skill> BOOSTABLE_COMBAT_SKILLS =
+        EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC);
+    // Divine potion time left in game ticks (VarbitID.DIVINEATTACK/STRENGTH/DEFENCE/RANGE/MAGIC_POTION_TIME)
+    private static final int[] DIVINE_POTION_TIME_VARBITS = {8429, 8430, 8431, 8432, 8433};
 
     public enum BuffState {
         UNPOTTED,
@@ -297,6 +303,8 @@ public class BradsMultiToolPlugin extends Plugin {
     private String buffStatusText = "No Buffs";
 
     private int previousMaxBoost = 0;
+    private final BuffTimer buffTimer = new BuffTimer();
+    private final Map<Skill, Integer> lastBoostedLevels = new EnumMap<>(Skill.class);
     private int timesBuffExpiredSounded = 0;
     private Instant lastBuffExpiredSoundTime = Instant.EPOCH;
 
@@ -548,6 +556,11 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
+        // The boost decay timer keeps running across area loads; only a new session resets it
+        if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
+            buffTimer.reset();
+            lastBoostedLevels.clear();
+        }
         if (event.getGameState() != GameState.LOGGED_IN) {
             characterWasActive = false;
             lastPlayerLocation = null;
@@ -993,9 +1006,9 @@ public class BradsMultiToolPlugin extends Plugin {
 
         int currentMax = Math.max(atkBoost, Math.max(strBoost, Math.max(defBoost, Math.max(rngBoost, magBoost))));
 
-        if (currentMax >= 4) {
+        if (currentMax >= 4 || (currentMax > 0 && buffState == BuffState.ACTIVE)) {
             buffState = BuffState.ACTIVE;
-            buffStatusText = "ACTIVE (+" + currentMax + ")";
+            buffStatusText = "ACTIVE (+" + currentMax + ") " + buffTimeText(currentMax);
             timesBuffExpiredSounded = 0;
         } else if (currentMax == 0) {
             if (buffState == BuffState.ACTIVE) {
@@ -1026,6 +1039,22 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
         previousMaxBoost = currentMax;
+    }
+
+    /**
+     * Time left on the boost: exact for divine potions (the game counts it down), exact for regular
+     * potions once a stat drop has been seen, and "~" plus an upper bound before that.
+     */
+    private String buffTimeText(int boost) {
+        int divineTicks = 0;
+        for (int varbit : DIVINE_POTION_TIME_VARBITS) {
+            divineTicks = Math.max(divineTicks, client.getVarbitValue(varbit));
+        }
+        if (divineTicks > 0) {
+            return BuffTimer.format(divineTicks);
+        }
+        int ticks = buffTimer.ticksRemaining(client.getTickCount(), boost, client.getVarbitValue(Prayer.PRESERVE.getVarbit()) == 1);
+        return (buffTimer.isSynced() ? "" : "~") + BuffTimer.format(ticks);
     }
 
     private void monitorPrayer() {
@@ -1536,6 +1565,14 @@ public class BradsMultiToolPlugin extends Plugin {
     public void onStatChanged(StatChanged event) {
         Skill skill = event.getSkill();
         int currentXp = event.getXp();
+
+        // A boosted combat stat ticking down by 1 marks the boost decay timer's phase
+        if (BOOSTABLE_COMBAT_SKILLS.contains(skill)) {
+            Integer previous = lastBoostedLevels.put(skill, event.getBoostedLevel());
+            if (previous != null && event.getBoostedLevel() == previous - 1 && previous > event.getLevel()) {
+                buffTimer.onDecay(client.getTickCount());
+            }
+        }
 
         if (!baseSkillXp.containsKey(skill)) {
             baseSkillXp.put(skill, currentXp);
