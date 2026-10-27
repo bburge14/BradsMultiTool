@@ -5,7 +5,7 @@ A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 - **Gemstone Crab HUD & radar** – outlines the active crab, dormant shell, and cave tunnels; shows crab HP, burrow ETA, XP type (from same-tick XP drops), crab damage/DPS, and session last/max hit. Voice + chat alert when the crab relocates.
 - **General PvM HUD** – target HP bar, aggro timer, weakness hint, combat style, DPS (per encounter / per monster type / continuous session), last/max hit. Lingers after combat for a configurable time.
 - **Buff & prayer alerts** – detects when combat potion boosts expire and when prayer runs low or out, with optional repeats, chat messages, and an overhead "OUT OF PRAYER" flash.
-- **Idle logout warning** – desktop notification, chat message, and HUD countdown 30 seconds before the 5-minute idle logout.
+- **Idle logout warning** – desktop notification, voice and chat alert, and HUD countdown before the idle logout (follows RuneLite's Logout Timer plugin if you've lengthened the timeout).
 - **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, level progress bar, XP remaining, and time-to-level; right-click a skill to pause, reset, or hide it.
 
 Voice alerts are pre-recorded clips bundled with the plugin (7 personas generated with [Piper](https://github.com/rhasspy/piper); see [VOICE_CREDITS.md](VOICE_CREDITS.md)), so they work on any OS. Regenerate them with `scripts/generate_voice_clips.py` after changing a line.

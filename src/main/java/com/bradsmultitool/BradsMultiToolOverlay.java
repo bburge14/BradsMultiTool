@@ -240,7 +240,7 @@ public class BradsMultiToolOverlay extends Overlay {
             boolean attacking = plugin.isPlayerAttackingCrab();
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Attacking:")
-                .right(attacking ? "YES" : "NO (Idle)")
+                .right(attacking ? "YES" : "NO")
                 .rightColor(attacking ? GOOD : BAD)
                 .build());
 

@@ -89,9 +89,6 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int GEMSTONE_CRAB_ID = 14779;
     private static final int GEMSTONE_CRAB_SHELL_ID = 14780;
 
-    // The client logs out after 15000 idle client cycles (20ms each = 5 minutes)
-    private static final int IDLE_LOGOUT_SECONDS = 300;
-
     public enum BuffState {
         UNPOTTED,
         ACTIVE,
@@ -1020,7 +1017,8 @@ public class BradsMultiToolPlugin extends Plugin {
         int idleCycles = Math.min(client.getKeyboardIdleTicks(), client.getMouseIdleTicks());
         engineIdleSeconds = idleCycles / 50;
 
-        int warnAt = IDLE_LOGOUT_SECONDS - Math.max(5, Math.min(IDLE_LOGOUT_SECONDS - 5, config.idleWarningSeconds()));
+        int logoutAfter = idleLogoutSeconds();
+        int warnAt = logoutAfter - Math.max(5, Math.min(logoutAfter - 5, config.idleWarningSeconds()));
         boolean imminent = engineIdleSeconds >= warnAt;
         if (!imminent) {
             logoutImminent = false;
@@ -1050,7 +1048,16 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     public int getSecondsUntilIdleLogout() {
-        return Math.max(0, IDLE_LOGOUT_SECONDS - engineIdleSeconds);
+        return Math.max(0, idleLogoutSeconds() - engineIdleSeconds);
+    }
+
+    /**
+     * Seconds of inactivity before the client logs out. Follows RuneLite's Logout Timer plugin
+     * (or anything else that changes the client's idle timeout), which is counted in 20ms client cycles.
+     */
+    private int idleLogoutSeconds() {
+        int cycles = client.getIdleTimeout();
+        return cycles > 0 ? cycles / 50 : 300;
     }
 
     private void updateGeneralPvmTarget(Player player) {

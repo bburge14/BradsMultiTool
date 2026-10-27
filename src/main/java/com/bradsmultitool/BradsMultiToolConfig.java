@@ -190,7 +190,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "idleWarningSeconds",
         name = "Warn Before Logout",
-        description = "How many seconds before the 5-minute idle logout to warn you",
+        description = "How many seconds before the idle logout to warn you (follows RuneLite's Logout Timer plugin if you use it)",
         section = voiceSection,
         position = 14
     )
