@@ -312,6 +312,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private final Map<Skill, Long> divineEndMillis = new EnumMap<>(Skill.class);
     // Buff name -> boost when its running-out warning played; a bigger boost (re-pot) re-arms it
     private final Map<String, Integer> buffWarnedAtBoost = new HashMap<>();
+    private ActiveBuffs.Category lastEndedCategory = null;
     private long lastTickMillis = 0;
 
     private int previousMaxBoost = 0;
@@ -1040,35 +1041,33 @@ public class BradsMultiToolPlugin extends Plugin {
             buffState = BuffState.ACTIVE;
             syncDivineTimers();
             boolean preserve = client.getVarbitValue(Prayer.PRESERVE.getVarbit()) == 1;
-            activeBuffs = ActiveBuffs.detect(boosts, divineEndMillis, buffTimer, client.getTickCount(), lastTickMillis, preserve);
+            List<ActiveBuffs.Buff> buffs = ActiveBuffs.detect(boosts, divineEndMillis, buffTimer, client.getTickCount(), lastTickMillis, preserve);
+            announceEndedBuffs(buffs);
+            activeBuffs = buffs;
             buffStatusText = "ACTIVE";
             timesBuffExpiredSounded = 0;
             checkBuffRunningOut();
         } else if (currentMax == 0) {
+            announceEndedBuffs(Collections.emptyList());
             activeBuffs = Collections.emptyList();
             buffWarnedAtBoost.clear();
             if (buffState == BuffState.ACTIVE) {
                 buffState = BuffState.EXPIRED;
                 buffStatusText = "EXPIRED";
-
-                boolean canSound = false;
-                if (timesBuffExpiredSounded == 0) {
-                    timesBuffExpiredSounded = 1;
-                    lastBuffExpiredSoundTime = Instant.now();
-                    canSound = true;
-                    sendGameChatMessage("Your combat buff has run out.");
-                } else if (config.repeatBuffAlert()) {
-                    long delay = Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds();
-                    if (delay >= config.repeatBuffInterval() && timesBuffExpiredSounded <= config.maxBuffRepeats()) {
-                        timesBuffExpiredSounded++;
-                        lastBuffExpiredSoundTime = Instant.now();
-                        canSound = true;
-                        sendGameChatMessage("Your combat buff is still out.");
-                    }
+                timesBuffExpiredSounded = 1;
+                lastBuffExpiredSoundTime = Instant.now();
+                sendGameChatMessage("Your combat buff has run out.");
+                if (config.voiceBuffExpired()) {
+                    speak(expiredLine(lastEndedCategory));
                 }
-
-                if (canSound && config.voiceBuffExpired()) {
-                    speak(VoiceAlertService.VoiceLine.BUFF_EXPIRED);
+            } else if (buffState == BuffState.EXPIRED && config.repeatBuffAlert()
+                && Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds() >= config.repeatBuffInterval()
+                && timesBuffExpiredSounded <= config.maxBuffRepeats()) {
+                timesBuffExpiredSounded++;
+                lastBuffExpiredSoundTime = Instant.now();
+                sendGameChatMessage("Your combat buff is still out.");
+                if (config.voiceBuffExpired()) {
+                    speak(expiredLine(lastEndedCategory));
                 }
             } else if (buffState == BuffState.UNPOTTED) {
                 buffStatusText = "No Buffs";
@@ -1125,9 +1124,50 @@ public class BradsMultiToolPlugin extends Plugin {
             }
             buffWarnedAtBoost.put(buff.name, buff.boost);
             if (config.voiceBuffLow()) {
-                speak(VoiceAlertService.VoiceLine.BUFF_LOW);
+                speak(runningOutLine(buff.category));
             }
             sendGameChatMessage("Your " + buff.name + " buff runs out in " + BuffTimer.formatMillis(buff.millisLeft(now)) + ".");
+        }
+    }
+
+    // A buff that ends while others are still active gets its own "has run out"; when the last one ends,
+    // the expired alert above speaks for it (using lastEndedCategory)
+    private void announceEndedBuffs(List<ActiveBuffs.Buff> current) {
+        for (ActiveBuffs.Buff before : activeBuffs) {
+            boolean stillActive = current.stream().anyMatch(b -> b.name.equals(before.name));
+            if (stillActive) {
+                continue;
+            }
+            lastEndedCategory = before.category;
+            if (!current.isEmpty()) {
+                sendGameChatMessage("Your " + before.name + " buff has run out.");
+                if (config.voiceBuffExpired()) {
+                    speak(expiredLine(before.category));
+                }
+            }
+        }
+    }
+
+    private static VoiceAlertService.VoiceLine runningOutLine(ActiveBuffs.Category category) {
+        switch (category) {
+            case MELEE: return VoiceAlertService.VoiceLine.MELEE_BUFF_LOW;
+            case RANGED: return VoiceAlertService.VoiceLine.RANGED_BUFF_LOW;
+            case MAGIC: return VoiceAlertService.VoiceLine.MAGIC_BUFF_LOW;
+            case DEFENCE: return VoiceAlertService.VoiceLine.DEFENCE_BUFF_LOW;
+            default: return VoiceAlertService.VoiceLine.BUFF_LOW;
+        }
+    }
+
+    private static VoiceAlertService.VoiceLine expiredLine(ActiveBuffs.Category category) {
+        if (category == null) {
+            return VoiceAlertService.VoiceLine.BUFF_EXPIRED;
+        }
+        switch (category) {
+            case MELEE: return VoiceAlertService.VoiceLine.MELEE_BUFF_EXPIRED;
+            case RANGED: return VoiceAlertService.VoiceLine.RANGED_BUFF_EXPIRED;
+            case MAGIC: return VoiceAlertService.VoiceLine.MAGIC_BUFF_EXPIRED;
+            case DEFENCE: return VoiceAlertService.VoiceLine.DEFENCE_BUFF_EXPIRED;
+            default: return VoiceAlertService.VoiceLine.BUFF_EXPIRED;
         }
     }
 
