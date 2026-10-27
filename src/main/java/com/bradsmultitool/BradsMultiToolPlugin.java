@@ -28,6 +28,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.Hitsplat;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.MenuAction;
 import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
@@ -35,6 +36,7 @@ import net.runelite.api.Player;
 import net.runelite.api.Skill;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
@@ -42,6 +44,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GroundObjectDespawned;
 import net.runelite.api.events.GroundObjectSpawned;
 import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.StatChanged;
@@ -57,6 +60,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(
@@ -75,6 +79,8 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int VARBIT_DEFENSIVE_CASTING = 2668;
     private static final int VARBIT_AUTOCAST_SPELL = 276;
     private static final int CONTAINER_EQUIPMENT = 94;
+    // A manual cast stays the "active" style this long; casting repeats every 5 ticks
+    private static final int MANUAL_CAST_TIMEOUT_TICKS = 10;
     private static final int EQUIPMENT_WEAPON_SLOT = 3;
 
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
@@ -167,6 +173,10 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private CombatIcons.Icon combatMethodIcon = null;
+
+    private String manualSpellName = null;
+    private int manualSpellSpriteId = -1;
+    private int manualCastTick = -1;
 
     @Getter
     private String targetCrabHp = "No Target";
@@ -1031,11 +1041,39 @@ public class BradsMultiToolPlugin extends Plugin {
             style = WeaponStyles.withEquippedWeapon(style, client.getItemDefinition(weaponId).getName());
         }
 
+        boolean castingByHand = manualSpellName != null
+            && client.getTickCount() - manualCastTick <= MANUAL_CAST_TIMEOUT_TICKS;
+        if (castingByHand) {
+            style = WeaponStyles.manualCast(manualSpellName);
+        }
+
         combatDiscipline = style.discipline;
         combatMethod = style.label();
-        combatMethodIcon = CombatIcons.forStyle(style, weaponId);
+        combatMethodIcon = castingByHand && manualSpellSpriteId > 0
+            ? CombatIcons.sprite(manualSpellSpriteId)
+            : CombatIcons.forStyle(style, weaponId);
 
         combatMethodColor = weaknessMatchColor(style);
+    }
+
+    // Spells cast by hand (not autocast) override the weapon's style for a few ticks after each cast
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (event.getMenuAction() != MenuAction.WIDGET_TARGET_ON_NPC || !"Cast".equals(event.getMenuOption())) {
+            return;
+        }
+
+        String target = Text.removeTags(event.getMenuTarget());
+        int arrow = target.indexOf("->");
+        String spell = (arrow >= 0 ? target.substring(0, arrow) : target).trim();
+        if (spell.isEmpty()) {
+            return;
+        }
+
+        Widget selectedSpell = client.getSelectedWidget();
+        manualSpellName = spell;
+        manualSpellSpriteId = selectedSpell != null ? selectedSpell.getSpriteId() : -1;
+        manualCastTick = client.getTickCount();
     }
 
     private int equippedWeaponId() {

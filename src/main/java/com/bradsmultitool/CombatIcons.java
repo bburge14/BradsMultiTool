@@ -43,6 +43,10 @@ final class CombatIcons {
         return new Icon(false, itemId);
     }
 
+    static Icon sprite(int spriteId) {
+        return new Icon(true, spriteId);
+    }
+
     /**
      * Icon for the player's current combat style, or null.
      * Thrown weapons (light ammo) show the equipped item itself when its id is known (> 0).

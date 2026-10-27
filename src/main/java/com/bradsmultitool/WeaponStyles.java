@@ -48,12 +48,18 @@ public final class WeaponStyles {
             }
         }
 
-        /** e.g. "Slash", "Lunge (Stab)", "Rapid (Thrown)", "Spell Cast (Fire Blast)". */
+        /** e.g. "Slash", "Lunge (Stab)", "Rapid (Thrown)", "Wind Strike", "Ice Barrage", "Fire Wave (Def)". */
         public String label() {
+            if (MAGIC.equals(discipline)) {
+                String spell = weaponKind != null ? weaponKind : spellName(element, spellTier);
+                if (spell == null) {
+                    return buttonName;
+                }
+                return "Defensive Cast".equals(buttonName) ? spell + " (Def)" : spell;
+            }
+
             String detail;
-            if (element != null) {
-                detail = spellTier != null ? element + " " + spellTier : element.toString();
-            } else if (weaponKind != null) {
+            if (weaponKind != null) {
                 detail = weaponKind;
             } else {
                 detail = damageType;
@@ -171,6 +177,48 @@ public final class WeaponStyles {
             return "Dart";
         }
         return THROWN;
+    }
+
+    /**
+     * Style for a spell the player cast by hand, e.g. "Fire Strike" or "Ice Barrage".
+     * Standard elemental spells get their element and tier; other spells only their name.
+     */
+    public static Style manualCast(String spellName) {
+        MonsterWeakness.Element element = null;
+        String tier = null;
+        String[] words = spellName.trim().split("\\s+");
+        if (words.length == 2) {
+            element = elementFromSpellWord(words[0]);
+            for (String t : SPELL_TIERS_WITH_SURGE) {
+                if (t.equalsIgnoreCase(words[1])) {
+                    tier = t;
+                }
+            }
+            if (tier == null) {
+                element = null;
+            }
+        }
+        return new Style(MAGIC, "Cast", null, spellName.trim(), element, tier);
+    }
+
+    private static final String[] SPELL_TIERS_WITH_SURGE = {"Strike", "Bolt", "Blast", "Wave", "Surge"};
+
+    /** In-game name of a standard elemental spell; air spells are called "Wind". */
+    static String spellName(MonsterWeakness.Element element, String tier) {
+        if (element == null || tier == null) {
+            return null;
+        }
+        return (element == MonsterWeakness.Element.AIR ? "Wind" : element.toString()) + " " + tier;
+    }
+
+    private static MonsterWeakness.Element elementFromSpellWord(String word) {
+        switch (word.toLowerCase()) {
+            case "wind": return MonsterWeakness.Element.AIR;
+            case "water": return MonsterWeakness.Element.WATER;
+            case "earth": return MonsterWeakness.Element.EARTH;
+            case "fire": return MonsterWeakness.Element.FIRE;
+            default: return null;
+        }
     }
 
     /** Adds the specific thrown weapon to a thrown-category style; other styles are returned unchanged. */

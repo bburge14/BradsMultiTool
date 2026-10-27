@@ -39,6 +39,20 @@ public class WeaponStylesTest {
     }
 
     @Test
+    public void manualCastsAreNamedAndElementalSpellsGetTheirElement() {
+        WeaponStyles.Style fireBolt = WeaponStyles.manualCast("Fire Bolt");
+        assertEquals(MonsterWeakness.Type.MAGIC, fireBolt.type());
+        assertEquals(MonsterWeakness.Element.FIRE, fireBolt.element);
+        assertEquals("Fire Bolt", fireBolt.label());
+        assertEquals(MonsterWeakness.Element.AIR, WeaponStyles.manualCast("Wind Surge").element);
+
+        WeaponStyles.Style barrage = WeaponStyles.manualCast("Ice Barrage");
+        assertNull(barrage.element);
+        assertEquals("Ice Barrage", barrage.label());
+        assertNull(WeaponStyles.manualCast("Fire Bloom").element);
+    }
+
+    @Test
     public void autocastSpellElement() {
         assertEquals(MonsterWeakness.Element.AIR, WeaponStyles.autocastElement(1));
         assertEquals(MonsterWeakness.Element.FIRE, WeaponStyles.autocastElement(12));
@@ -48,8 +62,10 @@ public class WeaponStylesTest {
 
         WeaponStyles.Style casting = WeaponStyles.resolve(18, 4, false, 4);
         assertEquals(MonsterWeakness.Type.MAGIC, casting.type());
-        assertEquals("Spell Cast (Fire Strike)", casting.label());
-        assertEquals("Spell Cast (Water Wave)", WeaponStyles.resolve(18, 4, false, 14).label());
-        assertEquals("Spell Cast (Earth Surge)", WeaponStyles.resolve(18, 4, false, 50).label());
+        assertEquals("Fire Strike", casting.label());
+        assertEquals("Water Wave", WeaponStyles.resolve(18, 4, false, 14).label());
+        assertEquals("Earth Surge", WeaponStyles.resolve(18, 4, false, 50).label());
+        assertEquals("Wind Strike", WeaponStyles.resolve(18, 4, false, 1).label());
+        assertEquals("Fire Wave (Def)", WeaponStyles.resolve(18, 4, true, 16).label());
     }
 }

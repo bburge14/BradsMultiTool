@@ -114,7 +114,7 @@ public class BradsMultiToolOverlay extends Overlay {
             }
 
             panelComponent.getChildren().add(new IconLineComponent(
-                "Combat Method:",
+                "Style:",
                 icon(plugin.getCombatMethodIcon()),
                 plugin.getCombatMethod(),
                 plugin.getCombatMethodColor()));
@@ -344,6 +344,7 @@ public class BradsMultiToolOverlay extends Overlay {
     private static class IconLineComponent implements LayoutableRenderableEntity {
         private static final int ICON_SIZE = 16;
         private static final int ICON_GAP = 3;
+        private static final int LABEL_GAP = 6;
 
         private final String left;
         private final Image icon;
@@ -368,8 +369,11 @@ public class BradsMultiToolOverlay extends Overlay {
 
             drawShadowed(graphics, left, x, baseline, Color.WHITE);
 
-            int textX = x + width - fm.stringWidth(right);
-            drawShadowed(graphics, right, textX, baseline, rightColor);
+            // Never let the right side run into the label: trim it with "..." if it doesn't fit
+            int available = width - fm.stringWidth(left) - LABEL_GAP - (icon != null ? ICON_SIZE + ICON_GAP : 0);
+            String text = fitText(right, fm, available);
+            int textX = x + width - fm.stringWidth(text);
+            drawShadowed(graphics, text, textX, baseline, rightColor);
 
             if (icon != null) {
                 int iconX = textX - ICON_GAP - ICON_SIZE;
@@ -377,6 +381,18 @@ public class BradsMultiToolOverlay extends Overlay {
             }
 
             return new Dimension(width, height);
+        }
+
+        private static String fitText(String text, FontMetrics fm, int maxWidth) {
+            if (fm.stringWidth(text) <= maxWidth) {
+                return text;
+            }
+            String ellipsis = "...";
+            int end = text.length();
+            while (end > 0 && fm.stringWidth(text.substring(0, end) + ellipsis) > maxWidth) {
+                end--;
+            }
+            return text.substring(0, end) + ellipsis;
         }
 
         private static void drawShadowed(Graphics2D graphics, String text, int x, int y, Color color) {
