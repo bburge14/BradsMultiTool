@@ -30,8 +30,8 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
 public class BradsMultiToolHoverOverlay extends Overlay {
 
     // Sit well below the cursor so the game's hover text ("Attack Guard (level-21)") stays readable
-    private static final int CURSOR_OFFSET_X = 12;
-    private static final int CURSOR_OFFSET_Y = 40;
+    private static final int CURSOR_OFFSET_X = 0;
+    private static final int CURSOR_OFFSET_Y = 52;
     private static final int WIDTH = 205;
 
     private final Client client;
