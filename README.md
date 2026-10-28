@@ -24,7 +24,7 @@ Working on the plugin itself? See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
   your god items, vyre noble clothing and greegrees protect you, and any other wiki condition is shown
   as written. With auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 - **Buff timers**: each combat potion boost with its icon and time left, divine potions to the second;
-  "running out" and "expired" alerts with optional repeats. Each potion has its own voice line.
+  "running out" and "expired" alerts with optional repeats; a buff's line turns red once it's running out. Each potion has its own voice line.
 - **Health and prayer**: low health / low prayer / out of prayer alerts (by percent), flashing orbs, and an
   "OUT OF PRAYER" overhead warning.
 - **Combat alerts**: special attack ready (only after you've used it), antifire and poison protection

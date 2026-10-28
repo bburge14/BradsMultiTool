@@ -15,6 +15,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Monster hover: aggression reads "No (lvl X+)" for low-level monsters when you're over twice their level.
 - [ ] God Wars: aggression changes when you equip a god item.
 - [ ] Buff timers count down correctly; running out / expired alerts fire once (plus repeats if on).
+- [ ] A buff's line on the HUD turns red when its running-out alert fires, green again after re-dosing.
 - [ ] Running out still fires right after logging in or hopping (says "under 1:00 left" when the timer isn't synced yet).
 
 ## Gemstone Crab

@@ -1396,6 +1396,11 @@ public class BradsMultiToolPlugin extends Plugin {
         }
     }
 
+    /** True once this buff's "running out" alert has fired for the current dose. */
+    boolean isBuffRunningOut(String buffName) {
+        return buffWarnedAtBoost.containsKey(buffName);
+    }
+
     // Warn once per dose for each buff, only when its time left is exact
     private void checkBuffRunningOut() {
         int warnSeconds = config.buffWarningSeconds();
