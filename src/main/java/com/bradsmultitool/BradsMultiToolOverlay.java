@@ -38,6 +38,29 @@ public class BradsMultiToolOverlay extends Overlay {
     private final SpriteManager spriteManager;
     private final SkillIconManager skillIconManager;
     private final PanelComponent panelComponent = new PanelComponent();
+    // After the crab moves its stats stay up this long before the radar takes over
+    private static final long CRAB_STATS_LINGER_MILLIS = 12_000;
+    private long lastCrabActiveMillis;
+    private CrabFight lastFight;
+
+    /** The crab fight's numbers, as of the last frame the crab was up. */
+    private static final class CrabFight {
+        final long damage;
+        final double dps;
+        final int lastHit;
+        final int maxHit;
+        final List<Skill> xpSkills;
+        final String xpType;
+
+        CrabFight(long damage, double dps, int lastHit, int maxHit, List<Skill> xpSkills, String xpType) {
+            this.damage = damage;
+            this.dps = dps;
+            this.lastHit = lastHit;
+            this.maxHit = maxHit;
+            this.xpSkills = xpSkills;
+            this.xpType = xpType;
+        }
+    }
     @Inject
     private SlayerMonsterInfo slayerInfo;
 
@@ -194,11 +217,29 @@ public class BradsMultiToolOverlay extends Overlay {
 
         // Outlines are drawn by BradsMultiToolCrabOutlineOverlay, under the game's interface
 
-        // Mode A: Active fighting crab in cove
-        if (plugin.isCrabActive()) {
-            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", "", Color.WHITE));
+        // Mode A: Active fighting crab in cove, and for a few seconds after it moves so you can read the
+        // final stats; then Mode B, the radar
+        long now = System.currentTimeMillis();
+        boolean active = plugin.isCrabActive();
+        if (active) {
+            lastCrabActiveMillis = now;
+        }
+        long lingerLeft = CRAB_STATS_LINGER_MILLIS - (now - lastCrabActiveMillis);
+        if (active) {
+            // Kept so the stats can still be read for a few seconds after the crab moves (they reset then)
+            lastFight = new CrabFight(plugin.getCurrentCrabDamage(), plugin.getCrabLiveDps(), plugin.getCrabLastHit(),
+                plugin.getCrabMaxHit(), new ArrayList<>(plugin.getCrabCombatXpSkills()), plugin.getCrabCombatXpType());
+        }
+        if (active || (lingerLeft > 0 && lastFight != null)) {
+            CrabFight fight = lastFight;
+            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", active ? "" : " (moved)", Color.WHITE));
 
-            if (plugin.getCrabHpPercent() >= 0) {
+            if (!active) {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Radar in:")
+                    .right((lingerLeft / 1000 + 1) + "s")
+                    .build());
+            } else if (plugin.getCrabHpPercent() >= 0) {
                 // No max HP for the crab, so the bar shows just the percentage
                 panelComponent.getChildren().add(new CenteredHealthBarComponent(liveCrabHpPercent(), 0, 0, true));
             } else {
@@ -208,37 +249,38 @@ public class BradsMultiToolOverlay extends Overlay {
                     .build());
             }
 
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Burrows in:")
-                .right(plugin.getEstimatedBurrowTime())
-                .build());
-
-            boolean attacking = plugin.isPlayerAttackingCrab();
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Attacking:")
-                .right(attacking ? "YES" : "NO")
-                .rightColor(attacking ? GOOD : BAD)
-                .build());
-
-            // Preserved: Exact XP Type ground truth
-            List<Image> skillIcons = new ArrayList<>();
-            for (Skill skill : plugin.getCrabCombatXpSkills()) {
-                skillIcons.add(skillIconManager.getSkillImage(skill, true));
-            }
-            panelComponent.getChildren().add(new IconLineComponent("XP Type:", skillIcons,
-                plugin.getCrabCombatXpType(), Color.WHITE));
-
-            if (config.showCrabLastHit() && plugin.getCrabLastHit() > 0) {
+            if (active) {
                 panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Last Hit:")
-                    .right(String.valueOf(plugin.getCrabLastHit()))
+                    .left("Burrows in:")
+                    .right(plugin.getEstimatedBurrowTime())
+                    .build());
+
+                boolean attacking = plugin.isPlayerAttackingCrab();
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Attacking:")
+                    .right(attacking ? "YES" : "NO")
+                    .rightColor(attacking ? GOOD : BAD)
                     .build());
             }
 
-            if (config.showCrabMaxHit() && plugin.getCrabMaxHit() > 0) {
+            // Preserved: Exact XP Type ground truth
+            List<Image> skillIcons = new ArrayList<>();
+            for (Skill skill : fight.xpSkills) {
+                skillIcons.add(skillIconManager.getSkillImage(skill, true));
+            }
+            panelComponent.getChildren().add(new IconLineComponent("XP Type:", skillIcons, fight.xpType, Color.WHITE));
+
+            if (config.showCrabLastHit() && fight.lastHit > 0) {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Last Hit:")
+                    .right(String.valueOf(fight.lastHit))
+                    .build());
+            }
+
+            if (config.showCrabMaxHit() && fight.maxHit > 0) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Max Hit:")
-                    .right(String.valueOf(plugin.getCrabMaxHit()))
+                    .right(String.valueOf(fight.maxHit))
                     .build());
             }
 
@@ -262,13 +304,10 @@ public class BradsMultiToolOverlay extends Overlay {
                     .build());
             }
 
-            String dpsFormatted = String.format("%.1f", plugin.getCrabLiveDps());
-            String damageLine = String.format("%,d (%s DPS)", plugin.getCurrentCrabDamage(), dpsFormatted);
-
-            // Crab damage reflects only current active crab
+            // Crab damage reflects only the current (or just-moved) crab
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Crab Dmg:")
-                .right(damageLine)
+                .right(String.format("%,d (%.1f DPS)", fight.damage, fight.dps))
                 .build());
         }
         // Mode B: Crab Radar

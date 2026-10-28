@@ -116,6 +116,8 @@ public class BradsMultiToolPlugin extends Plugin {
     // An action counts towards the AFK alert only while it's giving XP (an XP drop in the last 30 seconds, for slow trees)
     private static final int XP_ACTION_TICKS = 50;
     private static final int IN_GAME_SETTLE_TICKS = 3;
+    // XP within this many ticks (about 5s) counts as doing something for the AFK alert
+    private static final int RECENT_XP_TICKS = 8;
     // Repeat counter value meaning "already handled, don't sound or repeat"
     private static final int SILENCED = Integer.MAX_VALUE / 2;
     // Character idle: what counts as having been doing something before going AFK
@@ -1403,14 +1405,19 @@ public class BradsMultiToolPlugin extends Plugin {
             if (warnedAt != null && buff.boost <= warnedAt) {
                 continue;
             }
-            if (warnSeconds <= 0 || !buff.exact || buff.millisLeft(now) > warnSeconds * 1000L) {
+            // Before the decay timer is synced (no stat drop seen since login or a hop) the time left isn't
+            // exact, but a buff down to +1 has at most one decay period left, so warn then
+            boolean lastLevel = !buff.exact && buff.boost == 1;
+            if (warnSeconds <= 0 || (!lastLevel && (!buff.exact || buff.millisLeft(now) > warnSeconds * 1000L))) {
                 if (warnedAt != null) {
                     buffWarnedAtBoost.remove(buff.name);
                 }
                 continue;
             }
             buffWarnedAtBoost.put(buff.name, buff.boost);
-            alert(potionLine(buff.name, true, runningOutLine(buff.category)), BuffTimer.formatMillis(buff.millisLeft(now)) + " left");
+            String left = lastLevel ? "under " + BuffTimer.formatMillis(buff.millisLeft(now)) + " left"
+                : BuffTimer.formatMillis(buff.millisLeft(now)) + " left";
+            alert(potionLine(buff.name, true, runningOutLine(buff.category)), left);
         }
     }
 
@@ -1555,9 +1562,12 @@ public class BradsMultiToolPlugin extends Plugin {
         WorldPoint location = player.getWorldLocation();
         boolean moved = lastPlayerLocation != null && !lastPlayerLocation.equals(location);
         lastPlayerLocation = location;
-        boolean doing = player.getAnimation() != -1 || player.getInteracting() != null;
-
         int tick = client.getTickCount();
+        // Gaining XP means you're not idle, even between attacks when you aren't animating or your target
+        // flickers (big monsters like the Gemstone Crab); so does attacking the crab
+        boolean doing = player.getAnimation() != -1 || player.getInteracting() != null
+            || tick - lastXpTick <= RECENT_XP_TICKS || playerAttackingCrab;
+
         if (isBankingInterfaceOpen()) {
             characterWasActive = false;
             actionTicks = 0;

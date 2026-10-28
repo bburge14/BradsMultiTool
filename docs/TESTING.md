@@ -15,8 +15,11 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Monster hover: aggression reads "No (lvl X+)" for low-level monsters when you're over twice their level.
 - [ ] God Wars: aggression changes when you equip a god item.
 - [ ] Buff timers count down correctly; running out / expired alerts fire once (plus repeats if on).
+- [ ] Running out still fires right after logging in or hopping (says "under 1:00 left" when the timer isn't synced yet).
 
 ## Gemstone Crab
+- [ ] When the crab moves, its stats stay up 12s marked (moved) with a "Radar in" countdown, then the radar.
+- [ ] No AFK alert while attacking the crab.
 - [ ] Radar and outlines only near the crab's mines (not in Draynor or other caves).
 - [ ] Outlines draw under the minimap and inventory, not over them.
 - [ ] Shell green when you can mine it, red when you can't.
