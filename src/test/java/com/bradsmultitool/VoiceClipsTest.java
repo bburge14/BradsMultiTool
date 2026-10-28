@@ -12,6 +12,14 @@ import org.junit.Test;
 public class VoiceClipsTest {
 
     @Test
+    public void everyBuffKindHasItsOwnLines() {
+        for (String name : new String[]{"Super Combat", "Divine Super Combat", "Ranging", "Divine Battlemage", "Combat"}) {
+            assertNotNull(name, VoiceAlertService.VoiceLine.forPotion(name, true));
+            assertNotNull(name, VoiceAlertService.VoiceLine.forPotion(name, false));
+        }
+    }
+
+    @Test
     public void everyPersonaHasAPlayableClipForEveryLine() throws Exception {
         for (VoiceAlertService.VoicePersona persona : VoiceAlertService.VoicePersona.values()) {
             for (VoiceAlertService.VoiceLine line : VoiceAlertService.VoiceLine.values()) {

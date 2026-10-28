@@ -352,6 +352,7 @@ public class BradsMultiToolPlugin extends Plugin {
     // Buff name -> boost when its running-out warning played; a bigger boost (re-pot) re-arms it
     private final Map<String, Integer> buffWarnedAtBoost = new HashMap<>();
     private ActiveBuffs.Category lastEndedCategory = null;
+    private String lastEndedBuffName = null;
     private long lastTickMillis = 0;
 
     private int previousMaxBoost = 0;
@@ -1109,7 +1110,9 @@ public class BradsMultiToolPlugin extends Plugin {
                 lastBuffExpiredSoundTime = Instant.now();
                 sendGameChatMessage("Your combat buff has run out.");
                 if (config.voiceBuffExpired()) {
-                    speak(expiredLine(lastEndedCategory));
+                    speak(lastEndedBuffName != null
+                        ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
+                        : expiredLine(lastEndedCategory));
                 }
             } else if (buffState == BuffState.EXPIRED && config.repeatBuffAlert()
                 && Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds() >= config.repeatBuffInterval()
@@ -1118,7 +1121,9 @@ public class BradsMultiToolPlugin extends Plugin {
                 lastBuffExpiredSoundTime = Instant.now();
                 sendGameChatMessage("Your combat buff is still out.");
                 if (config.voiceBuffExpired()) {
-                    speak(expiredLine(lastEndedCategory));
+                    speak(lastEndedBuffName != null
+                        ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
+                        : expiredLine(lastEndedCategory));
                 }
             } else if (buffState == BuffState.UNPOTTED) {
                 buffStatusText = "No Buffs";
@@ -1175,7 +1180,7 @@ public class BradsMultiToolPlugin extends Plugin {
             }
             buffWarnedAtBoost.put(buff.name, buff.boost);
             if (config.voiceBuffLow()) {
-                speak(runningOutLine(buff.category));
+                speak(potionLine(buff.name, true, runningOutLine(buff.category)));
             }
             sendGameChatMessage("Your " + buff.name + " buff runs out in " + BuffTimer.formatMillis(buff.millisLeft(now)) + ".");
         }
@@ -1190,13 +1195,21 @@ public class BradsMultiToolPlugin extends Plugin {
                 continue;
             }
             lastEndedCategory = before.category;
+            lastEndedBuffName = before.name;
             if (!current.isEmpty()) {
                 sendGameChatMessage("Your " + before.name + " buff has run out.");
                 if (config.voiceBuffExpired()) {
-                    speak(expiredLine(before.category));
+                    speak(potionLine(before.name, false, expiredLine(before.category)));
                 }
             }
         }
+    }
+
+    // The potion's own line ("Divine super combat is running out"), else the boost-type line
+    private static VoiceAlertService.VoiceLine potionLine(String buffName, boolean runningOut,
+                                                          VoiceAlertService.VoiceLine fallback) {
+        VoiceAlertService.VoiceLine line = VoiceAlertService.VoiceLine.forPotion(buffName, runningOut);
+        return line != null ? line : fallback;
     }
 
     private static VoiceAlertService.VoiceLine runningOutLine(ActiveBuffs.Category category) {

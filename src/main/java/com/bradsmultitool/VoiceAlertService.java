@@ -53,7 +53,52 @@ public class VoiceAlertService {
         INVENTORY_FULL("inventory_full", "Inventory is full."),
         TREE_GONE("tree_gone", "The tree is gone."),
         ROCK_DEPLETED("rock_depleted", "The rock is depleted."),
-        FISHING_SPOT_MOVED("fishing_spot_moved", "The fishing spot has moved.");
+        FISHING_SPOT_MOVED("fishing_spot_moved", "The fishing spot has moved."),
+        // Per-potion buff lines, named after ActiveBuffs kinds: POTION_<NAME>_LOW / _EXPIRED
+        POTION_SUPER_COMBAT_LOW("potion_super_combat_low", "Super combat is running out."),
+        POTION_SUPER_COMBAT_EXPIRED("potion_super_combat_expired", "Super combat has run out."),
+        POTION_COMBAT_LOW("potion_combat_low", "Combat potion is running out."),
+        POTION_COMBAT_EXPIRED("potion_combat_expired", "Combat potion has run out."),
+        POTION_ATTACK_LOW("potion_attack_low", "Attack potion is running out."),
+        POTION_ATTACK_EXPIRED("potion_attack_expired", "Attack potion has run out."),
+        POTION_STRENGTH_LOW("potion_strength_low", "Strength potion is running out."),
+        POTION_STRENGTH_EXPIRED("potion_strength_expired", "Strength potion has run out."),
+        POTION_DEFENCE_LOW("potion_defence_low", "Defence potion is running out."),
+        POTION_DEFENCE_EXPIRED("potion_defence_expired", "Defence potion has run out."),
+        POTION_RANGING_LOW("potion_ranging_low", "Ranging potion is running out."),
+        POTION_RANGING_EXPIRED("potion_ranging_expired", "Ranging potion has run out."),
+        POTION_MAGIC_LOW("potion_magic_low", "Magic potion is running out."),
+        POTION_MAGIC_EXPIRED("potion_magic_expired", "Magic potion has run out."),
+        POTION_BASTION_LOW("potion_bastion_low", "Bastion potion is running out."),
+        POTION_BASTION_EXPIRED("potion_bastion_expired", "Bastion potion has run out."),
+        POTION_BATTLEMAGE_LOW("potion_battlemage_low", "Battlemage potion is running out."),
+        POTION_BATTLEMAGE_EXPIRED("potion_battlemage_expired", "Battlemage potion has run out."),
+        POTION_DIVINE_SUPER_COMBAT_LOW("potion_divine_super_combat_low", "Divine super combat is running out."),
+        POTION_DIVINE_SUPER_COMBAT_EXPIRED("potion_divine_super_combat_expired", "Divine super combat has run out."),
+        POTION_DIVINE_BASTION_LOW("potion_divine_bastion_low", "Divine bastion is running out."),
+        POTION_DIVINE_BASTION_EXPIRED("potion_divine_bastion_expired", "Divine bastion has run out."),
+        POTION_DIVINE_BATTLEMAGE_LOW("potion_divine_battlemage_low", "Divine battlemage is running out."),
+        POTION_DIVINE_BATTLEMAGE_EXPIRED("potion_divine_battlemage_expired", "Divine battlemage has run out."),
+        POTION_DIVINE_ATTACK_LOW("potion_divine_attack_low", "Divine attack is running out."),
+        POTION_DIVINE_ATTACK_EXPIRED("potion_divine_attack_expired", "Divine attack has run out."),
+        POTION_DIVINE_STRENGTH_LOW("potion_divine_strength_low", "Divine strength is running out."),
+        POTION_DIVINE_STRENGTH_EXPIRED("potion_divine_strength_expired", "Divine strength has run out."),
+        POTION_DIVINE_DEFENCE_LOW("potion_divine_defence_low", "Divine defence is running out."),
+        POTION_DIVINE_DEFENCE_EXPIRED("potion_divine_defence_expired", "Divine defence has run out."),
+        POTION_DIVINE_RANGING_LOW("potion_divine_ranging_low", "Divine ranging is running out."),
+        POTION_DIVINE_RANGING_EXPIRED("potion_divine_ranging_expired", "Divine ranging has run out."),
+        POTION_DIVINE_MAGIC_LOW("potion_divine_magic_low", "Divine magic is running out."),
+        POTION_DIVINE_MAGIC_EXPIRED("potion_divine_magic_expired", "Divine magic has run out.");
+
+        /** The line for a specific buff ("Divine Super Combat"), or null if there isn't one. */
+        static VoiceLine forPotion(String buffName, boolean runningOut) {
+            String constant = "POTION_" + buffName.toUpperCase().replaceAll("\\W+", "_") + (runningOut ? "_LOW" : "_EXPIRED");
+            try {
+                return valueOf(constant);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
 
         final String fileName;
         final String text;
