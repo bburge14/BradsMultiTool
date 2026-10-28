@@ -250,6 +250,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private BradsMultiToolSlayerHighlightOverlay slayerHighlightOverlay;
 
     @Inject
+    private GoalTargetMenu goalTargetMenu;
+
+    @Inject
     private ConfigManager configManager;
 
     @Inject
@@ -479,6 +482,7 @@ public class BradsMultiToolPlugin extends Plugin {
         recipeData.load(gson);
         eventBus.register(trainingOverlay);
         eventBus.register(goalItems);
+        eventBus.register(goalTargetMenu);
         eventBus.register(extraAlerts);
         eventBus.register(resourceTimers);
         eventBus.register(farmingData);
@@ -527,6 +531,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(slayerHighlightOverlay);
         eventBus.unregister(trainingOverlay);
         eventBus.unregister(goalItems);
+        eventBus.unregister(goalTargetMenu);
         eventBus.unregister(extraAlerts);
         eventBus.unregister(resourceTimers);
         eventBus.unregister(farmingData);
@@ -772,6 +777,7 @@ public class BradsMultiToolPlugin extends Plugin {
         if (goalXp <= 0) {
             configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name());
             configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name());
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
         } else {
             configManager.setRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name(), goalXp);
             configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name(), client.getSkillExperience(skill));
@@ -800,6 +806,30 @@ public class BradsMultiToolPlugin extends Plugin {
     /** What to make for production-skill goals, from your inventory and bank. */
     public GoalItems getGoalItems() {
         return goalItems;
+    }
+
+    /**
+     * What you chose to train for this skill's goal instead of the suggestion ("npc:ruby harvest",
+     * "object:Teak tree"), or null to follow the suggestion.
+     */
+    public String getGoalTarget(Skill skill) {
+        return configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
+    }
+
+    public void setGoalTarget(Skill skill, String target) {
+        if (target == null) {
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name(), target);
+        }
+        updatePanelUI();
+    }
+
+    /** "Ruby harvest" from "npc:ruby harvest". */
+    static String goalTargetName(String target) {
+        String name = target.substring(target.indexOf(':') + 1);
+        return name.isEmpty() ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
     }
 
     /** Skills you've set a goal for, in skill order. */
@@ -2080,7 +2110,8 @@ public class BradsMultiToolPlugin extends Plugin {
 
     // A level-up that moves a goal skill onto a different suggested method says so in chat
     private void announceNewMethod(Skill skill, int before, int now) {
-        if (!config.showTrainingSuggestion() || getSkillGoal(skill) <= client.getSkillExperience(skill)) {
+        if (!config.showTrainingSuggestion() || getSkillGoal(skill) <= client.getSkillExperience(skill)
+            || getGoalTarget(skill) != null) {
             return;
         }
         if (skill == Skill.SLAYER) {

@@ -88,6 +88,8 @@ work a resource.
   trees") and what to switch to before the goal ("At 35: Teak trees"). **Suggest Alternatives** picks the
   guide's other methods (often more AFK or cheaper) instead of the fastest. Where the method is a tree,
   rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
+- **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill to outline that
+  instead of the suggestion ("Tracking: ... (your pick)"); **Use suggested method** on the card goes back.
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
   **Highlight Goal Items**).

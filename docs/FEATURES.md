@@ -234,6 +234,11 @@ Suggest Alternatives, Highlight Suggested Method and its colour; Auto-Pause Idle
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
 - Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
   world.
+- **Train something else:** right-click a Hunter creature, pickpocket NPC, fishing spot, tree, rock or
+  stall for a skill you have a goal in and choose **Track for goal**. That's outlined instead of the
+  suggestion and the card says "Tracking: Ruby harvest (your pick)". **Untrack for goal** on it, or
+  **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
+  a goal are ever outlined.
 - For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
   Magic, Runecraft) and Prayer the card also says what to **Make** (or **Use**: bones, ashes, logs): the best thing you can make at your level from
   what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its

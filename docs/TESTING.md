@@ -80,6 +80,8 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Goals in combat skills, Prayer, Slayer, Sailing, Herblore each show a Train: line (Slayer: Tasks from <master>).
 - [ ] Prayer goal with bones in inventory/bank: Use: Bury <best bones>, bones outlined.
 - [ ] Hunter goal: the suggested creatures are outlined.
+- [ ] Hunter goal: right-click a different creature > Track for goal; it's outlined instead and the card says Tracking: ... (your pick). Untrack / Use suggested method restores the suggestion.
+- [ ] No Track for goal option on things whose skill has no goal.
 - [ ] Clear goal moves the card back under THIS SESSION (or removes it if untrained).
 - [ ] Auto-pause after the set minutes without XP; resumes on XP.
 - [ ] Level-up voice says skill and level.

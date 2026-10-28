@@ -26,7 +26,7 @@ import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 /**
  * Outlines the trees, rocks, stalls or NPCs of the suggested training method for each skill you have a
- * goal in (see {@link TrainingData}).
+ * goal in (see {@link TrainingData}), or what you picked instead with "Track for goal" ({@link GoalTargetMenu}).
  */
 @Singleton
 public class BradsMultiToolTrainingOverlay extends Overlay {
@@ -39,17 +39,19 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
     private final BradsMultiToolConfig config;
     private final TrainingData training;
     private final ModelOutlineRenderer outlines;
-    // Spawned objects any method trains on, by place (looked up against the current suggestions each frame)
+    private final SkillingData skilling;
+    // Spawned objects any method trains on (or any skilling resource you could pick instead), by place (looked up against the current suggestions each frame)
     private final Map<WorldPoint, GameObject> objects = new HashMap<>();
 
     @Inject
     BradsMultiToolTrainingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
-                                  TrainingData training, ModelOutlineRenderer outlines) {
+                                  TrainingData training, ModelOutlineRenderer outlines, SkillingData skilling) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.training = training;
         this.outlines = outlines;
+        this.skilling = skilling;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ABOVE_SCENE);
     }
@@ -57,7 +59,7 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
     @Subscribe
     public void onGameObjectSpawned(GameObjectSpawned event) {
         GameObject object = event.getGameObject();
-        if (training.allObjects().contains(object.getId())) {
+        if (training.allObjects().contains(object.getId()) || skilling.object(object.getId(), null) != null) {
             objects.put(object.getWorldLocation(), object);
         }
     }
@@ -81,9 +83,20 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         }
         Set<Integer> ids = new HashSet<>();
         Set<String> npcNames = new HashSet<>();
+        Set<String> resources = new HashSet<>();
         for (Skill skill : plugin.getGoalSkills()) {
             int xp = client.getSkillExperience(skill);
             if (plugin.getSkillGoal(skill) <= xp) {
+                continue;
+            }
+            // What you picked with "Track for goal" wins over the suggestion
+            String target = plugin.getGoalTarget(skill);
+            if (target != null) {
+                if (target.startsWith("npc:")) {
+                    npcNames.add(target.substring(4));
+                } else if (target.startsWith("object:")) {
+                    resources.add(target.substring(7));
+                }
                 continue;
             }
             TrainingData.Method method = training.suggest(skill, client.getRealSkillLevel(skill), config.trainingAlternatives());
@@ -92,12 +105,13 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
                 npcNames.addAll(method.npcs);
             }
         }
-        if (ids.isEmpty() && npcNames.isEmpty()) {
+        if (ids.isEmpty() && npcNames.isEmpty() && resources.isEmpty()) {
             return null;
         }
         Color color = config.trainingHighlightColor();
         for (GameObject object : objects.values()) {
-            if (ids.contains(object.getId())) {
+            SkillingData.Resource resource = resources.isEmpty() ? null : skilling.object(object.getId(), null);
+            if (ids.contains(object.getId()) || (resource != null && resources.contains(resource.name))) {
                 outlines.drawOutline(object, OUTLINE_WIDTH, color, OUTLINE_FEATHER);
             }
         }

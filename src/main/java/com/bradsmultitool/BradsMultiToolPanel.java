@@ -330,6 +330,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         // Which fields are currently laid out, so they're only rebuilt when the settings change
         private String layout = "";
         private final JMenuItem pauseItem = new JMenuItem();
+        // Back to the suggested method after picking something with "Track for goal"
+        private final JMenuItem suggestedItem = new JMenuItem("Use suggested method");
 
         SkillCard(Skill skill) {
             this.skill = skill;
@@ -368,10 +370,12 @@ public class BradsMultiToolPanel extends PluginPanel {
 
             JPopupMenu menu = new JPopupMenu();
             pauseItem.addActionListener(e -> plugin.toggleSkillPause(skill));
+            suggestedItem.addActionListener(e -> plugin.setGoalTarget(skill, null));
             menu.add(pauseItem);
             menu.add(menuItem("Reset rate", () -> plugin.resetSkillRate(skill)));
             menu.add(menuItem("Set goal...", () -> askForGoal(skill)));
             menu.add(menuItem("Clear goal", () -> plugin.setSkillGoal(skill, 0)));
+            menu.add(suggestedItem);
             menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
             menu.add(menuItem("Hide " + skill.getName(), () -> plugin.addIgnoredSkill(skill)));
             menu.addSeparator();
@@ -451,6 +455,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             updateSuggestion(level, goalXp, xp);
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
+            suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
         }
 
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to
@@ -467,7 +472,10 @@ public class BradsMultiToolPanel extends PluginPanel {
         private void updateSuggestion(int level, int goalXp, int xp) {
             List<String> lines = new ArrayList<>();
             if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
-                if (skill == Skill.SLAYER) {
+                String target = plugin.getGoalTarget(skill);
+                if (target != null) {
+                    lines.add(label("Tracking:") + BradsMultiToolPlugin.goalTargetName(target) + " " + label("(your pick)"));
+                } else if (skill == Skill.SLAYER) {
                     slayerSuggestion(lines);
                 } else {
                     TrainingData training = plugin.getTrainingData();
