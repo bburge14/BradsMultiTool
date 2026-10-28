@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.Experience;
 import net.runelite.api.GameState;
 import net.runelite.api.Hitsplat;
 import net.runelite.api.Item;
@@ -405,6 +406,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
+    private final Map<Skill, Integer> realLevels = new EnumMap<>(Skill.class);
     private final Map<Skill, Long> skillActiveTicks = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> lastXpDrops = new EnumMap<>(Skill.class);
     private final Set<Skill> pausedSkills = EnumSet.noneOf(Skill.class);
@@ -498,10 +500,10 @@ public class BradsMultiToolPlugin extends Plugin {
         return toggle(AlertType.of(line).voiceKey);
     }
 
-    // A Voice Alerts / Chat Messages switch; all default to on
+    // A Voice Alerts / Chat Messages switch, falling back to its default
     private boolean toggle(String key) {
         String value = configManager.getConfiguration(CONFIG_GROUP, key);
-        return value == null || Boolean.parseBoolean(value);
+        return value == null ? !"chatLevelUp".equals(key) : Boolean.parseBoolean(value);
     }
 
     public String getPvmTargetHp() {
@@ -531,7 +533,7 @@ public class BradsMultiToolPlugin extends Plugin {
         } else if (Boolean.parseBoolean(event.getNewValue())) {
             for (AlertType type : AlertType.values()) {
                 if (type.voiceKey.equals(key)) {
-                    playVoice(type.preview);
+                    voiceService.speakClipsAsync(config.voicePersona(), config.voiceVolume(), type.preview);
                 }
             }
         }
@@ -659,6 +661,9 @@ public class BradsMultiToolPlugin extends Plugin {
             buffTimer.reset();
             lastBoostedLevels.clear();
             divineEndMillis.clear();
+        }
+        if (event.getGameState() == GameState.LOGIN_SCREEN) {
+            realLevels.clear();
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
             inGameTicks = 0;
@@ -1859,6 +1864,8 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
 
+        announceLevelUp(skill, currentXp);
+
         if (!baseSkillXp.containsKey(skill)) {
             baseSkillXp.put(skill, currentXp);
             return;
@@ -1869,12 +1876,28 @@ public class BradsMultiToolPlugin extends Plugin {
             int previousGained = gainedSkillXp.getOrDefault(skill, 0);
             int drop = gained - previousGained;
             if (drop > 0) {
+                if (skill == Skill.WOODCUTTING) {
+                    treeTimer.onLogCut();
+                }
                 lastXpDrops.put(skill, drop);
                 tickXpChanges.add(skill);
             }
             gainedSkillXp.put(skill, gained);
             updatePanelUI();
         }
+    }
+
+    // "Woodcutting level 45!" when a real level goes up (levels already reached at login aren't announced)
+    private void announceLevelUp(Skill skill, int xp) {
+        int level = Experience.getLevelForXp(xp);
+        Integer previous = realLevels.put(skill, level);
+        if (previous == null || level <= previous || !alertsReady()) {
+            return;
+        }
+        if (config.voiceEnabled() && toggle(AlertType.LEVEL_UP.voiceKey)) {
+            voiceService.speakClipsAsync(config.voicePersona(), config.voiceVolume(), VoiceAlertService.levelUpClips(skill, level));
+        }
+        sendGameChatMessage(AlertType.LEVEL_UP, skill.getName() + " level " + level + "!");
     }
 
     private void updatePanelUI() {

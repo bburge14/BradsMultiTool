@@ -6,6 +6,7 @@ Usage:
     python3 scripts/generate_voice_clips.py           # only clips that don't exist yet
     python3 scripts/generate_voice_clips.py --force   # re-record everything
     python3 scripts/generate_voice_clips.py --compact-existing   # convert old 16-bit clips
+    python3 scripts/generate_voice_clips.py --trim-existing      # cut silence off existing clips
 
 Voice models are downloaded from Hugging Face (rhasspy/piper-voices) into scripts/.piper-models/.
 Personas and lines must match VoiceAlertService.VoicePersona / VoiceLine.
@@ -116,6 +117,15 @@ LINES = {
     "potion_divine_magic_expired": "Divine magic has run out.",
 }
 
+# Level-up alerts are spoken as two clips: "<Skill> level" then the number ("Woodcutting level", "45")
+SKILLS = ["Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer", "Magic", "Cooking", "Woodcutting",
+          "Fletching", "Fishing", "Firemaking", "Crafting", "Smithing", "Mining", "Herblore", "Agility",
+          "Thieving", "Slayer", "Farming", "Runecraft", "Hunter", "Construction", "Sailing"]
+for _skill in SKILLS:
+    LINES["skill_" + _skill.lower()] = _skill + " level"
+for _level in range(2, 100):
+    LINES["level_%d" % _level] = "%d!" % _level
+
 
 def model_path(voice):
     os.makedirs(MODEL_DIR, exist_ok=True)
@@ -136,7 +146,7 @@ OUT_RATE = 16000
 def write_compact_wav(path, samples, rate):
     """Write 16 kHz 8-bit mu-law WAV (G.711, what phone audio uses): about a third the size of 22 kHz
     16-bit PCM and still clear for short spoken alerts. Java Sound decodes it natively."""
-    x = samples.astype(np.float64) / 32768.0
+    x = trim_silence(samples.astype(np.float64) / 32768.0, rate)
     if rate != OUT_RATE:
         # Band-limited resample via FFT so there's no aliasing
         n_out = int(round(len(x) * OUT_RATE / rate))
@@ -153,6 +163,15 @@ def write_compact_wav(path, samples, rate):
         f.write(b"data" + len(data).to_bytes(4, "little") + data.tobytes())
         if len(data) & 1:
             f.write(b"\x00")
+
+
+def trim_silence(x, rate, threshold=0.01, pad=0.04):
+    """Cut leading/trailing silence (keeping a short pad), so clips played back to back flow together."""
+    loud = np.nonzero(np.abs(x) > threshold)[0]
+    if len(loud) == 0:
+        return x
+    margin = int(pad * rate)
+    return x[max(0, loud[0] - margin):min(len(x), loud[-1] + margin)]
 
 
 def linear_to_ulaw(pcm):
@@ -200,6 +219,29 @@ def synth_character(piper_voice, text, spec):
     return rate, apply_character(samples, rate, spec)
 
 
+def ulaw_to_linear(codes):
+    """Standard G.711 mu-law decoder (inverse of linear_to_ulaw)."""
+    u = ~codes.astype(np.int32) & 0xFF
+    sign = u & 0x80
+    exponent = (u >> 4) & 0x07
+    mantissa = u & 0x0F
+    x = (((mantissa << 3) + 0x84) << exponent) - 0x84
+    return np.where(sign != 0, -x, x).astype(np.int16)
+
+
+def trim_existing():
+    """Trim leading/trailing silence from every clip already in OUT_DIR."""
+    for root, _, files in os.walk(OUT_DIR):
+        for name in files:
+            path = os.path.join(root, name)
+            with open(path, "rb") as f:
+                raw = f.read()
+            start = raw.find(b"data") + 8
+            length = int.from_bytes(raw[start - 4:start], "little")
+            samples = ulaw_to_linear(np.frombuffer(raw[start:start + length], dtype=np.uint8))
+            write_compact_wav(path, samples, OUT_RATE)
+
+
 def compact_existing():
     """Convert any 16-bit PCM clips already in OUT_DIR to the compact format (without re-recording)."""
     for root, _, files in os.walk(OUT_DIR):
@@ -215,6 +257,9 @@ def compact_existing():
 def main():
     if "--compact-existing" in sys.argv:
         compact_existing()
+        return
+    if "--trim-existing" in sys.argv:
+        trim_existing()
         return
     # Piper output varies slightly run to run, so keep existing clips unless asked
     force = "--force" in sys.argv

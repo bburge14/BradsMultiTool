@@ -107,22 +107,39 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         pie.render(graphics);
     }
 
-    // The middle of the tree's footprint (big trees cover 2x2 or 3x3 tiles; the click gives their corner)
+    /**
+     * The middle of the tree's footprint. Big trees cover 2x2 or 3x3 tiles and the click gives one tile,
+     * so take the biggest object on it (the tree) and work out its centre from the tiles it covers.
+     */
     private LocalPoint treeCentre(WorldPoint tree) {
         WorldView view = client.getTopLevelWorldView();
-        LocalPoint corner = LocalPoint.fromWorld(view, tree);
-        if (corner == null) {
+        LocalPoint clicked = LocalPoint.fromWorld(view, tree);
+        if (clicked == null) {
             return null;
         }
-        Tile tile = view.getScene().getTiles()[view.getPlane()][corner.getSceneX()][corner.getSceneY()];
+        Tile tile = view.getScene().getTiles()[view.getPlane()][clicked.getSceneX()][clicked.getSceneY()];
+        GameObject biggest = null;
+        int biggestArea = 0;
         if (tile != null) {
             for (GameObject object : tile.getGameObjects()) {
-                if (object != null && object.getId() == treeTimer.getTreeObjectId()) {
-                    return object.getLocalLocation();
+                if (object == null) {
+                    continue;
+                }
+                int area = (object.getSceneMaxLocation().getX() - object.getSceneMinLocation().getX() + 1)
+                    * (object.getSceneMaxLocation().getY() - object.getSceneMinLocation().getY() + 1);
+                if (area > biggestArea) {
+                    biggest = object;
+                    biggestArea = area;
                 }
             }
         }
-        return corner;
+        if (biggest == null) {
+            return clicked;
+        }
+        // Average of the corner tiles' centres = centre of the footprint
+        LocalPoint min = LocalPoint.fromScene(biggest.getSceneMinLocation().getX(), biggest.getSceneMinLocation().getY(), view);
+        LocalPoint max = LocalPoint.fromScene(biggest.getSceneMaxLocation().getX(), biggest.getSceneMaxLocation().getY(), view);
+        return new LocalPoint((min.getX() + max.getX()) / 2, (min.getY() + max.getY()) / 2, view);
     }
 
     /**

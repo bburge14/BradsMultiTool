@@ -26,13 +26,19 @@ enum AlertType {
     INVENTORY_FULL("InventoryFull", VoiceAlertService.VoiceLine.INVENTORY_FULL),
     TREE_GONE("TreeGone", VoiceAlertService.VoiceLine.TREE_GONE),
     ROCK_DEPLETED("RockDepleted", VoiceAlertService.VoiceLine.ROCK_DEPLETED),
-    FISHING_SPOT("FishingSpot", VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED);
+    FISHING_SPOT("FishingSpot", VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED),
+    LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
 
     final String voiceKey;
     final String chatKey;
-    final VoiceAlertService.VoiceLine preview;
+    /** Clips played when the voice toggle is turned on. */
+    final String[] preview;
 
     AlertType(String key, VoiceAlertService.VoiceLine preview) {
+        this(key, new String[]{preview.fileName});
+    }
+
+    AlertType(String key, String[] preview) {
         this.voiceKey = "voice" + key;
         this.chatKey = "chat" + key;
         this.preview = preview;

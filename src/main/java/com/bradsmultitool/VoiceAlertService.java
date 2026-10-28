@@ -11,6 +11,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Skill;
 
 /**
  * Plays pre-recorded voice alerts bundled with the plugin (generated with Piper TTS by
@@ -147,11 +148,25 @@ public class VoiceAlertService {
      * @param volumePercent 0-100
      */
     public void speakAsync(VoiceLine line, VoicePersona persona, int volumePercent) {
-        executor.submit(() -> play(line, persona, volumePercent));
+        speakClipsAsync(persona, volumePercent, line.fileName);
     }
 
-    private void play(VoiceLine line, VoicePersona persona, int volumePercent) {
-        String resource = "voices/" + persona.folder() + "/" + line.fileName + ".wav";
+    /** Plays several clips back to back as one alert (nothing else can cut in between). */
+    public void speakClipsAsync(VoicePersona persona, int volumePercent, String... fileNames) {
+        executor.submit(() -> {
+            for (String fileName : fileNames) {
+                play(fileName, persona, volumePercent);
+            }
+        });
+    }
+
+    /** "Woodcutting level", then "45". */
+    static String[] levelUpClips(Skill skill, int level) {
+        return new String[]{"skill_" + skill.getName().toLowerCase(), "level_" + level};
+    }
+
+    private void play(String fileName, VoicePersona persona, int volumePercent) {
+        String resource = "voices/" + persona.folder() + "/" + fileName + ".wav";
         try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
             if (raw == null) {
                 log.warn("Missing voice clip {}", resource);

@@ -7,9 +7,10 @@ import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 
 /**
- * Estimates how long the tree you're chopping has left. Since Forestry, a tree falls after being chopped
- * for a set number of ticks (from the wiki), and the timer recovers while nobody chops it. Only your own
- * chopping is visible, so with other players on the same tree it falls sooner than shown.
+ * Estimates how long the tree you're chopping has left. Since Forestry, a tree's timer (ticks from the
+ * wiki) starts with the first log, runs down while it's being chopped and recovers while nobody chops it;
+ * once it's out, the tree falls with the next log. Only your own chopping is visible, so with other
+ * players on the same tree it falls sooner than shown.
  */
 @Singleton
 class TreeTimer {
@@ -24,6 +25,8 @@ class TreeTimer {
     private WorldPoint tree = null;
     private int treeChopTicks = 0;
     private int chopped = 0;
+    // The timer only starts once the tree has given its first log
+    private boolean started = false;
 
     @Inject
     TreeTimer(Client client, ExtraAlerts extraAlerts, SkillingData skillingData) {
@@ -44,6 +47,10 @@ class TreeTimer {
             tree = clicked;
             treeChopTicks = resource.chopTicks;
             chopped = 0;
+            started = false;
+        }
+        if (!started) {
+            return;
         }
 
         Player player = client.getLocalPlayer();
@@ -52,12 +59,12 @@ class TreeTimer {
         chopped = chopping ? Math.min(treeChopTicks, chopped + 1) : Math.max(0, chopped - 1);
     }
 
-    /** The tree being timed, or null. */
-    /** Object id of the tree being timed (from your last chop click). */
-    int getTreeObjectId() {
-        return extraAlerts.lastResourceObjectId();
+    /** Call on a Woodcutting XP drop: a log was cut, which starts the tree's timer. */
+    void onLogCut() {
+        started = true;
     }
 
+    /** The tree being timed, or null. */
     WorldPoint getTree() {
         return tree;
     }

@@ -329,6 +329,17 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceLevelUp",
+        name = "Level Up",
+        description = "Say the skill and your new level when you level up (turning it on plays a preview)",
+        section = voiceSection,
+        position = 23
+    )
+    default boolean voiceLevelUp() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Chat Messages",
         description = "Which alerts post a chat message. Turning one off keeps its voice line",
@@ -577,6 +588,17 @@ public interface BradsMultiToolConfig extends Config {
     )
     default boolean chatFishingSpot() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatLevelUp",
+        name = "Level Up",
+        description = "Chat message when you level up (off by default; the game already congratulates you)",
+        section = chatSection,
+        position = 23
+    )
+    default boolean chatLevelUp() {
+        return false;
     }
 
     @ConfigSection(
