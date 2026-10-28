@@ -68,6 +68,8 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Actions Until Goal on: a goal skill's card shows "Goal Actions" counting to the goal; off (default): "Actions" to the next level.
 - [ ] Goal card shows "Train: ..." and "At N: ..."; Suggest Alternatives changes it.
 - [ ] With a Woodcutting/Mining/Thieving goal, the suggested trees/rocks/stalls/NPCs are outlined.
+- [ ] Cooking goal with raw food in inventory/bank: card says Make: ..., the raw food is outlined in inventory and bank, hover shows the goal tooltip.
+- [ ] Highlight Goal Items off removes the outlines.
 - [ ] Clear goal moves the card back under THIS SESSION (or removes it if untrained).
 - [ ] Auto-pause after the set minutes without XP; resumes on XP.
 - [ ] Level-up voice says skill and level.

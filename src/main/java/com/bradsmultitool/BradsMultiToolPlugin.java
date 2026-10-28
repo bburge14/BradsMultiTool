@@ -236,6 +236,15 @@ public class BradsMultiToolPlugin extends Plugin {
     private BradsMultiToolTrainingOverlay trainingOverlay;
 
     @Inject
+    private RecipeData recipeData;
+
+    @Inject
+    private GoalItems goalItems;
+
+    @Inject
+    private BradsMultiToolGoalItemOverlay goalItemOverlay;
+
+    @Inject
     private ConfigManager configManager;
 
     @Inject
@@ -462,7 +471,9 @@ public class BradsMultiToolPlugin extends Plugin {
         skillHelperData.load(gson);
         slayerData.load(gson);
         trainingData.load(gson);
+        recipeData.load(gson);
         eventBus.register(trainingOverlay);
+        eventBus.register(goalItems);
         eventBus.register(extraAlerts);
         eventBus.register(resourceTimers);
         eventBus.register(farmingData);
@@ -480,6 +491,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(resourceTimerOverlay);
         overlayManager.add(crabOutlineOverlay);
         overlayManager.add(trainingOverlay);
+        overlayManager.add(goalItemOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -505,7 +517,9 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(resourceTimerOverlay);
         overlayManager.remove(crabOutlineOverlay);
         overlayManager.remove(trainingOverlay);
+        overlayManager.remove(goalItemOverlay);
         eventBus.unregister(trainingOverlay);
+        eventBus.unregister(goalItems);
         eventBus.unregister(extraAlerts);
         eventBus.unregister(resourceTimers);
         eventBus.unregister(farmingData);
@@ -761,6 +775,11 @@ public class BradsMultiToolPlugin extends Plugin {
     /** The wiki's training methods by level, for the tracker's goal suggestions. */
     public TrainingData getTrainingData() {
         return trainingData;
+    }
+
+    /** What to make for production-skill goals, from your inventory and bank. */
+    public GoalItems getGoalItems() {
+        return goalItems;
     }
 
     /** Skills you've set a goal for, in skill order. */

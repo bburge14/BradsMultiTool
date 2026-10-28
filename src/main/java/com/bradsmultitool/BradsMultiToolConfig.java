@@ -1978,13 +1978,24 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "highlightGoalItems",
+        name = "Highlight Goal Items",
+        description = "For Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking and other goals, outline in your inventory and bank the materials of the best thing you can make from them (hover for which goal)",
+        section = trackerSection,
+        position = 72
+    )
+    default boolean highlightGoalItems() {
+        return true;
+    }
+
     @Alpha
     @ConfigItem(
         keyName = "trainingHighlightColor",
         name = "Highlight Colour",
-        description = "Outline colour for the suggested method",
+        description = "Outline colour for the suggested method and goal items",
         section = trackerSection,
-        position = 72
+        position = 73
     )
     default Color trainingHighlightColor() {
         return new Color(80, 200, 255, 200);
@@ -1995,7 +2006,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Auto-Pause Idle Skills",
         description = "Stop a skill's XP/hr clock when you haven't gained XP in it for a while; it resumes on your next XP",
         section = trackerSection,
-        position = 73
+        position = 74
     )
     default boolean autoPauseSkills() {
         return true;
@@ -2007,7 +2018,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Auto-Pause After",
         description = "Minutes without XP in a skill before it auto-pauses",
         section = trackerSection,
-        position = 74
+        position = 75
     )
     @Units(Units.MINUTES)
     default int autoPauseMinutes() {
@@ -2019,7 +2030,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Ignored Skills",
         description = "Comma-separated list of skills to filter out",
         section = trackerSection,
-        position = 75
+        position = 76
     )
     default String ignoredSkills() {
         return "";
@@ -2030,7 +2041,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Level Up",
         description = "Say the skill and your new level when you level up (turning it on plays a preview)",
         section = trackerSection,
-        position = 76
+        position = 77
     )
     default boolean voiceLevelUp() {
         return true;
@@ -2041,7 +2052,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Level Up",
         description = "Chat message when you level up (off by default; the game already congratulates you)",
         section = trackerSection,
-        position = 77
+        position = 78
     )
     default boolean chatLevelUp() {
         return false;

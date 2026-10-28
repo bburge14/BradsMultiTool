@@ -85,6 +85,9 @@ work a resource.
   trees") and what to switch to before the goal ("At 35: Teak trees"). **Suggest Alternatives** picks the
   guide's other methods (often more AFK or cheaper) instead of the fastest. Where the method is a tree,
   rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
+- **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
+  bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
+  **Highlight Goal Items**).
 - **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
@@ -199,6 +202,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
+| `recipes.json` | `update_recipe_data.py` | Wiki: recipes for the production skills, Firemaking logs |
 | `training.json` | `update_training_data.py` | Wiki: training guides' methods by level |
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
 | `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing |

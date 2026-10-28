@@ -447,14 +447,22 @@ public class BradsMultiToolPanel extends PluginPanel {
                 method = training.suggest(skill, level, config.trainingAlternatives());
                 next = training.next(skill, level, Experience.getLevelForXp(goalXp), config.trainingAlternatives());
             }
-            suggestion.setVisible(method != null);
+            // For production skills: the best thing to make from what's in your inventory and bank
+            RecipeData.Recipe make = goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()
+                ? plugin.getGoalItems().suggestion(skill) : null;
+            suggestion.setVisible(method != null || make != null);
+            StringBuilder text = new StringBuilder("<html>");
             if (method != null) {
-                String text = "<html><font color='#bebebe'>Train:</font> " + method.name;
+                text.append("<font color='#bebebe'>Train:</font> ").append(method.name);
                 if (next != null) {
-                    text += "<br><font color='#bebebe'>At " + next.from + ":</font> " + next.name;
+                    text.append("<br><font color='#bebebe'>At ").append(next.from).append(":</font> ").append(next.name);
                 }
-                suggestion.setText(text + "</html>");
             }
+            if (make != null) {
+                text.append(method != null ? "<br>" : "").append("<font color='#bebebe'>Make:</font> ").append(make.name)
+                    .append(" <font color='#bebebe'>(you have the items)</font>");
+            }
+            suggestion.setText(text + "</html>");
         }
 
         private void setStat(JLabel label, String name, String value) {

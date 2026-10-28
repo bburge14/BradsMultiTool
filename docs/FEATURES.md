@@ -221,6 +221,11 @@ Suggest Alternatives, Highlight Suggested Method and its colour; Auto-Pause Idle
 - A goal card shows the wiki training guide's method for your level (**Train: Oak trees**) and what to
   switch to before the goal (**At 35: Teak trees**).
 - Where that method is a tree, rock, stall or pickpocket NPC, those are outlined in the world.
+- For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
+  Magic, Runecraft) the card also says what to **Make**: the best thing you can make at your level from
+  what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
+  materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
+  Lobster". The bank counts once you've opened it this session.
 
 **How to use:**
 1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...).
@@ -231,7 +236,8 @@ Goals are saved with your RuneScape profile, so they stay after a relaunch. To h
 log in to a RuneLite account on both and turn on **Sync** for your profile (Profiles panel).
 
 **Settings (Skill Tracker):** Suggested Method; **Suggest Alternatives** (off: the guide's fastest method;
-on: its other methods first, often more AFK or cheaper); Highlight Suggested Method; Highlight Colour;
+on: its other methods first, often more AFK or cheaper); Highlight Suggested Method; Highlight Goal
+Items; Highlight Colour;
 Actions Until Goal (the actions field counts to the goal instead of the next level).
 
 ---
