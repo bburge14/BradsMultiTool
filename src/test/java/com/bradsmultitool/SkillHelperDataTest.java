@@ -45,9 +45,11 @@ public class SkillHelperDataTest {
 
     @Test
     public void agilityCoursesAndShortcuts() {
-        SkillHelperData.Course seers = DATA.course(10806);
-        assertEquals(60, seers.level);
-        assertEquals(570, seers.xpPerLap, 0.01);
+        // Draynor rooftop's first obstacle, the rough wall
+        SkillHelperData.Course draynor = DATA.courseFor(11404);
+        assertEquals("Draynor Village Rooftop Course", draynor.name);
+        assertEquals(1, draynor.level);
+        assertEquals(120, draynor.xpPerLap, 0.01);
     }
 
     @Test

@@ -117,7 +117,7 @@ class SkillHelperData {
     private final Map<String, Rune> runes = new HashMap<>();
     private final Map<Integer, Rune> altars = new HashMap<>();
     private final Map<String, Food> foods = new HashMap<>();
-    private final Map<Integer, Course> courses = new HashMap<>();
+    private final Map<Integer, Course> obstacles = new HashMap<>();
     private final Map<Integer, Shortcut> shortcuts = new HashMap<>();
 
     void load(Gson gson) {
@@ -125,7 +125,7 @@ class SkillHelperData {
         runes.clear();
         altars.clear();
         foods.clear();
-        courses.clear();
+        obstacles.clear();
         shortcuts.clear();
         try (InputStream in = SkillHelperData.class.getResourceAsStream(RESOURCE)) {
             if (in == null) {
@@ -150,8 +150,16 @@ class SkillHelperData {
                 for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("burn").entrySet()) {
                     foods.put(e.getKey(), new Food(e.getValue().getAsJsonObject()));
                 }
-                for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("courses").entrySet()) {
-                    courses.put(Integer.parseInt(e.getKey()), new Course(e.getValue().getAsJsonObject()));
+                JsonObject agility = root.getAsJsonObject("agility");
+                Map<String, Course> courses = new HashMap<>();
+                for (Map.Entry<String, JsonElement> e : agility.getAsJsonObject("courses").entrySet()) {
+                    courses.put(e.getKey(), new Course(e.getValue().getAsJsonObject()));
+                }
+                for (Map.Entry<String, JsonElement> e : agility.getAsJsonObject("obstacles").entrySet()) {
+                    Course course = courses.get(e.getValue().getAsString());
+                    if (course != null) {
+                        obstacles.put(Integer.parseInt(e.getKey()), course);
+                    }
                 }
                 for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("shortcuts").entrySet()) {
                     shortcuts.put(Integer.parseInt(e.getKey()), new Shortcut(e.getValue().getAsJsonObject()));
@@ -188,8 +196,9 @@ class SkillHelperData {
         return null;
     }
 
-    Course course(int regionId) {
-        return courses.get(regionId);
+    /** The Agility course this obstacle belongs to, or null. */
+    Course courseFor(int obstacleId) {
+        return obstacles.get(obstacleId);
     }
 
     Shortcut shortcut(int objectId) {

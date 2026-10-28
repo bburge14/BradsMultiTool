@@ -6,7 +6,7 @@ Usage: python3 scripts/update_skill_helpers.py
 - Hunter creatures: level, XP and trap from each page's {{Hunter info}} (OSRS Wiki)
 - Runecraft: each rune's level, XP and multiple-rune levels (Runecraft page) and its altar's object ids
 - Cooking: burn levels on a fire, a range, and with cooking gauntlets (Cooking/Burn level)
-- Agility courses: level (Agility page) and XP per lap + region (RuneLite's agility plugin, BSD-2-Clause)
+- Agility courses: level (Agility page), XP per lap and every obstacle id (RuneLite's agility plugin, BSD-2-Clause)
 - Agility shortcuts: level, name and object ids (RuneLite's AgilityShortcut, BSD-2-Clause)
 """
 import json
@@ -97,35 +97,39 @@ def burn_levels():
     return out
 
 
-# RuneLite agility plugin course -> the wiki's course name
-COURSE_NAMES = {
-    "GNOME": "Gnome Stronghold Agility Course", "SHAYZIEN_BASIC": "Shayzien Basic Course",
-    "DRAYNOR": "Draynor Village Rooftop Course", "AL_KHARID": "Al Kharid Rooftop Course", "PYRAMID": "Agility Pyramid",
-    "VARROCK": "Varrock Rooftop Course", "PENGUIN": "Penguin Agility Course", "BARBARIAN": "Barbarian Outpost Agility Course",
-    "CANIFIS": "Canifis Rooftop Course", "APE_ATOLL": "Ape Atoll Agility Course", "SHAYZIEN_ADVANCED": "Shayzien Advanced Course",
-    "FALADOR": "Falador Rooftop Course", "WILDERNESS": "Wilderness Agility Course", "WEREWOLF": "Werewolf Agility Course",
-    "SEERS": "Seers' Village Rooftop Course", "POLLNIVNEACH": "Pollnivneach Rooftop Course",
-    "RELLEKA": "Rellekka Rooftop Course", "PRIFDDINAS": "Prifddinas Agility Course", "ARDOUGNE": "Ardougne Rooftop Course",
+# RuneLite agility plugin's obstacle groups (Obstacles.java comments) -> (wiki course name, Courses.java entry)
+COURSE_GROUPS = {
+    "Gnome": ("Gnome Stronghold Agility Course", "GNOME"),
+    "Brimhaven": ("Brimhaven Agility Arena", None),
+    "Draynor": ("Draynor Village Rooftop Course", "DRAYNOR"),
+    "Al-Kharid": ("Al Kharid Rooftop Course", "AL_KHARID"),
+    "Pyramid": ("Agility Pyramid", "PYRAMID"),
+    "Varrock": ("Varrock Rooftop Course", "VARROCK"),
+    "Penguin": ("Penguin Agility Course", "PENGUIN"),
+    "Barbarian": ("Barbarian Outpost Agility Course", "BARBARIAN"),
+    "Canifis": ("Canifis Rooftop Course", "CANIFIS"),
+    "Ape atoll": ("Ape Atoll Agility Course", "APE_ATOLL"),
+    "Falador": ("Falador Rooftop Course", "FALADOR"),
+    "Wilderness": ("Wilderness Agility Course", "WILDERNESS"),
+    "Seers": ("Seers' Village Rooftop Course", "SEERS"),
+    "Dorgesh-Kaan": ("Dorgesh-Kaan Agility Course", None),
+    "Pollniveach": ("Pollnivneach Rooftop Course", "POLLNIVNEACH"),
+    "Rellaka": ("Rellekka Rooftop Course", "RELLEKA"),
+    "Ardougne": ("Ardougne Rooftop Course", "ARDOUGNE"),
+    "Werewolf": ("Werewolf Agility Course", "WEREWOLF"),
+    "Prifddinas": ("Prifddinas Agility Course", "PRIFDDINAS"),
+    "Shayzien": ("Shayzien Basic Course", "SHAYZIEN_BASIC"),
+    "Shayzien basic": ("Shayzien Basic Course", "SHAYZIEN_BASIC"),
+    "Shayzien hard": ("Shayzien Advanced Course", "SHAYZIEN_ADVANCED"),
+    "Colossal Wyrm": ("Colossal Wyrm Agility Course (basic)", "COLOSSAL_WYRM_BASIC"),
+    "Colossal Wyrm basic": ("Colossal Wyrm Agility Course (basic)", "COLOSSAL_WYRM_BASIC"),
+    "Colossal Wyrm advanced": ("Colossal Wyrm Agility Course (advanced)", "COLOSSAL_WYRM_ADVANCED"),
 }
+# Courses whose wiki level can't be told apart by name (the wiki lists Colossal Wyrm twice)
+LEVEL_OVERRIDES = {"Colossal Wyrm Agility Course (basic)": 50, "Colossal Wyrm Agility Course (advanced)": 62}
 
 
-def courses():
-    levels = {}
-    text = wikitext("Agility")
-    full = text[text.find("=== Full list"):]
-    for cells in rows_of(tables(full)[0]):
-        m = re.search(r"plinkt\|([^|}]+)", cells[1] if len(cells) > 1 else "")
-        if m and number(cells[0]) is not None:
-            levels[m.group(1).strip()] = int(number(cells[0]))
-    source = fetch(RUNELITE + "runelite-client/src/main/java/net/runelite/client/plugins/agility/Courses.java")
-    out = {}
-    for name, xp, region in re.findall(r"^\t([A-Z_]+)\((?:\(client\) -> [^?]+\? [\d.]+ : )?([\d.]+)\)?, (\d+)", source, re.M):
-        wiki = COURSE_NAMES.get(name)
-        out[region] = {"name": wiki or name.title(), "level": levels.get(wiki), "xpPerLap": float(xp)}
-    return out
-
-
-def shortcuts():
+def object_ids():
     ids = {}
     for part in ["ObjectID.java", "ObjectID1.java"]:
         try:
@@ -133,6 +137,42 @@ def shortcuts():
         except Exception:
             continue
         ids.update({k: int(v) for k, v in re.findall(r"public static final int ([A-Z0-9_]+) = (\d+);", src)})
+    return ids
+
+
+def courses(ids):
+    """{courses: {name: {level, xpPerLap}}, obstacles: {objectId: course name}}"""
+    levels = {}
+    text = wikitext("Agility")
+    full = text[text.find("=== Full list"):]
+    for cells in rows_of(tables(full)[0]):
+        m = re.search(r"plinkt\|([^|}]+)", cells[1] if len(cells) > 1 else "")
+        if m and number(cells[0]) is not None:
+            levels.setdefault(m.group(1).strip(), int(number(cells[0])))
+    agility = RUNELITE + "runelite-client/src/main/java/net/runelite/client/plugins/agility/"
+    xp = {name: float(value) for name, value in re.findall(
+        r"^\t([A-Z_]+)\((?:\(client\) -> [^?]+\? [\d.]+ : )?([\d.]+)", fetch(agility + "Courses.java"), re.M)}
+    out, obstacles = {}, {}
+    source = fetch(agility + "Obstacles.java")
+    block = source[source.find("OBSTACLE_IDS = ImmutableSet.of("):source.find("PORTAL_OBSTACLE_IDS")]
+    group = None
+    for line in block.splitlines():
+        comment = re.match(r"\s*// (.+)", line)
+        if comment:
+            group = COURSE_GROUPS.get(comment.group(1).strip())
+            continue
+        if not group:
+            continue
+        name, course = group
+        out.setdefault(name, {"name": name, "level": LEVEL_OVERRIDES.get(name, levels.get(name.split(" (")[0])),
+                              "xpPerLap": xp.get(course)})
+        for constant in re.findall(r"ObjectID\.([A-Z0-9_]+)", line):
+            if constant in ids:
+                obstacles.setdefault(str(ids[constant]), name)
+    return {"courses": out, "obstacles": obstacles}
+
+
+def shortcuts(ids):
     source = fetch(RUNELITE + "runelite-client/src/main/java/net/runelite/client/game/AgilityShortcut.java")
     out = {}
     for m in re.finditer(r"^\t([A-Z0-9_]+)\((\d+), \"([^\"]+)\",(.*?)\)[,;]\s*$", source, re.M | re.S):
@@ -144,13 +184,14 @@ def shortcuts():
 
 
 def main():
+    ids = object_ids()
     data = {"source": "oldschool.runescape.wiki; RuneLite (BSD-2-Clause)", "hunter": hunter(), "runecraft": runecraft(),
-            "burn": burn_levels(), "courses": courses(), "shortcuts": shortcuts()}
+            "burn": burn_levels(), "agility": courses(ids), "shortcuts": shortcuts(ids)}
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
-    print("Wrote %d hunter creatures, %d runes (%d altars), %d foods, %d courses, %d shortcut objects to %s" % (
+    print("Wrote %d hunter creatures, %d runes (%d altars), %d foods, %d courses (%d obstacles), %d shortcut objects to %s" % (
         len(data["hunter"]), len(data["runecraft"]["runes"]), len(data["runecraft"]["altars"]), len(data["burn"]),
-        len(data["courses"]), len(data["shortcuts"]), os.path.normpath(OUT)))
+        len(data["agility"]["courses"]), len(data["agility"]["obstacles"]), len(data["shortcuts"]), os.path.normpath(OUT)))
 
 
 if __name__ == "__main__":

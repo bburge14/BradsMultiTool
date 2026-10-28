@@ -112,18 +112,11 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
     // ---- Hunter, Runecraft, Agility, Cooking ----
 
-    private static final java.util.Set<String> AGILITY_OPTIONS = java.util.Set.of("climb", "climb-up", "climb-down",
-        "jump", "jump-up", "jump-on", "jump-over", "jump-in", "cross", "balance", "vault", "squeeze-through", "hurdle",
-        "leap", "swing-on", "swing-across", "walk-across", "walk-on", "walk-down", "grab", "teeth-grip", "hop",
-        "tightrope", "climb-over", "climb-across", "cross-gap", "jump-gap", "climb-onto", "pass", "enter", "slide");
-
     private boolean buildSkillHelperCard(MenuEntry entry) {
         int id = entry.getIdentifier();
         ObjectComposition composition = client.getObjectDefinition(id);
         String option = Text.removeTags(entry.getOption()).toLowerCase();
         String target = Text.removeTags(entry.getTarget());
-        WorldView view = client.getTopLevelWorldView();
-        WorldPoint location = WorldPoint.fromScene(view, entry.getParam0(), entry.getParam1(), view.getPlane());
 
         int spot = composition != null ? BirdhouseTracker.spotFor(composition.getVarPlayerId()) : -1;
         if (spot >= 0 && config.showBirdhouseHover()) {
@@ -136,17 +129,18 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return true;
         }
         if (config.showAgilityHover()) {
+            // Course obstacles by id (RuneLite's agility plugin list), so it works wherever the obstacle stands
+            SkillHelperData.Course course = helpers.courseFor(id);
+            if (course != null) {
+                buildCourseCard(course);
+                return true;
+            }
             SkillHelperData.Shortcut shortcut = helpers.shortcut(id);
             if (shortcut != null) {
                 panel.getChildren().clear();
                 panel.getChildren().add(TitleComponent.builder().text("Agility Shortcut").color(TITLE_COLOR).build());
                 line("Obstacle:", shortcut.name, Color.WHITE);
                 addRequirement(Skill.AGILITY, shortcut.level);
-                return true;
-            }
-            SkillHelperData.Course course = helpers.course(location.getRegionID());
-            if (course != null && AGILITY_OPTIONS.contains(option)) {
-                buildCourseCard(course);
                 return true;
             }
         }
@@ -203,7 +197,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private void buildCourseCard(SkillHelperData.Course course) {
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(course.name).color(TITLE_COLOR).build());
-        addRequirement(Skill.AGILITY, course.level);
+        if (course.level > 0) {
+            addRequirement(Skill.AGILITY, course.level);
+        }
         if (course.xpPerLap > 0) {
             line("XP / Lap:", trim(course.xpPerLap), Color.WHITE);
             int xp = client.getSkillExperience(Skill.AGILITY);
