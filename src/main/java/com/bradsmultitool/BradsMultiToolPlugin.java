@@ -553,6 +553,9 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         String key = event.getKey();
+        if (key.startsWith("showTracker") || "showXpPerMinute".equals(key)) {
+            updatePanelUI();
+        }
         if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
             previewVoice();
         } else if (Boolean.parseBoolean(event.getNewValue())) {

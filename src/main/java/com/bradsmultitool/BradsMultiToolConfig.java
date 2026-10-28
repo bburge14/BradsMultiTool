@@ -1410,13 +1410,79 @@ public interface BradsMultiToolConfig extends Config {
     String trackerSection = "trackerSection";
 
     @ConfigItem(
-        keyName = "showXpPerMinute",
-        name = "Show XP/Min",
-        description = "Display XP per minute alongside XP/hr inside each skill card",
+        keyName = "showTrackerProgressBar",
+        name = "Show Progress Bar",
+        description = "The level progress bar at the top of each skill card",
         section = trackerSection,
         position = 61
     )
+    default boolean showTrackerProgressBar() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrackerXpGained",
+        name = "Show XP Gained",
+        description = "XP gained this session",
+        section = trackerSection,
+        position = 62
+    )
+    default boolean showTrackerXpGained() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrackerXpToLevel",
+        name = "Show XP to Level",
+        description = "XP left until the next level",
+        section = trackerSection,
+        position = 63
+    )
+    default boolean showTrackerXpToLevel() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrackerActions",
+        name = "Show Actions Left",
+        description = "How many more of your last action until the next level (not shown for combat skills)",
+        section = trackerSection,
+        position = 64
+    )
+    default boolean showTrackerActions() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrackerXpPerHour",
+        name = "Show XP/Hr",
+        description = "XP per hour",
+        section = trackerSection,
+        position = 65
+    )
+    default boolean showTrackerXpPerHour() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showXpPerMinute",
+        name = "Show XP/Min",
+        description = "XP per minute",
+        section = trackerSection,
+        position = 66
+    )
     default boolean showXpPerMinute() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrackerTimeToLevel",
+        name = "Show Time to Level",
+        description = "Estimated time until the next level at your current rate",
+        section = trackerSection,
+        position = 67
+    )
+    default boolean showTrackerTimeToLevel() {
         return true;
     }
 
@@ -1425,7 +1491,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Ignored Skills",
         description = "Comma-separated list of skills to filter out",
         section = trackerSection,
-        position = 62
+        position = 68
     )
     default String ignoredSkills() {
         return "";
@@ -1436,7 +1502,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Level Up",
         description = "Say the skill and your new level when you level up (turning it on plays a preview)",
         section = trackerSection,
-        position = 63
+        position = 69
     )
     default boolean voiceLevelUp() {
         return true;
@@ -1447,7 +1513,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Level Up",
         description = "Chat message when you level up (off by default; the game already congratulates you)",
         section = trackerSection,
-        position = 64
+        position = 70
     )
     default boolean chatLevelUp() {
         return false;

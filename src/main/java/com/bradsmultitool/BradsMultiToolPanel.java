@@ -216,15 +216,21 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final Skill skill;
         private final JLabel levelLabel = new JLabel();
         private final LevelProgressBar progressBar = new LevelProgressBar();
+        private final JLabel gainedLabel = rowLabel("XP Gained:");
         private final JLabel gainedValue = valueLabel();
         private final JLabel remainingLabel = rowLabel("XP Remaining:");
         private final JLabel remainingValue = valueLabel();
         private final JLabel actionsLabel = rowLabel("Actions Left:");
         private final JLabel actionsValue = valueLabel();
+        private final JLabel perHourLabel = rowLabel("Rate (XP/Hr):");
         private final JLabel perHourValue = valueLabel();
         private final JLabel perMinuteLabel = rowLabel("Rate (XP/Min):");
         private final JLabel perMinuteValue = valueLabel();
+        private final JLabel ttlLabel = rowLabel("TTL (Est Time):");
         private final JLabel ttlValue = valueLabel();
+        private final JPanel rows = new JPanel(new GridLayout(0, 2, 0, 1));
+        // Which fields are currently laid out, so rows are only rebuilt when the settings change
+        private String layout = "";
         private final JMenuItem pauseItem = new JMenuItem();
 
         SkillCard(Skill skill) {
@@ -254,23 +260,8 @@ public class BradsMultiToolPanel extends PluginPanel {
             body.setOpaque(false);
             body.add(progressBar, BorderLayout.NORTH);
 
-            JPanel rows = new JPanel(new GridLayout(0, 2, 0, 1));
             rows.setOpaque(false);
-            rows.add(rowLabel("XP Gained:"));
-            rows.add(gainedValue);
-            rows.add(remainingLabel);
-            rows.add(remainingValue);
-            // Combat XP comes per hit, not per action, so the count means nothing there
-            if (!COMBAT_SKILLS.contains(skill)) {
-                rows.add(actionsLabel);
-                rows.add(actionsValue);
-            }
-            rows.add(rowLabel("Rate (XP/Hr):"));
-            rows.add(perHourValue);
-            rows.add(perMinuteLabel);
-            rows.add(perMinuteValue);
-            rows.add(rowLabel("TTL (Est Time):"));
-            rows.add(ttlValue);
+            layoutRows();
             body.add(rows, BorderLayout.CENTER);
 
             add(top, BorderLayout.NORTH);
@@ -289,7 +280,37 @@ public class BradsMultiToolPanel extends PluginPanel {
             inheritPopupMenu(this);
         }
 
+        // Lay out only the fields switched on under Skill Tracker (hidden rows would leave gaps in a grid)
+        private void layoutRows() {
+            boolean actions = config.showTrackerActions() && !COMBAT_SKILLS.contains(skill);
+            String wanted = "" + config.showTrackerProgressBar() + config.showTrackerXpGained() + config.showTrackerXpToLevel()
+                + actions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel();
+            if (wanted.equals(layout)) {
+                return;
+            }
+            layout = wanted;
+            progressBar.setVisible(config.showTrackerProgressBar());
+            rows.removeAll();
+            addRow(config.showTrackerXpGained(), gainedLabel, gainedValue);
+            addRow(config.showTrackerXpToLevel(), remainingLabel, remainingValue);
+            // Combat XP comes per hit, not per action, so the count means nothing there
+            addRow(actions, actionsLabel, actionsValue);
+            addRow(config.showTrackerXpPerHour(), perHourLabel, perHourValue);
+            addRow(config.showXpPerMinute(), perMinuteLabel, perMinuteValue);
+            addRow(config.showTrackerTimeToLevel(), ttlLabel, ttlValue);
+            rows.revalidate();
+            revalidate();
+        }
+
+        private void addRow(boolean show, JLabel label, JLabel value) {
+            if (show) {
+                rows.add(label);
+                rows.add(value);
+            }
+        }
+
         void refresh() {
+            layoutRows();
             int xp = plugin.getCurrentSkillXp(skill);
             int level = Experience.getLevelForXp(xp);
             levelLabel.setText("Lvl " + level);
@@ -299,8 +320,6 @@ public class BradsMultiToolPanel extends PluginPanel {
             gainedValue.setText(NUMBER_FORMAT.format(plugin.getSkillGained(skill)));
             perHourValue.setText(paused ? "Paused" : NUMBER_FORMAT.format(xpPerHour) + " /hr");
             perMinuteValue.setText(NUMBER_FORMAT.format(plugin.getSkillXpPerMinute(skill)) + " /min");
-            perMinuteLabel.setVisible(config.showXpPerMinute());
-            perMinuteValue.setVisible(config.showXpPerMinute());
 
             if (level >= Experience.MAX_REAL_LEVEL) {
                 progressBar.setProgress(1.0);
