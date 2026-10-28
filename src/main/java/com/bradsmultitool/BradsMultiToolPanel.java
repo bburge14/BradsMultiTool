@@ -49,8 +49,6 @@ public class BradsMultiToolPanel extends PluginPanel {
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Color ACCENT_COLOR = new Color(0, 220, 220);
-    private static final Color LEVEL_COLOR = new Color(80, 200, 255);
-    private static final Color LABEL_COLOR = new Color(190, 190, 190);
     // Level progress bar: red under a third of the way, orange under two thirds, then green
     private static final Color BAR_LOW = new Color(190, 45, 40);
     private static final Color BAR_MID = new Color(225, 135, 25);
@@ -213,64 +211,64 @@ public class BradsMultiToolPanel extends PluginPanel {
         return minutes + "m " + (seconds % 60) + "s";
     }
 
+    /** 9,112 / 55.8K / 1.24M, like RuneLite's XP tracker. */
+    static String shortNumber(long value) {
+        if (value >= 1_000_000) {
+            return String.format("%.2fM", value / 1_000_000.0);
+        }
+        if (value >= 10_000) {
+            return String.format("%.1fK", value / 1_000.0);
+        }
+        return NUMBER_FORMAT.format(value);
+    }
+
+    /**
+     * One skill: its icon on the left, stats in two columns beside it (only the fields switched on), the
+     * level bar ("Lvl 73 | 31.90% | Lvl 74", red to green) and, if you've set one, a goal bar.
+     */
     private class SkillCard extends JPanel {
         private final Skill skill;
-        private final JLabel levelLabel = new JLabel();
-        private final LevelProgressBar progressBar = new LevelProgressBar();
-        private final JLabel gainedLabel = rowLabel("XP Gained:");
-        private final JLabel gainedValue = valueLabel();
-        private final JLabel remainingLabel = rowLabel("XP Remaining:");
-        private final JLabel remainingValue = valueLabel();
-        private final JLabel actionsLabel = rowLabel("Actions Left:");
-        private final JLabel actionsValue = valueLabel();
-        private final JLabel perHourLabel = rowLabel("Rate (XP/Hr):");
-        private final JLabel perHourValue = valueLabel();
-        private final JLabel perMinuteLabel = rowLabel("Rate (XP/Min):");
-        private final JLabel perMinuteValue = valueLabel();
-        private final JLabel ttlLabel = rowLabel("TTL (Est Time):");
-        private final JLabel ttlValue = valueLabel();
-        private final JLabel goalLabel = rowLabel("Goal:");
-        private final JLabel goalValue = valueLabel();
-        private final JLabel goalTimeLabel = rowLabel("Goal In:");
-        private final JLabel goalTimeValue = valueLabel();
-        private final JPanel rows = new JPanel(new GridLayout(0, 2, 0, 1));
-        // Which fields are currently laid out, so rows are only rebuilt when the settings change
+        private final JLabel gained = stat();
+        private final JLabel left = stat();
+        private final JLabel perHour = stat();
+        private final JLabel actions = stat();
+        private final JLabel timeToLevel = stat();
+        private final JLabel perMinute = stat();
+        private final JPanel stats = new JPanel(new GridLayout(0, 2, 6, 2));
+        private final LevelProgressBar levelBar = new LevelProgressBar();
+        private final LevelProgressBar goalBar = new LevelProgressBar();
+        // Which fields are currently laid out, so they're only rebuilt when the settings change
         private String layout = "";
         private final JMenuItem pauseItem = new JMenuItem();
 
         SkillCard(Skill skill) {
             this.skill = skill;
-            setLayout(new BorderLayout(0, 4));
+            setLayout(new BorderLayout(8, 5));
             setBackground(ColorScheme.DARKER_GRAY_COLOR);
             setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 6, 0, ColorScheme.DARK_GRAY_COLOR),
-                new EmptyBorder(6, 8, 8, 8)));
+                new EmptyBorder(7, 7, 7, 7)));
 
-            JPanel top = new JPanel(new BorderLayout(6, 0));
-            top.setOpaque(false);
-            BufferedImage icon = skillIconManager.getSkillImage(skill, true);
-            JLabel nameLabel = new JLabel(skill.getName());
-            if (icon != null) {
-                nameLabel.setIcon(new ImageIcon(icon));
-                nameLabel.setIconTextGap(6);
+            JLabel icon = new JLabel();
+            BufferedImage image = skillIconManager.getSkillImage(skill, false);
+            if (image != null) {
+                icon.setIcon(new ImageIcon(image));
             }
-            nameLabel.setFont(FontManager.getRunescapeBoldFont());
-            nameLabel.setForeground(Color.WHITE);
-            levelLabel.setFont(FontManager.getRunescapeBoldFont());
-            levelLabel.setForeground(LEVEL_COLOR);
-            top.add(nameLabel, BorderLayout.WEST);
-            top.add(levelLabel, BorderLayout.EAST);
+            icon.setToolTipText(skill.getName());
+            icon.setVerticalAlignment(SwingConstants.CENTER);
+            icon.setPreferredSize(new Dimension(32, 0));
 
-            JPanel body = new JPanel(new BorderLayout(0, 4));
-            body.setOpaque(false);
-            body.add(progressBar, BorderLayout.NORTH);
+            stats.setOpaque(false);
+            JPanel bars = new JPanel(new GridLayout(0, 1, 0, 3));
+            bars.setOpaque(false);
+            bars.add(levelBar);
+            bars.add(goalBar);
+            goalBar.setGoalStyle();
 
-            rows.setOpaque(false);
-            layoutRows();
-            body.add(rows, BorderLayout.CENTER);
-
-            add(top, BorderLayout.NORTH);
-            add(body, BorderLayout.CENTER);
+            add(icon, BorderLayout.WEST);
+            add(stats, BorderLayout.CENTER);
+            add(bars, BorderLayout.SOUTH);
+            layoutStats();
 
             JPopupMenu menu = new JPopupMenu();
             pauseItem.addActionListener(e -> plugin.toggleSkillPause(skill));
@@ -283,85 +281,85 @@ public class BradsMultiToolPanel extends PluginPanel {
             menu.addSeparator();
             menu.add(menuItem("Reset all skills", plugin::resetSession));
             setComponentPopupMenu(menu);
-            setToolTipText("Right-click for options");
+            setToolTipText(skill.getName() + " - right-click for options");
             inheritPopupMenu(this);
         }
 
-        // Lay out only the fields switched on under Skill Tracker (hidden rows would leave gaps in a grid)
-        private void layoutRows() {
-            boolean actions = config.showTrackerActions() && !COMBAT_SKILLS.contains(skill);
+        // Only the fields switched on under Skill Tracker, two to a row
+        private void layoutStats() {
+            boolean showActions = config.showTrackerActions() && !COMBAT_SKILLS.contains(skill);
             boolean goal = config.showTrackerGoal() && plugin.getSkillGoal(skill) > 0;
             String wanted = "" + config.showTrackerProgressBar() + config.showTrackerXpGained() + config.showTrackerXpToLevel()
-                + actions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel() + goal;
+                + showActions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel() + goal;
             if (wanted.equals(layout)) {
                 return;
             }
             layout = wanted;
-            progressBar.setVisible(config.showTrackerProgressBar());
-            rows.removeAll();
-            addRow(config.showTrackerXpGained(), gainedLabel, gainedValue);
-            addRow(config.showTrackerXpToLevel(), remainingLabel, remainingValue);
+            stats.removeAll();
+            addStat(config.showTrackerXpGained(), gained);
+            addStat(config.showTrackerXpToLevel(), left);
+            addStat(config.showTrackerXpPerHour(), perHour);
             // Combat XP comes per hit, not per action, so the count means nothing there
-            addRow(actions, actionsLabel, actionsValue);
-            addRow(config.showTrackerXpPerHour(), perHourLabel, perHourValue);
-            addRow(config.showXpPerMinute(), perMinuteLabel, perMinuteValue);
-            addRow(config.showTrackerTimeToLevel(), ttlLabel, ttlValue);
-            addRow(goal, goalLabel, goalValue);
-            addRow(goal, goalTimeLabel, goalTimeValue);
-            rows.revalidate();
+            addStat(showActions, actions);
+            addStat(config.showTrackerTimeToLevel(), timeToLevel);
+            addStat(config.showXpPerMinute(), perMinute);
+            levelBar.setVisible(config.showTrackerProgressBar());
+            goalBar.setVisible(goal);
+            stats.revalidate();
             revalidate();
         }
 
-        private void addRow(boolean show, JLabel label, JLabel value) {
+        private void addStat(boolean show, JLabel label) {
             if (show) {
-                rows.add(label);
-                rows.add(value);
+                stats.add(label);
             }
         }
 
         void refresh() {
-            layoutRows();
+            layoutStats();
             int xp = plugin.getCurrentSkillXp(skill);
             int level = Experience.getLevelForXp(xp);
-            levelLabel.setText("Lvl " + level);
-
             int xpPerHour = plugin.getSkillXpPerHour(skill);
             boolean paused = plugin.isSkillPaused(skill);
-            gainedValue.setText(NUMBER_FORMAT.format(plugin.getSkillGained(skill)));
-            perHourValue.setText(plugin.isSkillAutoPaused(skill) ? "Idle (paused)"
-                : paused ? "Paused" : NUMBER_FORMAT.format(xpPerHour) + " /hr");
-            perMinuteValue.setText(NUMBER_FORMAT.format(plugin.getSkillXpPerMinute(skill)) + " /min");
+
+            setStat(gained, "XP Gained", shortNumber(plugin.getSkillGained(skill)));
+            setStat(perHour, "XP/hr", plugin.isSkillAutoPaused(skill) ? "Idle" : paused ? "Paused" : shortNumber(xpPerHour));
+            setStat(perMinute, "XP/min", shortNumber(plugin.getSkillXpPerMinute(skill)));
 
             if (level >= Experience.MAX_REAL_LEVEL) {
-                progressBar.setProgress(1.0);
-                remainingLabel.setText("XP Remaining:");
-                remainingValue.setText("--");
-                actionsValue.setText("--");
-                ttlValue.setText("--");
+                setStat(left, "XP Left", "--");
+                setStat(actions, "Actions", "--");
+                setStat(timeToLevel, "TTL", "--");
+                levelBar.set(1.0, "Lvl " + level, "Max", "");
             } else {
                 int levelStart = Experience.getXpForLevel(level);
                 int levelEnd = Experience.getXpForLevel(level + 1);
                 int remaining = levelEnd - xp;
-                progressBar.setProgress((double) (xp - levelStart) / (levelEnd - levelStart));
-                remainingLabel.setText("XP to Lvl " + (level + 1) + ":");
-                remainingValue.setText(NUMBER_FORMAT.format(remaining) + " XP");
+                setStat(left, "XP Left", shortNumber(remaining));
                 // How many more of the last action (its XP drop) until the next level
                 int perAction = plugin.getLastXpDrop(skill);
-                actionsValue.setText(perAction > 0 ? NUMBER_FORMAT.format((remaining + perAction - 1) / perAction) : "--");
-                ttlValue.setText(xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
+                setStat(actions, "Actions", perAction > 0 ? shortNumber((remaining + perAction - 1) / perAction) : "--");
+                setStat(timeToLevel, "TTL", xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
+                double progress = (double) (xp - levelStart) / (levelEnd - levelStart);
+                levelBar.set(progress, "Lvl " + level, String.format("%.2f%%", progress * 100), "Lvl " + (level + 1));
             }
 
             int goalXp = plugin.getSkillGoal(skill);
             if (goalXp > 0) {
-                int left = Math.max(0, goalXp - xp);
+                int start = Math.min(plugin.getSkillGoalStart(skill), xp);
+                int remaining = Math.max(0, goalXp - xp);
+                double progress = goalXp > start ? (double) (xp - start) / (goalXp - start) : 1;
                 int goalLevel = Experience.getLevelForXp(goalXp);
-                goalLabel.setText(goalXp == Experience.getXpForLevel(goalLevel) ? "Goal (Lvl " + goalLevel + "):" : "Goal:");
-                goalValue.setText(left == 0 ? "Reached!" : NUMBER_FORMAT.format(left) + " XP");
-                goalValue.setForeground(left == 0 ? BAR_HIGH : Color.WHITE);
-                goalTimeValue.setText(left > 0 && xpPerHour > 0 && !paused ? formatDuration(left * 3600L / xpPerHour) : "--");
+                String target = goalXp == Experience.getXpForLevel(goalLevel) ? "Goal: Lvl " + goalLevel : "Goal: " + shortNumber(goalXp);
+                String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " left";
+                goalBar.set(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta);
             }
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
+        }
+
+        private void setStat(JLabel label, String name, String value) {
+            label.setText("<html><font color='#bebebe'>" + name + ":</font> " + value + "</html>");
         }
 
         private boolean pausedByUser() {
@@ -401,34 +399,40 @@ public class BradsMultiToolPanel extends PluginPanel {
             }
         }
 
-        private JLabel rowLabel(String text) {
-            JLabel label = new JLabel(text);
-            label.setFont(FontManager.getRunescapeSmallFont());
-            label.setForeground(LABEL_COLOR);
-            return label;
-        }
-
-        private JLabel valueLabel() {
+        private JLabel stat() {
             JLabel label = new JLabel();
             label.setFont(FontManager.getRunescapeSmallFont());
             label.setForeground(Color.WHITE);
-            label.setHorizontalAlignment(SwingConstants.RIGHT);
             return label;
         }
     }
 
+    /** A bar with text on the left, centre and right: "Lvl 73 | 31.90% | Lvl 74". */
     private static class LevelProgressBar extends JComponent {
+        private static final Color GOAL_FILL = new Color(200, 160, 40);
         private double progress;
+        private String leftText = "";
+        private String centreText = "";
+        private String rightText = "";
+        private boolean goal;
 
         LevelProgressBar() {
             setPreferredSize(new Dimension(0, 16));
             setFont(FontManager.getRunescapeSmallFont());
         }
 
-        void setProgress(double progress) {
+        void setGoalStyle() {
+            goal = true;
+            setPreferredSize(new Dimension(0, 14));
+        }
+
+        void set(double progress, String left, String centre, String right) {
             double clamped = Math.max(0, Math.min(1, progress));
-            if (clamped != this.progress) {
+            if (clamped != this.progress || !left.equals(leftText) || !centre.equals(centreText) || !right.equals(rightText)) {
                 this.progress = clamped;
+                leftText = left;
+                centreText = centre;
+                rightText = right;
                 repaint();
             }
         }
@@ -439,13 +443,18 @@ public class BradsMultiToolPanel extends PluginPanel {
             int h = getHeight();
             g.setColor(BAR_BACKGROUND);
             g.fillRect(0, 0, w, h);
-            g.setColor(progress < 1 / 3.0 ? BAR_LOW : progress < 2 / 3.0 ? BAR_MID : BAR_HIGH);
+            // Level bar: red under a third of the way, orange under two thirds, then green; goal bar: gold
+            g.setColor(goal ? GOAL_FILL : progress < 1 / 3.0 ? BAR_LOW : progress < 2 / 3.0 ? BAR_MID : BAR_HIGH);
             g.fillRect(0, 0, (int) (w * progress), h);
 
-            String text = String.format("%.1f%%", progress * 100);
             FontMetrics fm = g.getFontMetrics();
-            int x = (w - fm.stringWidth(text)) / 2;
             int y = (h - fm.getHeight()) / 2 + fm.getAscent();
+            shadowed(g, leftText, 4, y);
+            shadowed(g, centreText, (w - fm.stringWidth(centreText)) / 2, y);
+            shadowed(g, rightText, w - 4 - fm.stringWidth(rightText), y);
+        }
+
+        private static void shadowed(Graphics g, String text, int x, int y) {
             g.setColor(Color.BLACK);
             g.drawString(text, x + 1, y + 1);
             g.setColor(Color.WHITE);

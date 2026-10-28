@@ -713,10 +713,22 @@ public class BradsMultiToolPlugin extends Plugin {
     public void setSkillGoal(Skill skill, int goalXp) {
         if (goalXp <= 0) {
             configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name());
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name());
         } else {
             configManager.setRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name(), goalXp);
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name(), client.getSkillExperience(skill));
         }
         updatePanelUI();
+    }
+
+    /** Your XP in the skill when you set its goal (for the goal bar), or 0 if unknown. */
+    public int getSkillGoalStart(Skill skill) {
+        String value = configManager.getRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name());
+        try {
+            return value == null ? 0 : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     public void resetSkill(Skill skill) {
