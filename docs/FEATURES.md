@@ -108,11 +108,19 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 - The monster's picture heads the card on a task, and the master's chathead with no task. A Konar task
   shows the area she assigned, and that place is listed first.
 
+- **Task monsters are outlined** in the world. On a Konar task, monsters outside her assigned area aren't
+  outlined, since kills there don't count.
+- **Slayer monsters' hover card and the PvM HUD** get a Slayer section: the Slayer level needed (red with
+  "can't damage" if you're below it), the gear its task needs (earmuffs, nose peg, rock hammer, mirror
+  shield...; red "missing" if you don't have it), which task it counts for ("on task" in green), and its
+  Slayer XP. Hover one in the wrong place on a Konar task and it says "Wrong place: Konar wants these in
+  ..., kills here won't count"; hover a Slayer monster that isn't your task and it shows your task.
+
 **How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which).
 
 **Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Required
 Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
-Master; Missing Item Warning; Superior Spawned and Task Complete alerts with Voice/Chat switches.
+Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned and Task Complete alerts with Voice/Chat switches.
 
 ---
 

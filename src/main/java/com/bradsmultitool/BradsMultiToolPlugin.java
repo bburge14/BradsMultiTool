@@ -247,6 +247,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private BradsMultiToolGoalItemOverlay goalItemOverlay;
 
     @Inject
+    private BradsMultiToolSlayerHighlightOverlay slayerHighlightOverlay;
+
+    @Inject
     private ConfigManager configManager;
 
     @Inject
@@ -494,6 +497,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(crabOutlineOverlay);
         overlayManager.add(trainingOverlay);
         overlayManager.add(goalItemOverlay);
+        overlayManager.add(slayerHighlightOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -520,6 +524,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(crabOutlineOverlay);
         overlayManager.remove(trainingOverlay);
         overlayManager.remove(goalItemOverlay);
+        overlayManager.remove(slayerHighlightOverlay);
         eventBus.unregister(trainingOverlay);
         eventBus.unregister(goalItems);
         eventBus.unregister(extraAlerts);

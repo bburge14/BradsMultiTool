@@ -29,6 +29,9 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Pictures: master chathead with no task, monster icon on a task (Slayer gem if none); nothing overlaps.
 - [ ] Each Slayer switch hides its part; Places Shown / Routes Shown change the counts.
 - [ ] Konar task: subtitle says the area and that place is listed first.
+- [ ] Hover a banshee: Slayer section with Level 15, Wear / Use: Earmuffs (red without, green with), Task: Banshees, Slayer XP.
+- [ ] Below the Slayer level: "(can't damage)" in red. PvM HUD shows the same while fighting.
+- [ ] Task monsters outlined; non-task monsters not. Konar task: same monster elsewhere isn't outlined and its hover says Wrong place.
 - [ ] On task: Where To Go lists places (Multi/Cannon/Safespot) and how to reach the first one.
 
 ## Skilling cards (hover)

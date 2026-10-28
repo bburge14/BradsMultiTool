@@ -45,6 +45,9 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
   Every part of the card has its own switch.
 - With no task, the card names the best Slayer master for your combat and Slayer level, any quest they
   need, where they are and the fastest ways there, and the next master you'll unlock.
+- Task monsters are outlined (on a Konar task, only in her assigned area). Slayer monsters' hover card and
+  the PvM HUD show the Slayer level needed, the gear it needs (green if you have it), whether it's your task,
+  Slayer XP, and "wrong place" when Konar wants them elsewhere.
 - Warns when you fight a task monster without its required item (rock hammer, nose peg, mirror shield...).
 - Superior spawned and task complete alerts.
 

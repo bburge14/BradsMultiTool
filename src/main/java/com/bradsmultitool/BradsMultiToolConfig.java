@@ -1078,6 +1078,29 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "highlightTaskMonsters",
+        name = "Highlight Task Monsters",
+        description = "Outline the monsters that count for your task. On a Konar task, ones outside her assigned area aren't outlined (kills there don't count)",
+        section = slayerSection,
+        position = 12
+    )
+    default boolean highlightTaskMonsters() {
+        return true;
+    }
+
+    @Alpha
+    @ConfigItem(
+        keyName = "taskMonsterColor",
+        name = "Task Monster Colour",
+        description = "Outline colour for task monsters",
+        section = slayerSection,
+        position = 13
+    )
+    default Color taskMonsterColor() {
+        return new Color(255, 120, 0, 200);
+    }
+
+    @ConfigItem(
         keyName = "slayerItemAlert",
         name = "Missing Item Warning",
         description = "Warn when fighting a task monster without its required item (e.g. rock hammer)",

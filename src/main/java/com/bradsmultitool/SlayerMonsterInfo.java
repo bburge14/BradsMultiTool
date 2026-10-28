@@ -2,11 +2,13 @@ package com.bradsmultitool;
 
 import java.awt.Color;
 import java.awt.Image;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.Skill;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
@@ -25,12 +27,45 @@ class SlayerMonsterInfo {
     private final Client client;
     private final BradsMultiToolPlugin plugin;
     private final SkillIconManager skillIcons;
+    private final SlayerData slayerData;
+
+    /** How a monster stands against your task. */
+    enum Match { NOT_TASK, TASK, WRONG_PLACE }
 
     @Inject
-    SlayerMonsterInfo(Client client, BradsMultiToolPlugin plugin, SkillIconManager skillIcons) {
+    SlayerMonsterInfo(Client client, BradsMultiToolPlugin plugin, SkillIconManager skillIcons, SlayerData slayerData) {
         this.client = client;
         this.plugin = plugin;
         this.skillIcons = skillIcons;
+        this.slayerData = slayerData;
+    }
+
+    /**
+     * Whether this monster counts for your task: TASK, or WRONG_PLACE when Konar assigned somewhere else
+     * (kills elsewhere don't count), else NOT_TASK.
+     */
+    Match match(NPC npc, MonsterData.Stats stats) {
+        SlayerTracker tracker = plugin.getSlayerTracker();
+        if (!tracker.hadTask() || stats == null || stats.slayerCategory == null) {
+            return Match.NOT_TASK;
+        }
+        if (!tracker.isTask(stats.slayerCategory) && !tracker.isTaskMonster(npc)) {
+            return Match.NOT_TASK;
+        }
+        List<SlayerData.Place> assigned = slayerData.assignedPlaces(slayerData.task(tracker.getTaskName()), tracker.getKonarArea());
+        if (assigned.isEmpty() || npc.getWorldLocation() == null) {
+            return Match.TASK;
+        }
+        WorldPoint at = npc.getWorldLocation();
+        boolean mapped = false;
+        for (SlayerData.Place place : assigned) {
+            mapped |= place.area != null;
+            if (place.contains(at.getX(), at.getY())) {
+                return Match.TASK;
+            }
+        }
+        // Without map pins for the assigned place we can't tell, so count it
+        return mapped ? Match.WRONG_PLACE : Match.TASK;
     }
 
     void addTo(PanelComponent panel, NPC npc, MonsterData.Stats stats) {
@@ -55,8 +90,16 @@ class SlayerMonsterInfo {
             line(panel, "Wear / Use:", needs.display + (has ? "" : " (missing)"), has ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
         }
         if (stats.slayerCategory != null) {
-            boolean onTask = tracker.isTask(stats.slayerCategory) || tracker.isTaskMonster(npc);
-            line(panel, "Task:", stats.slayerCategory + (onTask ? " (on task)" : ""), onTask ? BradsMultiToolOverlay.GOOD : SOFT);
+            Match match = match(npc, stats);
+            line(panel, "Task:", stats.slayerCategory + (match == Match.TASK ? " (on task)" : ""),
+                match == Match.TASK ? BradsMultiToolOverlay.GOOD : SOFT);
+            if (match == Match.WRONG_PLACE) {
+                // Konar wants them somewhere else; kills here don't count
+                panel.getChildren().add(new TextBlockComponent("Wrong place: Konar wants these in "
+                    + tracker.getKonarArea() + ", kills here won't count", BradsMultiToolOverlay.BAD, false));
+            } else if (match == Match.NOT_TASK && tracker.hadTask()) {
+                line(panel, "Your Task:", tracker.getTaskName(), SOFT);
+            }
         }
         if (stats.slayerXp > 0) {
             line(panel, "Slayer XP:", stats.slayerXp == Math.floor(stats.slayerXp)

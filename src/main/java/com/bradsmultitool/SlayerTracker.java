@@ -13,6 +13,8 @@ import net.runelite.api.Client;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
+import net.runelite.api.gameval.DBTableID;
+import net.runelite.api.gameval.VarPlayerID;
 
 /**
  * The current slayer task (read the same way as RuneLite's Slayer plugin), kill rate, time to finish,
@@ -197,6 +199,30 @@ class SlayerTracker {
             missingItemAlerted = true;
             plugin.alert(VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING, requirement.display.toLowerCase() + " for " + taskName.toLowerCase());
         }
+    }
+
+    // Konar's assigned area, looked up once per area id
+    private int konarAreaId = -1;
+    private String konarArea;
+
+    /** The area Konar assigned with this task (from the game's Slayer area table), or null. */
+    String getKonarArea() {
+        int id = client.getVarpValue(VarPlayerID.SLAYER_AREA);
+        if (id != konarAreaId) {
+            konarAreaId = id;
+            konarArea = null;
+            if (id > 0) {
+                try {
+                    List<Integer> rows = client.getDBRowsByValue(DBTableID.SlayerArea.ID, DBTableID.SlayerArea.COL_AREA_ID, 0, id);
+                    if (!rows.isEmpty()) {
+                        konarArea = (String) client.getDBTableField(rows.get(0), DBTableID.SlayerArea.COL_AREA_NAME_IN_HELPER, 0)[0];
+                    }
+                } catch (RuntimeException e) {
+                    konarArea = null;
+                }
+            }
+        }
+        return konarArea;
     }
 
     /** True when this Slayer category ("Banshees") is your current task. */

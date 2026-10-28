@@ -45,4 +45,15 @@ public class SlayerDataTest {
         assertNotNull(DATA.task("Lesser demons")); // the wiki page is "Lesser demon"
         assertNull(DATA.task("Not a task"));
     }
+
+    @Test
+    public void konarAssignedPlaces() {
+        SlayerData.Task abyssals = DATA.task("Abyssal demons");
+        java.util.List<SlayerData.Place> catacombs = DATA.assignedPlaces(abyssals, "the Catacombs of Kourend");
+        assertEquals(1, catacombs.size());
+        assertTrue(catacombs.get(0).contains(1674, 10060));   // among the catacomb spawns
+        assertFalse(catacombs.get(0).contains(3415, 3569));   // Slayer Tower
+        assertEquals(2, DATA.assignedPlaces(abyssals, "Slayer Tower").size()); // floor 2 and basement
+        assertTrue(DATA.assignedPlaces(abyssals, null).isEmpty());
+    }
 }

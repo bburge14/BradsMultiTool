@@ -12,9 +12,7 @@ import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Skill;
-import net.runelite.api.gameval.DBTableID;
 import net.runelite.api.gameval.ItemID;
-import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
@@ -39,9 +37,6 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
     private final SlayerData slayerData;
     private final ItemManager itemManager;
     private final PanelComponent panel = new PanelComponent();
-    // Konar's assigned area, looked up once per area id
-    private int konarAreaId = -1;
-    private String konarArea;
     private FontMetrics metrics;
 
     @Inject
@@ -78,7 +73,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
 
     private void buildTaskCard(SlayerTracker tracker) {
         SlayerData.Task task = slayerData.task(tracker.getTaskName());
-        String area = konarArea();
+        String area = tracker.getKonarArea();
         String subtitle = tracker.getRemaining() + " left" + (area != null ? " in " + area : "");
         panel.getChildren().add(new PortraitHeaderComponent(picture(task != null ? task.icon : null),
             tracker.getTaskName(), TITLE_COLOR, subtitle));
@@ -149,26 +144,6 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
             String needs = "Combat " + next.combat + (next.slayer > 0 ? ", Slayer " + next.slayer : "");
             panel.getChildren().add(TextBlockComponent.heading("Next: " + next.name + " (" + needs + ")", SOFT));
         }
-    }
-
-    // The area Konar assigned (from the game's Slayer area table), or null
-    private String konarArea() {
-        int id = client.getVarpValue(VarPlayerID.SLAYER_AREA);
-        if (id != konarAreaId) {
-            konarAreaId = id;
-            konarArea = null;
-            if (id > 0) {
-                try {
-                    List<Integer> rows = client.getDBRowsByValue(DBTableID.SlayerArea.ID, DBTableID.SlayerArea.COL_AREA_ID, 0, id);
-                    if (!rows.isEmpty()) {
-                        konarArea = (String) client.getDBTableField(rows.get(0), DBTableID.SlayerArea.COL_AREA_NAME_IN_HELPER, 0)[0];
-                    }
-                } catch (RuntimeException e) {
-                    konarArea = null;
-                }
-            }
-        }
-        return konarArea;
     }
 
     // The bundled picture, else the Slayer gem (or nothing with pictures off)

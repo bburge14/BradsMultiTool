@@ -206,11 +206,15 @@ def task(title, text):
         cannon = next((i for n, i in column.items() if n.startswith("cannon")), None)
         safespot = next((i for n, i in column.items() if n.startswith("safe")), None)
         notes = next((i for n, i in column.items() if n.startswith("note")), None)
-        for cells in rows_of(strip_templates(table, "Map")):
+        # Each row's map pins (spawn points), from the raw row before its Map template is stripped
+        raw_rows = table.split("\n|-")[1:]
+        for raw, cells in zip(raw_rows, rows_of(strip_templates(table, "Map"))):
             if len(cells) != len(names) or not first_link(cells[column["location"]]):
                 continue
             place = cells[column["location"]]
-            places.append({"name": plain(place), "page": first_link(place), "multi": yes(cells[multi]),
+            pins = [(int(x), int(y)) for x, y in re.findall(r"(?:x:)?(\d{3,5}),(?:y:)?(\d{3,5})", raw)]
+            area = [min(p[0] for p in pins), min(p[1] for p in pins), max(p[0] for p in pins), max(p[1] for p in pins)] if pins else None
+            places.append({"area": area,"name": plain(place), "page": first_link(place), "multi": yes(cells[multi]),
                            "cannon": cannon is not None and yes(cells[cannon]),
                            "safespot": safespot is not None and yes(cells[safespot]),
                            "note": (plain(cells[notes]).lstrip("* ").replace(" * ", " ") or None)

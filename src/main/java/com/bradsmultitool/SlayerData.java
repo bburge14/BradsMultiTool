@@ -66,14 +66,30 @@ class SlayerData {
         final boolean cannon;
         final boolean safespot;
         final String note;
+        /** Where its spawns are: min x, min y, max x, max y (null if the wiki has no map pins). */
+        final int[] area;
 
         Place(JsonObject o) {
+            if (o.has("area") && o.get("area").isJsonArray()) {
+                area = new int[4];
+                for (int i = 0; i < 4; i++) {
+                    area[i] = o.getAsJsonArray("area").get(i).getAsInt();
+                }
+            } else {
+                area = null;
+            }
             name = o.get("name").getAsString();
             page = o.get("page").getAsString();
             multi = o.get("multi").getAsBoolean();
             cannon = o.get("cannon").getAsBoolean();
             safespot = o.get("safespot").getAsBoolean();
             note = text(o, "note");
+        }
+
+        /** True when the point is among (or within a few tiles of) this place's spawns. */
+        boolean contains(int x, int y) {
+            final int margin = 15;
+            return area != null && x >= area[0] - margin && x <= area[2] + margin && y >= area[1] - margin && y <= area[3] + margin;
         }
 
         boolean inWilderness() {
@@ -203,6 +219,29 @@ class SlayerData {
                 return null;
             }
         });
+    }
+
+    /**
+     * The task's places that match Konar's assigned area ("Catacombs of Kourend" -> that place; "Slayer
+     * Tower" -> every Slayer Tower floor), or none if it isn't a Konar task or the area isn't recognised.
+     */
+    List<Place> assignedPlaces(Task task, String konarArea) {
+        List<Place> out = new ArrayList<>();
+        if (task == null || konarArea == null) {
+            return out;
+        }
+        String wanted = normalise(konarArea);
+        for (Place place : task.places) {
+            String name = normalise(place.name);
+            if (name.contains(wanted) || wanted.contains(normalise(place.page))) {
+                out.add(place);
+            }
+        }
+        return out;
+    }
+
+    private static String normalise(String text) {
+        return text.toLowerCase().replaceAll("^the ", "").replaceAll("\\s+", " ").trim();
     }
 
     /** Ways to reach a place (its wiki page), or none. */
