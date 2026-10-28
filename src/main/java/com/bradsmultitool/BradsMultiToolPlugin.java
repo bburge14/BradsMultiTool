@@ -61,6 +61,7 @@ import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.util.HotkeyListener;
@@ -567,6 +568,13 @@ public class BradsMultiToolPlugin extends Plugin {
         }
     }
 
+    // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
+    // which changes when synced settings arrive), so redraw the tracker then
+    @Subscribe
+    public void onRuneScapeProfileChanged(RuneScapeProfileChanged event) {
+        updatePanelUI();
+    }
+
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
         if (!CONFIG_GROUP.equals(event.getGroup())) {
@@ -574,7 +582,7 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         String key = event.getKey();
-        if (key.startsWith("showTracker") || "showXpPerMinute".equals(key) || key.startsWith("autoPause")) {
+        if (key.startsWith("showTracker") || key.startsWith("tracker") || key.startsWith("goal") || "showXpPerMinute".equals(key) || key.startsWith("autoPause")) {
             updatePanelUI();
         }
         if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
