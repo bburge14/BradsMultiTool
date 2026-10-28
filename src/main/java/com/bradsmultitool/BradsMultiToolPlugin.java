@@ -1424,9 +1424,19 @@ public class BradsMultiToolPlugin extends Plugin {
         }
     }
 
-    /** True once this buff's "running out" alert has fired for the current dose. */
-    boolean isBuffRunningOut(String buffName) {
-        return buffWarnedAtBoost.containsKey(buffName);
+    /**
+     * True while the buff is inside the "running out" window (the same test the alert uses), so its HUD
+     * line is red only then and green again as soon as it's above the threshold.
+     */
+    boolean isBuffRunningOut(ActiveBuffs.Buff buff) {
+        int warnSeconds = config.buffWarningSeconds();
+        if (warnSeconds <= 0) {
+            return false;
+        }
+        if (!buff.exact) {
+            return buff.boost == 1;
+        }
+        return buff.millisLeft(System.currentTimeMillis()) <= warnSeconds * 1000L;
     }
 
     // Warn once per dose for each buff, only when its time left is exact

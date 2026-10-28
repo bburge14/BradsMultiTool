@@ -388,10 +388,10 @@ public class BradsMultiToolOverlay extends Overlay {
             long now = System.currentTimeMillis();
             for (ActiveBuffs.Buff buff : plugin.getActiveBuffs()) {
                 String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(buff.millisLeft(now));
-                // Red once its "running out" alert has fired (green again after the next dose)
+                // Red while it's within the "running out" window, green above it
                 panelComponent.getChildren().add(new IconLineComponent(buff.name + ":",
                     itemManager.getImage(buff.iconItemId), "+" + buff.boost + " " + time,
-                    plugin.isBuffRunningOut(buff.name) ? BAD : GOOD));
+                    plugin.isBuffRunningOut(buff) ? BAD : GOOD));
             }
             return;
         }
