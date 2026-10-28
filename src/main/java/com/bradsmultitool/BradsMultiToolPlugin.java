@@ -41,6 +41,7 @@ import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.SpriteID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
@@ -174,6 +175,9 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     @Getter
     private SlayerTracker slayerTracker;
+
+    @Inject
+    private BradsMultiToolCrabOutlineOverlay crabOutlineOverlay;
 
     @Inject
     private ResourceTimers resourceTimers;
@@ -440,6 +444,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(slayerOverlay);
         overlayManager.add(skillingOverlay);
         overlayManager.add(resourceTimerOverlay);
+        overlayManager.add(crabOutlineOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -463,6 +468,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(slayerOverlay);
         overlayManager.remove(skillingOverlay);
         overlayManager.remove(resourceTimerOverlay);
+        overlayManager.remove(crabOutlineOverlay);
         eventBus.unregister(extraAlerts);
         eventBus.unregister(resourceTimers);
         eventBus.unregister(farmingData);
@@ -1673,9 +1679,15 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     /** Spellbook icon of the Strike spell for an element, as shown in the player's own spellbook. */
+    // The element's basic Strike spell icon (standard spellbook), whatever spellbook you're on
     public CombatIcons.Icon elementSpellIcon(MonsterWeakness.Element element) {
-        int sprite = spellbook.spriteFor(WeaponStyles.spellName(element, "Strike"));
-        return sprite > 0 ? CombatIcons.sprite(sprite) : CombatIcons.spell(element, null);
+        switch (element) {
+            case AIR: return CombatIcons.sprite(SpriteID.Magicon.WIND_STRIKE);
+            case WATER: return CombatIcons.sprite(SpriteID.Magicon.WATER_STRIKE);
+            case EARTH: return CombatIcons.sprite(SpriteID.Magicon.EARTH_STRIKE);
+            case FIRE: return CombatIcons.sprite(SpriteID.Magicon.FIRE_STRIKE);
+            default: return CombatIcons.spell(element, null);
+        }
     }
 
     private int equippedWeaponId() {

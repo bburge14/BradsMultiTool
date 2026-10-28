@@ -13,7 +13,6 @@ import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.Skill;
-import net.runelite.api.TileObject;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
@@ -24,7 +23,6 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
-import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 public class BradsMultiToolOverlay extends Overlay {
 
@@ -36,18 +34,16 @@ public class BradsMultiToolOverlay extends Overlay {
     private final Client client;
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
-    private final ModelOutlineRenderer modelOutlineRenderer;
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
     private final SkillIconManager skillIconManager;
     private final PanelComponent panelComponent = new PanelComponent();
 
     @Inject
-    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
+    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
-        this.modelOutlineRenderer = modelOutlineRenderer;
         this.itemManager = itemManager;
         this.spriteManager = spriteManager;
         this.skillIconManager = skillIconManager;
@@ -190,28 +186,7 @@ public class BradsMultiToolOverlay extends Overlay {
             return null;
         }
 
-        NPC crab = plugin.getActiveCrab();
-        if (crab != null && !crab.isDead() && plugin.isCrabActive()) {
-            modelOutlineRenderer.drawOutline(crab, 2, config.activeCrabColor(), 1);
-        }
-
-        NPC shellNpc = plugin.getDormantCrabShellNpc();
-        if (shellNpc != null && !shellNpc.isDead()) {
-            modelOutlineRenderer.drawOutline(shellNpc, 2, shellColor(plugin.isShellMineable()), 1);
-        }
-
-        for (TileObject shellObj : plugin.getTrackedShellObjects()) {
-            modelOutlineRenderer.drawOutline(shellObj, 2, shellColor(plugin.isShellMineable()), 1);
-        }
-
-        if (plugin.isCrabBurrowed()) {
-            for (TileObject tunnel : plugin.getTrackedTunnels()) {
-                if (tunnel != null) {
-                    modelOutlineRenderer.drawOutline(tunnel, 2, config.tunnelColor(), 1);
-                }
-            }
-        }
-
+        // Outlines are drawn by BradsMultiToolCrabOutlineOverlay, under the game's interface
 
         // Mode A: Active fighting crab in cove
         if (plugin.isCrabActive()) {
@@ -357,10 +332,6 @@ public class BradsMultiToolOverlay extends Overlay {
             return new Color(0xc0ff00);
         }
         return new Color(0xffff00);
-    }
-
-    private Color shellColor(boolean mineable) {
-        return mineable ? config.mineableShellColor() : config.depletedShellColor();
     }
 
     /**
