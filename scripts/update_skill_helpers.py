@@ -8,6 +8,7 @@ Usage: python3 scripts/update_skill_helpers.py
 - Cooking: burn levels on a fire, a range, and with cooking gauntlets (Cooking/Burn level)
 - Agility courses: level (Agility page), XP per lap and every obstacle id (RuneLite's agility plugin, BSD-2-Clause)
 - Agility shortcuts: level, name and object ids (RuneLite's AgilityShortcut, BSD-2-Clause)
+- Sailing: sea charting tasks (level, type, XP, location), shipwrecks, salvaging hooks, trawling shoals
 """
 import json
 import os
@@ -183,10 +184,56 @@ def shortcuts(ids):
     return out
 
 
+def sailing():
+    """Sea charting tasks (level, type, XP, where), shipwrecks, salvaging hooks and trawling shoals."""
+    text = wikitext("Sea charting")
+    xp_by_type = {}
+    for cells in rows_of(tables(text)[0]):
+        if len(cells) >= 4 and number(cells[-2]) is not None:
+            xp_by_type[plain(cells[-3]).lower()] = number(cells[-2])
+    tasks = []
+    for row in re.findall(r"\{\{SeaChartRow\|(.*?)\}\}\n", text):
+        fields = dict(re.findall(r"\|(\w+)=([^|]*)", "|" + row.split("|id=", 1)[-1] and "|" + row))
+        location = re.match(r"(\d+),(\d+)", fields.get("location", ""))
+        if not location or not fields.get("level", "").isdigit():
+            continue
+        description = plain(row.split("|id=")[0])
+        kind = fields.get("type", "")
+        tasks.append({"level": int(fields["level"]), "type": kind, "xp": xp_by_type.get(kind.lower()),
+                      "task": description, "sea": plain(fields.get("sea", "")), "x": int(location.group(1)),
+                      "y": int(location.group(2))})
+    wrecks = {}
+    salvage = wikitext("Shipwreck salvaging")
+    for cells in rows_of(tables(salvage[salvage.find("==Shipwrecks"):])[0]):
+        if len(cells) >= 7 and number(cells[0]) is not None:
+            name = plain(cells[1])
+            wrecks[name.lower()] = {"name": name, "level": int(number(cells[0])), "xp": number(cells[3]),
+                                    "salvage": plain(cells[4]), "sortXp": number(cells[5]), "duration": plain(cells[6])}
+    hooks = []
+    for cells in rows_of(tables(wikitext("Salvaging hook"))[0]):
+        m = re.search(r"txt=([^|}]+)", cells[0])
+        if m and len(cells) > 1 and number(cells[1]) is not None:
+            hooks.append({"name": m.group(1) + " salvaging hook", "level": int(number(cells[1]))})
+    shoals = {}
+    trawl = wikitext("Deep sea trawling")
+    section = trawl[trawl.find("==Shoals"):]
+    for index, table in enumerate(tables(section)[:2]):
+        for cells in rows_of(table):
+            cells = [re.sub(r'^\s*rowspan="\d+"\s*\|', "", c) for c in cells]
+            if len(cells) < 5 or number(cells[0]) is None:
+                continue
+            name = plain(cells[1])
+            mixed = index == 1  # mixed shoals: level, shoal, depths, bait, (first) fish, where it spawns
+            shoals[name.lower()] = {"name": name, "level": int(number(cells[0])), "depths": plain(cells[2]),
+                                    "bait": plain(cells[3] if mixed else cells[4]),
+                                    "fish": "Mixed deep sea fish" if mixed else plain(cells[5])}
+    return {"charting": tasks, "shipwrecks": wrecks, "hooks": hooks, "shoals": shoals}
+
+
 def main():
     ids = object_ids()
     data = {"source": "oldschool.runescape.wiki; RuneLite (BSD-2-Clause)", "hunter": hunter(), "runecraft": runecraft(),
-            "burn": burn_levels(), "agility": courses(ids), "shortcuts": shortcuts(ids)}
+            "burn": burn_levels(), "agility": courses(ids), "shortcuts": shortcuts(ids), "sailing": sailing()}
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     print("Wrote %d hunter creatures, %d runes (%d altars), %d foods, %d courses (%d obstacles), %d shortcut objects to %s" % (

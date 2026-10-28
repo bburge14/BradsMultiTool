@@ -60,4 +60,18 @@ public class SkillHelperDataTest {
         assertEquals(true, BirdhouseTracker.isSeeded(6));
         assertEquals(false, BirdhouseTracker.isSeeded(5));
     }
+
+    @Test
+    public void sailing() {
+        SkillHelperData.Shipwreck small = DATA.shipwreck("Small shipwreck");
+        assertEquals(15, small.level);
+        assertEquals(10, small.xp, 0.01);
+        assertEquals("Rune salvaging hook", DATA.bestHook(80));
+        assertNull(DATA.bestHook(10));
+        assertEquals(91, DATA.shoal("Marlin shoal").level);
+        // The crashed glider task south of the Karamja Shipyard
+        SkillHelperData.ChartTask glider = DATA.chartTaskNear(2988, 3011, 5);
+        assertEquals("Generic", glider.type);
+        assertEquals(35, glider.xp, 0.01);
+    }
 }

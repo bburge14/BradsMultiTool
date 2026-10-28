@@ -145,6 +145,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
                 return true;
             }
         }
+        if (config.showSailingHover() && buildSailingCard(entry, option, target)) {
+            return true;
+        }
         if (config.showCookingHover() && isCookingSpot(target, option)) {
             return buildCookingCard(target.toLowerCase().contains("fire"));
         }
@@ -257,6 +260,67 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             line("", "With cooking gauntlets", new Color(180, 180, 180));
         }
         addYourRate(Skill.COOKING);
+        return true;
+    }
+
+    // ---- Sailing ----
+
+    private boolean buildSailingCard(MenuEntry entry, String option, String target) {
+        SkillHelperData.Shipwreck wreck = helpers.shipwreck(target);
+        if (wreck != null) {
+            int level = client.getRealSkillLevel(Skill.SAILING);
+            panel.getChildren().clear();
+            panel.getChildren().add(TitleComponent.builder().text(wreck.name).color(TITLE_COLOR).build());
+            addRequirement(Skill.SAILING, wreck.level);
+            line("Salvage XP:", trim(wreck.xp), Color.WHITE);
+            if (wreck.salvage != null) {
+                line("Gives:", wreck.salvage, Color.WHITE);
+            }
+            if (wreck.sortXp > 0) {
+                line("Sorting XP:", trim(wreck.sortXp), Color.WHITE);
+            }
+            if (wreck.duration != null) {
+                line("Lasts:", wreck.duration, Color.WHITE);
+            }
+            String hook = helpers.bestHook(level);
+            line("Best Hook For You:", hook != null ? hook : "None yet (level 15)", hook != null ? Color.WHITE : BradsMultiToolOverlay.BAD);
+            addYourRate(Skill.SAILING);
+            return true;
+        }
+        // Sea charting: "Chart" objects, matched to the wiki's task list by where they are
+        WorldView view = client.getTopLevelWorldView();
+        WorldPoint at = WorldPoint.fromScene(view, entry.getParam0(), entry.getParam1(), view.getPlane());
+        SkillHelperData.ChartTask task = option.equals("chart") ? helpers.chartTaskNear(at.getX(), at.getY(), 12) : null;
+        if (task == null) {
+            return false;
+        }
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text("Sea Charting").color(TITLE_COLOR).build());
+        line("Task:", task.task, Color.WHITE);
+        addRequirement(Skill.SAILING, task.level);
+        line("Type:", task.type, Color.WHITE);
+        if (task.xp > 0) {
+            line("XP:", trim(task.xp), Color.WHITE);
+        }
+        if (task.sea != null) {
+            line("Sea:", task.sea, new Color(180, 180, 180));
+        }
+        return true;
+    }
+
+    private boolean buildShoalCard(NPC npc) {
+        SkillHelperData.Shoal shoal = helpers.shoal(npc.getName());
+        if (shoal == null) {
+            return false;
+        }
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(shoal.name).color(TITLE_COLOR).build());
+        addRequirement(Skill.FISHING, shoal.level);
+        line("Catch:", shoal.fish, Color.WHITE);
+        line("Depths:", shoal.depths, Color.WHITE);
+        line("Bait:", shoal.bait, Color.WHITE);
+        line("", "Trawling net on your boat", new Color(180, 180, 180));
+        addYourRate(Skill.FISHING);
         return true;
     }
 
@@ -450,7 +514,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
         }
         if (fishingOptions.isEmpty()) {
-            return config.showHunterHover() && buildHunterCard(npc);
+            return (config.showSailingHover() && buildShoalCard(npc)) || (config.showHunterHover() && buildHunterCard(npc));
         }
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(npc.getName()).color(TITLE_COLOR).build());

@@ -1676,6 +1676,17 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "showSailingHover",
+        name = "Sailing Hover",
+        description = "Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you) and trawling shoals (Fishing level, fish, depth, bait)",
+        section = sailingSection,
+        position = 2
+    )
+    default boolean showSailingHover() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Skill Tracker",
         description = "Sidebar XP tracker",

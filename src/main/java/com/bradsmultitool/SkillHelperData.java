@@ -113,6 +113,66 @@ class SkillHelperData {
         }
     }
 
+    /** A sea charting task: where it is, its Sailing level, type and XP. */
+    static final class ChartTask {
+        final int level;
+        final String type;
+        final double xp;
+        final String task;
+        final String sea;
+        final int x;
+        final int y;
+
+        ChartTask(JsonObject o) {
+            level = o.get("level").getAsInt();
+            type = o.get("type").getAsString();
+            xp = number(o, "xp");
+            task = o.get("task").getAsString();
+            sea = text(o, "sea");
+            x = o.get("x").getAsInt();
+            y = o.get("y").getAsInt();
+        }
+    }
+
+    static final class Shipwreck {
+        final String name;
+        final int level;
+        final double xp;
+        final String salvage;
+        final double sortXp;
+        final String duration;
+
+        Shipwreck(JsonObject o) {
+            name = o.get("name").getAsString();
+            level = o.get("level").getAsInt();
+            xp = number(o, "xp");
+            salvage = text(o, "salvage");
+            sortXp = number(o, "sortXp");
+            duration = text(o, "duration");
+        }
+    }
+
+    static final class Shoal {
+        final String name;
+        final int level;
+        final String depths;
+        final String bait;
+        final String fish;
+
+        Shoal(JsonObject o) {
+            name = o.get("name").getAsString();
+            level = o.get("level").getAsInt();
+            depths = text(o, "depths");
+            bait = text(o, "bait");
+            fish = text(o, "fish");
+        }
+    }
+
+    private final List<ChartTask> chartTasks = new ArrayList<>();
+    private final Map<String, Shipwreck> shipwrecks = new HashMap<>();
+    private final List<int[]> hooks = new ArrayList<>();
+    private final List<String> hookNames = new ArrayList<>();
+    private final Map<String, Shoal> shoals = new HashMap<>();
     private final Map<String, Creature> creatures = new HashMap<>();
     private final Map<String, Rune> runes = new HashMap<>();
     private final Map<Integer, Rune> altars = new HashMap<>();
@@ -122,6 +182,11 @@ class SkillHelperData {
 
     void load(Gson gson) {
         creatures.clear();
+        chartTasks.clear();
+        shipwrecks.clear();
+        hooks.clear();
+        hookNames.clear();
+        shoals.clear();
         runes.clear();
         altars.clear();
         foods.clear();
@@ -161,6 +226,20 @@ class SkillHelperData {
                         obstacles.put(Integer.parseInt(e.getKey()), course);
                     }
                 }
+                JsonObject sailing = root.getAsJsonObject("sailing");
+                for (JsonElement e : sailing.getAsJsonArray("charting")) {
+                    chartTasks.add(new ChartTask(e.getAsJsonObject()));
+                }
+                for (Map.Entry<String, JsonElement> e : sailing.getAsJsonObject("shipwrecks").entrySet()) {
+                    shipwrecks.put(e.getKey(), new Shipwreck(e.getValue().getAsJsonObject()));
+                }
+                for (JsonElement e : sailing.getAsJsonArray("hooks")) {
+                    hookNames.add(e.getAsJsonObject().get("name").getAsString());
+                    hooks.add(new int[]{e.getAsJsonObject().get("level").getAsInt()});
+                }
+                for (Map.Entry<String, JsonElement> e : sailing.getAsJsonObject("shoals").entrySet()) {
+                    shoals.put(e.getKey(), new Shoal(e.getValue().getAsJsonObject()));
+                }
                 for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("shortcuts").entrySet()) {
                     shortcuts.put(Integer.parseInt(e.getKey()), new Shortcut(e.getValue().getAsJsonObject()));
                 }
@@ -199,6 +278,39 @@ class SkillHelperData {
     /** The Agility course this obstacle belongs to, or null. */
     Course courseFor(int obstacleId) {
         return obstacles.get(obstacleId);
+    }
+
+    /** The charting task nearest this spot, if one is within {@code maxDistance} tiles. */
+    ChartTask chartTaskNear(int x, int y, int maxDistance) {
+        ChartTask best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (ChartTask task : chartTasks) {
+            int distance = Math.max(Math.abs(task.x - x), Math.abs(task.y - y));
+            if (distance <= maxDistance && distance < bestDistance) {
+                best = task;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    Shipwreck shipwreck(String name) {
+        return name == null ? null : shipwrecks.get(name.toLowerCase());
+    }
+
+    Shoal shoal(String name) {
+        return name == null ? null : shoals.get(name.toLowerCase());
+    }
+
+    /** The best salvaging hook for this Sailing level, or null. */
+    String bestHook(int sailingLevel) {
+        String best = null;
+        for (int i = 0; i < hooks.size(); i++) {
+            if (hooks.get(i)[0] <= sailingLevel) {
+                best = hookNames.get(i);
+            }
+        }
+        return best;
     }
 
     Shortcut shortcut(int objectId) {
