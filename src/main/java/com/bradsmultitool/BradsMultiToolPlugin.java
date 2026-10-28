@@ -192,6 +192,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private BirdhouseTracker birdhouseTracker;
 
     @Inject
+    private OtherTimerPlugins otherTimerPlugins;
+
+    @Inject
     private BradsMultiToolResourceTimerOverlay resourceTimerOverlay;
 
     @Inject
@@ -443,6 +446,8 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(resourceTimers);
         eventBus.register(farmingData);
         eventBus.register(birdhouseTracker);
+        eventBus.register(otherTimerPlugins);
+        otherTimerPlugins.refresh();
         keyManager.registerKeyListener(slayerToggleListener);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
@@ -481,6 +486,7 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.unregister(resourceTimers);
         eventBus.unregister(farmingData);
         eventBus.unregister(birdhouseTracker);
+        eventBus.unregister(otherTimerPlugins);
         keyManager.unregisterKeyListener(slayerToggleListener);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);

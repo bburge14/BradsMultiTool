@@ -31,7 +31,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | No `Runtime`, `KeyboardFocusManager`, non-OkHttp network clients | OK (no network use at all) |
 | Don't create your own `Gson` / `OkHttpClient` (inject them) | OK. Plugin code uses the injected `Gson` (tests create their own, which isn't shipped) |
 | No `Client.menuAction`, `runScript`, `hopToWorld` | OK |
-| Don't modify other plugins' configs | OK (only reads the client's idle timeout) |
+| Don't modify other plugins' configs | OK. Reads the client's idle timeout, and reads (never changes) which plugins are enabled via `PluginManager.getPlugins()` / `isPluginEnabled()` so our timer pies can step aside for a dedicated timer plugin. Matched by class name, no reflection/annotations |
 | Third-party dependencies need hash verification | OK, none |
 
 ## Feature rules (Jagex guidelines + rejected features)

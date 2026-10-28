@@ -29,10 +29,13 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private final Client client;
     private final BradsMultiToolConfig config;
     private final ResourceTimers timers;
+    private final OtherTimerPlugins otherPlugins;
     private final ProgressPieComponent pie = new ProgressPieComponent();
 
     @Inject
-    public BradsMultiToolResourceTimerOverlay(Client client, BradsMultiToolConfig config, ResourceTimers timers) {
+    public BradsMultiToolResourceTimerOverlay(Client client, BradsMultiToolConfig config, ResourceTimers timers,
+                                              OtherTimerPlugins otherPlugins) {
+        this.otherPlugins = otherPlugins;
         this.client = client;
         this.config = config;
         this.timers = timers;
@@ -47,7 +50,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             return null;
         }
         for (ResourceTimers.Timer timer : timers.all()) {
-            if (!enabled(timer.kind) || !timer.visible()) {
+            if (!enabled(timer.kind) || !timer.visible()
+                || (config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind))) {
                 continue;
             }
             Point at = position(timer);

@@ -62,7 +62,9 @@ pies, and alerts that only fire for the resource you're working:
 | Sailing | Pies on shipwrecks showing how long until they sink |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 
-XP rates on the cards only show while you're training that skill. Inventory full is announced while you
+If you also run a dedicated timer plugin (Tree Despawn Timer, MLM Despawn Timer, Fishing Spot Tracker,
+RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't stack (Skilling > Use Other
+Timer Plugins). XP rates on the cards only show while you're training that skill. Inventory full is announced while you
 work a resource.
 
 ### Skill tracker (sidebar)
