@@ -142,14 +142,19 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         if (r.xp > 0) {
             line("XP Each:", trim(r.xp), Color.WHITE);
         }
-        if (r.chopTicks > 0) {
+        if (r.oneLog) {
+            line("Lasts:", "One log", Color.WHITE);
+        } else if (r.chopTicks > 0) {
             line("Lasts:", "~" + Math.round(r.chopTicks * 0.6) + "s of chopping", Color.WHITE);
             if (treeTimer.getTree() != null && treeTimer.totalTicks() == r.chopTicks && treeTimer.ticksLeft() >= 0) {
                 line("Time Left:", "~" + Math.round(treeTimer.ticksLeft() * 0.6) + "s", Color.WHITE);
             }
         }
         if (r.respawnSeconds > 0) {
-            line("Respawn:", trim(r.respawnSeconds) + "s", Color.WHITE);
+            String respawn = r.respawnMaxSeconds > r.respawnSeconds
+                ? duration(r.respawnSeconds) + "-" + duration(r.respawnMaxSeconds)
+                : duration(r.respawnSeconds);
+            line("Respawn:", respawn, Color.WHITE);
         }
         if (r.xpPerHour > 0) {
             line("Wiki XP/hr:", NUMBER.format(r.xpPerHour), Color.WHITE);
@@ -241,10 +246,10 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         SkillingData.Tool owned = SkillingData.bestOwnedTool(tools, ownedItemNames());
         SkillingData.Tool best = SkillingData.bestToolForLevel(tools, client.getRealSkillLevel(skill));
-        line("Your Tool:", owned != null ? owned.name : "None",
-            owned == null ? BradsMultiToolOverlay.BAD : owned == best ? BradsMultiToolOverlay.GOOD : Color.WHITE);
+        // Each tool in its metal's colour
+        line("Your Tool:", owned != null ? owned.name : "None", owned != null ? owned.color : BradsMultiToolOverlay.BAD);
         if (best != null && best != owned) {
-            line("Best For You:", best.name, Color.WHITE);
+            line("Best For You:", best.name, best.color);
         }
     }
 
@@ -284,6 +289,15 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    // 8.4s, 2m, 1m 30s
+    private static String duration(double seconds) {
+        if (seconds < 60) {
+            return trim(seconds) + "s";
+        }
+        long total = Math.round(seconds);
+        return total % 60 == 0 ? (total / 60) + "m" : (total / 60) + "m " + (total % 60) + "s";
     }
 
     private static String trim(double value) {

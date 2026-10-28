@@ -4,7 +4,7 @@
 Usage: python3 scripts/update_skilling_data.py
 
 Trees come from the Woodcutting page table (level, XP, chop-down time), rocks from the Rock page table
-(level) plus each rock's page (XP), stalls from the Stall/Thievable table (level, XP, respawn, XP/hr), and
+(level); each tree and rock page gives XP and respawn time. Stalls from the Stall/Thievable table (level, XP, respawn, XP/hr), and
 pickpocket targets from the Thieving page table. Object ids come from each page's Infobox Scenery.
 """
 import json
@@ -77,6 +77,43 @@ def number(cell):
     return float(m.group(1)) if m else None
 
 
+TIME = re.compile(r"(\d+(?:\.\d+)?)(?:\s*(?:–|-|to|and)\s*(\d+(?:\.\d+)?))?\s*(seconds?|minutes?|ticks?)", re.I)
+
+# Rocks whose pages don't state a respawn time (seconds, commonly cited values)
+ROCK_RESPAWN = {"Copper rocks": 2.4, "Tin rocks": 2.4, "Coal rocks": 29.4, "Silver rocks": 59.4, "Gold rocks": 59.4,
+                "Mithril rocks": 120, "Adamantite rocks": 240, "Gem rocks": 59.4}
+
+
+def respawn(text):
+    """(min, max) respawn seconds from a page's prose, e.g. "take 12 minutes to respawn" or
+    "respawns between 36–60 seconds"; None if the page doesn't say."""
+    text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", text)
+    for m in re.finditer(r"respawn", text, re.I):
+        before = list(TIME.finditer(text[max(0, m.start() - 60):m.start()]))
+        after = list(TIME.finditer(text[m.end():m.end() + 60]))
+        # Nearest time before the word ("takes 5.4 seconds to respawn"), else the first after it
+        for t in ([before[-1]] if before else []) + after[:1]:
+            unit = t.group(3).lower()
+            if unit.startswith("tick"):
+                continue  # the seconds equivalent follows in brackets
+            factor = 60 if unit.startswith("min") else 1
+            lo = float(t.group(1)) * factor
+            hi = float(t.group(2)) * factor if t.group(2) else lo
+            return lo, hi
+    return None
+
+
+def with_respawn(entry, text):
+    found = respawn(text)
+    if found is None and entry["page"] in ROCK_RESPAWN:
+        found = (ROCK_RESPAWN[entry["page"]],) * 2
+    if found:
+        entry["respawnSeconds"] = found[0]
+        if found[1] != found[0]:
+            entry["respawnMaxSeconds"] = found[1]
+    return entry
+
+
 def trees():
     out = []
     for cells in rows_of(first_table(wikitext("Woodcutting"))):
@@ -97,10 +134,14 @@ def trees():
             continue
         # Forestry trees fall after being chopped for a fixed time, e.g. "50 [[ticks]] (30 seconds)"
         ticks = None
+        one_log = bool(chop) and "one log" in chop.lower()
         if chop:
             m = re.search(r"(\d+)\s*\[\[ticks", chop)
             ticks = int(m.group(1)) if m else None
-        out.append({"page": page, "skill": "Woodcutting", "level": int(level), "xp": xp, "chopTicks": ticks})
+        out.append(with_respawn({"page": page, "skill": "Woodcutting", "level": int(level), "xp": xp, "chopTicks": ticks,
+                                 "oneLog": one_log or None},
+                                wikitext(page)))
+        time.sleep(0.2)
     return out
 
 
@@ -115,7 +156,7 @@ def rocks():
         text = wikitext(page)
         m = re.search(r"([\d.]+)\s*(?:\[\[)?(?:Mining )?(?:\[\[)?experience", text, re.I)
         xp = float(m.group(1)) if m else None
-        out.append({"page": page, "skill": "Mining", "level": int(level), "xp": xp})
+        out.append(with_respawn({"page": page, "skill": "Mining", "level": int(level), "xp": xp}, text))
         time.sleep(0.2)
     return out
 

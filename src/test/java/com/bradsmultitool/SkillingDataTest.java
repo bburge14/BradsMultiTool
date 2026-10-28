@@ -40,6 +40,16 @@ public class SkillingDataTest {
     }
 
     @Test
+    public void respawnTimes() {
+        SkillingData.Resource tree = DATA.object(1276, null);
+        assertTrue(tree.oneLog);
+        assertEquals(36, tree.respawnSeconds, 0.001);
+        assertEquals(60, tree.respawnMaxSeconds, 0.001);
+        assertEquals(720, DATA.object(-5, "Runite rocks").respawnSeconds, 0.001);
+        assertEquals(5.4, DATA.object(11364, null).respawnSeconds, 0.001);
+    }
+
+    @Test
     public void unlistedObjectIdFallsBackToName() {
         assertEquals("Oak tree", DATA.object(-5, "Oak tree").name);
         assertNull(DATA.object(-5, "Bank booth"));

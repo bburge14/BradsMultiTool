@@ -3,6 +3,7 @@ package com.bradsmultitool;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import java.awt.Color;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -33,6 +34,10 @@ class SkillingData {
         /** Woodcutting: ticks of chopping before the tree falls (Forestry), 0 if unknown or one log. */
         final int chopTicks;
         final double respawnSeconds;
+        /** Upper end when the respawn time is random (e.g. regular trees, 36-60s); same as respawnSeconds otherwise. */
+        final double respawnMaxSeconds;
+        /** Trees felled after one log (regular, dead, evergreen...). */
+        final boolean oneLog;
         final int xpPerHour;
 
         Resource(JsonObject o) {
@@ -42,6 +47,8 @@ class SkillingData {
             xp = o.has("xp") ? o.get("xp").getAsDouble() : 0;
             chopTicks = o.has("chopTicks") ? o.get("chopTicks").getAsInt() : 0;
             respawnSeconds = o.has("respawnSeconds") ? o.get("respawnSeconds").getAsDouble() : 0;
+            respawnMaxSeconds = o.has("respawnMaxSeconds") ? o.get("respawnMaxSeconds").getAsDouble() : respawnSeconds;
+            oneLog = o.has("oneLog") && o.get("oneLog").getAsBoolean();
             xpPerHour = o.has("xpPerHour") ? o.get("xpPerHour").getAsInt() : 0;
         }
     }
@@ -78,11 +85,14 @@ class SkillingData {
         final String name;
         final String keyword;
         final int level;
+        /** The metal's colour, for the hover card. */
+        final Color color;
 
-        Tool(String name, String keyword, int level) {
+        Tool(String name, String keyword, int level, Color color) {
             this.name = name;
             this.keyword = keyword;
             this.level = level;
+            this.color = color;
         }
     }
 
@@ -115,11 +125,15 @@ class SkillingData {
     private static List<Tool> tiers(String kind) {
         String k = " " + kind;
         return Arrays.asList(
-            new Tool("Bronze" + k, "bronze" + k, 1), new Tool("Iron" + k, "iron" + k, 1),
-            new Tool("Steel" + k, "steel" + k, 6), new Tool("Black" + k, "black" + k, 11),
-            new Tool("Mithril" + k, "mithril" + k, 21), new Tool("Adamant" + k, "adamant" + k, 31),
-            new Tool("Rune" + k, "rune" + k, 41), new Tool("Dragon" + k, "dragon" + k, 61),
-            new Tool("Crystal" + k, "crystal" + k, 71));
+            new Tool("Bronze" + k, "bronze" + k, 1, new Color(196, 128, 62)),
+            new Tool("Iron" + k, "iron" + k, 1, new Color(160, 160, 160)),
+            new Tool("Steel" + k, "steel" + k, 6, new Color(215, 222, 230)),
+            new Tool("Black" + k, "black" + k, 11, new Color(125, 125, 135)),
+            new Tool("Mithril" + k, "mithril" + k, 21, new Color(110, 125, 220)),
+            new Tool("Adamant" + k, "adamant" + k, 31, new Color(90, 180, 95)),
+            new Tool("Rune" + k, "rune" + k, 41, new Color(80, 200, 220)),
+            new Tool("Dragon" + k, "dragon" + k, 61, new Color(230, 55, 45)),
+            new Tool("Crystal" + k, "crystal" + k, 71, new Color(190, 240, 255)));
     }
 
     private final Map<Integer, Resource> objects = new HashMap<>();

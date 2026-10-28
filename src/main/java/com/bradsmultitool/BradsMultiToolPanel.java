@@ -186,6 +186,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JLabel gainedValue = valueLabel();
         private final JLabel remainingLabel = rowLabel("XP Remaining:");
         private final JLabel remainingValue = valueLabel();
+        private final JLabel actionsLabel = rowLabel("Actions Left:");
+        private final JLabel actionsValue = valueLabel();
         private final JLabel perHourValue = valueLabel();
         private final JLabel perMinuteLabel = rowLabel("Rate (XP/Min):");
         private final JLabel perMinuteValue = valueLabel();
@@ -225,6 +227,8 @@ public class BradsMultiToolPanel extends PluginPanel {
             rows.add(gainedValue);
             rows.add(remainingLabel);
             rows.add(remainingValue);
+            rows.add(actionsLabel);
+            rows.add(actionsValue);
             rows.add(rowLabel("Rate (XP/Hr):"));
             rows.add(perHourValue);
             rows.add(perMinuteLabel);
@@ -266,6 +270,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 progressBar.setProgress(1.0);
                 remainingLabel.setText("XP Remaining:");
                 remainingValue.setText("--");
+                actionsValue.setText("--");
                 ttlValue.setText("--");
             } else {
                 int levelStart = Experience.getXpForLevel(level);
@@ -274,6 +279,11 @@ public class BradsMultiToolPanel extends PluginPanel {
                 progressBar.setProgress((double) (xp - levelStart) / (levelEnd - levelStart));
                 remainingLabel.setText("XP to Lvl " + (level + 1) + ":");
                 remainingValue.setText(NUMBER_FORMAT.format(remaining) + " XP");
+                // How many more of the last action (its XP drop) until the next level
+                int perAction = plugin.getLastXpDrop(skill);
+                actionsValue.setText(perAction > 0
+                    ? NUMBER_FORMAT.format((remaining + perAction - 1) / perAction) + " (" + NUMBER_FORMAT.format(perAction) + " ea)"
+                    : "--");
                 ttlValue.setText(xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
             }
 

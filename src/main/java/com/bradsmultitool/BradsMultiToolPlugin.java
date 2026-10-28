@@ -99,6 +99,14 @@ public class BradsMultiToolPlugin extends Plugin {
     // Client idle timeouts in 20ms client cycles: 5 minutes normally, 20 minutes (clicks/keys only) in combat
     private static final int DEFAULT_IDLE_LOGOUT_CYCLES = 15000;
     private static final int COMBAT_IDLE_LOGOUT_CYCLES = 60000;
+    // Login: alerts wait until the welcome screen's "Click here to play" is gone, then a few ticks more
+    private static final int WELCOME_SCREEN_GROUP = 378;
+    private static final int BANK_GROUP = 12;
+    private static final int IN_GAME_SETTLE_TICKS = 3;
+    // Repeat counter value meaning "already handled, don't sound or repeat"
+    private static final int SILENCED = Integer.MAX_VALUE / 2;
+    // Character idle: what counts as having been doing something before going AFK
+    private static final int MIN_ACTION_TICKS = 5;
     private static final int COMBAT_WINDOW_TICKS = 8;
     // The shell lasts 90 seconds (150 ticks); allow a little slack
     private static final int SHELL_LIFETIME_TICKS = 160;
@@ -276,6 +284,8 @@ public class BradsMultiToolPlugin extends Plugin {
     private boolean characterWasActive = false;
     private boolean characterIdleAlerted = false;
     private int lastActiveTick = 0;
+    private int actionTicks = 0;
+    private int inGameTicks = 0;
     private Instant lastIdleAlertTime = Instant.EPOCH;
 
     @Getter
@@ -450,11 +460,93 @@ public class BradsMultiToolPlugin extends Plugin {
     // Plays a random real alert in the newly selected voice
     private void previewVoice() {
         VoiceAlertService.VoiceLine[] lines = VoiceAlertService.VoiceLine.values();
-        speak(lines[ThreadLocalRandom.current().nextInt(lines.length)]);
+        playVoice(lines[ThreadLocalRandom.current().nextInt(lines.length)]);
     }
 
+    /**
+     * True once you're actually in the game: past the welcome screen for a few ticks. Before that, alerts
+     * stay silent and anything already true at login (low prayer, say) counts as already announced.
+     */
+    boolean alertsReady() {
+        return inGameTicks > IN_GAME_SETTLE_TICKS;
+    }
+
+    private boolean isWidgetVisible(int group) {
+        Widget widget = client.getWidget(group, 0);
+        return widget != null && !widget.isHidden();
+    }
+
+    /** Speaks an alert, if you're in game and its voice is turned on. */
     void speak(VoiceAlertService.VoiceLine line) {
+        if (alertsReady() && config.voiceEnabled() && voiceAllowed(line)) {
+            playVoice(line);
+        }
+    }
+
+    private void playVoice(VoiceAlertService.VoiceLine line) {
         voiceService.speakAsync(line, config.voicePersona(), config.voiceVolume());
+    }
+
+    // The Voice Alerts toggle for each line
+    private boolean voiceAllowed(VoiceAlertService.VoiceLine line) {
+        switch (line) {
+            case BUFF_LOW: case MELEE_BUFF_LOW: case RANGED_BUFF_LOW: case MAGIC_BUFF_LOW: case DEFENCE_BUFF_LOW:
+                return config.voiceBuffLow();
+            case BUFF_EXPIRED: case MELEE_BUFF_EXPIRED: case RANGED_BUFF_EXPIRED: case MAGIC_BUFF_EXPIRED:
+            case DEFENCE_BUFF_EXPIRED:
+                return config.voiceBuffExpired();
+            case HEALTH_LOW: return config.voiceHealthLow();
+            case PRAYER_LOW: case OUT_OF_PRAYER: return config.voicePrayerLow();
+            case SPEC_READY: return config.voiceSpecReady();
+            case ANTIFIRE_LOW: return config.voiceAntifire();
+            case POISONED: case VENOMED: case ANTIPOISON_LOW: return config.voicePoison();
+            case STAMINA_EXPIRED: return config.voiceStamina();
+            case AMMO_LOW: return config.voiceAmmo();
+            case OUT_OF_RUNES: return config.voiceRunes();
+            case CANNON_LOW: return config.voiceCannon();
+            case SLAYER_ITEM_MISSING: return config.voiceSlayerItem();
+            case SUPERIOR_SPAWNED: return config.voiceSuperior();
+            case TASK_COMPLETE: return config.voiceTaskComplete();
+            case CHARACTER_IDLE: return config.voiceCharacterIdle();
+            case IDLE_LOGOUT: return config.voiceIdleLogout();
+            case CRAB_MOVED: return config.voiceCrabMoved();
+            case CRAB_LOW_HEALTH: return config.voiceCrabLowHealth();
+            case INVENTORY_FULL: return config.voiceInventoryFull();
+            case TREE_GONE: return config.voiceTreeGone();
+            case ROCK_DEPLETED: return config.voiceRockDepleted();
+            case FISHING_SPOT_MOVED: return config.voiceFishingSpot();
+            default:
+                // Per-potion lines: POTION_<NAME>_LOW / _EXPIRED
+                return line.name().endsWith("_LOW") ? config.voiceBuffLow() : config.voiceBuffExpired();
+        }
+    }
+
+    // Sample line played when a Voice Alerts toggle is turned on
+    private static final Map<String, VoiceAlertService.VoiceLine> VOICE_PREVIEWS = new HashMap<>();
+
+    static {
+        VOICE_PREVIEWS.put("voiceBuffLow", VoiceAlertService.VoiceLine.BUFF_LOW);
+        VOICE_PREVIEWS.put("voiceBuffExpired", VoiceAlertService.VoiceLine.BUFF_EXPIRED);
+        VOICE_PREVIEWS.put("voiceHealthLow", VoiceAlertService.VoiceLine.HEALTH_LOW);
+        VOICE_PREVIEWS.put("voicePrayerLow", VoiceAlertService.VoiceLine.PRAYER_LOW);
+        VOICE_PREVIEWS.put("voiceSpecReady", VoiceAlertService.VoiceLine.SPEC_READY);
+        VOICE_PREVIEWS.put("voiceAntifire", VoiceAlertService.VoiceLine.ANTIFIRE_LOW);
+        VOICE_PREVIEWS.put("voicePoison", VoiceAlertService.VoiceLine.POISONED);
+        VOICE_PREVIEWS.put("voiceStamina", VoiceAlertService.VoiceLine.STAMINA_EXPIRED);
+        VOICE_PREVIEWS.put("voiceAmmo", VoiceAlertService.VoiceLine.AMMO_LOW);
+        VOICE_PREVIEWS.put("voiceRunes", VoiceAlertService.VoiceLine.OUT_OF_RUNES);
+        VOICE_PREVIEWS.put("voiceCannon", VoiceAlertService.VoiceLine.CANNON_LOW);
+        VOICE_PREVIEWS.put("voiceSlayerItem", VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING);
+        VOICE_PREVIEWS.put("voiceSuperior", VoiceAlertService.VoiceLine.SUPERIOR_SPAWNED);
+        VOICE_PREVIEWS.put("voiceTaskComplete", VoiceAlertService.VoiceLine.TASK_COMPLETE);
+        VOICE_PREVIEWS.put("voiceCharacterIdle", VoiceAlertService.VoiceLine.CHARACTER_IDLE);
+        VOICE_PREVIEWS.put("voiceIdleLogout", VoiceAlertService.VoiceLine.IDLE_LOGOUT);
+        VOICE_PREVIEWS.put("voiceCrabMoved", VoiceAlertService.VoiceLine.CRAB_MOVED);
+        VOICE_PREVIEWS.put("voiceCrabLowHealth", VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH);
+        VOICE_PREVIEWS.put("voiceInventoryFull", VoiceAlertService.VoiceLine.INVENTORY_FULL);
+        VOICE_PREVIEWS.put("voiceTreeGone", VoiceAlertService.VoiceLine.TREE_GONE);
+        VOICE_PREVIEWS.put("voiceRockDepleted", VoiceAlertService.VoiceLine.ROCK_DEPLETED);
+        VOICE_PREVIEWS.put("voiceFishingSpot", VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED);
     }
 
     public String getPvmTargetHp() {
@@ -466,7 +558,7 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     void sendGameChatMessage(String message) {
-        if (config.sendChatMessages()) {
+        if (config.sendChatMessages() && alertsReady()) {
             client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> " + message, null);
         }
     }
@@ -477,51 +569,11 @@ public class BradsMultiToolPlugin extends Plugin {
             return;
         }
 
-        switch (event.getKey()) {
-            case "voicePersona":
-            case "voiceVolume":
-                previewVoice();
-                break;
-            case "voiceBuffExpired":
-                if (config.voiceBuffExpired()) {
-                    speak(VoiceAlertService.VoiceLine.BUFF_EXPIRED);
-                }
-                break;
-            case "voicePrayerLow":
-                if (config.voicePrayerLow()) {
-                    speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
-                }
-                break;
-            case "voiceCrabLowHealth":
-                if (config.voiceCrabLowHealth()) {
-                    speak(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH);
-                }
-                break;
-            case "voiceCharacterIdle":
-                if (config.voiceCharacterIdle()) {
-                    speak(VoiceAlertService.VoiceLine.CHARACTER_IDLE);
-                }
-                break;
-            case "voiceBuffLow":
-                if (config.voiceBuffLow()) {
-                    speak(VoiceAlertService.VoiceLine.BUFF_LOW);
-                }
-                break;
-            case "voiceHealthLow":
-                if (config.voiceHealthLow()) {
-                    speak(VoiceAlertService.VoiceLine.HEALTH_LOW);
-                }
-                break;
-            case "voiceIdleLogout":
-                if (config.voiceIdleLogout()) {
-                    speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
-                }
-                break;
-            case "voiceCrabMoved":
-                if (config.voiceCrabMoved()) {
-                    speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
-                }
-                break;
+        String key = event.getKey();
+        if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
+            previewVoice();
+        } else if (VOICE_PREVIEWS.containsKey(key) && Boolean.parseBoolean(event.getNewValue())) {
+            playVoice(VOICE_PREVIEWS.get(key));
         }
     }
 
@@ -649,7 +701,9 @@ public class BradsMultiToolPlugin extends Plugin {
             divineEndMillis.clear();
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
+            inGameTicks = 0;
             characterWasActive = false;
+            actionTicks = 0;
             slayerTracker.reset();
             lastPlayerLocation = null;
             activeCrab = null;
@@ -976,6 +1030,11 @@ public class BradsMultiToolPlugin extends Plugin {
         tickXpChanges.clear();
 
         Player player = client.getLocalPlayer();
+        if (player == null || isWidgetVisible(WELCOME_SCREEN_GROUP)) {
+            inGameTicks = 0;
+        } else {
+            inGameTicks++;
+        }
         if (player != null) {
             WorldPoint wp = player.getWorldLocation();
             scanForCrab();
@@ -1270,7 +1329,9 @@ public class BradsMultiToolPlugin extends Plugin {
             canSound = true;
         }
 
-        if (canSound) {
+        if (canSound && !alertsReady()) {
+            timesHealthAlertSounded = SILENCED;
+        } else if (canSound) {
             timesHealthAlertSounded++;
             lastHealthAlertTime = Instant.now();
             if (config.voiceHealthLow()) {
@@ -1300,7 +1361,9 @@ public class BradsMultiToolPlugin extends Plugin {
             lowPrayerAlert = true;
 
             boolean canSound = false;
-            if (timesPrayerAlertSounded == 0) {
+            if (timesPrayerAlertSounded == 0 && !alertsReady()) {
+                timesPrayerAlertSounded = SILENCED;
+            } else if (timesPrayerAlertSounded == 0) {
                 timesPrayerAlertSounded = 1;
                 lastPrayerAlertTime = Instant.now();
                 canSound = true;
@@ -1325,32 +1388,43 @@ public class BradsMultiToolPlugin extends Plugin {
         }
     }
 
-    // Active = animating (attacking, skilling), targeting something, or moving. After being active,
-    // standing around for the configured time alerts once; doing anything re-arms it.
+    /**
+     * AFK alert: you were doing something (fighting, skilling) for a few seconds, then your character
+     * stopped and you haven't touched the game since. Walking alone doesn't count as an action, and
+     * clicking or typing (banking, menus) or having the bank open means you're not AFK.
+     */
     private void updateCharacterIdle(Player player) {
         WorldPoint location = player.getWorldLocation();
         boolean moved = lastPlayerLocation != null && !lastPlayerLocation.equals(location);
         lastPlayerLocation = location;
-        boolean active = player.getAnimation() != -1 || player.getInteracting() != null || moved;
+        boolean doing = player.getAnimation() != -1 || player.getInteracting() != null;
 
         int tick = client.getTickCount();
-        if (active) {
-            characterWasActive = true;
+        if (doing) {
+            actionTicks++;
+            if (actionTicks >= MIN_ACTION_TICKS) {
+                characterWasActive = true;
+            }
+        }
+        if (doing || moved) {
             characterIdleAlerted = false;
             lastActiveTick = tick;
             return;
         }
-        if (!config.characterIdleAlert() || !characterWasActive || characterIdleAlerted) {
+        if (!config.characterIdleAlert() || !characterWasActive || characterIdleAlerted || isWidgetVisible(BANK_GROUP)) {
             return;
         }
 
-        int idleSeconds = (int) ((tick - lastActiveTick) * 0.6);
+        // Idle is the shorter of: time since the character stopped, time since your last click or key press
+        long sinceInputMillis = Math.min(client.getKeyboardIdleTicks() * 20L,
+            System.currentTimeMillis() - client.getMouseLastPressedMillis());
+        int idleSeconds = (int) Math.min((tick - lastActiveTick) * 0.6, sinceInputMillis / 1000);
         if (idleSeconds >= config.characterIdleSeconds()) {
             characterIdleAlerted = true;
-            if (config.voiceCharacterIdle()) {
-                speak(VoiceAlertService.VoiceLine.CHARACTER_IDLE);
-            }
-            sendGameChatMessage("You have been idle for " + idleSeconds + " seconds.");
+            characterWasActive = false;
+            actionTicks = 0;
+            speak(VoiceAlertService.VoiceLine.CHARACTER_IDLE);
+            sendGameChatMessage("You've been AFK for " + idleSeconds + " seconds.");
         }
     }
 
@@ -1389,7 +1463,9 @@ public class BradsMultiToolPlugin extends Plugin {
         boolean alert = false;
         if (!logoutImminent) {
             alert = true;
-            notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
+            if (alertsReady()) {
+                notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
+            }
             sendGameChatMessage("You will be logged out for inactivity soon.");
         } else if (config.repeatIdleAlert()
             && Duration.between(lastIdleAlertTime, Instant.now()).getSeconds() >= config.repeatIdleInterval()

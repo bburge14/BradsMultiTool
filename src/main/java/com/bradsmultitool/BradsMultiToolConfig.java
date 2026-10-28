@@ -58,6 +58,17 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "voiceEnabled",
+        name = "Voice Alerts",
+        description = "Speak alerts out loud. Pick which ones under Voice Alerts",
+        section = generalSection,
+        position = 0
+    )
+    default boolean voiceEnabled() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "sendChatMessages",
         name = "Chat Messages",
         description = "Also post alerts as in-game chat messages",
@@ -69,9 +80,259 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigSection(
+        name = "Voice Alerts",
+        description = "Which alerts are spoken. Turning one off keeps its chat message and any other alert",
+        position = 4,
+        closedByDefault = true
+    )
+    String voiceSection = "voiceSection";
+
+    @ConfigItem(
+        keyName = "voiceBuffLow",
+        name = "Potion Running Out",
+        description = "Shortly before a potion boost runs out (turning it on plays a preview)",
+        section = voiceSection,
+        position = 1
+    )
+    default boolean voiceBuffLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceBuffExpired",
+        name = "Potion Expired",
+        description = "When a potion boost has run out (turning it on plays a preview)",
+        section = voiceSection,
+        position = 2
+    )
+    default boolean voiceBuffExpired() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceHealthLow",
+        name = "Low Health",
+        description = "When your health drops below the threshold (turning it on plays a preview)",
+        section = voiceSection,
+        position = 3
+    )
+    default boolean voiceHealthLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voicePrayerLow",
+        name = "Low / Out of Prayer",
+        description = "When prayer is low or runs out (turning it on plays a preview)",
+        section = voiceSection,
+        position = 4
+    )
+    default boolean voicePrayerLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSpecReady",
+        name = "Special Attack Ready",
+        description = "When your special attack is back up (turning it on plays a preview)",
+        section = voiceSection,
+        position = 5
+    )
+    default boolean voiceSpecReady() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceAntifire",
+        name = "Antifire Running Out",
+        description = "When antifire protection is about to end (turning it on plays a preview)",
+        section = voiceSection,
+        position = 6
+    )
+    default boolean voiceAntifire() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voicePoison",
+        name = "Poison / Venom",
+        description = "When you are poisoned or venomed, or poison protection is ending (turning it on plays a preview)",
+        section = voiceSection,
+        position = 7
+    )
+    default boolean voicePoison() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceStamina",
+        name = "Stamina Worn Off",
+        description = "When a stamina potion wears off (turning it on plays a preview)",
+        section = voiceSection,
+        position = 8
+    )
+    default boolean voiceStamina() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceAmmo",
+        name = "Low Ammo",
+        description = "When your ammo runs low (turning it on plays a preview)",
+        section = voiceSection,
+        position = 9
+    )
+    default boolean voiceAmmo() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunes",
+        name = "Out of Runes",
+        description = "When you can't cast for lack of runes (turning it on plays a preview)",
+        section = voiceSection,
+        position = 10
+    )
+    default boolean voiceRunes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCannon",
+        name = "Cannon Low",
+        description = "When your cannon is low on cannonballs (turning it on plays a preview)",
+        section = voiceSection,
+        position = 11
+    )
+    default boolean voiceCannon() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSlayerItem",
+        name = "Missing Slayer Item",
+        description = "When fighting a task monster without its required item (turning it on plays a preview)",
+        section = voiceSection,
+        position = 12
+    )
+    default boolean voiceSlayerItem() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSuperior",
+        name = "Superior Spawned",
+        description = "When a superior slayer monster appears (turning it on plays a preview)",
+        section = voiceSection,
+        position = 13
+    )
+    default boolean voiceSuperior() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTaskComplete",
+        name = "Task Complete",
+        description = "When your slayer task is done (turning it on plays a preview)",
+        section = voiceSection,
+        position = 14
+    )
+    default boolean voiceTaskComplete() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCharacterIdle",
+        name = "Character Idle",
+        description = "When your character has gone AFK (turning it on plays a preview)",
+        section = voiceSection,
+        position = 15
+    )
+    default boolean voiceCharacterIdle() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceIdleLogout",
+        name = "Logout Warning",
+        description = "When you are about to be logged out for inactivity (turning it on plays a preview)",
+        section = voiceSection,
+        position = 16
+    )
+    default boolean voiceIdleLogout() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCrabMoved",
+        name = "Crab Moved",
+        description = "When the Gemstone Crab relocates (turning it on plays a preview)",
+        section = voiceSection,
+        position = 17
+    )
+    default boolean voiceCrabMoved() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCrabLowHealth",
+        name = "Crab About to Burrow",
+        description = "When the Gemstone Crab is low on health (turning it on plays a preview)",
+        section = voiceSection,
+        position = 18
+    )
+    default boolean voiceCrabLowHealth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceInventoryFull",
+        name = "Inventory Full",
+        description = "When your inventory fills while skilling (turning it on plays a preview)",
+        section = voiceSection,
+        position = 19
+    )
+    default boolean voiceInventoryFull() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTreeGone",
+        name = "Tree Fallen",
+        description = "When the tree you are chopping falls (turning it on plays a preview)",
+        section = voiceSection,
+        position = 20
+    )
+    default boolean voiceTreeGone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRockDepleted",
+        name = "Rock Depleted",
+        description = "When the rock you are mining is depleted (turning it on plays a preview)",
+        section = voiceSection,
+        position = 21
+    )
+    default boolean voiceRockDepleted() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceFishingSpot",
+        name = "Fishing Spot Moved",
+        description = "When your fishing spot moves (turning it on plays a preview)",
+        section = voiceSection,
+        position = 22
+    )
+    default boolean voiceFishingSpot() {
+        return true;
+    }
+
+    @ConfigSection(
         name = "Potion Buffs",
         description = "Buff timers on the HUD and running-out / expired alerts",
-        position = 4,
+        position = 5,
         closedByDefault = true
     )
     String buffSection = "buffSection";
@@ -111,28 +372,6 @@ public interface BradsMultiToolConfig extends Config {
     @Units(Units.SECONDS)
     default int buffWarningSeconds() {
         return 30;
-    }
-
-    @ConfigItem(
-        keyName = "voiceBuffLow",
-        name = "Voice: Running Out",
-        description = "Announce shortly before your combat boost runs out (click to preview)",
-        section = buffSection,
-        position = 8
-    )
-    default boolean voiceBuffLow() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceBuffExpired",
-        name = "Voice: Expired",
-        description = "Announce when your combat buff has run out (click to preview)",
-        section = buffSection,
-        position = 9
-    )
-    default boolean voiceBuffExpired() {
-        return true;
     }
 
     @ConfigItem(
@@ -209,17 +448,6 @@ public interface BradsMultiToolConfig extends Config {
         position = 16
     )
     default boolean flashHealthOrb() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceHealthLow",
-        name = "Voice Alert",
-        description = "Announce when your hitpoints fall below the threshold (click to preview)",
-        section = healthSection,
-        position = 17
-    )
-    default boolean voiceHealthLow() {
         return true;
     }
 
@@ -308,17 +536,6 @@ public interface BradsMultiToolConfig extends Config {
         position = 25
     )
     default boolean flashOutOfPrayerOverhead() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voicePrayerLow",
-        name = "Voice Alert",
-        description = "Announce low and empty prayer (click to preview)",
-        section = prayerSection,
-        position = 26
-    )
-    default boolean voicePrayerLow() {
         return true;
     }
 
@@ -486,8 +703,8 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "characterIdleAlert",
-        name = "Character Idle Alert",
-        description = "Alert when your character stops doing anything (fighting, skilling, moving) for a while",
+        name = "AFK Alert",
+        description = "Alert when you were fighting or skilling, your character stopped, and you haven't clicked or typed since. Banking and menus don't count as idle",
         section = idleSection,
         position = 31
     )
@@ -504,24 +721,13 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "characterIdleSeconds",
         name = "Idle Alert After",
-        description = "Seconds of doing nothing before the character idle alert",
+        description = "Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
         section = idleSection,
         position = 32
     )
     @Units(Units.SECONDS)
     default int characterIdleSeconds() {
         return 10;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCharacterIdle",
-        name = "Voice: Character Idle",
-        description = "Announce when your character has been idle (click to preview)",
-        section = idleSection,
-        position = 33
-    )
-    default boolean voiceCharacterIdle() {
-        return true;
     }
 
     @Range(min
@@ -540,17 +746,6 @@ public interface BradsMultiToolConfig extends Config {
     @Units(Units.SECONDS)
     default int idleWarningSeconds() {
         return 30;
-    }
-
-    @ConfigItem(
-        keyName = "voiceIdleLogout",
-        name = "Voice: Logout Warning",
-        description = "Announce when you are about to be logged out for inactivity (click to preview)",
-        section = idleSection,
-        position = 35
-    )
-    default boolean voiceIdleLogout() {
-        return true;
     }
 
     @ConfigItem(
@@ -793,28 +988,6 @@ public interface BradsMultiToolConfig extends Config {
     @Units(Units.PERCENT)
     default int crabLowHealthPercent() {
         return 5;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCrabLowHealth",
-        name = "Voice: About to Burrow",
-        description = "Announce when the Gemstone Crab is about to burrow (click to preview)",
-        section = crabSection,
-        position = 52
-    )
-    default boolean voiceCrabLowHealth() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCrabMoved",
-        name = "Voice: Crab Relocated",
-        description = "Announce when Gemstone Crab burrows to another cove (click to preview)",
-        section = crabSection,
-        position = 53
-    )
-    default boolean voiceCrabMoved() {
-        return true;
     }
 
     @ConfigItem(
