@@ -121,10 +121,10 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         JPanel titles = new JPanel(new GridLayout(2, 1));
         titles.setOpaque(false);
-        JLabel title = new JLabel("Brad's Multi-Tool");
+        JLabel title = new JLabel("Brad's Skill Tracker");
         title.setFont(FontManager.getRunescapeBoldFont());
         title.setForeground(ACCENT_COLOR);
-        JLabel subtitle = new JLabel("Skill Tracker");
+        JLabel subtitle = new JLabel("XP, goals and training");
         subtitle.setFont(FontManager.getRunescapeSmallFont());
         subtitle.setForeground(Color.GRAY);
         titles.add(title);

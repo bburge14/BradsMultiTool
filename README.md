@@ -215,9 +215,16 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 
 ## Planned: separate plugins
 
-The multi-tool will also be split into stand-alone plugins (Gemstone Crab, skilling helpers, skill
-tracker, PvM, Slayer, alerts...) alongside the all-in-one version. New features are kept self-contained
-with that in mind.
+The multi-tool will also be split into stand-alone plugins alongside the all-in-one version. New features
+are kept self-contained with that in mind.
+
+| Plugin | What goes in it |
+|---|---|
+| **Brad's Skill Tracker** | The sidebar tracker (cards, auto-pause, level-up alerts), goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button. Data: `training.json`, `recipes.json` |
+| Skilling helpers | Hover cards, timer pies, skilling alerts (`skilling.json`, `skill_helpers.json`, `farming*.json`) |
+| PvM | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts (`monsters.json`) |
+| Slayer | Slayer card, task monster outlines, Slayer info on monsters (`slayer.json`) |
+| Gemstone Crab | Crab HUD, outlines, radar and alerts |
 
 ## Credits
 

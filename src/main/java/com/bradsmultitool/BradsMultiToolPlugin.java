@@ -509,7 +509,7 @@ public class BradsMultiToolPlugin extends Plugin {
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
         navButton = NavigationButton.builder()
-            .tooltip("Brad's Multi-Tool")
+            .tooltip("Brad's Skill Tracker")
             .icon(createCrabToolIcon())
             .priority(5)
             .panel(panel)

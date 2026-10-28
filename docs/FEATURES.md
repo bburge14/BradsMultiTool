@@ -206,6 +206,8 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 
 ## Skill tracker
 
+*Brad's Skill Tracker: the sidebar panel (its own plugin once the multi-tool is split).*
+
 **What it does:** A sidebar panel (the plugin's icon on RuneLite's sidebar) with a card per skill you
 train, laid out like RuneLite's XP tracker: XP gained, XP left, actions left (from your last XP drop; not
 for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar.
