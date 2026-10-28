@@ -85,8 +85,9 @@ public class MonsterData {
             slayerCategory = a.size() > 18 && !a.get(18).isJsonNull() ? a.get(18).getAsString() : null;
         }
 
-        boolean isSlayerMonster() {
-            return slayerLevel > 1 || slayerCategory != null;
+        /** Needs a Slayer level to damage (the monster card's Slayer section is only for these). */
+        boolean needsSlayerLevel() {
+            return slayerLevel > 1;
         }
 
         private static int intAt(JsonArray a, int i) {

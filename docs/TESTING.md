@@ -67,6 +67,8 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 ## Skill tracker
 - [ ] Cards, fields switch on/off without gaps, progress bar colours.
 - [ ] Actions left hidden for combat skills.
+- [ ] Set Goal dialog: the skill list shows your levels; picking one shows your level, XP and current goal.
+- [ ] Monsters with no Slayer level (cows, goblins) have no Slayer section.
 - [ ] Set Goal button: pick a skill, enter a level (e.g. 80) or XP (e.g. 2000000); the skill appears under GOALS.
 - [ ] A goal skill stays pinned under GOALS after logging out and back in, even before you train it.
 - [ ] Actions Until Goal on: a goal skill's card shows "Goal Actions" counting to the goal; off (default): "Actions" to the next level.

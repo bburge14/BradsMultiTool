@@ -225,11 +225,15 @@ public class BradsMultiToolPanel extends PluginPanel {
         skills.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
-                return super.getListCellRendererComponent(list, value instanceof Skill ? ((Skill) value).getName() : value,
-                    index, selected, focus);
+                // "Woodcutting (45)": your level beside each skill
+                Object text = value instanceof Skill
+                    ? ((Skill) value).getName() + " (" + Experience.getLevelForXp(plugin.getCurrentSkillXp((Skill) value)) + ")"
+                    : value;
+                return super.getListCellRendererComponent(list, text, index, selected, focus);
             }
         });
         JTextField target = new JTextField(10);
+        JLabel current = new JLabel();
         JPanel form = new JPanel(new GridLayout(0, 1, 0, 4));
         if (skill == null) {
             form.add(new JLabel("Skill:"));
@@ -237,6 +241,11 @@ public class BradsMultiToolPanel extends PluginPanel {
         } else {
             skills.setSelectedItem(skill);
         }
+        // Your level and XP in the chosen skill (and its goal, if it has one), updated as you pick
+        Runnable showCurrent = () -> current.setText(currentText((Skill) skills.getSelectedItem()));
+        skills.addActionListener(e -> showCurrent.run());
+        showCurrent.run();
+        form.add(current);
         form.add(new JLabel("Goal (a level like 70, or XP like 1,000,000):"));
         form.add(target);
         int result = JOptionPane.showConfirmDialog(this, form, skill == null ? "Set goal" : "Goal for " + skill.getName(),
@@ -251,6 +260,22 @@ public class BradsMultiToolPanel extends PluginPanel {
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Enter a level like 70 or an XP amount like 1,000,000.");
         }
+    }
+
+    private String currentText(Skill skill) {
+        if (skill == null) {
+            return "";
+        }
+        int xp = plugin.getCurrentSkillXp(skill);
+        String text = "<html>Level " + Experience.getLevelForXp(xp) + " <font color='#a0a0a0'>(" + String.format("%,d", xp) + " XP)</font>";
+        int goal = plugin.getSkillGoal(skill);
+        if (goal > xp) {
+            int goalLevel = Experience.getLevelForXp(goal);
+            text += "<br><font color='#a0a0a0'>Current goal:</font> "
+                + (goal == Experience.getXpForLevel(goalLevel) ? "Level " + goalLevel : String.format("%,d XP", goal))
+                + " <font color='#a0a0a0'>(" + String.format("%,d", goal - xp) + " to go)</font>";
+        }
+        return text + "</html>";
     }
 
     private static JPanel statBlock(String caption, JLabel value) {

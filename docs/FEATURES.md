@@ -110,7 +110,7 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 
 - **Task monsters are outlined** in the world. On a Konar task, monsters outside her assigned area aren't
   outlined, since kills there don't count.
-- **Slayer monsters' hover card and the PvM HUD** get a Slayer section: the Slayer level needed (red with
+- **Monsters that need a Slayer level** get a Slayer section on the hover card and PvM HUD (others don't): the Slayer level needed (red with
   "can't damage" if you're below it), the gear its task needs (earmuffs, nose peg, rock hammer, mirror
   shield...; red "missing" if you don't have it), which task it counts for ("on task" in green), and its
   Slayer XP. Hover one in the wrong place on a Konar task and it says "Wrong place: Konar wants these in
@@ -242,7 +242,8 @@ Suggest Alternatives, Highlight Suggested Method and its colour; Auto-Pause Idle
 
 **How to use:**
 1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...).
-2. Pick the skill and type a target: a number up to 99 is a level, anything bigger is an XP amount.
+2. Pick the skill (the list shows your level in each; below it, your level, XP and any current goal) and
+   type a target: a number up to 99 is a level, anything bigger is an XP amount.
 3. Clear it from the card's right-click menu.
 
 Goals are saved with your RuneScape profile, so they stay after a relaunch. To have them on another PC,

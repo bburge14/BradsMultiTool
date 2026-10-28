@@ -14,7 +14,7 @@ import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 
 /**
- * The Slayer lines for a Slayer monster, shared by the monster hover card and the PvM HUD: the Slayer level
+ * The Slayer lines for a monster that needs a Slayer level, shared by the monster hover card and the PvM HUD: the Slayer level
  * it needs (red when you're below it, as you can't damage it), the item its task needs (earmuffs, nose
  * peg, rock hammer...; red when you don't have it), whether it's your task, and its Slayer XP.
  */
@@ -69,17 +69,16 @@ class SlayerMonsterInfo {
     }
 
     void addTo(PanelComponent panel, NPC npc, MonsterData.Stats stats) {
-        if (stats == null || !stats.isSlayerMonster()) {
+        // Only for monsters that need a Slayer level; anyone can kill the rest
+        if (stats == null || !stats.needsSlayerLevel()) {
             return;
         }
         panel.getChildren().add(TextBlockComponent.heading("Slayer", TITLE));
-        if (stats.slayerLevel > 1) {
-            boolean canHit = client.getRealSkillLevel(Skill.SLAYER) >= stats.slayerLevel;
-            Image icon = skillIcons.getSkillImage(Skill.SLAYER, true);
-            panel.getChildren().add(IconLineComponent.textThenIcon("Requires:", icon,
-                "Level " + stats.slayerLevel + (canHit ? "" : " (can't damage)"),
-                canHit ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD));
-        }
+        boolean canHit = client.getRealSkillLevel(Skill.SLAYER) >= stats.slayerLevel;
+        Image icon = skillIcons.getSkillImage(Skill.SLAYER, true);
+        panel.getChildren().add(IconLineComponent.textThenIcon("Requires:", icon,
+            "Level " + stats.slayerLevel + (canHit ? "" : " (can't damage)"),
+            canHit ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD));
         SlayerTracker tracker = plugin.getSlayerTracker();
         SlayerTracker.Requirement needs = SlayerTracker.requirementFor(stats.slayerCategory);
         if (needs == null) {
