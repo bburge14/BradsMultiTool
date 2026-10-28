@@ -223,7 +223,7 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
 
 **Settings (Skill Tracker):** a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
-Suggest Alternatives, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
+Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
 (minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up.
 
 ---
