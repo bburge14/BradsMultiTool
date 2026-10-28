@@ -219,10 +219,15 @@ Suggest Alternatives, Highlight Suggested Method and its colour; Auto-Pause Idle
 - Skills with a goal are pinned under **GOALS** at the top of the tracker (even before you train them this
   session), with a gold goal bar, XP left and time to reach it. Everything else is under **THIS SESSION**.
 - A goal card shows the wiki training guide's method for your level (**Train: Oak trees**) and what to
-  switch to before the goal (**At 35: Teak trees**).
-- Where that method is a tree, rock, stall or pickpocket NPC, those are outlined in the world.
+  switch to before the goal (**At 35: Teak trees**). Every skill is covered: combat skills and Hitpoints
+  use the melee or ranged guide, Prayer, Herblore and Sailing list their guide's methods, and **Slayer**
+  suggests the best Slayer master for your levels (and the next one: "At Combat 100, Slayer 50:
+  Duradel"). Questing is only suggested when the guide has nothing else for your level.
+- When a level-up moves a goal onto a new method (or Slayer master), chat says so.
+- Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
+  world.
 - For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
-  Magic, Runecraft) the card also says what to **Make**: the best thing you can make at your level from
+  Magic, Runecraft) and Prayer the card also says what to **Make** (or **Use**: bones, ashes, logs): the best thing you can make at your level from
   what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
   materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
   Lobster". The bank counts once you've opened it this session.

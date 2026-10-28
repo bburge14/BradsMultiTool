@@ -72,6 +72,9 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Cooking goal with raw food in inventory/bank: card says Make: ..., the raw food is outlined in inventory and bank, hover shows the goal tooltip.
 - [ ] Highlight Goal Items off removes the outlines.
 - [ ] Levelling into a new method's range (e.g. 35 Woodcutting with a goal) updates Train: and posts "you can now switch to ..." in chat.
+- [ ] Goals in combat skills, Prayer, Slayer, Sailing, Herblore each show a Train: line (Slayer: Tasks from <master>).
+- [ ] Prayer goal with bones in inventory/bank: Use: Bury <best bones>, bones outlined.
+- [ ] Hunter goal: the suggested creatures are outlined.
 - [ ] Clear goal moves the card back under THIS SESSION (or removes it if untrained).
 - [ ] Auto-pause after the set minutes without XP; resumes on XP.
 - [ ] Level-up voice says skill and level.

@@ -3,7 +3,8 @@
 Usage: python3 scripts/update_recipe_data.py
 
 Every wiki recipe (the 'recipe' bucket) for the production skills: what it makes, its level, XP and the
-materials it uses. Firemaking's logs come from the Firemaking page table. Used to suggest what to make for
+materials it uses. Firemaking's logs come from the Firemaking page table, Prayer's bones and ashes from
+each item's Prayer info. Used to suggest what to make for
 a skill goal from what you have, and to highlight those materials in your inventory and bank.
 """
 import json
@@ -13,7 +14,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 from update_skill_helpers import recipes, skill_of  # noqa: E402
-from update_skilling_data import number, rows_of, wikitext  # noqa: E402
+from update_skilling_data import api, number, rows_of, wikitext  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "com", "bradsmultitool", "recipes.json")
 SKILLS = ["Cooking", "Crafting", "Construction", "Fletching", "Herblore", "Magic", "Runecraft", "Smithing"]
@@ -54,9 +55,33 @@ def firemaking():
     return out
 
 
+def prayer():
+    """Burying/scattering each kind of bones and ashes (every page using the wiki's Prayer info template)."""
+    pages = api({"action": "query", "list": "embeddedin", "eititle": "Template:Prayer info", "einamespace": 0,
+                 "eilimit": 500})["query"]["embeddedin"]
+    out = []
+    for i in range(0, len(pages), 50):
+        data = api({"action": "query", "prop": "revisions", "rvprop": "content", "rvslots": "main",
+                    "titles": "|".join(p["title"] for p in pages[i:i + 50])})
+        for page in data["query"]["pages"].values():
+            text = page["revisions"][0]["slots"]["main"]["*"]
+            for info in re.findall(r"\{\{Prayer info(.*?)\}\}", text, re.S):
+                fields = dict(re.findall(r"\|\s*(\w+)\s*=\s*([^|\n]*)", info))
+                name = fields.get("name", page["title"]).strip()
+                xp = number(fields.get("xp", ""))
+                kind = fields.get("type", "bone").strip().lower()
+                # Only what you bury or scatter (ensouled heads and the like are reanimated with Magic)
+                if xp and kind in ("bone", "bones", "ash", "ashes", ""):
+                    verb = "Scatter" if "ashes" in name.lower() else "Bury"
+                    out.append({"name": verb + " " + name.lower(), "level": int(number(fields.get("level", "1")) or 1),
+                                "xp": xp, "materials": {name: 1}})
+    return sorted(out, key=lambda r: (r["xp"], r["name"]))
+
+
 def main():
     data = {"source": "oldschool.runescape.wiki", "skills": {skill.upper(): skill_recipes(skill) for skill in SKILLS}}
     data["skills"]["FIREMAKING"] = firemaking()
+    data["skills"]["PRAYER"] = prayer()
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     print("Wrote %s to %s" % (", ".join("%s %d" % (k.title(), len(v)) for k, v in sorted(data["skills"].items())),

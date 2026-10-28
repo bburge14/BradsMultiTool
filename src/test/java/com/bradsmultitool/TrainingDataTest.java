@@ -30,6 +30,31 @@ public class TrainingDataTest {
     }
 
     @Test
+    public void everySkillHasASuggestion() {
+        for (Skill skill : Skill.values()) {
+            // Slayer suggests a Slayer master instead (SlayerData)
+            if (skill == Skill.SLAYER || "OVERALL".equals(skill.name())) {
+                continue;
+            }
+            for (int level : new int[]{1, 30, 60, 90}) {
+                TrainingData.Method method = DATA.suggest(skill, level, false);
+                if (method == null) {
+                    method = DATA.next(skill, level, 99, false);
+                }
+                assertTrue(skill + " at " + level, method != null);
+            }
+        }
+    }
+
+    @Test
+    public void questingOnlyWhenNothingElse() {
+        assertEquals("Copper/Tin ore", DATA.suggest(Skill.MINING, 5, false).name);
+        assertEquals("Questing", DATA.suggest(Skill.ATTACK, 10, false).name);
+        assertEquals("Gemstone Crab", DATA.next(Skill.ATTACK, 10, 50, false).name);
+        assertTrue(DATA.suggest(Skill.PRAYER, 40, false) != null);
+    }
+
+    @Test
     public void alternativesAndNpcs() {
         TrainingData.Method knights = DATA.suggest(Skill.THIEVING, 60, true);
         assertFalse(knights.fastest);

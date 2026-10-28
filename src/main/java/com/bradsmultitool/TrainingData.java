@@ -58,6 +58,10 @@ class TrainingData {
             return level >= from && (level < to || to >= 99);
         }
 
+        boolean isQuesting() {
+            return name.toLowerCase().startsWith("quest");
+        }
+
         boolean highlightable() {
             return !objects.isEmpty() || !npcs.isEmpty();
         }
@@ -98,8 +102,14 @@ class TrainingData {
     Method suggest(Skill skill, int level, boolean alternatives) {
         List<Method> list = methods.getOrDefault(skill.name(), Collections.emptyList());
         Method fallback = null;
+        Method questing = null;
         for (Method method : list) {
             if (!method.covers(level)) {
+                continue;
+            }
+            // The guides open with "Questing"; suggest a method you can repeat, and questing only if there's none
+            if (method.isQuesting()) {
+                questing = questing == null ? method : questing;
                 continue;
             }
             if (method.fastest != alternatives) {
@@ -109,7 +119,7 @@ class TrainingData {
                 fallback = method;
             }
         }
-        return fallback;
+        return fallback != null ? fallback : questing;
     }
 
     /** The method to switch to next on the way to {@code goalLevel}, or null if the current one lasts. */
@@ -117,7 +127,7 @@ class TrainingData {
         Method current = suggest(skill, level, alternatives);
         for (int at = level + 1; at <= Math.min(goalLevel, 99); at++) {
             Method method = suggest(skill, at, alternatives);
-            if (method != null && method != current) {
+            if (method != null && method != current && !method.isQuesting()) {
                 return method;
             }
         }

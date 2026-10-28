@@ -32,6 +32,14 @@ public class RecipeDataTest {
     }
 
     @Test
+    public void prayerBones() {
+        Map<String, Integer> have = new HashMap<>();
+        have.put("bones", 10);
+        have.put("dragon bones", 2);
+        assertEquals("Bury dragon bones", DATA.best(Skill.PRAYER, 1, have, r -> r.xp).name);
+    }
+
+    @Test
     public void firemakingLogs() {
         Map<String, Integer> have = new HashMap<>();
         have.put("oak logs", 3);

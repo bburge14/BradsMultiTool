@@ -229,6 +229,8 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     private SlayerData slayerData;
 
+    private volatile int combatLevel = 3;
+
     @Inject
     private TrainingData trainingData;
 
@@ -777,6 +779,19 @@ public class BradsMultiToolPlugin extends Plugin {
         return trainingData;
     }
 
+    /** Your combat level as of the last game tick (safe to read from the panel). */
+    public int getCombatLevel() {
+        return combatLevel;
+    }
+
+    public int getCurrentSkillLevel(Skill skill) {
+        return Experience.getLevelForXp(client.getSkillExperience(skill));
+    }
+
+    public SlayerData getSlayerData() {
+        return slayerData;
+    }
+
     /** What to make for production-skill goals, from your inventory and bank. */
     public GoalItems getGoalItems() {
         return goalItems;
@@ -1157,6 +1172,7 @@ public class BradsMultiToolPlugin extends Plugin {
             inGameTicks++;
         }
         if (player != null) {
+            combatLevel = player.getCombatLevel();
             WorldPoint wp = player.getWorldLocation();
             scanForCrab();
             updateSpatialPresence(player, wp);
@@ -2060,6 +2076,15 @@ public class BradsMultiToolPlugin extends Plugin {
     // A level-up that moves a goal skill onto a different suggested method says so in chat
     private void announceNewMethod(Skill skill, int before, int now) {
         if (!config.showTrainingSuggestion() || getSkillGoal(skill) <= client.getSkillExperience(skill)) {
+            return;
+        }
+        if (skill == Skill.SLAYER) {
+            SlayerData.Master was = slayerData.bestMaster(combatLevel, before);
+            SlayerData.Master master = slayerData.bestMaster(combatLevel, now);
+            if (master != null && master != was) {
+                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> "
+                    + "Slayer goal: you can now get tasks from " + master.name, null);
+            }
             return;
         }
         TrainingData.Method was = trainingData.suggest(skill, before, config.trainingAlternatives());

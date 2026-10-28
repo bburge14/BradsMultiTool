@@ -440,29 +440,48 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         // The wiki guide's method for this level, and what to switch to before the goal
         private void updateSuggestion(int level, int goalXp, int xp) {
-            TrainingData.Method method = null;
-            TrainingData.Method next = null;
+            List<String> lines = new ArrayList<>();
             if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
-                TrainingData training = plugin.getTrainingData();
-                method = training.suggest(skill, level, config.trainingAlternatives());
-                next = training.next(skill, level, Experience.getLevelForXp(goalXp), config.trainingAlternatives());
-            }
-            // For production skills: the best thing to make from what's in your inventory and bank
-            RecipeData.Recipe make = goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()
-                ? plugin.getGoalItems().suggestion(skill) : null;
-            suggestion.setVisible(method != null || make != null);
-            StringBuilder text = new StringBuilder("<html>");
-            if (method != null) {
-                text.append("<font color='#bebebe'>Train:</font> ").append(method.name);
-                if (next != null) {
-                    text.append("<br><font color='#bebebe'>At ").append(next.from).append(":</font> ").append(next.name);
+                if (skill == Skill.SLAYER) {
+                    slayerSuggestion(lines);
+                } else {
+                    TrainingData training = plugin.getTrainingData();
+                    TrainingData.Method method = training.suggest(skill, level, config.trainingAlternatives());
+                    TrainingData.Method next = training.next(skill, level, Experience.getLevelForXp(goalXp), config.trainingAlternatives());
+                    if (method != null) {
+                        lines.add(label("Train:") + method.name);
+                    }
+                    if (next != null) {
+                        lines.add(label("At " + next.from + ":") + next.name);
+                    }
+                }
+                // For production skills and Prayer: the best thing to make or use from your inventory and bank
+                RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
+                if (make != null) {
+                    boolean uses = skill == Skill.PRAYER || skill == Skill.FIREMAKING;
+                    lines.add(label(uses ? "Use:" : "Make:") + make.name + " " + label("(you have the items)"));
                 }
             }
-            if (make != null) {
-                text.append(method != null ? "<br>" : "").append("<font color='#bebebe'>Make:</font> ").append(make.name)
-                    .append(" <font color='#bebebe'>(you have the items)</font>");
+            suggestion.setVisible(!lines.isEmpty());
+            suggestion.setText("<html>" + String.join("<br>", lines) + "</html>");
+        }
+
+        // Slayer: the best master for your combat and Slayer level, and the next one up
+        private void slayerSuggestion(List<String> lines) {
+            SlayerData slayer = plugin.getSlayerData();
+            SlayerData.Master master = slayer.bestMaster(plugin.getCombatLevel(), plugin.getCurrentSkillLevel(Skill.SLAYER));
+            if (master == null) {
+                return;
             }
-            suggestion.setText(text + "</html>");
+            lines.add(label("Train:") + "Tasks from " + master.name);
+            SlayerData.Master next = slayer.nextMaster(master);
+            if (next != null) {
+                lines.add(label("At Combat " + next.combat + (next.slayer > 0 ? ", Slayer " + next.slayer : "") + ":") + next.name);
+            }
+        }
+
+        private String label(String text) {
+            return "<font color='#bebebe'>" + text + "</font> ";
         }
 
         private void setStat(JLabel label, String name, String value) {
