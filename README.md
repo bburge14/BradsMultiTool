@@ -4,7 +4,7 @@ A RuneLite plugin that bundles PvM, Gemstone Crab, Slayer and skilling helpers, 
 and a skill tracker into one place. Everything can be switched on or off in the plugin's settings, and
 it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.md](docs/PLUGIN_HUB_COMPLIANCE.md)).
 
-- [Features](#features)
+- [Features](#features) (full guide with how-tos: [docs/FEATURES.md](docs/FEATURES.md))
 - [Setup (Windows)](#first-time-setup-windows-powershell)
 - [Logging in with a Jagex Account](#logging-in-with-a-jagex-account)
 - [Settings guide](#settings-guide)
