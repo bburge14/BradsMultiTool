@@ -16,6 +16,9 @@ import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
+import net.runelite.api.ObjectComposition;
+import net.runelite.api.WorldView;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.Skill;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
@@ -38,15 +41,17 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
     private final SkillingData data;
+    private final FarmingData farming;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
-                                         SkillingData data) {
+                                         SkillingData data, FarmingData farming) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.data = data;
+        this.farming = farming;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGHEST);
@@ -82,6 +87,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return buildNpcCard(npc, Text.removeTags(entry.getOption()));
         }
         if (isObjectAction(entry.getType())) {
+            if (config.showFarmingHover() && buildFarmingCard(entry)) {
+                return true;
+            }
             SkillingData.Resource resource = data.object(entry.getIdentifier(), Text.removeTags(entry.getTarget()));
             if (resource != null) {
                 buildResourceCard(resource);
@@ -89,6 +97,112 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
         }
         return false;
+    }
+
+    // ---- Farming patches ----
+
+    private boolean buildFarmingCard(MenuEntry entry) {
+        ObjectComposition composition = client.getObjectDefinition(entry.getIdentifier());
+        if (composition == null) {
+            return false;
+        }
+        WorldView view = client.getTopLevelWorldView();
+        FarmingData.Patch patch = farming.patch(composition.getVarbitId(),
+            WorldPoint.fromScene(view, entry.getParam0(), entry.getParam1(), view.getPlane()));
+        if (patch == null) {
+            return false;
+        }
+        FarmingData.State state = farming.state(patch);
+        farming.clearCompostIfEmpty(patch, state);
+
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(patch.title()).color(TITLE_COLOR).build());
+        line("Location:", patch.region, Color.WHITE);
+        if (state == null) {
+            line("Status:", "Unknown", Color.WHITE);
+            return true;
+        }
+        int level = client.getRealSkillLevel(Skill.FARMING);
+        if (state.isEmpty()) {
+            boolean raked = FarmingData.WEEDS.equals(state.produce.id) && state.stage == 0;
+            line("Status:", raked ? "Ready to plant" : "Weeds (rake it)", raked ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            addPlantable(patch, level);
+        } else {
+            FarmingData.Crop crop = farming.crop(state.produce.name);
+            line("Crop:", state.produce.name, Color.WHITE);
+            line("Status:", statusText(state), statusColor(state));
+            if (FarmingData.GROWING.equals(state.cropState)) {
+                long seconds = FarmingData.secondsUntilGrown(state, System.currentTimeMillis() / 1000);
+                line("Grown In:", "~" + duration(seconds), Color.WHITE);
+            }
+            if (crop != null) {
+                line("Requires:", "Lvl " + crop.level + " Farming", level >= crop.level ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+                if (crop.payment != null) {
+                    line("Protection:", crop.payment, Color.WHITE);
+                }
+            }
+            if (FarmingData.GROWING.equals(state.cropState) && FarmingData.WATERABLE.contains(patch.implementation)) {
+                line("Watered:", state.watered ? "Yes" : "No", state.watered ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            }
+        }
+        String compost = farming.compost(patch);
+        line("Compost:", compost != null ? compost : "None seen", compost == null ? BradsMultiToolOverlay.WARN
+            : "Ultracompost".equals(compost) ? BradsMultiToolOverlay.GOOD : Color.WHITE);
+        return true;
+    }
+
+    // The best crops you can plant here, plus the next one you'll unlock
+    private void addPlantable(FarmingData.Patch patch, int level) {
+        List<FarmingData.Crop> crops = farming.cropsFor(patch.implementation);
+        if (crops.isEmpty()) {
+            return;
+        }
+        List<FarmingData.Crop> usable = new ArrayList<>();
+        FarmingData.Crop next = null;
+        for (FarmingData.Crop crop : crops) {
+            if (crop.level <= level) {
+                usable.add(crop);
+            } else if (next == null) {
+                next = crop;
+            }
+        }
+        String label = "Can Plant:";
+        for (int i = Math.max(0, usable.size() - 3); i < usable.size(); i++) {
+            FarmingData.Crop crop = usable.get(i);
+            line(label, crop.name + " (" + crop.level + ")", BradsMultiToolOverlay.GOOD);
+            label = "";
+        }
+        if (usable.isEmpty()) {
+            line("Can Plant:", "Nothing yet", BradsMultiToolOverlay.BAD);
+        }
+        if (next != null) {
+            line("Next Unlock:", next.name + " (" + next.level + ")", BradsMultiToolOverlay.BAD);
+        }
+    }
+
+    private static String statusText(FarmingData.State state) {
+        switch (state.cropState) {
+            case FarmingData.HARVESTABLE: return "Ready";
+            case FarmingData.DISEASED: return "Diseased (cure it)";
+            case FarmingData.DEAD: return "Dead (clear it)";
+            case FarmingData.GROWING: return "Growing (" + (state.stage + 1) + "/" + state.produce.stages + ")";
+            default: return state.cropState.charAt(0) + state.cropState.substring(1).toLowerCase();
+        }
+    }
+
+    private static Color statusColor(FarmingData.State state) {
+        switch (state.cropState) {
+            case FarmingData.HARVESTABLE: return BradsMultiToolOverlay.GOOD;
+            case FarmingData.DISEASED: return BradsMultiToolOverlay.WARN;
+            case FarmingData.DEAD: return BradsMultiToolOverlay.BAD;
+            default: return Color.WHITE;
+        }
+    }
+
+    // 2h 05m, 35m
+    private static String duration(long seconds) {
+        long minutes = (seconds + 59) / 60;
+        return minutes >= 60 ? (minutes / 60) + "h " + String.format("%02d", minutes % 60) + "m" : minutes + "m";
     }
 
     private static boolean isObjectAction(MenuAction type) {

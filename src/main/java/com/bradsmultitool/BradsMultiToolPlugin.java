@@ -176,6 +176,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private ResourceTimers resourceTimers;
 
     @Inject
+    private FarmingData farmingData;
+
+    @Inject
     private BradsMultiToolResourceTimerOverlay resourceTimerOverlay;
 
     @Inject
@@ -420,8 +423,10 @@ public class BradsMultiToolPlugin extends Plugin {
     protected void startUp() throws Exception {
         monsterData.load(gson);
         skillingData.load(gson);
+        farmingData.load(gson);
         eventBus.register(extraAlerts);
         eventBus.register(resourceTimers);
+        eventBus.register(farmingData);
         keyManager.registerKeyListener(slayerToggleListener);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
@@ -456,6 +461,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(resourceTimerOverlay);
         eventBus.unregister(extraAlerts);
         eventBus.unregister(resourceTimers);
+        eventBus.unregister(farmingData);
         keyManager.unregisterKeyListener(slayerToggleListener);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);

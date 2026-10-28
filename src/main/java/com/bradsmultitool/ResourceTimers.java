@@ -1,7 +1,6 @@
 package com.bradsmultitool;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -68,7 +67,8 @@ class ResourceTimers {
     /** One timed resource. Progress is 1 when fresh, 0 when it's due to go. */
     static final class Timer {
         final Kind kind;
-        final TileObject object;
+        /** The resource as currently loaded; swapped for the new copy when the area reloads. */
+        TileObject object;
         final NPC npc;
         final List<WorldPoint> tiles = new ArrayList<>();
         final int maxTicks;
@@ -189,9 +189,86 @@ class ResourceTimers {
     // A player who appears already chopping (and hasn't moved) was chopping before we could see
     private static final int NEW_PLAYER_TICKS = 8;
 
-    static final Set<Integer> CHOP_ANIMATIONS = animations("HUMAN_WOODCUTTING_", "FORESTRY_2H_AXE_CHOPPING_",
-        "DRAGON_SMALLAXE_");
-    static final Set<Integer> MINE_ANIMATIONS = animations("HUMAN_MINING_", "MINING_MOTHERLODE_");
+    // Every axe's and pickaxe's animation (listed out: Plugin Hub plugins can't use reflection)
+    static final Set<Integer> CHOP_ANIMATIONS = ImmutableSet.of(
+        AnimationID.HUMAN_WOODCUTTING_TRAILBLAZER_AXE_NO_INFERNAL, AnimationID.HUMAN_WOODCUTTING_RUNE_AXE,
+        AnimationID.HUMAN_WOODCUTTING_ADAMANT_AXE, AnimationID.HUMAN_WOODCUTTING_MITHRIL_AXE,
+        AnimationID.HUMAN_WOODCUTTING_BLACK_AXE, AnimationID.HUMAN_WOODCUTTING_STEEL_AXE,
+        AnimationID.HUMAN_WOODCUTTING_IRON_AXE, AnimationID.HUMAN_WOODCUTTING_BRONZE_AXE,
+        AnimationID.HUMAN_WOODCUTTING_INFERNAL_AXE, AnimationID.HUMAN_WOODCUTTING_DRAGON_AXE,
+        AnimationID.DRAGON_SMALLAXE_ANIM, AnimationID.DRAGON_SMALLAXE_SWOOSH,
+        AnimationID.HUMAN_WOODCUTTING_BLESSED_AXE, AnimationID.HUMAN_WOODCUTTING_BLESSED_AXE_MISS,
+        AnimationID.HUMAN_WOODCUTTING_3A_AXE, AnimationID.HUMAN_WOODCUTTING_GILDED_AXE,
+        AnimationID.HUMAN_WOODCUTTING_CRYSTAL_AXE, AnimationID.HUMAN_WOODCUTTING_GAUNTLET_AXE_HM,
+        AnimationID.FORESTRY_2H_AXE_CHOPPING_BRONZE, AnimationID.FORESTRY_2H_AXE_CHOPPING_IRON,
+        AnimationID.FORESTRY_2H_AXE_CHOPPING_STEEL, AnimationID.FORESTRY_2H_AXE_CHOPPING_BLACK,
+        AnimationID.FORESTRY_2H_AXE_CHOPPING_MITHRIL, AnimationID.FORESTRY_2H_AXE_CHOPPING_ADAMANT,
+        AnimationID.FORESTRY_2H_AXE_CHOPPING_RUNE, AnimationID.FORESTRY_2H_AXE_CHOPPING_DRAGON,
+        AnimationID.FORESTRY_2H_AXE_CHOPPING_CRYSTAL, AnimationID.FORESTRY_2H_AXE_CHOPPING_CRYSTAL_INACTIVE,
+        AnimationID.FORESTRY_2H_AXE_CHOPPING_3A, AnimationID.HUMAN_WOODCUTTING_TRAILBLAZER_RELOADED_AXE,
+        AnimationID.HUMAN_WOODCUTTING_TRAILBLAZER_RELOADED_AXE_NO_INFERNAL, AnimationID.HUMAN_WOODCUTTING_LEAGUE_AXE,
+        AnimationID.HUMAN_WOODCUTTING_TRAILBLAZER_AXE, AnimationID.HUMAN_WOODCUTTING_DEMONIC_PACT);
+    static final Set<Integer> MINE_ANIMATIONS = ImmutableSet.of(
+        AnimationID.HUMAN_MINING_DRAGON_PICKAXE_PRETTY_WALL, AnimationID.HUMAN_MINING_RUNE_PICKAXE,
+        AnimationID.HUMAN_MINING_BRONZE_PICKAXE, AnimationID.HUMAN_MINING_IRON_PICKAXE,
+        AnimationID.HUMAN_MINING_STEEL_PICKAXE, AnimationID.HUMAN_MINING_ADAMANT_PICKAXE,
+        AnimationID.HUMAN_MINING_MITHRIL_PICKAXE, AnimationID.HUMAN_MINING_DRAGON_PICKAXE_PRETTY,
+        AnimationID.HUMAN_MINING_DRAGON_PICKAXE_PRETTY_NOREACHFORWARD, AnimationID.HUMAN_MINING_BLACK_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_BLACK_PICKAXE, AnimationID.HUMAN_MINING_INFERNAL_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_INFERNAL_PICKAXE, AnimationID.HUMAN_MINING_INFERNAL_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_BLACK_PICKAXE_NOREACHFORWARD, AnimationID.HUMAN_MINING_RUNE_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_BRONZE_PICKAXE_NOREACHFORWARD, AnimationID.HUMAN_MINING_IRON_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_STEEL_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_ADAMANT_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_MITHRIL_PICKAXE_NOREACHFORWARD, AnimationID.HUMAN_MINING_RUNE_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_BRONZE_PICKAXE_WALL, AnimationID.HUMAN_MINING_IRON_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_STEEL_PICKAXE_WALL, AnimationID.HUMAN_MINING_ADAMANT_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_MITHRIL_PICKAXE_WALL, AnimationID.HUMAN_MINING_DRAGON_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_DRAGON_PICKAXE, AnimationID.HUMAN_MINING_DRAGON_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_3A_PICKAXE_WALL, AnimationID.HUMAN_MINING_3A_PICKAXE,
+        AnimationID.HUMAN_MINING_3A_PICKAXE_NOREACHFORWARD, AnimationID.HUMAN_MINING_GILDED_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_GILDED_PICKAXE, AnimationID.HUMAN_MINING_GILDED_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_ZALCANO_PICKAXE_WALL, AnimationID.HUMAN_MINING_CRYSTAL_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_ZALCANO_PICKAXE, AnimationID.HUMAN_MINING_CRYSTAL_PICKAXE,
+        AnimationID.HUMAN_MINING_GAUNTLET_PICKAXE_HM, AnimationID.HUMAN_MINING_ZALCANO_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_CRYSTAL_PICKAXE_NOREACHFORWARD, AnimationID.HUMAN_MINING_ZALCANO_BRONZE_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_IRON_PICKAXE, AnimationID.HUMAN_MINING_ZALCANO_BLACK_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_STEEL_PICKAXE, AnimationID.HUMAN_MINING_ZALCANO_MITHRIL_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_ADAMANT_PICKAXE, AnimationID.HUMAN_MINING_ZALCANO_RUNE_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_GILDED_PICKAXE, AnimationID.HUMAN_MINING_ZALCANO_DRAGON_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_DRAGON_PICKAXE_PRETTY, AnimationID.HUMAN_MINING_ZALCANO_ZALCANO_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_INFERNAL_PICKAXE, AnimationID.HUMAN_MINING_ZALCANO_3A_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_CRYSTAL_PICKAXE, AnimationID.HUMAN_MINING_LEAGUE_TRAILBLAZER_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_LEAGUE_TRAILBLAZER_PICKAXE,
+        AnimationID.HUMAN_MINING_LEAGUE_TRAILBLAZER_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_ZALCANO_LEAGUE_TRAILBLAZER_PICKAXE,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_PICKAXE_NO_INFERNAL_WALL,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_PICKAXE_NO_INFERNAL,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_PICKAXE_NO_INFERNAL_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_ZALCANO_TRAILBLAZER_PICKAXE_NO_INFERNAL,
+        AnimationID.HUMAN_MINING_HET_BRONZE_PICKAXE, AnimationID.HUMAN_MINING_HET_IRON_PICKAXE,
+        AnimationID.HUMAN_MINING_HET_BLACK_PICKAXE, AnimationID.HUMAN_MINING_HET_STEEL_PICKAXE,
+        AnimationID.HUMAN_MINING_HET_MITHRIL_PICKAXE, AnimationID.HUMAN_MINING_HET_ADAMANT_PICKAXE,
+        AnimationID.HUMAN_MINING_HET_RUNE_PICKAXE, AnimationID.HUMAN_MINING_HET_GILDED_PICKAXE,
+        AnimationID.HUMAN_MINING_HET_DRAGON_PICKAXE, AnimationID.HUMAN_MINING_HET_DRAGON_PICKAXE_PRETTY,
+        AnimationID.HUMAN_MINING_HET_ZALCANO_PICKAXE, AnimationID.HUMAN_MINING_HET_INFERNAL_PICKAXE,
+        AnimationID.HUMAN_MINING_HET_3A_PICKAXE, AnimationID.HUMAN_MINING_HET_CRYSTAL_PICKAXE,
+        AnimationID.HUMAN_MINING_HET_LEAGUE_TRAILBLAZER_PICKAXE,
+        AnimationID.HUMAN_MINING_HET_TRAILBLAZER_PICKAXE_NO_INFERNAL,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_RELOADED_PICKAXE_WALL,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_RELOADED_PICKAXE_NO_INFERNAL_WALL,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_PICKAXE, AnimationID.HUMAN_MINING_TRAILBLAZER_RELOADED_PICKAXE,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_RELOADED_PICKAXE_NO_INFERNAL,
+        AnimationID.HUMAN_MINING_HET_TRAILBLAZER_PICKAXE, AnimationID.HUMAN_MINING_HET_TRAILBLAZER_RELOADED_PICKAXE,
+        AnimationID.HUMAN_MINING_HET_TRAILBLAZER_RELOADED_PICKAXE_NO_INFERNAL,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_RELOADED_PICKAXE_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_TRAILBLAZER_RELOADED_PICKAXE_NO_INFERNAL_NOREACHFORWARD,
+        AnimationID.HUMAN_MINING_ZALCANO_TRAILBLAZER_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_TRAILBLAZER_RELOADED_PICKAXE,
+        AnimationID.HUMAN_MINING_ZALCANO_TRAILBLAZER_RELOADED_PICKAXE_NO_INFERNAL,
+        AnimationID.HUMAN_MINING_DEMONIC_PACT);
 
     private final Client client;
     private final SkillingData data;
@@ -215,26 +292,6 @@ class ResourceTimers {
     /** Every timer currently tracked (check {@link Timer#visible()}). */
     Collection<Timer> all() {
         return timers;
-    }
-
-    // Every animation constant with one of these prefixes, so new axes and pickaxes are picked up automatically
-    private static Set<Integer> animations(String... prefixes) {
-        Set<Integer> ids = new HashSet<>();
-        for (Field field : AnimationID.class.getFields()) {
-            if (!Modifier.isStatic(field.getModifiers()) || field.getType() != int.class) {
-                continue;
-            }
-            for (String prefix : prefixes) {
-                if (field.getName().startsWith(prefix)) {
-                    try {
-                        ids.add(field.getInt(null));
-                    } catch (IllegalAccessException ignored) {
-                        // public constants
-                    }
-                }
-            }
-        }
-        return ids;
     }
 
     @Subscribe
@@ -291,7 +348,7 @@ class ResourceTimers {
             return;
         }
         SkillingData.Resource resource = data.object(id, objectName(id));
-        if (resource != null && resource.chopTicks > 0 && byTile.get(object.getWorldLocation()) == null) {
+        if (resource != null && resource.chopTicks > 0) {
             add(new Timer(Kind.TREE, object, null, resource.chopTicks, resource.chopTicks), object);
         }
     }
@@ -547,6 +604,13 @@ class ResourceTimers {
     }
 
     private void add(Timer timer, TileObject object) {
+        // The same resource loaded again (the area reloaded): keep its timer, point it at the new object
+        Timer existing = byTile.get(object.getWorldLocation());
+        if (existing != null && existing.kind == timer.kind && existing.object != null
+            && existing.object.getId() == object.getId()) {
+            existing.object = object;
+            return;
+        }
         timer.tiles.addAll(tilesOf(object));
         for (WorldPoint tile : timer.tiles) {
             Timer old = byTile.put(tile, timer);

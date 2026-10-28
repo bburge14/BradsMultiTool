@@ -2,14 +2,16 @@ package com.bradsmultitool;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineEvent;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Skill;
 
@@ -141,8 +143,12 @@ public class VoiceAlertService {
         }
     }
 
-    // One clip at a time so overlapping alerts queue instead of talking over each other
+    // One clip at a time so overlapping alerts queue instead of talking over each other: the next clip
+    // starts when the current one reports it has stopped (no sleeping threads, per Plugin Hub rules)
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Deque<String[]> queue = new ArrayDeque<>();
+    private boolean playing;
+    private Clip current;
 
     /**
      * @param volumePercent 0-100
@@ -153,11 +159,16 @@ public class VoiceAlertService {
 
     /** Plays several clips back to back as one alert (nothing else can cut in between). */
     public void speakClipsAsync(VoicePersona persona, int volumePercent, String... fileNames) {
-        executor.submit(() -> {
+        synchronized (queue) {
             for (String fileName : fileNames) {
-                play(fileName, persona, volumePercent);
+                queue.add(new String[]{"voices/" + persona.folder() + "/" + fileName + ".wav", String.valueOf(volumePercent)});
             }
-        });
+            if (playing) {
+                return;
+            }
+            playing = true;
+        }
+        executor.execute(this::playNext);
     }
 
     /** "Woodcutting level", then "45". */
@@ -165,26 +176,45 @@ public class VoiceAlertService {
         return new String[]{"skill_" + skill.getName().toLowerCase(), "level_" + level};
     }
 
-    private void play(String fileName, VoicePersona persona, int volumePercent) {
-        String resource = "voices/" + persona.folder() + "/" + fileName + ".wav";
+    private void playNext() {
+        String[] next;
+        synchronized (queue) {
+            next = queue.poll();
+            if (next == null) {
+                playing = false;
+                current = null;
+                return;
+            }
+        }
+        if (!start(next[0], Integer.parseInt(next[1]))) {
+            playNext();
+        }
+    }
+
+    // Starts the clip; when it stops, it closes itself and the next one in the queue starts
+    private boolean start(String resource, int volumePercent) {
         try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
             if (raw == null) {
                 log.warn("Missing voice clip {}", resource);
-                return;
+                return false;
             }
-            try (AudioInputStream audio = toPcm(AudioSystem.getAudioInputStream(new BufferedInputStream(raw)));
-                 Clip clip = AudioSystem.getClip()) {
+            try (AudioInputStream audio = toPcm(AudioSystem.getAudioInputStream(new BufferedInputStream(raw)))) {
+                Clip clip = AudioSystem.getClip();
                 clip.open(audio);
                 setVolume(clip, volumePercent);
+                clip.addLineListener(event -> {
+                    if (event.getType() == LineEvent.Type.STOP) {
+                        clip.close();
+                        executor.execute(this::playNext);
+                    }
+                });
+                current = clip;
                 clip.start();
-                // Wait for the clip to finish so the next alert doesn't overlap it
-                TimeUnit.MICROSECONDS.sleep(clip.getMicrosecondLength() + 50_000);
-                clip.stop();
+                return true;
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         } catch (Exception e) {
             log.warn("Could not play voice clip {}: {}", resource, e.getMessage());
+            return false;
         }
     }
 
@@ -210,6 +240,13 @@ public class VoiceAlertService {
     }
 
     public void shutdown() {
-        executor.shutdownNow();
+        synchronized (queue) {
+            queue.clear();
+        }
+        Clip clip = current;
+        if (clip != null) {
+            clip.stop();
+        }
+        executor.shutdown();
     }
 }

@@ -11,6 +11,7 @@ A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 - **Slayer** – task card with kills left, kill rate and time to finish; warns when fighting a task monster without its required item (rock hammer, nose peg, mirror shield…); superior and task-complete alerts.
 - **Skilling** – hover card for trees, rocks, stalls, pickpocket targets and fishing spots (level, XP, tools coloured by metal, your rate), countdown pies on trees (Forestry timers, counting every player chopping), Motherlode Mine ore veins, calcified rocks, Daeyalt essence, shooting stars (exact, from the star's layer health), fishing spots (per-spot timings) and Sailing shipwrecks, and inventory-full / tree-gone / rock-depleted / fishing-spot-moved alerts for the resource you're working.
 - **Level-up alerts** – says the skill and your new level ("Woodcutting level 45").
+- **Farming** – hover a patch to see what's growing, its stage and roughly when it's grown, whether it's diseased or dead, compost and watering, the farmer's protection payment, and what you can plant there.
 - **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, level progress bar, XP remaining, actions left to level (from your last XP drop), and time-to-level; right-click a skill to pause, reset, or hide it.
 
 No alert fires until you're past the welcome screen, and anything already true when you log in (low prayer, say) isn't announced. Every alert's voice and chat message can be turned off separately with its **Voice:** and **Chat:** switches, which sit in that alert's own settings section (Health, Prayer, Skilling, Gemstone Crab…), or all at once in **General**. The **Report an Issue** button at the bottom of the sidebar panel opens a new GitHub issue.
@@ -89,6 +90,10 @@ The dev client can't log in through the Jagex Launcher directly, but it reuses a
 
 `src/main/resources/com/bradsmultitool/skilling.json` holds trees, rocks and thievable stalls (by object id) and pickpocket targets from the OSRS Wiki. Refresh it with `python scripts/update_skilling_data.py`.
 
+## Farming data
+
+`farming.json` (crop levels, protection payments, growth times) comes from the OSRS Wiki via `python scripts/update_farming_data.py`; `farming_patches.json` (every patch and how its state is encoded) comes from RuneLite's source via `python scripts/update_farming_patches.py`.
+
 ## Monster data
 
 `src/main/resources/com/bradsmultitool/monsters.json` holds every monster's hitpoints, aggressiveness, defence stats, elemental weakness and attributes, pulled from the [OSRS Wiki](https://oldschool.runescape.wiki). The PvM HUD uses it for the HP bar, aggro line and weakness. A weakness is the style with the lowest effective defence roll. To refresh it after a game update (needs Python 3):
@@ -99,4 +104,6 @@ python scripts/update_monster_data.py
 
 ## Credits
 
-The resource timer pies follow the logic worked out by these Plugin Hub plugins (BSD-2 licensed): [Tree Despawn Timer](https://github.com/CreativeTechGuy/tree-despawn-timer) by CreativeTechGuy, [MLM Despawn Timer](https://github.com/xetrics/mlm-despawn-timer), [Calcified Rock Despawn Timer](https://github.com/NotTeeZee/calcified-rocks-despawn-timer), [Daeyalt Mining Timer](https://github.com/Pvff13/daeyalt-mining-timer), [Fishing Spot Timer](https://github.com/ArnautS/FishingSpotTimer), [Fishing Spot Tracker](https://github.com/CharlesLillo/fishing-spot-tracker), [Star AFK Timer](https://github.com/silly-build/star-afk-timer) and [Salvaging AFK Timer](https://github.com/silly-build/salvaging-afk-timer). Timer lengths are from the OSRS Wiki.
+The resource timer pies follow the logic worked out by these Plugin Hub plugins (BSD-2 licensed): [Tree Despawn Timer](https://github.com/CreativeTechGuy/tree-despawn-timer) by CreativeTechGuy, [MLM Despawn Timer](https://github.com/xetrics/mlm-despawn-timer), [Calcified Rock Despawn Timer](https://github.com/NotTeeZee/calcified-rocks-despawn-timer), [Daeyalt Mining Timer](https://github.com/Pvff13/daeyalt-mining-timer), [Fishing Spot Timer](https://github.com/ArnautS/FishingSpotTimer), [Fishing Spot Tracker](https://github.com/CharlesLillo/fishing-spot-tracker), [Star AFK Timer](https://github.com/silly-build/star-afk-timer) and [Salvaging AFK Timer](https://github.com/silly-build/salvaging-afk-timer). Timer lengths are from the OSRS Wiki. Farming patch data is converted from RuneLite's Time Tracking plugin (BSD-2-Clause) by `scripts/update_farming_patches.py`.
+
+The plugin is built to pass the Plugin Hub review; see [docs/PLUGIN_HUB_COMPLIANCE.md](docs/PLUGIN_HUB_COMPLIANCE.md).
