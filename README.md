@@ -19,7 +19,7 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
   (style icon, plus the element's Strike spell icon for magic), your current combat style, DPS (per
   monster, per monster type or for the session), and last/max hit. It stays up for a few seconds after
   combat.
-- **Monster hover card**: hover any attackable monster for its HP, weakness (green when your style hits
+- **Monster hover card**: hover any attackable monster (with auto retaliate off, NPCs you can pickpocket show the Thieving card instead; Skilling > Skill Cards With Auto Retaliate Off) for its HP, weakness (green when your style hits
   it, red when it doesn't), what it attacks with, and aggression. Aggression follows the game's rules:
   monsters ignore players over twice their level (except in the Wilderness), God Wars followers go by
   your god items, vyre noble clothing and greegrees protect you, and any other wiki condition is shown
@@ -39,7 +39,7 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
 - Alerts when the crab is about to burrow and when it has moved.
 
 ### Slayer
-- Task card with kills left, kill rate and time to finish (Ctrl+Shift+S hides it).
+- Task card with kills left, kill rate and time to finish (Ctrl+Shift+S hides/shows it and says so in chat).
 - Warns when you fight a task monster without its required item (rock hammer, nose peg, mirror shield...).
 - Superior spawned and task complete alerts.
 
@@ -58,7 +58,8 @@ pies, and alerts that only fire for the resource you're working:
 | Firemaking | Pies on fires lit nearby showing how long they may burn |
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
-| Cooking | Range/fire card: the level each raw food you carry stops burning (with gauntlets if worn) |
+| Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |
+| Smithing | Anvil card: for each bar you carry, the best item you can make, how many and the XP, and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
 | Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish); pies on shipwrecks showing how long until they sink |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 
@@ -189,7 +190,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
-| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, Agility, Sailing |
+| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](VOICE_CREDITS.md)) |
 
 ## Planned: separate plugins

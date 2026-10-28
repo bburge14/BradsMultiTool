@@ -22,7 +22,8 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Shell green when you can mine it, red when you can't.
 
 ## Slayer
-- [ ] Task card, Ctrl+Shift+S hides/shows it, missing-item warning.
+- [ ] Task card, Ctrl+Shift+S hides/shows it (chat says hidden/shown), missing-item warning.
+- [ ] Kill rate survives walking between areas.
 
 ## Skilling cards (hover)
 - [ ] Trees, rocks, stalls, pickpocket NPCs, fishing spots (Bait at a sea spot shows sardine/herring, not pike).
@@ -30,7 +31,9 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Hunter creature card; bird house card on Fossil Island.
 - [ ] Runecraft altar card (runes per essence at your level).
 - [ ] Agility course obstacle card (laps to level) and a shortcut card.
-- [ ] Cooking: hover a range or fire with raw food in your inventory.
+- [ ] Cooking: hover a range or fire with raw food: each food shows XP (or the level it needs), burning, and XP for all.
+- [ ] Smithing: hover an anvil with bars (best item, how many, next unlock) and a furnace with ores (bars, how many with your coal).
+- [ ] Auto retaliate off: hovering a pickpocketable NPC whose left-click is Attack shows the Thieving card.
 - [ ] Sailing: charting spot (task text on its own lines, riddle answer for diving tasks), shipwreck (best hook) and shoal cards.
 - [ ] XP rates on cards only while you're training that skill.
 - [ ] An NPC walking past a tree doesn't change the card.

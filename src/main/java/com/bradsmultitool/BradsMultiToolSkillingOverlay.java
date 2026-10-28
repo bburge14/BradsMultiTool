@@ -6,6 +6,8 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
@@ -20,6 +22,7 @@ import net.runelite.api.ObjectComposition;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.Skill;
+import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
@@ -151,6 +154,12 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         if (config.showCookingHover() && isCookingSpot(target, option)) {
             return buildCookingCard(target.toLowerCase().contains("fire"));
         }
+        if (config.showSmithingHover() && (option.equals("smith") || target.equalsIgnoreCase("anvil"))) {
+            return buildAnvilCard();
+        }
+        if (config.showSmithingHover() && (option.equals("smelt") || target.equalsIgnoreCase("furnace"))) {
+            return buildFurnaceCard();
+        }
         return false;
     }
 
@@ -225,42 +234,148 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             || name.equals("stove") || name.equals("clay oven") || name.endsWith(" range");
     }
 
-    // Burn level of each raw food you're carrying, for this fire or range (and with cooking gauntlets if worn)
+    // Each raw food you're carrying: what it cooks into, its level and XP, and when it stops burning on
+    // this fire or range (with cooking gauntlets if worn)
     private boolean buildCookingCard(boolean fire) {
-        ItemContainer inventory = client.getItemContainer(93);
-        if (inventory == null) {
-            return false;
-        }
+        Map<String, Integer> carried = inventoryCounts();
         boolean gauntlets = ownedItemNames(94).contains("cooking gauntlets");
         int level = client.getBoostedSkillLevel(Skill.COOKING);
-        java.util.Set<String> seen = new java.util.HashSet<>();
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(fire ? "Fire" : "Range").color(TITLE_COLOR).build());
-        for (Item item : inventory.getItems()) {
-            if (item.getId() <= 0) {
+        double totalXp = 0;
+        boolean any = false;
+        for (Map.Entry<String, Integer> entry : carried.entrySet()) {
+            SkillHelperData.Recipe recipe = helpers.cooks(entry.getKey());
+            SkillHelperData.Food food = helpers.food(entry.getKey());
+            if (recipe == null && food == null) {
                 continue;
             }
-            String name = client.getItemDefinition(item.getId()).getName();
-            SkillHelperData.Food food = helpers.food(name);
-            if (food == null || !seen.add(food.name)) {
+            any = true;
+            String name = (recipe != null ? recipe.name : food.name) + " x" + entry.getValue();
+            if (recipe != null && level < recipe.level) {
+                header(name, "Needs Level " + recipe.level, BradsMultiToolOverlay.BAD);
                 continue;
             }
-            int stop = gauntlets && food.gauntlets > 0 ? food.gauntlets : fire ? food.fire : food.range;
-            if (stop <= 0) {
-                continue;
+            header(name, recipe != null ? trim(recipe.xp) + " XP" : "", BradsMultiToolOverlay.GOOD);
+            if (recipe != null) {
+                totalXp += recipe.xp * entry.getValue();
             }
-            boolean safe = level >= stop;
-            line(food.name + ":", stop >= 100 ? "Can always burn" : safe ? "Never burns" : "Stops at " + stop,
-                safe ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            int stop = food == null ? 0 : gauntlets && food.gauntlets > 0 ? food.gauntlets : fire ? food.fire : food.range;
+            if (stop > 0) {
+                line("  Burning:", stop >= 100 ? "Can always burn" : level >= stop ? "Never burns" : "Stops at Level " + stop,
+                    level >= stop && stop < 100 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            }
         }
-        if (seen.isEmpty()) {
+        if (!any) {
             line("Raw Food:", "None carried", Color.WHITE);
+        } else if (totalXp > 0) {
+            line("XP For All:", String.format("%,d", Math.round(totalXp)), Color.WHITE);
         }
         if (gauntlets) {
             line("", "With cooking gauntlets", new Color(180, 180, 180));
         }
         addYourRate(Skill.COOKING);
         return true;
+    }
+
+    // ---- Smithing ----
+
+    // For each kind of bar you carry: the best item you can make, how many, and the next unlock
+    private boolean buildAnvilCard() {
+        Map<String, Integer> carried = inventoryCounts();
+        int level = client.getBoostedSkillLevel(Skill.SMITHING);
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text("Anvil").color(TITLE_COLOR).build());
+        boolean any = false;
+        for (Map.Entry<String, Integer> entry : carried.entrySet()) {
+            List<SkillHelperData.Recipe> items = helpers.anvilItems(entry.getKey());
+            if (items.isEmpty()) {
+                continue;
+            }
+            any = true;
+            int bars = entry.getValue();
+            SkillHelperData.Recipe best = null;
+            SkillHelperData.Recipe next = null;
+            for (SkillHelperData.Recipe item : items) {
+                if (item.level <= level) {
+                    best = item;
+                } else if (next == null) {
+                    next = item;
+                }
+            }
+            if (best == null) {
+                header(entry.getKey() + " x" + bars, "Needs Level " + items.get(0).level, BradsMultiToolOverlay.BAD);
+                continue;
+            }
+            header(entry.getKey() + " x" + bars, "", Color.WHITE);
+            int perItem = best.materials.get(entry.getKey());
+            int makes = bars / perItem;
+            line("  Best: " + best.name, perItem + (perItem == 1 ? " bar" : " bars"), Color.WHITE);
+            line("  Makes:", makes + " (" + String.format("%,d", Math.round(makes * best.xp)) + " XP)",
+                makes > 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            if (next != null) {
+                line("  Next: " + next.name, "Level " + next.level, new Color(180, 180, 180));
+            }
+        }
+        if (!any) {
+            line("Bars:", "None carried", Color.WHITE);
+        }
+        addYourRate(Skill.SMITHING);
+        return true;
+    }
+
+    // Each bar the ores you carry can make: how many (coal included) and the XP, or the level it needs
+    private boolean buildFurnaceCard() {
+        Map<String, Integer> carried = inventoryCounts();
+        int level = client.getBoostedSkillLevel(Skill.SMITHING);
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text("Furnace").color(TITLE_COLOR).build());
+        boolean any = false;
+        for (SkillHelperData.Recipe bar : helpers.furnaceBars()) {
+            boolean hasOres = true;
+            int makes = Integer.MAX_VALUE;
+            for (Map.Entry<String, Integer> material : bar.materials.entrySet()) {
+                int have = carried.getOrDefault(material.getKey(), 0);
+                if (!"Coal".equals(material.getKey()) && have == 0) {
+                    hasOres = false;
+                }
+                makes = Math.min(makes, have / material.getValue());
+            }
+            if (!hasOres) {
+                continue;
+            }
+            any = true;
+            if (level < bar.level) {
+                header(bar.name, "Needs Level " + bar.level, BradsMultiToolOverlay.BAD);
+                continue;
+            }
+            header(bar.name, trim(bar.xp) + " XP each", Color.WHITE);
+            Integer coal = bar.materials.get("Coal");
+            line("  Makes:", makes + (makes > 0 ? " (" + String.format("%,d", Math.round(makes * bar.xp)) + " XP)" : ""),
+                makes > 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            if (coal != null && makes == 0) {
+                line("  Needs:", coal + " coal per bar", BradsMultiToolOverlay.WARN);
+            }
+        }
+        if (!any) {
+            line("Ores:", "None carried", Color.WHITE);
+        }
+        addYourRate(Skill.SMITHING);
+        return true;
+    }
+
+    /** Your inventory as item name -> how many, in inventory order. */
+    private Map<String, Integer> inventoryCounts() {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        ItemContainer inventory = client.getItemContainer(93);
+        if (inventory != null) {
+            for (Item item : inventory.getItems()) {
+                if (item.getId() > 0) {
+                    counts.merge(client.getItemDefinition(item.getId()).getName(), item.getQuantity(), Integer::sum);
+                }
+            }
+        }
+        return counts;
     }
 
     // ---- Sailing ----
@@ -498,7 +613,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         SkillingData.Pickpocket pickpocket = data.pickpocket(npc.getName());
         // Pickpocket is often not the left-click option (Talk-to is), so check all of the NPC's actions;
         // when Attack is left-click the monster card shows instead
-        if (pickpocket != null && hasAction(comp, "pickpocket") && !"attack".equalsIgnoreCase(topOption)) {
+        if (pickpocket != null && hasAction(comp, "pickpocket")
+            && (!"attack".equalsIgnoreCase(topOption) || preferSkilling(client, config))) {
             panel.getChildren().clear();
             panel.getChildren().add(TitleComponent.builder().text(npc.getName()).color(TITLE_COLOR).build());
             addRequirement(Skill.THIEVING, pickpocket.level);
@@ -538,6 +654,11 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         addYourRate(Skill.FISHING);
         return true;
+    }
+
+    /** Auto retaliate is off and the player wants skilling cards then (they're not out to fight). */
+    static boolean preferSkilling(Client client, BradsMultiToolConfig config) {
+        return config.skillingWhenNotRetaliating() && client.getVarpValue(VarPlayerID.OPTION_NODEF) == 1;
     }
 
     static boolean isPickpocketTarget(SkillingData data, NPC npc) {

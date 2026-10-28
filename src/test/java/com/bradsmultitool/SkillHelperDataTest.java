@@ -44,6 +44,35 @@ public class SkillHelperDataTest {
     }
 
     @Test
+    public void cookingAndSmithingRecipes() {
+        SkillHelperData.Recipe lobster = DATA.cooks("Raw lobster");
+        assertEquals("Lobster", lobster.name);
+        assertEquals(40, lobster.level);
+        assertEquals(120, lobster.xp, 0.01);
+        assertNull(DATA.cooks("Lobster"));
+
+        SkillHelperData.Recipe platebody = null;
+        for (SkillHelperData.Recipe item : DATA.anvilItems("Steel bar")) {
+            if (item.name.equals("Steel platebody")) {
+                platebody = item;
+            }
+        }
+        assertNotNull(platebody);
+        assertEquals(48, platebody.level);
+        assertEquals(5, (int) platebody.materials.get("Steel bar"));
+
+        SkillHelperData.Recipe steel = null;
+        for (SkillHelperData.Recipe bar : DATA.furnaceBars()) {
+            if (bar.name.equals("Steel bar")) {
+                steel = bar;
+            }
+        }
+        assertNotNull(steel);
+        assertEquals(2, (int) steel.materials.get("Coal"));
+        assertEquals(1, (int) steel.materials.get("Iron ore"));
+    }
+
+    @Test
     public void agilityCoursesAndShortcuts() {
         // Draynor rooftop's first obstacle, the rough wall
         SkillHelperData.Course draynor = DATA.courseFor(11404);

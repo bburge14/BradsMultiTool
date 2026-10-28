@@ -49,6 +49,8 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Hunter: creature hover, trap pies, bird house hover + ready alert | OK. Core Hunter and Time Tracking plugins show trap timers and bird house times |
 | Firemaking fire pies | OK. Plugin Hub has fire-timer |
 | Runecraft altar hover, Agility course/shortcut hover, Cooking burn levels | OK. Wiki information; core Agility plugin knows the same shortcuts and courses |
+| Cooking range/fire card (food levels, XP, burn levels), Smithing anvil/furnace cards | OK. Wiki recipe information and your own inventory; no menu or input changes |
+| Skilling card instead of monster card when auto retaliate is off | OK. Only chooses which of our own overlays to draw; reads the auto retaliate setting, changes nothing |
 | Coin pouch full, batch complete alerts | OK. Notifications only |
 | Skill tracker goals and auto-pause | OK. Same as the core XP Tracker |
 | Voice alerts (bundled clips) | OK |

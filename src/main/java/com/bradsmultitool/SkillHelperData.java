@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Singleton;
@@ -186,6 +187,24 @@ class SkillHelperData {
         }
     }
 
+    /** Something made from materials: a cooked food, a smithed item or a bar. */
+    static final class Recipe {
+        final String name;
+        final int level;
+        final double xp;
+        /** Material name -> how many one needs. */
+        final Map<String, Integer> materials = new LinkedHashMap<>();
+
+        Recipe(String name, int level, double xp) {
+            this.name = name;
+            this.level = level;
+            this.xp = xp;
+        }
+    }
+
+    private final Map<String, Recipe> cooking = new HashMap<>();
+    private final List<Recipe> anvil = new ArrayList<>();
+    private final List<Recipe> furnace = new ArrayList<>();
     private final List<ChartTask> chartTasks = new ArrayList<>();
     private final Map<String, Shipwreck> shipwrecks = new HashMap<>();
     private final List<int[]> hooks = new ArrayList<>();
@@ -200,6 +219,9 @@ class SkillHelperData {
 
     void load(Gson gson) {
         creatures.clear();
+        cooking.clear();
+        anvil.clear();
+        furnace.clear();
         chartTasks.clear();
         shipwrecks.clear();
         hooks.clear();
@@ -258,6 +280,27 @@ class SkillHelperData {
                 for (Map.Entry<String, JsonElement> e : sailing.getAsJsonObject("shoals").entrySet()) {
                     shoals.put(e.getKey(), new Shoal(e.getValue().getAsJsonObject()));
                 }
+                for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("cooking").entrySet()) {
+                    JsonObject o = e.getValue().getAsJsonObject();
+                    Recipe recipe = new Recipe(o.get("name").getAsString(), o.get("level").getAsInt(), number(o, "xp"));
+                    recipe.materials.put(e.getKey(), 1);
+                    cooking.put(e.getKey(), recipe);
+                }
+                JsonObject smithing = root.getAsJsonObject("smithing");
+                for (JsonElement e : smithing.getAsJsonArray("anvil")) {
+                    JsonObject o = e.getAsJsonObject();
+                    Recipe recipe = new Recipe(o.get("name").getAsString(), o.get("level").getAsInt(), number(o, "xp"));
+                    recipe.materials.put(o.get("bar").getAsString(), o.get("bars").getAsInt());
+                    anvil.add(recipe);
+                }
+                for (JsonElement e : smithing.getAsJsonArray("furnace")) {
+                    JsonObject o = e.getAsJsonObject();
+                    Recipe recipe = new Recipe(o.get("name").getAsString(), o.get("level").getAsInt(), number(o, "xp"));
+                    for (Map.Entry<String, JsonElement> m : o.getAsJsonObject("materials").entrySet()) {
+                        recipe.materials.put(m.getKey(), m.getValue().getAsInt());
+                    }
+                    furnace.add(recipe);
+                }
                 for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("shortcuts").entrySet()) {
                     shortcuts.put(Integer.parseInt(e.getKey()), new Shortcut(e.getValue().getAsJsonObject()));
                 }
@@ -291,6 +334,27 @@ class SkillHelperData {
             }
         }
         return null;
+    }
+
+    /** What a raw food cooks into on a range or fire ("Raw lobster" -> Lobster, level 40), or null. */
+    Recipe cooks(String rawName) {
+        return rawName == null ? null : cooking.get(rawName.toLowerCase());
+    }
+
+    /** Anvil items made from this bar, lowest level first. */
+    List<Recipe> anvilItems(String bar) {
+        List<Recipe> out = new ArrayList<>();
+        for (Recipe recipe : anvil) {
+            if (recipe.materials.containsKey(bar)) {
+                out.add(recipe);
+            }
+        }
+        return out;
+    }
+
+    /** Furnace bars, lowest level first. */
+    List<Recipe> furnaceBars() {
+        return furnace;
     }
 
     /** The Agility course this obstacle belongs to, or null. */

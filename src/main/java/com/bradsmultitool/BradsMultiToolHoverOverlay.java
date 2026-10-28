@@ -74,8 +74,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
 
     /**
      * The NPC of the left-click option (what the game's top-left tooltip names), or null if that option
-     * isn't on an NPC. Skipped when it can be pickpocketed and Attack isn't the left-click option, since
-     * the skilling card covers it instead.
+     * isn't on an NPC. Skipped when it can be pickpocketed and Attack isn't the left-click option (or auto
+     * retaliate is off), since the skilling card covers it instead.
      */
     private NPC hoveredNpc() {
         MenuEntry[] entries = client.getMenu().getMenuEntries();
@@ -88,7 +88,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
             return null;
         }
         boolean attack = "attack".equalsIgnoreCase(Text.removeTags(top.getOption()));
-        return !attack && config.showSkillingHover() && BradsMultiToolSkillingOverlay.isPickpocketTarget(skillingData, npc) ? null : npc;
+        boolean skillingFirst = !attack || BradsMultiToolSkillingOverlay.preferSkilling(client, config);
+        return skillingFirst && config.showSkillingHover() && BradsMultiToolSkillingOverlay.isPickpocketTarget(skillingData, npc) ? null : npc;
     }
 
     // The PvM HUD already covers the monster being fought, and others of the same kind

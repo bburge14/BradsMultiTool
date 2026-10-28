@@ -238,12 +238,78 @@ def sailing():
     return {"charting": tasks, "shipwrecks": wrecks, "hooks": hooks, "shoals": shoals}
 
 
+def recipes(skill):
+    """Every wiki recipe for a skill (the 'recipe' bucket's production data)."""
+    out, offset = [], 0
+    while True:
+        query = "bucket('recipe').select('page_name','production_json').where('uses_skill','%s').limit(500).offset(%d).run()"
+        rows = api({"action": "bucket", "query": query % (skill, offset)}).get("bucket", [])
+        out += [json.loads(row["production_json"]) for row in rows if row.get("production_json")]
+        if len(rows) < 500:
+            return out
+        offset += 500
+
+
+def skill_of(recipe, skill):
+    """(level, xp) for the skill in a recipe, or None when unknown."""
+    for entry in recipe.get("skills", []):
+        if entry.get("name") == skill and str(entry.get("level", "")).isdigit():
+            return int(entry["level"]), number(str(entry.get("experience", "0"))) or 0
+    return None
+
+
+def cooking():
+    """What each raw food cooks into on a range or fire: {raw name: {name, level, xp}}."""
+    out = {}
+    for recipe in recipes("Cooking"):
+        stats = skill_of(recipe, "Cooking")
+        if recipe.get("facilities") not in ("Cooking range", "Fire") or len(recipe["materials"]) != 1 or not stats:
+            continue
+        if not isinstance(recipe.get("output"), dict):
+            continue
+        name = recipe["output"]["name"]
+        raw = recipe["materials"][0]["name"]
+        if stats[1] <= 0 or name.lower().startswith("burnt"):
+            continue
+        if raw.lower() not in out or stats[1] > out[raw.lower()]["xp"]:
+            out[raw.lower()] = {"name": name, "level": stats[0], "xp": stats[1]}
+    return out
+
+
+def smithing():
+    """Anvil items (bar, bars needed, level, XP) and furnace bars (ores needed, level, XP)."""
+    anvil, furnace = [], []
+    for recipe in recipes("Smithing"):
+        stats = skill_of(recipe, "Smithing")
+        materials = {m["name"]: int(number(str(m.get("quantity", "1"))) or 1) for m in recipe.get("materials", [])}
+        if not stats or stats[1] <= 0 or "Smithing catalyst" in materials:
+            continue
+        output = recipe.get("output")
+        if not isinstance(output, dict):
+            continue
+        name = output["name"]
+        quantity = int(number(str(output.get("quantity", "1"))) or 1)
+        if recipe.get("facilities") == "Anvil" and len(materials) == 1:
+            bar, bars = next(iter(materials.items()))
+            if bar.endswith(" bar"):
+                anvil.append({"name": name + (" (%d)" % quantity if quantity > 1 else ""), "bar": bar, "bars": bars,
+                              "level": stats[0], "xp": stats[1]})
+        elif recipe.get("facilities") == "Furnace" and name.endswith(" bar") and "'" not in name:
+            furnace.append({"name": name, "materials": materials, "level": stats[0], "xp": stats[1]})
+    anvil.sort(key=lambda r: (r["bar"], r["level"], r["name"]))
+    furnace.sort(key=lambda r: r["level"])
+    return {"anvil": anvil, "furnace": furnace}
+
+
 def main():
     ids = object_ids()
     data = {"source": "oldschool.runescape.wiki; RuneLite (BSD-2-Clause)", "hunter": hunter(), "runecraft": runecraft(),
-            "burn": burn_levels(), "agility": courses(ids), "shortcuts": shortcuts(ids), "sailing": sailing()}
+            "burn": burn_levels(), "agility": courses(ids), "shortcuts": shortcuts(ids), "sailing": sailing(),
+            "cooking": cooking(), "smithing": smithing()}
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
+    print("Cooking: %d foods; Smithing: %d anvil items, %d bars" % (
+        len(data["cooking"]), len(data["smithing"]["anvil"]), len(data["smithing"]["furnace"])))
     print("Wrote %d hunter creatures, %d runes (%d altars), %d foods, %d courses (%d obstacles), %d shortcut objects to %s" % (
         len(data["hunter"]), len(data["runecraft"]["runes"]), len(data["runecraft"]["altars"]), len(data["burn"]),
         len(data["agility"]["courses"]), len(data["agility"]["obstacles"]), len(data["shortcuts"]), os.path.normpath(OUT)))

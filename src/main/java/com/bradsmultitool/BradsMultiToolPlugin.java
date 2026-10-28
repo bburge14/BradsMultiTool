@@ -63,6 +63,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.util.HotkeyListener;
 import net.runelite.client.eventbus.Subscribe;
@@ -212,11 +213,18 @@ public class BradsMultiToolPlugin extends Plugin {
         @Override
         public void hotkeyPressed() {
             slayerCardHidden = !slayerCardHidden;
+            // Say what happened, since without a task there's no card to see change
+            String state = slayerCardHidden ? "hidden" : slayerTracker.hadTask() ? "shown" : "shown (no Slayer task right now)";
+            clientThread.invokeLater(() -> client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
+                "<col=00ffff>[Brad's Multi-Tool]</col> Slayer card " + state, null));
         }
     };
 
     @Inject
     private BradsMultiToolConfig config;
+
+    @Inject
+    private ClientThread clientThread;
 
     @Inject
     private ConfigManager configManager;
@@ -778,12 +786,12 @@ public class BradsMultiToolPlugin extends Plugin {
         }
         if (event.getGameState() == GameState.LOGIN_SCREEN) {
             realLevels.clear();
+            slayerTracker.reset();
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
             inGameTicks = 0;
             characterWasActive = false;
             actionTicks = 0;
-            slayerTracker.reset();
             lastPlayerLocation = null;
             activeCrab = null;
             dormantCrabShellNpc = null;

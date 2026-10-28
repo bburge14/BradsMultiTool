@@ -1241,9 +1241,20 @@ public interface BradsMultiToolConfig extends Config {
         name = "Use Other Timer Plugins",
         description = "When you have another plugin on that draws the same timer (Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer/Tracker, Barbarian or Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, or RuneLite's Hunter plugin for traps), hide our pie for it so they don't stack",
         section = skillingSection,
-        position = 3
+        position = 4
     )
     default boolean deferToOtherTimerPlugins() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "skillingWhenNotRetaliating",
+        name = "Skill Cards With Auto Retaliate Off",
+        description = "With auto retaliate off, hovering an NPC you can also skill on (e.g. pickpocket) shows the skilling card instead of the monster card, even when Attack is the left-click option",
+        section = skillingSection,
+        position = 3
+    )
+    default boolean skillingWhenNotRetaliating() {
         return true;
     }
 
@@ -1252,7 +1263,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Inventory Full",
         description = "Alert when your inventory fills up while skilling",
         section = skillingSection,
-        position = 4
+        position = 5
     )
     default boolean inventoryFullAlert() {
         return true;
@@ -1263,7 +1274,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Inventory Full",
         description = "When your inventory fills while skilling (turning it on plays a preview)",
         section = skillingSection,
-        position = 5
+        position = 6
     )
     default boolean voiceInventoryFull() {
         return true;
@@ -1274,7 +1285,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Inventory Full",
         description = "Chat message when your inventory fills while skilling",
         section = skillingSection,
-        position = 6
+        position = 7
     )
     default boolean chatInventoryFull() {
         return true;
@@ -1285,7 +1296,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Resource Gone",
         description = "Alert when your tree falls, rock depletes or fishing spot moves",
         section = skillingSection,
-        position = 7
+        position = 8
     )
     default boolean resourceGoneAlert() {
         return true;
@@ -1296,7 +1307,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Batch Complete Alert",
         description = "Alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (you stop gaining XP and your character stops)",
         section = skillingSection,
-        position = 8
+        position = 9
     )
     default boolean batchCompleteAlert() {
         return true;
@@ -1307,7 +1318,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Batch Complete",
         description = "When your production batch finishes (turning it on plays a preview)",
         section = skillingSection,
-        position = 9
+        position = 10
     )
     default boolean voiceBatchComplete() {
         return true;
@@ -1318,7 +1329,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Batch Complete",
         description = "Chat message when your production batch finishes",
         section = skillingSection,
-        position = 10
+        position = 11
     )
     default boolean chatBatchComplete() {
         return true;
@@ -1649,7 +1660,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "showCookingHover",
         name = "Range / Fire Hover",
-        description = "Hovering a range or fire shows the burn level of each raw food you are carrying",
+        description = "Hovering a range or fire shows each raw food you are carrying: its level, XP and burn level",
         section = cookingSection,
         position = 1
     )
@@ -1684,6 +1695,25 @@ public interface BradsMultiToolConfig extends Config {
         position = 2
     )
     default boolean showSailingHover() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Smithing",
+        description = "Anvil and furnace cards",
+        position = 71,
+        closedByDefault = true
+    )
+    String smithingSection = "smithingSection";
+
+    @ConfigItem(
+        keyName = "showSmithingHover",
+        name = "Anvil / Furnace Hover",
+        description = "Hovering an anvil or furnace shows what you can make from the bars or ores you are carrying",
+        section = smithingSection,
+        position = 1
+    )
+    default boolean showSmithingHover() {
         return true;
     }
 
