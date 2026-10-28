@@ -62,7 +62,7 @@ pies, and alerts that only fire for the resource you're working:
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
 | Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |
-| Smithing | Anvil card: for each bar you carry, the best item you can make, how many and the XP, and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
+| Smithing | Anvil card: for each bar you carry, the best item you can make (most XP or most profit: Skilling > Best Choice By), how many, the XP (and profit at GE prices), and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
 | Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish); pies on shipwrecks showing how long until they sink |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 

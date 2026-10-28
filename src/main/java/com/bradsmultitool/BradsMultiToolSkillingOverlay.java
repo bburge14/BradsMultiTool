@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
@@ -22,6 +23,8 @@ import net.runelite.api.ObjectComposition;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.Skill;
+import net.runelite.client.game.ItemManager;
+import net.runelite.http.api.item.ItemPrice;
 import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.FontManager;
@@ -50,12 +53,15 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final SkillHelperData helpers;
     private final BirdhouseTracker birdhouses;
     private final SkillIconManager skillIcons;
+    private final ItemManager itemManager;
     private final PanelComponent panel = new PanelComponent();
+    // Grand Exchange price by item name (0 if unknown), looked up once
+    private final Map<String, Integer> prices = new HashMap<>();
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
                                          SkillingData data, FarmingData farming, SkillHelperData helpers,
-                                         BirdhouseTracker birdhouses, SkillIconManager skillIcons) {
+                                         BirdhouseTracker birdhouses, SkillIconManager skillIcons, ItemManager itemManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -64,6 +70,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         this.helpers = helpers;
         this.birdhouses = birdhouses;
         this.skillIcons = skillIcons;
+        this.itemManager = itemManager;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGHEST);
@@ -296,11 +303,17 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             int bars = entry.getValue();
             SkillHelperData.Recipe best = null;
             SkillHelperData.Recipe next = null;
+            boolean byProfit = config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT;
             for (SkillHelperData.Recipe item : items) {
-                if (item.level <= level) {
+                if (item.level > level) {
+                    if (next == null) {
+                        next = item;
+                    }
+                    continue;
+                }
+                // Most XP (or profit) per bar; on a tie the higher-level item, which uses more bars per click
+                if (best == null || perBar(item, entry.getKey(), byProfit) >= perBar(best, entry.getKey(), byProfit)) {
                     best = item;
-                } else if (next == null) {
-                    next = item;
                 }
             }
             if (best == null) {
@@ -313,6 +326,10 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             line("  Best: " + best.name, perItem + (perItem == 1 ? " bar" : " bars"), Color.WHITE);
             line("  Makes:", makes + " (" + String.format("%,d", Math.round(makes * best.xp)) + " XP)",
                 makes > 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            if (byProfit && makes > 0) {
+                long profit = Math.round(perBar(best, entry.getKey(), true) * makes * perItem);
+                line("  Profit:", String.format("%+,d gp", profit), profit >= 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            }
             if (next != null) {
                 line("  Next: " + next.name, "Level " + next.level, new Color(180, 180, 180));
             }
@@ -356,12 +373,43 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             if (coal != null && makes == 0) {
                 line("  Needs:", coal + " coal per bar", BradsMultiToolOverlay.WARN);
             }
+            if (config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT && makes > 0) {
+                double each = price(bar.name);
+                for (Map.Entry<String, Integer> material : bar.materials.entrySet()) {
+                    each -= price(material.getKey()) * (double) material.getValue();
+                }
+                long profit = Math.round(each * makes);
+                line("  Profit:", String.format("%+,d gp", profit), profit >= 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            }
         }
         if (!any) {
             line("Ores:", "None carried", Color.WHITE);
         }
         addYourRate(Skill.SMITHING);
         return true;
+    }
+
+    // XP, or GE profit (item value less the bars), per bar used
+    private double perBar(SkillHelperData.Recipe recipe, String bar, boolean byProfit) {
+        int bars = recipe.materials.get(bar);
+        if (!byProfit) {
+            return recipe.xp / bars;
+        }
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(.*) \\((\\d+)\\)$").matcher(recipe.name);
+        String item = m.matches() ? m.group(1) : recipe.name;
+        int quantity = m.matches() ? Integer.parseInt(m.group(2)) : 1;
+        return (price(item) * (double) quantity - price(bar) * (double) bars) / bars;
+    }
+
+    private int price(String itemName) {
+        return prices.computeIfAbsent(itemName, name -> {
+            for (ItemPrice price : itemManager.search(name)) {
+                if (price.getName().equalsIgnoreCase(name)) {
+                    return (int) price.getPrice();
+                }
+            }
+            return 0;
+        });
     }
 
     /** Your inventory as item name -> how many, in inventory order. */

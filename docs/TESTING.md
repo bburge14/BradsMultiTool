@@ -35,6 +35,7 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Agility course obstacle card (laps to level) and a shortcut card.
 - [ ] Cooking: hover a range or fire with raw food: each food shows XP (or the level it needs), burning, and XP for all.
 - [ ] Smithing: hover an anvil with bars (best item, how many, next unlock) and a furnace with ores (bars, how many with your coal).
+- [ ] Skilling > Best Choice By = Most profit: anvil Best changes to the most profitable item and a Profit line appears (anvil and furnace).
 - [ ] Auto retaliate off: hovering a pickpocketable NPC whose left-click is Attack shows the Thieving card.
 - [ ] Sailing: charting spot (task text on its own lines, riddle answer for diving tasks), shipwreck (best hook) and shoal cards.
 - [ ] XP rates on cards only while you're training that skill.
