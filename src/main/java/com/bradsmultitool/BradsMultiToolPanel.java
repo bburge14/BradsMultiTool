@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,9 @@ public class BradsMultiToolPanel extends PluginPanel {
     // New issue on GitHub with a short template filled in
     private static final String NEW_ISSUE_URL = "https://github.com/bburge14/bradsmultitool/issues/new?body="
         + encode("**What happened?**\n\n\n**What did you expect?**\n\n\n**What were you doing / where in game?**\n\n");
+
+    private static final Set<Skill> COMBAT_SKILLS = EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE,
+        Skill.HITPOINTS, Skill.RANGED);
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Color ACCENT_COLOR = new Color(0, 220, 220);
@@ -256,8 +260,11 @@ public class BradsMultiToolPanel extends PluginPanel {
             rows.add(gainedValue);
             rows.add(remainingLabel);
             rows.add(remainingValue);
-            rows.add(actionsLabel);
-            rows.add(actionsValue);
+            // Combat XP comes per hit, not per action, so the count means nothing there
+            if (!COMBAT_SKILLS.contains(skill)) {
+                rows.add(actionsLabel);
+                rows.add(actionsValue);
+            }
             rows.add(rowLabel("Rate (XP/Hr):"));
             rows.add(perHourValue);
             rows.add(perMinuteLabel);
