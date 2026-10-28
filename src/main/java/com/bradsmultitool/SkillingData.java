@@ -33,9 +33,6 @@ class SkillingData {
         final double xp;
         /** Woodcutting: ticks of chopping before the tree falls (Forestry), 0 if unknown or one log. */
         final int chopTicks;
-        final double respawnSeconds;
-        /** Upper end when the respawn time is random (e.g. regular trees, 36-60s); same as respawnSeconds otherwise. */
-        final double respawnMaxSeconds;
         /** Trees felled after one log (regular, dead, evergreen...). */
         final boolean oneLog;
         final int xpPerHour;
@@ -46,8 +43,6 @@ class SkillingData {
             level = o.has("level") ? o.get("level").getAsInt() : 0;
             xp = o.has("xp") ? o.get("xp").getAsDouble() : 0;
             chopTicks = o.has("chopTicks") ? o.get("chopTicks").getAsInt() : 0;
-            respawnSeconds = o.has("respawnSeconds") ? o.get("respawnSeconds").getAsDouble() : 0;
-            respawnMaxSeconds = o.has("respawnMaxSeconds") ? o.get("respawnMaxSeconds").getAsDouble() : respawnSeconds;
             oneLog = o.has("oneLog") && o.get("oneLog").getAsBoolean();
             xpPerHour = o.has("xpPerHour") ? o.get("xpPerHour").getAsInt() : 0;
         }

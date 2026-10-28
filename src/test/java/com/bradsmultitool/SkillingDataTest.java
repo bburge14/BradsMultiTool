@@ -36,17 +36,12 @@ public class SkillingDataTest {
         SkillingData.Resource silk = DATA.object(11729, null);
         assertEquals("Silk stall", silk.name);
         assertEquals(20, silk.level);
-        assertEquals(4.8, silk.respawnSeconds, 0.001);
     }
 
     @Test
-    public void respawnTimes() {
-        SkillingData.Resource tree = DATA.object(1276, null);
-        assertTrue(tree.oneLog);
-        assertEquals(36, tree.respawnSeconds, 0.001);
-        assertEquals(60, tree.respawnMaxSeconds, 0.001);
-        assertEquals(720, DATA.object(-5, "Runite rocks").respawnSeconds, 0.001);
-        assertEquals(5.4, DATA.object(11364, null).respawnSeconds, 0.001);
+    public void regularTreesGiveOneLog() {
+        assertTrue(DATA.object(1276, null).oneLog);
+        assertTrue(!DATA.object(10819, null).oneLog);
     }
 
     @Test

@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,8 @@ public class MonsterData {
         final List<String> attributes;
         /** How the monster attacks, as written on the wiki, e.g. "Slash", "Magic", "Dragonfire". */
         public final List<String> attackStyles;
+        /** The wiki's aggression condition, e.g. "Yes, unless wearing a Bandos-affiliated item"; null if plain. */
+        final String aggroNote;
 
         private Stats(JsonArray a) {
             hitpoints = intAt(a, 0);
@@ -71,6 +74,7 @@ public class MonsterData {
                 }
             }
             attackStyles = Collections.unmodifiableList(styles);
+            aggroNote = a.size() > 15 && !a.get(15).isJsonNull() ? a.get(15).getAsString() : null;
         }
 
         private static int intAt(JsonArray a, int i) {
@@ -119,6 +123,10 @@ public class MonsterData {
 
     public Stats get(int npcId) {
         return byId.get(npcId);
+    }
+
+    Collection<Stats> allStats() {
+        return byId.values();
     }
 
     /**

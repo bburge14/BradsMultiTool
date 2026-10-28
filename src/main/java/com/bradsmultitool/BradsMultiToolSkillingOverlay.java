@@ -27,12 +27,13 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
+import net.runelite.client.ui.overlay.components.ProgressPieComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 import net.runelite.client.util.Text;
 
 /**
- * Hover card for trees, rocks, stalls, pickpocket targets and fishing spots, plus a time-left label
- * above the tree you're chopping.
+ * Hover card for trees, rocks, stalls, pickpocket targets and fishing spots, plus a time-left pie
+ * over the tree you're chopping.
  */
 public class BradsMultiToolSkillingOverlay extends Overlay {
 
@@ -45,6 +46,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final SkillingData data;
     private final TreeTimer treeTimer;
     private final PanelComponent panel = new PanelComponent();
+    private final ProgressPieComponent pie = new ProgressPieComponent();
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
@@ -58,6 +60,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGHEST);
         panel.setPreferredSize(new Dimension(205, 0));
+        pie.setDiameter(22);
     }
 
     @Override
@@ -69,7 +72,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         graphics.setFont(FontManager.getRunescapeSmallFont());
 
         if (config.showTreeTimer()) {
-            drawTreeLabel(graphics);
+            drawTreePie(graphics);
         }
         if (config.showSkillingHover() && !client.isMenuOpen() && buildCard()) {
             CursorTooltip.render(client, graphics, panel);
@@ -77,45 +80,49 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         return null;
     }
 
-    private void drawTreeLabel(Graphics2D graphics) {
+    // A pie over the tree you're chopping that empties as it nears falling (green, then yellow, then red)
+    private void drawTreePie(Graphics2D graphics) {
         WorldPoint tree = treeTimer.getTree();
         int ticks = treeTimer.ticksLeft();
-        if (tree == null || ticks < 0) {
+        if (tree == null || ticks < 0 || treeTimer.totalTicks() <= 0) {
             return;
         }
         LocalPoint local = LocalPoint.fromWorld(client.getTopLevelWorldView(), tree);
         if (local == null) {
             return;
         }
-        String text = "~" + Math.round(ticks * 0.6) + "s";
-        Point at = Perspective.getCanvasTextLocation(client, graphics, local, text, 200);
+        Point at = Perspective.localToCanvas(client, local, client.getTopLevelWorldView().getPlane(), 160);
         if (at == null) {
             return;
         }
-        double left = treeTimer.totalTicks() > 0 ? (double) ticks / treeTimer.totalTicks() : 1;
+        double left = Math.max(0, Math.min(1, (double) ticks / treeTimer.totalTicks()));
         Color color = left > 0.5 ? BradsMultiToolOverlay.GOOD : left > 0.2 ? BradsMultiToolOverlay.WARN : BradsMultiToolOverlay.BAD;
-        graphics.setColor(Color.BLACK);
-        graphics.drawString(text, at.getX() + 1, at.getY() + 1);
-        graphics.setColor(color);
-        graphics.drawString(text, at.getX(), at.getY());
+        pie.setPosition(at);
+        pie.setProgress(left);
+        pie.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 150));
+        pie.setBorderColor(color);
+        pie.render(graphics);
     }
 
-    /** Fills the panel for whatever skilling target is under the cursor; false if there isn't one. */
+    /**
+     * Fills the panel for the skilling target of the left-click option (what the game's top-left
+     * tooltip names), so an NPC walking past a tree doesn't change the card; false if there isn't one.
+     */
     private boolean buildCard() {
         MenuEntry[] entries = client.getMenu().getMenuEntries();
-        for (int i = entries.length - 1; i >= 0; i--) {
-            MenuEntry entry = entries[i];
-            NPC npc = entry.getNpc();
-            if (npc != null) {
-                return buildNpcCard(npc, Text.removeTags(entry.getOption()));
-            }
-            if (isObjectAction(entry.getType())) {
-                SkillingData.Resource resource = data.object(entry.getIdentifier(), Text.removeTags(entry.getTarget()));
-                if (resource != null) {
-                    buildResourceCard(resource);
-                    return true;
-                }
-                return false;
+        if (entries.length == 0) {
+            return false;
+        }
+        MenuEntry entry = entries[entries.length - 1];
+        NPC npc = entry.getNpc();
+        if (npc != null) {
+            return buildNpcCard(npc, Text.removeTags(entry.getOption()));
+        }
+        if (isObjectAction(entry.getType())) {
+            SkillingData.Resource resource = data.object(entry.getIdentifier(), Text.removeTags(entry.getTarget()));
+            if (resource != null) {
+                buildResourceCard(resource);
+                return true;
             }
         }
         return false;
@@ -149,12 +156,6 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             if (treeTimer.getTree() != null && treeTimer.totalTicks() == r.chopTicks && treeTimer.ticksLeft() >= 0) {
                 line("Time Left:", "~" + Math.round(treeTimer.ticksLeft() * 0.6) + "s", Color.WHITE);
             }
-        }
-        if (r.respawnSeconds > 0) {
-            String respawn = r.respawnMaxSeconds > r.respawnSeconds
-                ? duration(r.respawnSeconds) + "-" + duration(r.respawnMaxSeconds)
-                : duration(r.respawnSeconds);
-            line("Respawn:", respawn, Color.WHITE);
         }
         if (r.xpPerHour > 0) {
             line("Wiki XP/hr:", NUMBER.format(r.xpPerHour), Color.WHITE);
@@ -289,15 +290,6 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         } catch (IllegalArgumentException e) {
             return null;
         }
-    }
-
-    // 8.4s, 2m, 1m 30s
-    private static String duration(double seconds) {
-        if (seconds < 60) {
-            return trim(seconds) + "s";
-        }
-        long total = Math.round(seconds);
-        return total % 60 == 0 ? (total / 60) + "m" : (total / 60) + "m " + (total % 60) + "s";
     }
 
     private static String trim(double value) {

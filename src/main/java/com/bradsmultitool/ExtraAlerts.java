@@ -82,7 +82,7 @@ class ExtraAlerts {
 
     private void alert(VoiceAlertService.VoiceLine line, String chat) {
         plugin.speak(line);
-        plugin.sendGameChatMessage(chat);
+        plugin.sendGameChatMessage(AlertType.of(line), chat);
     }
 
     @Subscribe

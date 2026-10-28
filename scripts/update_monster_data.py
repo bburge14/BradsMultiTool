@@ -23,6 +23,16 @@ FIELDS = [
     "light_range_defence_bonus", "standard_range_defence_bonus", "heavy_range_defence_bonus",
     "elemental_weakness", "elemental_weakness_percent", "is_aggressive", "attribute", "attack_style",
 ]
+# Index 15 (after the fields above): the wiki's aggression condition, e.g.
+# "Yes, unless wearing a Bandos-affiliated item"; null when it's a plain Yes or No.
+
+
+def aggro_note(value):
+    if not isinstance(value, str):
+        return None
+    text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", value)
+    text = re.sub(r"<[^>]+>|\{\{[^}]*\}\}", "", text).strip()
+    return None if text.lower().rstrip(".") in ("yes", "no", "none", "n/a", "") else text
 
 
 def fetch(offset):
@@ -92,6 +102,7 @@ def main():
             1 if isinstance(aggressive, str) and aggressive.lower().startswith("yes") else 0,
             [a.lower() for a in attributes],
             as_list(row.get("attack_style")),
+            aggro_note(aggressive),
         ]
         ids = row.get("id") or []
         if isinstance(ids, str):

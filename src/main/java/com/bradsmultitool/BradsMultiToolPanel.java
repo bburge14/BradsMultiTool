@@ -9,6 +9,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -18,6 +20,7 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -31,14 +34,22 @@ import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.util.LinkBrowser;
 
 public class BradsMultiToolPanel extends PluginPanel {
+
+    // New issue on GitHub with a short template filled in
+    private static final String NEW_ISSUE_URL = "https://github.com/bburge14/bradsmultitool/issues/new?body="
+        + encode("**What happened?**\n\n\n**What did you expect?**\n\n\n**What were you doing / where in game?**\n\n");
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Color ACCENT_COLOR = new Color(0, 220, 220);
     private static final Color LEVEL_COLOR = new Color(80, 200, 255);
     private static final Color LABEL_COLOR = new Color(190, 190, 190);
-    private static final Color BAR_FILL = new Color(15, 165, 105);
+    // Level progress bar: red under a third of the way, orange under two thirds, then green
+    private static final Color BAR_LOW = new Color(190, 45, 40);
+    private static final Color BAR_MID = new Color(225, 135, 25);
+    private static final Color BAR_HIGH = new Color(15, 165, 105);
     private static final Color BAR_BACKGROUND = new Color(60, 60, 60);
 
     private final BradsMultiToolPlugin plugin;
@@ -100,10 +111,28 @@ public class BradsMultiToolPanel extends PluginPanel {
         cardsWrapper.setBackground(ColorScheme.DARK_GRAY_COLOR);
         cardsWrapper.add(cardsContainer, BorderLayout.NORTH);
 
+        JButton reportButton = new JButton("Report an Issue");
+        reportButton.setToolTipText("Open a new issue on the plugin's GitHub page");
+        reportButton.setFocusPainted(false);
+        reportButton.addActionListener(e -> LinkBrowser.browse(NEW_ISSUE_URL));
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        footer.setBorder(new EmptyBorder(10, 0, 0, 0));
+        footer.add(reportButton, BorderLayout.CENTER);
+
         add(header, BorderLayout.NORTH);
         add(cardsWrapper, BorderLayout.CENTER);
+        add(footer, BorderLayout.SOUTH);
 
         updatePanel();
+    }
+
+    private static String encode(String text) {
+        try {
+            return URLEncoder.encode(text, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        }
     }
 
     /**
@@ -345,7 +374,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             int h = getHeight();
             g.setColor(BAR_BACKGROUND);
             g.fillRect(0, 0, w, h);
-            g.setColor(BAR_FILL);
+            g.setColor(progress < 1 / 3.0 ? BAR_LOW : progress < 2 / 3.0 ? BAR_MID : BAR_HIGH);
             g.fillRect(0, 0, (int) (w * progress), h);
 
             String text = String.format("%.1f%%", progress * 100);

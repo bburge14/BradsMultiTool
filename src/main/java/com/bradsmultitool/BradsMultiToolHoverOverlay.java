@@ -73,19 +73,22 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     }
 
     /**
-     * The NPC under the cursor, from the top-most menu entry that targets one. Skipped when it can be
-     * pickpocketed and Attack isn't the left-click option, since the skilling card covers it instead.
+     * The NPC of the left-click option (what the game's top-left tooltip names), or null if that option
+     * isn't on an NPC. Skipped when it can be pickpocketed and Attack isn't the left-click option, since
+     * the skilling card covers it instead.
      */
     private NPC hoveredNpc() {
         MenuEntry[] entries = client.getMenu().getMenuEntries();
-        for (int i = entries.length - 1; i >= 0; i--) {
-            NPC npc = entries[i].getNpc();
-            if (npc != null) {
-                boolean attack = "attack".equalsIgnoreCase(Text.removeTags(entries[i].getOption()));
-                return !attack && config.showSkillingHover() && BradsMultiToolSkillingOverlay.isPickpocketTarget(skillingData, npc) ? null : npc;
-            }
+        if (entries.length == 0) {
+            return null;
         }
-        return null;
+        MenuEntry top = entries[entries.length - 1];
+        NPC npc = top.getNpc();
+        if (npc == null) {
+            return null;
+        }
+        boolean attack = "attack".equalsIgnoreCase(Text.removeTags(top.getOption()));
+        return !attack && config.showSkillingHover() && BradsMultiToolSkillingOverlay.isPickpocketTarget(skillingData, npc) ? null : npc;
     }
 
     // The PvM HUD already covers the monster being fought, and others of the same kind
@@ -135,11 +138,13 @@ public class BradsMultiToolHoverOverlay extends Overlay {
                 String.join(", ", stats.attackStyles), Color.WHITE));
         }
 
-        boolean aggressive = stats != null && stats.aggressive;
+        // To you specifically: your combat level, the Wilderness and god items / vyre clothing / greegrees
+        Aggression.Verdict aggro = plugin.aggressionFor(npc);
         panel.getChildren().add(LineComponent.builder()
             .left("Aggressive:")
-            .right(stats == null ? "Unknown" : aggressive ? "Yes" : "No")
-            .rightColor(aggressive ? BradsMultiToolOverlay.WARN : Color.WHITE)
+            .right(aggro.text)
+            .rightColor(aggro.state == Aggression.State.YES ? BradsMultiToolOverlay.WARN
+                : aggro.state == Aggression.State.NO ? BradsMultiToolOverlay.GOOD : Color.WHITE)
             .build());
     }
 

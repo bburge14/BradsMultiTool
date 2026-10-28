@@ -187,7 +187,7 @@ class SlayerTracker {
         if (target != null && isTaskMonster(target)) {
             missingItemAlerted = true;
             plugin.speak(VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING);
-            plugin.sendGameChatMessage("You need a " + requirement.display.toLowerCase() + " for " + taskName.toLowerCase() + "!");
+            plugin.sendGameChatMessage(AlertType.SLAYER_ITEM, "You need a " + requirement.display.toLowerCase() + " for " + taskName.toLowerCase() + "!");
         }
     }
 

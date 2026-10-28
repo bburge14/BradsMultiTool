@@ -3,16 +3,16 @@
 A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 
 - **Gemstone Crab HUD & radar** – outlines the active crab, dormant shell, and cave tunnels; shows crab HP, burrow ETA, XP type (from same-tick XP drops), crab damage/DPS, and session last/max hit. Voice + chat alert when the crab relocates.
-- **General PvM HUD** – target HP bar, aggro timer, weakness hint, combat style, DPS (per encounter / per monster type / continuous session), last/max hit. Lingers after combat for a configurable time.
+- **General PvM HUD** – target HP bar, aggro timer, whether a monster is aggressive *to you* (your combat level vs. twice its level, the Wilderness, god items in God Wars, vyre noble clothing, greegrees), weakness hint, combat style, DPS (per encounter / per monster type / continuous session), last/max hit. Lingers after combat for a configurable time.
 - **Buff & prayer alerts** – detects when combat potion boosts expire and when prayer runs low or out, with optional repeats, chat messages, and an overhead "OUT OF PRAYER" flash.
 - **AFK alert** – when you were fighting or skilling and your character stopped, with no clicks or key presses since (banking and menus don't count).
 - **Idle logout warning** – desktop notification, voice and chat alert, and HUD countdown before the idle logout (follows RuneLite's Logout Timer plugin if you've lengthened the timeout).
 - **Combat alerts** – special attack ready, antifire / poison protection running out, poisoned / venomed, stamina worn off, low ammo, out of runes, cannon low.
 - **Slayer** – task card with kills left, kill rate and time to finish; warns when fighting a task monster without its required item (rock hammer, nose peg, mirror shield…); superior and task-complete alerts.
-- **Skilling** – hover card for trees, rocks, stalls, pickpocket targets and fishing spots (level, XP, how long it lasts, respawn time, tools coloured by metal, your rate), a time-left estimate over the tree you're chopping, and inventory-full / tree-gone / rock-depleted / fishing-spot-moved alerts.
+- **Skilling** – hover card for trees, rocks, stalls, pickpocket targets and fishing spots (level, XP, how long it lasts, tools coloured by metal, your rate), a countdown pie over the tree you're chopping, and inventory-full / tree-gone / rock-depleted / fishing-spot-moved alerts.
 - **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, level progress bar, XP remaining, actions left to level (from your last XP drop), and time-to-level; right-click a skill to pause, reset, or hide it.
 
-No alert fires until you're past the welcome screen, and anything already true when you log in (low prayer, say) isn't announced. Every spoken alert can be turned off under **Voice Alerts** in the settings (or all at once with **General → Voice Alerts**).
+No alert fires until you're past the welcome screen, and anything already true when you log in (low prayer, say) isn't announced. Every alert's voice and chat message can be turned off separately under **Voice Alerts** and **Chat Messages** in the settings (or all at once in **General**). The **Report an Issue** button at the bottom of the sidebar panel opens a new GitHub issue.
 
 Voice alerts are pre-recorded clips bundled with the plugin (11 personas generated with [Piper](https://github.com/rhasspy/piper); see [VOICE_CREDITS.md](VOICE_CREDITS.md)), so they work on any OS. Regenerate them with `scripts/generate_voice_clips.py` after changing a line.
 

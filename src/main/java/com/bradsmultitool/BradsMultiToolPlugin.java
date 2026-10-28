@@ -101,6 +101,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int COMBAT_IDLE_LOGOUT_CYCLES = 60000;
     // Login: alerts wait until the welcome screen's "Click here to play" is gone, then a few ticks more
     private static final int WELCOME_SCREEN_GROUP = 378;
+    private static final int INSIDE_WILDERNESS_VARBIT = 5963;
     private static final int BANK_GROUP = 12;
     private static final int IN_GAME_SETTLE_TICKS = 3;
     // Repeat counter value meaning "already handled, don't sound or repeat"
@@ -330,6 +331,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private boolean pvmTargetIsAggressive = false;
+    private String pvmTargetAggroText = "";
 
     @Getter
     private String pvmAggroStatusText = "Passive";
@@ -487,66 +489,14 @@ public class BradsMultiToolPlugin extends Plugin {
         voiceService.speakAsync(line, config.voicePersona(), config.voiceVolume());
     }
 
-    // The Voice Alerts toggle for each line
     private boolean voiceAllowed(VoiceAlertService.VoiceLine line) {
-        switch (line) {
-            case BUFF_LOW: case MELEE_BUFF_LOW: case RANGED_BUFF_LOW: case MAGIC_BUFF_LOW: case DEFENCE_BUFF_LOW:
-                return config.voiceBuffLow();
-            case BUFF_EXPIRED: case MELEE_BUFF_EXPIRED: case RANGED_BUFF_EXPIRED: case MAGIC_BUFF_EXPIRED:
-            case DEFENCE_BUFF_EXPIRED:
-                return config.voiceBuffExpired();
-            case HEALTH_LOW: return config.voiceHealthLow();
-            case PRAYER_LOW: case OUT_OF_PRAYER: return config.voicePrayerLow();
-            case SPEC_READY: return config.voiceSpecReady();
-            case ANTIFIRE_LOW: return config.voiceAntifire();
-            case POISONED: case VENOMED: case ANTIPOISON_LOW: return config.voicePoison();
-            case STAMINA_EXPIRED: return config.voiceStamina();
-            case AMMO_LOW: return config.voiceAmmo();
-            case OUT_OF_RUNES: return config.voiceRunes();
-            case CANNON_LOW: return config.voiceCannon();
-            case SLAYER_ITEM_MISSING: return config.voiceSlayerItem();
-            case SUPERIOR_SPAWNED: return config.voiceSuperior();
-            case TASK_COMPLETE: return config.voiceTaskComplete();
-            case CHARACTER_IDLE: return config.voiceCharacterIdle();
-            case IDLE_LOGOUT: return config.voiceIdleLogout();
-            case CRAB_MOVED: return config.voiceCrabMoved();
-            case CRAB_LOW_HEALTH: return config.voiceCrabLowHealth();
-            case INVENTORY_FULL: return config.voiceInventoryFull();
-            case TREE_GONE: return config.voiceTreeGone();
-            case ROCK_DEPLETED: return config.voiceRockDepleted();
-            case FISHING_SPOT_MOVED: return config.voiceFishingSpot();
-            default:
-                // Per-potion lines: POTION_<NAME>_LOW / _EXPIRED
-                return line.name().endsWith("_LOW") ? config.voiceBuffLow() : config.voiceBuffExpired();
-        }
+        return toggle(AlertType.of(line).voiceKey);
     }
 
-    // Sample line played when a Voice Alerts toggle is turned on
-    private static final Map<String, VoiceAlertService.VoiceLine> VOICE_PREVIEWS = new HashMap<>();
-
-    static {
-        VOICE_PREVIEWS.put("voiceBuffLow", VoiceAlertService.VoiceLine.BUFF_LOW);
-        VOICE_PREVIEWS.put("voiceBuffExpired", VoiceAlertService.VoiceLine.BUFF_EXPIRED);
-        VOICE_PREVIEWS.put("voiceHealthLow", VoiceAlertService.VoiceLine.HEALTH_LOW);
-        VOICE_PREVIEWS.put("voicePrayerLow", VoiceAlertService.VoiceLine.PRAYER_LOW);
-        VOICE_PREVIEWS.put("voiceSpecReady", VoiceAlertService.VoiceLine.SPEC_READY);
-        VOICE_PREVIEWS.put("voiceAntifire", VoiceAlertService.VoiceLine.ANTIFIRE_LOW);
-        VOICE_PREVIEWS.put("voicePoison", VoiceAlertService.VoiceLine.POISONED);
-        VOICE_PREVIEWS.put("voiceStamina", VoiceAlertService.VoiceLine.STAMINA_EXPIRED);
-        VOICE_PREVIEWS.put("voiceAmmo", VoiceAlertService.VoiceLine.AMMO_LOW);
-        VOICE_PREVIEWS.put("voiceRunes", VoiceAlertService.VoiceLine.OUT_OF_RUNES);
-        VOICE_PREVIEWS.put("voiceCannon", VoiceAlertService.VoiceLine.CANNON_LOW);
-        VOICE_PREVIEWS.put("voiceSlayerItem", VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING);
-        VOICE_PREVIEWS.put("voiceSuperior", VoiceAlertService.VoiceLine.SUPERIOR_SPAWNED);
-        VOICE_PREVIEWS.put("voiceTaskComplete", VoiceAlertService.VoiceLine.TASK_COMPLETE);
-        VOICE_PREVIEWS.put("voiceCharacterIdle", VoiceAlertService.VoiceLine.CHARACTER_IDLE);
-        VOICE_PREVIEWS.put("voiceIdleLogout", VoiceAlertService.VoiceLine.IDLE_LOGOUT);
-        VOICE_PREVIEWS.put("voiceCrabMoved", VoiceAlertService.VoiceLine.CRAB_MOVED);
-        VOICE_PREVIEWS.put("voiceCrabLowHealth", VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH);
-        VOICE_PREVIEWS.put("voiceInventoryFull", VoiceAlertService.VoiceLine.INVENTORY_FULL);
-        VOICE_PREVIEWS.put("voiceTreeGone", VoiceAlertService.VoiceLine.TREE_GONE);
-        VOICE_PREVIEWS.put("voiceRockDepleted", VoiceAlertService.VoiceLine.ROCK_DEPLETED);
-        VOICE_PREVIEWS.put("voiceFishingSpot", VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED);
+    // A Voice Alerts / Chat Messages switch; all default to on
+    private boolean toggle(String key) {
+        String value = configManager.getConfiguration(CONFIG_GROUP, key);
+        return value == null || Boolean.parseBoolean(value);
     }
 
     public String getPvmTargetHp() {
@@ -557,8 +507,9 @@ public class BradsMultiToolPlugin extends Plugin {
         return crabCombatXpType;
     }
 
-    void sendGameChatMessage(String message) {
-        if (config.sendChatMessages() && alertsReady()) {
+    /** Posts an alert in chat, if you're in game and its chat message is turned on. */
+    void sendGameChatMessage(AlertType type, String message) {
+        if (config.sendChatMessages() && alertsReady() && toggle(type.chatKey)) {
             client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> " + message, null);
         }
     }
@@ -572,8 +523,12 @@ public class BradsMultiToolPlugin extends Plugin {
         String key = event.getKey();
         if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
             previewVoice();
-        } else if (VOICE_PREVIEWS.containsKey(key) && Boolean.parseBoolean(event.getNewValue())) {
-            playVoice(VOICE_PREVIEWS.get(key));
+        } else if (Boolean.parseBoolean(event.getNewValue())) {
+            for (AlertType type : AlertType.values()) {
+                if (type.voiceKey.equals(key)) {
+                    playVoice(type.preview);
+                }
+            }
         }
     }
 
@@ -744,7 +699,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 if (config.voiceCrabMoved()) {
                     speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
                 }
-                sendGameChatMessage("The Gemstone Crab has relocated to another cave!");
+                sendGameChatMessage(AlertType.CRAB_MOVED, "The Gemstone Crab has relocated to another cave!");
             }
             wasDirectlyTrackingCrab = false;
         }
@@ -910,7 +865,7 @@ public class BradsMultiToolPlugin extends Plugin {
             if (config.voiceCrabLowHealth()) {
                 speak(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH);
             }
-            sendGameChatMessage("The Gemstone Crab is about to burrow (" + crabHpPercent + "% health).");
+            sendGameChatMessage(AlertType.CRAB_LOW_HEALTH, "The Gemstone Crab is about to burrow (" + crabHpPercent + "% health).");
         }
     }
 
@@ -1123,7 +1078,8 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         if (!pvmTargetIsAggressive) {
-            pvmAggroStatusText = "Passive";
+            // Why it won't attack you, e.g. "No (lvl 57+)" or "No (Bandos item)"
+            pvmAggroStatusText = pvmTargetAggroText.startsWith("No (") ? "Passive" + pvmTargetAggroText.substring(2) : "Passive";
             return;
         }
 
@@ -1174,7 +1130,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 buffStatusText = "EXPIRED";
                 timesBuffExpiredSounded = 1;
                 lastBuffExpiredSoundTime = Instant.now();
-                sendGameChatMessage("Your combat buff has run out.");
+                sendGameChatMessage(AlertType.BUFF_EXPIRED, "Your combat buff has run out.");
                 if (config.voiceBuffExpired()) {
                     speak(lastEndedBuffName != null
                         ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
@@ -1185,7 +1141,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 && timesBuffExpiredSounded <= config.maxBuffRepeats()) {
                 timesBuffExpiredSounded++;
                 lastBuffExpiredSoundTime = Instant.now();
-                sendGameChatMessage("Your combat buff is still out.");
+                sendGameChatMessage(AlertType.BUFF_EXPIRED, "Your combat buff is still out.");
                 if (config.voiceBuffExpired()) {
                     speak(lastEndedBuffName != null
                         ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
@@ -1248,7 +1204,7 @@ public class BradsMultiToolPlugin extends Plugin {
             if (config.voiceBuffLow()) {
                 speak(potionLine(buff.name, true, runningOutLine(buff.category)));
             }
-            sendGameChatMessage("Your " + buff.name + " buff runs out in " + BuffTimer.formatMillis(buff.millisLeft(now)) + ".");
+            sendGameChatMessage(AlertType.BUFF_LOW, "Your " + buff.name + " buff runs out in " + BuffTimer.formatMillis(buff.millisLeft(now)) + ".");
         }
     }
 
@@ -1263,7 +1219,7 @@ public class BradsMultiToolPlugin extends Plugin {
             lastEndedCategory = before.category;
             lastEndedBuffName = before.name;
             if (!current.isEmpty()) {
-                sendGameChatMessage("Your " + before.name + " buff has run out.");
+                sendGameChatMessage(AlertType.BUFF_EXPIRED, "Your " + before.name + " buff has run out.");
                 if (config.voiceBuffExpired()) {
                     speak(potionLine(before.name, false, expiredLine(before.category)));
                 }
@@ -1337,7 +1293,7 @@ public class BradsMultiToolPlugin extends Plugin {
             if (config.voiceHealthLow()) {
                 speak(VoiceAlertService.VoiceLine.HEALTH_LOW);
             }
-            sendGameChatMessage("Health low (" + hp + " hitpoints).");
+            sendGameChatMessage(AlertType.HEALTH_LOW, "Health low (" + hp + " hitpoints).");
         }
     }
 
@@ -1351,7 +1307,7 @@ public class BradsMultiToolPlugin extends Plugin {
             if (config.voicePrayerLow()) {
                 speak(VoiceAlertService.VoiceLine.OUT_OF_PRAYER);
             }
-            sendGameChatMessage("Out of prayer points.");
+            sendGameChatMessage(AlertType.PRAYER_LOW, "Out of prayer points.");
             return;
         } else if (!isZero) {
             zeroPrayerAlert = false;
@@ -1380,7 +1336,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 if (config.voicePrayerLow()) {
                     speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
                 }
-                sendGameChatMessage("Prayer points low (" + currentPrayer + " remaining).");
+                sendGameChatMessage(AlertType.PRAYER_LOW, "Prayer points low (" + currentPrayer + " remaining).");
             }
         } else if (currentPrayer > threshold(Skill.PRAYER, config.lowPrayerPercent())) {
             lowPrayerAlert = false;
@@ -1424,7 +1380,7 @@ public class BradsMultiToolPlugin extends Plugin {
             characterWasActive = false;
             actionTicks = 0;
             speak(VoiceAlertService.VoiceLine.CHARACTER_IDLE);
-            sendGameChatMessage("You've been AFK for " + idleSeconds + " seconds.");
+            sendGameChatMessage(AlertType.CHARACTER_IDLE, "You've been AFK for " + idleSeconds + " seconds.");
         }
     }
 
@@ -1466,7 +1422,7 @@ public class BradsMultiToolPlugin extends Plugin {
             if (alertsReady()) {
                 notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
             }
-            sendGameChatMessage("You will be logged out for inactivity soon.");
+            sendGameChatMessage(AlertType.IDLE_LOGOUT, "You will be logged out for inactivity soon.");
         } else if (config.repeatIdleAlert()
             && Duration.between(lastIdleAlertTime, Instant.now()).getSeconds() >= config.repeatIdleInterval()
             && timesIdleAlerted <= config.maxIdleRepeats()) {
@@ -1602,28 +1558,27 @@ public class BradsMultiToolPlugin extends Plugin {
             return;
         }
 
-        String n = npc.getName().toLowerCase();
+        MonsterData.Stats stats = monsterData.get(npc.getId());
+        Aggression.Verdict aggro = aggressionFor(npc);
+        pvmTargetIsAggressive = aggro.aggressive();
+        pvmTargetAggroText = aggro.text;
+        pvmTargetWeakness = stats != null ? MonsterData.weaknessOf(stats) : MonsterWeakness.fromName(npc.getName());
+    }
 
-        boolean aggressive = false;
-        if (n.contains("crab") || n.contains("demon") || n.contains("dragon") || n.contains("wyvern")
-            || n.contains("giant") || n.contains("skeleton") || n.contains("zombie") || n.contains("gargoyle")
-            || n.contains("nechryael") || n.contains("abyssal") || n.contains("hellhound") || n.contains("bandit")
-            || n.contains("kalphite") || n.contains("vampyre") || n.contains("vyre") || n.contains("drake")) {
-            aggressive = true;
-        } else {
-            Player local = client.getLocalPlayer();
-            if (local != null && npc.getCombatLevel() > 0) {
-                aggressive = (local.getCombatLevel() <= (npc.getCombatLevel() * 2 + 1));
+    /** Whether this monster will attack you, given your combat level, the Wilderness and your gear. */
+    Aggression.Verdict aggressionFor(NPC npc) {
+        Player local = client.getLocalPlayer();
+        List<String> equipped = new ArrayList<>();
+        ItemContainer equipment = client.getItemContainer(CONTAINER_EQUIPMENT);
+        if (equipment != null) {
+            for (Item item : equipment.getItems()) {
+                if (item.getId() > 0) {
+                    equipped.add(client.getItemDefinition(item.getId()).getName().toLowerCase());
+                }
             }
         }
-        MonsterData.Stats stats = monsterData.get(npc.getId());
-        if (stats != null) {
-            pvmTargetIsAggressive = stats.aggressive;
-            pvmTargetWeakness = MonsterData.weaknessOf(stats);
-        } else {
-            pvmTargetIsAggressive = aggressive;
-            pvmTargetWeakness = MonsterWeakness.fromName(npc.getName());
-        }
+        return Aggression.of(monsterData.get(npc.getId()), npc.getCombatLevel(),
+            local != null ? local.getCombatLevel() : 0, client.getVarbitValue(INSIDE_WILDERNESS_VARBIT) == 1, equipped);
     }
 
     public void updateRealtimeCombatMethod() {

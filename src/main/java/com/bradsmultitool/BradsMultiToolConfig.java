@@ -71,7 +71,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "sendChatMessages",
         name = "Chat Messages",
-        description = "Also post alerts as in-game chat messages",
+        description = "Also post alerts as in-game chat messages. Pick which ones under Chat Messages",
         section = generalSection,
         position = 3
     )
@@ -82,7 +82,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigSection(
         name = "Voice Alerts",
         description = "Which alerts are spoken. Turning one off keeps its chat message and any other alert",
-        position = 4,
+        position = 3,
         closedByDefault = true
     )
     String voiceSection = "voiceSection";
@@ -330,9 +330,259 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigSection(
+        name = "Chat Messages",
+        description = "Which alerts post a chat message. Turning one off keeps its voice line",
+        position = 4,
+        closedByDefault = true
+    )
+    String chatSection = "chatSection";
+
+    @ConfigItem(
+        keyName = "chatBuffLow",
+        name = "Potion Running Out",
+        description = "Chat message shortly before a potion boost runs out",
+        section = chatSection,
+        position = 1
+    )
+    default boolean chatBuffLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBuffExpired",
+        name = "Potion Expired",
+        description = "Chat message when a potion boost has run out",
+        section = chatSection,
+        position = 2
+    )
+    default boolean chatBuffExpired() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatHealthLow",
+        name = "Low Health",
+        description = "Chat message when your health drops below the threshold",
+        section = chatSection,
+        position = 3
+    )
+    default boolean chatHealthLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatPrayerLow",
+        name = "Low / Out of Prayer",
+        description = "Chat message when prayer is low or runs out",
+        section = chatSection,
+        position = 4
+    )
+    default boolean chatPrayerLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSpecReady",
+        name = "Special Attack Ready",
+        description = "Chat message when your special attack is back up",
+        section = chatSection,
+        position = 5
+    )
+    default boolean chatSpecReady() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatAntifire",
+        name = "Antifire Running Out",
+        description = "Chat message when antifire protection is about to end",
+        section = chatSection,
+        position = 6
+    )
+    default boolean chatAntifire() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatPoison",
+        name = "Poison / Venom",
+        description = "Chat message when you are poisoned or venomed, or poison protection is ending",
+        section = chatSection,
+        position = 7
+    )
+    default boolean chatPoison() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatStamina",
+        name = "Stamina Worn Off",
+        description = "Chat message when a stamina potion wears off",
+        section = chatSection,
+        position = 8
+    )
+    default boolean chatStamina() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatAmmo",
+        name = "Low Ammo",
+        description = "Chat message when your ammo runs low",
+        section = chatSection,
+        position = 9
+    )
+    default boolean chatAmmo() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRunes",
+        name = "Out of Runes",
+        description = "Chat message when you can't cast for lack of runes",
+        section = chatSection,
+        position = 10
+    )
+    default boolean chatRunes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCannon",
+        name = "Cannon Low",
+        description = "Chat message when your cannon is low on cannonballs",
+        section = chatSection,
+        position = 11
+    )
+    default boolean chatCannon() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSlayerItem",
+        name = "Missing Slayer Item",
+        description = "Chat message when fighting a task monster without its required item",
+        section = chatSection,
+        position = 12
+    )
+    default boolean chatSlayerItem() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSuperior",
+        name = "Superior Spawned",
+        description = "Chat message when a superior slayer monster appears",
+        section = chatSection,
+        position = 13
+    )
+    default boolean chatSuperior() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTaskComplete",
+        name = "Task Complete",
+        description = "Chat message when your slayer task is done",
+        section = chatSection,
+        position = 14
+    )
+    default boolean chatTaskComplete() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCharacterIdle",
+        name = "Character Idle",
+        description = "Chat message when your character has gone AFK",
+        section = chatSection,
+        position = 15
+    )
+    default boolean chatCharacterIdle() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatIdleLogout",
+        name = "Logout Warning",
+        description = "Chat message when you are about to be logged out for inactivity",
+        section = chatSection,
+        position = 16
+    )
+    default boolean chatIdleLogout() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCrabMoved",
+        name = "Crab Moved",
+        description = "Chat message when the Gemstone Crab relocates",
+        section = chatSection,
+        position = 17
+    )
+    default boolean chatCrabMoved() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCrabLowHealth",
+        name = "Crab About to Burrow",
+        description = "Chat message when the Gemstone Crab is low on health",
+        section = chatSection,
+        position = 18
+    )
+    default boolean chatCrabLowHealth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatInventoryFull",
+        name = "Inventory Full",
+        description = "Chat message when your inventory fills while skilling",
+        section = chatSection,
+        position = 19
+    )
+    default boolean chatInventoryFull() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTreeGone",
+        name = "Tree Fallen",
+        description = "Chat message when the tree you are chopping falls",
+        section = chatSection,
+        position = 20
+    )
+    default boolean chatTreeGone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRockDepleted",
+        name = "Rock Depleted",
+        description = "Chat message when the rock you are mining is depleted",
+        section = chatSection,
+        position = 21
+    )
+    default boolean chatRockDepleted() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatFishingSpot",
+        name = "Fishing Spot Moved",
+        description = "Chat message when your fishing spot moves",
+        section = chatSection,
+        position = 22
+    )
+    default boolean chatFishingSpot() {
+        return true;
+    }
+
+    @ConfigSection(
         name = "Potion Buffs",
         description = "Buff timers on the HUD and running-out / expired alerts",
-        position = 5,
+        position = 6,
         closedByDefault = true
     )
     String buffSection = "buffSection";
@@ -1081,8 +1331,8 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "showTreeTimer",
-        name = "Tree Time Left",
-        description = "Estimate how long the tree you are chopping has left before it falls",
+        name = "Tree Timer Pie",
+        description = "A pie over the tree you are chopping that empties as it gets close to falling",
         section = skillingSection,
         position = 1
     )
