@@ -36,7 +36,7 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] An NPC walking past a tree doesn't change the card.
 
 ## Timer pies
-- [ ] Trees: pie on trees being chopped (also others' trees), centred on the tree; pulses near the end; no pie on a tree already being chopped when you arrived.
+- [ ] Trees: pie on trees being chopped (also others' trees), centred on the canopy; turns into a full pulsing red pie when the tree can fall on the next log; no pie on a tree already being chopped when you arrived.
 - [ ] Mining: Motherlode veins, calcified rocks, Daeyalt essence, shooting stars.
 - [ ] Fishing spots: pies on spots that moved while you were there.
 - [ ] Hunter: pie on traps you lay, green when caught.

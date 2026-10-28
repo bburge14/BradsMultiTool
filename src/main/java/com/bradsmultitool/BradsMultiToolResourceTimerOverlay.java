@@ -66,7 +66,9 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             }
             int alpha = 150;
             if (timer.due()) {
-                alpha = (int) (90 + 110 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
+                // Due (a tree falls on the next log): a full red pie pulsing, rather than an empty ring
+                alpha = (int) (60 + 140 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
+                left = 1;
             }
             pie.setPosition(at);
             pie.setProgress(left);
@@ -94,21 +96,30 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
     }
 
-    // Trees and rocks: the middle of the model as drawn (canopy included). Veins: a little up the wall.
-    // Fishing spots: on the water.
+    // Trees: the middle of the canopy. Rocks: the middle of the model as drawn. Fishing spots: on the water.
     private Point position(ResourceTimers.Timer timer) {
+        int plane = client.getTopLevelWorldView().getPlane();
         if (timer.npc != null) {
             LocalPoint local = timer.npc.getLocalLocation();
-            return local == null ? null : Perspective.localToCanvas(client, local, client.getTopLevelWorldView().getPlane(), 0);
+            return local == null ? null : Perspective.localToCanvas(client, local, plane, 0);
         }
+        LocalPoint local = timer.object.getLocalLocation();
         if (timer.object instanceof GameObject) {
-            Shape hull = ((GameObject) timer.object).getConvexHull();
+            GameObject object = (GameObject) timer.object;
+            // A tree's leaves sit in the top part of its model, so aim about two-thirds of the way up
+            int height = object.getRenderable() != null ? object.getRenderable().getModelHeight() : 0;
+            if (timer.kind == ResourceTimers.Kind.TREE && height > 0 && local != null) {
+                return Perspective.localToCanvas(client, local, plane, height * 2 / 3);
+            }
+            Shape hull = object.getConvexHull();
             if (hull != null) {
                 Rectangle bounds = hull.getBounds();
                 return new Point((int) bounds.getCenterX(), (int) bounds.getCenterY());
             }
+            if (height > 0 && local != null) {
+                return Perspective.localToCanvas(client, local, plane, height / 2);
+            }
         }
-        LocalPoint local = timer.object.getLocalLocation();
-        return local == null ? null : Perspective.localToCanvas(client, local, client.getTopLevelWorldView().getPlane(), 150);
+        return local == null ? null : Perspective.localToCanvas(client, local, plane, 150);
     }
 }
