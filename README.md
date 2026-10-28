@@ -13,7 +13,7 @@ A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 - **Level-up alerts** – says the skill and your new level ("Woodcutting level 45").
 - **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, level progress bar, XP remaining, actions left to level (from your last XP drop), and time-to-level; right-click a skill to pause, reset, or hide it.
 
-No alert fires until you're past the welcome screen, and anything already true when you log in (low prayer, say) isn't announced. Every alert's voice and chat message can be turned off separately under **Voice Alerts** and **Chat Messages** in the settings (or all at once in **General**). The **Report an Issue** button at the bottom of the sidebar panel opens a new GitHub issue.
+No alert fires until you're past the welcome screen, and anything already true when you log in (low prayer, say) isn't announced. Every alert's voice and chat message can be turned off separately with its **Voice:** and **Chat:** switches, which sit in that alert's own settings section (Health, Prayer, Skilling, Gemstone Crab…), or all at once in **General**. The **Report an Issue** button at the bottom of the sidebar panel opens a new GitHub issue.
 
 Voice alerts are pre-recorded clips bundled with the plugin (11 personas generated with [Piper](https://github.com/rhasspy/piper); see [VOICE_CREDITS.md](VOICE_CREDITS.md)), so they work on any OS. Regenerate them with `scripts/generate_voice_clips.py` after changing a line.
 

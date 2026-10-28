@@ -114,6 +114,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int SILENCED = Integer.MAX_VALUE / 2;
     // Character idle: what counts as having been doing something before going AFK
     private static final int MIN_ACTION_TICKS = 5;
+    private static final int TRAINING_WINDOW_TICKS = 25;
     private static final int COMBAT_WINDOW_TICKS = 8;
     // The shell lasts 90 seconds (150 ticks); allow a little slack
     private static final int SHELL_LIFETIME_TICKS = 160;
@@ -407,6 +408,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> realLevels = new EnumMap<>(Skill.class);
+    private final Map<Skill, Integer> lastXpTicks = new EnumMap<>(Skill.class);
     private final Map<Skill, Long> skillActiveTicks = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> lastXpDrops = new EnumMap<>(Skill.class);
     private final Set<Skill> pausedSkills = EnumSet.noneOf(Skill.class);
@@ -1862,6 +1864,7 @@ public class BradsMultiToolPlugin extends Plugin {
                     treeTimer.onLogCut();
                 }
                 lastXpDrops.put(skill, drop);
+                lastXpTicks.put(skill, client.getTickCount());
                 tickXpChanges.add(skill);
             }
             gainedSkillXp.put(skill, gained);
@@ -1900,6 +1903,12 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
         return skills;
+    }
+
+    /** True while you're training the skill: XP from it in the last 15 seconds. */
+    boolean isTraining(Skill skill) {
+        Integer last = lastXpTicks.get(skill);
+        return last != null && client.getTickCount() - last <= TRAINING_WINDOW_TICKS;
     }
 
     public int getLastXpDrop(Skill skill) {

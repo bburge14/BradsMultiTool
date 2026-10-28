@@ -192,7 +192,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         if (r.xp > 0) {
             line("XP Each:", trim(r.xp), Color.WHITE);
         }
-        if (r.xpPerHour > 0) {
+        if (r.xpPerHour > 0 && showRates(skill)) {
             line("Wiki XP/hr:", NUMBER.format(r.xpPerHour), Color.WHITE);
         }
         addTools(r.skill, skill);
@@ -289,8 +289,13 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
     }
 
+    // XP rates only while you're training that skill (and the option is on)
+    private boolean showRates(Skill skill) {
+        return skill != null && config.showSkillingRates() && plugin.isTraining(skill);
+    }
+
     private void addYourRate(Skill skill) {
-        if (skill == null) {
+        if (!showRates(skill)) {
             return;
         }
         int rate = plugin.getSkillXpPerHour(skill);

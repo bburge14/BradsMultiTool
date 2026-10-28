@@ -60,7 +60,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "voiceEnabled",
         name = "Voice Alerts",
-        description = "Speak alerts out loud. Pick which ones under Voice Alerts",
+        description = "Speak alerts out loud. Each alert also has its own Voice switch in its section",
         section = generalSection,
         position = 0
     )
@@ -71,534 +71,12 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "sendChatMessages",
         name = "Chat Messages",
-        description = "Also post alerts as in-game chat messages. Pick which ones under Chat Messages",
+        description = "Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
         section = generalSection,
         position = 3
     )
     default boolean sendChatMessages() {
         return true;
-    }
-
-    @ConfigSection(
-        name = "Voice Alerts",
-        description = "Which alerts are spoken. Turning one off keeps its chat message and any other alert",
-        position = 3,
-        closedByDefault = true
-    )
-    String voiceSection = "voiceSection";
-
-    @ConfigItem(
-        keyName = "voiceBuffLow",
-        name = "Potion Running Out",
-        description = "Shortly before a potion boost runs out (turning it on plays a preview)",
-        section = voiceSection,
-        position = 1
-    )
-    default boolean voiceBuffLow() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceBuffExpired",
-        name = "Potion Expired",
-        description = "When a potion boost has run out (turning it on plays a preview)",
-        section = voiceSection,
-        position = 2
-    )
-    default boolean voiceBuffExpired() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceHealthLow",
-        name = "Low Health",
-        description = "When your health drops below the threshold (turning it on plays a preview)",
-        section = voiceSection,
-        position = 3
-    )
-    default boolean voiceHealthLow() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voicePrayerLow",
-        name = "Low / Out of Prayer",
-        description = "When prayer is low or runs out (turning it on plays a preview)",
-        section = voiceSection,
-        position = 4
-    )
-    default boolean voicePrayerLow() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceSpecReady",
-        name = "Special Attack Ready",
-        description = "When your special attack is back up (turning it on plays a preview)",
-        section = voiceSection,
-        position = 5
-    )
-    default boolean voiceSpecReady() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceAntifire",
-        name = "Antifire Running Out",
-        description = "When antifire protection is about to end (turning it on plays a preview)",
-        section = voiceSection,
-        position = 6
-    )
-    default boolean voiceAntifire() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voicePoison",
-        name = "Poison / Venom",
-        description = "When you are poisoned or venomed, or poison protection is ending (turning it on plays a preview)",
-        section = voiceSection,
-        position = 7
-    )
-    default boolean voicePoison() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceStamina",
-        name = "Stamina Worn Off",
-        description = "When a stamina potion wears off (turning it on plays a preview)",
-        section = voiceSection,
-        position = 8
-    )
-    default boolean voiceStamina() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceAmmo",
-        name = "Low Ammo",
-        description = "When your ammo runs low (turning it on plays a preview)",
-        section = voiceSection,
-        position = 9
-    )
-    default boolean voiceAmmo() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceRunes",
-        name = "Out of Runes",
-        description = "When you can't cast for lack of runes (turning it on plays a preview)",
-        section = voiceSection,
-        position = 10
-    )
-    default boolean voiceRunes() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCannon",
-        name = "Cannon Low",
-        description = "When your cannon is low on cannonballs (turning it on plays a preview)",
-        section = voiceSection,
-        position = 11
-    )
-    default boolean voiceCannon() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceSlayerItem",
-        name = "Missing Slayer Item",
-        description = "When fighting a task monster without its required item (turning it on plays a preview)",
-        section = voiceSection,
-        position = 12
-    )
-    default boolean voiceSlayerItem() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceSuperior",
-        name = "Superior Spawned",
-        description = "When a superior slayer monster appears (turning it on plays a preview)",
-        section = voiceSection,
-        position = 13
-    )
-    default boolean voiceSuperior() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceTaskComplete",
-        name = "Task Complete",
-        description = "When your slayer task is done (turning it on plays a preview)",
-        section = voiceSection,
-        position = 14
-    )
-    default boolean voiceTaskComplete() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCharacterIdle",
-        name = "Character Idle",
-        description = "When your character has gone AFK (turning it on plays a preview)",
-        section = voiceSection,
-        position = 15
-    )
-    default boolean voiceCharacterIdle() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceIdleLogout",
-        name = "Logout Warning",
-        description = "When you are about to be logged out for inactivity (turning it on plays a preview)",
-        section = voiceSection,
-        position = 16
-    )
-    default boolean voiceIdleLogout() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCrabMoved",
-        name = "Crab Moved",
-        description = "When the Gemstone Crab relocates (turning it on plays a preview)",
-        section = voiceSection,
-        position = 17
-    )
-    default boolean voiceCrabMoved() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceCrabLowHealth",
-        name = "Crab About to Burrow",
-        description = "When the Gemstone Crab is low on health (turning it on plays a preview)",
-        section = voiceSection,
-        position = 18
-    )
-    default boolean voiceCrabLowHealth() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceInventoryFull",
-        name = "Inventory Full",
-        description = "When your inventory fills while skilling (turning it on plays a preview)",
-        section = voiceSection,
-        position = 19
-    )
-    default boolean voiceInventoryFull() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceTreeGone",
-        name = "Tree Fallen",
-        description = "When the tree you are chopping falls (turning it on plays a preview)",
-        section = voiceSection,
-        position = 20
-    )
-    default boolean voiceTreeGone() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceRockDepleted",
-        name = "Rock Depleted",
-        description = "When the rock you are mining is depleted (turning it on plays a preview)",
-        section = voiceSection,
-        position = 21
-    )
-    default boolean voiceRockDepleted() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceFishingSpot",
-        name = "Fishing Spot Moved",
-        description = "When your fishing spot moves (turning it on plays a preview)",
-        section = voiceSection,
-        position = 22
-    )
-    default boolean voiceFishingSpot() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceLevelUp",
-        name = "Level Up",
-        description = "Say the skill and your new level when you level up (turning it on plays a preview)",
-        section = voiceSection,
-        position = 23
-    )
-    default boolean voiceLevelUp() {
-        return true;
-    }
-
-    @ConfigSection(
-        name = "Chat Messages",
-        description = "Which alerts post a chat message. Turning one off keeps its voice line",
-        position = 4,
-        closedByDefault = true
-    )
-    String chatSection = "chatSection";
-
-    @ConfigItem(
-        keyName = "chatBuffLow",
-        name = "Potion Running Out",
-        description = "Chat message shortly before a potion boost runs out",
-        section = chatSection,
-        position = 1
-    )
-    default boolean chatBuffLow() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatBuffExpired",
-        name = "Potion Expired",
-        description = "Chat message when a potion boost has run out",
-        section = chatSection,
-        position = 2
-    )
-    default boolean chatBuffExpired() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatHealthLow",
-        name = "Low Health",
-        description = "Chat message when your health drops below the threshold",
-        section = chatSection,
-        position = 3
-    )
-    default boolean chatHealthLow() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatPrayerLow",
-        name = "Low / Out of Prayer",
-        description = "Chat message when prayer is low or runs out",
-        section = chatSection,
-        position = 4
-    )
-    default boolean chatPrayerLow() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatSpecReady",
-        name = "Special Attack Ready",
-        description = "Chat message when your special attack is back up",
-        section = chatSection,
-        position = 5
-    )
-    default boolean chatSpecReady() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatAntifire",
-        name = "Antifire Running Out",
-        description = "Chat message when antifire protection is about to end",
-        section = chatSection,
-        position = 6
-    )
-    default boolean chatAntifire() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatPoison",
-        name = "Poison / Venom",
-        description = "Chat message when you are poisoned or venomed, or poison protection is ending",
-        section = chatSection,
-        position = 7
-    )
-    default boolean chatPoison() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatStamina",
-        name = "Stamina Worn Off",
-        description = "Chat message when a stamina potion wears off",
-        section = chatSection,
-        position = 8
-    )
-    default boolean chatStamina() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatAmmo",
-        name = "Low Ammo",
-        description = "Chat message when your ammo runs low",
-        section = chatSection,
-        position = 9
-    )
-    default boolean chatAmmo() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatRunes",
-        name = "Out of Runes",
-        description = "Chat message when you can't cast for lack of runes",
-        section = chatSection,
-        position = 10
-    )
-    default boolean chatRunes() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatCannon",
-        name = "Cannon Low",
-        description = "Chat message when your cannon is low on cannonballs",
-        section = chatSection,
-        position = 11
-    )
-    default boolean chatCannon() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatSlayerItem",
-        name = "Missing Slayer Item",
-        description = "Chat message when fighting a task monster without its required item",
-        section = chatSection,
-        position = 12
-    )
-    default boolean chatSlayerItem() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatSuperior",
-        name = "Superior Spawned",
-        description = "Chat message when a superior slayer monster appears",
-        section = chatSection,
-        position = 13
-    )
-    default boolean chatSuperior() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatTaskComplete",
-        name = "Task Complete",
-        description = "Chat message when your slayer task is done",
-        section = chatSection,
-        position = 14
-    )
-    default boolean chatTaskComplete() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatCharacterIdle",
-        name = "Character Idle",
-        description = "Chat message when your character has gone AFK",
-        section = chatSection,
-        position = 15
-    )
-    default boolean chatCharacterIdle() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatIdleLogout",
-        name = "Logout Warning",
-        description = "Chat message when you are about to be logged out for inactivity",
-        section = chatSection,
-        position = 16
-    )
-    default boolean chatIdleLogout() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatCrabMoved",
-        name = "Crab Moved",
-        description = "Chat message when the Gemstone Crab relocates",
-        section = chatSection,
-        position = 17
-    )
-    default boolean chatCrabMoved() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatCrabLowHealth",
-        name = "Crab About to Burrow",
-        description = "Chat message when the Gemstone Crab is low on health",
-        section = chatSection,
-        position = 18
-    )
-    default boolean chatCrabLowHealth() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatInventoryFull",
-        name = "Inventory Full",
-        description = "Chat message when your inventory fills while skilling",
-        section = chatSection,
-        position = 19
-    )
-    default boolean chatInventoryFull() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatTreeGone",
-        name = "Tree Fallen",
-        description = "Chat message when the tree you are chopping falls",
-        section = chatSection,
-        position = 20
-    )
-    default boolean chatTreeGone() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatRockDepleted",
-        name = "Rock Depleted",
-        description = "Chat message when the rock you are mining is depleted",
-        section = chatSection,
-        position = 21
-    )
-    default boolean chatRockDepleted() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatFishingSpot",
-        name = "Fishing Spot Moved",
-        description = "Chat message when your fishing spot moves",
-        section = chatSection,
-        position = 22
-    )
-    default boolean chatFishingSpot() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatLevelUp",
-        name = "Level Up",
-        description = "Chat message when you level up (off by default; the game already congratulates you)",
-        section = chatSection,
-        position = 23
-    )
-    default boolean chatLevelUp() {
-        return false;
     }
 
     @ConfigSection(
@@ -680,6 +158,50 @@ public interface BradsMultiToolConfig extends Config {
         return 2;
     }
 
+    @ConfigItem(
+        keyName = "voiceBuffLow",
+        name = "Voice: Potion Running Out",
+        description = "Shortly before a potion boost runs out (turning it on plays a preview)",
+        section = buffSection,
+        position = 13
+    )
+    default boolean voiceBuffLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBuffLow",
+        name = "Chat: Potion Running Out",
+        description = "Chat message shortly before a potion boost runs out",
+        section = buffSection,
+        position = 14
+    )
+    default boolean chatBuffLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceBuffExpired",
+        name = "Voice: Potion Expired",
+        description = "When a potion boost has run out (turning it on plays a preview)",
+        section = buffSection,
+        position = 15
+    )
+    default boolean voiceBuffExpired() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBuffExpired",
+        name = "Chat: Potion Expired",
+        description = "Chat message when a potion boost has run out",
+        section = buffSection,
+        position = 16
+    )
+    default boolean chatBuffExpired() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Health",
         description = "Low health warnings",
@@ -755,6 +277,28 @@ public interface BradsMultiToolConfig extends Config {
     )
     default int maxHealthRepeats() {
         return 2;
+    }
+
+    @ConfigItem(
+        keyName = "voiceHealthLow",
+        name = "Voice: Low Health",
+        description = "When your health drops below the threshold (turning it on plays a preview)",
+        section = healthSection,
+        position = 21
+    )
+    default boolean voiceHealthLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatHealthLow",
+        name = "Chat: Low Health",
+        description = "Chat message when your health drops below the threshold",
+        section = healthSection,
+        position = 22
+    )
+    default boolean chatHealthLow() {
+        return true;
     }
 
     @ConfigSection(
@@ -843,6 +387,28 @@ public interface BradsMultiToolConfig extends Config {
     )
     default int maxPrayerRepeats() {
         return 2;
+    }
+
+    @ConfigItem(
+        keyName = "voicePrayerLow",
+        name = "Voice: Low / Out of Prayer",
+        description = "When prayer is low or runs out (turning it on plays a preview)",
+        section = prayerSection,
+        position = 30
+    )
+    default boolean voicePrayerLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatPrayerLow",
+        name = "Chat: Low / Out of Prayer",
+        description = "Chat message when prayer is low or runs out",
+        section = prayerSection,
+        position = 31
+    )
+    default boolean chatPrayerLow() {
+        return true;
     }
 
     @ConfigSection(
@@ -965,6 +531,160 @@ public interface BradsMultiToolConfig extends Config {
         return 10;
     }
 
+    @ConfigItem(
+        keyName = "voiceSpecReady",
+        name = "Voice: Special Attack Ready",
+        description = "When your special attack is back up (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 10
+    )
+    default boolean voiceSpecReady() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSpecReady",
+        name = "Chat: Special Attack Ready",
+        description = "Chat message when your special attack is back up",
+        section = combatAlertsSection,
+        position = 11
+    )
+    default boolean chatSpecReady() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceAntifire",
+        name = "Voice: Antifire Running Out",
+        description = "When antifire protection is about to end (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 12
+    )
+    default boolean voiceAntifire() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatAntifire",
+        name = "Chat: Antifire Running Out",
+        description = "Chat message when antifire protection is about to end",
+        section = combatAlertsSection,
+        position = 13
+    )
+    default boolean chatAntifire() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voicePoison",
+        name = "Voice: Poison / Venom",
+        description = "When you are poisoned or venomed, or poison protection is ending (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 14
+    )
+    default boolean voicePoison() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatPoison",
+        name = "Chat: Poison / Venom",
+        description = "Chat message when you are poisoned or venomed, or poison protection is ending",
+        section = combatAlertsSection,
+        position = 15
+    )
+    default boolean chatPoison() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceStamina",
+        name = "Voice: Stamina Worn Off",
+        description = "When a stamina potion wears off (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 16
+    )
+    default boolean voiceStamina() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatStamina",
+        name = "Chat: Stamina Worn Off",
+        description = "Chat message when a stamina potion wears off",
+        section = combatAlertsSection,
+        position = 17
+    )
+    default boolean chatStamina() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceAmmo",
+        name = "Voice: Low Ammo",
+        description = "When your ammo runs low (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 18
+    )
+    default boolean voiceAmmo() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatAmmo",
+        name = "Chat: Low Ammo",
+        description = "Chat message when your ammo runs low",
+        section = combatAlertsSection,
+        position = 19
+    )
+    default boolean chatAmmo() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunes",
+        name = "Voice: Out of Runes",
+        description = "When you can't cast for lack of runes (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 20
+    )
+    default boolean voiceRunes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRunes",
+        name = "Chat: Out of Runes",
+        description = "Chat message when you can't cast for lack of runes",
+        section = combatAlertsSection,
+        position = 21
+    )
+    default boolean chatRunes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCannon",
+        name = "Voice: Cannon Low",
+        description = "When your cannon is low on cannonballs (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 22
+    )
+    default boolean voiceCannon() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCannon",
+        name = "Chat: Cannon Low",
+        description = "Chat message when your cannon is low on cannonballs",
+        section = combatAlertsSection,
+        position = 23
+    )
+    default boolean chatCannon() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Idle",
         description = "Idle character and idle logout warnings",
@@ -1052,6 +772,50 @@ public interface BradsMultiToolConfig extends Config {
     )
     default int maxIdleRepeats() {
         return 2;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCharacterIdle",
+        name = "Voice: Character Idle",
+        description = "When your character has gone AFK (turning it on plays a preview)",
+        section = idleSection,
+        position = 39
+    )
+    default boolean voiceCharacterIdle() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCharacterIdle",
+        name = "Chat: Character Idle",
+        description = "Chat message when your character has gone AFK",
+        section = idleSection,
+        position = 40
+    )
+    default boolean chatCharacterIdle() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceIdleLogout",
+        name = "Voice: Logout Warning",
+        description = "When you are about to be logged out for inactivity (turning it on plays a preview)",
+        section = idleSection,
+        position = 41
+    )
+    default boolean voiceIdleLogout() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatIdleLogout",
+        name = "Chat: Logout Warning",
+        description = "Chat message when you are about to be logged out for inactivity",
+        section = idleSection,
+        position = 42
+    )
+    default boolean chatIdleLogout() {
+        return true;
     }
 
     @ConfigSection(
@@ -1225,6 +989,72 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceSlayerItem",
+        name = "Voice: Missing Slayer Item",
+        description = "When fighting a task monster without its required item (turning it on plays a preview)",
+        section = slayerSection,
+        position = 4
+    )
+    default boolean voiceSlayerItem() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSlayerItem",
+        name = "Chat: Missing Slayer Item",
+        description = "Chat message when fighting a task monster without its required item",
+        section = slayerSection,
+        position = 5
+    )
+    default boolean chatSlayerItem() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSuperior",
+        name = "Voice: Superior Spawned",
+        description = "When a superior slayer monster appears (turning it on plays a preview)",
+        section = slayerSection,
+        position = 6
+    )
+    default boolean voiceSuperior() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSuperior",
+        name = "Chat: Superior Spawned",
+        description = "Chat message when a superior slayer monster appears",
+        section = slayerSection,
+        position = 7
+    )
+    default boolean chatSuperior() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTaskComplete",
+        name = "Voice: Task Complete",
+        description = "When your slayer task is done (turning it on plays a preview)",
+        section = slayerSection,
+        position = 8
+    )
+    default boolean voiceTaskComplete() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTaskComplete",
+        name = "Chat: Task Complete",
+        description = "Chat message when your slayer task is done",
+        section = slayerSection,
+        position = 9
+    )
+    default boolean chatTaskComplete() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Gemstone Crab",
         description = "Crab HUD, radar, alerts and outlines",
@@ -1332,6 +1162,50 @@ public interface BradsMultiToolConfig extends Config {
         return new Color(40, 230, 80, 140);
     }
 
+    @ConfigItem(
+        keyName = "voiceCrabMoved",
+        name = "Voice: Crab Moved",
+        description = "When the Gemstone Crab relocates (turning it on plays a preview)",
+        section = crabSection,
+        position = 60
+    )
+    default boolean voiceCrabMoved() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCrabMoved",
+        name = "Chat: Crab Moved",
+        description = "Chat message when the Gemstone Crab relocates",
+        section = crabSection,
+        position = 61
+    )
+    default boolean chatCrabMoved() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCrabLowHealth",
+        name = "Voice: Crab About to Burrow",
+        description = "When the Gemstone Crab is low on health (turning it on plays a preview)",
+        section = crabSection,
+        position = 62
+    )
+    default boolean voiceCrabLowHealth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCrabLowHealth",
+        name = "Chat: Crab About to Burrow",
+        description = "Chat message when the Gemstone Crab is low on health",
+        section = crabSection,
+        position = 63
+    )
+    default boolean chatCrabLowHealth() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Skilling",
         description = "Hover info for trees, rocks, fishing spots and thieving, plus skilling alerts",
@@ -1352,11 +1226,22 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "showSkillingRates",
+        name = "XP Rates on Hover",
+        description = "Show the wiki's XP/hr and your own rate on the hover card while you're training that skill",
+        section = skillingSection,
+        position = 1
+    )
+    default boolean showSkillingRates() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "showTreeTimer",
         name = "Tree Timer Pie",
         description = "A pie over the tree you are chopping that empties as it gets close to falling",
         section = skillingSection,
-        position = 1
+        position = 2
     )
     default boolean showTreeTimer() {
         return true;
@@ -1367,7 +1252,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Inventory Full",
         description = "Alert when your inventory fills up while skilling",
         section = skillingSection,
-        position = 2
+        position = 3
     )
     default boolean inventoryFullAlert() {
         return true;
@@ -1378,9 +1263,97 @@ public interface BradsMultiToolConfig extends Config {
         name = "Resource Gone",
         description = "Alert when your tree falls, rock depletes or fishing spot moves",
         section = skillingSection,
-        position = 3
+        position = 4
     )
     default boolean resourceGoneAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceInventoryFull",
+        name = "Voice: Inventory Full",
+        description = "When your inventory fills while skilling (turning it on plays a preview)",
+        section = skillingSection,
+        position = 5
+    )
+    default boolean voiceInventoryFull() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatInventoryFull",
+        name = "Chat: Inventory Full",
+        description = "Chat message when your inventory fills while skilling",
+        section = skillingSection,
+        position = 6
+    )
+    default boolean chatInventoryFull() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTreeGone",
+        name = "Voice: Tree Fallen",
+        description = "When the tree you are chopping falls (turning it on plays a preview)",
+        section = skillingSection,
+        position = 7
+    )
+    default boolean voiceTreeGone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTreeGone",
+        name = "Chat: Tree Fallen",
+        description = "Chat message when the tree you are chopping falls",
+        section = skillingSection,
+        position = 8
+    )
+    default boolean chatTreeGone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRockDepleted",
+        name = "Voice: Rock Depleted",
+        description = "When the rock you are mining is depleted (turning it on plays a preview)",
+        section = skillingSection,
+        position = 9
+    )
+    default boolean voiceRockDepleted() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRockDepleted",
+        name = "Chat: Rock Depleted",
+        description = "Chat message when the rock you are mining is depleted",
+        section = skillingSection,
+        position = 10
+    )
+    default boolean chatRockDepleted() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceFishingSpot",
+        name = "Voice: Fishing Spot Moved",
+        description = "When your fishing spot moves (turning it on plays a preview)",
+        section = skillingSection,
+        position = 11
+    )
+    default boolean voiceFishingSpot() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatFishingSpot",
+        name = "Chat: Fishing Spot Moved",
+        description = "Chat message when your fishing spot moves",
+        section = skillingSection,
+        position = 12
+    )
+    default boolean chatFishingSpot() {
         return true;
     }
 
@@ -1412,5 +1385,27 @@ public interface BradsMultiToolConfig extends Config {
     )
     default String ignoredSkills() {
         return "";
+    }
+
+    @ConfigItem(
+        keyName = "voiceLevelUp",
+        name = "Voice: Level Up",
+        description = "Say the skill and your new level when you level up (turning it on plays a preview)",
+        section = trackerSection,
+        position = 63
+    )
+    default boolean voiceLevelUp() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatLevelUp",
+        name = "Chat: Level Up",
+        description = "Chat message when you level up (off by default; the game already congratulates you)",
+        section = trackerSection,
+        position = 64
+    )
+    default boolean chatLevelUp() {
+        return false;
     }
 }
