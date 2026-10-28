@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,15 @@ public class MonsterData {
         final int elementalWeaknessPercent;
         public final boolean aggressive;
         final List<String> attributes;
+        /** How the monster attacks, as written on the wiki, e.g. "Slash", "Magic", "Dragonfire". */
+        public final List<String> attackStyles;
+        /** The wiki's aggression condition, e.g. "Yes, unless wearing a Bandos-affiliated item"; null if plain. */
+        final String aggroNote;
+        /** Slayer level needed to damage it (0 if none). */
+        final int slayerLevel;
+        final double slayerXp;
+        /** The Slayer task it counts for ("Banshees"), or null if it isn't a Slayer monster. */
+        final String slayerCategory;
 
         private Stats(JsonArray a) {
             hitpoints = intAt(a, 0);
@@ -62,6 +72,22 @@ public class MonsterData {
                 }
             }
             attributes = Collections.unmodifiableList(attrs);
+            List<String> styles = new ArrayList<>();
+            if (a.size() > 14 && a.get(14).isJsonArray()) {
+                for (JsonElement e : a.get(14).getAsJsonArray()) {
+                    styles.add(e.getAsString());
+                }
+            }
+            attackStyles = Collections.unmodifiableList(styles);
+            aggroNote = a.size() > 15 && !a.get(15).isJsonNull() ? a.get(15).getAsString() : null;
+            slayerLevel = intAt(a, 16);
+            slayerXp = a.size() > 17 && !a.get(17).isJsonNull() ? a.get(17).getAsDouble() : 0;
+            slayerCategory = a.size() > 18 && !a.get(18).isJsonNull() ? a.get(18).getAsString() : null;
+        }
+
+        /** Needs a Slayer level to damage (the monster card's Slayer section is only for these). */
+        boolean needsSlayerLevel() {
+            return slayerLevel > 1;
         }
 
         private static int intAt(JsonArray a, int i) {
@@ -110,6 +136,10 @@ public class MonsterData {
 
     public Stats get(int npcId) {
         return byId.get(npcId);
+    }
+
+    Collection<Stats> allStats() {
+        return byId.values();
     }
 
     /**

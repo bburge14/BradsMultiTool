@@ -2,48 +2,53 @@ package com.bradsmultitool;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.util.ArrayList;
+import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
-import net.runelite.api.TileObject;
+import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.components.LayoutableRenderableEntity;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
-import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 public class BradsMultiToolOverlay extends Overlay {
+
+    // Text is white unless colour carries meaning: good/bad state, or a warning
+    static final Color GOOD = new Color(50, 220, 50);
+    static final Color BAD = new Color(255, 70, 70);
+    static final Color WARN = new Color(255, 150, 0);
 
     private final Client client;
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
-    private final ModelOutlineRenderer modelOutlineRenderer;
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
+    private final SkillIconManager skillIconManager;
     private final PanelComponent panelComponent = new PanelComponent();
+    @Inject
+    private SlayerMonsterInfo slayerInfo;
 
     @Inject
-    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer modelOutlineRenderer, ItemManager itemManager, SpriteManager spriteManager) {
+    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
-        this.modelOutlineRenderer = modelOutlineRenderer;
         this.itemManager = itemManager;
         this.spriteManager = spriteManager;
+        this.skillIconManager = skillIconManager;
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
@@ -70,21 +75,27 @@ public class BradsMultiToolOverlay extends Overlay {
 
             panelComponent.getChildren().add(TitleComponent.builder()
                 .text(name + (cbLvl > 0 ? " (Lvl " + cbLvl + ")" : ""))
-                .color(new Color(255, 185, 0))
+                .color(client.getLocalPlayer() != null
+                    ? combatLevelColor(client.getLocalPlayer().getCombatLevel(), cbLvl)
+                    : Color.WHITE)
                 .build());
 
             // Embedded Health Bar: <current> / <total> (<percent>%)
-            panelComponent.getChildren().add(new CenteredHealthBarComponent(
-                plugin.getPvmHpPercent(),
-                plugin.getPvmCurrentHp(),
-                plugin.getPvmMaxHp()
-            ));
+            // Read the target's health bar live each frame so the HUD doesn't trail the game by a tick
+            int hpPercent = plugin.getPvmHpPercent();
+            int currentHp = plugin.getPvmCurrentHp();
+            NPC target = plugin.getCurrentPvmTarget();
+            if (target != null && target.getHealthRatio() >= 0 && target.getHealthScale() > 0) {
+                hpPercent = target.getHealthRatio() * 100 / target.getHealthScale();
+                currentHp = (int) Math.ceil((double) target.getHealthRatio() * plugin.getPvmMaxHp() / target.getHealthScale());
+            }
+            panelComponent.getChildren().add(new CenteredHealthBarComponent(hpPercent, currentHp, plugin.getPvmMaxHp()));
 
             if (config.showPvmAggro()) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Aggro:")
                     .right(plugin.getPvmAggroStatusText())
-                    .rightColor(plugin.isPvmTargetIsAggressive() ? new Color(255, 140, 0) : new Color(160, 160, 160))
+                    .rightColor(plugin.isPvmTargetIsAggressive() ? WARN : Color.WHITE)
                     .build());
             }
 
@@ -96,23 +107,26 @@ public class BradsMultiToolOverlay extends Overlay {
                         ? plugin.elementSpellIcon(weakness.element)
                         : CombatIcons.forWeakness(weakness)),
                     weakness.label(),
-                    weakness.type == MonsterWeakness.Type.UNKNOWN ? new Color(160, 160, 160) : new Color(0, 220, 255)));
+                    Color.WHITE));
 
                 if (weakness.hasSeparateElement()) {
                     panelComponent.getChildren().add(new IconLineComponent(
                         "Elemental:",
                         icon(plugin.elementSpellIcon(weakness.element)),
                         weakness.elementLabel(),
-                        new Color(0, 220, 255)));
+                        Color.WHITE));
                 }
 
                 if (weakness.note != null) {
                     panelComponent.getChildren().add(LineComponent.builder()
                         .left("Bane:")
                         .right(weakness.note)
-                        .rightColor(new Color(200, 140, 255))
                         .build());
                 }
+            }
+
+            if (config.showSlayerMonsterInfo() && target != null) {
+                slayerInfo.addTo(panelComponent, target, plugin.statsFor(target));
             }
 
             panelComponent.getChildren().add(new IconLineComponent(
@@ -131,7 +145,6 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left(dpsLabel)
                     .right(String.format("%.1f", plugin.getPvmLiveDps()))
-                    .rightColor(new Color(255, 215, 0))
                     .build());
             }
 
@@ -139,7 +152,6 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Last Hit:")
                     .right(String.valueOf(plugin.getPvmLastHit()))
-                    .rightColor(new Color(255, 215, 0))
                     .build());
             }
 
@@ -147,31 +159,26 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Max Hit:")
                     .right(String.valueOf(plugin.getPvmMaxHit()))
-                    .rightColor(new Color(255, 90, 90))
                     .build());
             }
 
             if (config.enableBuffStatus()) {
-                Color buffColor = getBuffColor(plugin.getBuffState());
-                boolean isFlashingState = (plugin.getBuffState() == BradsMultiToolPlugin.BuffState.EXPIRED);
-                long millis = System.currentTimeMillis();
-
-                if (config.flashExpiredBuff() && isFlashingState && (millis / 350) % 2 == 0) {
-                    buffColor = Color.WHITE;
-                }
-
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Buff Status:")
-                    .right(plugin.getBuffStatusText())
-                    .rightColor(buffColor)
-                    .build());
+                addBuffRows();
             }
 
             if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Prayer:")
                     .right("LOW")
-                    .rightColor(new Color(255, 50, 50))
+                    .rightColor(BAD)
+                    .build());
+            }
+
+            if (config.enableLowHealthAlert() && plugin.isLowHealthAlert()) {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Health:")
+                    .right("LOW")
+                    .rightColor(BAD)
                     .build());
             }
 
@@ -185,71 +192,46 @@ public class BradsMultiToolOverlay extends Overlay {
             return null;
         }
 
-        NPC crab = plugin.getActiveCrab();
-        if (crab != null && !crab.isDead() && plugin.isCrabActive()) {
-            modelOutlineRenderer.drawOutline(crab, 2, config.activeCrabColor(), 1);
-        }
-
-        NPC shellNpc = plugin.getDormantCrabShellNpc();
-        if (shellNpc != null && !shellNpc.isDead()) {
-            modelOutlineRenderer.drawOutline(shellNpc, 2, config.shellColor(), 1);
-        }
-
-        for (TileObject shellObj : plugin.getTrackedShellObjects()) {
-            modelOutlineRenderer.drawOutline(shellObj, 2, config.shellColor(), 1);
-        }
-
-        if (plugin.isCrabBurrowed()) {
-            for (TileObject tunnel : plugin.getTrackedTunnels()) {
-                if (tunnel != null) {
-                    modelOutlineRenderer.drawOutline(tunnel, 2, config.tunnelColor(), 1);
-                }
-            }
-        }
-
-        Color buffColor = getBuffColor(plugin.getBuffState());
-        boolean isFlashingState = (plugin.getBuffState() == BradsMultiToolPlugin.BuffState.EXPIRED);
-        long millis = System.currentTimeMillis();
-        if (config.flashExpiredBuff() && isFlashingState && (millis / 350) % 2 == 0) {
-            buffColor = Color.WHITE;
-        }
+        // Outlines are drawn by BradsMultiToolCrabOutlineOverlay, under the game's interface
 
         // Mode A: Active fighting crab in cove
         if (plugin.isCrabActive()) {
-            panelComponent.getChildren().add(TitleComponent.builder()
-                .text("Gemstone Crab (In Vicinity)")
-                .color(new Color(0, 220, 220))
-                .build());
+            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", "", Color.WHITE));
 
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Target:")
-                .right(plugin.getTargetCrabHp())
-                .build());
-
-            boolean attacking = plugin.isPlayerAttackingCrab();
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Attacking:")
-                .right(attacking ? "YES" : "NO (Idle)")
-                .rightColor(attacking ? new Color(50, 220, 50) : new Color(255, 75, 75))
-                .build());
-
-            // Preserved: Exact XP Type ground truth
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("XP Type:")
-                .right(plugin.getCrabCombatXpType())
-                .rightColor(new Color(255, 215, 0))
-                .build());
+            if (plugin.getCrabHpPercent() >= 0) {
+                // No max HP for the crab, so the bar shows just the percentage
+                panelComponent.getChildren().add(new CenteredHealthBarComponent(liveCrabHpPercent(), 0, 0, true));
+            } else {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Target:")
+                    .right(plugin.getTargetCrabHp())
+                    .build());
+            }
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Burrows in:")
                 .right(plugin.getEstimatedBurrowTime())
                 .build());
 
+            boolean attacking = plugin.isPlayerAttackingCrab();
+            panelComponent.getChildren().add(LineComponent.builder()
+                .left("Attacking:")
+                .right(attacking ? "YES" : "NO")
+                .rightColor(attacking ? GOOD : BAD)
+                .build());
+
+            // Preserved: Exact XP Type ground truth
+            List<Image> skillIcons = new ArrayList<>();
+            for (Skill skill : plugin.getCrabCombatXpSkills()) {
+                skillIcons.add(skillIconManager.getSkillImage(skill, true));
+            }
+            panelComponent.getChildren().add(new IconLineComponent("XP Type:", skillIcons,
+                plugin.getCrabCombatXpType(), Color.WHITE));
+
             if (config.showCrabLastHit() && plugin.getCrabLastHit() > 0) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Last Hit:")
                     .right(String.valueOf(plugin.getCrabLastHit()))
-                    .rightColor(new Color(255, 215, 0))
                     .build());
             }
 
@@ -257,23 +239,26 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Max Hit:")
                     .right(String.valueOf(plugin.getCrabMaxHit()))
-                    .rightColor(new Color(255, 90, 90))
                     .build());
             }
 
             if (config.enableBuffStatus()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Buff Status:")
-                    .right(plugin.getBuffStatusText())
-                    .rightColor(buffColor)
-                    .build());
+                addBuffRows();
             }
 
             if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Prayer:")
                     .right("LOW")
-                    .rightColor(new Color(255, 50, 50))
+                    .rightColor(BAD)
+                    .build());
+            }
+
+            if (config.enableLowHealthAlert() && plugin.isLowHealthAlert()) {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Health:")
+                    .right("LOW")
+                    .rightColor(BAD)
                     .build());
             }
 
@@ -284,15 +269,11 @@ public class BradsMultiToolOverlay extends Overlay {
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Crab Dmg:")
                 .right(damageLine)
-                .rightColor(new Color(255, 215, 0))
                 .build());
         }
         // Mode B: Crab Radar
         else {
-            panelComponent.getChildren().add(TitleComponent.builder()
-                .text("Gemstone Crab Radar")
-                .color(new Color(255, 180, 0))
-                .build());
+            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", " Radar", new Color(255, 180, 0)));
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Current Cove:")
@@ -303,24 +284,94 @@ public class BradsMultiToolOverlay extends Overlay {
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Crab Status:")
                 .right(shellPresent ? "Burrowed (Shell)" : "In Other Cave")
-                .rightColor(new Color(255, 140, 0))
                 .build());
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Next Action:")
                 .right("Use Tunnel")
-                .rightColor(new Color(50, 220, 50))
                 .build());
         }
 
         return panelComponent.render(graphics);
     }
 
+    /**
+     * The game's right-click colour for a monster's combat level relative to the player's: green when
+     * lower, yellow when equal, through orange to red when higher.
+     */
+    // Live health bar reading, falling back to the last known value while the bar isn't shown
+    private int liveCrabHpPercent() {
+        NPC crab = plugin.getActiveCrab();
+        if (crab != null && crab.getHealthRatio() >= 0 && crab.getHealthScale() > 0) {
+            return crab.getHealthRatio() * 100 / crab.getHealthScale();
+        }
+        return plugin.getCrabHpPercent();
+    }
+
+    static Color combatLevelColor(int playerLevel, int npcLevel) {
+        if (npcLevel <= 0) {
+            return Color.WHITE;
+        }
+        int diff = playerLevel - npcLevel;
+        if (diff < -9) {
+            return new Color(0xff0000);
+        }
+        if (diff < -6) {
+            return new Color(0xff3000);
+        }
+        if (diff < -3) {
+            return new Color(0xff7000);
+        }
+        if (diff < 0) {
+            return new Color(0xffb000);
+        }
+        if (diff > 9) {
+            return new Color(0x00ff00);
+        }
+        if (diff > 6) {
+            return new Color(0x40ff00);
+        }
+        if (diff > 3) {
+            return new Color(0x80ff00);
+        }
+        if (diff > 0) {
+            return new Color(0xc0ff00);
+        }
+        return new Color(0xffff00);
+    }
+
+    /**
+     * One row per active buff with its potion icon, boost and time left (counting down smoothly
+     * between game ticks); otherwise a single Buff Status line, flashing when expired.
+     */
+    private void addBuffRows() {
+        if (plugin.getBuffState() == BradsMultiToolPlugin.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
+            long now = System.currentTimeMillis();
+            for (ActiveBuffs.Buff buff : plugin.getActiveBuffs()) {
+                String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(buff.millisLeft(now));
+                panelComponent.getChildren().add(new IconLineComponent(buff.name + ":",
+                    itemManager.getImage(buff.iconItemId), "+" + buff.boost + " " + time, GOOD));
+            }
+            return;
+        }
+
+        Color color = getBuffColor(plugin.getBuffState());
+        boolean flashing = plugin.getBuffState() == BradsMultiToolPlugin.BuffState.EXPIRED;
+        if (config.flashExpiredBuff() && flashing && (System.currentTimeMillis() / 350) % 2 == 0) {
+            color = Color.WHITE;
+        }
+        panelComponent.getChildren().add(LineComponent.builder()
+            .left("Buff Status:")
+            .right(plugin.getBuffStatusText())
+            .rightColor(color)
+            .build());
+    }
+
     private Color getBuffColor(BradsMultiToolPlugin.BuffState state) {
         switch (state) {
-            case EXPIRED: return new Color(255, 60, 60);
-            case ACTIVE: return new Color(100, 240, 100);
-            default: return new Color(180, 180, 180);
+            case EXPIRED: return BAD;
+            case ACTIVE: return GOOD;
+            default: return Color.WHITE;
         }
     }
 
@@ -338,147 +389,5 @@ public class BradsMultiToolOverlay extends Overlay {
             return null;
         }
         return icon.sprite ? spriteManager.getSprite(icon.id, 0) : itemManager.getImage(icon.id);
-    }
-
-    /**
-     * A label on the left and an icon followed by coloured text on the right, sized like a LineComponent row.
-     */
-    private static class IconLineComponent implements LayoutableRenderableEntity {
-        private static final int ICON_SIZE = 16;
-        private static final int ICON_GAP = 3;
-        private static final int LABEL_GAP = 6;
-
-        private final String left;
-        private final Image icon;
-        private final String right;
-        private final Color rightColor;
-        private final Rectangle bounds = new Rectangle();
-
-        IconLineComponent(String left, Image icon, String right, Color rightColor) {
-            this.left = left;
-            this.icon = icon;
-            this.right = right;
-            this.rightColor = rightColor;
-        }
-
-        @Override
-        public Dimension render(Graphics2D graphics) {
-            FontMetrics fm = graphics.getFontMetrics();
-            int width = bounds.width > 0 ? bounds.width : 185;
-            int height = Math.max(ICON_SIZE, fm.getHeight());
-            int x = bounds.x;
-            int baseline = bounds.y + (height - fm.getHeight()) / 2 + fm.getAscent();
-
-            drawShadowed(graphics, left, x, baseline, Color.WHITE);
-
-            // Never let the right side run into the label: trim it with "..." if it doesn't fit
-            int available = width - fm.stringWidth(left) - LABEL_GAP - (icon != null ? ICON_SIZE + ICON_GAP : 0);
-            String text = fitText(right, fm, available);
-            int textX = x + width - fm.stringWidth(text);
-            drawShadowed(graphics, text, textX, baseline, rightColor);
-
-            if (icon != null) {
-                int iconX = textX - ICON_GAP - ICON_SIZE;
-                graphics.drawImage(icon, iconX, bounds.y, ICON_SIZE, ICON_SIZE, null);
-            }
-
-            return new Dimension(width, height);
-        }
-
-        private static String fitText(String text, FontMetrics fm, int maxWidth) {
-            if (fm.stringWidth(text) <= maxWidth) {
-                return text;
-            }
-            String ellipsis = "...";
-            int end = text.length();
-            while (end > 0 && fm.stringWidth(text.substring(0, end) + ellipsis) > maxWidth) {
-                end--;
-            }
-            return text.substring(0, end) + ellipsis;
-        }
-
-        private static void drawShadowed(Graphics2D graphics, String text, int x, int y, Color color) {
-            graphics.setColor(Color.BLACK);
-            graphics.drawString(text, x + 1, y + 1);
-            graphics.setColor(color);
-            graphics.drawString(text, x, y);
-        }
-
-        @Override
-        public void setPreferredLocation(java.awt.Point position) {
-            bounds.setLocation(position);
-        }
-
-        @Override
-        public void setPreferredSize(Dimension dimension) {
-            bounds.setSize(dimension);
-        }
-
-        @Override
-        public Rectangle getBounds() {
-            return bounds;
-        }
-    }
-
-    private static class CenteredHealthBarComponent implements LayoutableRenderableEntity {
-        private final int percent;
-        private final int curHp;
-        private final int maxHp;
-        private Rectangle bounds = new Rectangle();
-
-        CenteredHealthBarComponent(int percent, int curHp, int maxHp) {
-            this.percent = Math.max(0, Math.min(100, percent));
-            this.curHp = curHp;
-            this.maxHp = maxHp;
-        }
-
-        @Override
-        public Dimension render(Graphics2D graphics) {
-            int width = bounds.width > 0 ? bounds.width : 185;
-            int height = 15;
-
-            int x = bounds.x;
-            int y = bounds.y + 3;
-
-            graphics.setColor(new Color(30, 30, 30, 230));
-            graphics.fillRect(x, y, width, height);
-
-            int fillWidth = (int) ((width * percent) / 100.0);
-            Color fillColor = (percent > 50) ? new Color(0, 190, 80) : ((percent > 20) ? new Color(240, 170, 0) : new Color(230, 40, 40));
-            graphics.setColor(fillColor);
-            graphics.fillRect(x, y, fillWidth, height);
-
-            graphics.setColor(new Color(15, 15, 15, 240));
-            graphics.drawRect(x, y, width, height);
-
-            String text = (maxHp > 0) ? (curHp + " / " + maxHp + " (" + percent + "%)") : (percent + "%");
-            Font font = FontManager.getRunescapeSmallFont();
-            graphics.setFont(font);
-            FontMetrics fm = graphics.getFontMetrics(font);
-            int textX = x + (width - fm.stringWidth(text)) / 2;
-            int textY = y + ((height - fm.getHeight()) / 2) + fm.getAscent();
-
-            graphics.setColor(Color.BLACK);
-            graphics.drawString(text, textX + 1, textY + 1);
-            graphics.setColor(Color.WHITE);
-            graphics.drawString(text, textX, textY);
-
-            return new Dimension(width, height + 6);
-        }
-
-        @Override
-        public void setPreferredLocation(java.awt.Point position) {
-            this.bounds.setLocation(position);
-        }
-
-        @Override
-        public void setPreferredSize(Dimension dimension) {
-            this.bounds.setSize(dimension);
-        }
-
-        @Override
-        public Rectangle getBounds() {
-            return bounds;
-        }
     }
 }

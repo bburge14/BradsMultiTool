@@ -31,7 +31,8 @@ public class BradsMultiToolPrayerOverlay extends Overlay {
         this.plugin = plugin;
         this.config = config;
         setPosition(OverlayPosition.DYNAMIC);
-        setLayer(OverlayLayer.ALWAYS_ON_TOP);
+        // Above your character in the world, so under the game's interface
+        setLayer(OverlayLayer.UNDER_WIDGETS);
         setPriority(PRIORITY_HIGH);
     }
 

@@ -42,6 +42,7 @@ public class MonsterDataTest {
     @Test
     public void greaterDemonHasDemonbaneNote() {
         assertEquals("Demonbane", weaknessOf(2025).note);
+        assertEquals(java.util.Collections.singletonList("Slash"), DATA.get(2025).attackStyles);
     }
 
     @Test

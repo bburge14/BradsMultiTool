@@ -8,9 +8,18 @@ The spoken alerts in `src/main/resources/com/bradsmultitool/voices/` were genera
 | Persona | Piper voice | Training data licence |
 |---|---|---|
 | Amy | en_US-amy-medium | See the [mimic3-voices](https://github.com/MycroftAI/mimic3-voices) model card |
-| Kristin | en_US-kristin-medium | Public domain (LibriVox) |
 | Cori | en_GB-cori-high | Public domain (LibriVox) |
 | Alba | en_GB-alba-medium | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (University of Edinburgh) |
-| Norman | en_US-norman-medium | Public domain |
+| Joe | en_US-joe-medium | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| Mike | en_US-mike-medium | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | Alan | en_GB-alan-medium | See the [mimic3-voices](https://github.com/MycroftAI/mimic3-voices) model card |
 | Northern | en_GB-northern_english_male-medium | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) ([OpenSLR 83](http://www.openslr.org/83/)) |
+
+Character voices are the voices above with pitch, speed and effects applied by the generator:
+
+| Character | Based on | Effect |
+|---|---|---|
+| Gnome | Cori | Pitched up, quicker |
+| Ogre | Joe | Pitched down, slower |
+| Old Wizard | Alan | Slower, slightly lower, wavering, light echo |
+| Robot | Mike | Ring modulation |

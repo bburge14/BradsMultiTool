@@ -10,8 +10,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.Experience;
 import net.runelite.api.GameState;
 import net.runelite.api.Hitsplat;
 import net.runelite.api.Item;
@@ -34,13 +37,16 @@ import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
 import net.runelite.api.Player;
+import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.SpriteID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GroundObjectDespawned;
 import net.runelite.api.events.GroundObjectSpawned;
@@ -49,11 +55,17 @@ import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.RuneScapeProfileChanged;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.callback.ClientThread;
+import net.runelite.client.input.KeyManager;
+import net.runelite.client.util.HotkeyListener;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.plugins.Plugin;
@@ -88,10 +100,37 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
     private static final int GEMSTONE_CRAB_ID = 14779;
     private static final int GEMSTONE_CRAB_SHELL_ID = 14780;
+    // The crab's three mines in the Tlati Rainforest (OSRS Wiki); crab tunnels and shells only count near these
+    private static final WorldPoint[] CRAB_SPOTS = {
+        new WorldPoint(1275, 3160, 0), new WorldPoint(1351, 3110, 0), new WorldPoint(1237, 3042, 0)};
+    private static final String[] CRAB_COVE_NAMES = {"North Cove", "East Cove", "West Cove"};
+    private static final int CRAB_AREA_RADIUS = 40;
+    // Client idle timeouts in 20ms client cycles: 5 minutes normally, 20 minutes (clicks/keys only) in combat
+    private static final int DEFAULT_IDLE_LOGOUT_CYCLES = 15000;
+    private static final int COMBAT_IDLE_LOGOUT_CYCLES = 60000;
+    // Login: alerts wait until the welcome screen's "Click here to play" is gone, then a few ticks more
+    private static final int WELCOME_SCREEN_GROUP = 378;
+    private static final int INSIDE_WILDERNESS_VARBIT = 5963;
+    // Bank, bank side panel, deposit box, bank PIN, shop, GE collect, GE offers, seed vault
+    private static final int[] BANKING_INTERFACES = {12, 15, 192, 213, 300, 402, 465, 631};
+    // An action counts towards the AFK alert only while it's giving XP (an XP drop in the last 30 seconds, for slow trees)
+    private static final int XP_ACTION_TICKS = 50;
+    private static final int IN_GAME_SETTLE_TICKS = 3;
+    // Repeat counter value meaning "already handled, don't sound or repeat"
+    private static final int SILENCED = Integer.MAX_VALUE / 2;
+    // Character idle: what counts as having been doing something before going AFK
+    private static final int MIN_ACTION_TICKS = 5;
+    private static final int TRAINING_WINDOW_TICKS = 25;
+    private static final int COMBAT_WINDOW_TICKS = 8;
+    // The shell lasts 90 seconds (150 ticks); allow a little slack
+    private static final int SHELL_LIFETIME_TICKS = 160;
+    private static final int GEMS_PER_SHELL = 3;
 
-    // The client logs out after 15000 idle client cycles (20ms each = 5 minutes)
-    private static final int IDLE_LOGOUT_SECONDS = 300;
-    private static final int IDLE_WARNING_SECONDS = 270;
+    private static final Set<Skill> BOOSTABLE_COMBAT_SKILLS =
+        EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC);
+    // Divine potion time left in game ticks (VarbitID.DIVINEATTACK/STRENGTH/DEFENCE/RANGE/MAGIC_POTION_TIME)
+    private static final int[] DIVINE_POTION_TIME_VARBITS = {8429, 8430, 8431, 8432, 8433};
+    private static final Skill[] DIVINE_POTION_SKILLS = {Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC};
 
     public enum BuffState {
         UNPOTTED,
@@ -104,7 +143,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private Gson gson;
-
 
     @Inject
     private OverlayManager overlayManager;
@@ -119,7 +157,102 @@ public class BradsMultiToolPlugin extends Plugin {
     private BradsMultiToolIdleWarningOverlay idleWarningOverlay;
 
     @Inject
+    private BradsMultiToolHoverOverlay hoverOverlay;
+
+    @Inject
+    private BradsMultiToolOrbOverlay orbOverlay;
+
+    @Inject
+    private BradsMultiToolSlayerOverlay slayerOverlay;
+
+    @Inject
+    private BradsMultiToolSkillingOverlay skillingOverlay;
+
+    @Inject
+    private EventBus eventBus;
+
+    @Inject
+    private ExtraAlerts extraAlerts;
+
+    @Inject
+    @Getter
+    private SlayerTracker slayerTracker;
+
+    @Inject
+    private BradsMultiToolCrabOutlineOverlay crabOutlineOverlay;
+
+    @Inject
+    private ResourceTimers resourceTimers;
+
+    @Inject
+    private FarmingData farmingData;
+
+    @Inject
+    private SkillHelperData skillHelperData;
+
+    @Inject
+    private BirdhouseTracker birdhouseTracker;
+
+    @Inject
+    private OtherTimerPlugins otherTimerPlugins;
+
+    @Inject
+    private BradsMultiToolResourceTimerOverlay resourceTimerOverlay;
+
+    @Inject
+    private SkillingData skillingData;
+
+    @Inject
+    private KeyManager keyManager;
+
+    /** Toggled by the slayer show/hide hotkey; kept in the settings so it stays that way across restarts. */
+    @Getter
+    private volatile boolean slayerCardHidden = false;
+    private static final String SLAYER_CARD_HIDDEN = "slayerCardHidden";
+
+    private final HotkeyListener slayerToggleListener = new HotkeyListener(() -> this.config.slayerToggleKey()) {
+        @Override
+        public void hotkeyPressed() {
+            slayerCardHidden = !slayerCardHidden;
+            configManager.setConfiguration(CONFIG_GROUP, SLAYER_CARD_HIDDEN, slayerCardHidden);
+            // Say what happened, since without a task there's no card to see change
+            String state = slayerCardHidden ? "hidden" : slayerTracker.hadTask() ? "shown" : "shown (no Slayer task right now)";
+            clientThread.invokeLater(() -> client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
+                "<col=00ffff>[Brad's Multi-Tool]</col> Slayer card " + state, null));
+        }
+    };
+
+    @Inject
     private BradsMultiToolConfig config;
+
+    @Inject
+    private ClientThread clientThread;
+
+    @Inject
+    private SlayerData slayerData;
+
+    private volatile int combatLevel = 3;
+
+    @Inject
+    private TrainingData trainingData;
+
+    @Inject
+    private BradsMultiToolTrainingOverlay trainingOverlay;
+
+    @Inject
+    private RecipeData recipeData;
+
+    @Inject
+    private GoalItems goalItems;
+
+    @Inject
+    private BradsMultiToolGoalItemOverlay goalItemOverlay;
+
+    @Inject
+    private BradsMultiToolSlayerHighlightOverlay slayerHighlightOverlay;
+
+    @Inject
+    private GoalTargetMenu goalTargetMenu;
 
     @Inject
     private ConfigManager configManager;
@@ -142,6 +275,15 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private NPC dormantCrabShellNpc = null;
+
+    /** Active crab's health 0-100, or -1 before its health bar has been seen. */
+    @Getter
+    private int crabHpPercent = -1;
+    private boolean crabLowHealthAlerted = false;
+
+    // Tick of the "enough understanding" message for the latest shell, -1 when not eligible
+    private int shellEligibleTick = -1;
+    private int shellGemsMined = 0;
 
     @Getter
     private final List<TileObject> trackedShellObjects = new ArrayList<>();
@@ -173,11 +315,19 @@ public class BradsMultiToolPlugin extends Plugin {
     @Getter
     private String crabCombatXpType = "Strength";
 
+    /** The skills behind crabCombatXpType, for showing their icons. */
     @Getter
-    private Color combatMethodColor = new Color(255, 215, 0);
+    private List<Skill> crabCombatXpSkills = Collections.singletonList(Skill.STRENGTH);
+
+    @Getter
+    private Color combatMethodColor = Color.WHITE;
 
     @Getter
     private CombatIcons.Icon combatMethodIcon = null;
+
+    /** The player's current combat style (weapon style, autocast or hand-cast spell). */
+    @Getter
+    private WeaponStyles.Style currentStyle = null;
 
     private final SpellbookReader spellbook = new SpellbookReader();
     private String manualSpellName = null;
@@ -192,6 +342,19 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private boolean logoutImminent = false;
+    private int timesIdleAlerted = 0;
+    private int idleLogoutAfterSeconds = 300;
+    // Ticks left of "in combat" after you hit or are hit (same 8-tick window as RuneLite's Idle Notifier)
+    private int combatTicks = 0;
+
+    private WorldPoint lastPlayerLocation = null;
+    private boolean characterWasActive = false;
+    private boolean characterIdleAlerted = false;
+    private int lastActiveTick = 0;
+    private int actionTicks = 0;
+    private int lastXpTick = -1000;
+    private int inGameTicks = 0;
+    private Instant lastIdleAlertTime = Instant.EPOCH;
 
     @Getter
     private int engineIdleSeconds = 0;
@@ -235,6 +398,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private boolean pvmTargetIsAggressive = false;
+    private String pvmTargetAggroText = "";
 
     @Getter
     private String pvmAggroStatusText = "Passive";
@@ -266,10 +430,20 @@ public class BradsMultiToolPlugin extends Plugin {
     @Getter
     private BuffState buffState = BuffState.UNPOTTED;
 
-    @Getter
     private String buffStatusText = "No Buffs";
+    /** Buffs active as of the last game tick, each with its own end time (see ActiveBuffs). */
+    @Getter
+    private List<ActiveBuffs.Buff> activeBuffs = Collections.emptyList();
+    private final Map<Skill, Long> divineEndMillis = new EnumMap<>(Skill.class);
+    // Buff name -> boost when its running-out warning played; a bigger boost (re-pot) re-arms it
+    private final Map<String, Integer> buffWarnedAtBoost = new HashMap<>();
+    private ActiveBuffs.Category lastEndedCategory = null;
+    private String lastEndedBuffName = null;
+    private long lastTickMillis = 0;
 
     private int previousMaxBoost = 0;
+    private final BuffTimer buffTimer = new BuffTimer();
+    private final Map<Skill, Integer> lastBoostedLevels = new EnumMap<>(Skill.class);
     private int timesBuffExpiredSounded = 0;
     private Instant lastBuffExpiredSoundTime = Instant.EPOCH;
 
@@ -277,6 +451,11 @@ public class BradsMultiToolPlugin extends Plugin {
     private boolean lowPrayerAlert = false;
     @Getter
     private boolean zeroPrayerAlert = false;
+
+    @Getter
+    private boolean lowHealthAlert = false;
+    private int timesHealthAlertSounded = 0;
+    private Instant lastHealthAlertTime = Instant.EPOCH;
     private int timesPrayerAlertSounded = 0;
     private Instant lastPrayerAlertTime = Instant.EPOCH;
 
@@ -288,6 +467,8 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
+    private final Map<Skill, Integer> realLevels = new EnumMap<>(Skill.class);
+    private final Map<Skill, Integer> lastXpTicks = new EnumMap<>(Skill.class);
     private final Map<Skill, Long> skillActiveTicks = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> lastXpDrops = new EnumMap<>(Skill.class);
     private final Set<Skill> pausedSkills = EnumSet.noneOf(Skill.class);
@@ -295,9 +476,35 @@ public class BradsMultiToolPlugin extends Plugin {
     @Override
     protected void startUp() throws Exception {
         monsterData.load(gson);
+        skillingData.load(gson);
+        farmingData.load(gson);
+        skillHelperData.load(gson);
+        slayerData.load(gson);
+        trainingData.load(gson);
+        recipeData.load(gson);
+        eventBus.register(trainingOverlay);
+        eventBus.register(goalItems);
+        eventBus.register(goalTargetMenu);
+        eventBus.register(extraAlerts);
+        eventBus.register(resourceTimers);
+        eventBus.register(farmingData);
+        eventBus.register(birdhouseTracker);
+        eventBus.register(otherTimerPlugins);
+        otherTimerPlugins.refresh();
+        slayerCardHidden = Boolean.parseBoolean(configManager.getConfiguration(CONFIG_GROUP, SLAYER_CARD_HIDDEN));
+        keyManager.registerKeyListener(slayerToggleListener);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
         overlayManager.add(idleWarningOverlay);
+        overlayManager.add(hoverOverlay);
+        overlayManager.add(orbOverlay);
+        overlayManager.add(slayerOverlay);
+        overlayManager.add(skillingOverlay);
+        overlayManager.add(resourceTimerOverlay);
+        overlayManager.add(crabOutlineOverlay);
+        overlayManager.add(trainingOverlay);
+        overlayManager.add(goalItemOverlay);
+        overlayManager.add(slayerHighlightOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -316,6 +523,24 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(overlay);
         overlayManager.remove(prayerOverlay);
         overlayManager.remove(idleWarningOverlay);
+        overlayManager.remove(hoverOverlay);
+        overlayManager.remove(orbOverlay);
+        overlayManager.remove(slayerOverlay);
+        overlayManager.remove(skillingOverlay);
+        overlayManager.remove(resourceTimerOverlay);
+        overlayManager.remove(crabOutlineOverlay);
+        overlayManager.remove(trainingOverlay);
+        overlayManager.remove(goalItemOverlay);
+        overlayManager.remove(slayerHighlightOverlay);
+        eventBus.unregister(trainingOverlay);
+        eventBus.unregister(goalItems);
+        eventBus.unregister(goalTargetMenu);
+        eventBus.unregister(extraAlerts);
+        eventBus.unregister(resourceTimers);
+        eventBus.unregister(farmingData);
+        eventBus.unregister(birdhouseTracker);
+        eventBus.unregister(otherTimerPlugins);
+        keyManager.unregisterKeyListener(slayerToggleListener);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);
         }
@@ -337,11 +562,41 @@ public class BradsMultiToolPlugin extends Plugin {
     // Plays a random real alert in the newly selected voice
     private void previewVoice() {
         VoiceAlertService.VoiceLine[] lines = VoiceAlertService.VoiceLine.values();
-        speak(lines[ThreadLocalRandom.current().nextInt(lines.length)]);
+        playVoice(lines[ThreadLocalRandom.current().nextInt(lines.length)]);
     }
 
-    private void speak(VoiceAlertService.VoiceLine line) {
+    /**
+     * True once you're actually in the game: past the welcome screen for a few ticks. Before that, alerts
+     * stay silent and anything already true at login (low prayer, say) counts as already announced.
+     */
+    boolean alertsReady() {
+        return inGameTicks > IN_GAME_SETTLE_TICKS;
+    }
+
+    private boolean isWidgetVisible(int group) {
+        Widget widget = client.getWidget(group, 0);
+        return widget != null && !widget.isHidden();
+    }
+
+    /** Speaks an alert, if you're in game and its voice is turned on. */
+    void speak(VoiceAlertService.VoiceLine line) {
+        if (alertsReady() && config.voiceEnabled() && voiceAllowed(line)) {
+            playVoice(line);
+        }
+    }
+
+    private void playVoice(VoiceAlertService.VoiceLine line) {
         voiceService.speakAsync(line, config.voicePersona(), config.voiceVolume());
+    }
+
+    private boolean voiceAllowed(VoiceAlertService.VoiceLine line) {
+        return toggle(AlertType.of(line).voiceKey);
+    }
+
+    // A Voice Alerts / Chat Messages switch, falling back to its default
+    private boolean toggle(String key) {
+        String value = configManager.getConfiguration(CONFIG_GROUP, key);
+        return value == null ? !"chatLevelUp".equals(key) : Boolean.parseBoolean(value);
     }
 
     public String getPvmTargetHp() {
@@ -352,10 +607,24 @@ public class BradsMultiToolPlugin extends Plugin {
         return crabCombatXpType;
     }
 
-    private void sendGameChatMessage(String message) {
-        if (config.sendChatMessages()) {
+    /** Speaks the line and posts the same words in chat, with any detail in brackets. */
+    void alert(VoiceAlertService.VoiceLine line, String detail) {
+        speak(line);
+        sendGameChatMessage(AlertType.of(line), detail == null ? line.text : line.text + " (" + detail + ")");
+    }
+
+    /** Posts an alert in chat, if you're in game and its chat message is turned on. */
+    void sendGameChatMessage(AlertType type, String message) {
+        if (config.sendChatMessages() && alertsReady() && toggle(type.chatKey)) {
             client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> " + message, null);
         }
+    }
+
+    // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
+    // which changes when synced settings arrive), so redraw the tracker then
+    @Subscribe
+    public void onRuneScapeProfileChanged(RuneScapeProfileChanged event) {
+        updatePanelUI();
     }
 
     @Subscribe
@@ -364,26 +633,18 @@ public class BradsMultiToolPlugin extends Plugin {
             return;
         }
 
-        switch (event.getKey()) {
-            case "voicePersona":
-            case "voiceVolume":
-                previewVoice();
-                break;
-            case "voiceBuffExpired":
-                if (config.voiceBuffExpired()) {
-                    speak(VoiceAlertService.VoiceLine.BUFF_EXPIRED);
+        String key = event.getKey();
+        if (key.startsWith("showTracker") || key.startsWith("tracker") || key.startsWith("goal") || "showXpPerMinute".equals(key) || key.startsWith("autoPause")) {
+            updatePanelUI();
+        }
+        if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
+            previewVoice();
+        } else if (Boolean.parseBoolean(event.getNewValue())) {
+            for (AlertType type : AlertType.values()) {
+                if (type.voiceKey.equals(key)) {
+                    voiceService.speakClipsAsync(config.voicePersona(), config.voiceVolume(), type.preview);
                 }
-                break;
-            case "voicePrayerLow":
-                if (config.voicePrayerLow()) {
-                    speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
-                }
-                break;
-            case "voiceCrabMoved":
-                if (config.voiceCrabMoved()) {
-                    speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
-                }
-                break;
+            }
         }
     }
 
@@ -489,8 +750,113 @@ public class BradsMultiToolPlugin extends Plugin {
         updatePanelUI();
     }
 
+    /** Paused by you, or auto-paused after going without XP in the skill for a while. */
     public boolean isSkillPaused(Skill skill) {
-        return pausedSkills.contains(skill);
+        return pausedSkills.contains(skill) || isSkillAutoPaused(skill);
+    }
+
+    /** No XP in the skill for the auto-pause time: the rate stops counting until you gain XP again. */
+    public boolean isSkillAutoPaused(Skill skill) {
+        if (!config.autoPauseSkills() || pausedSkills.contains(skill)) {
+            return false;
+        }
+        Integer last = lastXpTicks.get(skill);
+        return last != null && client.getTickCount() - last > config.autoPauseMinutes() * 100;
+    }
+
+    // ---- Goals: a target XP per skill, kept with your RuneScape profile ----
+
+    /** The skill's goal in XP, or 0 for none. */
+    public int getSkillGoal(Skill skill) {
+        String value = configManager.getRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name());
+        try {
+            return value == null ? 0 : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public void setSkillGoal(Skill skill, int goalXp) {
+        if (goalXp <= 0) {
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name());
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name());
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name(), goalXp);
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name(), client.getSkillExperience(skill));
+        }
+        updatePanelUI();
+    }
+
+    /** The wiki's training methods by level, for the tracker's goal suggestions. */
+    public TrainingData getTrainingData() {
+        return trainingData;
+    }
+
+    /** Your combat level as of the last game tick (safe to read from the panel). */
+    public int getCombatLevel() {
+        return combatLevel;
+    }
+
+    public int getCurrentSkillLevel(Skill skill) {
+        return Experience.getLevelForXp(client.getSkillExperience(skill));
+    }
+
+    public SlayerData getSlayerData() {
+        return slayerData;
+    }
+
+    /** What to make for production-skill goals, from your inventory and bank. */
+    public GoalItems getGoalItems() {
+        return goalItems;
+    }
+
+    /**
+     * What you chose to train for this skill's goal instead of the suggestion ("npc:ruby harvest",
+     * "object:Teak tree"), or null to follow the suggestion.
+     */
+    public String getGoalTarget(Skill skill) {
+        return configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
+    }
+
+    public void setGoalTarget(Skill skill, String target) {
+        if (target == null) {
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name(), target);
+        }
+        updatePanelUI();
+    }
+
+    /** "Ruby harvest" from "npc:ruby harvest". */
+    static String goalTargetName(String target) {
+        String name = target.substring(target.indexOf(':') + 1);
+        return name.isEmpty() ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
+    }
+
+    /** Skills you've set a goal for, in skill order. */
+    public List<Skill> getGoalSkills() {
+        List<Skill> skills = new ArrayList<>();
+        if (configManager.getRSProfileKey() == null) {
+            return skills;
+        }
+        for (Skill skill : Skill.values()) {
+            if (!"OVERALL".equals(skill.name()) && getSkillGoal(skill) > 0) {
+                skills.add(skill);
+            }
+        }
+        return skills;
+    }
+
+    /** Your XP in the skill when you set its goal (for the goal bar), or 0 if unknown. */
+    public int getSkillGoalStart(Skill skill) {
+        String value = configManager.getRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name());
+        try {
+            return value == null ? 0 : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     public void resetSkill(Skill skill) {
@@ -504,7 +870,21 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
+        // The boost decay timer keeps running across area loads; only a new session resets it
+        if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
+            buffTimer.reset();
+            lastBoostedLevels.clear();
+            divineEndMillis.clear();
+        }
+        if (event.getGameState() == GameState.LOGIN_SCREEN) {
+            realLevels.clear();
+            slayerTracker.reset();
+        }
         if (event.getGameState() != GameState.LOGGED_IN) {
+            inGameTicks = 0;
+            characterWasActive = false;
+            actionTicks = 0;
+            lastPlayerLocation = null;
             activeCrab = null;
             dormantCrabShellNpc = null;
             currentPvmTarget = null;
@@ -540,10 +920,7 @@ public class BradsMultiToolPlugin extends Plugin {
             resetFightTracking();
 
             if (inSpawnVicinity && wasDirectlyTrackingCrab && isNearPlayer(npc, CRAB_BURROW_ALERT_DISTANCE)) {
-                if (config.voiceCrabMoved()) {
-                    speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
-                }
-                sendGameChatMessage("<col=ff9900>The Gemstone Crab has relocated to another cave!</col>");
+                alert(VoiceAlertService.VoiceLine.CRAB_MOVED, null);
             }
             wasDirectlyTrackingCrab = false;
         }
@@ -576,6 +953,25 @@ public class BradsMultiToolPlugin extends Plugin {
         SHELL
     }
 
+    public boolean isGemstoneCrab(NPC npc) {
+        return classifyCrab(npc) != CrabForm.NONE;
+    }
+
+    /** Wiki stats for an NPC, or null if it isn't in the bundled data. */
+    public MonsterData.Stats statsFor(NPC npc) {
+        return monsterData.get(npc.getId());
+    }
+
+    public MonsterWeakness weaknessFor(NPC npc) {
+        MonsterData.Stats stats = statsFor(npc);
+        return stats != null ? MonsterData.weaknessOf(stats) : MonsterWeakness.fromName(npc.getName());
+    }
+
+    /** True for an NPC offering an "Attack" option. */
+    public boolean isAttackable(NPC npc) {
+        return hasAttackOption(npc);
+    }
+
     private CrabForm classifyCrab(NPC npc) {
         if (npc == null) {
             return CrabForm.NONE;
@@ -600,6 +996,9 @@ public class BradsMultiToolPlugin extends Plugin {
         if (!name.contains("gemstone crab") && !name.contains("gem crab")) {
             return CrabForm.NONE;
         }
+        if (name.contains("shell")) {
+            return CrabForm.SHELL;
+        }
         if (comp != null && comp.getActions() != null) {
             for (String action : comp.getActions()) {
                 if ("Mine".equalsIgnoreCase(action)) {
@@ -608,6 +1007,33 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
         return CrabForm.ACTIVE;
+    }
+
+    /**
+     * Whether you can mine the current shell. Only the 16 players who dealt the most damage may mine it,
+     * which the game announces in chat when the crab burrows; the shell lasts 90 seconds and gives each
+     * eligible player 3 gems.
+     */
+    public boolean isShellMineable() {
+        return shellEligibleTick >= 0
+            && client.getTickCount() - shellEligibleTick <= SHELL_LIFETIME_TICKS
+            && shellGemsMined < GEMS_PER_SHELL;
+    }
+
+    @Subscribe
+    public void onChatMessage(ChatMessage event) {
+        if (event.getType() != ChatMessageType.GAMEMESSAGE && event.getType() != ChatMessageType.SPAM) {
+            return;
+        }
+        String message = Text.removeTags(event.getMessage()).toLowerCase();
+        if (message.contains("enough understanding of the crab to mine")) {
+            shellEligibleTick = client.getTickCount();
+            shellGemsMined = 0;
+        } else if (message.contains("understanding of the gemstone crab is not great enough")) {
+            shellEligibleTick = -1;
+        } else if (message.contains("from the crab shell")) {
+            shellGemsMined++;
+        }
     }
 
     private void evaluateNpc(NPC npc) {
@@ -631,10 +1057,34 @@ public class BradsMultiToolPlugin extends Plugin {
         if (activeCrab != npc) {
             log.debug("Gemstone Crab detected: id={} at {}", npc.getId(), npc.getWorldLocation());
             resetFightTracking();
+            crabHpPercent = -1;
+            crabLowHealthAlerted = false;
         }
         activeCrab = npc;
         wasDirectlyTrackingCrab = true;
         dormantCrabShellNpc = null;
+    }
+
+    // The health bar is only sent while the crab is in view and in combat, so keep the last known value
+    private void updateCrabHealth() {
+        if (activeCrab == null) {
+            return;
+        }
+        int ratio = activeCrab.getHealthRatio();
+        int scale = activeCrab.getHealthScale();
+        if (ratio >= 0 && scale > 0) {
+            crabHpPercent = (ratio * 100) / scale;
+        }
+        if (crabHpPercent < 0) {
+            return;
+        }
+
+        if (crabHpPercent > config.crabLowHealthPercent()) {
+            crabLowHealthAlerted = false;
+        } else if (!crabLowHealthAlerted && inSpawnVicinity) {
+            crabLowHealthAlerted = true;
+            alert(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH, crabHpPercent + "% health");
+        }
     }
 
     // Spawn events can be missed (e.g. arriving through a cave reloads the scene and clears tracking),
@@ -703,7 +1153,8 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     private void checkTileObject(TileObject obj) {
-        if (obj == null) return;
+        // Tunnels and shells elsewhere (Draynor sewers, say) have nothing to do with the crab
+        if (obj == null || crabSpotNear(obj.getWorldLocation()) < 0) return;
 
         ObjectComposition def = client.getObjectDefinition(obj.getId());
         if (def == null) return;
@@ -743,6 +1194,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Subscribe
     public void onGameTick(GameTick tick) {
+        lastTickMillis = System.currentTimeMillis();
         if (client.getGameState() != GameState.LOGGED_IN) {
             return;
         }
@@ -752,10 +1204,18 @@ public class BradsMultiToolPlugin extends Plugin {
         tickXpChanges.clear();
 
         Player player = client.getLocalPlayer();
+        if (player == null || isWidgetVisible(WELCOME_SCREEN_GROUP)) {
+            inGameTicks = 0;
+        } else {
+            inGameTicks++;
+        }
         if (player != null) {
+            combatLevel = player.getCombatLevel();
             WorldPoint wp = player.getWorldLocation();
             scanForCrab();
             updateSpatialPresence(player, wp);
+            updateCrabHealth();
+            slayerTracker.update();
             updateTargetCrabStatus(player);
             updateGeneralPvmTarget(player);
             updateAggroCountdown(wp);
@@ -767,12 +1227,16 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         processSimpleBuffStatus();
+        if (player != null) {
+            updateCharacterIdle(player);
+        }
         monitorPrayer();
+        monitorHealth();
         updateIdleState();
         updateRealtimeCombatMethod();
 
         for (Skill s : gainedSkillXp.keySet()) {
-            if (gainedSkillXp.get(s) > 0 && !pausedSkills.contains(s) && !isSkillIgnored(s)) {
+            if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
                 long current = skillActiveTicks.getOrDefault(s, 0L);
                 skillActiveTicks.put(s, current + 1);
             }
@@ -791,22 +1255,31 @@ public class BradsMultiToolPlugin extends Plugin {
         boolean hasRng = tickXpChanges.contains(Skill.RANGED);
         boolean hasMag = tickXpChanges.contains(Skill.MAGIC);
 
+        crabCombatXpSkills = new ArrayList<>();
         if (hasAtk && hasStr && hasDef) {
             crabCombatXpType = "Shared";
+            crabCombatXpSkills.addAll(Arrays.asList(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE));
         } else if (hasRng && hasDef) {
             crabCombatXpType = "Ranged / Def";
+            crabCombatXpSkills.addAll(Arrays.asList(Skill.RANGED, Skill.DEFENCE));
         } else if (hasMag && hasDef) {
             crabCombatXpType = "Magic / Def";
+            crabCombatXpSkills.addAll(Arrays.asList(Skill.MAGIC, Skill.DEFENCE));
         } else if (hasAtk) {
             crabCombatXpType = "Attack";
+            crabCombatXpSkills.add(Skill.ATTACK);
         } else if (hasStr) {
             crabCombatXpType = "Strength";
+            crabCombatXpSkills.add(Skill.STRENGTH);
         } else if (hasDef) {
             crabCombatXpType = "Defence";
+            crabCombatXpSkills.add(Skill.DEFENCE);
         } else if (hasRng) {
             crabCombatXpType = "Ranged";
+            crabCombatXpSkills.add(Skill.RANGED);
         } else if (hasMag) {
             crabCombatXpType = "Magic";
+            crabCombatXpSkills.add(Skill.MAGIC);
         }
     }
 
@@ -824,7 +1297,8 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         if (!pvmTargetIsAggressive) {
-            pvmAggroStatusText = "Passive";
+            // Why it won't attack you, e.g. "No (lvl 57+)" or "No (Bandos item)"
+            pvmAggroStatusText = pvmTargetAggroText.startsWith("No (") ? "Passive" + pvmTargetAggroText.substring(2) : "Passive";
             return;
         }
 
@@ -850,47 +1324,184 @@ public class BradsMultiToolPlugin extends Plugin {
             return;
         }
 
-        int atkBoost = Math.max(0, client.getBoostedSkillLevel(Skill.ATTACK) - client.getRealSkillLevel(Skill.ATTACK));
-        int strBoost = Math.max(0, client.getBoostedSkillLevel(Skill.STRENGTH) - client.getRealSkillLevel(Skill.STRENGTH));
-        int defBoost = Math.max(0, client.getBoostedSkillLevel(Skill.DEFENCE) - client.getRealSkillLevel(Skill.DEFENCE));
-        int rngBoost = Math.max(0, client.getBoostedSkillLevel(Skill.RANGED) - client.getRealSkillLevel(Skill.RANGED));
-        int magBoost = Math.max(0, client.getBoostedSkillLevel(Skill.MAGIC) - client.getRealSkillLevel(Skill.MAGIC));
+        Map<Skill, Integer> boosts = new EnumMap<>(Skill.class);
+        for (Skill skill : BOOSTABLE_COMBAT_SKILLS) {
+            boosts.put(skill, Math.max(0, client.getBoostedSkillLevel(skill) - client.getRealSkillLevel(skill)));
+        }
+        int currentMax = Collections.max(boosts.values());
 
-        int currentMax = Math.max(atkBoost, Math.max(strBoost, Math.max(defBoost, Math.max(rngBoost, magBoost))));
-
-        if (currentMax >= 4) {
+        if (currentMax >= 4 || (currentMax > 0 && buffState == BuffState.ACTIVE)) {
             buffState = BuffState.ACTIVE;
-            buffStatusText = "ACTIVE (+" + currentMax + ")";
+            syncDivineTimers();
+            boolean preserve = client.getVarbitValue(Prayer.PRESERVE.getVarbit()) == 1;
+            List<ActiveBuffs.Buff> buffs = ActiveBuffs.detect(boosts, divineEndMillis, buffTimer, client.getTickCount(), lastTickMillis, preserve);
+            announceEndedBuffs(buffs);
+            activeBuffs = buffs;
+            buffStatusText = "ACTIVE";
             timesBuffExpiredSounded = 0;
+            checkBuffRunningOut();
         } else if (currentMax == 0) {
+            announceEndedBuffs(Collections.emptyList());
+            activeBuffs = Collections.emptyList();
+            buffWarnedAtBoost.clear();
             if (buffState == BuffState.ACTIVE) {
                 buffState = BuffState.EXPIRED;
                 buffStatusText = "EXPIRED";
-
-                boolean canSound = false;
-                if (timesBuffExpiredSounded == 0) {
-                    timesBuffExpiredSounded = 1;
-                    lastBuffExpiredSoundTime = Instant.now();
-                    canSound = true;
-                    sendGameChatMessage("<col=ff0000>Your combat buff has run out.</col>");
-                } else if (config.repeatBuffAlert()) {
-                    long delay = Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds();
-                    if (delay >= config.repeatBuffInterval() && timesBuffExpiredSounded < config.maxBuffRepeats()) {
-                        timesBuffExpiredSounded++;
-                        lastBuffExpiredSoundTime = Instant.now();
-                        canSound = true;
-                        sendGameChatMessage("<col=ff0000>Your combat buff is still out.</col>");
-                    }
-                }
-
-                if (canSound && config.voiceBuffExpired()) {
-                    speak(VoiceAlertService.VoiceLine.BUFF_EXPIRED);
-                }
+                timesBuffExpiredSounded = 1;
+                lastBuffExpiredSoundTime = Instant.now();
+                alert(lastExpiredLine(), null);
+            } else if (buffState == BuffState.EXPIRED && config.repeatBuffAlert()
+                && Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds() >= config.repeatBuffInterval()
+                && timesBuffExpiredSounded <= config.maxBuffRepeats()) {
+                timesBuffExpiredSounded++;
+                lastBuffExpiredSoundTime = Instant.now();
+                alert(lastExpiredLine(), "still out");
             } else if (buffState == BuffState.UNPOTTED) {
                 buffStatusText = "No Buffs";
             }
         }
         previousMaxBoost = currentMax;
+    }
+
+    /**
+     * Time left on the boost: exact for divine potions (the game counts it down), exact for regular
+     * potions once a stat drop has been seen, and "~" plus an upper bound before that.
+     */
+    // Catch divine potions already running when the plugin starts; changes arrive via onVarbitChanged
+    private void syncDivineTimers() {
+        Skill[] skills = DIVINE_POTION_SKILLS;
+        for (int i = 0; i < skills.length; i++) {
+            int ticks = client.getVarbitValue(DIVINE_POTION_TIME_VARBITS[i]);
+            if (ticks <= 0) {
+                divineEndMillis.remove(skills[i]);
+            } else {
+                divineEndMillis.putIfAbsent(skills[i], System.currentTimeMillis() + ticks * 600L);
+            }
+        }
+    }
+
+    // Like RuneLite's Timers plugin: start the countdown when the game sets the divine timer
+    @Subscribe
+    public void onVarbitChanged(VarbitChanged event) {
+        for (int i = 0; i < DIVINE_POTION_TIME_VARBITS.length; i++) {
+            if (event.getVarbitId() == DIVINE_POTION_TIME_VARBITS[i]) {
+                if (event.getValue() > 0) {
+                    divineEndMillis.put(DIVINE_POTION_SKILLS[i], System.currentTimeMillis() + event.getValue() * 600L);
+                } else {
+                    divineEndMillis.remove(DIVINE_POTION_SKILLS[i]);
+                }
+            }
+        }
+    }
+
+    // Warn once per dose for each buff, only when its time left is exact
+    private void checkBuffRunningOut() {
+        int warnSeconds = config.buffWarningSeconds();
+        long now = System.currentTimeMillis();
+        for (ActiveBuffs.Buff buff : activeBuffs) {
+            Integer warnedAt = buffWarnedAtBoost.get(buff.name);
+            if (warnedAt != null && buff.boost <= warnedAt) {
+                continue;
+            }
+            if (warnSeconds <= 0 || !buff.exact || buff.millisLeft(now) > warnSeconds * 1000L) {
+                if (warnedAt != null) {
+                    buffWarnedAtBoost.remove(buff.name);
+                }
+                continue;
+            }
+            buffWarnedAtBoost.put(buff.name, buff.boost);
+            alert(potionLine(buff.name, true, runningOutLine(buff.category)), BuffTimer.formatMillis(buff.millisLeft(now)) + " left");
+        }
+    }
+
+    // A buff that ends while others are still active gets its own "has run out"; when the last one ends,
+    // the expired alert above speaks for it (using lastEndedCategory)
+    private void announceEndedBuffs(List<ActiveBuffs.Buff> current) {
+        for (ActiveBuffs.Buff before : activeBuffs) {
+            boolean stillActive = current.stream().anyMatch(b -> b.name.equals(before.name));
+            if (stillActive) {
+                continue;
+            }
+            lastEndedCategory = before.category;
+            lastEndedBuffName = before.name;
+            if (!current.isEmpty()) {
+                alert(potionLine(before.name, false, expiredLine(before.category)), null);
+            }
+        }
+    }
+
+    // What to say for the buff that ran out last
+    private VoiceAlertService.VoiceLine lastExpiredLine() {
+        return lastEndedBuffName != null
+            ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
+            : expiredLine(lastEndedCategory);
+    }
+
+    // The potion's own line ("Divine super combat is running out"), else the boost-type line
+    private static VoiceAlertService.VoiceLine potionLine(String buffName, boolean runningOut,
+                                                          VoiceAlertService.VoiceLine fallback) {
+        VoiceAlertService.VoiceLine line = VoiceAlertService.VoiceLine.forPotion(buffName, runningOut);
+        return line != null ? line : fallback;
+    }
+
+    private static VoiceAlertService.VoiceLine runningOutLine(ActiveBuffs.Category category) {
+        switch (category) {
+            case MELEE: return VoiceAlertService.VoiceLine.MELEE_BUFF_LOW;
+            case RANGED: return VoiceAlertService.VoiceLine.RANGED_BUFF_LOW;
+            case MAGIC: return VoiceAlertService.VoiceLine.MAGIC_BUFF_LOW;
+            case DEFENCE: return VoiceAlertService.VoiceLine.DEFENCE_BUFF_LOW;
+            default: return VoiceAlertService.VoiceLine.BUFF_LOW;
+        }
+    }
+
+    private static VoiceAlertService.VoiceLine expiredLine(ActiveBuffs.Category category) {
+        if (category == null) {
+            return VoiceAlertService.VoiceLine.BUFF_EXPIRED;
+        }
+        switch (category) {
+            case MELEE: return VoiceAlertService.VoiceLine.MELEE_BUFF_EXPIRED;
+            case RANGED: return VoiceAlertService.VoiceLine.RANGED_BUFF_EXPIRED;
+            case MAGIC: return VoiceAlertService.VoiceLine.MAGIC_BUFF_EXPIRED;
+            case DEFENCE: return VoiceAlertService.VoiceLine.DEFENCE_BUFF_EXPIRED;
+            default: return VoiceAlertService.VoiceLine.BUFF_EXPIRED;
+        }
+    }
+
+    /** Text for the Buff Status line when no buff rows are shown ("No Buffs", "EXPIRED", ...). */
+    public String getBuffStatusText() {
+        return buffStatusText;
+    }
+
+    /** Points equal to {@code percent}% of the skill's real level (at least 1). */
+    private int threshold(Skill skill, int percent) {
+        return Math.max(1, (int) Math.ceil(client.getRealSkillLevel(skill) * percent / 100.0));
+    }
+
+    private void monitorHealth() {
+        int hp = client.getBoostedSkillLevel(Skill.HITPOINTS);
+        if (!config.enableLowHealthAlert() || hp > threshold(Skill.HITPOINTS, config.lowHealthPercent()) || hp <= 0) {
+            lowHealthAlert = false;
+            timesHealthAlertSounded = 0;
+            return;
+        }
+        lowHealthAlert = true;
+
+        boolean canSound = false;
+        if (timesHealthAlertSounded == 0) {
+            canSound = true;
+        } else if (config.repeatHealthAlert()
+            && Duration.between(lastHealthAlertTime, Instant.now()).getSeconds() >= config.repeatHealthInterval()
+            && timesHealthAlertSounded <= config.maxHealthRepeats()) {
+            canSound = true;
+        }
+
+        if (canSound && !alertsReady()) {
+            timesHealthAlertSounded = SILENCED;
+        } else if (canSound) {
+            timesHealthAlertSounded++;
+            lastHealthAlertTime = Instant.now();
+            alert(VoiceAlertService.VoiceLine.HEALTH_LOW, hp + " hitpoints");
+        }
     }
 
     private void monitorPrayer() {
@@ -900,26 +1511,25 @@ public class BradsMultiToolPlugin extends Plugin {
         if (isZero && !zeroPrayerAlert) {
             zeroPrayerAlert = true;
             lowPrayerAlert = false;
-            if (config.voicePrayerLow()) {
-                speak(VoiceAlertService.VoiceLine.OUT_OF_PRAYER);
-            }
-            sendGameChatMessage("<col=ff0000>Alert: Out of prayer points!</col>");
+            alert(VoiceAlertService.VoiceLine.OUT_OF_PRAYER, null);
             return;
         } else if (!isZero) {
             zeroPrayerAlert = false;
         }
 
-        if (!isZero && config.enableLowPrayerAlert() && currentPrayer <= config.lowPrayerThreshold()) {
+        if (!isZero && config.enableLowPrayerAlert() && currentPrayer <= threshold(Skill.PRAYER, config.lowPrayerPercent())) {
             lowPrayerAlert = true;
 
             boolean canSound = false;
-            if (timesPrayerAlertSounded == 0) {
+            if (timesPrayerAlertSounded == 0 && !alertsReady()) {
+                timesPrayerAlertSounded = SILENCED;
+            } else if (timesPrayerAlertSounded == 0) {
                 timesPrayerAlertSounded = 1;
                 lastPrayerAlertTime = Instant.now();
                 canSound = true;
             } else if (config.repeatPrayerAlert()) {
                 long delay = Duration.between(lastPrayerAlertTime, Instant.now()).getSeconds();
-                if (delay >= config.repeatPrayerInterval() && timesPrayerAlertSounded < config.maxPrayerRepeats()) {
+                if (delay >= config.repeatPrayerInterval() && timesPrayerAlertSounded <= config.maxPrayerRepeats()) {
                     timesPrayerAlertSounded++;
                     lastPrayerAlertTime = Instant.now();
                     canSound = true;
@@ -927,31 +1537,126 @@ public class BradsMultiToolPlugin extends Plugin {
             }
 
             if (canSound) {
-                if (config.voicePrayerLow()) {
-                    speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
-                }
-                sendGameChatMessage("<col=ff3333>Warning: Prayer points low (" + currentPrayer + " remaining)!</col>");
+                alert(VoiceAlertService.VoiceLine.PRAYER_LOW, currentPrayer + " points");
             }
-        } else if (currentPrayer > config.lowPrayerThreshold()) {
+        } else if (currentPrayer > threshold(Skill.PRAYER, config.lowPrayerPercent())) {
             lowPrayerAlert = false;
             timesPrayerAlertSounded = 0;
         }
     }
 
-    private void updateIdleState() {
-        int idleCycles = Math.min(client.getKeyboardIdleTicks(), client.getMouseIdleTicks());
-        engineIdleSeconds = idleCycles / 50;
+    /**
+     * AFK alert: you were training (gaining XP while animating or fighting), then your character stopped
+     * and you haven't clicked or typed since. Only XP-giving actions count, so banking, talking to people
+     * or walking around never arm it, and opening a bank, deposit box, shop, Grand Exchange or seed vault
+     * disarms it until you're training again.
+     */
+    private void updateCharacterIdle(Player player) {
+        WorldPoint location = player.getWorldLocation();
+        boolean moved = lastPlayerLocation != null && !lastPlayerLocation.equals(location);
+        lastPlayerLocation = location;
+        boolean doing = player.getAnimation() != -1 || player.getInteracting() != null;
 
-        boolean imminent = engineIdleSeconds >= IDLE_WARNING_SECONDS;
-        if (imminent && !logoutImminent) {
-            notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
-            sendGameChatMessage("<col=ff0000>Warning: Idle logout imminent! Move the mouse or press a key.</col>");
+        int tick = client.getTickCount();
+        if (isBankingInterfaceOpen()) {
+            characterWasActive = false;
+            actionTicks = 0;
+            return;
         }
-        logoutImminent = imminent;
+        if (doing && tick - lastXpTick <= XP_ACTION_TICKS) {
+            actionTicks++;
+            if (actionTicks >= MIN_ACTION_TICKS) {
+                characterWasActive = true;
+            }
+        }
+        if (doing || moved) {
+            characterIdleAlerted = false;
+            lastActiveTick = tick;
+            return;
+        }
+        if (!config.characterIdleAlert() || !characterWasActive || characterIdleAlerted) {
+            return;
+        }
+
+        // Idle is the shorter of: time since the character stopped, time since your last click or key press
+        long sinceInputMillis = Math.min(client.getKeyboardIdleTicks() * 20L,
+            System.currentTimeMillis() - client.getMouseLastPressedMillis());
+        int idleSeconds = (int) Math.min((tick - lastActiveTick) * 0.6, sinceInputMillis / 1000);
+        if (idleSeconds >= config.characterIdleSeconds()) {
+            characterIdleAlerted = true;
+            characterWasActive = false;
+            actionTicks = 0;
+            alert(VoiceAlertService.VoiceLine.CHARACTER_IDLE, idleSeconds + " seconds");
+        }
+    }
+
+    private boolean isBankingInterfaceOpen() {
+        for (int group : BANKING_INTERFACES) {
+            if (isWidgetVisible(group)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Idle logout follows the game's rules (as RuneLite's Idle Notifier does): out of combat you're logged
+     * out after the client idle timeout (5 minutes, or what the Logout Timer plugin sets) without mouse or
+     * keyboard input. In combat that timeout doesn't apply; you're only logged out after 20 minutes
+     * without a mouse click or key press (moving the mouse doesn't count).
+     */
+    private void updateIdleState() {
+        if (combatTicks > 0) {
+            combatTicks--;
+        }
+        int idleCycles;
+        int timeoutCycles;
+        if (combatTicks > 0) {
+            long sinceClick = (System.currentTimeMillis() - client.getMouseLastPressedMillis()) / 20;
+            idleCycles = (int) Math.min(client.getKeyboardIdleTicks(), sinceClick);
+            timeoutCycles = COMBAT_IDLE_LOGOUT_CYCLES;
+        } else {
+            idleCycles = Math.min(client.getKeyboardIdleTicks(), client.getMouseIdleTicks());
+            timeoutCycles = client.getIdleTimeout() > 0 ? client.getIdleTimeout() : DEFAULT_IDLE_LOGOUT_CYCLES;
+        }
+        engineIdleSeconds = idleCycles / 50;
+        idleLogoutAfterSeconds = timeoutCycles / 50;
+
+        int logoutAfter = idleLogoutAfterSeconds;
+        int warnAt = logoutAfter - Math.max(5, Math.min(logoutAfter - 5, config.idleWarningSeconds()));
+        boolean imminent = engineIdleSeconds >= warnAt;
+        if (!imminent) {
+            logoutImminent = false;
+            timesIdleAlerted = 0;
+            return;
+        }
+
+        boolean alert = false;
+        if (!logoutImminent) {
+            alert = true;
+            if (alertsReady()) {
+                notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
+            }
+        } else if (config.repeatIdleAlert()
+            && Duration.between(lastIdleAlertTime, Instant.now()).getSeconds() >= config.repeatIdleInterval()
+            && timesIdleAlerted <= config.maxIdleRepeats()) {
+            alert = true;
+        }
+        logoutImminent = true;
+
+        if (alert) {
+            timesIdleAlerted++;
+            lastIdleAlertTime = Instant.now();
+            if (timesIdleAlerted == 1) {
+                alert(VoiceAlertService.VoiceLine.IDLE_LOGOUT, null);
+            } else {
+                speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
+            }
+        }
     }
 
     public int getSecondsUntilIdleLogout() {
-        return Math.max(0, IDLE_LOGOUT_SECONDS - engineIdleSeconds);
+        return Math.max(0, idleLogoutAfterSeconds - engineIdleSeconds);
     }
 
     private void updateGeneralPvmTarget(Player player) {
@@ -1069,28 +1774,27 @@ public class BradsMultiToolPlugin extends Plugin {
             return;
         }
 
-        String n = npc.getName().toLowerCase();
+        MonsterData.Stats stats = monsterData.get(npc.getId());
+        Aggression.Verdict aggro = aggressionFor(npc);
+        pvmTargetIsAggressive = aggro.aggressive();
+        pvmTargetAggroText = aggro.text;
+        pvmTargetWeakness = stats != null ? MonsterData.weaknessOf(stats) : MonsterWeakness.fromName(npc.getName());
+    }
 
-        boolean aggressive = false;
-        if (n.contains("crab") || n.contains("demon") || n.contains("dragon") || n.contains("wyvern")
-            || n.contains("giant") || n.contains("skeleton") || n.contains("zombie") || n.contains("gargoyle")
-            || n.contains("nechryael") || n.contains("abyssal") || n.contains("hellhound") || n.contains("bandit")
-            || n.contains("kalphite") || n.contains("vampyre") || n.contains("vyre") || n.contains("drake")) {
-            aggressive = true;
-        } else {
-            Player local = client.getLocalPlayer();
-            if (local != null && npc.getCombatLevel() > 0) {
-                aggressive = (local.getCombatLevel() <= (npc.getCombatLevel() * 2 + 1));
+    /** Whether this monster will attack you, given your combat level, the Wilderness and your gear. */
+    Aggression.Verdict aggressionFor(NPC npc) {
+        Player local = client.getLocalPlayer();
+        List<String> equipped = new ArrayList<>();
+        ItemContainer equipment = client.getItemContainer(CONTAINER_EQUIPMENT);
+        if (equipment != null) {
+            for (Item item : equipment.getItems()) {
+                if (item.getId() > 0) {
+                    equipped.add(client.getItemDefinition(item.getId()).getName().toLowerCase());
+                }
             }
         }
-        MonsterData.Stats stats = monsterData.get(npc.getId());
-        if (stats != null) {
-            pvmTargetIsAggressive = stats.aggressive;
-            pvmTargetWeakness = MonsterData.weaknessOf(stats);
-        } else {
-            pvmTargetIsAggressive = aggressive;
-            pvmTargetWeakness = MonsterWeakness.fromName(npc.getName());
-        }
+        return Aggression.of(monsterData.get(npc.getId()), npc.getCombatLevel(),
+            local != null ? local.getCombatLevel() : 0, client.getVarbitValue(INSIDE_WILDERNESS_VARBIT) == 1, equipped);
     }
 
     public void updateRealtimeCombatMethod() {
@@ -1131,7 +1835,8 @@ public class BradsMultiToolPlugin extends Plugin {
         }
         combatMethodIcon = spellSprite > 0 ? CombatIcons.sprite(spellSprite) : CombatIcons.forStyle(style, weaponId);
 
-        combatMethodColor = weaknessMatchColor(style);
+        currentStyle = style;
+        combatMethodColor = weaknessMatchColor(style, pvmTargetWeakness);
     }
 
     // Spells cast by hand (not autocast) override the weapon's style for a few ticks after each cast
@@ -1155,9 +1860,15 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     /** Spellbook icon of the Strike spell for an element, as shown in the player's own spellbook. */
+    // The element's basic Strike spell icon (standard spellbook), whatever spellbook you're on
     public CombatIcons.Icon elementSpellIcon(MonsterWeakness.Element element) {
-        int sprite = spellbook.spriteFor(WeaponStyles.spellName(element, "Strike"));
-        return sprite > 0 ? CombatIcons.sprite(sprite) : CombatIcons.spell(element, null);
+        switch (element) {
+            case AIR: return CombatIcons.sprite(SpriteID.Magicon.WIND_STRIKE);
+            case WATER: return CombatIcons.sprite(SpriteID.Magicon.WATER_STRIKE);
+            case EARTH: return CombatIcons.sprite(SpriteID.Magicon.EARTH_STRIKE);
+            case FIRE: return CombatIcons.sprite(SpriteID.Magicon.FIRE_STRIKE);
+            default: return CombatIcons.spell(element, null);
+        }
     }
 
     private int equippedWeaponId() {
@@ -1169,14 +1880,13 @@ public class BradsMultiToolPlugin extends Plugin {
         return weapon != null ? weapon.getId() : -1;
     }
 
-    // Green = your style hits the weakness, red = it doesn't, yellow = can't tell
+    // Green = your style hits the weakness, red = it doesn't, white = can't tell
     // (weakness unknown, or the ammo type / spell element couldn't be detected).
-    private Color weaknessMatchColor(WeaponStyles.Style style) {
-        Color match = new Color(50, 230, 50);
-        Color mismatch = new Color(255, 75, 75);
-        Color unsure = new Color(255, 215, 0);
+    public Color weaknessMatchColor(WeaponStyles.Style style, MonsterWeakness weakness) {
+        Color match = BradsMultiToolOverlay.GOOD;
+        Color mismatch = BradsMultiToolOverlay.BAD;
+        Color unsure = Color.WHITE;
 
-        MonsterWeakness weakness = pvmTargetWeakness;
         if (weakness.type == MonsterWeakness.Type.UNKNOWN) {
             return unsure;
         }
@@ -1223,6 +1933,11 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
 
+        if (crabSpotNear(wp) < 0) {
+            inSpawnVicinity = false;
+            return;
+        }
+
         for (TileObject tunnel : trackedTunnels) {
             if (tunnel != null && wp.distanceTo(tunnel.getWorldLocation()) <= 24) {
                 inSpawnVicinity = true;
@@ -1243,20 +1958,30 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     private void updateCoveName(WorldPoint wp) {
-        int ry = wp.getRegionY();
-        int rx = wp.getRegionX();
-
-        if (ry > 38) {
-            currentCoveName = "North Cove";
-        } else if (rx < 35) {
-            currentCoveName = "West Cove";
-        } else {
-            currentCoveName = "East Cove";
+        int spot = crabSpotNear(wp);
+        if (spot >= 0) {
+            currentCoveName = CRAB_COVE_NAMES[spot];
         }
+    }
+
+    /** Index of the crab mine within range of {@code wp}, or -1 when it's nowhere near one. */
+    private static int crabSpotNear(WorldPoint wp) {
+        if (wp == null) {
+            return -1;
+        }
+        for (int i = 0; i < CRAB_SPOTS.length; i++) {
+            if (wp.getPlane() == CRAB_SPOTS[i].getPlane() && wp.distanceTo2D(CRAB_SPOTS[i]) <= CRAB_AREA_RADIUS) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Subscribe
     public void onHitsplatApplied(HitsplatApplied event) {
+        if (event.getActor() == client.getLocalPlayer() || event.getHitsplat().isMine()) {
+            combatTicks = COMBAT_WINDOW_TICKS;
+        }
         if (!(event.getActor() instanceof NPC)) return;
         NPC npc = (NPC) event.getActor();
         Hitsplat hitsplat = event.getHitsplat();
@@ -1342,6 +2067,16 @@ public class BradsMultiToolPlugin extends Plugin {
         Skill skill = event.getSkill();
         int currentXp = event.getXp();
 
+        // A boosted combat stat ticking down by 1 marks the boost decay timer's phase
+        if (BOOSTABLE_COMBAT_SKILLS.contains(skill)) {
+            Integer previous = lastBoostedLevels.put(skill, event.getBoostedLevel());
+            if (previous != null && event.getBoostedLevel() == previous - 1 && previous > event.getLevel()) {
+                buffTimer.onDecay(client.getTickCount());
+            }
+        }
+
+        announceLevelUp(skill, currentXp);
+
         if (!baseSkillXp.containsKey(skill)) {
             baseSkillXp.put(skill, currentXp);
             return;
@@ -1353,10 +2088,49 @@ public class BradsMultiToolPlugin extends Plugin {
             int drop = gained - previousGained;
             if (drop > 0) {
                 lastXpDrops.put(skill, drop);
+                lastXpTicks.put(skill, client.getTickCount());
+                lastXpTick = client.getTickCount();
                 tickXpChanges.add(skill);
             }
             gainedSkillXp.put(skill, gained);
             updatePanelUI();
+        }
+    }
+
+    // "Woodcutting level 45!" when a real level goes up (levels already reached at login aren't announced)
+    private void announceLevelUp(Skill skill, int xp) {
+        int level = Experience.getLevelForXp(xp);
+        Integer previous = realLevels.put(skill, level);
+        if (previous == null || level <= previous || !alertsReady()) {
+            return;
+        }
+        if (config.voiceEnabled() && toggle(AlertType.LEVEL_UP.voiceKey)) {
+            voiceService.speakClipsAsync(config.voicePersona(), config.voiceVolume(), VoiceAlertService.levelUpClips(skill, level));
+        }
+        sendGameChatMessage(AlertType.LEVEL_UP, skill.getName() + " level " + level + "!");
+        announceNewMethod(skill, previous, level);
+    }
+
+    // A level-up that moves a goal skill onto a different suggested method says so in chat
+    private void announceNewMethod(Skill skill, int before, int now) {
+        if (!config.showTrainingSuggestion() || getSkillGoal(skill) <= client.getSkillExperience(skill)
+            || getGoalTarget(skill) != null) {
+            return;
+        }
+        if (skill == Skill.SLAYER) {
+            SlayerData.Master was = slayerData.bestMaster(combatLevel, before);
+            SlayerData.Master master = slayerData.bestMaster(combatLevel, now);
+            if (master != null && master != was) {
+                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> "
+                    + "Slayer goal: you can now get tasks from " + master.name, null);
+            }
+            return;
+        }
+        TrainingData.Method was = trainingData.suggest(skill, before, config.trainingAlternatives());
+        TrainingData.Method method = trainingData.suggest(skill, now, config.trainingAlternatives());
+        if (method != null && method != was) {
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> "
+                + skill.getName() + " goal: you can now switch to " + method.name, null);
         }
     }
 
@@ -1378,6 +2152,12 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
         return skills;
+    }
+
+    /** True while you're training the skill: XP from it in the last 15 seconds. */
+    boolean isTraining(Skill skill) {
+        Integer last = lastXpTicks.get(skill);
+        return last != null && client.getTickCount() - last <= TRAINING_WINDOW_TICKS;
     }
 
     public int getLastXpDrop(Skill skill) {
