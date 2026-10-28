@@ -533,7 +533,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "idleWarningSeconds",
         name = "Warn Before Logout",
-        description = "How many seconds before the idle logout to warn you (follows RuneLite's Logout Timer plugin if you use it)",
+        description = "How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
         section = idleSection,
         position = 34
     )

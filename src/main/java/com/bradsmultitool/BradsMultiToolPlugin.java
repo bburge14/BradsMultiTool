@@ -96,6 +96,10 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
     private static final int GEMSTONE_CRAB_ID = 14779;
     private static final int GEMSTONE_CRAB_SHELL_ID = 14780;
+    // Client idle timeouts in 20ms client cycles: 5 minutes normally, 20 minutes (clicks/keys only) in combat
+    private static final int DEFAULT_IDLE_LOGOUT_CYCLES = 15000;
+    private static final int COMBAT_IDLE_LOGOUT_CYCLES = 60000;
+    private static final int COMBAT_WINDOW_TICKS = 8;
     // The shell lasts 90 seconds (150 ticks); allow a little slack
     private static final int SHELL_LIFETIME_TICKS = 160;
     private static final int GEMS_PER_SHELL = 3;
@@ -264,6 +268,9 @@ public class BradsMultiToolPlugin extends Plugin {
     @Getter
     private boolean logoutImminent = false;
     private int timesIdleAlerted = 0;
+    private int idleLogoutAfterSeconds = 300;
+    // Ticks left of "in combat" after you hit or are hit (same 8-tick window as RuneLite's Idle Notifier)
+    private int combatTicks = 0;
 
     private WorldPoint lastPlayerLocation = null;
     private boolean characterWasActive = false;
@@ -1347,11 +1354,30 @@ public class BradsMultiToolPlugin extends Plugin {
         }
     }
 
+    /**
+     * Idle logout follows the game's rules (as RuneLite's Idle Notifier does): out of combat you're logged
+     * out after the client idle timeout (5 minutes, or what the Logout Timer plugin sets) without mouse or
+     * keyboard input. In combat that timeout doesn't apply; you're only logged out after 20 minutes
+     * without a mouse click or key press (moving the mouse doesn't count).
+     */
     private void updateIdleState() {
-        int idleCycles = Math.min(client.getKeyboardIdleTicks(), client.getMouseIdleTicks());
+        if (combatTicks > 0) {
+            combatTicks--;
+        }
+        int idleCycles;
+        int timeoutCycles;
+        if (combatTicks > 0) {
+            long sinceClick = (System.currentTimeMillis() - client.getMouseLastPressedMillis()) / 20;
+            idleCycles = (int) Math.min(client.getKeyboardIdleTicks(), sinceClick);
+            timeoutCycles = COMBAT_IDLE_LOGOUT_CYCLES;
+        } else {
+            idleCycles = Math.min(client.getKeyboardIdleTicks(), client.getMouseIdleTicks());
+            timeoutCycles = client.getIdleTimeout() > 0 ? client.getIdleTimeout() : DEFAULT_IDLE_LOGOUT_CYCLES;
+        }
         engineIdleSeconds = idleCycles / 50;
+        idleLogoutAfterSeconds = timeoutCycles / 50;
 
-        int logoutAfter = idleLogoutSeconds();
+        int logoutAfter = idleLogoutAfterSeconds;
         int warnAt = logoutAfter - Math.max(5, Math.min(logoutAfter - 5, config.idleWarningSeconds()));
         boolean imminent = engineIdleSeconds >= warnAt;
         if (!imminent) {
@@ -1382,16 +1408,7 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     public int getSecondsUntilIdleLogout() {
-        return Math.max(0, idleLogoutSeconds() - engineIdleSeconds);
-    }
-
-    /**
-     * Seconds of inactivity before the client logs out. Follows RuneLite's Logout Timer plugin
-     * (or anything else that changes the client's idle timeout), which is counted in 20ms client cycles.
-     */
-    private int idleLogoutSeconds() {
-        int cycles = client.getIdleTimeout();
-        return cycles > 0 ? cycles / 50 : 300;
+        return Math.max(0, idleLogoutAfterSeconds - engineIdleSeconds);
     }
 
     private void updateGeneralPvmTarget(Player player) {
@@ -1697,6 +1714,9 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Subscribe
     public void onHitsplatApplied(HitsplatApplied event) {
+        if (event.getActor() == client.getLocalPlayer() || event.getHitsplat().isMine()) {
+            combatTicks = COMBAT_WINDOW_TICKS;
+        }
         if (!(event.getActor() instanceof NPC)) return;
         NPC npc = (NPC) event.getActor();
         Hitsplat hitsplat = event.getHitsplat();
