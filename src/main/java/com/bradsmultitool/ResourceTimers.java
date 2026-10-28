@@ -50,14 +50,20 @@ import net.runelite.client.eventbus.Subscribe;
  * <li>Motherlode Mine ore veins: deplete 23-27s (upper floor 36-40s) after mining starts; no recovery.</li>
  * <li>Calcified rocks: about 70s once mining starts; reset after ~34s with nobody mining.</li>
  * <li>Daeyalt essence: the active rock moves 92-110 ticks after it appears.</li>
- * <li>Fishing spots: move 250-530 ticks after they appear.</li>
+ * <li>Fishing spots (Fishing Spot Tracker): most move 250-530 ticks after they appear; aerial fishing
+ * 10-19, minnows 12-25, sacred/infernal eels 100-300, anglerfish 8-830; karambwan and Tempoross spots never
+ * move. A spot's timer is remembered for 15 minutes if you walk out of range and back.</li>
+ * <li>Shooting stars (Star AFK Timer): the star has a hidden health bar for its current layer, so this one
+ * is exact.</li>
+ * <li>Sailing shipwrecks (Salvaging AFK Timer): each type lasts a set time from when it surfaces.</li>
  * </ul>
- * The game doesn't send any of these timers to the client, so all are estimates from what's visible.
+ * Apart from stars, the game doesn't send these timers to the client, so they're estimates from what's
+ * visible.
  */
 @Singleton
 class ResourceTimers {
 
-    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT }
+    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK }
 
     /** One timed resource. Progress is 1 when fresh, 0 when it's due to go. */
     static final class Timer {
@@ -76,8 +82,10 @@ class ResourceTimers {
         int choppers;
         // Calcified rocks
         int unminedTicks;
-        // Veins, Daeyalt, fishing spots
+        // Veins, Daeyalt, fishing spots, shipwrecks
         int elapsed;
+        // Stars: the layer's health, 0-1 (-1 until the star's health bar has been seen)
+        double health = -1;
 
         Timer(Kind kind, TileObject object, NPC npc, int minTicks, int maxTicks) {
             this.kind = kind;
@@ -93,6 +101,8 @@ class ResourceTimers {
                 case TREE:
                 case CALCIFIED:
                     return Math.max(0, (double) ticksLeft / maxTicks);
+                case STAR:
+                    return Math.max(0, health);
                 default:
                     return Math.max(0, 1 - (double) elapsed / maxTicks);
             }
@@ -100,7 +110,15 @@ class ResourceTimers {
 
         /** Past its earliest time: it can go any moment (or, for a tree, with the next log). */
         boolean due() {
-            return kind == Kind.TREE || kind == Kind.CALCIFIED ? ticksLeft <= 0 : elapsed >= minTicks;
+            switch (kind) {
+                case TREE:
+                case CALCIFIED:
+                    return ticksLeft <= 0;
+                case STAR:
+                    return health >= 0 && health < 0.1;
+                default:
+                    return elapsed >= minTicks;
+            }
         }
 
         boolean visible() {
@@ -113,6 +131,8 @@ class ResourceTimers {
                 case VEIN:
                 case CALCIFIED:
                     return started;
+                case STAR:
+                    return health >= 0;
                 default:
                     return true;
             }
@@ -132,6 +152,38 @@ class ResourceTimers {
     // Fishing spots (OSRS Wiki, Fishing spots): most move after 250-530 ticks
     private static final int FISHING_MIN_TICKS = 250;
     private static final int FISHING_MAX_TICKS = 530;
+    // Spots with other timings, by NPC id: {min, max}; 0 = never moves
+    private static final Map<Integer, int[]> FISHING_TIMINGS = new HashMap<>();
+    private static final int FISHING_MEMORY_TICKS = 1500;
+    private static final int OUT_OF_VIEW_DISTANCE = 14;
+    // Shooting stars: one object per tier, plus the hidden NPC carrying the layer's health bar
+    private static final Set<Integer> STARS = Set.of(41020, 41021, 41223, 41224, 41225, 41226, 41227, 41228, 41229);
+    private static final int STAR_HEALTH_NPC = 10629;
+    // Sailing shipwrecks: active id -> {stump id, average lifetime in seconds} (Salvaging AFK Timer)
+    private static final Map<Integer, int[]> SHIPWRECKS = new HashMap<>();
+
+    static {
+        int[] never = {0, 0};
+        int[] aerial = {10, 19};
+        int[] minnow = {12, 25};
+        int[] eel = {100, 300};
+        FISHING_TIMINGS.put(8523, aerial);
+        for (int id : new int[]{7730, 7731, 7732, 7733}) {
+            FISHING_TIMINGS.put(id, minnow);
+        }
+        FISHING_TIMINGS.put(6488, eel);   // sacred eel
+        FISHING_TIMINGS.put(7676, eel);   // infernal eel
+        FISHING_TIMINGS.put(6825, new int[]{8, 830}); // anglerfish
+        for (int id : new int[]{4710, 4712, 4713, 10565, 10568, 10569}) {
+            FISHING_TIMINGS.put(id, never); // karambwan(ji), Tempoross
+        }
+        int[][] wrecks = {
+            {60464, 60465, 60}, {60466, 60467, 180}, {60468, 60469, 180}, {60470, 60471, 180},
+            {60472, 60473, 180}, {60474, 60475, 195}, {60476, 60477, 225}, {60478, 60479, 240}};
+        for (int[] wreck : wrecks) {
+            SHIPWRECKS.put(wreck[0], new int[]{wreck[1], wreck[2]});
+        }
+    }
     // Miscellania and Etceteria trees are managed by the kingdom, not Forestry timers
     private static final Set<Integer> NO_FORESTRY_REGIONS = Set.of(10044, 10300);
     // A player who appears already chopping (and hasn't moved) was chopping before we could see
@@ -147,6 +199,10 @@ class ResourceTimers {
     private final Map<WorldPoint, Timer> byTile = new HashMap<>();
     private final Set<Timer> timers = new HashSet<>();
     private final Map<NPC, Timer> fishingSpots = new HashMap<>();
+    // Spots that went out of view: where they were and when they appeared there (tick) / left view (tick)
+    private final Map<WorldPoint, int[]> rememberedSpots = new HashMap<>();
+    // Shipwreck sites seen sunk (as a stump), so a wreck surfacing there has a known start
+    private final Set<WorldPoint> sunkWrecks = new HashSet<>();
     private final Map<Player, Integer> playerSpawnTick = new HashMap<>();
     private final Map<Player, WorldPoint> playerSpawnPoint = new HashMap<>();
 
@@ -192,6 +248,8 @@ class ResourceTimers {
         byTile.clear();
         timers.clear();
         fishingSpots.clear();
+        rememberedSpots.clear();
+        sunkWrecks.clear();
         playerSpawnTick.clear();
         playerSpawnPoint.clear();
     }
@@ -203,6 +261,24 @@ class ResourceTimers {
         if (CALCIFIED_ROCKS.contains(id)) {
             add(new Timer(Kind.CALCIFIED, object, null, CALCIFIED_TICKS, CALCIFIED_TICKS), object);
             return;
+        }
+        if (STARS.contains(id)) {
+            add(new Timer(Kind.STAR, object, null, 0, 1), object);
+            return;
+        }
+        int[] wreck = SHIPWRECKS.get(id);
+        if (wreck != null) {
+            // Only a wreck seen surfacing (from a sunk stump) has a known start
+            Timer timer = new Timer(Kind.SHIPWRECK, object, null, (int) (wreck[1] / TICK_SECONDS), (int) (wreck[1] / TICK_SECONDS));
+            timer.hidden = !sunkWrecks.remove(object.getWorldLocation());
+            add(timer, object);
+            return;
+        }
+        for (int[] w : SHIPWRECKS.values()) {
+            if (w[0] == id) {
+                sunkWrecks.add(object.getWorldLocation());
+                return;
+            }
         }
         if (id == DAEYALT_ACTIVE) {
             // Only a fresh spawn has a known start; one already there when the area loaded doesn't
@@ -246,19 +322,39 @@ class ResourceTimers {
     @Subscribe
     public void onNpcSpawned(NpcSpawned event) {
         NPC npc = event.getNpc();
-        // A spot appearing while you're in the area has just moved there; ones loaded with the area are unknown
-        if (client.getGameState() == GameState.LOGGED_IN && isFishingSpot(npc)) {
-            Timer timer = new Timer(Kind.FISHING_SPOT, null, npc, FISHING_MIN_TICKS, FISHING_MAX_TICKS);
-            fishingSpots.put(npc, timer);
-            timers.add(timer);
+        if (!isFishingSpot(npc)) {
+            return;
         }
+        int[] timing = FISHING_TIMINGS.getOrDefault(npc.getId(), new int[]{FISHING_MIN_TICKS, FISHING_MAX_TICKS});
+        if (timing[1] == 0) {
+            return; // never moves
+        }
+        Timer timer = new Timer(Kind.FISHING_SPOT, null, npc, timing[0], timing[1]);
+        // Back in view of a spot we were timing: carry on from when it appeared
+        int[] remembered = rememberedSpots.remove(npc.getWorldLocation());
+        int now = client.getTickCount();
+        if (remembered != null && now - remembered[0] <= timing[1]) {
+            timer.elapsed = now - remembered[0];
+        } else if (client.getGameState() != GameState.LOGGED_IN) {
+            // Loaded with the area: we don't know when it got there
+            return;
+        }
+        fishingSpots.put(npc, timer);
+        timers.add(timer);
     }
 
     @Subscribe
     public void onNpcDespawned(NpcDespawned event) {
-        Timer timer = fishingSpots.remove(event.getNpc());
+        NPC npc = event.getNpc();
+        Timer timer = fishingSpots.remove(npc);
         if (timer != null) {
             timers.remove(timer);
+            // A spot that vanished far away went out of view rather than moving: remember it for when we're back
+            Player local = client.getLocalPlayer();
+            if (local != null && local.getWorldLocation().distanceTo(npc.getWorldLocation()) > OUT_OF_VIEW_DISTANCE) {
+                int now = client.getTickCount();
+                rememberedSpots.put(npc.getWorldLocation(), new int[]{now - timer.elapsed, now});
+            }
         }
     }
 
@@ -321,6 +417,8 @@ class ResourceTimers {
             }
         }
         playerSpawnTick.entrySet().removeIf(e -> now - e.getValue() > NEW_PLAYER_TICKS);
+        rememberedSpots.values().removeIf(spot -> now - spot[1] > FISHING_MEMORY_TICKS);
+        updateStars();
         playerSpawnPoint.keySet().retainAll(playerSpawnTick.keySet());
 
         for (Timer timer : timers) {
@@ -374,6 +472,25 @@ class ResourceTimers {
         }
         if (rock.ticksLeft > 0) {
             rock.ticksLeft--;
+        }
+    }
+
+    // A star's layer health comes from the hidden NPC on it; the bar is only sent while it's being mined
+    private void updateStars() {
+        for (Timer timer : timers) {
+            if (timer.kind != Kind.STAR) {
+                continue;
+            }
+            for (NPC npc : client.getTopLevelWorldView().npcs()) {
+                if (npc.getId() == STAR_HEALTH_NPC && npc.getWorldLocation().distanceTo(timer.object.getWorldLocation()) <= 3) {
+                    int ratio = npc.getHealthRatio();
+                    int scale = npc.getHealthScale();
+                    if (ratio >= 0 && scale > 0) {
+                        timer.health = (double) ratio / scale;
+                    }
+                    break;
+                }
+            }
         }
     }
 

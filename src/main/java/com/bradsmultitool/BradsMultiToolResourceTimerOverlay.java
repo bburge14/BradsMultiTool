@@ -18,7 +18,8 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.ProgressPieComponent;
 
 /**
- * Countdown pies over trees, Motherlode veins, calcified rocks, Daeyalt essence and fishing spots
+ * Countdown pies over trees, Motherlode veins, calcified rocks, Daeyalt essence, shooting stars, fishing
+ * spots and shipwrecks
  * (see {@link ResourceTimers}): green, then yellow, then red as each runs out, pulsing once it's due.
  */
 public class BradsMultiToolResourceTimerOverlay extends Overlay {
@@ -74,6 +75,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 return config.showTreeTimer();
             case FISHING_SPOT:
                 return config.showFishingSpotTimer();
+            case SHIPWRECK:
+                return config.showShipwreckTimer();
             default:
                 return config.showMiningTimer();
         }

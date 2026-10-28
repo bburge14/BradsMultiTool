@@ -310,9 +310,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 remainingValue.setText(NUMBER_FORMAT.format(remaining) + " XP");
                 // How many more of the last action (its XP drop) until the next level
                 int perAction = plugin.getLastXpDrop(skill);
-                actionsValue.setText(perAction > 0
-                    ? NUMBER_FORMAT.format((remaining + perAction - 1) / perAction) + " (" + NUMBER_FORMAT.format(perAction) + " ea)"
-                    : "--");
+                actionsValue.setText(perAction > 0 ? NUMBER_FORMAT.format((remaining + perAction - 1) / perAction) : "--");
                 ttlValue.setText(xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
             }
 

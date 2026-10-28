@@ -9,10 +9,12 @@ import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
+import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
@@ -49,6 +51,10 @@ class ExtraAlerts {
     private static final int INVENTORY_SIZE = 28;
     // Resource alerts only count if you clicked the resource within this many ticks (3 minutes)
     private static final int RESOURCE_MEMORY_TICKS = 300;
+    // Skilling alerts only while you're working the resource: chopping/mining next to it, or fishing it,
+    // within the last few ticks (the animation stops the moment the resource goes)
+    private static final int WORKING_GRACE_TICKS = 3;
+    private static final int WORKING_DISTANCE = 3;
 
     private final Client client;
     private final BradsMultiToolConfig config;
@@ -71,6 +77,7 @@ class ExtraAlerts {
     private boolean resourceIsTree = false;
     private NPC resourceNpc = null;
     private int resourceClickTick = -1000;
+    private int lastWorkingTick = -1000;
 
     @Inject
     ExtraAlerts(Client client, BradsMultiToolConfig config, BradsMultiToolPlugin plugin) {
@@ -264,11 +271,35 @@ class ExtraAlerts {
             }
         }
         boolean full = used >= INVENTORY_SIZE;
-        boolean skilling = client.getTickCount() - resourceClickTick <= RESOURCE_MEMORY_TICKS;
-        if (full && !inventoryWasFull && skilling && config.inventoryFullAlert()) {
+        if (full && !inventoryWasFull && isWorking() && config.inventoryFullAlert()) {
             alert(VoiceAlertService.VoiceLine.INVENTORY_FULL, null);
         }
         inventoryWasFull = full;
+    }
+
+    // Note each tick whether you're working the resource you last clicked
+    @Subscribe
+    public void onGameTick(GameTick event) {
+        Player player = client.getLocalPlayer();
+        if (player == null || client.getTickCount() - resourceClickTick > RESOURCE_MEMORY_TICKS) {
+            return;
+        }
+        boolean working;
+        if (resourceNpc != null) {
+            working = player.getInteracting() == resourceNpc;
+        } else {
+            int animation = player.getAnimation();
+            working = resourceObjectId >= 0 && resourceLocation != null
+                && (ResourceTimers.CHOP_ANIMATIONS.contains(animation) || ResourceTimers.MINE_ANIMATIONS.contains(animation))
+                && player.getWorldLocation().distanceTo(resourceLocation) <= WORKING_DISTANCE;
+        }
+        if (working) {
+            lastWorkingTick = client.getTickCount();
+        }
+    }
+
+    private boolean isWorking() {
+        return client.getTickCount() - lastWorkingTick <= WORKING_GRACE_TICKS;
     }
 
     // Remember which tree, rock or fishing spot was clicked so its disappearance can be announced
@@ -300,8 +331,7 @@ class ExtraAlerts {
     public void onGameObjectDespawned(GameObjectDespawned event) {
         GameObject object = event.getGameObject();
         if (resourceObjectId < 0 || object.getId() != resourceObjectId
-            || !object.getWorldLocation().equals(resourceLocation)
-            || client.getTickCount() - resourceClickTick > RESOURCE_MEMORY_TICKS) {
+            || !object.getWorldLocation().equals(resourceLocation) || !isWorking()) {
             return;
         }
         resourceObjectId = -1;
@@ -316,7 +346,7 @@ class ExtraAlerts {
 
     @Subscribe
     public void onNpcDespawned(NpcDespawned event) {
-        if (event.getNpc() != resourceNpc || client.getTickCount() - resourceClickTick > RESOURCE_MEMORY_TICKS) {
+        if (event.getNpc() != resourceNpc || !isWorking()) {
             return;
         }
         resourceNpc = null;
