@@ -38,6 +38,8 @@ public class BradsMultiToolOverlay extends Overlay {
     private final SpriteManager spriteManager;
     private final SkillIconManager skillIconManager;
     private final PanelComponent panelComponent = new PanelComponent();
+    @Inject
+    private SlayerMonsterInfo slayerInfo;
 
     @Inject
     public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
@@ -121,6 +123,10 @@ public class BradsMultiToolOverlay extends Overlay {
                         .right(weakness.note)
                         .build());
                 }
+            }
+
+            if (config.showSlayerMonsterInfo() && target != null) {
+                slayerInfo.addTo(panelComponent, target, plugin.statsFor(target));
             }
 
             panelComponent.getChildren().add(new IconLineComponent(

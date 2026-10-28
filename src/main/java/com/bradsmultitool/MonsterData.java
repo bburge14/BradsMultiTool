@@ -45,6 +45,11 @@ public class MonsterData {
         public final List<String> attackStyles;
         /** The wiki's aggression condition, e.g. "Yes, unless wearing a Bandos-affiliated item"; null if plain. */
         final String aggroNote;
+        /** Slayer level needed to damage it (0 if none). */
+        final int slayerLevel;
+        final double slayerXp;
+        /** The Slayer task it counts for ("Banshees"), or null if it isn't a Slayer monster. */
+        final String slayerCategory;
 
         private Stats(JsonArray a) {
             hitpoints = intAt(a, 0);
@@ -75,6 +80,13 @@ public class MonsterData {
             }
             attackStyles = Collections.unmodifiableList(styles);
             aggroNote = a.size() > 15 && !a.get(15).isJsonNull() ? a.get(15).getAsString() : null;
+            slayerLevel = intAt(a, 16);
+            slayerXp = a.size() > 17 && !a.get(17).isJsonNull() ? a.get(17).getAsDouble() : 0;
+            slayerCategory = a.size() > 18 && !a.get(18).isJsonNull() ? a.get(18).getAsString() : null;
+        }
+
+        boolean isSlayerMonster() {
+            return slayerLevel > 1 || slayerCategory != null;
         }
 
         private static int intAt(JsonArray a, int i) {

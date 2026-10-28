@@ -1067,6 +1067,17 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "showSlayerMonsterInfo",
+        name = "Slayer Info on Monsters",
+        description = "On the monster hover card and PvM HUD for Slayer monsters: the Slayer level needed (red if you can't damage it yet), the gear its task needs (earmuffs, nose peg, rock hammer...; red if you don't have it), whether it's your task, and Slayer XP",
+        section = slayerSection,
+        position = 11
+    )
+    default boolean showSlayerMonsterInfo() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "slayerItemAlert",
         name = "Missing Item Warning",
         description = "Warn when fighting a task monster without its required item (e.g. rock hammer)",

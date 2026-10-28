@@ -25,6 +25,8 @@ FIELDS = [
 ]
 # Index 15 (after the fields above): the wiki's aggression condition, e.g.
 # "Yes, unless wearing a Bandos-affiliated item"; null when it's a plain Yes or No.
+# Indexes 16-18: Slayer level needed (null if none), Slayer XP per kill, Slayer task category ("Banshees").
+SLAYER_FIELDS = ["slayer_level", "slayer_experience", "slayer_category"]
 
 
 def aggro_note(value):
@@ -36,7 +38,7 @@ def aggro_note(value):
 
 
 def fetch(offset):
-    select = ",".join("'%s'" % f for f in ["page_name", "id"] + FIELDS)
+    select = ",".join("'%s'" % f for f in ["page_name", "id"] + FIELDS + SLAYER_FIELDS)
     query = "bucket('infobox_monster').select(%s).limit(%d).offset(%d).run()" % (select, PAGE_SIZE, offset)
     url = API + "?" + urllib.parse.urlencode({"action": "bucket", "format": "json", "query": query})
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -54,6 +56,21 @@ def to_int(value):
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def to_float(value):
+    if isinstance(value, list):
+        value = value[0] if value else None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def first_text(value):
+    if isinstance(value, list):
+        value = value[0] if value else None
+    return re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", value).strip() if isinstance(value, str) and value.strip() else None
 
 
 def as_list(value):
@@ -103,6 +120,9 @@ def main():
             [a.lower() for a in attributes],
             as_list(row.get("attack_style")),
             aggro_note(aggressive),
+            to_int(row.get("slayer_level")),
+            to_float(row.get("slayer_experience")),
+            first_text(row.get("slayer_category")),
         ]
         ids = row.get("id") or []
         if isinstance(ids, str):

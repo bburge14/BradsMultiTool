@@ -149,16 +149,25 @@ class SlayerTracker {
         if (taskName == null) {
             return null;
         }
-        String name = taskName.toLowerCase();
+        return requirementFor(taskName);
+    }
+
+    /** The item a monster or task needs ("Banshee" -> Earmuffs), matched by name, or null. */
+    static Requirement requirementFor(String name) {
+        if (name == null) {
+            return null;
+        }
+        String lower = name.toLowerCase();
         for (Map.Entry<String, Requirement> e : REQUIREMENTS.entrySet()) {
-            if (name.contains(e.getKey())) {
+            if (lower.contains(e.getKey())) {
                 return e.getValue();
             }
         }
         return null;
     }
 
-    private boolean carries(Requirement requirement) {
+    /** True when it's equipped or in your inventory. */
+    boolean carries(Requirement requirement) {
         for (int containerId : new int[]{93, 94}) {
             ItemContainer container = client.getItemContainer(containerId);
             if (container == null) {
@@ -188,6 +197,11 @@ class SlayerTracker {
             missingItemAlerted = true;
             plugin.alert(VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING, requirement.display.toLowerCase() + " for " + taskName.toLowerCase());
         }
+    }
+
+    /** True when this Slayer category ("Banshees") is your current task. */
+    boolean isTask(String category) {
+        return taskName != null && category != null && taskName.equalsIgnoreCase(category);
     }
 
     /** True when the NPC's name matches the task, e.g. "Gargoyle" for "Gargoyles". */

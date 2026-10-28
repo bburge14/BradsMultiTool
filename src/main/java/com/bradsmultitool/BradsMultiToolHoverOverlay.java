@@ -36,6 +36,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
     private final SkillingData skillingData;
+    @Inject
+    private SlayerMonsterInfo slayerInfo;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
@@ -147,6 +149,10 @@ public class BradsMultiToolHoverOverlay extends Overlay {
             .rightColor(aggro.state == Aggression.State.YES ? BradsMultiToolOverlay.WARN
                 : aggro.state == Aggression.State.NO ? BradsMultiToolOverlay.GOOD : Color.WHITE)
             .build());
+
+        if (config.showSlayerMonsterInfo()) {
+            slayerInfo.addTo(panel, npc, stats);
+        }
     }
 
     // Green/red when your current style does/doesn't hit the weakness, white when it can't be told
