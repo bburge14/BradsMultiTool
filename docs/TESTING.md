@@ -62,6 +62,8 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Set Goal button: pick a skill, enter a level (e.g. 80) or XP (e.g. 2000000); the skill appears under GOALS.
 - [ ] A goal skill stays pinned under GOALS after logging out and back in, even before you train it.
 - [ ] Actions Until Goal on: a goal skill's card shows "Goal Actions" counting to the goal; off (default): "Actions" to the next level.
+- [ ] Goal card shows "Train: ..." and "At N: ..."; Suggest Alternatives changes it.
+- [ ] With a Woodcutting/Mining/Thieving goal, the suggested trees/rocks/stalls/NPCs are outlined.
 - [ ] Clear goal moves the card back under THIS SESSION (or removes it if untrained).
 - [ ] Auto-pause after the set minutes without XP; resumes on XP.
 - [ ] Level-up voice says skill and level.

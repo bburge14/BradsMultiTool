@@ -1752,7 +1752,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show Progress Bar",
         description = "The level progress bar at the top of each skill card",
         section = trackerSection,
-        position = 61
+        position = 60
     )
     default boolean showTrackerProgressBar() {
         return true;
@@ -1763,7 +1763,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show XP Gained",
         description = "XP gained this session",
         section = trackerSection,
-        position = 62
+        position = 61
     )
     default boolean showTrackerXpGained() {
         return true;
@@ -1774,7 +1774,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show XP to Level",
         description = "XP left until the next level",
         section = trackerSection,
-        position = 63
+        position = 62
     )
     default boolean showTrackerXpToLevel() {
         return true;
@@ -1785,7 +1785,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show Actions Left",
         description = "How many more of your last action until the next level (not shown for combat skills)",
         section = trackerSection,
-        position = 64
+        position = 63
     )
     default boolean showTrackerActions() {
         return true;
@@ -1796,7 +1796,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Actions Until Goal",
         description = "When a skill has a goal, count actions left until the goal instead of until the next level",
         section = trackerSection,
-        position = 65
+        position = 64
     )
     default boolean trackerActionsToGoal() {
         return false;
@@ -1807,7 +1807,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show XP/Hr",
         description = "XP per hour",
         section = trackerSection,
-        position = 66
+        position = 65
     )
     default boolean showTrackerXpPerHour() {
         return true;
@@ -1818,7 +1818,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show XP/Min",
         description = "XP per minute",
         section = trackerSection,
-        position = 67
+        position = 66
     )
     default boolean showXpPerMinute() {
         return true;
@@ -1829,7 +1829,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show Time to Level",
         description = "Estimated time until the next level at your current rate",
         section = trackerSection,
-        position = 68
+        position = 67
     )
     default boolean showTrackerTimeToLevel() {
         return true;
@@ -1840,10 +1840,55 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show Goal",
         description = "Your goal for the skill (right-click a skill card to set one): XP left and time to reach it",
         section = trackerSection,
-        position = 69
+        position = 68
     )
     default boolean showTrackerGoal() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrainingSuggestion",
+        name = "Suggested Method",
+        description = "On a skill with a goal, show the wiki training guide's method for your level and what to switch to on the way",
+        section = trackerSection,
+        position = 69
+    )
+    default boolean showTrainingSuggestion() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "trainingAlternatives",
+        name = "Suggest Alternatives",
+        description = "Off: the guide's fastest method. On: the guide's other methods first (often more AFK or cheaper)",
+        section = trackerSection,
+        position = 70
+    )
+    default boolean trainingAlternatives() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "highlightSuggestedTraining",
+        name = "Highlight Suggested Method",
+        description = "Outline the trees, rocks, stalls or NPCs of the suggested method for each skill you have a goal in",
+        section = trackerSection,
+        position = 71
+    )
+    default boolean highlightSuggestedTraining() {
+        return true;
+    }
+
+    @Alpha
+    @ConfigItem(
+        keyName = "trainingHighlightColor",
+        name = "Highlight Colour",
+        description = "Outline colour for the suggested method",
+        section = trackerSection,
+        position = 72
+    )
+    default Color trainingHighlightColor() {
+        return new Color(80, 200, 255, 200);
     }
 
     @ConfigItem(
@@ -1851,7 +1896,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Auto-Pause Idle Skills",
         description = "Stop a skill's XP/hr clock when you haven't gained XP in it for a while; it resumes on your next XP",
         section = trackerSection,
-        position = 70
+        position = 73
     )
     default boolean autoPauseSkills() {
         return true;
@@ -1863,7 +1908,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Auto-Pause After",
         description = "Minutes without XP in a skill before it auto-pauses",
         section = trackerSection,
-        position = 71
+        position = 74
     )
     @Units(Units.MINUTES)
     default int autoPauseMinutes() {
@@ -1875,7 +1920,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Ignored Skills",
         description = "Comma-separated list of skills to filter out",
         section = trackerSection,
-        position = 72
+        position = 75
     )
     default String ignoredSkills() {
         return "";
@@ -1886,7 +1931,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Level Up",
         description = "Say the skill and your new level when you level up (turning it on plays a preview)",
         section = trackerSection,
-        position = 73
+        position = 76
     )
     default boolean voiceLevelUp() {
         return true;
@@ -1897,7 +1942,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Level Up",
         description = "Chat message when you level up (off by default; the game already congratulates you)",
         section = trackerSection,
-        position = 74
+        position = 77
     )
     default boolean chatLevelUp() {
         return false;

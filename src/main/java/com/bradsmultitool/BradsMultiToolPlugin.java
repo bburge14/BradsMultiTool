@@ -230,6 +230,12 @@ public class BradsMultiToolPlugin extends Plugin {
     private SlayerData slayerData;
 
     @Inject
+    private TrainingData trainingData;
+
+    @Inject
+    private BradsMultiToolTrainingOverlay trainingOverlay;
+
+    @Inject
     private ConfigManager configManager;
 
     @Inject
@@ -455,6 +461,8 @@ public class BradsMultiToolPlugin extends Plugin {
         farmingData.load(gson);
         skillHelperData.load(gson);
         slayerData.load(gson);
+        trainingData.load(gson);
+        eventBus.register(trainingOverlay);
         eventBus.register(extraAlerts);
         eventBus.register(resourceTimers);
         eventBus.register(farmingData);
@@ -471,6 +479,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(skillingOverlay);
         overlayManager.add(resourceTimerOverlay);
         overlayManager.add(crabOutlineOverlay);
+        overlayManager.add(trainingOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -495,6 +504,8 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(skillingOverlay);
         overlayManager.remove(resourceTimerOverlay);
         overlayManager.remove(crabOutlineOverlay);
+        overlayManager.remove(trainingOverlay);
+        eventBus.unregister(trainingOverlay);
         eventBus.unregister(extraAlerts);
         eventBus.unregister(resourceTimers);
         eventBus.unregister(farmingData);
@@ -745,6 +756,11 @@ public class BradsMultiToolPlugin extends Plugin {
             configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name(), client.getSkillExperience(skill));
         }
         updatePanelUI();
+    }
+
+    /** The wiki's training methods by level, for the tracker's goal suggestions. */
+    public TrainingData getTrainingData() {
+        return trainingData;
     }
 
     /** Skills you've set a goal for, in skill order. */

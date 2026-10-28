@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
@@ -300,6 +301,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JPanel stats = new JPanel(new GridLayout(0, 2, 6, 2));
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
+        private final JLabel suggestion = stat();
         // Which fields are currently laid out, so they're only rebuilt when the settings change
         private String layout = "";
         private final JMenuItem pauseItem = new JMenuItem();
@@ -322,10 +324,16 @@ public class BradsMultiToolPanel extends PluginPanel {
             icon.setPreferredSize(new Dimension(32, 0));
 
             stats.setOpaque(false);
-            JPanel bars = new JPanel(new GridLayout(0, 1, 0, 3));
+            // Stacked at their own heights (the suggestion can be two lines)
+            JPanel bars = new JPanel();
+            bars.setLayout(new BoxLayout(bars, BoxLayout.Y_AXIS));
             bars.setOpaque(false);
-            bars.add(levelBar);
-            bars.add(goalBar);
+            for (JComponent row : new JComponent[]{levelBar, goalBar, suggestion}) {
+                row.setAlignmentX(Component.LEFT_ALIGNMENT);
+                row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion ? Integer.MAX_VALUE : row.getPreferredSize().height));
+                bars.add(row);
+                bars.add(Box.createVerticalStrut(3));
+            }
             goalBar.setGoalStyle();
 
             add(icon, BorderLayout.WEST);
@@ -415,6 +423,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " left";
                 goalBar.set(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta);
             }
+            updateSuggestion(level, goalXp, xp);
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
         }
@@ -427,6 +436,25 @@ public class BradsMultiToolPanel extends PluginPanel {
             int perAction = plugin.getLastXpDrop(skill);
             String name = toGoal ? "Goal Actions" : "Actions";
             setStat(actions, name, perAction > 0 && remaining > 0 ? shortNumber((remaining + perAction - 1) / perAction) : "--");
+        }
+
+        // The wiki guide's method for this level, and what to switch to before the goal
+        private void updateSuggestion(int level, int goalXp, int xp) {
+            TrainingData.Method method = null;
+            TrainingData.Method next = null;
+            if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
+                TrainingData training = plugin.getTrainingData();
+                method = training.suggest(skill, level, config.trainingAlternatives());
+                next = training.next(skill, level, Experience.getLevelForXp(goalXp), config.trainingAlternatives());
+            }
+            suggestion.setVisible(method != null);
+            if (method != null) {
+                String text = "<html><font color='#bebebe'>Train:</font> " + method.name;
+                if (next != null) {
+                    text += "<br><font color='#bebebe'>At " + next.from + ":</font> " + next.name;
+                }
+                suggestion.setText(text + "</html>");
+            }
         }
 
         private void setStat(JLabel label, String name, String value) {

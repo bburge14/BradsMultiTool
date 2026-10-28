@@ -79,6 +79,10 @@ work a resource.
   level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
   Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level.
+- **Suggested method**: a goal card shows the wiki training guide's method for your level ("Train: Oak
+  trees") and what to switch to before the goal ("At 35: Teak trees"). **Suggest Alternatives** picks the
+  guide's other methods (often more AFK or cheaper) instead of the fastest. Where the method is a tree,
+  rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
 - **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
@@ -193,6 +197,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
+| `training.json` | `update_training_data.py` | Wiki: training guides' methods by level |
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
 | `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](VOICE_CREDITS.md)) |
