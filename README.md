@@ -1,16 +1,15 @@
 # Brad's Multi-Tool
 
 A RuneLite plugin that bundles PvM, Gemstone Crab, Slayer and skilling helpers, alerts with voice lines,
-and a skill tracker into one place. Everything can be switched on or off in the plugin's settings, and
-it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.md](docs/PLUGIN_HUB_COMPLIANCE.md)).
+and a skill tracker into one place. Everything can be switched on or off in the plugin's settings.
 
 - [Features](#features) (full guide with how-tos: [docs/FEATURES.md](docs/FEATURES.md))
 - [Setup (Windows)](#first-time-setup-windows-powershell)
 - [Logging in with a Jagex Account](#logging-in-with-a-jagex-account)
 - [Settings guide](#settings-guide)
-- [Testing checklist](docs/TESTING.md)
-- [Data files](#data-files)
 - [Credits](#credits)
+
+Working on the plugin itself? See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Features
 
@@ -19,11 +18,11 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
   (style icon, plus the element's Strike spell icon for magic), your current combat style, DPS (per
   monster, per monster type or for the session), and last/max hit. It stays up for a few seconds after
   combat.
-- **Monster hover card**: hover any attackable monster (with auto retaliate off, NPCs you can pickpocket show the Thieving card instead; Skilling > Skill Cards With Auto Retaliate Off) for its HP, weakness (green when your style hits
+- **Monster hover card**: hover any attackable monster for its HP, weakness (green when your style hits
   it, red when it doesn't), what it attacks with, and aggression. Aggression follows the game's rules:
   monsters ignore players over twice their level (except in the Wilderness), God Wars followers go by
   your god items, vyre noble clothing and greegrees protect you, and any other wiki condition is shown
-  as written.
+  as written. With auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 - **Buff timers**: each combat potion boost with its icon and time left, divine potions to the second;
   "running out" and "expired" alerts with optional repeats. Each potion has its own voice line.
 - **Health and prayer**: low health / low prayer / out of prayer alerts (by percent), flashing orbs, and an
@@ -33,7 +32,8 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
 
 ### Gemstone Crab
 - HUD with the crab's health bar, burrow countdown, whether you're attacking, the XP type you're getting,
-  damage, DPS and last/max hit.
+  damage, DPS and last/max hit. When the crab moves, its stats stay up for 12 seconds, then the radar
+  takes over.
 - Outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
   tunnels, plus a radar to find it. All of it only near the crab's three mines in the Tlati Rainforest.
 - Alerts when the crab is about to burrow and when it has moved.
@@ -76,7 +76,7 @@ RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't st
 Timer Plugins). XP rates on the cards only show while you're training that skill. Inventory full is announced while you
 work a resource.
 
-### Skill tracker (sidebar)
+### Brad's Skill Tracker (sidebar)
 - A card per skill you train: XP gained, XP to next level, actions left (from your last XP drop; not for
   combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar. Each field has its
   own switch.
@@ -84,8 +84,9 @@ work a resource.
   level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
   Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level.
-- **Suggested method** (every skill; Slayer suggests the best master): a goal card shows the wiki training guide's method for your level ("Train: Oak
-  trees") and what to switch to before the goal ("At 35: Teak trees"). **Suggest Alternatives** picks the
+- **Suggested method** (every skill): a goal card shows the wiki training guide's method for your level
+  ("Train: Oak trees") and what to switch to before the goal ("At 35: Teak trees"); Slayer suggests the
+  best Slayer master. **Suggest Alternatives** picks the
   guide's other methods (often more AFK or cheaper) instead of the fastest. Where the method is a tree,
   rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
 - **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill to outline that
@@ -190,41 +191,11 @@ All sections except General start collapsed.
 | Combat Alerts | Spec, antifire, poison, stamina, ammo, runes, cannon |
 | Idle | AFK alert and idle logout warning |
 | PvM HUD | HUD on/off, monster hover, DPS mode, which lines to show |
-| Slayer | Task card, hotkey, item warning, superior and task complete |
+| Slayer | Task card and each of its parts, hotkey, Slayer info on monsters, task monster outlines, item warning, superior and task complete |
 | Gemstone Crab | HUD, outlines and their colours, crab alerts |
 | Skilling | Hover cards, XP rates on cards, inventory full, resource gone, batch complete |
 | Woodcutting ... Sailing | One section per skill with its pies, cards and alerts |
-| Skill Tracker | Which fields to show, goals, auto-pause, ignored skills, level-up alerts |
-
-## Data files
-
-Game data is generated from the OSRS Wiki and RuneLite's source by the scripts in `scripts/` (needs
-Python 3). Re-run them after a game update rather than editing the JSON by hand.
-
-| File | Script | Source |
-|---|---|---|
-| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions |
-| `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
-| `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
-| `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
-| `recipes.json` | `update_recipe_data.py` | Wiki: recipes for the production skills, Firemaking logs, Prayer bones and ashes |
-| `training.json` | `update_training_data.py` | Wiki: training guides' methods by level |
-| `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
-| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing |
-| `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](VOICE_CREDITS.md)) |
-
-## Planned: separate plugins
-
-The multi-tool will also be split into stand-alone plugins alongside the all-in-one version. New features
-are kept self-contained with that in mind.
-
-| Plugin | What goes in it |
-|---|---|
-| **Brad's Skill Tracker** | The sidebar tracker (cards, auto-pause, level-up alerts), goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button. Data: `training.json`, `recipes.json` |
-| Skilling helpers | Hover cards, timer pies, skilling alerts (`skilling.json`, `skill_helpers.json`, `farming*.json`) |
-| PvM | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts (`monsters.json`) |
-| Slayer | Slayer card, task monster outlines, Slayer info on monsters (`slayer.json`) |
-| Gemstone Crab | Crab HUD, outlines, radar and alerts |
+| Skill Tracker | Which fields to show, goals, suggested methods and highlights, goal items, auto-pause, ignored skills, level-up alerts |
 
 ## Credits
 
