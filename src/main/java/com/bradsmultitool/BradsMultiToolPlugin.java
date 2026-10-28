@@ -173,7 +173,10 @@ public class BradsMultiToolPlugin extends Plugin {
     private SlayerTracker slayerTracker;
 
     @Inject
-    private TreeTimer treeTimer;
+    private ResourceTimers resourceTimers;
+
+    @Inject
+    private BradsMultiToolResourceTimerOverlay resourceTimerOverlay;
 
     @Inject
     private SkillingData skillingData;
@@ -418,6 +421,7 @@ public class BradsMultiToolPlugin extends Plugin {
         monsterData.load(gson);
         skillingData.load(gson);
         eventBus.register(extraAlerts);
+        eventBus.register(resourceTimers);
         keyManager.registerKeyListener(slayerToggleListener);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
@@ -426,6 +430,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(orbOverlay);
         overlayManager.add(slayerOverlay);
         overlayManager.add(skillingOverlay);
+        overlayManager.add(resourceTimerOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -448,7 +453,9 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(orbOverlay);
         overlayManager.remove(slayerOverlay);
         overlayManager.remove(skillingOverlay);
+        overlayManager.remove(resourceTimerOverlay);
         eventBus.unregister(extraAlerts);
+        eventBus.unregister(resourceTimers);
         keyManager.unregisterKeyListener(slayerToggleListener);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);
@@ -1009,7 +1016,6 @@ public class BradsMultiToolPlugin extends Plugin {
             updateSpatialPresence(player, wp);
             updateCrabHealth();
             slayerTracker.update();
-            treeTimer.update();
             updateTargetCrabStatus(player);
             updateGeneralPvmTarget(player);
             updateAggroCountdown(wp);
@@ -1860,9 +1866,6 @@ public class BradsMultiToolPlugin extends Plugin {
             int previousGained = gainedSkillXp.getOrDefault(skill, 0);
             int drop = gained - previousGained;
             if (drop > 0) {
-                if (skill == Skill.WOODCUTTING) {
-                    treeTimer.onLogCut();
-                }
                 lastXpDrops.put(skill, drop);
                 lastXpTicks.put(skill, client.getTickCount());
                 tickXpChanges.add(skill);

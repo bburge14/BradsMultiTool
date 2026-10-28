@@ -3,15 +3,12 @@ package com.bradsmultitool;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Shape;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
-import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
@@ -19,26 +16,18 @@ import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
-import net.runelite.api.Perspective;
-import net.runelite.api.Point;
 import net.runelite.api.Skill;
-import net.runelite.api.Tile;
-import net.runelite.api.WorldView;
-import net.runelite.api.coords.LocalPoint;
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
-import net.runelite.client.ui.overlay.components.ProgressPieComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 import net.runelite.client.util.Text;
 
 /**
- * Hover card for trees, rocks, stalls, pickpocket targets and fishing spots, plus a time-left pie
- * over the tree you're chopping.
+ * Hover card for trees, rocks, stalls, pickpocket targets and fishing spots.
  */
 public class BradsMultiToolSkillingOverlay extends Overlay {
 
@@ -49,23 +38,19 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
     private final SkillingData data;
-    private final TreeTimer treeTimer;
     private final PanelComponent panel = new PanelComponent();
-    private final ProgressPieComponent pie = new ProgressPieComponent();
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
-                                         SkillingData data, TreeTimer treeTimer) {
+                                         SkillingData data) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.data = data;
-        this.treeTimer = treeTimer;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGHEST);
         panel.setPreferredSize(new Dimension(205, 0));
-        pie.setDiameter(22);
     }
 
     @Override
@@ -76,75 +61,10 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         graphics.setFont(FontManager.getRunescapeSmallFont());
 
-        if (config.showTreeTimer()) {
-            drawTreePie(graphics);
-        }
         if (config.showSkillingHover() && !client.isMenuOpen() && buildCard()) {
             CursorTooltip.render(client, graphics, panel);
         }
         return null;
-    }
-
-    /**
-     * A pie over the middle of the tree you're chopping that empties as it nears falling (green, yellow,
-     * red). Once the tree's timer is out it falls with the next log, which is down to luck, so the pie
-     * then pulses until it does.
-     */
-    private void drawTreePie(Graphics2D graphics) {
-        WorldPoint tree = treeTimer.getTree();
-        double left = treeTimer.fractionLeft();
-        if (tree == null || left < 0) {
-            return;
-        }
-        Point at = treeCentreOnScreen(tree);
-        if (at == null) {
-            return;
-        }
-        Color color = left > 0.5 ? BradsMultiToolOverlay.GOOD : left > 0.2 ? BradsMultiToolOverlay.WARN : BradsMultiToolOverlay.BAD;
-        int alpha = 150;
-        if (treeTimer.isOnLastLog()) {
-            alpha = (int) (90 + 110 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
-        }
-        pie.setPosition(at);
-        pie.setProgress(left);
-        pie.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha));
-        pie.setBorderColor(color);
-        pie.render(graphics);
-    }
-
-    /**
-     * Where the tree is drawn on screen: the middle of its model (canopy included), so the pie sits on
-     * the tree rather than at its base. The click gives one tile of the tree; the biggest object on that
-     * tile is the tree.
-     */
-    private Point treeCentreOnScreen(WorldPoint tree) {
-        WorldView view = client.getTopLevelWorldView();
-        LocalPoint clicked = LocalPoint.fromWorld(view, tree);
-        if (clicked == null) {
-            return null;
-        }
-        Tile tile = view.getScene().getTiles()[view.getPlane()][clicked.getSceneX()][clicked.getSceneY()];
-        GameObject biggest = null;
-        int biggestArea = 0;
-        if (tile != null) {
-            for (GameObject object : tile.getGameObjects()) {
-                if (object == null) {
-                    continue;
-                }
-                int area = (object.getSceneMaxLocation().getX() - object.getSceneMinLocation().getX() + 1)
-                    * (object.getSceneMaxLocation().getY() - object.getSceneMinLocation().getY() + 1);
-                if (area > biggestArea) {
-                    biggest = object;
-                    biggestArea = area;
-                }
-            }
-        }
-        Shape hull = biggest != null ? biggest.getConvexHull() : null;
-        if (hull != null) {
-            Rectangle bounds = hull.getBounds();
-            return new Point((int) bounds.getCenterX(), (int) bounds.getCenterY());
-        }
-        return Perspective.localToCanvas(client, clicked, view.getPlane(), 150);
     }
 
     /**

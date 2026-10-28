@@ -1238,8 +1238,8 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "showTreeTimer",
-        name = "Tree Timer Pie",
-        description = "A pie over the tree you are chopping that empties as it gets close to falling",
+        name = "Tree Timer Pies",
+        description = "A pie on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping)",
         section = skillingSection,
         position = 2
     )
@@ -1248,11 +1248,33 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "showMiningTimer",
+        name = "Mining Timer Pies",
+        description = "Pies on Motherlode Mine ore veins, calcified rocks and Daeyalt essence showing how long they have left",
+        section = skillingSection,
+        position = 3
+    )
+    default boolean showMiningTimer() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showFishingSpotTimer",
+        name = "Fishing Spot Pies",
+        description = "A pie on each fishing spot that's moved since you arrived, showing how soon it may move again (2.5-5 minutes)",
+        section = skillingSection,
+        position = 4
+    )
+    default boolean showFishingSpotTimer() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "inventoryFullAlert",
         name = "Inventory Full",
         description = "Alert when your inventory fills up while skilling",
         section = skillingSection,
-        position = 3
+        position = 5
     )
     default boolean inventoryFullAlert() {
         return true;
@@ -1263,7 +1285,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Resource Gone",
         description = "Alert when your tree falls, rock depletes or fishing spot moves",
         section = skillingSection,
-        position = 4
+        position = 6
     )
     default boolean resourceGoneAlert() {
         return true;
@@ -1274,7 +1296,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Inventory Full",
         description = "When your inventory fills while skilling (turning it on plays a preview)",
         section = skillingSection,
-        position = 5
+        position = 7
     )
     default boolean voiceInventoryFull() {
         return true;
@@ -1285,7 +1307,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Inventory Full",
         description = "Chat message when your inventory fills while skilling",
         section = skillingSection,
-        position = 6
+        position = 8
     )
     default boolean chatInventoryFull() {
         return true;
@@ -1296,7 +1318,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Tree Fallen",
         description = "When the tree you are chopping falls (turning it on plays a preview)",
         section = skillingSection,
-        position = 7
+        position = 9
     )
     default boolean voiceTreeGone() {
         return true;
@@ -1307,7 +1329,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Tree Fallen",
         description = "Chat message when the tree you are chopping falls",
         section = skillingSection,
-        position = 8
+        position = 10
     )
     default boolean chatTreeGone() {
         return true;
@@ -1318,7 +1340,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Rock Depleted",
         description = "When the rock you are mining is depleted (turning it on plays a preview)",
         section = skillingSection,
-        position = 9
+        position = 11
     )
     default boolean voiceRockDepleted() {
         return true;
@@ -1329,7 +1351,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Rock Depleted",
         description = "Chat message when the rock you are mining is depleted",
         section = skillingSection,
-        position = 10
+        position = 12
     )
     default boolean chatRockDepleted() {
         return true;
@@ -1340,7 +1362,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Fishing Spot Moved",
         description = "When your fishing spot moves (turning it on plays a preview)",
         section = skillingSection,
-        position = 11
+        position = 13
     )
     default boolean voiceFishingSpot() {
         return true;
@@ -1351,7 +1373,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Fishing Spot Moved",
         description = "Chat message when your fishing spot moves",
         section = skillingSection,
-        position = 12
+        position = 14
     )
     default boolean chatFishingSpot() {
         return true;

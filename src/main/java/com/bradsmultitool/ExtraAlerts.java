@@ -67,7 +67,6 @@ class ExtraAlerts {
 
     // The tree/rock or fishing spot you last clicked
     private int resourceObjectId = -1;
-    private String resourceName = null;
     private WorldPoint resourceLocation = null;
     private boolean resourceIsTree = false;
     private NPC resourceNpc = null;
@@ -289,7 +288,6 @@ class ExtraAlerts {
         boolean rock = option.equals("mine");
         if (tree || rock) {
             resourceObjectId = event.getId();
-            resourceName = Text.removeTags(event.getMenuTarget());
             resourceLocation = WorldPoint.fromScene(client.getTopLevelWorldView(), event.getParam0(), event.getParam1(),
                 client.getTopLevelWorldView().getPlane());
             resourceIsTree = tree;
@@ -325,18 +323,5 @@ class ExtraAlerts {
         if (config.resourceGoneAlert()) {
             alert(VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED, null);
         }
-    }
-
-    /** Object id and location of the tree last clicked, for the tree timer; null when not chopping a tree. */
-    WorldPoint lastTreeLocation() {
-        return resourceIsTree && resourceObjectId >= 0 ? resourceLocation : null;
-    }
-
-    int lastResourceObjectId() {
-        return resourceObjectId;
-    }
-
-    String lastResourceName() {
-        return resourceName;
     }
 }

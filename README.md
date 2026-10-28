@@ -9,7 +9,7 @@ A RuneLite plugin for Gemstone Crab training, general PvM, and skilling:
 - **Idle logout warning** – desktop notification, voice and chat alert, and HUD countdown before the idle logout (follows RuneLite's Logout Timer plugin if you've lengthened the timeout).
 - **Combat alerts** – special attack ready, antifire / poison protection running out, poisoned / venomed, stamina worn off, low ammo, out of runes, cannon low.
 - **Slayer** – task card with kills left, kill rate and time to finish; warns when fighting a task monster without its required item (rock hammer, nose peg, mirror shield…); superior and task-complete alerts.
-- **Skilling** – hover card for trees, rocks, stalls, pickpocket targets and fishing spots (level, XP, tools coloured by metal, your rate), a countdown pie over the tree you're chopping, and inventory-full / tree-gone / rock-depleted / fishing-spot-moved alerts.
+- **Skilling** – hover card for trees, rocks, stalls, pickpocket targets and fishing spots (level, XP, tools coloured by metal, your rate), countdown pies on trees (Forestry timers, counting every player chopping), Motherlode Mine ore veins, calcified rocks, Daeyalt essence and fishing spots, and inventory-full / tree-gone / rock-depleted / fishing-spot-moved alerts.
 - **Level-up alerts** – says the skill and your new level ("Woodcutting level 45").
 - **Skill tracker panel** – sidebar cards with XP gained, XP/hr, XP/min, level progress bar, XP remaining, actions left to level (from your last XP drop), and time-to-level; right-click a skill to pause, reset, or hide it.
 
@@ -96,3 +96,7 @@ The dev client can't log in through the Jagex Launcher directly, but it reuses a
 ```powershell
 python scripts/update_monster_data.py
 ```
+
+## Credits
+
+The resource timer pies follow the logic worked out by these Plugin Hub plugins (BSD-2 licensed): [Tree Despawn Timer](https://github.com/CreativeTechGuy/tree-despawn-timer) by CreativeTechGuy, [MLM Despawn Timer](https://github.com/xetrics/mlm-despawn-timer), [Calcified Rock Despawn Timer](https://github.com/NotTeeZee/calcified-rocks-despawn-timer), [Daeyalt Mining Timer](https://github.com/Pvff13/daeyalt-mining-timer) and [Fishing Spot Timer](https://github.com/ArnautS/FishingSpotTimer). Timer lengths are from the OSRS Wiki.
