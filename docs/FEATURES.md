@@ -105,10 +105,14 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 - **No task:** the best Slayer master for your combat and Slayer level, any quest they need, where they
   are and the fastest ways there, and the next master you'll unlock (and what it needs).
 
+- The monster's picture heads the card on a task, and the master's chathead with no task. A Konar task
+  shows the area she assigned, and that place is listed first.
+
 **How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which).
 
-**Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Where To Go; Master Card Without a Task;
-Missing Item Warning; Superior Spawned and Task Complete alerts with Voice/Chat switches.
+**Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Required
+Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
+Master; Missing Item Warning; Superior Spawned and Task Complete alerts with Voice/Chat switches.
 
 ---
 

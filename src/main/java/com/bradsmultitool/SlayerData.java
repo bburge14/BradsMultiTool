@@ -3,6 +3,7 @@ package com.bradsmultitool;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.util.ImageUtil;
 
 /**
  * Slayer masters (requirements, where they are, how to get there) and where to kill each task, from
@@ -33,8 +35,14 @@ class SlayerData {
         final String where;
         final List<String> routes = new ArrayList<>();
         final boolean wilderness;
+        /** Short place name ("Tree Gnome Stronghold"). */
+        final String area;
+        /** Picture file in slayer/, or null. */
+        final String icon;
 
         Master(JsonObject o) {
+            area = text(o, "area");
+            icon = text(o, "icon");
             name = o.get("name").getAsString();
             combat = o.get("combat").getAsInt();
             slayer = o.get("slayer").getAsInt();
@@ -92,8 +100,11 @@ class SlayerData {
     static final class Task {
         final String name;
         final List<Place> places = new ArrayList<>();
+        /** Picture file in slayer/, or null. */
+        final String icon;
 
         Task(JsonObject o) {
+            icon = text(o, "icon");
             name = o.get("name").getAsString();
             for (JsonElement e : o.getAsJsonArray("places")) {
                 places.add(new Place(e.getAsJsonObject()));
@@ -104,6 +115,7 @@ class SlayerData {
     private final List<Master> masters = new ArrayList<>();
     private final Map<String, Task> tasks = new HashMap<>();
     private final Map<String, List<String>> travel = new HashMap<>();
+    private final Map<String, BufferedImage> pictures = new HashMap<>();
 
     void load(Gson gson) {
         masters.clear();
@@ -177,6 +189,20 @@ class SlayerData {
             task = tasks.get(key.substring(0, key.length() - 1));
         }
         return task != null ? task : tasks.get(key + "s");
+    }
+
+    /** A picture from slayer/ (loaded once), or null. */
+    BufferedImage picture(String file) {
+        if (file == null) {
+            return null;
+        }
+        return pictures.computeIfAbsent(file, f -> {
+            try {
+                return ImageUtil.loadImageResource(SlayerData.class, "slayer/" + f);
+            } catch (RuntimeException e) {
+                return null;
+            }
+        });
     }
 
     /** Ways to reach a place (its wiki page), or none. */

@@ -4,7 +4,8 @@ Usage: python3 scripts/update_slayer_data.py
 
 Slayer masters (combat/Slayer level, quest, where they are and the fastest ways there) come from the
 "Slayer master" page. Each task's places to kill it (multicombat, cannonable, safespots, notes) come from
-its "Slayer task/<name>" page, and how to reach each of those places from the place's own page.
+its "Slayer task/<name>" page, and how to reach each of those places from the place's own page. Each
+master's chathead and each task's icon are saved as small thumbnails in slayer/.
 """
 import json
 import os
@@ -12,9 +13,13 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from update_skilling_data import api, rows_of, wikitext  # noqa: E402
+import urllib.request  # noqa: E402
+
+from update_skilling_data import USER_AGENT, api, rows_of, wikitext  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "com", "bradsmultitool", "slayer.json")
+ICONS = os.path.join(os.path.dirname(OUT), "slayer")
+ICON_HEIGHT = 32
 TRAVEL_HEADINGS = re.compile(r"^=+\s*(Transportation|Getting there|Travel|Access|How to get there|Getting to [^=]+|Location)\s*=+\s*$",
                              re.I | re.M)
 MAX_ROUTES = 4
@@ -74,6 +79,47 @@ def bullets_after(text, start):
     return [line for line in lines if line]
 
 
+def short_area(sentence):
+    """'He is located in the Edgeville Dungeon, east of ...' -> 'Edgeville Dungeon' (the last place before a comma)."""
+    head = sentence.split(",")[0]
+    inside = re.search(r" in (?:the )?\[\[([^|\]#]+)", head)
+    if inside:
+        return inside.group(1).strip()
+    links = re.findall(r"\[\[([^|\]#]+)", head)
+    if links:
+        return links[-1].strip()
+    places = re.findall(r"([A-Z][\w]*(?: [A-Z][\w]*)+)", plain(head))
+    return places[-1] if places else None
+
+
+def singular(name):
+    for plural, one in (("ves", "f"), ("ies", "y"), ("s", "")):
+        if name.endswith(plural):
+            return name[:-len(plural)] + one
+    return name
+
+
+def guess_images(tasks):
+    """For tasks whose page has no icon, the monster's chathead or icon file if the wiki has one."""
+    missing = [t for t in tasks if not t.get("image")]
+    candidates = {}
+    for t in missing:
+        one = singular(t["name"])
+        one = one[0].upper() + one[1:]
+        for name in (one + " chathead.png", one + " icon.png", t["name"] + " icon.png", one + ".png"):
+            candidates.setdefault("File:" + name, []).append(t)
+    files = list(candidates)
+    for i in range(0, len(files), 50):
+        data = api({"action": "query", "titles": "|".join(files[i:i + 50])})
+        names = {n["to"]: n["from"] for n in data["query"].get("normalized", [])}
+        for page in data["query"]["pages"].values():
+            if "missing" in page:
+                continue
+            for t in candidates.get(names.get(page["title"], page["title"]), []):
+                if not t.get("image"):
+                    t["image"] = page["title"][len("File:"):]
+
+
 def masters():
     text = wikitext("Slayer master")
     table = text[text.find("{|"):text.find("\n|}")]
@@ -90,7 +136,11 @@ def masters():
         where = re.search(r"([^.\n]*\b(?:is|are) located[^.\n]*\.)", body) or re.search(r"([^.\n]*can be found[^.\n]*\.)", body)
         route = re.search(r"(fastest|only) ways?[^\n]*", body)
         coords = re.search(r"\|x=(\d+)\|y=(\d+)", body)
+        chathead = re.search(r"\[\[File:([^|\]]*chathead[^|\]]*)", body)
+        area = short_area(where.group(1)) if where else None
         out.append({
+            "image": chathead.group(1).strip() if chathead else None,
+            "area": area,
             "name": plain(cells[0]).replace(" / ", "/"),
             "combat": reqs.get("combat", 0),
             "slayer": reqs.get("slayer", 0),
@@ -166,7 +216,8 @@ def task(title, text):
                            "note": (plain(cells[notes]).lstrip("* ").replace(" * ", " ") or None)
                            if notes is not None else None})
         break
-    return {"name": title.split("/", 1)[1], "slayer": int(re.sub(r"\D", "", plain(fields.get("skillreq", ""))) or 1),
+    icon = re.search(r"\[\[File:([^|\]]+)", fields.get("icon", ""))
+    return {"image": icon.group(1).strip() if icon else None, "name": title.split("/", 1)[1], "slayer": int(re.sub(r"\D", "", plain(fields.get("skillreq", ""))) or 1),
             "combat": int(re.sub(r"\D", "", plain(fields.get("combatreq", ""))) or 0), "places": places}
 
 
@@ -177,6 +228,32 @@ def routes(text):
         return []
     # Bullets that were only a teleport template lose their name ("— southern camp entrance"): skip them
     return [r for r in bullets_after(text, m.start()) if 15 < len(r) < 160 and not r.startswith("—")][:MAX_ROUTES]
+
+
+def slug(name):
+    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_") + ".png"
+
+
+def download_icons(entries):
+    """Fetch each entry's wiki image as a small thumbnail into slayer/, and point "icon" at it."""
+    os.makedirs(ICONS, exist_ok=True)
+    wanted = {"File:" + e["image"]: e for e in entries if e.get("image")}
+    files = list(wanted)
+    for i in range(0, len(files), 50):
+        data = api({"action": "query", "titles": "|".join(files[i:i + 50]), "prop": "imageinfo",
+                    "iiprop": "url", "iiurlheight": ICON_HEIGHT})
+        names = {n["to"]: n["from"] for n in data["query"].get("normalized", [])}
+        for page in data["query"]["pages"].values():
+            info = page.get("imageinfo")
+            entry = wanted.get(names.get(page["title"], page["title"]))
+            if not info or entry is None:
+                continue
+            req = urllib.request.Request(info[0].get("thumburl") or info[0]["url"], headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(req, timeout=60) as resp, open(os.path.join(ICONS, slug(entry["name"])), "wb") as f:
+                f.write(resp.read())
+            entry["icon"] = slug(entry["name"])
+    for e in entries:
+        e.pop("image", None)
 
 
 def main():
@@ -190,7 +267,10 @@ def main():
     place_pages = sorted({p["page"] for t in tasks.values() for p in t["places"]})
     texts = batch_wikitext(place_pages)
     travel = {page: routes(texts[page]) for page in place_pages if page in texts and routes(texts[page])}
-    data = {"source": "oldschool.runescape.wiki", "masters": masters(), "tasks": tasks, "travel": travel}
+    master_list = masters()
+    guess_images(list(tasks.values()))
+    download_icons(master_list + list(tasks.values()))
+    data = {"source": "oldschool.runescape.wiki", "masters": master_list, "tasks": tasks, "travel": travel}
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     print("Wrote %d masters, %d tasks (%d places, %d with travel) to %s" % (

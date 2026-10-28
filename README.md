@@ -41,6 +41,8 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
 ### Slayer
 - Task card with kills left, kill rate and time to finish, plus **where to go**: the wiki's places to kill the
   task (multicombat, cannon, safespot) and how to get to the first one (Ctrl+Shift+S hides/shows it).
+- Pictures: the monster on a task, the master's chathead with no task; Konar's assigned area is shown.
+  Every part of the card has its own switch.
 - With no task, the card names the best Slayer master for your combat and Slayer level, any quest they
   need, where they are and the fastest ways there, and the next master you'll unlock.
 - Warns when you fight a task monster without its required item (rock hammer, nose peg, mirror shield...).
@@ -222,5 +224,5 @@ with that in mind.
   [Fire Timer](https://github.com/autumn-smellegy/fire-timer).
 - Farming patch data, Hunter trap IDs, Agility courses and shortcuts are converted from RuneLite's own
   plugins (BSD-2-Clause).
-- Game information is from the [Old School RuneScape Wiki](https://oldschool.runescape.wiki).
+- Game information, Slayer master chatheads and task icons are from the [Old School RuneScape Wiki](https://oldschool.runescape.wiki).
 - Voices are generated with [Piper](https://github.com/rhasspy/piper) (see [VOICE_CREDITS.md](VOICE_CREDITS.md)).

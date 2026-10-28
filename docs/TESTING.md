@@ -25,6 +25,9 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Task card, Ctrl+Shift+S hides/shows it (chat says hidden/shown), missing-item warning.
 - [ ] Kill rate survives walking between areas.
 - [ ] No task: card shows the best master for your levels, where they are, routes and the next master.
+- [ ] Pictures: master chathead with no task, monster icon on a task (Slayer gem if none); nothing overlaps.
+- [ ] Each Slayer switch hides its part; Places Shown / Routes Shown change the counts.
+- [ ] Konar task: subtitle says the area and that place is listed first.
 - [ ] On task: Where To Go lists places (Multi/Cannon/Safespot) and how to reach the first one.
 
 ## Skilling cards (hover)

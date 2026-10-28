@@ -970,7 +970,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Where To Go",
         description = "On a task, list where to kill it (multicombat, cannon, safespot) and how to get to the first place",
         section = slayerSection,
-        position = 2
+        position = 5
     )
     default boolean showSlayerDirections() {
         return true;
@@ -981,10 +981,89 @@ public interface BradsMultiToolConfig extends Config {
         name = "Master Card Without a Task",
         description = "With no task, show the best Slayer master for your levels, where they are and how to get there",
         section = slayerSection,
-        position = 3
+        position = 9
     )
     default boolean showSlayerMasterCard() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerPictures",
+        name = "Pictures",
+        description = "Show the monster's picture on a task, and the Slayer master's chathead with no task",
+        section = slayerSection,
+        position = 2
+    )
+    default boolean slayerPictures() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerKillRate",
+        name = "Kill Rate and Finish Time",
+        description = "Kills per hour and roughly when you'll finish the task",
+        section = slayerSection,
+        position = 3
+    )
+    default boolean slayerKillRate() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerRequiredItem",
+        name = "Required Item",
+        description = "The item the task needs (red when you don't have it)",
+        section = slayerSection,
+        position = 4
+    )
+    default boolean slayerRequiredItem() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerTravelRoutes",
+        name = "How To Get There",
+        description = "The fastest ways to the first place to kill your task, or to the Slayer master",
+        section = slayerSection,
+        position = 7
+    )
+    default boolean slayerTravelRoutes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerNextMaster",
+        name = "Next Master",
+        description = "With no task, the next Slayer master you'll unlock and what they need",
+        section = slayerSection,
+        position = 10
+    )
+    default boolean slayerNextMaster() {
+        return true;
+    }
+
+    @Range(min = 1, max = 8)
+    @ConfigItem(
+        keyName = "slayerPlacesShown",
+        name = "Places Shown",
+        description = "How many places to kill your task to list",
+        section = slayerSection,
+        position = 6
+    )
+    default int slayerPlacesShown() {
+        return 3;
+    }
+
+    @Range(min = 1, max = 5)
+    @ConfigItem(
+        keyName = "slayerRoutesShown",
+        name = "Routes Shown",
+        description = "How many ways to get there to list",
+        section = slayerSection,
+        position = 8
+    )
+    default int slayerRoutesShown() {
+        return 2;
     }
 
     @ConfigItem(
@@ -992,7 +1071,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Missing Item Warning",
         description = "Warn when fighting a task monster without its required item (e.g. rock hammer)",
         section = slayerSection,
-        position = 4
+        position = 11
     )
     default boolean slayerItemAlert() {
         return true;
@@ -1003,7 +1082,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Superior Spawned",
         description = "Alert when a superior slayer monster appears",
         section = slayerSection,
-        position = 5
+        position = 12
     )
     default boolean superiorAlert() {
         return true;
@@ -1014,7 +1093,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Task Complete",
         description = "Alert when your slayer task is finished",
         section = slayerSection,
-        position = 6
+        position = 13
     )
     default boolean taskCompleteAlert() {
         return true;
@@ -1025,7 +1104,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Missing Slayer Item",
         description = "When fighting a task monster without its required item (turning it on plays a preview)",
         section = slayerSection,
-        position = 7
+        position = 14
     )
     default boolean voiceSlayerItem() {
         return true;
@@ -1036,7 +1115,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Missing Slayer Item",
         description = "Chat message when fighting a task monster without its required item",
         section = slayerSection,
-        position = 8
+        position = 15
     )
     default boolean chatSlayerItem() {
         return true;
@@ -1047,7 +1126,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Superior Spawned",
         description = "When a superior slayer monster appears (turning it on plays a preview)",
         section = slayerSection,
-        position = 9
+        position = 16
     )
     default boolean voiceSuperior() {
         return true;
@@ -1058,7 +1137,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Superior Spawned",
         description = "Chat message when a superior slayer monster appears",
         section = slayerSection,
-        position = 10
+        position = 17
     )
     default boolean chatSuperior() {
         return true;
@@ -1069,7 +1148,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Task Complete",
         description = "When your slayer task is done (turning it on plays a preview)",
         section = slayerSection,
-        position = 11
+        position = 18
     )
     default boolean voiceTaskComplete() {
         return true;
@@ -1080,7 +1159,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Task Complete",
         description = "Chat message when your slayer task is done",
         section = slayerSection,
-        position = 12
+        position = 19
     )
     default boolean chatTaskComplete() {
         return true;
