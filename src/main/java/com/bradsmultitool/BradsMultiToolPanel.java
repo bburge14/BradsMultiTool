@@ -205,10 +205,13 @@ public class BradsMultiToolPanel extends PluginPanel {
     }
 
     private static JLabel sectionHeading(String text) {
-        JLabel label = new JLabel(text);
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
         label.setFont(FontManager.getRunescapeSmallFont());
         label.setForeground(Color.GRAY);
-        label.setBorder(new EmptyBorder(2, 2, 4, 0));
+        label.setBorder(new EmptyBorder(2, 0, 4, 0));
+        // Full width and aligned like the cards, so the text sits in the middle of the panel
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setMaximumSize(new Dimension(Integer.MAX_VALUE, label.getPreferredSize().height));
         return label;
     }
 
@@ -335,7 +338,7 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         SkillCard(Skill skill) {
             this.skill = skill;
-            setLayout(new BorderLayout(8, 5));
+            setLayout(new BorderLayout(6, 5));
             setBackground(ColorScheme.DARKER_GRAY_COLOR);
             setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 6, 0, ColorScheme.DARK_GRAY_COLOR),
@@ -348,7 +351,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             }
             icon.setToolTipText(skill.getName());
             icon.setVerticalAlignment(SwingConstants.CENTER);
-            icon.setPreferredSize(new Dimension(32, 0));
+            icon.setPreferredSize(new Dimension(26, 0));
 
             stats.setOpaque(false);
             // Stacked at their own heights (the suggestion can be two lines)
@@ -422,12 +425,12 @@ public class BradsMultiToolPanel extends PluginPanel {
             int xpPerHour = plugin.getSkillXpPerHour(skill);
             boolean paused = plugin.isSkillPaused(skill);
 
-            setStat(gained, "XP Gained", shortNumber(plugin.getSkillGained(skill)));
+            setStat(gained, "Gained", shortNumber(plugin.getSkillGained(skill)));
             setStat(perHour, "XP/hr", plugin.isSkillAutoPaused(skill) ? "Idle" : paused ? "Paused" : shortNumber(xpPerHour));
             setStat(perMinute, "XP/min", shortNumber(plugin.getSkillXpPerMinute(skill)));
 
             if (level >= Experience.MAX_REAL_LEVEL) {
-                setStat(left, "XP Left", "--");
+                setStat(left, "Left", "--");
                 setActions(xp, 0);
                 setStat(timeToLevel, "TTL", "--");
                 levelBar.set(1.0, "Lvl " + level, "Max", "");
@@ -435,7 +438,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 int levelStart = Experience.getXpForLevel(level);
                 int levelEnd = Experience.getXpForLevel(level + 1);
                 int remaining = levelEnd - xp;
-                setStat(left, "XP Left", shortNumber(remaining));
+                setStat(left, "Left", shortNumber(remaining));
                 setActions(xp, remaining);
                 setStat(timeToLevel, "TTL", xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
                 double progress = (double) (xp - levelStart) / (levelEnd - levelStart);
@@ -495,8 +498,10 @@ public class BradsMultiToolPanel extends PluginPanel {
                     lines.add(label(uses ? "Use:" : "Make:") + make.name + " " + label("(you have the items)"));
                 }
             }
-            suggestion.setVisible(!lines.isEmpty());
-            suggestion.setText("<html>" + String.join("<br>", lines) + "</html>");
+            if (suggestion.isVisible() != !lines.isEmpty()) {
+                suggestion.setVisible(!lines.isEmpty());
+            }
+            setText(suggestion, "<html>" + String.join("<br>", lines) + "</html>");
         }
 
         // Slayer: the best master for your combat and Slayer level, and the next one up
@@ -518,7 +523,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         }
 
         private void setStat(JLabel label, String name, String value) {
-            label.setText("<html><font color='#bebebe'>" + name + ":</font> " + value + "</html>");
+            // One line, never wrapped: a wrapped cell makes every row of the grid taller
+            setText(label, "<html><nobr><font color='#bebebe'>" + name + ":</font> " + value + "</nobr></html>");
         }
 
         private boolean pausedByUser() {
@@ -539,6 +545,13 @@ public class BradsMultiToolPanel extends PluginPanel {
                 if (child instanceof Container) {
                     inheritPopupMenu((Container) child);
                 }
+            }
+        }
+
+        // Only touch the label when its text changes, so the card isn't laid out again on every update
+        private void setText(JLabel label, String text) {
+            if (!text.equals(label.getText())) {
+                label.setText(text);
             }
         }
 

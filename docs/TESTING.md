@@ -67,6 +67,7 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 
 ## Skill tracker
 - [ ] Cards, fields switch on/off without gaps, progress bar colours.
+- [ ] Training combat (e.g. Gemstone Crab): cards stay still, no field wraps onto two lines; GOALS / THIS SESSION headings centred.
 - [ ] Actions left hidden for combat skills.
 - [ ] Set Goal dialog: the skill list shows your levels; picking one shows your level, XP and current goal.
 - [ ] Monsters with no Slayer level (cows, goblins) have no Slayer section.

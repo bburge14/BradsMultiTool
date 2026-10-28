@@ -3,7 +3,6 @@ package com.bradsmultitool;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
@@ -36,9 +35,10 @@ class GoalItems {
 
     private final Map<String, Integer> bank = new HashMap<>();
     private final Map<String, Integer> prices = new HashMap<>();
-    private final Map<Skill, RecipeData.Recipe> suggestions = new ConcurrentHashMap<>();
+    // Replaced whole after each update, so readers (the panel, the item overlay) never see a half-built map
+    private volatile Map<Skill, RecipeData.Recipe> suggestions = Collections.emptyMap();
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
-    private final Map<String, String> highlighted = new ConcurrentHashMap<>();
+    private volatile Map<String, String> highlighted = Collections.emptyMap();
     private boolean dirty = true;
 
     @Inject
@@ -101,8 +101,8 @@ class GoalItems {
         Map<String, Integer> have = new HashMap<>(bank);
         count(client.getItemContainer(InventoryID.INV), have);
         boolean byProfit = config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT;
-        suggestions.clear();
-        highlighted.clear();
+        Map<Skill, RecipeData.Recipe> suggestions = new HashMap<>();
+        Map<String, String> highlighted = new HashMap<>();
         for (Skill skill : plugin.getGoalSkills()) {
             if (!recipes.covers(skill) || plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
                 continue;
@@ -117,6 +117,8 @@ class GoalItems {
                 highlighted.putIfAbsent(material.toLowerCase(), "Suggested for your " + skill.getName() + " goal: " + best.name);
             }
         }
+        this.suggestions = suggestions;
+        this.highlighted = highlighted;
     }
 
     private void count(ItemContainer container, Map<String, Integer> into) {

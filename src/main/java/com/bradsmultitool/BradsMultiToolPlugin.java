@@ -2134,9 +2134,15 @@ public class BradsMultiToolPlugin extends Plugin {
         }
     }
 
+    // Combat asks for an update on every hit; queue at most one at a time
+    private final java.util.concurrent.atomic.AtomicBoolean panelUpdateQueued = new java.util.concurrent.atomic.AtomicBoolean();
+
     private void updatePanelUI() {
-        if (panel != null) {
-            SwingUtilities.invokeLater(() -> panel.updatePanel());
+        if (panel != null && panelUpdateQueued.compareAndSet(false, true)) {
+            SwingUtilities.invokeLater(() -> {
+                panelUpdateQueued.set(false);
+                panel.updatePanel();
+            });
         }
     }
 
