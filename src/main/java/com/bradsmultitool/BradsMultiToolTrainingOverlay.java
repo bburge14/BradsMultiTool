@@ -13,6 +13,7 @@ import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
+import net.runelite.api.ObjectComposition;
 import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameObjectDespawned;
@@ -42,6 +43,8 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
     private final SkillingData skilling;
     // Spawned objects any method trains on (or any skilling resource you could pick instead), by place (looked up against the current suggestions each frame)
     private final Map<WorldPoint, GameObject> objects = new HashMap<>();
+    // Each tracked object's resource ("Tree", "Teak tree"): many objects share a resource under other ids
+    private final Map<GameObject, String> resourceOf = new HashMap<>();
 
     @Inject
     BradsMultiToolTrainingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
@@ -59,21 +62,39 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
     @Subscribe
     public void onGameObjectSpawned(GameObjectSpawned event) {
         GameObject object = event.getGameObject();
-        if (training.allObjects().contains(object.getId()) || skilling.object(object.getId(), null) != null) {
-            objects.put(object.getWorldLocation(), object);
+        // By id, else by the object's name, like the timer pies (regular trees have many ids)
+        SkillingData.Resource resource = skilling.object(object.getId(), objectName(object.getId()));
+        if (training.allObjects().contains(object.getId()) || resource != null) {
+            GameObject previous = objects.put(object.getWorldLocation(), object);
+            if (previous != null) {
+                resourceOf.remove(previous);
+            }
+            if (resource != null) {
+                resourceOf.put(object, resource.name);
+            }
         }
     }
 
     @Subscribe
     public void onGameObjectDespawned(GameObjectDespawned event) {
         objects.remove(event.getGameObject().getWorldLocation(), event.getGameObject());
+        resourceOf.remove(event.getGameObject());
     }
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
         if (event.getGameState() == GameState.LOADING || event.getGameState() == GameState.LOGIN_SCREEN) {
             objects.clear();
+            resourceOf.clear();
         }
+    }
+
+    private String objectName(int id) {
+        ObjectComposition composition = client.getObjectDefinition(id);
+        if (composition != null && composition.getImpostorIds() != null && composition.getImpostor() != null) {
+            composition = composition.getImpostor();
+        }
+        return composition != null ? composition.getName() : null;
     }
 
     @Override
@@ -102,6 +123,13 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
             TrainingData.Method method = training.suggest(skill, client.getRealSkillLevel(skill), config.trainingAlternatives());
             if (method != null) {
                 ids.addAll(method.objects);
+                // and every other object of the same resource ("Regular trees" -> every Tree)
+                for (int id : method.objects) {
+                    SkillingData.Resource resource = skilling.object(id, null);
+                    if (resource != null) {
+                        resources.add(resource.name);
+                    }
+                }
                 npcNames.addAll(method.npcs);
             }
         }
@@ -110,8 +138,8 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         }
         Color color = config.trainingHighlightColor();
         for (GameObject object : objects.values()) {
-            SkillingData.Resource resource = resources.isEmpty() ? null : skilling.object(object.getId(), null);
-            if (ids.contains(object.getId()) || (resource != null && resources.contains(resource.name))) {
+            String resource = resourceOf.get(object);
+            if (ids.contains(object.getId()) || (resource != null && resources.contains(resource))) {
                 outlines.drawOutline(object, OUTLINE_WIDTH, color, OUTLINE_FEATHER);
             }
         }
