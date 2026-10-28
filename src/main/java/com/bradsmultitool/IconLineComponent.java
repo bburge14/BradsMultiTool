@@ -23,6 +23,7 @@ class IconLineComponent implements LayoutableRenderableEntity {
     private final List<Image> icons;
     private final String right;
     private final Color rightColor;
+    private boolean iconsAfterText;
     private final Rectangle bounds = new Rectangle();
 
     IconLineComponent(String left, Image icon, String right, Color rightColor) {
@@ -42,6 +43,13 @@ class IconLineComponent implements LayoutableRenderableEntity {
         this.rightColor = rightColor;
     }
 
+    /** Text first, then the icon(s): "Level 55 [icon]". */
+    static IconLineComponent textThenIcon(String left, Image icon, String right, Color rightColor) {
+        IconLineComponent line = new IconLineComponent(left, icon, right, rightColor);
+        line.iconsAfterText = true;
+        return line;
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
         FontMetrics fm = graphics.getFontMetrics();
@@ -55,10 +63,11 @@ class IconLineComponent implements LayoutableRenderableEntity {
         // Never let the right side run into the label: trim it with "..." if it doesn't fit
         int available = width - fm.stringWidth(left) - LABEL_GAP - icons.size() * (ICON_SIZE + ICON_GAP);
         String text = fitText(right, fm, available);
-        int textX = x + width - fm.stringWidth(text);
+        int iconsWidth = icons.size() * (ICON_SIZE + ICON_GAP);
+        int textX = x + width - fm.stringWidth(text) - (iconsAfterText ? iconsWidth : 0);
         drawShadowed(graphics, text, textX, baseline, rightColor);
 
-        int iconX = textX;
+        int iconX = iconsAfterText ? x + width + ICON_GAP : textX;
         for (int i = icons.size() - 1; i >= 0; i--) {
             iconX -= ICON_GAP + ICON_SIZE;
             drawFitted(graphics, icons.get(i), iconX, bounds.y);

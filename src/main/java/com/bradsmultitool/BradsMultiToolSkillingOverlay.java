@@ -20,6 +20,7 @@ import net.runelite.api.ObjectComposition;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.Skill;
+import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -44,12 +45,13 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final FarmingData farming;
     private final SkillHelperData helpers;
     private final BirdhouseTracker birdhouses;
+    private final SkillIconManager skillIcons;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
                                          SkillingData data, FarmingData farming, SkillHelperData helpers,
-                                         BirdhouseTracker birdhouses) {
+                                         BirdhouseTracker birdhouses, SkillIconManager skillIcons) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -57,6 +59,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         this.farming = farming;
         this.helpers = helpers;
         this.birdhouses = birdhouses;
+        this.skillIcons = skillIcons;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGHEST);
@@ -191,7 +194,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             line("Runes / Essence:", String.valueOf(rune.perEssence(level)), BradsMultiToolOverlay.GOOD);
             int next = rune.nextMultiple(level);
             if (next > 0) {
-                line("Next Multiple:", "Lvl " + next, Color.WHITE);
+                line("Next Multiple:", "Level " + next, Color.WHITE);
             }
         }
         addYourRate(Skill.RUNECRAFT);
@@ -315,7 +318,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
                 line("Grown In:", "~" + duration(seconds), Color.WHITE);
             }
             if (crop != null) {
-                line("Requires:", "Lvl " + crop.level + " Farming", level >= crop.level ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+                addRequirement(Skill.FARMING, crop.level);
                 if (crop.payment != null) {
                     line("Protection:", crop.payment, Color.WHITE);
                 }
@@ -428,7 +431,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             line("XP Each:", trim(pickpocket.xp), Color.WHITE);
             if (pickpocket.ardyCloakLevel > 0) {
                 boolean never = client.getRealSkillLevel(Skill.THIEVING) >= pickpocket.ardyCloakLevel;
-                line("Never Fails At:", "Lvl " + pickpocket.ardyCloakLevel + " (Ardy cloak)",
+                line("Never Fails At:", "Level " + pickpocket.ardyCloakLevel + " (Ardy cloak)",
                     never ? BradsMultiToolOverlay.GOOD : Color.WHITE);
             }
             if (!pickpocket.stunDamage.isEmpty()) {
@@ -486,7 +489,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return;
         }
         boolean ok = client.getRealSkillLevel(skill) >= level;
-        line("Requires:", "Lvl " + level + " " + skill.getName(), ok ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+        panel.getChildren().add(IconLineComponent.textThenIcon("Requires:", skillIcons.getSkillImage(skill, true),
+            "Level " + level, ok ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD));
     }
 
     private void addTools(String skillName, Skill skill) {
