@@ -135,8 +135,35 @@ def stalls():
             continue
         xp_hr = number(cells[6].split("<ref")[0])
         out.append({"page": page, "skill": "Thieving", "level": int(level), "xp": xp,
-                    "xpPerHour": int(xp_hr) if xp_hr else None})
+                    "xpPerHour": int(xp_hr) if xp_hr else None, "loot": loot_type(page)})
     return out
+
+
+# What kind of thing a stall gives, by its name
+LOOT_TYPES = [("veg", "Vegetables"), ("bakery", "Baked goods"), ("tea", "Tea"), ("food", "Bananas"),
+              ("crafting", "Crafting tools"), ("general", "General goods"), ("counter (gu", "Rock cakes"),
+              ("silk", "Silk"), ("wine", "Wine and jugs"), ("fruit", "Fruit"), ("seed", "Seeds"), ("fur", "Furs"),
+              ("fish", "Raw fish"), ("crossbow", "Bolts and crossbow parts"), ("silver", "Silver"),
+              ("spice", "Spices"), ("magic", "Runes"), ("scimitar", "Scimitars"), ("gem", "Gems"), ("ore", "Ores"),
+              ("cannonball", "Cannonballs")]
+
+
+def loot_type(page):
+    name = page.lower()
+    for keyword, loot in LOOT_TYPES:
+        if keyword in name:
+            return loot
+    return None
+
+
+def infobox_ids(page):
+    """Object ids from the page's Infobox Scenery (|id = 1,2 / |id1 = ...), for pages the bucket misses."""
+    text = wikitext(page)
+    ids = []
+    for box in re.findall(r"\{\{Infobox Scenery(.*?)\n\}\}", text, re.S):
+        for value in re.findall(r"\|\s*id\d*\s*=\s*([^\n|]*)", box):
+            ids += [int(x) for x in re.findall(r"\d+", value)]
+    return ids
 
 
 def pickpockets():
@@ -163,6 +190,8 @@ def main():
     objects = {}
     for entry in trees() + rocks() + stalls():
         ids = object_ids(entry["page"])
+        if not ids:
+            ids = infobox_ids(entry["page"])
         time.sleep(0.2)
         for i in ids:
             objects.setdefault(str(i), {k: v for k, v in entry.items() if v is not None})

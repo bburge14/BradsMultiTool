@@ -39,6 +39,24 @@ public class SkillingDataTest {
     }
 
     @Test
+    public void everyStallIncludingRenamedOnes() {
+        // Draynor's wine stall is "Market stall" in game; the wiki lists it as Wine stall
+        SkillingData.Resource wine = DATA.object(14011, null);
+        assertEquals("Wine stall", wine.name);
+        assertEquals(22, wine.level);
+        assertEquals("Wine and jugs", wine.loot);
+        assertEquals("Gems", DATA.object(30280, null).loot); // Mor Ul Rek gem counter
+    }
+
+    @Test
+    public void fishingToolChecks() {
+        assertTrue(SkillingData.hasFishingTool("Harpoon", Arrays.asList("dragon harpoon")));
+        assertTrue(!SkillingData.hasFishingTool("Bait", Arrays.asList("fly fishing rod", "fishing bait")));
+        assertTrue(SkillingData.hasFishingTool("Bait", Arrays.asList("fishing rod", "fishing bait")));
+        assertTrue(!SkillingData.hasFishingTool("Small Net", Arrays.asList("lobster pot")));
+    }
+
+    @Test
     public void regularTreesGiveOneLog() {
         assertTrue(DATA.object(1276, null).oneLog);
         assertTrue(!DATA.object(10819, null).oneLog);

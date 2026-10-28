@@ -38,6 +38,8 @@ class SkillingData {
         final int chopTicks;
         /** Trees felled after one log (regular, dead, evergreen...). */
         final boolean oneLog;
+        /** What a thievable stall gives ("Gems", "Raw fish"), or null. */
+        final String loot;
         final int xpPerHour;
 
         Resource(JsonObject o) {
@@ -47,6 +49,7 @@ class SkillingData {
             xp = o.has("xp") ? o.get("xp").getAsDouble() : 0;
             chopTicks = o.has("chopTicks") ? o.get("chopTicks").getAsInt() : 0;
             oneLog = o.has("oneLog") && o.get("oneLog").getAsBoolean();
+            loot = o.has("loot") && !o.get("loot").isJsonNull() ? o.get("loot").getAsString() : null;
             xpPerHour = o.has("xpPerHour") ? o.get("xpPerHour").getAsInt() : 0;
         }
     }
@@ -209,6 +212,49 @@ class SkillingData {
             default:
                 return FISHING.getOrDefault(o, Collections.emptyList());
         }
+    }
+
+    // What you need to carry for each option: every group must be matched by an item starting with one of its names
+    private static final Map<String, List<List<String>>> FISHING_NEEDS = new HashMap<>();
+
+    static {
+        List<String> net = Collections.singletonList("small fishing net");
+        List<String> rod = Collections.singletonList("fishing rod");
+        List<String> bait = Arrays.asList("fishing bait", "sandworms");
+        FISHING_NEEDS.put("net", Collections.singletonList(net));
+        FISHING_NEEDS.put("small net", Collections.singletonList(net));
+        FISHING_NEEDS.put("bait", Arrays.asList(rod, bait));
+        FISHING_NEEDS.put("lure", Arrays.asList(Arrays.asList("fly fishing rod", "pearl fly fishing rod"),
+            Arrays.asList("feather", "stripy feather")));
+        FISHING_NEEDS.put("cage", Collections.singletonList(Collections.singletonList("lobster pot")));
+        FISHING_NEEDS.put("harpoon", Collections.singletonList(Arrays.asList("harpoon", "barb-tail harpoon",
+            "dragon harpoon", "infernal harpoon", "crystal harpoon", "trailblazer harpoon")));
+        FISHING_NEEDS.put("big net", Collections.singletonList(Collections.singletonList("big fishing net")));
+        FISHING_NEEDS.put("use-rod", Arrays.asList(Collections.singletonList("barbarian rod"),
+            Arrays.asList("fishing bait", "feather", "fish offcuts", "roe", "caviar")));
+    }
+
+    /** True if the items you carry or wear (lowercase names) cover what this option needs; true if unknown. */
+    static boolean hasFishingTool(String option, List<String> owned) {
+        List<List<String>> needs = FISHING_NEEDS.get(option.toLowerCase());
+        if (needs == null) {
+            return true;
+        }
+        for (List<String> group : needs) {
+            boolean found = false;
+            for (String item : owned) {
+                for (String name : group) {
+                    // "harpoon" also matches "dragon harpoon"; "fishing rod" must not match "fly fishing rod"
+                    if (item.equals(name) || item.startsWith(name + " (") || (name.equals("harpoon") && item.endsWith(" harpoon"))) {
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static String fishingTool(String option) {

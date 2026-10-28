@@ -37,6 +37,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
     private static final NumberFormat NUMBER = NumberFormat.getIntegerInstance();
     private static final Color TITLE_COLOR = new Color(0, 220, 220);
+    private static final Color HEADER_COLOR = new Color(255, 200, 80);
 
     private final Client client;
     private final BradsMultiToolPlugin plugin;
@@ -295,75 +296,77 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(patch.title()).color(TITLE_COLOR).build());
-        line("Location:", patch.region, Color.WHITE);
+        line("Location:", patch.region, new Color(180, 180, 180));
         if (state == null) {
             line("Status:", "Unknown", Color.WHITE);
             return true;
         }
-        int level = client.getRealSkillLevel(Skill.FARMING);
+        String compost = farming.compost(patch);
         if (state.isEmpty()) {
             boolean raked = FarmingData.WEEDS.equals(state.produce.id) && state.stage == 0;
-            line("Status:", raked ? "Ready to plant" : "Weeds (rake it)", raked ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
-            addPlantable(patch, level);
-        } else {
-            FarmingData.Crop crop = farming.crop(state.produce.name);
-            line("Crop:", state.produce.name, Color.WHITE);
-            line("Status:", statusText(state), statusColor(state));
-            if (FarmingData.GROWING.equals(state.cropState)) {
-                long seconds = FarmingData.secondsUntilGrown(state, System.currentTimeMillis() / 1000);
-                line("Grown In:", "~" + duration(seconds), Color.WHITE);
-            }
-            if (crop != null) {
-                addRequirement(Skill.FARMING, crop.level);
-                if (crop.payment != null) {
-                    line("Protection:", crop.payment, Color.WHITE);
-                }
-            }
-            if (FarmingData.GROWING.equals(state.cropState) && FarmingData.WATERABLE.contains(patch.implementation)) {
+            line("Status:", raked ? "Empty, ready to plant" : "Overgrown, rake it first",
+                raked ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            // Compost goes on before planting
+            line("Compost:", compost != null ? compost : "Not added yet", compost != null ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            addPlantable(patch);
+            return true;
+        }
+
+        FarmingData.Crop crop = farming.crop(state.produce.name);
+        line("Growing:", state.produce.name, Color.WHITE);
+        line("Status:", statusText(state), statusColor(state));
+        if (FarmingData.GROWING.equals(state.cropState)) {
+            line("Stage:", (state.stage + 1) + " of " + state.produce.stages, Color.WHITE);
+            long seconds = FarmingData.secondsUntilGrown(state, System.currentTimeMillis() / 1000);
+            line("Ready In:", "~" + duration(seconds), Color.WHITE);
+            if (FarmingData.WATERABLE.contains(patch.implementation)) {
                 line("Watered:", state.watered ? "Yes" : "No", state.watered ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
             }
         }
-        String compost = farming.compost(patch);
-        line("Compost:", compost != null ? compost : "None seen", compost == null ? BradsMultiToolOverlay.WARN
+        line("Compost:", compost != null ? compost : "None", compost == null ? BradsMultiToolOverlay.WARN
             : "Ultracompost".equals(compost) ? BradsMultiToolOverlay.GOOD : Color.WHITE);
+        if (crop != null) {
+            addRequirement(Skill.FARMING, crop.level);
+            if (crop.payment != null) {
+                line("Pay Farmer:", crop.payment, Color.WHITE);
+            }
+        }
         return true;
     }
 
-    // The best crops you can plant here, plus the next one you'll unlock
-    private void addPlantable(FarmingData.Patch patch, int level) {
+    // What grows here, each with its Farming level: the best few you can plant, then the next ones you'll unlock
+    private void addPlantable(FarmingData.Patch patch) {
         List<FarmingData.Crop> crops = farming.cropsFor(patch.implementation);
         if (crops.isEmpty()) {
             return;
         }
-        List<FarmingData.Crop> usable = new ArrayList<>();
-        FarmingData.Crop next = null;
+        int level = client.getRealSkillLevel(Skill.FARMING);
+        List<FarmingData.Crop> shown = new ArrayList<>();
+        int unlocked = 0;
         for (FarmingData.Crop crop : crops) {
             if (crop.level <= level) {
-                usable.add(crop);
-            } else if (next == null) {
-                next = crop;
+                unlocked++;
             }
         }
-        String label = "Can Plant:";
-        for (int i = Math.max(0, usable.size() - 3); i < usable.size(); i++) {
-            FarmingData.Crop crop = usable.get(i);
-            line(label, crop.name + " (" + crop.level + ")", BradsMultiToolOverlay.GOOD);
-            label = "";
+        // Up to 4 you can plant (highest first), then up to 2 still locked
+        for (int i = unlocked - 1; i >= 0 && shown.size() < 4; i--) {
+            shown.add(crops.get(i));
         }
-        if (usable.isEmpty()) {
-            line("Can Plant:", "Nothing yet", BradsMultiToolOverlay.BAD);
+        for (int i = unlocked; i < crops.size() && i < unlocked + 2; i++) {
+            shown.add(crops.get(i));
         }
-        if (next != null) {
-            line("Next Unlock:", next.name + " (" + next.level + ")", BradsMultiToolOverlay.BAD);
+        header("Can Grow Here", unlocked == 0 ? "None at your level" : "", BradsMultiToolOverlay.BAD);
+        for (FarmingData.Crop crop : shown) {
+            levelLine("  " + crop.name, Skill.FARMING, crop.level);
         }
     }
 
     private static String statusText(FarmingData.State state) {
         switch (state.cropState) {
-            case FarmingData.HARVESTABLE: return "Ready";
+            case FarmingData.HARVESTABLE: return "Ready to harvest";
             case FarmingData.DISEASED: return "Diseased (cure it)";
             case FarmingData.DEAD: return "Dead (clear it)";
-            case FarmingData.GROWING: return "Growing (" + (state.stage + 1) + "/" + state.produce.stages + ")";
+            case FarmingData.GROWING: return "Growing";
             default: return state.cropState.charAt(0) + state.cropState.substring(1).toLowerCase();
         }
     }
@@ -404,6 +407,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         addRequirement(skill, r.level);
         if (r.xp > 0) {
             line("XP Each:", trim(r.xp), Color.WHITE);
+        }
+        if (r.loot != null) {
+            line("Loot:", r.loot, Color.WHITE);
         }
         if (r.xpPerHour > 0 && showRates(skill)) {
             line("Wiki XP/hr:", NUMBER.format(r.xpPerHour), Color.WHITE);
@@ -448,18 +454,14 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(npc.getName()).color(TITLE_COLOR).build());
-        int level = client.getRealSkillLevel(Skill.FISHING);
+        List<String> owned = ownedItemNames();
         for (String option : fishingOptions) {
-            // One fish per row, green when your level can catch it
-            String label = option + ":";
-            for (SkillingData.Fish fish : SkillingData.fishFor(option, fishingOptions)) {
-                line(label, fish.name + " (" + fish.level + ")",
-                    fish.level <= level ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
-                label = "";
-            }
+            // Each method: its name and the tool it needs (green if you have it), then each fish with its level
             String tool = SkillingData.fishingTool(option);
-            if (tool != null) {
-                line("", tool, new Color(180, 180, 180));
+            boolean hasTool = SkillingData.hasFishingTool(option, owned);
+            header(option, tool != null ? tool : "", hasTool ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            for (SkillingData.Fish fish : SkillingData.fishFor(option, fishingOptions)) {
+                levelLine("  " + fish.name + " (" + trim(fish.xp) + " xp)", Skill.FISHING, fish.level);
             }
         }
         addYourRate(Skill.FISHING);
@@ -478,6 +480,19 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
         }
         return false;
+    }
+
+    // A sub-heading inside a card, e.g. a fishing method, with an optional note on the right
+    private void header(String text, String right, Color rightColor) {
+        panel.getChildren().add(LineComponent.builder().left(text).leftColor(HEADER_COLOR)
+            .right(right).rightColor(rightColor).build());
+    }
+
+    // "Shrimps (10 xp)        Level 1 [icon]", green if you have the level
+    private void levelLine(String left, Skill skill, int level) {
+        boolean ok = client.getRealSkillLevel(skill) >= level;
+        panel.getChildren().add(IconLineComponent.textThenIcon(left, skillIcons.getSkillImage(skill, true),
+            "Level " + level, ok ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD));
     }
 
     private void addRequirement(Skill skill, int level) {
