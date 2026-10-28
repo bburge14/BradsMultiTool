@@ -24,6 +24,7 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 ## Slayer
 - [ ] Task card, Ctrl+Shift+S hides/shows it (chat says hidden/shown), missing-item warning.
 - [ ] Kill rate survives walking between areas.
+- [ ] Hide the Slayer card with Ctrl+Shift+S, restart the client: it stays hidden (and shown stays shown).
 - [ ] Finishing a task says "Slayer task complete" (chat adds the task name).
 - [ ] No task: card shows the best master for your levels, where they are, routes and the next master.
 - [ ] Pictures: master chathead with no task, monster icon on a task (Slayer gem if none); nothing overlaps.

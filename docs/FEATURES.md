@@ -116,7 +116,8 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
   Slayer XP. Hover one in the wrong place on a Konar task and it says "Wrong place: Konar wants these in
   ..., kills here won't count"; hover a Slayer monster that isn't your task and it shows your task.
 
-**How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which).
+**How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which); it stays that
+way after a restart.
 
 **Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Required
 Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next

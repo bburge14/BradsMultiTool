@@ -205,14 +205,16 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     private KeyManager keyManager;
 
-    /** Toggled by the slayer show/hide hotkey. */
+    /** Toggled by the slayer show/hide hotkey; kept in the settings so it stays that way across restarts. */
     @Getter
-    private boolean slayerCardHidden = false;
+    private volatile boolean slayerCardHidden = false;
+    private static final String SLAYER_CARD_HIDDEN = "slayerCardHidden";
 
     private final HotkeyListener slayerToggleListener = new HotkeyListener(() -> this.config.slayerToggleKey()) {
         @Override
         public void hotkeyPressed() {
             slayerCardHidden = !slayerCardHidden;
+            configManager.setConfiguration(CONFIG_GROUP, SLAYER_CARD_HIDDEN, slayerCardHidden);
             // Say what happened, since without a task there's no card to see change
             String state = slayerCardHidden ? "hidden" : slayerTracker.hadTask() ? "shown" : "shown (no Slayer task right now)";
             clientThread.invokeLater(() -> client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
@@ -489,6 +491,7 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(birdhouseTracker);
         eventBus.register(otherTimerPlugins);
         otherTimerPlugins.refresh();
+        slayerCardHidden = Boolean.parseBoolean(configManager.getConfiguration(CONFIG_GROUP, SLAYER_CARD_HIDDEN));
         keyManager.registerKeyListener(slayerToggleListener);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
