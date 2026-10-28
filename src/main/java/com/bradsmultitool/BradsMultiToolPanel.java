@@ -86,52 +86,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         setBorder(new EmptyBorder(10, 10, 10, 10));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JPanel header = new JPanel(new BorderLayout(0, 8));
-        header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        header.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(2, 0, 0, 0, ACCENT_COLOR),
-            new EmptyBorder(8, 8, 8, 8)));
-
-        JPanel titles = new JPanel(new GridLayout(2, 1));
-        titles.setOpaque(false);
-        JLabel title = new JLabel("Brad's Multi-Tool");
-        title.setFont(FontManager.getRunescapeBoldFont());
-        title.setForeground(ACCENT_COLOR);
-        JLabel subtitle = new JLabel("Skill Tracker");
-        subtitle.setFont(FontManager.getRunescapeSmallFont());
-        subtitle.setForeground(Color.GRAY);
-        titles.add(title);
-        titles.add(subtitle);
-
-        // A small "Issues?" button in the header's top-right corner opens a new GitHub issue
-        JButton reportButton = new JButton("Issues?");
-        reportButton.setToolTipText("Report a problem or idea: opens a new issue on the plugin's GitHub page");
-        reportButton.setFont(FontManager.getRunescapeSmallFont());
-        reportButton.setFocusPainted(false);
-        reportButton.setMargin(new java.awt.Insets(1, 6, 1, 6));
-        reportButton.addActionListener(e -> LinkBrowser.browse(NEW_ISSUE_URL));
-        JPanel corner = new JPanel(new BorderLayout());
-        corner.setOpaque(false);
-        corner.add(reportButton, BorderLayout.NORTH);
-
-        JPanel top = new JPanel(new BorderLayout(6, 0));
-        top.setOpaque(false);
-        top.add(titles, BorderLayout.CENTER);
-        top.add(corner, BorderLayout.EAST);
-        header.add(top, BorderLayout.NORTH);
-
-        JPanel stats = new JPanel(new GridLayout(1, 3, 6, 0));
-        stats.setOpaque(false);
-        stats.add(statBlock("TOTAL XP", totalXpLabel));
-        stats.add(statBlock("XP / HR", totalRateLabel));
-        stats.add(statBlock("SKILLS", skillCountLabel));
-        header.add(stats, BorderLayout.CENTER);
-
-        JButton goalButton = new JButton("Set Goal");
-        goalButton.setToolTipText("Pick a skill and a target level or XP; it's pinned under Goals");
-        goalButton.setFocusPainted(false);
-        goalButton.addActionListener(e -> askForGoal(null));
-        header.add(goalButton, BorderLayout.SOUTH);
+        JPanel header = buildHeader(totalXpLabel, totalRateLabel, skillCountLabel,
+            () -> askForGoal(null), () -> LinkBrowser.browse(NEW_ISSUE_URL));
 
         cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
         cardsContainer.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -150,6 +106,60 @@ public class BradsMultiToolPanel extends PluginPanel {
         add(cardsWrapper, BorderLayout.CENTER);
 
         updatePanel();
+    }
+
+    /**
+     * The header box: title and subtitle on the left with a small "Issues?" button centred beside them,
+     * three equal stat columns (caption centred over value), and the Set Goal button across the bottom.
+     */
+    static JPanel buildHeader(JLabel totalXp, JLabel rate, JLabel skills, Runnable onSetGoal, Runnable onIssues) {
+        JPanel header = new JPanel(new BorderLayout(0, 8));
+        header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, ACCENT_COLOR),
+            new EmptyBorder(8, 8, 8, 8)));
+
+        JPanel titles = new JPanel(new GridLayout(2, 1));
+        titles.setOpaque(false);
+        JLabel title = new JLabel("Brad's Multi-Tool");
+        title.setFont(FontManager.getRunescapeBoldFont());
+        title.setForeground(ACCENT_COLOR);
+        JLabel subtitle = new JLabel("Skill Tracker");
+        subtitle.setFont(FontManager.getRunescapeSmallFont());
+        subtitle.setForeground(Color.GRAY);
+        titles.add(title);
+        titles.add(subtitle);
+
+        JButton issues = new JButton("Issues?");
+        issues.setToolTipText("Report a problem or idea: opens a new issue on the plugin's GitHub page");
+        issues.setFont(FontManager.getRunescapeSmallFont());
+        issues.setFocusPainted(false);
+        issues.setMargin(new java.awt.Insets(2, 6, 2, 6));
+        issues.addActionListener(e -> onIssues.run());
+        // Centred vertically against the two title lines
+        JPanel corner = new JPanel(new java.awt.GridBagLayout());
+        corner.setOpaque(false);
+        corner.add(issues);
+
+        JPanel top = new JPanel(new BorderLayout(6, 0));
+        top.setOpaque(false);
+        top.add(titles, BorderLayout.CENTER);
+        top.add(corner, BorderLayout.EAST);
+        header.add(top, BorderLayout.NORTH);
+
+        JPanel stats = new JPanel(new GridLayout(1, 3, 4, 0));
+        stats.setOpaque(false);
+        stats.add(statBlock("TOTAL XP", totalXp));
+        stats.add(statBlock("XP / HR", rate));
+        stats.add(statBlock("SKILLS", skills));
+        header.add(stats, BorderLayout.CENTER);
+
+        JButton goalButton = new JButton("Set Goal");
+        goalButton.setToolTipText("Pick a skill and a target level or XP; it's pinned under Goals");
+        goalButton.setFocusPainted(false);
+        goalButton.addActionListener(e -> onSetGoal.run());
+        header.add(goalButton, BorderLayout.SOUTH);
+        return header;
     }
 
     private static String encode(String text) {
@@ -288,9 +298,11 @@ public class BradsMultiToolPanel extends PluginPanel {
     }
 
     private static JPanel statBlock(String caption, JLabel value) {
+        // Caption centred over its value, so the three columns line up evenly
         JPanel block = new JPanel(new GridLayout(2, 1));
         block.setOpaque(false);
-        JLabel captionLabel = new JLabel(caption);
+        JLabel captionLabel = new JLabel(caption, SwingConstants.CENTER);
+        value.setHorizontalAlignment(SwingConstants.CENTER);
         captionLabel.setFont(FontManager.getRunescapeSmallFont());
         captionLabel.setForeground(Color.GRAY);
         value.setFont(FontManager.getRunescapeBoldFont());

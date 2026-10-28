@@ -59,3 +59,10 @@ tasks.register('slayerPreview', JavaExec) {
     args = [System.getProperty('out', 'build/slayer-preview.png')]
     jvmArgs = ['-Djava.awt.headless=true']
 }
+
+tasks.register('headerPreview', JavaExec) {
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.bradsmultitool.HeaderPreview'
+    args = [System.getProperty('out', 'build/header-preview.png')]
+    jvmArgs = ['-Djava.awt.headless=true']
+}
