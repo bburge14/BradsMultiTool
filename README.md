@@ -59,7 +59,7 @@ pies, and alerts that only fire for the resource you're working:
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
 | Cooking | Range/fire card: the level each raw food you carry stops burning (with gauntlets if worn) |
-| Sailing | Pies on shipwrecks showing how long until they sink |
+| Sailing | Charting spot card (task, level, XP), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish); pies on shipwrecks showing how long until they sink |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 
 If you also run a dedicated timer plugin (Tree Despawn Timer, MLM Despawn Timer, Fishing Spot Tracker,
@@ -71,7 +71,9 @@ work a resource.
 - A card per skill you train: XP gained, XP to next level, actions left (from your last XP drop; not for
   combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar. Each field has its
   own switch.
-- **Goals**: right-click a card > Set goal... (a level or an XP amount) to see XP left and time to reach it.
+- **Goals**: the **Set Goal** button at the top (or right-click a card > Set goal...) takes a skill and a
+  level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
+  them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
 - **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
@@ -186,7 +188,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
-| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, Agility |
+| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, Agility, Sailing |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](VOICE_CREDITS.md)) |
 
 ## Planned: separate plugins

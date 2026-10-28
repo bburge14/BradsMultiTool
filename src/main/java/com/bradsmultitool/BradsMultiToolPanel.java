@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -20,14 +21,18 @@ import java.util.Map;
 import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import net.runelite.api.Experience;
@@ -64,6 +69,10 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final JLabel skillCountLabel = new JLabel();
     private final JLabel emptyLabel = new JLabel("<html>Gain XP to start tracking skills.<br>Right-click a skill for options.</html>");
     private final JPanel cardsContainer = new JPanel();
+    private final JLabel goalsHeading = sectionHeading("GOALS");
+    private final JLabel sessionHeading = sectionHeading("THIS SESSION");
+    // What's laid out now (goal skills, then session skills), so the list is only rebuilt when it changes
+    private String cardOrder = "";
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
 
     public BradsMultiToolPanel(BradsMultiToolPlugin plugin, BradsMultiToolConfig config, SkillIconManager skillIconManager) {
@@ -100,6 +109,12 @@ public class BradsMultiToolPanel extends PluginPanel {
         stats.add(statBlock("XP / HR", totalRateLabel));
         stats.add(statBlock("SKILLS", skillCountLabel));
         header.add(stats, BorderLayout.CENTER);
+
+        JButton goalButton = new JButton("Set Goal");
+        goalButton.setToolTipText("Pick a skill and a target level or XP; it's pinned under Goals");
+        goalButton.setFocusPainted(false);
+        goalButton.addActionListener(e -> askForGoal(null));
+        header.add(goalButton, BorderLayout.SOUTH);
 
         cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
         cardsContainer.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -153,39 +168,87 @@ public class BradsMultiToolPanel extends PluginPanel {
         totalRateLabel.setText(NUMBER_FORMAT.format(totalRate));
         skillCountLabel.setText(String.valueOf(tracked.size()));
 
-        Set<Skill> trackedSet = new HashSet<>(tracked);
-        boolean layoutChanged = cards.keySet().removeIf(skill -> {
-            if (!trackedSet.contains(skill)) {
-                cardsContainer.remove(cards.get(skill));
-                return true;
-            }
-            return false;
-        });
-
+        // Skills with a goal are pinned under Goals (even if not trained this session); the rest follow
+        List<Skill> goals = plugin.getGoalSkills();
+        List<Skill> session = new ArrayList<>();
         for (Skill skill : tracked) {
-            SkillCard card = cards.get(skill);
-            if (card == null) {
-                card = new SkillCard(skill);
-                cards.put(skill, card);
-                cardsContainer.add(card);
-                layoutChanged = true;
+            if (!goals.contains(skill)) {
+                session.add(skill);
             }
-            card.refresh();
+        }
+        Set<Skill> shown = new HashSet<>(goals);
+        shown.addAll(session);
+        cards.keySet().removeIf(skill -> !shown.contains(skill));
+        for (Skill skill : shown) {
+            cards.computeIfAbsent(skill, SkillCard::new).refresh();
         }
 
-        boolean showEmpty = cards.isEmpty();
-        if (showEmpty != (emptyLabel.getParent() != null)) {
-            if (showEmpty) {
-                cardsContainer.add(emptyLabel, 0);
-            } else {
-                cardsContainer.remove(emptyLabel);
+        String order = goals + "|" + session;
+        if (!order.equals(cardOrder)) {
+            cardOrder = order;
+            cardsContainer.removeAll();
+            if (shown.isEmpty()) {
+                cardsContainer.add(emptyLabel);
             }
-            layoutChanged = true;
-        }
-
-        if (layoutChanged) {
+            if (!goals.isEmpty()) {
+                cardsContainer.add(goalsHeading);
+                goals.forEach(skill -> cardsContainer.add(cards.get(skill)));
+                if (!session.isEmpty()) {
+                    cardsContainer.add(sessionHeading);
+                }
+            }
+            session.forEach(skill -> cardsContainer.add(cards.get(skill)));
             cardsContainer.revalidate();
             cardsContainer.repaint();
+        }
+    }
+
+    private static JLabel sectionHeading(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(FontManager.getRunescapeSmallFont());
+        label.setForeground(Color.GRAY);
+        label.setBorder(new EmptyBorder(2, 2, 4, 0));
+        return label;
+    }
+
+    /**
+     * Set a goal: a level (2-99) or an XP amount. With no skill given, asks which skill too.
+     */
+    private void askForGoal(Skill skill) {
+        JComboBox<Skill> skills = new JComboBox<>();
+        for (Skill s : Skill.values()) {
+            if (!"OVERALL".equals(s.name())) {
+                skills.addItem(s);
+            }
+        }
+        skills.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
+                return super.getListCellRendererComponent(list, value instanceof Skill ? ((Skill) value).getName() : value,
+                    index, selected, focus);
+            }
+        });
+        JTextField target = new JTextField(10);
+        JPanel form = new JPanel(new GridLayout(0, 1, 0, 4));
+        if (skill == null) {
+            form.add(new JLabel("Skill:"));
+            form.add(skills);
+        } else {
+            skills.setSelectedItem(skill);
+        }
+        form.add(new JLabel("Goal (a level like 70, or XP like 1,000,000):"));
+        form.add(target);
+        int result = JOptionPane.showConfirmDialog(this, form, skill == null ? "Set goal" : "Goal for " + skill.getName(),
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION || target.getText().trim().isEmpty()) {
+            return;
+        }
+        try {
+            int value = Integer.parseInt(target.getText().trim().replace(",", ""));
+            int goalXp = value <= Experience.MAX_REAL_LEVEL ? Experience.getXpForLevel(Math.max(2, value)) : value;
+            plugin.setSkillGoal((Skill) skills.getSelectedItem(), Math.min(goalXp, Experience.MAX_SKILL_XP));
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Enter a level like 70 or an XP amount like 1,000,000.");
         }
     }
 
@@ -274,7 +337,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             pauseItem.addActionListener(e -> plugin.toggleSkillPause(skill));
             menu.add(pauseItem);
             menu.add(menuItem("Reset rate", () -> plugin.resetSkillRate(skill)));
-            menu.add(menuItem("Set goal...", this::askForGoal));
+            menu.add(menuItem("Set goal...", () -> askForGoal(skill)));
             menu.add(menuItem("Clear goal", () -> plugin.setSkillGoal(skill, 0)));
             menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
             menu.add(menuItem("Hide " + skill.getName(), () -> plugin.addIgnoredSkill(skill)));
@@ -364,22 +427,6 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         private boolean pausedByUser() {
             return plugin.isSkillPaused(skill) && !plugin.isSkillAutoPaused(skill);
-        }
-
-        // A level (2-99) or an XP amount
-        private void askForGoal() {
-            String input = JOptionPane.showInputDialog(this, "Goal for " + skill.getName() + " (a level, or an XP amount):",
-                "Set goal", JOptionPane.PLAIN_MESSAGE);
-            if (input == null) {
-                return;
-            }
-            try {
-                int value = Integer.parseInt(input.trim().replace(",", ""));
-                int goalXp = value <= Experience.MAX_REAL_LEVEL ? Experience.getXpForLevel(Math.max(2, value)) : value;
-                plugin.setSkillGoal(skill, Math.min(goalXp, Experience.MAX_SKILL_XP));
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Enter a level like 70 or an XP amount like 1,000,000.");
-            }
         }
 
         private JMenuItem menuItem(String text, Runnable action) {

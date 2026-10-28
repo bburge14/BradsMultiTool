@@ -727,6 +727,20 @@ public class BradsMultiToolPlugin extends Plugin {
         updatePanelUI();
     }
 
+    /** Skills you've set a goal for, in skill order. */
+    public List<Skill> getGoalSkills() {
+        List<Skill> skills = new ArrayList<>();
+        if (configManager.getRSProfileKey() == null) {
+            return skills;
+        }
+        for (Skill skill : Skill.values()) {
+            if (!"OVERALL".equals(skill.name()) && getSkillGoal(skill) > 0) {
+                skills.add(skill);
+            }
+        }
+        return skills;
+    }
+
     /** Your XP in the skill when you set its goal (for the goal bar), or 0 if unknown. */
     public int getSkillGoalStart(Skill skill) {
         String value = configManager.getRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name());
