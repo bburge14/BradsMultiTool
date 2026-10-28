@@ -25,6 +25,17 @@ public interface BradsMultiToolConfig extends Config {
         @Override public String toString() { return name; }
     }
 
+    enum TrainingFocus {
+        FASTEST("Fastest XP"),
+        OTHER("Other methods (often AFK)"),
+        CHEAPEST("Cheapest (fewest GP per XP)"),
+        MONEY("Money maker");
+
+        private final String name;
+        TrainingFocus(String name) { this.name = name; }
+        @Override public String toString() { return name; }
+    }
+
     enum BestChoice {
         XP("Most XP"),
         PROFIT("Most profit (GE prices)");
@@ -1991,14 +2002,14 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
-        keyName = "trainingAlternatives",
-        name = "Suggest Alternatives",
-        description = "Off: the guide's fastest method. On: the guide's other methods first (often more AFK or cheaper)",
+        keyName = "trainingFocus",
+        name = "Training Focus",
+        description = "What goal suggestions aim for: the wiki guide's fastest XP, its other methods (often more AFK), the cheapest way (fewest GP per XP when making things; gathering is free), or the best money maker you can do. Slayer always suggests the best Slayer master",
         section = trackerSection,
         position = 70
     )
-    default boolean trainingAlternatives() {
-        return false;
+    default TrainingFocus trainingFocus() {
+        return TrainingFocus.FASTEST;
     }
 
     @ConfigItem(

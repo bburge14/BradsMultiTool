@@ -505,14 +505,15 @@ public class BradsMultiToolPanel extends PluginPanel {
                 } else if (skill == Skill.SLAYER) {
                     slayerSuggestion(lines);
                 } else {
-                    TrainingData training = plugin.getTrainingData();
-                    TrainingData.Method method = training.suggest(skill, level, config.trainingAlternatives());
-                    TrainingData.Method next = training.next(skill, level, Experience.getLevelForXp(goalXp), config.trainingAlternatives());
-                    if (method != null) {
-                        lines.add(label("Train:") + method.name);
+                    // By the Training Focus setting: fastest, other methods, cheapest or money maker
+                    TrainingAdvisor advisor = plugin.getTrainingAdvisor();
+                    TrainingAdvisor.Suggestion now = advisor.suggest(skill, level);
+                    Map.Entry<Integer, TrainingAdvisor.Suggestion> next = advisor.next(skill, level, Experience.getLevelForXp(goalXp));
+                    if (now != null) {
+                        lines.add(label(now.label) + now.text);
                     }
                     if (next != null) {
-                        lines.add(label("At " + next.from + ":") + next.name);
+                        lines.add(label("At " + next.getKey() + ":") + next.getValue().text);
                     }
                 }
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank

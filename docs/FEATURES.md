@@ -261,8 +261,11 @@ Suggest Alternatives, Highlight Suggested Method and its colour; Auto-Pause Idle
 Goals are saved with your RuneScape profile, so they stay after a relaunch. To have them on another PC,
 log in to a RuneLite account on both and turn on **Sync** for your profile (Profiles panel).
 
-**Settings (Skill Tracker):** Suggested Method; **Suggest Alternatives** (off: the guide's fastest method;
-on: its other methods first, often more AFK or cheaper); Highlight Suggested Method; Highlight Goal
+**Settings (Skill Tracker):** Suggested Method; **Training Focus**: Fastest XP (the guide's fastest
+method), Other methods (the guide's others, often more AFK), Cheapest (for making things: the recipe with
+the fewest GP per XP at GE prices; gathering skills are free so they get the fastest), or Money maker (the
+most profitable wiki money making guide you meet the requirements for, e.g. "Money: Cutting yew logs
+(~335K/hr)"). The Make: line follows it too; Highlight Suggested Method; Highlight Goal
 Items; Highlight Colour;
 Actions Until Goal (the actions field counts to the goal instead of the next level).
 

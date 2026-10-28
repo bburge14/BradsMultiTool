@@ -86,8 +86,10 @@ work a resource.
   Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level.
 - **Suggested method** (every skill): a goal card shows the wiki training guide's method for your level
   ("Train: Oak trees") and what to switch to before the goal ("At 35: Teak trees"); Slayer suggests the
-  best Slayer master. **Suggest Alternatives** picks the
-  guide's other methods (often more AFK or cheaper) instead of the fastest. Where the method is a tree,
+  best Slayer master. **Training Focus** chooses what it
+  aims for: **Fastest XP**, the guide's **Other methods** (often AFK), **Cheapest** (fewest GP per XP when
+  making things; gathering is free) or **Money maker** (the most profitable wiki money making guide you
+  can do). Where the method is a tree,
   rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
 - **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill to outline that
   instead of the suggestion ("Tracking: ... (your pick)"); **Use suggested method** on the card goes back.

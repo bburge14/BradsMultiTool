@@ -89,10 +89,20 @@ class RecipeData {
      * {@code score} (XP or profit per action); null if you can't make anything.
      */
     Recipe best(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> score) {
+        return best(skill, level, have, score, r -> true);
+    }
+
+    /** As above, considering only recipes that pass {@code allowed}. */
+    Recipe best(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> score,
+                java.util.function.Predicate<Recipe> allowed) {
         Recipe best = null;
         double bestScore = 0;
         for (Recipe recipe : recipes.getOrDefault(skill.name(), Collections.emptyList())) {
-            if (recipe.level > level || recipe.makeable(have) == 0) {
+            // With no inventory given, anything at your level counts (for the "Cheapest" suggestion)
+            if (recipe.level > level || (have != null && recipe.makeable(have) == 0)) {
+                continue;
+            }
+            if (!allowed.test(recipe)) {
                 continue;
             }
             double s = score.applyAsDouble(recipe);

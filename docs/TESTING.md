@@ -89,6 +89,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Hunter goal: right-click a different creature > Track for goal; it's outlined instead and the card says Tracking: ... (your pick). Untrack / Use suggested method restores the suggestion.
 - [ ] No Track for goal option on things whose skill has no goal.
 - [ ] Card > Pin to screen shows the skill overlay; pinning another skill replaces it; overlay right-click > Unpin removes it; stays pinned after a restart.
+- [ ] Training Focus: Money maker shows Money: <guide> (~X/hr); Cheapest shows Cheapest: <recipe> (gp/xp) for making skills and the fastest method for gathering; Other methods changes the guide method.
 - [ ] Clear goal moves the card back under THIS SESSION (or removes it if untrained).
 - [ ] Auto-pause after the set minutes without XP; resumes on XP.
 - [ ] Level-up voice says skill and level.

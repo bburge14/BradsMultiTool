@@ -245,6 +245,12 @@ public class BradsMultiToolPlugin extends Plugin {
     private RecipeData recipeData;
 
     @Inject
+    private MoneyData moneyData;
+
+    @Inject
+    private TrainingAdvisor trainingAdvisor;
+
+    @Inject
     private GoalItems goalItems;
 
     @Inject
@@ -487,6 +493,7 @@ public class BradsMultiToolPlugin extends Plugin {
         slayerData.load(gson);
         trainingData.load(gson);
         recipeData.load(gson);
+        moneyData.load(gson);
         eventBus.register(trainingOverlay);
         eventBus.register(goalItems);
         eventBus.register(goalTargetMenu);
@@ -793,6 +800,11 @@ public class BradsMultiToolPlugin extends Plugin {
             configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name(), client.getSkillExperience(skill));
         }
         updatePanelUI();
+    }
+
+    /** What to train for a goal, by the Training Focus setting. */
+    public TrainingAdvisor getTrainingAdvisor() {
+        return trainingAdvisor;
     }
 
     /** The wiki's training methods by level, for the tracker's goal suggestions. */
@@ -2179,11 +2191,11 @@ public class BradsMultiToolPlugin extends Plugin {
             }
             return;
         }
-        TrainingData.Method was = trainingData.suggest(skill, before, config.trainingAlternatives());
-        TrainingData.Method method = trainingData.suggest(skill, now, config.trainingAlternatives());
-        if (method != null && method != was) {
+        TrainingAdvisor.Suggestion was = trainingAdvisor.suggest(skill, before);
+        TrainingAdvisor.Suggestion suggestion = trainingAdvisor.suggest(skill, now);
+        if (suggestion != null && !suggestion.equals(was)) {
             client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> "
-                + skill.getName() + " goal: you can now switch to " + method.name, null);
+                + skill.getName() + " goal: you can now switch to " + suggestion.text, null);
         }
     }
 

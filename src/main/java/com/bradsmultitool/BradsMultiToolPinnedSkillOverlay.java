@@ -89,7 +89,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         return super.render(graphics);
     }
 
-    // What to train for the goal: your pick, else the guide's method (Slayer: the best master)
+    // What to train for the goal: your pick, else the suggestion for your Training Focus
     private String suggestion(Skill skill, int level) {
         if (!config.showTrainingSuggestion()) {
             return null;
@@ -98,12 +98,8 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         if (target != null) {
             return "Tracking: " + BradsMultiToolPlugin.goalTargetName(target);
         }
-        if (skill == Skill.SLAYER) {
-            SlayerData.Master master = plugin.getSlayerData().bestMaster(plugin.getCombatLevel(), level);
-            return master != null ? "Train: Tasks from " + master.name : null;
-        }
-        TrainingData.Method method = plugin.getTrainingData().suggest(skill, level, config.trainingAlternatives());
-        return method != null ? "Train: " + method.name : null;
+        TrainingAdvisor.Suggestion suggestion = plugin.getTrainingAdvisor().suggest(skill, level);
+        return suggestion != null ? suggestion.label + " " + suggestion.text : null;
     }
 
     private static ProgressBarComponent bar(double progress, String left, String centre, String right, Color fill) {

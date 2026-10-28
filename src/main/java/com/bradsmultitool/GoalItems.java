@@ -16,7 +16,6 @@ import net.runelite.api.gameval.InventoryID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
-import net.runelite.http.api.item.ItemPrice;
 
 /**
  * For each production skill you have a goal in (Cooking, Smithing, Fletching...): the best thing you can
@@ -32,9 +31,9 @@ class GoalItems {
     private final BradsMultiToolConfig config;
     private final RecipeData recipes;
     private final ItemManager itemManager;
+    private final ItemPrices prices;
 
     private final Map<String, Integer> bank = new HashMap<>();
-    private final Map<String, Integer> prices = new HashMap<>();
     // Replaced whole after each update, so readers (the panel, the item overlay) never see a half-built map
     private volatile Map<Skill, RecipeData.Recipe> suggestions = Collections.emptyMap();
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
@@ -43,12 +42,13 @@ class GoalItems {
 
     @Inject
     GoalItems(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, RecipeData recipes,
-              ItemManager itemManager) {
+              ItemManager itemManager, ItemPrices prices) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.recipes = recipes;
         this.itemManager = itemManager;
+        this.prices = prices;
     }
 
     /** What to make for this skill's goal, or null. */
@@ -100,7 +100,12 @@ class GoalItems {
     private void update() {
         Map<String, Integer> have = new HashMap<>(bank);
         count(client.getItemContainer(InventoryID.INV), have);
-        boolean byProfit = config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT;
+        // Training Focus picks the score: cheapest = most profit per XP, money maker = most profit;
+        // otherwise the Best Choice setting (most XP or most profit)
+        BradsMultiToolConfig.TrainingFocus focus = config.trainingFocus();
+        boolean byProfit = focus == BradsMultiToolConfig.TrainingFocus.MONEY
+            || (focus != BradsMultiToolConfig.TrainingFocus.CHEAPEST && config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT);
+        boolean perXp = focus == BradsMultiToolConfig.TrainingFocus.CHEAPEST;
         Map<Skill, RecipeData.Recipe> suggestions = new HashMap<>();
         Map<String, String> highlighted = new HashMap<>();
         for (Skill skill : plugin.getGoalSkills()) {
@@ -108,7 +113,7 @@ class GoalItems {
                 continue;
             }
             RecipeData.Recipe best = recipes.best(skill, client.getRealSkillLevel(skill), have,
-                recipe -> byProfit ? profit(recipe) : recipe.xp);
+                recipe -> perXp ? prices.profit(recipe) / recipe.xp : byProfit ? prices.profit(recipe) : recipe.xp);
             if (best == null) {
                 continue;
             }
@@ -131,24 +136,5 @@ class GoalItems {
                 into.merge(name, item.getQuantity(), Integer::sum);
             }
         }
-    }
-
-    private double profit(RecipeData.Recipe recipe) {
-        double value = price(recipe.name);
-        for (Map.Entry<String, Integer> material : recipe.materials.entrySet()) {
-            value -= price(material.getKey()) * (double) material.getValue();
-        }
-        return value;
-    }
-
-    private int price(String itemName) {
-        return prices.computeIfAbsent(itemName, name -> {
-            for (ItemPrice price : itemManager.search(name)) {
-                if (price.getName().equalsIgnoreCase(name)) {
-                    return (int) price.getPrice();
-                }
-            }
-            return 0;
-        });
     }
 }
