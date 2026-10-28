@@ -96,6 +96,11 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
     private static final int GEMSTONE_CRAB_ID = 14779;
     private static final int GEMSTONE_CRAB_SHELL_ID = 14780;
+    // The crab's three mines in the Tlati Rainforest (OSRS Wiki); crab tunnels and shells only count near these
+    private static final WorldPoint[] CRAB_SPOTS = {
+        new WorldPoint(1275, 3160, 0), new WorldPoint(1351, 3110, 0), new WorldPoint(1237, 3042, 0)};
+    private static final String[] CRAB_COVE_NAMES = {"North Cove", "East Cove", "West Cove"};
+    private static final int CRAB_AREA_RADIUS = 40;
     // Client idle timeouts in 20ms client cycles: 5 minutes normally, 20 minutes (clicks/keys only) in combat
     private static final int DEFAULT_IDLE_LOGOUT_CYCLES = 15000;
     private static final int COMBAT_IDLE_LOGOUT_CYCLES = 60000;
@@ -935,7 +940,8 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     private void checkTileObject(TileObject obj) {
-        if (obj == null) return;
+        // Tunnels and shells elsewhere (Draynor sewers, say) have nothing to do with the crab
+        if (obj == null || crabSpotNear(obj.getWorldLocation()) < 0) return;
 
         ObjectComposition def = client.getObjectDefinition(obj.getId());
         if (def == null) return;
@@ -1711,6 +1717,11 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
 
+        if (crabSpotNear(wp) < 0) {
+            inSpawnVicinity = false;
+            return;
+        }
+
         for (TileObject tunnel : trackedTunnels) {
             if (tunnel != null && wp.distanceTo(tunnel.getWorldLocation()) <= 24) {
                 inSpawnVicinity = true;
@@ -1731,16 +1742,23 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     private void updateCoveName(WorldPoint wp) {
-        int ry = wp.getRegionY();
-        int rx = wp.getRegionX();
-
-        if (ry > 38) {
-            currentCoveName = "North Cove";
-        } else if (rx < 35) {
-            currentCoveName = "West Cove";
-        } else {
-            currentCoveName = "East Cove";
+        int spot = crabSpotNear(wp);
+        if (spot >= 0) {
+            currentCoveName = CRAB_COVE_NAMES[spot];
         }
+    }
+
+    /** Index of the crab mine within range of {@code wp}, or -1 when it's nowhere near one. */
+    private static int crabSpotNear(WorldPoint wp) {
+        if (wp == null) {
+            return -1;
+        }
+        for (int i = 0; i < CRAB_SPOTS.length; i++) {
+            if (wp.getPlane() == CRAB_SPOTS[i].getPlane() && wp.distanceTo2D(CRAB_SPOTS[i]) <= CRAB_AREA_RADIUS) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Subscribe

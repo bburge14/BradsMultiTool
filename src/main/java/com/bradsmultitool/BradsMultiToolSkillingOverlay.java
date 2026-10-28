@@ -149,14 +149,6 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         if (r.xp > 0) {
             line("XP Each:", trim(r.xp), Color.WHITE);
         }
-        if (r.oneLog) {
-            line("Lasts:", "One log", Color.WHITE);
-        } else if (r.chopTicks > 0) {
-            line("Lasts:", "~" + Math.round(r.chopTicks * 0.6) + "s of chopping", Color.WHITE);
-            if (treeTimer.getTree() != null && treeTimer.totalTicks() == r.chopTicks && treeTimer.ticksLeft() >= 0) {
-                line("Time Left:", "~" + Math.round(treeTimer.ticksLeft() * 0.6) + "s", Color.WHITE);
-            }
-        }
         if (r.xpPerHour > 0) {
             line("Wiki XP/hr:", NUMBER.format(r.xpPerHour), Color.WHITE);
         }
