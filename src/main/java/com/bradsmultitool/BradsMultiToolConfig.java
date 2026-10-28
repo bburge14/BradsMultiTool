@@ -696,7 +696,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "characterIdleAlert",
         name = "AFK Alert",
-        description = "Alert when you were fighting or skilling, your character stopped, and you haven't clicked or typed since. Banking and menus don't count as idle",
+        description = "Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
         section = idleSection,
         position = 31
     )

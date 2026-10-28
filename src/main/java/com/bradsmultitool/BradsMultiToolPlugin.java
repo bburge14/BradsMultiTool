@@ -108,7 +108,10 @@ public class BradsMultiToolPlugin extends Plugin {
     // Login: alerts wait until the welcome screen's "Click here to play" is gone, then a few ticks more
     private static final int WELCOME_SCREEN_GROUP = 378;
     private static final int INSIDE_WILDERNESS_VARBIT = 5963;
-    private static final int BANK_GROUP = 12;
+    // Bank, bank side panel, deposit box, bank PIN, shop, GE collect, GE offers, seed vault
+    private static final int[] BANKING_INTERFACES = {12, 15, 192, 213, 300, 402, 465, 631};
+    // An action counts towards the AFK alert only while it's giving XP (an XP drop in the last 30 seconds, for slow trees)
+    private static final int XP_ACTION_TICKS = 50;
     private static final int IN_GAME_SETTLE_TICKS = 3;
     // Repeat counter value meaning "already handled, don't sound or repeat"
     private static final int SILENCED = Integer.MAX_VALUE / 2;
@@ -299,6 +302,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private boolean characterIdleAlerted = false;
     private int lastActiveTick = 0;
     private int actionTicks = 0;
+    private int lastXpTick = -1000;
     private int inGameTicks = 0;
     private Instant lastIdleAlertTime = Instant.EPOCH;
 
@@ -1352,9 +1356,10 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     /**
-     * AFK alert: you were doing something (fighting, skilling) for a few seconds, then your character
-     * stopped and you haven't touched the game since. Walking alone doesn't count as an action, and
-     * clicking or typing (banking, menus) or having the bank open means you're not AFK.
+     * AFK alert: you were training (gaining XP while animating or fighting), then your character stopped
+     * and you haven't clicked or typed since. Only XP-giving actions count, so banking, talking to people
+     * or walking around never arm it, and opening a bank, deposit box, shop, Grand Exchange or seed vault
+     * disarms it until you're training again.
      */
     private void updateCharacterIdle(Player player) {
         WorldPoint location = player.getWorldLocation();
@@ -1363,7 +1368,12 @@ public class BradsMultiToolPlugin extends Plugin {
         boolean doing = player.getAnimation() != -1 || player.getInteracting() != null;
 
         int tick = client.getTickCount();
-        if (doing) {
+        if (isBankingInterfaceOpen()) {
+            characterWasActive = false;
+            actionTicks = 0;
+            return;
+        }
+        if (doing && tick - lastXpTick <= XP_ACTION_TICKS) {
             actionTicks++;
             if (actionTicks >= MIN_ACTION_TICKS) {
                 characterWasActive = true;
@@ -1374,7 +1384,7 @@ public class BradsMultiToolPlugin extends Plugin {
             lastActiveTick = tick;
             return;
         }
-        if (!config.characterIdleAlert() || !characterWasActive || characterIdleAlerted || isWidgetVisible(BANK_GROUP)) {
+        if (!config.characterIdleAlert() || !characterWasActive || characterIdleAlerted) {
             return;
         }
 
@@ -1388,6 +1398,15 @@ public class BradsMultiToolPlugin extends Plugin {
             actionTicks = 0;
             alert(VoiceAlertService.VoiceLine.CHARACTER_IDLE, idleSeconds + " seconds");
         }
+    }
+
+    private boolean isBankingInterfaceOpen() {
+        for (int group : BANKING_INTERFACES) {
+            if (isWidgetVisible(group)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1874,6 +1893,7 @@ public class BradsMultiToolPlugin extends Plugin {
             if (drop > 0) {
                 lastXpDrops.put(skill, drop);
                 lastXpTicks.put(skill, client.getTickCount());
+                lastXpTick = client.getTickCount();
                 tickXpChanges.add(skill);
             }
             gainedSkillXp.put(skill, gained);
