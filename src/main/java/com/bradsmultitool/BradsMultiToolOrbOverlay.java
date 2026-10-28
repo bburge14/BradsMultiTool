@@ -82,13 +82,11 @@ public class BradsMultiToolOrbOverlay extends Overlay {
         float strength = strength();
         Composite old = graphics.getComposite();
         graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        // Soft glow: the shape scaled up a little behind, then the shape itself
-        int growX = Math.max(2, b.width / 4);
-        int growY = Math.max(2, b.height / 4);
-        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.35f * strength));
-        graphics.drawImage(mask, b.x - growX / 2, b.y - growY / 2, b.width + growX, b.height + growY, null);
-        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f + 0.6f * strength));
-        graphics.drawImage(mask, b.x, b.y, b.width, b.height, null);
+        // The shape itself, drawn a little inside the icon so the flash stays small
+        int w = Math.round(b.width * 0.7f);
+        int h = Math.round(b.height * 0.7f);
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f + 0.55f * strength));
+        graphics.drawImage(mask, b.x + (b.width - w) / 2, b.y + (b.height - h) / 2, w, h, null);
         graphics.setComposite(old);
     }
 

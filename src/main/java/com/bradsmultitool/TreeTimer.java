@@ -35,7 +35,7 @@ class TreeTimer {
     /** Call once per game tick. */
     void update() {
         WorldPoint clicked = extraAlerts.lastTreeLocation();
-        SkillingData.Resource resource = clicked != null ? skillingData.object(extraAlerts.lastResourceObjectId()) : null;
+        SkillingData.Resource resource = clicked != null ? skillingData.object(extraAlerts.lastResourceObjectId(), extraAlerts.lastResourceName()) : null;
         if (resource == null || resource.chopTicks <= 0) {
             tree = null;
             return;

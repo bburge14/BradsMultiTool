@@ -110,7 +110,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
                 return buildNpcCard(npc, Text.removeTags(entry.getOption()));
             }
             if (isObjectAction(entry.getType())) {
-                SkillingData.Resource resource = data.object(entry.getIdentifier());
+                SkillingData.Resource resource = data.object(entry.getIdentifier(), Text.removeTags(entry.getTarget()));
                 if (resource != null) {
                     buildResourceCard(resource);
                     return true;
@@ -164,7 +164,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return false;
         }
         SkillingData.Pickpocket pickpocket = data.pickpocket(npc.getName());
-        if (pickpocket != null && "pickpocket".equalsIgnoreCase(topOption)) {
+        // Pickpocket is often not the left-click option (Talk-to is), so check all of the NPC's actions;
+        // when Attack is left-click the monster card shows instead
+        if (pickpocket != null && hasAction(comp, "pickpocket") && !"attack".equalsIgnoreCase(topOption)) {
             panel.getChildren().clear();
             panel.getChildren().add(TitleComponent.builder().text(npc.getName()).color(TITLE_COLOR).build());
             addRequirement(Skill.THIEVING, pickpocket.level);
@@ -208,6 +210,20 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         addYourRate(Skill.FISHING);
         return true;
+    }
+
+    static boolean isPickpocketTarget(SkillingData data, NPC npc) {
+        NPCComposition comp = npc.getTransformedComposition() != null ? npc.getTransformedComposition() : npc.getComposition();
+        return comp != null && data.pickpocket(npc.getName()) != null && hasAction(comp, "pickpocket");
+    }
+
+    private static boolean hasAction(NPCComposition comp, String action) {
+        for (String a : comp.getActions()) {
+            if (a != null && a.equalsIgnoreCase(action)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void addRequirement(Skill skill, int level) {

@@ -35,12 +35,14 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     private final BradsMultiToolConfig config;
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
+    private final SkillingData skillingData;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
     public BradsMultiToolHoverOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
-                                      ItemManager itemManager, SpriteManager spriteManager) {
+                                      ItemManager itemManager, SpriteManager spriteManager, SkillingData skillingData) {
         this.client = client;
+        this.skillingData = skillingData;
         this.plugin = plugin;
         this.config = config;
         this.itemManager = itemManager;
@@ -71,16 +73,16 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     }
 
     /**
-     * The NPC under the cursor, from the top-most menu entry that targets one. Skipped when its top
-     * option is Pickpocket, which the skilling card covers instead.
+     * The NPC under the cursor, from the top-most menu entry that targets one. Skipped when it can be
+     * pickpocketed and Attack isn't the left-click option, since the skilling card covers it instead.
      */
     private NPC hoveredNpc() {
         MenuEntry[] entries = client.getMenu().getMenuEntries();
         for (int i = entries.length - 1; i >= 0; i--) {
             NPC npc = entries[i].getNpc();
             if (npc != null) {
-                boolean pickpocket = "pickpocket".equalsIgnoreCase(Text.removeTags(entries[i].getOption()));
-                return pickpocket && config.showSkillingHover() ? null : npc;
+                boolean attack = "attack".equalsIgnoreCase(Text.removeTags(entries[i].getOption()));
+                return !attack && config.showSkillingHover() && BradsMultiToolSkillingOverlay.isPickpocketTarget(skillingData, npc) ? null : npc;
             }
         }
         return null;

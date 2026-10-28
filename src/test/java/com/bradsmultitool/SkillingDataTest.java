@@ -22,7 +22,7 @@ public class SkillingDataTest {
 
     @Test
     public void treesHaveLevelXpAndForestryTimer() {
-        SkillingData.Resource willow = DATA.object(10819);
+        SkillingData.Resource willow = DATA.object(10819, null);
         assertNotNull(willow);
         assertEquals("Willow tree", willow.name);
         assertEquals(30, willow.level);
@@ -32,11 +32,17 @@ public class SkillingDataTest {
 
     @Test
     public void rocksAndStalls() {
-        assertEquals(35.0, DATA.object(11364).xp, 0.001); // Iron rocks
-        SkillingData.Resource silk = DATA.object(11729);
+        assertEquals(35.0, DATA.object(11364, null).xp, 0.001); // Iron rocks
+        SkillingData.Resource silk = DATA.object(11729, null);
         assertEquals("Silk stall", silk.name);
         assertEquals(20, silk.level);
         assertEquals(4.8, silk.respawnSeconds, 0.001);
+    }
+
+    @Test
+    public void unlistedObjectIdFallsBackToName() {
+        assertEquals("Oak tree", DATA.object(-5, "Oak tree").name);
+        assertNull(DATA.object(-5, "Bank booth"));
     }
 
     @Test

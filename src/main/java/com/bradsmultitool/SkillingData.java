@@ -123,10 +123,13 @@ class SkillingData {
     }
 
     private final Map<Integer, Resource> objects = new HashMap<>();
+    // Same resources by lowercase name, for object ids the wiki doesn't list
+    private final Map<String, Resource> objectsByName = new HashMap<>();
     private final Map<String, Pickpocket> pickpockets = new HashMap<>();
 
     void load(Gson gson) {
         objects.clear();
+        objectsByName.clear();
         pickpockets.clear();
         try (InputStream in = SkillingData.class.getResourceAsStream(RESOURCE)) {
             if (in == null) {
@@ -136,7 +139,9 @@ class SkillingData {
             try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
                 JsonObject root = gson.fromJson(reader, JsonObject.class);
                 for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("objects").entrySet()) {
-                    objects.put(Integer.parseInt(e.getKey()), new Resource(e.getValue().getAsJsonObject()));
+                    Resource resource = new Resource(e.getValue().getAsJsonObject());
+                    objects.put(Integer.parseInt(e.getKey()), resource);
+                    objectsByName.putIfAbsent(resource.name.toLowerCase(), resource);
                 }
                 for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("pickpocket").entrySet()) {
                     pickpockets.put(e.getKey(), new Pickpocket(e.getValue().getAsJsonObject()));
@@ -147,8 +152,13 @@ class SkillingData {
         }
     }
 
-    Resource object(int objectId) {
-        return objects.get(objectId);
+    /** By object id, falling back to the object's name (e.g. "Oak tree") when the id isn't listed. */
+    Resource object(int objectId, String objectName) {
+        Resource resource = objects.get(objectId);
+        if (resource == null && objectName != null) {
+            resource = objectsByName.get(objectName.toLowerCase());
+        }
+        return resource;
     }
 
     Pickpocket pickpocket(String npcName) {
