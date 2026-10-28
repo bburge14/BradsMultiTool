@@ -38,6 +38,9 @@ class ExtraAlerts {
     private static final int VENOM_THRESHOLD = 1_000_000;
     // Warn when about this much protection is left (about 36 seconds)
     private static final int WARN_TICKS = 60;
+    // Spec changes in the first ticks after login are the energy loading in; real spends cost 10%+
+    private static final int SETTLE_TICKS = 5;
+    private static final int MIN_SPEND_PERCENT = 10;
 
     private static final int CONTAINER_INVENTORY = 93;
     private static final int CONTAINER_EQUIPMENT = 94;
@@ -51,8 +54,10 @@ class ExtraAlerts {
     private final BradsMultiToolConfig config;
     private final BradsMultiToolPlugin plugin;
 
-    private boolean specAlerted = false;
-    private boolean specKnown = false;
+    // Special attack: last energy seen (-1 = none since login), and whether some was spent since the last alert
+    private int lastSpecPercent = -1;
+    private boolean specSpent = false;
+    private int loginTick = 0;
     private boolean antifireAlerted = false;
     private boolean antipoisonAlerted = false;
     private boolean ammoAlerted = false;
@@ -118,17 +123,24 @@ class ExtraAlerts {
         }
     }
 
+    /**
+     * Announces special attack only after you've spent some and it has recharged to the threshold.
+     * Energy loading in at login or in the lobby never counts: only a real drop (a spend) during play
+     * arms the alert.
+     */
     private void checkSpec(int percent) {
-        // The first value after login is just the energy loading in, not a fresh recharge
-        if (!specKnown) {
-            specKnown = true;
-            specAlerted = percent >= config.specThreshold();
+        boolean inGame = client.getGameState() == GameState.LOGGED_IN && client.getLocalPlayer() != null
+            && client.getTickCount() - loginTick > SETTLE_TICKS;
+        int previous = lastSpecPercent;
+        lastSpecPercent = percent;
+        if (!inGame || previous < 0) {
             return;
         }
-        if (percent < config.specThreshold()) {
-            specAlerted = false;
-        } else if (!specAlerted) {
-            specAlerted = true;
+        if (previous - percent >= MIN_SPEND_PERCENT) {
+            specSpent = true;
+        }
+        if (specSpent && percent >= config.specThreshold()) {
+            specSpent = false;
             if (config.specReadyAlert()) {
                 alert(VoiceAlertService.VoiceLine.SPEC_READY, "Special attack ready (" + percent + "%).");
             }
@@ -183,8 +195,12 @@ class ExtraAlerts {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
+        if (event.getGameState() == GameState.LOGGED_IN) {
+            loginTick = client.getTickCount();
+        }
         if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
-            specKnown = false;
+            lastSpecPercent = -1;
+            specSpent = false;
             lastPoisonValue = 0;
             resourceObjectId = -1;
             resourceNpc = null;
