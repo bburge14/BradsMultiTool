@@ -60,6 +60,8 @@ import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.input.KeyManager;
+import net.runelite.client.util.HotkeyListener;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.plugins.Plugin;
@@ -155,6 +157,20 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private SkillingData skillingData;
+
+    @Inject
+    private KeyManager keyManager;
+
+    /** Toggled by the slayer show/hide hotkey. */
+    @Getter
+    private boolean slayerCardHidden = false;
+
+    private final HotkeyListener slayerToggleListener = new HotkeyListener(() -> this.config.slayerToggleKey()) {
+        @Override
+        public void hotkeyPressed() {
+            slayerCardHidden = !slayerCardHidden;
+        }
+    };
 
     @Inject
     private BradsMultiToolConfig config;
@@ -373,6 +389,7 @@ public class BradsMultiToolPlugin extends Plugin {
         monsterData.load(gson);
         skillingData.load(gson);
         eventBus.register(extraAlerts);
+        keyManager.registerKeyListener(slayerToggleListener);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
         overlayManager.add(idleWarningOverlay);
@@ -403,6 +420,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(slayerOverlay);
         overlayManager.remove(skillingOverlay);
         eventBus.unregister(extraAlerts);
+        keyManager.unregisterKeyListener(slayerToggleListener);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);
         }

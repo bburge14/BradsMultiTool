@@ -1,11 +1,14 @@
 package com.bradsmultitool;
 
 import java.awt.Color;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import net.runelite.client.config.Alpha;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
@@ -369,7 +372,7 @@ public interface BradsMultiToolConfig extends Config {
         position = 0
     )
     default boolean specReadyAlert() {
-        return true;
+        return false;
     }
 
     @Range(min = 10, max = 100)
@@ -709,6 +712,17 @@ public interface BradsMultiToolConfig extends Config {
     )
     default boolean showSlayerTask() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerToggleKey",
+        name = "Show/Hide Hotkey",
+        description = "Press to show or hide the slayer task card",
+        section = slayerSection,
+        position = 0
+    )
+    default Keybind slayerToggleKey() {
+        return new Keybind(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
     }
 
     @ConfigItem(

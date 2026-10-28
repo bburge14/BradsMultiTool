@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  * trees, rocks and stalls by object id, pickpocket targets by NPC name, plus fishing methods and tool tiers.
  */
 @Slf4j
+@Singleton
 class SkillingData {
 
     private static final String RESOURCE = "skilling.json";

@@ -37,7 +37,8 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         SlayerTracker tracker = plugin.getSlayerTracker();
-        if (!config.showSlayerTask() || client.getGameState() != GameState.LOGGED_IN || !tracker.hadTask()) {
+        if (!config.showSlayerTask() || plugin.isSlayerCardHidden()
+            || client.getGameState() != GameState.LOGGED_IN || !tracker.hadTask()) {
             return null;
         }
         graphics.setFont(FontManager.getRunescapeSmallFont());

@@ -1,23 +1,29 @@
 package com.bradsmultitool;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.widgets.Widget;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
 /**
- * Pulses a red glow over the round part of the minimap hitpoints / prayer orb while that stat is below
+ * Pulses a red glow in the shape of the minimap hitpoints heart / prayer star while that stat is below
  * its alert threshold.
  */
 public class BradsMultiToolOrbOverlay extends Overlay {
@@ -25,17 +31,24 @@ public class BradsMultiToolOrbOverlay extends Overlay {
     // Orb containers (number + circle) in each orb layout (InterfaceID.Orbs, OrbsNomap, OrbsOsm, OrbsOsmNomap)
     private static final int[] HEALTH_ORBS = {10485767, 58654725, 58785795, 58851332};
     private static final int[] PRAYER_ORBS = {10485778, 58654736, 58785806, 58851343};
+    // The heart / prayer-star icons inside those orbs (ORB_HEALTH_HEART_ICON, PRAYER_ICON)
+    private static final int[] HEALTH_ICONS = {10485777, 58654735, 58785805, 58851342};
+    private static final int[] PRAYER_ICONS = {10485785, 58654743, 58785813, 58851350};
     private static final long PULSE_MILLIS = 900;
 
     private final Client client;
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
+    private final SpriteManager spriteManager;
+    private final Map<Integer, BufferedImage> masks = new HashMap<>();
 
     @Inject
-    public BradsMultiToolOrbOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config) {
+    public BradsMultiToolOrbOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
+                                    SpriteManager spriteManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
+        this.spriteManager = spriteManager;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
@@ -46,13 +59,64 @@ public class BradsMultiToolOrbOverlay extends Overlay {
             return null;
         }
         if (config.enableLowHealthAlert() && config.flashHealthOrb() && plugin.isLowHealthAlert()) {
-            pulse(graphics, circleOf(visibleWidget(HEALTH_ORBS)));
+            pulseIcon(graphics, visibleWidget(HEALTH_ICONS), HEALTH_ORBS);
         }
         if (config.enableLowPrayerAlert() && config.flashPrayerOrb()
             && (plugin.isLowPrayerAlert() || plugin.isZeroPrayerAlert())) {
-            pulse(graphics, circleOf(visibleWidget(PRAYER_ORBS)));
+            pulseIcon(graphics, visibleWidget(PRAYER_ICONS), PRAYER_ORBS);
         }
         return null;
+    }
+
+    /**
+     * Pulses a red glow in the exact shape of the orb's icon (the heart, or the prayer star), using the
+     * icon sprite's transparency as the mask. Falls back to the round orb if the icon can't be read.
+     */
+    private void pulseIcon(Graphics2D graphics, Widget icon, int[] orbIds) {
+        BufferedImage mask = icon != null ? redMask(icon.getSpriteId()) : null;
+        if (mask == null) {
+            pulse(graphics, circleOf(visibleWidget(orbIds)));
+            return;
+        }
+        Rectangle b = icon.getBounds();
+        float strength = strength();
+        Composite old = graphics.getComposite();
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        // Soft glow: the shape scaled up a little behind, then the shape itself
+        int growX = Math.max(2, b.width / 4);
+        int growY = Math.max(2, b.height / 4);
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.35f * strength));
+        graphics.drawImage(mask, b.x - growX / 2, b.y - growY / 2, b.width + growX, b.height + growY, null);
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f + 0.6f * strength));
+        graphics.drawImage(mask, b.x, b.y, b.width, b.height, null);
+        graphics.setComposite(old);
+    }
+
+    // Icon sprite recoloured solid red, keeping its alpha; cached per sprite
+    private BufferedImage redMask(int spriteId) {
+        if (spriteId <= 0) {
+            return null;
+        }
+        return masks.computeIfAbsent(spriteId, id -> {
+            BufferedImage sprite = spriteManager.getSprite(id, 0);
+            if (sprite == null) {
+                return null;
+            }
+            BufferedImage out = new BufferedImage(sprite.getWidth(), sprite.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            for (int y = 0; y < sprite.getHeight(); y++) {
+                for (int x = 0; x < sprite.getWidth(); x++) {
+                    int alpha = sprite.getRGB(x, y) >>> 24;
+                    out.setRGB(x, y, (alpha << 24) | 0xFF2020);
+                }
+            }
+            return out;
+        });
+    }
+
+    private static float strength() {
+        // 0 -> 1 -> 0 over each pulse
+        double phase = (System.currentTimeMillis() % PULSE_MILLIS) / (double) PULSE_MILLIS;
+        return (float) (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI));
     }
 
     private Widget visibleWidget(int[] ids) {
@@ -103,9 +167,7 @@ public class BradsMultiToolOrbOverlay extends Overlay {
         if (b.width <= 0 || b.height <= 0) {
             return;
         }
-        // 0 -> 1 -> 0 over each pulse
-        double phase = (System.currentTimeMillis() % PULSE_MILLIS) / (double) PULSE_MILLIS;
-        float strength = (float) (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI));
+        float strength = strength();
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         graphics.setColor(new Color(255, 30, 30, (int) (40 + 120 * strength)));
