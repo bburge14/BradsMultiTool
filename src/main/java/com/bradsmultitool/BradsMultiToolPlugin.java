@@ -257,6 +257,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private GoalTargetMenu goalTargetMenu;
 
     @Inject
+    private BradsMultiToolPinnedSkillOverlay pinnedSkillOverlay;
+
+    @Inject
     private ConfigManager configManager;
 
     @Inject
@@ -507,6 +510,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(trainingOverlay);
         overlayManager.add(goalItemOverlay);
         overlayManager.add(slayerHighlightOverlay);
+        overlayManager.add(pinnedSkillOverlay);
 
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
@@ -534,6 +538,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(trainingOverlay);
         overlayManager.remove(goalItemOverlay);
         overlayManager.remove(slayerHighlightOverlay);
+        overlayManager.remove(pinnedSkillOverlay);
         eventBus.unregister(trainingOverlay);
         eventBus.unregister(goalItems);
         eventBus.unregister(goalTargetMenu);
@@ -835,6 +840,29 @@ public class BradsMultiToolPlugin extends Plugin {
     static String goalTargetName(String target) {
         String name = target.substring(target.indexOf(':') + 1);
         return name.isEmpty() ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
+    }
+
+    /** The one skill pinned to the game screen from the tracker, or null. Kept across restarts. */
+    public Skill getPinnedSkill() {
+        String name = configManager.getConfiguration(CONFIG_GROUP, "pinnedSkill");
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        try {
+            return Skill.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    /** Pin a skill to the screen (replacing any other), or unpin with null. */
+    public void setPinnedSkill(Skill skill) {
+        if (skill == null) {
+            configManager.unsetConfiguration(CONFIG_GROUP, "pinnedSkill");
+        } else {
+            configManager.setConfiguration(CONFIG_GROUP, "pinnedSkill", skill.name());
+        }
+        updatePanelUI();
     }
 
     /** Skills you've set a goal for, in skill order. */

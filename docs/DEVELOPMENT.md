@@ -42,7 +42,7 @@ are kept self-contained with that in mind.
 
 | Plugin | What goes in it |
 |---|---|
-| **Brad's Skill Tracker** | The sidebar tracker (cards, auto-pause, level-up alerts), goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button. Data: `training.json`, `recipes.json` |
+| **Brad's Skill Tracker** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button. Data: `training.json`, `recipes.json` |
 | Skilling helpers | Hover cards, timer pies, skilling alerts (`skilling.json`, `skill_helpers.json`, `farming*.json`) |
 | PvM | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts (`monsters.json`) |
 | Slayer | Slayer card, task monster outlines, Slayer info on monsters (`slayer.json`) |

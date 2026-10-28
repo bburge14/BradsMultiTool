@@ -56,10 +56,11 @@ public class BradsMultiToolPanel extends PluginPanel {
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Color ACCENT_COLOR = new Color(0, 220, 220);
     // Level progress bar: red under a third of the way, orange under two thirds, then green
-    private static final Color BAR_LOW = new Color(190, 45, 40);
-    private static final Color BAR_MID = new Color(225, 135, 25);
-    private static final Color BAR_HIGH = new Color(15, 165, 105);
-    private static final Color BAR_BACKGROUND = new Color(60, 60, 60);
+    static final Color BAR_LOW = new Color(190, 45, 40);
+    static final Color BAR_MID = new Color(225, 135, 25);
+    static final Color BAR_HIGH = new Color(15, 165, 105);
+    static final Color BAR_BACKGROUND = new Color(60, 60, 60);
+    static final Color GOAL_FILL = new Color(200, 160, 40);
 
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
@@ -312,7 +313,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         return block;
     }
 
-    private static String formatDuration(long seconds) {
+    static String formatDuration(long seconds) {
         long hours = seconds / 3600;
         long minutes = (seconds % 3600) / 60;
         if (hours > 0) {
@@ -353,6 +354,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JMenuItem pauseItem = new JMenuItem();
         // Back to the suggested method after picking something with "Track for goal"
         private final JMenuItem suggestedItem = new JMenuItem("Use suggested method");
+        // Pin this skill to the game screen (only one at a time), or unpin it
+        private final JMenuItem pinItem = new JMenuItem();
 
         SkillCard(Skill skill) {
             this.skill = skill;
@@ -392,11 +395,13 @@ public class BradsMultiToolPanel extends PluginPanel {
             JPopupMenu menu = new JPopupMenu();
             pauseItem.addActionListener(e -> plugin.toggleSkillPause(skill));
             suggestedItem.addActionListener(e -> plugin.setGoalTarget(skill, null));
+            pinItem.addActionListener(e -> plugin.setPinnedSkill(skill == plugin.getPinnedSkill() ? null : skill));
             menu.add(pauseItem);
             menu.add(menuItem("Reset rate", () -> plugin.resetSkillRate(skill)));
             menu.add(menuItem("Set goal...", () -> askForGoal(skill)));
             menu.add(menuItem("Clear goal", () -> plugin.setSkillGoal(skill, 0)));
             menu.add(suggestedItem);
+            menu.add(pinItem);
             menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
             menu.add(menuItem("Hide " + skill.getName(), () -> plugin.addIgnoredSkill(skill)));
             menu.addSeparator();
@@ -477,6 +482,7 @@ public class BradsMultiToolPanel extends PluginPanel {
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
+            pinItem.setText(skill == plugin.getPinnedSkill() ? "Unpin from screen" : "Pin to screen");
         }
 
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to
@@ -583,7 +589,6 @@ public class BradsMultiToolPanel extends PluginPanel {
 
     /** A bar with text on the left, centre and right: "Lvl 73 | 31.90% | Lvl 74". */
     private static class LevelProgressBar extends JComponent {
-        private static final Color GOAL_FILL = new Color(200, 160, 40);
         private double progress;
         private String leftText = "";
         private String centreText = "";

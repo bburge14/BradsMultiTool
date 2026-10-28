@@ -94,6 +94,9 @@ work a resource.
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
   **Highlight Goal Items**).
+- **Pin to screen**: right-click a card > **Pin to screen** to show that skill on the game screen (level
+  bar, XP/hr, gained, time to level, goal and suggested method) without the sidebar open. One skill at a
+  time; right-click the overlay > **Unpin** (or the card > Unpin from screen) to remove it.
 - **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
