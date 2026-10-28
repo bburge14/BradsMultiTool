@@ -120,7 +120,7 @@ class ExtraAlerts {
                 return;
             case VARP_SLAYER_COUNT:
                 if (value == 0 && config.taskCompleteAlert() && plugin.getSlayerTracker().hadTask()) {
-                    alert(VoiceAlertService.VoiceLine.TASK_COMPLETE, null);
+                    alert(VoiceAlertService.VoiceLine.TASK_COMPLETE, plugin.getSlayerTracker().getTaskName());
                 }
                 return;
             default:

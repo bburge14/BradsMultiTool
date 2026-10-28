@@ -24,6 +24,7 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 ## Slayer
 - [ ] Task card, Ctrl+Shift+S hides/shows it (chat says hidden/shown), missing-item warning.
 - [ ] Kill rate survives walking between areas.
+- [ ] Finishing a task says "Slayer task complete" (chat adds the task name).
 - [ ] No task: card shows the best master for your levels, where they are, routes and the next master.
 - [ ] Pictures: master chathead with no task, monster icon on a task (Slayer gem if none); nothing overlaps.
 - [ ] Each Slayer switch hides its part; Places Shown / Routes Shown change the counts.
@@ -70,6 +71,7 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] With a Woodcutting/Mining/Thieving goal, the suggested trees/rocks/stalls/NPCs are outlined.
 - [ ] Cooking goal with raw food in inventory/bank: card says Make: ..., the raw food is outlined in inventory and bank, hover shows the goal tooltip.
 - [ ] Highlight Goal Items off removes the outlines.
+- [ ] Levelling into a new method's range (e.g. 35 Woodcutting with a goal) updates Train: and posts "you can now switch to ..." in chat.
 - [ ] Clear goal moves the card back under THIS SESSION (or removes it if untrained).
 - [ ] Auto-pause after the set minutes without XP; resumes on XP.
 - [ ] Level-up voice says skill and level.

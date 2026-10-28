@@ -2054,6 +2054,20 @@ public class BradsMultiToolPlugin extends Plugin {
             voiceService.speakClipsAsync(config.voicePersona(), config.voiceVolume(), VoiceAlertService.levelUpClips(skill, level));
         }
         sendGameChatMessage(AlertType.LEVEL_UP, skill.getName() + " level " + level + "!");
+        announceNewMethod(skill, previous, level);
+    }
+
+    // A level-up that moves a goal skill onto a different suggested method says so in chat
+    private void announceNewMethod(Skill skill, int before, int now) {
+        if (!config.showTrainingSuggestion() || getSkillGoal(skill) <= client.getSkillExperience(skill)) {
+            return;
+        }
+        TrainingData.Method was = trainingData.suggest(skill, before, config.trainingAlternatives());
+        TrainingData.Method method = trainingData.suggest(skill, now, config.trainingAlternatives());
+        if (method != null && method != was) {
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> "
+                + skill.getName() + " goal: you can now switch to " + method.name, null);
+        }
     }
 
     private void updatePanelUI() {
