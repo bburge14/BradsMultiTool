@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
@@ -19,6 +20,8 @@ import net.runelite.api.NPCComposition;
 import net.runelite.api.Perspective;
 import net.runelite.api.Point;
 import net.runelite.api.Skill;
+import net.runelite.api.Tile;
+import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.FontManager;
@@ -87,11 +90,11 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         if (tree == null || ticks < 0 || treeTimer.totalTicks() <= 0) {
             return;
         }
-        LocalPoint local = LocalPoint.fromWorld(client.getTopLevelWorldView(), tree);
+        LocalPoint local = treeCentre(tree);
         if (local == null) {
             return;
         }
-        Point at = Perspective.localToCanvas(client, local, client.getTopLevelWorldView().getPlane(), 160);
+        Point at = Perspective.localToCanvas(client, local, client.getTopLevelWorldView().getPlane(), 0);
         if (at == null) {
             return;
         }
@@ -102,6 +105,24 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         pie.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 150));
         pie.setBorderColor(color);
         pie.render(graphics);
+    }
+
+    // The middle of the tree's footprint (big trees cover 2x2 or 3x3 tiles; the click gives their corner)
+    private LocalPoint treeCentre(WorldPoint tree) {
+        WorldView view = client.getTopLevelWorldView();
+        LocalPoint corner = LocalPoint.fromWorld(view, tree);
+        if (corner == null) {
+            return null;
+        }
+        Tile tile = view.getScene().getTiles()[view.getPlane()][corner.getSceneX()][corner.getSceneY()];
+        if (tile != null) {
+            for (GameObject object : tile.getGameObjects()) {
+                if (object != null && object.getId() == treeTimer.getTreeObjectId()) {
+                    return object.getLocalLocation();
+                }
+            }
+        }
+        return corner;
     }
 
     /**

@@ -53,6 +53,11 @@ class TreeTimer {
     }
 
     /** The tree being timed, or null. */
+    /** Object id of the tree being timed (from your last chop click). */
+    int getTreeObjectId() {
+        return extraAlerts.lastResourceObjectId();
+    }
+
     WorldPoint getTree() {
         return tree;
     }
