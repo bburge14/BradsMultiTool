@@ -239,7 +239,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         for (String option : fishingOptions) {
             // One fish per row, green when your level can catch it
             String label = option + ":";
-            for (SkillingData.Fish fish : SkillingData.fishFor(option)) {
+            for (SkillingData.Fish fish : SkillingData.fishFor(option, fishingOptions)) {
                 line(label, fish.name + " (" + fish.level + ")",
                     fish.level <= level ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
                 label = "";

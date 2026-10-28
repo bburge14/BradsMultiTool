@@ -62,7 +62,14 @@ public class SkillingDataTest {
     @Test
     public void fishingAndTools() {
         assertTrue(SkillingData.isFishingOption("Harpoon"));
-        assertEquals("Shark", SkillingData.fishFor("harpoon").get(2).name);
+        List<String> seaNet = Arrays.asList("Net", "Bait");
+        List<String> river = Arrays.asList("Lure", "Bait");
+        assertEquals("Herring", SkillingData.fishFor("Bait", seaNet).get(1).name);
+        assertEquals(1, SkillingData.fishFor("Bait", seaNet).size() - 1);
+        assertEquals("Pike", SkillingData.fishFor("Bait", river).get(0).name);
+        assertEquals("Shark", SkillingData.fishFor("Harpoon", Arrays.asList("Big Net", "Harpoon")).get(0).name);
+        assertEquals("Swordfish", SkillingData.fishFor("Harpoon", Arrays.asList("Cage", "Harpoon")).get(1).name);
+        assertEquals("Monkfish", SkillingData.fishFor("Net", Arrays.asList("Net", "Harpoon")).get(0).name);
 
         List<SkillingData.Tool> axes = SkillingData.toolsFor("Woodcutting");
         assertEquals("Rune axe", SkillingData.bestToolForLevel(axes, 55).name);

@@ -9,10 +9,13 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
@@ -178,8 +181,34 @@ class SkillingData {
         return FISHING.containsKey(option.toLowerCase());
     }
 
-    static List<Fish> fishFor(String option) {
-        return FISHING.getOrDefault(option.toLowerCase(), Collections.emptyList());
+    // The same option catches different fish depending on the spot, which its other options give away
+    private static final List<Fish> SEA_BAIT = Arrays.asList(new Fish("Sardine", 5, 20), new Fish("Herring", 10, 30));
+    private static final List<Fish> RIVER_BAIT = Collections.singletonList(new Fish("Pike", 25, 60));
+    private static final List<Fish> TUNA_SWORDFISH = Arrays.asList(new Fish("Tuna", 35, 80), new Fish("Swordfish", 50, 100));
+    private static final List<Fish> SHARK = Collections.singletonList(new Fish("Shark", 76, 110));
+    private static final List<Fish> MONKFISH = Collections.singletonList(new Fish("Monkfish", 62, 120));
+
+    /**
+     * What {@code option} catches at a spot offering {@code spotOptions}: Bait is sardine/herring at sea
+     * (Net/Bait spots) but pike in rivers (Lure/Bait); Harpoon is shark at Big Net spots, tuna/swordfish
+     * otherwise; Net at a Net/Harpoon spot is monkfish.
+     */
+    static List<Fish> fishFor(String option, Collection<String> spotOptions) {
+        String o = option.toLowerCase();
+        Set<String> spot = new HashSet<>();
+        for (String s : spotOptions) {
+            spot.add(s.toLowerCase());
+        }
+        switch (o) {
+            case "bait":
+                return spot.contains("lure") ? RIVER_BAIT : SEA_BAIT;
+            case "harpoon":
+                return spot.contains("big net") ? SHARK : TUNA_SWORDFISH;
+            case "net":
+                return spot.contains("harpoon") ? MONKFISH : FISHING.get("net");
+            default:
+                return FISHING.getOrDefault(o, Collections.emptyList());
+        }
     }
 
     static String fishingTool(String option) {
