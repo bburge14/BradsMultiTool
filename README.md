@@ -59,7 +59,7 @@ pies, and alerts that only fire for the resource you're working:
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
 | Cooking | Range/fire card: the level each raw food you carry stops burning (with gauntlets if worn) |
-| Sailing | Charting spot card (task, level, XP), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish); pies on shipwrecks showing how long until they sink |
+| Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish); pies on shipwrecks showing how long until they sink |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 
 If you also run a dedicated timer plugin (Tree Despawn Timer, MLM Despawn Timer, Fishing Spot Tracker,
@@ -74,6 +74,7 @@ work a resource.
 - **Goals**: the **Set Goal** button at the top (or right-click a card > Set goal...) takes a skill and a
   level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
+  Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level.
 - **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").

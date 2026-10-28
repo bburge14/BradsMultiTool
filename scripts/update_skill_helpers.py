@@ -197,11 +197,19 @@ def sailing():
         location = re.match(r"(\d+),(\d+)", fields.get("location", ""))
         if not location or not fields.get("level", "").isdigit():
             continue
-        description = plain(row.split("|id=")[0])
+        # "Task text.''Answer to the riddle: X''" / "''Note: Y''": split the extras off the task
+        description = plain(row.split("|id=")[0]).replace("''", " ")
+        parts = re.split(r"\s*(Answer to the riddle:|Note:)\s*", description)
+        extras = {label: re.sub(r"\s+", " ", value).strip() for label, value in zip(parts[1::2], parts[2::2])}
         kind = fields.get("type", "")
-        tasks.append({"level": int(fields["level"]), "type": kind, "xp": xp_by_type.get(kind.lower()),
-                      "task": description, "sea": plain(fields.get("sea", "")), "x": int(location.group(1)),
-                      "y": int(location.group(2))})
+        task = {"level": int(fields["level"]), "type": kind, "xp": xp_by_type.get(kind.lower()),
+                "task": re.sub(r"\s+", " ", parts[0]).strip(), "sea": plain(fields.get("sea", "")),
+                "x": int(location.group(1)), "y": int(location.group(2))}
+        if extras.get("Answer to the riddle:"):
+            task["answer"] = extras["Answer to the riddle:"]
+        if extras.get("Note:"):
+            task["note"] = extras["Note:"]
+        tasks.append(task)
     wrecks = {}
     salvage = wikitext("Shipwreck salvaging")
     for cells in rows_of(tables(salvage[salvage.find("==Shipwrecks"):])[0]):

@@ -1740,11 +1740,22 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "trackerActionsToGoal",
+        name = "Actions Until Goal",
+        description = "When a skill has a goal, count actions left until the goal instead of until the next level",
+        section = trackerSection,
+        position = 65
+    )
+    default boolean trackerActionsToGoal() {
+        return false;
+    }
+
+    @ConfigItem(
         keyName = "showTrackerXpPerHour",
         name = "Show XP/Hr",
         description = "XP per hour",
         section = trackerSection,
-        position = 65
+        position = 66
     )
     default boolean showTrackerXpPerHour() {
         return true;
@@ -1755,7 +1766,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show XP/Min",
         description = "XP per minute",
         section = trackerSection,
-        position = 66
+        position = 67
     )
     default boolean showXpPerMinute() {
         return true;
@@ -1766,7 +1777,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show Time to Level",
         description = "Estimated time until the next level at your current rate",
         section = trackerSection,
-        position = 67
+        position = 68
     )
     default boolean showTrackerTimeToLevel() {
         return true;
@@ -1777,7 +1788,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show Goal",
         description = "Your goal for the skill (right-click a skill card to set one): XP left and time to reach it",
         section = trackerSection,
-        position = 68
+        position = 69
     )
     default boolean showTrackerGoal() {
         return true;
@@ -1788,7 +1799,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Auto-Pause Idle Skills",
         description = "Stop a skill's XP/hr clock when you haven't gained XP in it for a while; it resumes on your next XP",
         section = trackerSection,
-        position = 69
+        position = 70
     )
     default boolean autoPauseSkills() {
         return true;
@@ -1800,7 +1811,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Auto-Pause After",
         description = "Minutes without XP in a skill before it auto-pauses",
         section = trackerSection,
-        position = 70
+        position = 71
     )
     @Units(Units.MINUTES)
     default int autoPauseMinutes() {
@@ -1812,7 +1823,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Ignored Skills",
         description = "Comma-separated list of skills to filter out",
         section = trackerSection,
-        position = 71
+        position = 72
     )
     default String ignoredSkills() {
         return "";
@@ -1823,7 +1834,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Level Up",
         description = "Say the skill and your new level when you level up (turning it on plays a preview)",
         section = trackerSection,
-        position = 72
+        position = 73
     )
     default boolean voiceLevelUp() {
         return true;
@@ -1834,7 +1845,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Level Up",
         description = "Chat message when you level up (off by default; the game already congratulates you)",
         section = trackerSection,
-        position = 73
+        position = 74
     )
     default boolean chatLevelUp() {
         return false;

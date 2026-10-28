@@ -296,14 +296,22 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text("Sea Charting").color(TITLE_COLOR).build());
-        line("Task:", task.task, Color.WHITE);
+        // Long text gets the card's full width rather than the narrow right column
+        panel.getChildren().add(LineComponent.builder().left(task.task).leftColor(Color.WHITE).build());
         addRequirement(Skill.SAILING, task.level);
-        line("Type:", task.type, Color.WHITE);
+        line("Type:", task.typeDescription(), Color.WHITE);
         if (task.xp > 0) {
             line("XP:", trim(task.xp), Color.WHITE);
         }
         if (task.sea != null) {
             line("Sea:", task.sea, new Color(180, 180, 180));
+        }
+        if (task.answer != null) {
+            panel.getChildren().add(LineComponent.builder().left("Riddle Answer:").build());
+            panel.getChildren().add(LineComponent.builder().left(task.answer).leftColor(BradsMultiToolOverlay.GOOD).build());
+        }
+        if (task.note != null) {
+            panel.getChildren().add(LineComponent.builder().left(task.note).leftColor(new Color(180, 180, 180)).build());
         }
         return true;
     }

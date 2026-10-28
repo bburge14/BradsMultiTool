@@ -31,7 +31,7 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Runecraft altar card (runes per essence at your level).
 - [ ] Agility course obstacle card (laps to level) and a shortcut card.
 - [ ] Cooking: hover a range or fire with raw food in your inventory.
-- [ ] Sailing: charting spot, shipwreck (best hook) and shoal cards.
+- [ ] Sailing: charting spot (task text on its own lines, riddle answer for diving tasks), shipwreck (best hook) and shoal cards.
 - [ ] XP rates on cards only while you're training that skill.
 - [ ] An NPC walking past a tree doesn't change the card.
 
@@ -56,6 +56,7 @@ did and what you saw (a screenshot helps), or use the panel's **Report an Issue*
 - [ ] Actions left hidden for combat skills.
 - [ ] Set Goal button: pick a skill, enter a level (e.g. 80) or XP (e.g. 2000000); the skill appears under GOALS.
 - [ ] A goal skill stays pinned under GOALS after logging out and back in, even before you train it.
+- [ ] Actions Until Goal on: a goal skill's card shows "Goal Actions" counting to the goal; off (default): "Actions" to the next level.
 - [ ] Clear goal moves the card back under THIS SESSION (or removes it if untrained).
 - [ ] Auto-pause after the set minutes without XP; resumes on XP.
 - [ ] Level-up voice says skill and level.

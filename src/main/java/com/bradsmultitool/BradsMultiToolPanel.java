@@ -391,7 +391,7 @@ public class BradsMultiToolPanel extends PluginPanel {
 
             if (level >= Experience.MAX_REAL_LEVEL) {
                 setStat(left, "XP Left", "--");
-                setStat(actions, "Actions", "--");
+                setActions(xp, 0);
                 setStat(timeToLevel, "TTL", "--");
                 levelBar.set(1.0, "Lvl " + level, "Max", "");
             } else {
@@ -399,9 +399,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 int levelEnd = Experience.getXpForLevel(level + 1);
                 int remaining = levelEnd - xp;
                 setStat(left, "XP Left", shortNumber(remaining));
-                // How many more of the last action (its XP drop) until the next level
-                int perAction = plugin.getLastXpDrop(skill);
-                setStat(actions, "Actions", perAction > 0 ? shortNumber((remaining + perAction - 1) / perAction) : "--");
+                setActions(xp, remaining);
                 setStat(timeToLevel, "TTL", xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
                 double progress = (double) (xp - levelStart) / (levelEnd - levelStart);
                 levelBar.set(progress, "Lvl " + level, String.format("%.2f%%", progress * 100), "Lvl " + (level + 1));
@@ -419,6 +417,16 @@ public class BradsMultiToolPanel extends PluginPanel {
             }
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
+        }
+
+        // How many more of the last action (its XP drop) until the next level, or until the goal if set to
+        private void setActions(int xp, int toNextLevel) {
+            int goalXp = plugin.getSkillGoal(skill);
+            boolean toGoal = config.trackerActionsToGoal() && goalXp > xp;
+            int remaining = toGoal ? goalXp - xp : toNextLevel;
+            int perAction = plugin.getLastXpDrop(skill);
+            String name = toGoal ? "Goal Actions" : "Actions";
+            setStat(actions, name, perAction > 0 && remaining > 0 ? shortNumber((remaining + perAction - 1) / perAction) : "--");
         }
 
         private void setStat(JLabel label, String name, String value) {

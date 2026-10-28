@@ -120,6 +120,9 @@ class SkillHelperData {
         final double xp;
         final String task;
         final String sea;
+        /** The riddle's answer (mermaid diving tasks), or null. */
+        final String answer;
+        final String note;
         final int x;
         final int y;
 
@@ -129,8 +132,23 @@ class SkillHelperData {
             xp = number(o, "xp");
             task = o.get("task").getAsString();
             sea = text(o, "sea");
+            answer = text(o, "answer");
+            note = text(o, "note");
             x = o.get("x").getAsInt();
             y = o.get("y").getAsInt();
+        }
+
+        /** What the task type asks of you, in plain words. */
+        String typeDescription() {
+            switch (type.toLowerCase()) {
+                case "generic": return "Find and chart it";
+                case "crate": return "Sample a sealed crate";
+                case "spyglass": return "Look with a spyglass";
+                case "diving": return "Dive with a mermaid";
+                case "current": return "Test the current";
+                case "weather": return "Record the weather";
+                default: return type;
+            }
         }
     }
 
