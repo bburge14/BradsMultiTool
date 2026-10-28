@@ -1487,11 +1487,46 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "showTrackerGoal",
+        name = "Show Goal",
+        description = "Your goal for the skill (right-click a skill card to set one): XP left and time to reach it",
+        section = trackerSection,
+        position = 68
+    )
+    default boolean showTrackerGoal() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "autoPauseSkills",
+        name = "Auto-Pause Idle Skills",
+        description = "Stop a skill's XP/hr clock when you haven't gained XP in it for a while; it resumes on your next XP",
+        section = trackerSection,
+        position = 69
+    )
+    default boolean autoPauseSkills() {
+        return true;
+    }
+
+    @Range(min = 1, max = 60)
+    @ConfigItem(
+        keyName = "autoPauseMinutes",
+        name = "Auto-Pause After",
+        description = "Minutes without XP in a skill before it auto-pauses",
+        section = trackerSection,
+        position = 70
+    )
+    @Units(Units.MINUTES)
+    default int autoPauseMinutes() {
+        return 5;
+    }
+
+    @ConfigItem(
         keyName = "ignoredSkills",
         name = "Ignored Skills",
         description = "Comma-separated list of skills to filter out",
         section = trackerSection,
-        position = 68
+        position = 71
     )
     default String ignoredSkills() {
         return "";
@@ -1502,7 +1537,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Level Up",
         description = "Say the skill and your new level when you level up (turning it on plays a preview)",
         section = trackerSection,
-        position = 69
+        position = 72
     )
     default boolean voiceLevelUp() {
         return true;
@@ -1513,7 +1548,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Level Up",
         description = "Chat message when you level up (off by default; the game already congratulates you)",
         section = trackerSection,
-        position = 70
+        position = 73
     )
     default boolean chatLevelUp() {
         return false;

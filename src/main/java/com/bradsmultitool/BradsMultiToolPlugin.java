@@ -559,7 +559,7 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         String key = event.getKey();
-        if (key.startsWith("showTracker") || "showXpPerMinute".equals(key)) {
+        if (key.startsWith("showTracker") || "showXpPerMinute".equals(key) || key.startsWith("autoPause")) {
             updatePanelUI();
         }
         if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
@@ -675,8 +675,39 @@ public class BradsMultiToolPlugin extends Plugin {
         updatePanelUI();
     }
 
+    /** Paused by you, or auto-paused after going without XP in the skill for a while. */
     public boolean isSkillPaused(Skill skill) {
-        return pausedSkills.contains(skill);
+        return pausedSkills.contains(skill) || isSkillAutoPaused(skill);
+    }
+
+    /** No XP in the skill for the auto-pause time: the rate stops counting until you gain XP again. */
+    public boolean isSkillAutoPaused(Skill skill) {
+        if (!config.autoPauseSkills() || pausedSkills.contains(skill)) {
+            return false;
+        }
+        Integer last = lastXpTicks.get(skill);
+        return last != null && client.getTickCount() - last > config.autoPauseMinutes() * 100;
+    }
+
+    // ---- Goals: a target XP per skill, kept with your RuneScape profile ----
+
+    /** The skill's goal in XP, or 0 for none. */
+    public int getSkillGoal(Skill skill) {
+        String value = configManager.getRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name());
+        try {
+            return value == null ? 0 : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public void setSkillGoal(Skill skill, int goalXp) {
+        if (goalXp <= 0) {
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name(), goalXp);
+        }
+        updatePanelUI();
     }
 
     public void resetSkill(Skill skill) {
@@ -1055,7 +1086,7 @@ public class BradsMultiToolPlugin extends Plugin {
         updateRealtimeCombatMethod();
 
         for (Skill s : gainedSkillXp.keySet()) {
-            if (gainedSkillXp.get(s) > 0 && !pausedSkills.contains(s) && !isSkillIgnored(s)) {
+            if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
                 long current = skillActiveTicks.getOrDefault(s, 0L);
                 skillActiveTicks.put(s, current + 1);
             }

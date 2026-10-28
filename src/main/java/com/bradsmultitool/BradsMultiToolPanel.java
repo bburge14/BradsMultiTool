@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
@@ -228,6 +229,10 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JLabel perMinuteValue = valueLabel();
         private final JLabel ttlLabel = rowLabel("TTL (Est Time):");
         private final JLabel ttlValue = valueLabel();
+        private final JLabel goalLabel = rowLabel("Goal:");
+        private final JLabel goalValue = valueLabel();
+        private final JLabel goalTimeLabel = rowLabel("Goal In:");
+        private final JLabel goalTimeValue = valueLabel();
         private final JPanel rows = new JPanel(new GridLayout(0, 2, 0, 1));
         // Which fields are currently laid out, so rows are only rebuilt when the settings change
         private String layout = "";
@@ -271,6 +276,8 @@ public class BradsMultiToolPanel extends PluginPanel {
             pauseItem.addActionListener(e -> plugin.toggleSkillPause(skill));
             menu.add(pauseItem);
             menu.add(menuItem("Reset rate", () -> plugin.resetSkillRate(skill)));
+            menu.add(menuItem("Set goal...", this::askForGoal));
+            menu.add(menuItem("Clear goal", () -> plugin.setSkillGoal(skill, 0)));
             menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
             menu.add(menuItem("Hide " + skill.getName(), () -> plugin.addIgnoredSkill(skill)));
             menu.addSeparator();
@@ -283,8 +290,9 @@ public class BradsMultiToolPanel extends PluginPanel {
         // Lay out only the fields switched on under Skill Tracker (hidden rows would leave gaps in a grid)
         private void layoutRows() {
             boolean actions = config.showTrackerActions() && !COMBAT_SKILLS.contains(skill);
+            boolean goal = config.showTrackerGoal() && plugin.getSkillGoal(skill) > 0;
             String wanted = "" + config.showTrackerProgressBar() + config.showTrackerXpGained() + config.showTrackerXpToLevel()
-                + actions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel();
+                + actions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel() + goal;
             if (wanted.equals(layout)) {
                 return;
             }
@@ -298,6 +306,8 @@ public class BradsMultiToolPanel extends PluginPanel {
             addRow(config.showTrackerXpPerHour(), perHourLabel, perHourValue);
             addRow(config.showXpPerMinute(), perMinuteLabel, perMinuteValue);
             addRow(config.showTrackerTimeToLevel(), ttlLabel, ttlValue);
+            addRow(goal, goalLabel, goalValue);
+            addRow(goal, goalTimeLabel, goalTimeValue);
             rows.revalidate();
             revalidate();
         }
@@ -318,7 +328,8 @@ public class BradsMultiToolPanel extends PluginPanel {
             int xpPerHour = plugin.getSkillXpPerHour(skill);
             boolean paused = plugin.isSkillPaused(skill);
             gainedValue.setText(NUMBER_FORMAT.format(plugin.getSkillGained(skill)));
-            perHourValue.setText(paused ? "Paused" : NUMBER_FORMAT.format(xpPerHour) + " /hr");
+            perHourValue.setText(plugin.isSkillAutoPaused(skill) ? "Idle (paused)"
+                : paused ? "Paused" : NUMBER_FORMAT.format(xpPerHour) + " /hr");
             perMinuteValue.setText(NUMBER_FORMAT.format(plugin.getSkillXpPerMinute(skill)) + " /min");
 
             if (level >= Experience.MAX_REAL_LEVEL) {
@@ -340,7 +351,37 @@ public class BradsMultiToolPanel extends PluginPanel {
                 ttlValue.setText(xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
             }
 
-            pauseItem.setText(paused ? "Resume tracking" : "Pause tracking");
+            int goalXp = plugin.getSkillGoal(skill);
+            if (goalXp > 0) {
+                int left = Math.max(0, goalXp - xp);
+                int goalLevel = Experience.getLevelForXp(goalXp);
+                goalLabel.setText(goalXp == Experience.getXpForLevel(goalLevel) ? "Goal (Lvl " + goalLevel + "):" : "Goal:");
+                goalValue.setText(left == 0 ? "Reached!" : NUMBER_FORMAT.format(left) + " XP");
+                goalValue.setForeground(left == 0 ? BAR_HIGH : Color.WHITE);
+                goalTimeValue.setText(left > 0 && xpPerHour > 0 && !paused ? formatDuration(left * 3600L / xpPerHour) : "--");
+            }
+
+            pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
+        }
+
+        private boolean pausedByUser() {
+            return plugin.isSkillPaused(skill) && !plugin.isSkillAutoPaused(skill);
+        }
+
+        // A level (2-99) or an XP amount
+        private void askForGoal() {
+            String input = JOptionPane.showInputDialog(this, "Goal for " + skill.getName() + " (a level, or an XP amount):",
+                "Set goal", JOptionPane.PLAIN_MESSAGE);
+            if (input == null) {
+                return;
+            }
+            try {
+                int value = Integer.parseInt(input.trim().replace(",", ""));
+                int goalXp = value <= Experience.MAX_REAL_LEVEL ? Experience.getXpForLevel(Math.max(2, value)) : value;
+                plugin.setSkillGoal(skill, Math.min(goalXp, Experience.MAX_SKILL_XP));
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Enter a level like 70 or an XP amount like 1,000,000.");
+            }
         }
 
         private JMenuItem menuItem(String text, Runnable action) {
