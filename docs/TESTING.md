@@ -1,7 +1,7 @@
 # Testing checklist
 
 Work through these a section at a time in game. Anything that doesn't behave as described: note what you
-did and what you saw (a screenshot helps), or use the panel's **Report an Issue** button.
+did and what you saw (a screenshot helps), or use the **Issues?** button at the top of the tracker panel.
 
 ## Login and alerts
 - [ ] Nothing speaks or posts in chat before you click "Click here to play".

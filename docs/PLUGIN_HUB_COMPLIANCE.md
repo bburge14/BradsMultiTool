@@ -26,7 +26,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | No reflection | OK. Farming data is generated from RuneLite's source into `farming_patches.json` instead of reading Time Tracking's internal classes; axe/pickaxe animation lists are written out instead of scanned |
 | No JNI/JNA, no running external programs, no downloading code | OK |
 | No `Thread.sleep` / `Thread.interrupt` | OK. Voice clips chain on the clip's STOP event |
-| No `Desktop.browse` / `LinkBrowser.open` (`LinkBrowser.browse` is allowed) | OK. Report an Issue uses `LinkBrowser.browse` |
+| No `Desktop.browse` / `LinkBrowser.open` (`LinkBrowser.browse` is allowed) | OK. The Issues? button uses `LinkBrowser.browse` |
 | No `java.io` file APIs (resources via `getResourceAsStream` are fine) | OK |
 | No `Runtime`, `KeyboardFocusManager`, non-OkHttp network clients | OK (no network use at all) |
 | Don't create your own `Gson` / `OkHttpClient` (inject them) | OK. Plugin code uses the injected `Gson` (tests create their own, which isn't shipped) |

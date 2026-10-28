@@ -102,7 +102,23 @@ public class BradsMultiToolPanel extends PluginPanel {
         subtitle.setForeground(Color.GRAY);
         titles.add(title);
         titles.add(subtitle);
-        header.add(titles, BorderLayout.NORTH);
+
+        // A small "Issues?" button in the header's top-right corner opens a new GitHub issue
+        JButton reportButton = new JButton("Issues?");
+        reportButton.setToolTipText("Report a problem or idea: opens a new issue on the plugin's GitHub page");
+        reportButton.setFont(FontManager.getRunescapeSmallFont());
+        reportButton.setFocusPainted(false);
+        reportButton.setMargin(new java.awt.Insets(1, 6, 1, 6));
+        reportButton.addActionListener(e -> LinkBrowser.browse(NEW_ISSUE_URL));
+        JPanel corner = new JPanel(new BorderLayout());
+        corner.setOpaque(false);
+        corner.add(reportButton, BorderLayout.NORTH);
+
+        JPanel top = new JPanel(new BorderLayout(6, 0));
+        top.setOpaque(false);
+        top.add(titles, BorderLayout.CENTER);
+        top.add(corner, BorderLayout.EAST);
+        header.add(top, BorderLayout.NORTH);
 
         JPanel stats = new JPanel(new GridLayout(1, 3, 6, 0));
         stats.setOpaque(false);
@@ -130,18 +146,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         cardsWrapper.setBackground(ColorScheme.DARK_GRAY_COLOR);
         cardsWrapper.add(cardsContainer, BorderLayout.NORTH);
 
-        JButton reportButton = new JButton("Report an Issue");
-        reportButton.setToolTipText("Open a new issue on the plugin's GitHub page");
-        reportButton.setFocusPainted(false);
-        reportButton.addActionListener(e -> LinkBrowser.browse(NEW_ISSUE_URL));
-        JPanel footer = new JPanel(new BorderLayout());
-        footer.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        footer.setBorder(new EmptyBorder(10, 0, 0, 0));
-        footer.add(reportButton, BorderLayout.CENTER);
-
         add(header, BorderLayout.NORTH);
         add(cardsWrapper, BorderLayout.CENTER);
-        add(footer, BorderLayout.SOUTH);
 
         updatePanel();
     }

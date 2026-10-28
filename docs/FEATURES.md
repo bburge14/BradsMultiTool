@@ -18,7 +18,7 @@ section to open. All sections except General start collapsed.
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
 - [Idle alerts](#idle-alerts)
-- [Report an Issue](#report-an-issue)
+- [Issues? button](#issues-button)
 
 ---
 
@@ -275,7 +275,7 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
 
 ---
 
-## Report an Issue
+## Issues? button
 
-The **Report an Issue** button in the skill tracker panel opens a new GitHub issue in your browser. Say
+The **Issues?** button in the top-right corner of the skill tracker panel opens a new GitHub issue in your browser. Say
 what you did and what you saw; a screenshot helps.

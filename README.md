@@ -96,7 +96,7 @@ work a resource.
 - **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
-- **Report an Issue** button opens a new GitHub issue.
+- **Issues?** button (top-right of the tracker) opens a new GitHub issue.
 
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key
