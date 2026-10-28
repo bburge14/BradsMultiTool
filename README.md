@@ -39,7 +39,10 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
 - Alerts when the crab is about to burrow and when it has moved.
 
 ### Slayer
-- Task card with kills left, kill rate and time to finish (Ctrl+Shift+S hides/shows it and says so in chat).
+- Task card with kills left, kill rate and time to finish, plus **where to go**: the wiki's places to kill the
+  task (multicombat, cannon, safespot) and how to get to the first one (Ctrl+Shift+S hides/shows it).
+- With no task, the card names the best Slayer master for your combat and Slayer level, any quest they
+  need, where they are and the fastest ways there, and the next master you'll unlock.
 - Warns when you fight a task monster without its required item (rock hammer, nose peg, mirror shield...).
 - Superior spawned and task complete alerts.
 
@@ -190,6 +193,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
+| `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
 | `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](VOICE_CREDITS.md)) |
 

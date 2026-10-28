@@ -950,10 +950,32 @@ public interface BradsMultiToolConfig extends Config {
         name = "Show/Hide Hotkey",
         description = "Press to show or hide the slayer task card",
         section = slayerSection,
-        position = 0
+        position = 1
     )
     default Keybind slayerToggleKey() {
         return new Keybind(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
+    }
+
+    @ConfigItem(
+        keyName = "showSlayerDirections",
+        name = "Where To Go",
+        description = "On a task, list where to kill it (multicombat, cannon, safespot) and how to get to the first place",
+        section = slayerSection,
+        position = 2
+    )
+    default boolean showSlayerDirections() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showSlayerMasterCard",
+        name = "Master Card Without a Task",
+        description = "With no task, show the best Slayer master for your levels, where they are and how to get there",
+        section = slayerSection,
+        position = 3
+    )
+    default boolean showSlayerMasterCard() {
+        return true;
     }
 
     @ConfigItem(
@@ -961,7 +983,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Missing Item Warning",
         description = "Warn when fighting a task monster without its required item (e.g. rock hammer)",
         section = slayerSection,
-        position = 1
+        position = 4
     )
     default boolean slayerItemAlert() {
         return true;
@@ -972,7 +994,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Superior Spawned",
         description = "Alert when a superior slayer monster appears",
         section = slayerSection,
-        position = 2
+        position = 5
     )
     default boolean superiorAlert() {
         return true;
@@ -983,7 +1005,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Task Complete",
         description = "Alert when your slayer task is finished",
         section = slayerSection,
-        position = 3
+        position = 6
     )
     default boolean taskCompleteAlert() {
         return true;
@@ -994,7 +1016,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Missing Slayer Item",
         description = "When fighting a task monster without its required item (turning it on plays a preview)",
         section = slayerSection,
-        position = 4
+        position = 7
     )
     default boolean voiceSlayerItem() {
         return true;
@@ -1005,7 +1027,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Missing Slayer Item",
         description = "Chat message when fighting a task monster without its required item",
         section = slayerSection,
-        position = 5
+        position = 8
     )
     default boolean chatSlayerItem() {
         return true;
@@ -1016,7 +1038,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Superior Spawned",
         description = "When a superior slayer monster appears (turning it on plays a preview)",
         section = slayerSection,
-        position = 6
+        position = 9
     )
     default boolean voiceSuperior() {
         return true;
@@ -1027,7 +1049,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Superior Spawned",
         description = "Chat message when a superior slayer monster appears",
         section = slayerSection,
-        position = 7
+        position = 10
     )
     default boolean chatSuperior() {
         return true;
@@ -1038,7 +1060,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Task Complete",
         description = "When your slayer task is done (turning it on plays a preview)",
         section = slayerSection,
-        position = 8
+        position = 11
     )
     default boolean voiceTaskComplete() {
         return true;
@@ -1049,7 +1071,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Task Complete",
         description = "Chat message when your slayer task is done",
         section = slayerSection,
-        position = 9
+        position = 12
     )
     default boolean chatTaskComplete() {
         return true;

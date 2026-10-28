@@ -227,6 +227,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private ClientThread clientThread;
 
     @Inject
+    private SlayerData slayerData;
+
+    @Inject
     private ConfigManager configManager;
 
     @Inject
@@ -451,6 +454,7 @@ public class BradsMultiToolPlugin extends Plugin {
         skillingData.load(gson);
         farmingData.load(gson);
         skillHelperData.load(gson);
+        slayerData.load(gson);
         eventBus.register(extraAlerts);
         eventBus.register(resourceTimers);
         eventBus.register(farmingData);

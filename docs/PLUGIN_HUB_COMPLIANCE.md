@@ -43,6 +43,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Idle logout warning, AFK alert | OK. Notifications only (core Idle Notifier / Logout Timer do the same); nothing prevents logout |
 | Gemstone Crab HUD and radar | OK. Plugin Hub has gemstone-crab-timer |
 | Slayer task card, missing item warning | OK |
+| Slayer master card (no task) and task directions (where to kill, how to get there) | OK. Wiki text only; nothing is pathed, clicked or walked for the player |
 | Skilling hover cards (trees, rocks, stalls, pickpocket, fishing, farming) | OK. Information from the wiki and visible game state |
 | Resource timer pies (trees, MLM, calcified, Daeyalt, stars, fishing spots, shipwrecks) | OK. Each mirrors an existing Plugin Hub plugin (credited in README) |
 | Farming patch hover | OK. Same information as the core Time Tracking plugin |
