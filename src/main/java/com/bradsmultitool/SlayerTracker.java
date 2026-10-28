@@ -186,8 +186,7 @@ class SlayerTracker {
         NPC target = plugin.getCurrentPvmTarget();
         if (target != null && isTaskMonster(target)) {
             missingItemAlerted = true;
-            plugin.speak(VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING);
-            plugin.sendGameChatMessage(AlertType.SLAYER_ITEM, "You need a " + requirement.display.toLowerCase() + " for " + taskName.toLowerCase() + "!");
+            plugin.alert(VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING, requirement.display.toLowerCase() + " for " + taskName.toLowerCase());
         }
     }
 

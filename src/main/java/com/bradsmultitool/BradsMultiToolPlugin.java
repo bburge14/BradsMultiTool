@@ -514,6 +514,12 @@ public class BradsMultiToolPlugin extends Plugin {
         return crabCombatXpType;
     }
 
+    /** Speaks the line and posts the same words in chat, with any detail in brackets. */
+    void alert(VoiceAlertService.VoiceLine line, String detail) {
+        speak(line);
+        sendGameChatMessage(AlertType.of(line), detail == null ? line.text : line.text + " (" + detail + ")");
+    }
+
     /** Posts an alert in chat, if you're in game and its chat message is turned on. */
     void sendGameChatMessage(AlertType type, String message) {
         if (config.sendChatMessages() && alertsReady() && toggle(type.chatKey)) {
@@ -706,10 +712,7 @@ public class BradsMultiToolPlugin extends Plugin {
             resetFightTracking();
 
             if (inSpawnVicinity && wasDirectlyTrackingCrab && isNearPlayer(npc, CRAB_BURROW_ALERT_DISTANCE)) {
-                if (config.voiceCrabMoved()) {
-                    speak(VoiceAlertService.VoiceLine.CRAB_MOVED);
-                }
-                sendGameChatMessage(AlertType.CRAB_MOVED, "The Gemstone Crab has relocated to another cave!");
+                alert(VoiceAlertService.VoiceLine.CRAB_MOVED, null);
             }
             wasDirectlyTrackingCrab = false;
         }
@@ -872,10 +875,7 @@ public class BradsMultiToolPlugin extends Plugin {
             crabLowHealthAlerted = false;
         } else if (!crabLowHealthAlerted && inSpawnVicinity) {
             crabLowHealthAlerted = true;
-            if (config.voiceCrabLowHealth()) {
-                speak(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH);
-            }
-            sendGameChatMessage(AlertType.CRAB_LOW_HEALTH, "The Gemstone Crab is about to burrow (" + crabHpPercent + "% health).");
+            alert(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH, crabHpPercent + "% health");
         }
     }
 
@@ -1141,23 +1141,13 @@ public class BradsMultiToolPlugin extends Plugin {
                 buffStatusText = "EXPIRED";
                 timesBuffExpiredSounded = 1;
                 lastBuffExpiredSoundTime = Instant.now();
-                sendGameChatMessage(AlertType.BUFF_EXPIRED, "Your combat buff has run out.");
-                if (config.voiceBuffExpired()) {
-                    speak(lastEndedBuffName != null
-                        ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
-                        : expiredLine(lastEndedCategory));
-                }
+                alert(lastExpiredLine(), null);
             } else if (buffState == BuffState.EXPIRED && config.repeatBuffAlert()
                 && Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds() >= config.repeatBuffInterval()
                 && timesBuffExpiredSounded <= config.maxBuffRepeats()) {
                 timesBuffExpiredSounded++;
                 lastBuffExpiredSoundTime = Instant.now();
-                sendGameChatMessage(AlertType.BUFF_EXPIRED, "Your combat buff is still out.");
-                if (config.voiceBuffExpired()) {
-                    speak(lastEndedBuffName != null
-                        ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
-                        : expiredLine(lastEndedCategory));
-                }
+                alert(lastExpiredLine(), "still out");
             } else if (buffState == BuffState.UNPOTTED) {
                 buffStatusText = "No Buffs";
             }
@@ -1212,10 +1202,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 continue;
             }
             buffWarnedAtBoost.put(buff.name, buff.boost);
-            if (config.voiceBuffLow()) {
-                speak(potionLine(buff.name, true, runningOutLine(buff.category)));
-            }
-            sendGameChatMessage(AlertType.BUFF_LOW, "Your " + buff.name + " buff runs out in " + BuffTimer.formatMillis(buff.millisLeft(now)) + ".");
+            alert(potionLine(buff.name, true, runningOutLine(buff.category)), BuffTimer.formatMillis(buff.millisLeft(now)) + " left");
         }
     }
 
@@ -1230,12 +1217,16 @@ public class BradsMultiToolPlugin extends Plugin {
             lastEndedCategory = before.category;
             lastEndedBuffName = before.name;
             if (!current.isEmpty()) {
-                sendGameChatMessage(AlertType.BUFF_EXPIRED, "Your " + before.name + " buff has run out.");
-                if (config.voiceBuffExpired()) {
-                    speak(potionLine(before.name, false, expiredLine(before.category)));
-                }
+                alert(potionLine(before.name, false, expiredLine(before.category)), null);
             }
         }
+    }
+
+    // What to say for the buff that ran out last
+    private VoiceAlertService.VoiceLine lastExpiredLine() {
+        return lastEndedBuffName != null
+            ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
+            : expiredLine(lastEndedCategory);
     }
 
     // The potion's own line ("Divine super combat is running out"), else the boost-type line
@@ -1301,10 +1292,7 @@ public class BradsMultiToolPlugin extends Plugin {
         } else if (canSound) {
             timesHealthAlertSounded++;
             lastHealthAlertTime = Instant.now();
-            if (config.voiceHealthLow()) {
-                speak(VoiceAlertService.VoiceLine.HEALTH_LOW);
-            }
-            sendGameChatMessage(AlertType.HEALTH_LOW, "Health low (" + hp + " hitpoints).");
+            alert(VoiceAlertService.VoiceLine.HEALTH_LOW, hp + " hitpoints");
         }
     }
 
@@ -1315,10 +1303,7 @@ public class BradsMultiToolPlugin extends Plugin {
         if (isZero && !zeroPrayerAlert) {
             zeroPrayerAlert = true;
             lowPrayerAlert = false;
-            if (config.voicePrayerLow()) {
-                speak(VoiceAlertService.VoiceLine.OUT_OF_PRAYER);
-            }
-            sendGameChatMessage(AlertType.PRAYER_LOW, "Out of prayer points.");
+            alert(VoiceAlertService.VoiceLine.OUT_OF_PRAYER, null);
             return;
         } else if (!isZero) {
             zeroPrayerAlert = false;
@@ -1344,10 +1329,7 @@ public class BradsMultiToolPlugin extends Plugin {
             }
 
             if (canSound) {
-                if (config.voicePrayerLow()) {
-                    speak(VoiceAlertService.VoiceLine.PRAYER_LOW);
-                }
-                sendGameChatMessage(AlertType.PRAYER_LOW, "Prayer points low (" + currentPrayer + " remaining).");
+                alert(VoiceAlertService.VoiceLine.PRAYER_LOW, currentPrayer + " points");
             }
         } else if (currentPrayer > threshold(Skill.PRAYER, config.lowPrayerPercent())) {
             lowPrayerAlert = false;
@@ -1390,8 +1372,7 @@ public class BradsMultiToolPlugin extends Plugin {
             characterIdleAlerted = true;
             characterWasActive = false;
             actionTicks = 0;
-            speak(VoiceAlertService.VoiceLine.CHARACTER_IDLE);
-            sendGameChatMessage(AlertType.CHARACTER_IDLE, "You've been AFK for " + idleSeconds + " seconds.");
+            alert(VoiceAlertService.VoiceLine.CHARACTER_IDLE, idleSeconds + " seconds");
         }
     }
 
@@ -1433,7 +1414,6 @@ public class BradsMultiToolPlugin extends Plugin {
             if (alertsReady()) {
                 notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
             }
-            sendGameChatMessage(AlertType.IDLE_LOGOUT, "You will be logged out for inactivity soon.");
         } else if (config.repeatIdleAlert()
             && Duration.between(lastIdleAlertTime, Instant.now()).getSeconds() >= config.repeatIdleInterval()
             && timesIdleAlerted <= config.maxIdleRepeats()) {
@@ -1444,7 +1424,9 @@ public class BradsMultiToolPlugin extends Plugin {
         if (alert) {
             timesIdleAlerted++;
             lastIdleAlertTime = Instant.now();
-            if (config.voiceIdleLogout()) {
+            if (timesIdleAlerted == 1) {
+                alert(VoiceAlertService.VoiceLine.IDLE_LOGOUT, null);
+            } else {
                 speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
             }
         }

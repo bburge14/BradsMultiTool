@@ -80,9 +80,8 @@ class ExtraAlerts {
         this.plugin = plugin;
     }
 
-    private void alert(VoiceAlertService.VoiceLine line, String chat) {
-        plugin.speak(line);
-        plugin.sendGameChatMessage(AlertType.of(line), chat);
+    private void alert(VoiceAlertService.VoiceLine line, String detail) {
+        plugin.alert(line, detail);
     }
 
     @Subscribe
@@ -100,7 +99,7 @@ class ExtraAlerts {
                 return;
             case VARP_SLAYER_COUNT:
                 if (value == 0 && config.taskCompleteAlert() && plugin.getSlayerTracker().hadTask()) {
-                    alert(VoiceAlertService.VoiceLine.TASK_COMPLETE, "Slayer task complete!");
+                    alert(VoiceAlertService.VoiceLine.TASK_COMPLETE, null);
                 }
                 return;
             default:
@@ -116,7 +115,7 @@ class ExtraAlerts {
                 break;
             case VARBIT_STAMINA_ACTIVE:
                 if (value == 0 && config.staminaAlert()) {
-                    alert(VoiceAlertService.VoiceLine.STAMINA_EXPIRED, "Your stamina potion has worn off.");
+                    alert(VoiceAlertService.VoiceLine.STAMINA_EXPIRED, null);
                 }
                 break;
             default:
@@ -143,7 +142,7 @@ class ExtraAlerts {
         if (specSpent && percent >= config.specThreshold()) {
             specSpent = false;
             if (config.specReadyAlert()) {
-                alert(VoiceAlertService.VoiceLine.SPEC_READY, "Special attack ready (" + percent + "%).");
+                alert(VoiceAlertService.VoiceLine.SPEC_READY, percent + "%");
             }
         }
     }
@@ -154,7 +153,7 @@ class ExtraAlerts {
         } else if (ticksLeft > 0 && !antifireAlerted) {
             antifireAlerted = true;
             if (config.antifireAlert()) {
-                alert(VoiceAlertService.VoiceLine.ANTIFIRE_LOW, "Your antifire protection is running out.");
+                alert(VoiceAlertService.VoiceLine.ANTIFIRE_LOW, null);
             }
         }
     }
@@ -169,9 +168,9 @@ class ExtraAlerts {
             return;
         }
         if (value >= VENOM_THRESHOLD && previous < VENOM_THRESHOLD) {
-            alert(VoiceAlertService.VoiceLine.VENOMED, "You have been venomed!");
+            alert(VoiceAlertService.VoiceLine.VENOMED, null);
         } else if (value > 0 && value < VENOM_THRESHOLD && previous <= 0) {
-            alert(VoiceAlertService.VoiceLine.POISONED, "You have been poisoned!");
+            alert(VoiceAlertService.VoiceLine.POISONED, null);
         }
 
         int protectionTicks = value < 0 ? -value * 30 : 0;
@@ -179,7 +178,7 @@ class ExtraAlerts {
             antipoisonAlerted = false;
         } else if (protectionTicks > 0 && !antipoisonAlerted && previous < value) {
             antipoisonAlerted = true;
-            alert(VoiceAlertService.VoiceLine.ANTIPOISON_LOW, "Your poison protection is running out.");
+            alert(VoiceAlertService.VoiceLine.ANTIPOISON_LOW, null);
         }
     }
 
@@ -189,7 +188,7 @@ class ExtraAlerts {
         } else if (cannonballs > 0 && !cannonAlerted) {
             cannonAlerted = true;
             if (config.cannonAlert()) {
-                alert(VoiceAlertService.VoiceLine.CANNON_LOW, "Your cannon has " + cannonballs + " cannonballs left.");
+                alert(VoiceAlertService.VoiceLine.CANNON_LOW, cannonballs + " cannonballs left");
             }
         }
     }
@@ -215,11 +214,11 @@ class ExtraAlerts {
         }
         String message = Text.removeTags(event.getMessage());
         if (message.contains("A superior foe has appeared") && config.superiorAlert()) {
-            alert(VoiceAlertService.VoiceLine.SUPERIOR_SPAWNED, "A superior foe has appeared!");
+            alert(VoiceAlertService.VoiceLine.SUPERIOR_SPAWNED, null);
         } else if (message.contains("do not have enough") && message.contains("runes") && config.runesAlert()
             && client.getTickCount() - lastRunesAlertTick > 16) {
             lastRunesAlertTick = client.getTickCount();
-            alert(VoiceAlertService.VoiceLine.OUT_OF_RUNES, "You're out of runes for that spell.");
+            alert(VoiceAlertService.VoiceLine.OUT_OF_RUNES, null);
         }
     }
 
@@ -253,7 +252,7 @@ class ExtraAlerts {
         } else if (!ammoAlerted) {
             ammoAlerted = true;
             if (config.ammoAlert()) {
-                alert(VoiceAlertService.VoiceLine.AMMO_LOW, "Ammo running low (" + count + " left).");
+                alert(VoiceAlertService.VoiceLine.AMMO_LOW, count + " left");
             }
         }
     }
@@ -268,7 +267,7 @@ class ExtraAlerts {
         boolean full = used >= INVENTORY_SIZE;
         boolean skilling = client.getTickCount() - resourceClickTick <= RESOURCE_MEMORY_TICKS;
         if (full && !inventoryWasFull && skilling && config.inventoryFullAlert()) {
-            alert(VoiceAlertService.VoiceLine.INVENTORY_FULL, "Your inventory is full.");
+            alert(VoiceAlertService.VoiceLine.INVENTORY_FULL, null);
         }
         inventoryWasFull = full;
     }
@@ -310,9 +309,9 @@ class ExtraAlerts {
         resourceObjectId = -1;
         if (config.resourceGoneAlert()) {
             if (resourceIsTree) {
-                alert(VoiceAlertService.VoiceLine.TREE_GONE, "Your tree has fallen.");
+                alert(VoiceAlertService.VoiceLine.TREE_GONE, null);
             } else {
-                alert(VoiceAlertService.VoiceLine.ROCK_DEPLETED, "Your rock is depleted.");
+                alert(VoiceAlertService.VoiceLine.ROCK_DEPLETED, null);
             }
         }
     }
@@ -324,7 +323,7 @@ class ExtraAlerts {
         }
         resourceNpc = null;
         if (config.resourceGoneAlert()) {
-            alert(VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED, "Your fishing spot has moved.");
+            alert(VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED, null);
         }
     }
 

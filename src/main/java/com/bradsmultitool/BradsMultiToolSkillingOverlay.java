@@ -3,7 +3,9 @@ package com.bradsmultitool;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,35 +85,39 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         return null;
     }
 
-    // A pie over the tree you're chopping that empties as it nears falling (green, then yellow, then red)
+    /**
+     * A pie over the middle of the tree you're chopping that empties as it nears falling (green, yellow,
+     * red). Once the tree's timer is out it falls with the next log, which is down to luck, so the pie
+     * then pulses until it does.
+     */
     private void drawTreePie(Graphics2D graphics) {
         WorldPoint tree = treeTimer.getTree();
-        int ticks = treeTimer.ticksLeft();
-        if (tree == null || ticks < 0 || treeTimer.totalTicks() <= 0) {
+        double left = treeTimer.fractionLeft();
+        if (tree == null || left < 0) {
             return;
         }
-        LocalPoint local = treeCentre(tree);
-        if (local == null) {
-            return;
-        }
-        Point at = Perspective.localToCanvas(client, local, client.getTopLevelWorldView().getPlane(), 0);
+        Point at = treeCentreOnScreen(tree);
         if (at == null) {
             return;
         }
-        double left = Math.max(0, Math.min(1, (double) ticks / treeTimer.totalTicks()));
         Color color = left > 0.5 ? BradsMultiToolOverlay.GOOD : left > 0.2 ? BradsMultiToolOverlay.WARN : BradsMultiToolOverlay.BAD;
+        int alpha = 150;
+        if (treeTimer.isOnLastLog()) {
+            alpha = (int) (90 + 110 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
+        }
         pie.setPosition(at);
         pie.setProgress(left);
-        pie.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 150));
+        pie.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha));
         pie.setBorderColor(color);
         pie.render(graphics);
     }
 
     /**
-     * The middle of the tree's footprint. Big trees cover 2x2 or 3x3 tiles and the click gives one tile,
-     * so take the biggest object on it (the tree) and work out its centre from the tiles it covers.
+     * Where the tree is drawn on screen: the middle of its model (canopy included), so the pie sits on
+     * the tree rather than at its base. The click gives one tile of the tree; the biggest object on that
+     * tile is the tree.
      */
-    private LocalPoint treeCentre(WorldPoint tree) {
+    private Point treeCentreOnScreen(WorldPoint tree) {
         WorldView view = client.getTopLevelWorldView();
         LocalPoint clicked = LocalPoint.fromWorld(view, tree);
         if (clicked == null) {
@@ -133,13 +139,12 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
                 }
             }
         }
-        if (biggest == null) {
-            return clicked;
+        Shape hull = biggest != null ? biggest.getConvexHull() : null;
+        if (hull != null) {
+            Rectangle bounds = hull.getBounds();
+            return new Point((int) bounds.getCenterX(), (int) bounds.getCenterY());
         }
-        // Average of the corner tiles' centres = centre of the footprint
-        LocalPoint min = LocalPoint.fromScene(biggest.getSceneMinLocation().getX(), biggest.getSceneMinLocation().getY(), view);
-        LocalPoint max = LocalPoint.fromScene(biggest.getSceneMaxLocation().getX(), biggest.getSceneMaxLocation().getY(), view);
-        return new LocalPoint((min.getX() + max.getX()) / 2, (min.getY() + max.getY()) / 2, view);
+        return Perspective.localToCanvas(client, clicked, view.getPlane(), 150);
     }
 
     /**
