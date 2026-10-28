@@ -36,6 +36,7 @@ import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.api.gameval.AnimationID;
+import net.runelite.api.gameval.ObjectID;
 import net.runelite.client.eventbus.Subscribe;
 
 /**
@@ -55,6 +56,8 @@ import net.runelite.client.eventbus.Subscribe;
  * <li>Shooting stars (Star AFK Timer): the star has a hidden health bar for its current layer, so this one
  * is exact.</li>
  * <li>Sailing shipwrecks (Salvaging AFK Timer): each type lasts a set time from when it surfaces.</li>
+ * <li>Hunter traps you lay (RuneLite's Hunter plugin): collapse a minute after being laid.</li>
+ * <li>Fires: burn out 100-200 ticks after being lit (Fire Timer).</li>
  * </ul>
  * Apart from stars, the game doesn't send these timers to the client, so they're estimates from what's
  * visible.
@@ -62,7 +65,9 @@ import net.runelite.client.eventbus.Subscribe;
 @Singleton
 class ResourceTimers {
 
-    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK }
+    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK, TRAP, FIRE }
+
+    enum TrapState { SET, CAUGHT, FAILED }
 
     /** One timed resource. Progress is 1 when fresh, 0 when it's due to go. */
     static final class Timer {
@@ -86,6 +91,8 @@ class ResourceTimers {
         int elapsed;
         // Stars: the layer's health, 0-1 (-1 until the star's health bar has been seen)
         double health = -1;
+        // Hunter traps
+        TrapState trapState = TrapState.SET;
 
         Timer(Kind kind, TileObject object, NPC npc, int minTicks, int maxTicks) {
             this.kind = kind;
@@ -156,6 +163,58 @@ class ResourceTimers {
     private static final Map<Integer, int[]> FISHING_TIMINGS = new HashMap<>();
     private static final int FISHING_MEMORY_TICKS = 1500;
     private static final int OUT_OF_VIEW_DISTANCE = 14;
+    private static final int FIRE = ObjectID.FIRE;
+    private static final int TRAP_TICKS = 100;
+    // Hunter traps as laid (from RuneLite's Hunter plugin; crab traps never expire so aren't timed)
+    private static final Set<Integer> TRAPS_SET = ImmutableSet.of(
+        ObjectID.HUNTING_DEADFALL_TRAP, ObjectID.HUNTING_MONKEYTRAP_SET, ObjectID.HUNTING_IMPTRAP_EMPTY,
+        ObjectID.HUNTING_BOXTRAP_EMPTY, ObjectID.HUNTING_OJIBWAY_TRAP, ObjectID.HUNTING_SAPLING_NET_SET_SWAMP,
+        ObjectID.HUNTING_SAPLING_NET_SET_ORANGE, ObjectID.HUNTING_SAPLING_NET_SET_RED,
+        ObjectID.HUNTING_SAPLING_NET_SET_BLACK, ObjectID.HUNTING_SAPLING_NET_SET_MOUNTAIN);
+    // Something caught
+    private static final Set<Integer> TRAPS_CAUGHT = ImmutableSet.of(
+        ObjectID.HUNTING_IMPTRAP_FULL, ObjectID.HUNTING_BOXTRAP_FULL_CHINCHOMPA_BLACK,
+        ObjectID.HUNTING_BOXTRAP_FULL_CHINCHOMPA, ObjectID.HUNTING_BOXTRAP_FULL_CHINCHOMPA_BIG,
+        ObjectID.HUNTING_BOXTRAP_FULL_FERRET, ObjectID.HUNTING_BOXTRAP_FULL_JERBOA,
+        ObjectID.HUNTING_BOXTRAP_FULL_LETVEK, ObjectID.HUNTING_DEADFALL_FULL_SPIKE,
+        ObjectID.HUNTING_DEADFALL_FULL_SABRE, ObjectID.HUNTING_DEADFALL_FULL_BARBED,
+        ObjectID.HUNTING_DEADFALL_FULL_CLAW, ObjectID.HUNTING_DEADFALL_FULL_FENNEC,
+        ObjectID.HUNTING_OJIBWAY_TRAP_FULL_JUNGLE, ObjectID.HUNTING_OJIBWAY_TRAP_FULL_POLAR,
+        ObjectID.HUNTING_OJIBWAY_TRAP_FULL_DESERT, ObjectID.HUNTING_OJIBWAY_TRAP_FULL_WOODLAND,
+        ObjectID.HUNTING_OJIBWAY_TRAP_FULL_COLOURED, ObjectID.HUNTING_SAPLING_FULL_GREEN,
+        ObjectID.HUNTING_SAPLING_FULL_RED, ObjectID.HUNTING_SAPLING_FULL_ORANGE, ObjectID.HUNTING_SAPLING_FULL_BLACK,
+        ObjectID.HUNTING_SAPLING_FULL_MOUNTAIN, ObjectID.HUNTING_MONKEYTRAP_FULL_0, ObjectID.HUNTING_MONKEYTRAP_FULL_1);
+    // Sprung with nothing caught
+    private static final Set<Integer> TRAPS_FAILED = ImmutableSet.of(
+        ObjectID.HUNTING_IMPTRAP_FAILED, ObjectID.HUNTING_BOXTRAP_FAILED, ObjectID.HUNTING_OJIBWAY_TRAP_BROKEN,
+        ObjectID.HUNTING_DEADFALL_BOULDER, ObjectID.HUNTING_SAPLING_FAILED_MOUNTAIN);
+    // Mid-catch (the animal is going in)
+    private static final Set<Integer> TRAPS_TRIGGERING = ImmutableSet.of(
+        ObjectID.HUNTING_IMPTRAP_TRAPPING, ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_BLACK_N,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_BLACK_E, ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_BLACK_S,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_BLACK_W, ObjectID.HUNTING_BOXTRAP_FAILING,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_BIG_N, ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_BIG_E,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_BIG_S, ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_BIG_W,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_N, ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_E,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_CHINCHOMPA_S, ObjectID.HUNTING_BOXTRAP_TRAPPING_FERRET_N,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_FERRET_S, ObjectID.HUNTING_BOXTRAP_TRAPPING_FERRET_W,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_JERBOA_N, ObjectID.HUNTING_BOXTRAP_TRAPPING_JERBOA_E,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_JERBOA_S, ObjectID.HUNTING_BOXTRAP_TRAPPING_JERBOA_W,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_LETVEK_N, ObjectID.HUNTING_BOXTRAP_TRAPPING_LETVEK_E,
+        ObjectID.HUNTING_BOXTRAP_TRAPPING_LETVEK_S, ObjectID.HUNTING_BOXTRAP_TRAPPING_LETVEK_W,
+        ObjectID.HUNTING_OJIBWAY_TRAP_FAILING, ObjectID.HUNTING_OJIBWAY_TRAP_TRAPPING_COLOURED,
+        ObjectID.HUNTING_OJIBWAY_TRAP_TRAPPING_JUNGLE, ObjectID.HUNTING_OJIBWAY_TRAP_TRAPPING_POLAR,
+        ObjectID.HUNTING_OJIBWAY_TRAP_TRAPPING_DESERT, ObjectID.HUNTING_OJIBWAY_TRAP_TRAPPING_WOODLAND,
+        ObjectID.HUNTING_DEADFALL_TRAPPING_SPIKE, ObjectID.HUNTING_DEADFALL_TRAPPING_SABRE,
+        ObjectID.HUNTING_DEADFALL_TRAPPING_SABRE_M, ObjectID.HUNTING_DEADFALL_TRAPPING_BARBED,
+        ObjectID.HUNTING_DEADFALL_TRAPPING_BARBED_M, ObjectID.HUNTING_DEADFALL_TRAPPING_CLAW,
+        ObjectID.HUNTING_DEADFALL_TRAPPING_FENNEC, ObjectID.HUNTING_DEADFALL_TRAPPING_FENNEC_M,
+        ObjectID.HUNTING_SAPLING_CATCHING_GREEN, ObjectID.HUNTING_SAPLING_FAILING_SWAMP,
+        ObjectID.HUNTING_SAPLING_CATCHING_ORANGE, ObjectID.HUNTING_SAPLING_FAILING_ORANGE,
+        ObjectID.HUNTING_SAPLING_CATCHING_RED, ObjectID.HUNTING_SAPLING_FAILING_RED,
+        ObjectID.HUNTING_SAPLING_CATCHING_BLACK, ObjectID.HUNTING_SAPLING_FAILING_BLACK,
+        ObjectID.HUNTING_SAPLING_CATCHING_MOUNTAIN, ObjectID.HUNTING_SAPLING_FAILING_MOUNTAIN,
+        ObjectID.HUNTING_MONKEYTRAP_TRAPPING_0, ObjectID.HUNTING_MONKEYTRAP_TRAPPING_1);
     // Shooting stars: one object per tier, plus the hidden NPC carrying the layer's health bar
     private static final Set<Integer> STARS = Set.of(41020, 41021, 41223, 41224, 41225, 41226, 41227, 41228, 41229);
     private static final int STAR_HEALTH_NPC = 10629;
@@ -280,6 +339,9 @@ class ResourceTimers {
     private final Map<WorldPoint, int[]> rememberedSpots = new HashMap<>();
     // Shipwreck sites seen sunk (as a stump), so a wreck surfacing there has a known start
     private final Set<WorldPoint> sunkWrecks = new HashSet<>();
+    // A trap that just changed (e.g. something walked in): the old object goes before the new one appears
+    private final Map<WorldPoint, Timer> changingTraps = new HashMap<>();
+    private final Map<WorldPoint, Integer> changingTrapTicks = new HashMap<>();
     private final Map<Player, Integer> playerSpawnTick = new HashMap<>();
     private final Map<Player, WorldPoint> playerSpawnPoint = new HashMap<>();
 
@@ -306,6 +368,8 @@ class ResourceTimers {
         timers.clear();
         fishingSpots.clear();
         rememberedSpots.clear();
+        changingTraps.clear();
+        changingTrapTicks.clear();
         sunkWrecks.clear();
         playerSpawnTick.clear();
         playerSpawnPoint.clear();
@@ -317,6 +381,17 @@ class ResourceTimers {
         int id = object.getId();
         if (CALCIFIED_ROCKS.contains(id)) {
             add(new Timer(Kind.CALCIFIED, object, null, CALCIFIED_TICKS, CALCIFIED_TICKS), object);
+            return;
+        }
+        if (id == FIRE) {
+            // Only fires lit while you're here have a known start
+            if (client.getGameState() == GameState.LOGGED_IN) {
+                add(new Timer(Kind.FIRE, object, null, 100, 200), object);
+            }
+            return;
+        }
+        if (isTrap(id)) {
+            onTrapSpawned(object);
             return;
         }
         if (STARS.contains(id)) {
@@ -355,7 +430,40 @@ class ResourceTimers {
 
     @Subscribe
     public void onGameObjectDespawned(GameObjectDespawned event) {
-        remove(event.getGameObject());
+        GameObject object = event.getGameObject();
+        Timer timer = byTile.get(object.getWorldLocation());
+        if (timer != null && timer.kind == Kind.TRAP && timer.object != null && timer.object.getId() == object.getId()) {
+            // Keep it for a moment in case the trap is only changing state
+            changingTraps.put(object.getWorldLocation(), timer);
+            changingTrapTicks.put(object.getWorldLocation(), client.getTickCount());
+        }
+        remove(object);
+    }
+
+    private static boolean isTrap(int id) {
+        return TRAPS_SET.contains(id) || TRAPS_CAUGHT.contains(id) || TRAPS_FAILED.contains(id) || TRAPS_TRIGGERING.contains(id);
+    }
+
+    // A trap appearing is either one of yours changing state, or newly laid (yours if you're standing on or next to it)
+    private void onTrapSpawned(GameObject object) {
+        WorldPoint at = object.getWorldLocation();
+        Timer timer = changingTraps.remove(at);
+        changingTrapTicks.remove(at);
+        if (timer == null) {
+            Player local = client.getLocalPlayer();
+            if (!TRAPS_SET.contains(object.getId()) || local == null || local.getWorldLocation().distanceTo(at) > 1) {
+                return;
+            }
+            timer = new Timer(Kind.TRAP, object, null, TRAP_TICKS, TRAP_TICKS);
+        }
+        timer.object = object;
+        if (TRAPS_CAUGHT.contains(object.getId())) {
+            timer.trapState = TrapState.CAUGHT;
+        } else if (TRAPS_FAILED.contains(object.getId())) {
+            timer.trapState = TrapState.FAILED;
+        }
+        timer.tiles.clear();
+        add(timer, object);
     }
 
     @Subscribe
@@ -475,6 +583,13 @@ class ResourceTimers {
         }
         playerSpawnTick.entrySet().removeIf(e -> now - e.getValue() > NEW_PLAYER_TICKS);
         rememberedSpots.values().removeIf(spot -> now - spot[1] > FISHING_MEMORY_TICKS);
+        changingTrapTicks.entrySet().removeIf(e -> {
+            boolean gone = now - e.getValue() > 2;
+            if (gone) {
+                changingTraps.remove(e.getKey());
+            }
+            return gone;
+        });
         updateStars();
         playerSpawnPoint.keySet().retainAll(playerSpawnTick.keySet());
 

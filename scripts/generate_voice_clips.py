@@ -115,6 +115,9 @@ LINES = {
     "potion_divine_ranging_expired": "Divine ranging has run out.",
     "potion_divine_magic_low": "Divine magic is running out.",
     "potion_divine_magic_expired": "Divine magic has run out.",
+    "coin_pouch_full": "Your coin pouches are full.",
+    "birdhouses_ready": "Your bird houses are ready.",
+    "batch_complete": "Batch complete.",
 }
 
 # Level-up alerts are spoken as two clips: "<Skill> level" then the number ("Woodcutting level", "45")

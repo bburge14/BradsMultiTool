@@ -42,16 +42,21 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final BradsMultiToolConfig config;
     private final SkillingData data;
     private final FarmingData farming;
+    private final SkillHelperData helpers;
+    private final BirdhouseTracker birdhouses;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
-                                         SkillingData data, FarmingData farming) {
+                                         SkillingData data, FarmingData farming, SkillHelperData helpers,
+                                         BirdhouseTracker birdhouses) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.data = data;
         this.farming = farming;
+        this.helpers = helpers;
+        this.birdhouses = birdhouses;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGHEST);
@@ -90,6 +95,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             if (config.showFarmingHover() && buildFarmingCard(entry)) {
                 return true;
             }
+            if (buildSkillHelperCard(entry)) {
+                return true;
+            }
             SkillingData.Resource resource = data.object(entry.getIdentifier(), Text.removeTags(entry.getTarget()));
             if (resource != null) {
                 buildResourceCard(resource);
@@ -97,6 +105,177 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
         }
         return false;
+    }
+
+    // ---- Hunter, Runecraft, Agility, Cooking ----
+
+    private static final java.util.Set<String> AGILITY_OPTIONS = java.util.Set.of("climb", "climb-up", "climb-down",
+        "jump", "jump-up", "jump-on", "jump-over", "jump-in", "cross", "balance", "vault", "squeeze-through", "hurdle",
+        "leap", "swing-on", "swing-across", "walk-across", "walk-on", "walk-down", "grab", "teeth-grip", "hop",
+        "tightrope", "climb-over", "climb-across", "cross-gap", "jump-gap", "climb-onto", "pass", "enter", "slide");
+
+    private boolean buildSkillHelperCard(MenuEntry entry) {
+        int id = entry.getIdentifier();
+        ObjectComposition composition = client.getObjectDefinition(id);
+        String option = Text.removeTags(entry.getOption()).toLowerCase();
+        String target = Text.removeTags(entry.getTarget());
+        WorldView view = client.getTopLevelWorldView();
+        WorldPoint location = WorldPoint.fromScene(view, entry.getParam0(), entry.getParam1(), view.getPlane());
+
+        int spot = composition != null ? BirdhouseTracker.spotFor(composition.getVarPlayerId()) : -1;
+        if (spot >= 0 && config.showBirdhouseHover()) {
+            buildBirdhouseCard(spot);
+            return true;
+        }
+        SkillHelperData.Rune rune = helpers.altar(id);
+        if (rune != null && config.showRunecraftHover()) {
+            buildAltarCard(rune);
+            return true;
+        }
+        if (config.showAgilityHover()) {
+            SkillHelperData.Shortcut shortcut = helpers.shortcut(id);
+            if (shortcut != null) {
+                panel.getChildren().clear();
+                panel.getChildren().add(TitleComponent.builder().text("Agility Shortcut").color(TITLE_COLOR).build());
+                line("Obstacle:", shortcut.name, Color.WHITE);
+                addRequirement(Skill.AGILITY, shortcut.level);
+                return true;
+            }
+            SkillHelperData.Course course = helpers.course(location.getRegionID());
+            if (course != null && AGILITY_OPTIONS.contains(option)) {
+                buildCourseCard(course);
+                return true;
+            }
+        }
+        if (config.showCookingHover() && isCookingSpot(target, option)) {
+            return buildCookingCard(target.toLowerCase().contains("fire"));
+        }
+        return false;
+    }
+
+    private void buildBirdhouseCard(int spot) {
+        int value = birdhouses.value(spot);
+        String type = BirdhouseTracker.type(value);
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(type != null ? type : "Bird house space").color(TITLE_COLOR).build());
+        line("Spot:", BirdhouseTracker.SPOT_NAMES[spot], Color.WHITE);
+        if (type == null) {
+            line("Status:", "Empty", BradsMultiToolOverlay.WARN);
+            return;
+        }
+        if (!BirdhouseTracker.isSeeded(value)) {
+            line("Status:", "Built (add seeds)", BradsMultiToolOverlay.WARN);
+            return;
+        }
+        long seeded = birdhouses.seededAt(spot);
+        if (seeded == 0) {
+            line("Status:", "Seeded", Color.WHITE);
+            return;
+        }
+        long left = seeded + BirdhouseTracker.FULL_AFTER_SECONDS - System.currentTimeMillis() / 1000;
+        line("Status:", left <= 0 ? "Full" : "Filling", left <= 0 ? BradsMultiToolOverlay.GOOD : Color.WHITE);
+        if (left > 0) {
+            line("Full In:", duration(left), Color.WHITE);
+        }
+    }
+
+    private void buildAltarCard(SkillHelperData.Rune rune) {
+        int level = client.getRealSkillLevel(Skill.RUNECRAFT);
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(rune.name + " Altar").color(TITLE_COLOR).build());
+        addRequirement(Skill.RUNECRAFT, rune.level);
+        if (rune.xp > 0) {
+            line("XP Each:", trim(rune.xp), Color.WHITE);
+        }
+        if (level >= rune.level) {
+            line("Runes / Essence:", String.valueOf(rune.perEssence(level)), BradsMultiToolOverlay.GOOD);
+            int next = rune.nextMultiple(level);
+            if (next > 0) {
+                line("Next Multiple:", "Lvl " + next, Color.WHITE);
+            }
+        }
+        addYourRate(Skill.RUNECRAFT);
+    }
+
+    private void buildCourseCard(SkillHelperData.Course course) {
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(course.name).color(TITLE_COLOR).build());
+        addRequirement(Skill.AGILITY, course.level);
+        if (course.xpPerLap > 0) {
+            line("XP / Lap:", trim(course.xpPerLap), Color.WHITE);
+            int xp = client.getSkillExperience(Skill.AGILITY);
+            int level = net.runelite.api.Experience.getLevelForXp(xp);
+            if (level < net.runelite.api.Experience.MAX_REAL_LEVEL) {
+                int left = net.runelite.api.Experience.getXpForLevel(level + 1) - xp;
+                line("Laps to Lvl " + (level + 1) + ":", String.valueOf((int) Math.ceil(left / course.xpPerLap)), Color.WHITE);
+            }
+        }
+        addYourRate(Skill.AGILITY);
+    }
+
+    private static boolean isCookingSpot(String target, String option) {
+        String name = target.toLowerCase();
+        if (name.contains("->")) {
+            name = name.substring(name.indexOf("->") + 2).trim();
+        }
+        return option.equals("cook") || name.equals("range") || name.equals("cooking range") || name.equals("fire")
+            || name.equals("stove") || name.equals("clay oven") || name.endsWith(" range");
+    }
+
+    // Burn level of each raw food you're carrying, for this fire or range (and with cooking gauntlets if worn)
+    private boolean buildCookingCard(boolean fire) {
+        ItemContainer inventory = client.getItemContainer(93);
+        if (inventory == null) {
+            return false;
+        }
+        boolean gauntlets = ownedItemNames(94).contains("cooking gauntlets");
+        int level = client.getBoostedSkillLevel(Skill.COOKING);
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(fire ? "Fire" : "Range").color(TITLE_COLOR).build());
+        for (Item item : inventory.getItems()) {
+            if (item.getId() <= 0) {
+                continue;
+            }
+            String name = client.getItemDefinition(item.getId()).getName();
+            SkillHelperData.Food food = helpers.food(name);
+            if (food == null || !seen.add(food.name)) {
+                continue;
+            }
+            int stop = gauntlets && food.gauntlets > 0 ? food.gauntlets : fire ? food.fire : food.range;
+            if (stop <= 0) {
+                continue;
+            }
+            boolean safe = level >= stop;
+            line(food.name + ":", stop >= 100 ? "Can always burn" : safe ? "Never burns" : "Stops at " + stop,
+                safe ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+        }
+        if (seen.isEmpty()) {
+            line("Raw Food:", "None carried", Color.WHITE);
+        }
+        if (gauntlets) {
+            line("", "With cooking gauntlets", new Color(180, 180, 180));
+        }
+        addYourRate(Skill.COOKING);
+        return true;
+    }
+
+    private boolean buildHunterCard(NPC npc) {
+        SkillHelperData.Creature creature = helpers.creature(npc.getName());
+        if (creature == null) {
+            return false;
+        }
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(creature.name).color(TITLE_COLOR).build());
+        addRequirement(Skill.HUNTER, creature.level);
+        if (creature.xp > 0) {
+            line("XP Each:", trim(creature.xp), Color.WHITE);
+        }
+        if (creature.trap != null) {
+            line("Caught With:", creature.trap, Color.WHITE);
+        }
+        addYourRate(Skill.HUNTER);
+        return true;
     }
 
     // ---- Farming patches ----
@@ -212,6 +391,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             case GAME_OBJECT_THIRD_OPTION:
             case GAME_OBJECT_FOURTH_OPTION:
             case GAME_OBJECT_FIFTH_OPTION:
+            case WIDGET_TARGET_ON_GAME_OBJECT:
                 return true;
             default:
                 return false;
@@ -265,7 +445,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
         }
         if (fishingOptions.isEmpty()) {
-            return false;
+            return config.showHunterHover() && buildHunterCard(npc);
         }
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(npc.getName()).color(TITLE_COLOR).build());
@@ -339,8 +519,12 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     }
 
     private List<String> ownedItemNames() {
+        return ownedItemNames(93, 94);
+    }
+
+    private List<String> ownedItemNames(int... containers) {
         List<String> names = new ArrayList<>();
-        for (int containerId : new int[]{93, 94}) {
+        for (int containerId : containers) {
             ItemContainer container = client.getItemContainer(containerId);
             if (container == null) {
                 continue;

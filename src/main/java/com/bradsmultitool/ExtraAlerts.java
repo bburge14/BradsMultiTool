@@ -1,5 +1,9 @@
 package com.bradsmultitool;
 
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.ChatMessageType;
@@ -10,6 +14,7 @@ import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
+import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
@@ -18,7 +23,9 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.util.Text;
 
@@ -78,6 +85,14 @@ class ExtraAlerts {
     private NPC resourceNpc = null;
     private int resourceClickTick = -1000;
     private int lastWorkingTick = -1000;
+    private boolean coinPouchesFull = false;
+    private final Map<Skill, Integer> productionXp = new EnumMap<>(Skill.class);
+    private int lastProductionXpTick = -1000;
+    private boolean batchRunning = false;
+    private static final Set<Skill> PRODUCTION_SKILLS = EnumSet.of(Skill.COOKING, Skill.SMITHING, Skill.CRAFTING,
+        Skill.FLETCHING, Skill.HERBLORE);
+    // A batch is done once there's been no XP for this many ticks and you've stopped animating
+    private static final int BATCH_DONE_TICKS = 5;
 
     @Inject
     ExtraAlerts(Client client, BradsMultiToolConfig config, BradsMultiToolPlugin plugin) {
@@ -210,6 +225,8 @@ class ExtraAlerts {
             lastPoisonValue = 0;
             resourceObjectId = -1;
             resourceNpc = null;
+            productionXp.clear();
+            batchRunning = false;
         }
     }
 
@@ -234,6 +251,7 @@ class ExtraAlerts {
             checkAmmo(event.getItemContainer());
         } else if (event.getContainerId() == CONTAINER_INVENTORY) {
             checkInventoryFull(event.getItemContainer());
+            checkCoinPouches(event.getItemContainer());
         }
     }
 
@@ -263,6 +281,47 @@ class ExtraAlerts {
         }
     }
 
+    // Coin pouches stack to 28, or 56 / 84 / 140 with the Ardougne medium / hard / elite diary
+    private void checkCoinPouches(ItemContainer inventory) {
+        int pouches = 0;
+        for (Item item : inventory.getItems()) {
+            if (item.getId() > 0 && "Coin pouch".equals(client.getItemDefinition(item.getId()).getName())) {
+                pouches += item.getQuantity();
+            }
+        }
+        int cap = client.getVarbitValue(VarbitID.ARDOUGNE_DIARY_ELITE_COMPLETE) == 1 ? 140
+            : client.getVarbitValue(VarbitID.ARDOUGNE_DIARY_HARD_COMPLETE) == 1 ? 84
+            : client.getVarbitValue(VarbitID.ARDOUGNE_DIARY_MEDIUM_COMPLETE) == 1 ? 56 : 28;
+        boolean full = pouches >= cap;
+        if (full && !coinPouchesFull && config.coinPouchAlert()) {
+            alert(VoiceAlertService.VoiceLine.COIN_POUCH_FULL, pouches + " pouches");
+        }
+        coinPouchesFull = full;
+    }
+
+    // Batch complete: you were gaining XP in a production skill and both the XP and your character stopped
+    @Subscribe
+    public void onStatChanged(StatChanged event) {
+        Skill skill = event.getSkill();
+        Integer before = productionXp.put(skill, event.getXp());
+        if (PRODUCTION_SKILLS.contains(skill) && before != null && event.getXp() > before && plugin.alertsReady()) {
+            lastProductionXpTick = client.getTickCount();
+            batchRunning = true;
+        }
+    }
+
+    private void checkBatchComplete() {
+        Player player = client.getLocalPlayer();
+        if (!batchRunning || player == null || client.getTickCount() - lastProductionXpTick < BATCH_DONE_TICKS
+            || player.getAnimation() != -1) {
+            return;
+        }
+        batchRunning = false;
+        if (config.batchCompleteAlert()) {
+            alert(VoiceAlertService.VoiceLine.BATCH_COMPLETE, null);
+        }
+    }
+
     private void checkInventoryFull(ItemContainer inventory) {
         int used = 0;
         for (Item item : inventory.getItems()) {
@@ -280,6 +339,7 @@ class ExtraAlerts {
     // Note each tick whether you're working the resource you last clicked
     @Subscribe
     public void onGameTick(GameTick event) {
+        checkBatchComplete();
         Player player = client.getLocalPlayer();
         if (player == null || client.getTickCount() - resourceClickTick > RESOURCE_MEMORY_TICKS) {
             return;

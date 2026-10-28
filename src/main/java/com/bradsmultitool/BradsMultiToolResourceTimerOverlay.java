@@ -56,6 +56,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             }
             double left = timer.progress();
             Color color = left > 0.5 ? BradsMultiToolOverlay.GOOD : left > 0.2 ? BradsMultiToolOverlay.WARN : BradsMultiToolOverlay.BAD;
+            // A trap goes green once something's caught, red if it sprang empty
+            if (timer.kind == ResourceTimers.Kind.TRAP && timer.trapState != ResourceTimers.TrapState.SET) {
+                color = timer.trapState == ResourceTimers.TrapState.CAUGHT ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD;
+            }
             int alpha = 150;
             if (timer.due()) {
                 alpha = (int) (90 + 110 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
@@ -77,6 +81,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 return config.showFishingSpotTimer();
             case SHIPWRECK:
                 return config.showShipwreckTimer();
+            case TRAP:
+                return config.showTrapTimer();
+            case FIRE:
+                return config.showFireTimer();
             default:
                 return config.showMiningTimer();
         }

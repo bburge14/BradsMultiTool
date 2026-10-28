@@ -27,6 +27,9 @@ enum AlertType {
     TREE_GONE("TreeGone", VoiceAlertService.VoiceLine.TREE_GONE),
     ROCK_DEPLETED("RockDepleted", VoiceAlertService.VoiceLine.ROCK_DEPLETED),
     FISHING_SPOT("FishingSpot", VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED),
+    COIN_POUCH("CoinPouch", VoiceAlertService.VoiceLine.COIN_POUCH_FULL),
+    BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
+    BATCH_COMPLETE("BatchComplete", VoiceAlertService.VoiceLine.BATCH_COMPLETE),
     LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
 
     final String voiceKey;
@@ -72,6 +75,9 @@ enum AlertType {
             case TREE_GONE: return TREE_GONE;
             case ROCK_DEPLETED: return ROCK_DEPLETED;
             case FISHING_SPOT_MOVED: return FISHING_SPOT;
+            case COIN_POUCH_FULL: return COIN_POUCH;
+            case BIRDHOUSES_READY: return BIRDHOUSES;
+            case BATCH_COMPLETE: return BATCH_COMPLETE;
             default:
                 // Per-potion lines: POTION_<NAME>_LOW / _EXPIRED
                 return line.name().endsWith("_LOW") ? BUFF_LOW : BUFF_EXPIRED;

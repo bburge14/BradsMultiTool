@@ -1208,7 +1208,7 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigSection(
         name = "Skilling",
-        description = "Hover info for trees, rocks, fishing spots and thieving, plus skilling alerts",
+        description = "Hover cards and alerts shared by every skill",
         position = 59,
         closedByDefault = true
     )
@@ -1219,7 +1219,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Skilling Hover Info",
         description = "When hovering a tree, rock, fishing spot, stall or pickpocket target, show level, XP, tools and more",
         section = skillingSection,
-        position = 0
+        position = 1
     )
     default boolean showSkillingHover() {
         return true;
@@ -1230,64 +1230,9 @@ public interface BradsMultiToolConfig extends Config {
         name = "XP Rates on Hover",
         description = "Show the wiki's XP/hr and your own rate on the hover card while you're training that skill",
         section = skillingSection,
-        position = 1
-    )
-    default boolean showSkillingRates() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "showFarmingHover",
-        name = "Farming Patch Hover",
-        description = "Hovering a farming patch shows what's growing, its stage, roughly when it's grown, compost, watering, protection and what you can plant",
-        section = skillingSection,
         position = 2
     )
-    default boolean showFarmingHover() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "showTreeTimer",
-        name = "Tree Timer Pies",
-        description = "A pie on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping)",
-        section = skillingSection,
-        position = 3
-    )
-    default boolean showTreeTimer() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "showMiningTimer",
-        name = "Mining Timer Pies",
-        description = "Pies on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left",
-        section = skillingSection,
-        position = 4
-    )
-    default boolean showMiningTimer() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "showFishingSpotTimer",
-        name = "Fishing Spot Pies",
-        description = "A pie on each fishing spot that's moved since you arrived, showing how soon it may move again (2.5-5 minutes)",
-        section = skillingSection,
-        position = 5
-    )
-    default boolean showFishingSpotTimer() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "showShipwreckTimer",
-        name = "Shipwreck Pies",
-        description = "A pie on each Sailing shipwreck you saw surface, showing how long it has left before it sinks",
-        section = skillingSection,
-        position = 6
-    )
-    default boolean showShipwreckTimer() {
+    default boolean showSkillingRates() {
         return true;
     }
 
@@ -1296,20 +1241,9 @@ public interface BradsMultiToolConfig extends Config {
         name = "Inventory Full",
         description = "Alert when your inventory fills up while skilling",
         section = skillingSection,
-        position = 7
+        position = 3
     )
     default boolean inventoryFullAlert() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "resourceGoneAlert",
-        name = "Resource Gone",
-        description = "Alert when your tree falls, rock depletes or fishing spot moves",
-        section = skillingSection,
-        position = 8
-    )
-    default boolean resourceGoneAlert() {
         return true;
     }
 
@@ -1318,7 +1252,7 @@ public interface BradsMultiToolConfig extends Config {
         name = "Voice: Inventory Full",
         description = "When your inventory fills while skilling (turning it on plays a preview)",
         section = skillingSection,
-        position = 9
+        position = 4
     )
     default boolean voiceInventoryFull() {
         return true;
@@ -1329,9 +1263,72 @@ public interface BradsMultiToolConfig extends Config {
         name = "Chat: Inventory Full",
         description = "Chat message when your inventory fills while skilling",
         section = skillingSection,
-        position = 10
+        position = 5
     )
     default boolean chatInventoryFull() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "resourceGoneAlert",
+        name = "Resource Gone",
+        description = "Alert when your tree falls, rock depletes or fishing spot moves",
+        section = skillingSection,
+        position = 6
+    )
+    default boolean resourceGoneAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "batchCompleteAlert",
+        name = "Batch Complete Alert",
+        description = "Alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (you stop gaining XP and your character stops)",
+        section = skillingSection,
+        position = 7
+    )
+    default boolean batchCompleteAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceBatchComplete",
+        name = "Voice: Batch Complete",
+        description = "When your production batch finishes (turning it on plays a preview)",
+        section = skillingSection,
+        position = 8
+    )
+    default boolean voiceBatchComplete() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBatchComplete",
+        name = "Chat: Batch Complete",
+        description = "Chat message when your production batch finishes",
+        section = skillingSection,
+        position = 9
+    )
+    default boolean chatBatchComplete() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Woodcutting",
+        description = "Tree timers and alerts",
+        position = 60,
+        closedByDefault = true
+    )
+    String woodcuttingSection = "woodcuttingSection";
+
+    @ConfigItem(
+        keyName = "showTreeTimer",
+        name = "Tree Timer Pies",
+        description = "A pie on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping)",
+        section = woodcuttingSection,
+        position = 1
+    )
+    default boolean showTreeTimer() {
         return true;
     }
 
@@ -1339,8 +1336,8 @@ public interface BradsMultiToolConfig extends Config {
         keyName = "voiceTreeGone",
         name = "Voice: Tree Fallen",
         description = "When the tree you are chopping falls (turning it on plays a preview)",
-        section = skillingSection,
-        position = 11
+        section = woodcuttingSection,
+        position = 2
     )
     default boolean voiceTreeGone() {
         return true;
@@ -1350,10 +1347,29 @@ public interface BradsMultiToolConfig extends Config {
         keyName = "chatTreeGone",
         name = "Chat: Tree Fallen",
         description = "Chat message when the tree you are chopping falls",
-        section = skillingSection,
-        position = 12
+        section = woodcuttingSection,
+        position = 3
     )
     default boolean chatTreeGone() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Mining",
+        description = "Mining timers and alerts",
+        position = 61,
+        closedByDefault = true
+    )
+    String miningSection = "miningSection";
+
+    @ConfigItem(
+        keyName = "showMiningTimer",
+        name = "Mining Timer Pies",
+        description = "Pies on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left",
+        section = miningSection,
+        position = 1
+    )
+    default boolean showMiningTimer() {
         return true;
     }
 
@@ -1361,8 +1377,8 @@ public interface BradsMultiToolConfig extends Config {
         keyName = "voiceRockDepleted",
         name = "Voice: Rock Depleted",
         description = "When the rock you are mining is depleted (turning it on plays a preview)",
-        section = skillingSection,
-        position = 13
+        section = miningSection,
+        position = 2
     )
     default boolean voiceRockDepleted() {
         return true;
@@ -1372,10 +1388,29 @@ public interface BradsMultiToolConfig extends Config {
         keyName = "chatRockDepleted",
         name = "Chat: Rock Depleted",
         description = "Chat message when the rock you are mining is depleted",
-        section = skillingSection,
-        position = 14
+        section = miningSection,
+        position = 3
     )
     default boolean chatRockDepleted() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Fishing",
+        description = "Fishing spot timers and alerts",
+        position = 62,
+        closedByDefault = true
+    )
+    String fishingSection = "fishingSection";
+
+    @ConfigItem(
+        keyName = "showFishingSpotTimer",
+        name = "Fishing Spot Pies",
+        description = "A pie on each fishing spot that's moved since you arrived, showing how soon it may move again (2.5-5 minutes)",
+        section = fishingSection,
+        position = 1
+    )
+    default boolean showFishingSpotTimer() {
         return true;
     }
 
@@ -1383,8 +1418,8 @@ public interface BradsMultiToolConfig extends Config {
         keyName = "voiceFishingSpot",
         name = "Voice: Fishing Spot Moved",
         description = "When your fishing spot moves (turning it on plays a preview)",
-        section = skillingSection,
-        position = 15
+        section = fishingSection,
+        position = 2
     )
     default boolean voiceFishingSpot() {
         return true;
@@ -1394,17 +1429,246 @@ public interface BradsMultiToolConfig extends Config {
         keyName = "chatFishingSpot",
         name = "Chat: Fishing Spot Moved",
         description = "Chat message when your fishing spot moves",
-        section = skillingSection,
-        position = 16
+        section = fishingSection,
+        position = 3
     )
     default boolean chatFishingSpot() {
         return true;
     }
 
     @ConfigSection(
+        name = "Thieving",
+        description = "Thieving alerts",
+        position = 63,
+        closedByDefault = true
+    )
+    String thievingSection = "thievingSection";
+
+    @ConfigItem(
+        keyName = "coinPouchAlert",
+        name = "Coin Pouch Alert",
+        description = "Alert when your coin pouches reach the most you can hold (28, more with the Ardougne Diary)",
+        section = thievingSection,
+        position = 1
+    )
+    default boolean coinPouchAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCoinPouch",
+        name = "Voice: Coin Pouches Full",
+        description = "When your coin pouches are full (turning it on plays a preview)",
+        section = thievingSection,
+        position = 2
+    )
+    default boolean voiceCoinPouch() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCoinPouch",
+        name = "Chat: Coin Pouches Full",
+        description = "Chat message when your coin pouches are full",
+        section = thievingSection,
+        position = 3
+    )
+    default boolean chatCoinPouch() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Farming",
+        description = "Farming patch info",
+        position = 64,
+        closedByDefault = true
+    )
+    String farmingSection = "farmingSection";
+
+    @ConfigItem(
+        keyName = "showFarmingHover",
+        name = "Farming Patch Hover",
+        description = "Hovering a farming patch shows what's growing, its stage, roughly when it's grown, compost, watering, protection and what you can plant",
+        section = farmingSection,
+        position = 1
+    )
+    default boolean showFarmingHover() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Hunter",
+        description = "Hunter creature info, trap and bird house timers",
+        position = 65,
+        closedByDefault = true
+    )
+    String hunterSection = "hunterSection";
+
+    @ConfigItem(
+        keyName = "showHunterHover",
+        name = "Creature Hover",
+        description = "Hovering a Hunter creature shows its level, XP and the trap it needs",
+        section = hunterSection,
+        position = 1
+    )
+    default boolean showHunterHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrapTimer",
+        name = "Trap Timer Pies",
+        description = "A pie on each trap you lay, showing how long until it collapses (green once something is caught)",
+        section = hunterSection,
+        position = 2
+    )
+    default boolean showTrapTimer() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showBirdhouseHover",
+        name = "Bird House Hover",
+        description = "Hovering a bird house shows its type and when it is ready",
+        section = hunterSection,
+        position = 3
+    )
+    default boolean showBirdhouseHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "birdhouseAlert",
+        name = "Bird Houses Ready Alert",
+        description = "Alert when the bird houses you seeded are full (50 minutes)",
+        section = hunterSection,
+        position = 4
+    )
+    default boolean birdhouseAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceBirdhouses",
+        name = "Voice: Bird Houses Ready",
+        description = "When your bird houses are ready (turning it on plays a preview)",
+        section = hunterSection,
+        position = 5
+    )
+    default boolean voiceBirdhouses() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBirdhouses",
+        name = "Chat: Bird Houses Ready",
+        description = "Chat message when your bird houses are ready",
+        section = hunterSection,
+        position = 6
+    )
+    default boolean chatBirdhouses() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Firemaking",
+        description = "Fire timers",
+        position = 66,
+        closedByDefault = true
+    )
+    String firemakingSection = "firemakingSection";
+
+    @ConfigItem(
+        keyName = "showFireTimer",
+        name = "Fire Timer Pies",
+        description = "A pie on each fire lit nearby, showing how long it may burn (1-2 minutes)",
+        section = firemakingSection,
+        position = 1
+    )
+    default boolean showFireTimer() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Runecraft",
+        description = "Altar info",
+        position = 67,
+        closedByDefault = true
+    )
+    String runecraftSection = "runecraftSection";
+
+    @ConfigItem(
+        keyName = "showRunecraftHover",
+        name = "Altar Hover",
+        description = "Hovering an altar shows the rune, level, XP and how many runes you make per essence",
+        section = runecraftSection,
+        position = 1
+    )
+    default boolean showRunecraftHover() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Agility",
+        description = "Course and shortcut info",
+        position = 68,
+        closedByDefault = true
+    )
+    String agilitySection = "agilitySection";
+
+    @ConfigItem(
+        keyName = "showAgilityHover",
+        name = "Obstacle Hover",
+        description = "Hovering a course obstacle or shortcut shows its Agility level, the course XP per lap and laps to your next level",
+        section = agilitySection,
+        position = 1
+    )
+    default boolean showAgilityHover() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Cooking",
+        description = "Burn levels",
+        position = 69,
+        closedByDefault = true
+    )
+    String cookingSection = "cookingSection";
+
+    @ConfigItem(
+        keyName = "showCookingHover",
+        name = "Range / Fire Hover",
+        description = "Hovering a range or fire shows the burn level of each raw food you are carrying",
+        section = cookingSection,
+        position = 1
+    )
+    default boolean showCookingHover() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Sailing",
+        description = "Sailing timers",
+        position = 70,
+        closedByDefault = true
+    )
+    String sailingSection = "sailingSection";
+
+    @ConfigItem(
+        keyName = "showShipwreckTimer",
+        name = "Shipwreck Pies",
+        description = "A pie on each Sailing shipwreck you saw surface, showing how long it has left before it sinks",
+        section = sailingSection,
+        position = 1
+    )
+    default boolean showShipwreckTimer() {
+        return true;
+    }
+
+    @ConfigSection(
         name = "Skill Tracker",
         description = "Sidebar XP tracker",
-        position = 60,
+        position = 80,
         closedByDefault = true
     )
     String trackerSection = "trackerSection";

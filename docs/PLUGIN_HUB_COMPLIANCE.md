@@ -11,6 +11,13 @@ Sources (re-check these before publishing, they change):
 
 Last checked: 2026-10-28.
 
+## Planned split
+
+The multi-tool will also be published as separate plugins (Gemstone Crab, skilling helpers, skill tracker,
+PvM HUD, Slayer, alerts...). Each part should stay self-contained so it can be lifted into its own plugin:
+its own data files, overlay(s) and config section, talking to the rest only through small shared helpers
+(voice alerts, chat messages, cursor tooltip).
+
 ## Code rules (from the Rejected-or-Rolled-Back-Features page)
 
 | Rule | Status |
@@ -39,6 +46,11 @@ Last checked: 2026-10-28.
 | Skilling hover cards (trees, rocks, stalls, pickpocket, fishing, farming) | OK. Information from the wiki and visible game state |
 | Resource timer pies (trees, MLM, calcified, Daeyalt, stars, fishing spots, shipwrecks) | OK. Each mirrors an existing Plugin Hub plugin (credited in README) |
 | Farming patch hover | OK. Same information as the core Time Tracking plugin |
+| Hunter: creature hover, trap pies, bird house hover + ready alert | OK. Core Hunter and Time Tracking plugins show trap timers and bird house times |
+| Firemaking fire pies | OK. Plugin Hub has fire-timer |
+| Runecraft altar hover, Agility course/shortcut hover, Cooking burn levels | OK. Wiki information; core Agility plugin knows the same shortcuts and courses |
+| Coin pouch full, batch complete alerts | OK. Notifications only |
+| Skill tracker goals and auto-pause | OK. Same as the core XP Tracker |
 | Voice alerts (bundled clips) | OK |
 | Skill tracker panel, level-up alerts | OK |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |

@@ -186,6 +186,12 @@ public class BradsMultiToolPlugin extends Plugin {
     private FarmingData farmingData;
 
     @Inject
+    private SkillHelperData skillHelperData;
+
+    @Inject
+    private BirdhouseTracker birdhouseTracker;
+
+    @Inject
     private BradsMultiToolResourceTimerOverlay resourceTimerOverlay;
 
     @Inject
@@ -432,9 +438,11 @@ public class BradsMultiToolPlugin extends Plugin {
         monsterData.load(gson);
         skillingData.load(gson);
         farmingData.load(gson);
+        skillHelperData.load(gson);
         eventBus.register(extraAlerts);
         eventBus.register(resourceTimers);
         eventBus.register(farmingData);
+        eventBus.register(birdhouseTracker);
         keyManager.registerKeyListener(slayerToggleListener);
         overlayManager.add(overlay);
         overlayManager.add(prayerOverlay);
@@ -472,6 +480,7 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.unregister(extraAlerts);
         eventBus.unregister(resourceTimers);
         eventBus.unregister(farmingData);
+        eventBus.unregister(birdhouseTracker);
         keyManager.unregisterKeyListener(slayerToggleListener);
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);

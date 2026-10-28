@@ -57,6 +57,9 @@ public class VoiceAlertService {
         TREE_GONE("tree_gone", "The tree is gone."),
         ROCK_DEPLETED("rock_depleted", "The rock is depleted."),
         FISHING_SPOT_MOVED("fishing_spot_moved", "The fishing spot has moved."),
+        COIN_POUCH_FULL("coin_pouch_full", "Your coin pouches are full."),
+        BIRDHOUSES_READY("birdhouses_ready", "Your bird houses are ready."),
+        BATCH_COMPLETE("batch_complete", "Batch complete."),
         // Per-potion buff lines, named after ActiveBuffs kinds: POTION_<NAME>_LOW / _EXPIRED
         POTION_SUPER_COMBAT_LOW("potion_super_combat_low", "Super combat is running out."),
         POTION_SUPER_COMBAT_EXPIRED("potion_super_combat_expired", "Super combat has run out."),
