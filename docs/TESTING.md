@@ -43,6 +43,8 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Trees, rocks, stalls, pickpocket NPCs, fishing spots (Bait at a sea spot shows sardine/herring, not pike).
 - [ ] Farming patches: empty patch shows what you can plant; planted patch shows crop, stage, grown-in time, compost after you use it, watered.
 - [ ] Hunter creature card; bird house card on Fossil Island.
+- [ ] Hover a young tree (Set-trap): Net trap card listing the lizards/salamanders nearby with levels.
+- [ ] Monster hover / PvM HUD show HP and weakness for monster variants (e.g. Sulphur Nagua, new bosses' forms).
 - [ ] Runecraft altar card (runes per essence at your level).
 - [ ] Agility course obstacle card (laps to level) and a shortcut card.
 - [ ] Cooking: hover a range or fire with raw food: each food shows XP (or the level it needs), burning, and XP for all.

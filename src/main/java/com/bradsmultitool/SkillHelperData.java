@@ -310,6 +310,18 @@ class SkillHelperData {
         }
     }
 
+    /** Creatures caught with this trap ("Net trap", "Deadfall"...), lowest level first. */
+    List<Creature> creaturesFor(String trap) {
+        List<Creature> out = new ArrayList<>();
+        for (Creature creature : creatures.values()) {
+            if (creature.trap != null && creature.trap.equalsIgnoreCase(trap)) {
+                out.add(creature);
+            }
+        }
+        out.sort((a, b) -> Integer.compare(a.level, b.level));
+        return out;
+    }
+
     Creature creature(String npcName) {
         return npcName == null ? null : creatures.get(npcName.toLowerCase());
     }

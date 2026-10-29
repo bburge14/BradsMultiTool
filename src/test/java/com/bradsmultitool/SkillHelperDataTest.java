@@ -25,6 +25,14 @@ public class SkillHelperDataTest {
     }
 
     @Test
+    public void trapSpots() {
+        java.util.List<SkillHelperData.Creature> net = DATA.creaturesFor("Net trap");
+        assertEquals("Swamp lizard", net.get(0).name); // lowest level first
+        assertEquals(29, net.get(0).level);
+        assertNotNull(DATA.creaturesFor("Deadfall").isEmpty() ? null : "deadfall");
+    }
+
+    @Test
     public void runecraftAltarsAndMultiples() {
         SkillHelperData.Rune air = DATA.altar(34760);
         assertEquals("Air", air.name);

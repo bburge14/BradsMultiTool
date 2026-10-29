@@ -62,7 +62,7 @@ pies, and alerts that only fire for the resource you're working:
 | Fishing | Spot card (what each option catches at that kind of spot, tool needed); pies on spots showing how soon they may move (per spot type); fishing spot moved alert |
 | Thieving | Stall and pickpocket cards (level, XP, never-fail level with the Ardougne cloak, stun damage); coin pouches full alert |
 | Farming | Patch card: crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's protection payment, and what you can plant |
-| Hunter | Creature card (level, XP, trap); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
+| Hunter | Creature card (level, XP, trap); trap spot card (young tree, boulder, pit: what you can catch there, with levels); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
 | Firemaking | Pies on fires lit nearby showing how long they may burn |
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |

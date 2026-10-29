@@ -155,6 +155,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
                 return true;
             }
         }
+        if (config.showHunterHover() && buildTrapSpotCard(entry, option, target)) {
+            return true;
+        }
         if (config.showSailingHover() && buildSailingCard(entry, option, target)) {
             return true;
         }
@@ -424,6 +427,59 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
         }
         return counts;
+    }
+
+    // ---- Hunter trap spots ----
+
+    // The trap a spot takes, by the spot's name ("Set-trap Young tree" is a net trap)
+    private static String trapFor(String target) {
+        String name = target.toLowerCase();
+        if (name.contains("young tree")) {
+            return "Net trap";
+        }
+        if (name.contains("boulder")) {
+            return "Deadfall";
+        }
+        if (name.contains("pit")) {
+            return "Spiked pit";
+        }
+        return null;
+    }
+
+    // What you can catch with this trap: the creatures of that kind nearby, else all of them, with levels
+    private boolean buildTrapSpotCard(MenuEntry entry, String option, String target) {
+        String trap = trapFor(target);
+        if (trap == null || !(option.contains("trap") || option.startsWith("set") || option.startsWith("lay"))) {
+            return false;
+        }
+        List<SkillHelperData.Creature> creatures = helpers.creaturesFor(trap);
+        if (creatures.isEmpty()) {
+            return false;
+        }
+        WorldView view = client.getTopLevelWorldView();
+        WorldPoint at = WorldPoint.fromScene(view, entry.getParam0(), entry.getParam1(), view.getPlane());
+        java.util.Set<String> nearby = new java.util.HashSet<>();
+        for (NPC npc : view.npcs()) {
+            if (npc.getName() != null && npc.getWorldLocation().distanceTo(at) <= 15) {
+                nearby.add(npc.getName().toLowerCase());
+            }
+        }
+        List<SkillHelperData.Creature> here = new ArrayList<>();
+        for (SkillHelperData.Creature creature : creatures) {
+            if (nearby.contains(creature.name.toLowerCase())) {
+                here.add(creature);
+            }
+        }
+        int level = client.getRealSkillLevel(Skill.HUNTER);
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(target + " (" + trap + ")").color(TITLE_COLOR).build());
+        for (SkillHelperData.Creature creature : here.isEmpty() ? creatures : here) {
+            boolean can = level >= creature.level;
+            line(creature.name + ":", "Lvl " + creature.level + (creature.xp > 0 ? ", " + trim(creature.xp) + " XP" : ""),
+                can ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+        }
+        addYourRate(Skill.HUNTER);
+        return true;
     }
 
     // ---- Sailing ----

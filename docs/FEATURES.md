@@ -153,6 +153,7 @@ own rate show while you're training that skill.
 | Pickpocket NPC | Level, XP, never-fail level with the Ardougne cloak, stun damage | Skilling > Skilling Hover Info |
 | Farming patch | Crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's payment, what you can plant | Farming > Farming Patch Hover |
 | Hunter creature | Level, XP, the trap | Hunter > Creature Hover |
+| Hunter trap spot (young tree, boulder, pit) | The trap it takes and what you can catch with it: the creatures nearby, else all of them, each with its level (green if you can) and XP | Hunter > Creature Hover |
 | Bird house (Fossil Island) | Type, and when it'll be full | Hunter > Bird House Hover |
 | Runecraft altar | Level, XP, runes per essence at your level, the next multiple | Runecraft > Altar Hover |
 | Agility obstacle / shortcut | Course level, XP per lap, laps to your next level; shortcut level | Agility > Obstacle Hover |

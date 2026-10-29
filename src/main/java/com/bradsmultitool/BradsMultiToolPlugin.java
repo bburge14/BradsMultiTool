@@ -1000,8 +1000,13 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     /** Wiki stats for an NPC, or null if it isn't in the bundled data. */
+    // By the NPC's id, its transformed id (NPCs that change form), then its name
     public MonsterData.Stats statsFor(NPC npc) {
-        return monsterData.get(npc.getId());
+        MonsterData.Stats stats = monsterData.get(npc.getId());
+        if (stats == null && npc.getTransformedComposition() != null) {
+            stats = monsterData.get(npc.getTransformedComposition().getId());
+        }
+        return stats != null ? stats : monsterData.get(npc.getId(), npc.getName());
     }
 
     public MonsterWeakness weaknessFor(NPC npc) {
@@ -1762,7 +1767,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 pvmFightEnded = false;
                 resolveNpcWeaknessAndAggression(activeFightNpc);
 
-                MonsterData.Stats stats = monsterData.get(activeFightNpc.getId());
+                MonsterData.Stats stats = statsFor(activeFightNpc);
                 int baseHp = stats != null ? stats.hitpoints : 0;
                 if (baseHp <= 0) {
                     baseHp = Math.max(10, activeFightNpc.getCombatLevel() * 2);
@@ -1839,7 +1844,7 @@ public class BradsMultiToolPlugin extends Plugin {
             return;
         }
 
-        MonsterData.Stats stats = monsterData.get(npc.getId());
+        MonsterData.Stats stats = statsFor(npc);
         Aggression.Verdict aggro = aggressionFor(npc);
         pvmTargetIsAggressive = aggro.aggressive();
         pvmTargetAggroText = aggro.text;
@@ -1858,7 +1863,7 @@ public class BradsMultiToolPlugin extends Plugin {
                 }
             }
         }
-        return Aggression.of(monsterData.get(npc.getId()), npc.getCombatLevel(),
+        return Aggression.of(statsFor(npc), npc.getCombatLevel(),
             local != null ? local.getCombatLevel() : 0, client.getVarbitValue(INSIDE_WILDERNESS_VARBIT) == 1, equipped);
     }
 
