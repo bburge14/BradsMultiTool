@@ -27,8 +27,6 @@ class PluginFamily {
 
     static final String NAMESPACE = "snuffys";
     static final String VOICES = "voices";
-    // This build's id (each separate plugin will have its own: "skilling", "pvm", "gemcrab", "voices")
-    static final String SELF = "multitool";
 
     /** The voice the Voices plugin asked everyone to use. */
     static final class VoiceSettings {
@@ -44,12 +42,15 @@ class PluginFamily {
     }
 
     private final EventBus eventBus;
+    // This build's id ("multitool", "skilltracker", "pvm", "gemcrab", "voices")
+    private final String self;
     private final Set<String> others = ConcurrentHashMap.newKeySet();
     private volatile VoiceSettings voiceSettings;
 
     @Inject
-    PluginFamily(EventBus eventBus) {
+    PluginFamily(EventBus eventBus, PluginIdentity identity) {
         this.eventBus = eventBus;
+        this.self = identity.familyId;
     }
 
     void start() {
@@ -81,7 +82,7 @@ class PluginFamily {
         }
         Map<String, Object> data = message.getData();
         Object sender = data.get("plugin");
-        if (!(sender instanceof String) || SELF.equals(sender)) {
+        if (!(sender instanceof String) || self.equals(sender)) {
             return;
         }
         String plugin = (String) sender;
@@ -118,7 +119,7 @@ class PluginFamily {
 
     private void post(String name) {
         Map<String, Object> data = new HashMap<>();
-        data.put("plugin", SELF);
+        data.put("plugin", self);
         eventBus.post(new PluginMessage(NAMESPACE, name, data));
     }
 }

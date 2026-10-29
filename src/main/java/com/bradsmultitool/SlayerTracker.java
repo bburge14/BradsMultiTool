@@ -23,6 +23,9 @@ import net.runelite.api.gameval.VarPlayerID;
 @Singleton
 class SlayerTracker {
 
+    @Inject
+    private Alerts alerts;
+
     private static final int VARP_SLAYER_COUNT = 394;   // VarPlayerID.SLAYER_COUNT
     private static final int VARP_SLAYER_TARGET = 395;  // VarPlayerID.SLAYER_TARGET
     private static final int VARBIT_BOSS_TARGET = 4723; // VarbitID.SLAYER_TARGET_BOSSID
@@ -197,7 +200,7 @@ class SlayerTracker {
         NPC target = plugin.getCurrentPvmTarget();
         if (target != null && isTaskMonster(target)) {
             missingItemAlerted = true;
-            plugin.alert(VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING, requirement.display.toLowerCase() + " for " + taskName.toLowerCase());
+            alerts.alert(VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING, requirement.display.toLowerCase() + " for " + taskName.toLowerCase());
         }
     }
 

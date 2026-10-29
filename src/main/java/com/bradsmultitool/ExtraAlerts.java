@@ -37,6 +37,9 @@ import net.runelite.client.util.Text;
 @Singleton
 class ExtraAlerts {
 
+    @Inject
+    private Alerts alerts;
+
     // Game variables (net.runelite.api.gameval)
     private static final int VARP_SPEC_ENERGY = 300;       // VarPlayerID.SA_ENERGY, 0-1000
     private static final int VARP_POISON = 102;            // VarPlayerID.POISON
@@ -113,7 +116,7 @@ class ExtraAlerts {
     }
 
     private void alert(VoiceAlertService.VoiceLine line, String detail) {
-        plugin.alert(line, detail);
+        alerts.alert(line, detail);
     }
 
     @Subscribe
@@ -316,7 +319,7 @@ class ExtraAlerts {
     public void onStatChanged(StatChanged event) {
         Skill skill = event.getSkill();
         Integer before = productionXp.put(skill, event.getXp());
-        if (PRODUCTION_SKILLS.contains(skill) && before != null && event.getXp() > before && plugin.alertsReady()) {
+        if (PRODUCTION_SKILLS.contains(skill) && before != null && event.getXp() > before && alerts.ready()) {
             int tick = client.getTickCount();
             if (tick == lastProductionXpTick && skill == lastProductionSkill) {
                 return;

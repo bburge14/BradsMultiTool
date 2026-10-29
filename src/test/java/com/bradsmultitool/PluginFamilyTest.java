@@ -24,7 +24,7 @@ public class PluginFamilyTest {
     @Test
     public void usesTheVoicesPluginsVoiceOnlyWhileItRuns() {
         EventBus bus = new EventBus();
-        PluginFamily family = new PluginFamily(bus);
+        PluginFamily family = new PluginFamily(bus, PluginIdentity.MULTI_TOOL);
         family.start();
         assertNull(family.voiceSettings());
 
@@ -41,11 +41,11 @@ public class PluginFamilyTest {
     @Test
     public void answersHelloAndIgnoresItself() {
         EventBus bus = new EventBus();
-        PluginFamily family = new PluginFamily(bus);
+        PluginFamily family = new PluginFamily(bus, PluginIdentity.MULTI_TOOL);
         family.start();
         bus.post(message("hello", "plugin", "pvm"));
         assertTrue(family.isRunning("pvm"));
-        assertFalse(family.isRunning(PluginFamily.SELF));
+        assertFalse(family.isRunning(PluginIdentity.MULTI_TOOL.familyId));
         assertNull(PluginFamily.parseVoiceSettings(new HashMap<>()));
         family.stop();
     }

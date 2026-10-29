@@ -113,8 +113,6 @@ public class BradsMultiToolPlugin extends Plugin {
     // Client idle timeouts in 20ms client cycles: 5 minutes normally, 20 minutes (clicks/keys only) in combat
     private static final int DEFAULT_IDLE_LOGOUT_CYCLES = 15000;
     private static final int COMBAT_IDLE_LOGOUT_CYCLES = 60000;
-    // Login: alerts wait until the welcome screen's "Click here to play" is gone, then a few ticks more
-    private static final int WELCOME_SCREEN_GROUP = 378;
     private static final int INSIDE_WILDERNESS_VARBIT = 5963;
     // Bank, bank side panel, deposit box, bank PIN, shop, GE collect, GE offers, seed vault
     // Bank, bank side panel, deposit box, bank PIN, shop, collection box, GE, GE side panel
@@ -124,7 +122,6 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int[] DIALOGUE_INTERFACES = {231, 217, 219, 193, 229, 11, 270};
     // An action counts towards the AFK alert only while it's giving XP (an XP drop in the last 30 seconds, for slow trees)
     private static final int XP_ACTION_TICKS = 50;
-    private static final int IN_GAME_SETTLE_TICKS = 3;
     // XP within this many ticks (about 5s) counts as doing something for the AFK alert
     private static final int RECENT_XP_TICKS = 8;
     // Repeat counter value meaning "already handled, don't sound or repeat"
@@ -293,7 +290,8 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     private SkillIconManager skillIconManager;
 
-    private final VoiceAlertService voiceService = new VoiceAlertService();
+    @Inject
+    private Alerts alerts;
     private NavigationButton navButton;
     private BradsMultiToolPanel panel;
 
@@ -382,7 +380,6 @@ public class BradsMultiToolPlugin extends Plugin {
     private int lastActiveTick = 0;
     private int actionTicks = 0;
     private int lastXpTick = -1000;
-    private int inGameTicks = 0;
     private Instant lastIdleAlertTime = Instant.EPOCH;
 
     @Getter
@@ -521,6 +518,7 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(birdhouseTracker);
         eventBus.register(otherTimerPlugins);
         pluginFamily.start();
+        eventBus.register(alerts);
         eventBus.register(questProgress);
         eventBus.register(skillingOverlay);
         otherTimerPlugins.refresh();
@@ -582,7 +580,8 @@ public class BradsMultiToolPlugin extends Plugin {
         if (navButton != null) {
             clientToolbar.removeNavigation(navButton);
         }
-        voiceService.shutdown();
+        eventBus.unregister(alerts);
+        alerts.shutDown();
         activeCrab = null;
         dormantCrabShellNpc = null;
         currentPvmTarget = null;
@@ -597,70 +596,14 @@ public class BradsMultiToolPlugin extends Plugin {
         resetFightTracking();
     }
 
-    // Plays a random real alert in the newly selected voice
-    private void previewVoice() {
-        // The voice just picked here, even while the Voices plugin sets the one alerts use
-        VoiceAlertService.VoiceLine[] lines = VoiceAlertService.VoiceLine.values();
-        voiceService.speakAsync(lines[ThreadLocalRandom.current().nextInt(lines.length)], pick(config.voicePersona()), config.voiceVolume());
-    }
-
-    /**
-     * True once you're actually in the game: past the welcome screen for a few ticks. Before that, alerts
-     * stay silent and anything already true at login (low prayer, say) counts as already announced.
-     */
+    /** Alerts are held back until you're really in the game (see Alerts.ready). */
     boolean alertsReady() {
-        return inGameTicks > IN_GAME_SETTLE_TICKS;
+        return alerts.ready();
     }
 
     private boolean isWidgetVisible(int group) {
         Widget widget = client.getWidget(group, 0);
         return widget != null && !widget.isHidden();
-    }
-
-    /** Speaks an alert, if you're in game and its voice is turned on. */
-    void speak(VoiceAlertService.VoiceLine line) {
-        if (alertsReady() && voiceEnabled() && voiceAllowed(line)) {
-            playVoice(line);
-        }
-    }
-
-    private void playVoice(VoiceAlertService.VoiceLine line) {
-        voiceService.speakAsync(line, voicePersona(), voiceVolume());
-    }
-
-    // The Voices plugin's voice and volume while it's running (PluginFamily), else this plugin's settings
-    private boolean voiceEnabled() {
-        PluginFamily.VoiceSettings shared = pluginFamily.voiceSettings();
-        return shared != null ? shared.enabled : config.voiceEnabled();
-    }
-
-    private VoiceAlertService.VoicePersona voicePersona() {
-        PluginFamily.VoiceSettings shared = pluginFamily.voiceSettings();
-        return pick(shared != null ? shared.persona : config.voicePersona());
-    }
-
-    // Random: one of the voices, picked afresh for each alert
-    private static VoiceAlertService.VoicePersona pick(VoiceAlertService.VoicePersona persona) {
-        if (persona != VoiceAlertService.VoicePersona.RANDOM) {
-            return persona;
-        }
-        VoiceAlertService.VoicePersona[] voices = VoiceAlertService.VoicePersona.voices();
-        return voices[ThreadLocalRandom.current().nextInt(voices.length)];
-    }
-
-    private int voiceVolume() {
-        PluginFamily.VoiceSettings shared = pluginFamily.voiceSettings();
-        return shared != null ? shared.volume : config.voiceVolume();
-    }
-
-    private boolean voiceAllowed(VoiceAlertService.VoiceLine line) {
-        return toggle(AlertType.of(line).voiceKey);
-    }
-
-    // A Voice Alerts / Chat Messages switch, falling back to its default
-    private boolean toggle(String key) {
-        String value = configManager.getConfiguration(CONFIG_GROUP, key);
-        return value == null ? !"chatLevelUp".equals(key) : Boolean.parseBoolean(value);
     }
 
     public String getPvmTargetHp() {
@@ -669,19 +612,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     public String getCombatXpType() {
         return crabCombatXpType;
-    }
-
-    /** Speaks the line and posts the same words in chat, with any detail in brackets. */
-    void alert(VoiceAlertService.VoiceLine line, String detail) {
-        speak(line);
-        sendGameChatMessage(AlertType.of(line), detail == null ? line.text : line.text + " (" + detail + ")");
-    }
-
-    /** Posts an alert in chat, if you're in game and its chat message is turned on. */
-    void sendGameChatMessage(AlertType type, String message) {
-        if (config.sendChatMessages() && alertsReady() && toggle(type.chatKey)) {
-            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Snuffy's Multi-Tool]</col> " + message, null);
-        }
     }
 
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
@@ -700,15 +630,6 @@ public class BradsMultiToolPlugin extends Plugin {
         String key = event.getKey();
         if (key.startsWith("showTracker") || key.startsWith("tracker") || key.startsWith("goal") || "showXpPerMinute".equals(key) || key.startsWith("autoPause")) {
             updatePanelUI();
-        }
-        if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
-            previewVoice();
-        } else if (Boolean.parseBoolean(event.getNewValue())) {
-            for (AlertType type : AlertType.values()) {
-                if (type.voiceKey.equals(key)) {
-                    voiceService.speakClipsAsync(voicePersona(), voiceVolume(), type.preview);
-                }
-            }
         }
     }
 
@@ -1002,7 +923,6 @@ public class BradsMultiToolPlugin extends Plugin {
             slayerTracker.reset();
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
-            inGameTicks = 0;
             characterWasActive = false;
             actionTicks = 0;
             lastPlayerLocation = null;
@@ -1041,7 +961,7 @@ public class BradsMultiToolPlugin extends Plugin {
             resetFightTracking();
 
             if (inSpawnVicinity && wasDirectlyTrackingCrab && isNearPlayer(npc, CRAB_BURROW_ALERT_DISTANCE)) {
-                alert(VoiceAlertService.VoiceLine.CRAB_MOVED, null);
+                alerts.alert(VoiceAlertService.VoiceLine.CRAB_MOVED, null);
             }
             wasDirectlyTrackingCrab = false;
         }
@@ -1238,7 +1158,7 @@ public class BradsMultiToolPlugin extends Plugin {
             crabLowHealthAlerted = false;
         } else if (!crabLowHealthAlerted && inSpawnVicinity) {
             crabLowHealthAlerted = true;
-            alert(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH, crabHpPercent + "% health");
+            alerts.alert(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH, crabHpPercent + "% health");
         }
     }
 
@@ -1359,11 +1279,6 @@ public class BradsMultiToolPlugin extends Plugin {
         tickXpChanges.clear();
 
         Player player = client.getLocalPlayer();
-        if (player == null || isWidgetVisible(WELCOME_SCREEN_GROUP)) {
-            inGameTicks = 0;
-        } else {
-            inGameTicks++;
-        }
         if (player != null) {
             combatLevel = player.getCombatLevel();
             WorldPoint wp = player.getWorldLocation();
@@ -1504,13 +1419,13 @@ public class BradsMultiToolPlugin extends Plugin {
                 buffStatusText = "EXPIRED";
                 timesBuffExpiredSounded = 1;
                 lastBuffExpiredSoundTime = Instant.now();
-                alert(lastExpiredLine(), null);
+                alerts.alert(lastExpiredLine(), null);
             } else if (buffState == BuffState.EXPIRED && config.repeatBuffAlert()
                 && Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds() >= config.repeatBuffInterval()
                 && timesBuffExpiredSounded <= config.maxBuffRepeats()) {
                 timesBuffExpiredSounded++;
                 lastBuffExpiredSoundTime = Instant.now();
-                alert(lastExpiredLine(), "still out");
+                alerts.alert(lastExpiredLine(), "still out");
             } else if (buffState == BuffState.UNPOTTED) {
                 buffStatusText = "No Buffs";
             }
@@ -1581,7 +1496,7 @@ public class BradsMultiToolPlugin extends Plugin {
             // Before the decay timer is synced (no stat drop seen since login or a hop) the time left isn't
             // exact, but a buff down to +1 has at most one decay period left
             String left = (buff.exact ? "" : "under ") + BuffTimer.formatMillis(buff.millisLeft(now)) + " left";
-            alert(potionLine(buff.name, true, runningOutLine(buff.category)), left);
+            alerts.alert(potionLine(buff.name, true, runningOutLine(buff.category)), left);
         }
     }
 
@@ -1597,7 +1512,7 @@ public class BradsMultiToolPlugin extends Plugin {
             lastEndedCategory = before.category;
             lastEndedBuffName = before.name;
             if (!current.isEmpty()) {
-                alert(potionLine(before.name, false, expiredLine(before.category)), null);
+                alerts.alert(potionLine(before.name, false, expiredLine(before.category)), null);
             }
         }
     }
@@ -1672,7 +1587,7 @@ public class BradsMultiToolPlugin extends Plugin {
         } else if (canSound) {
             timesHealthAlertSounded++;
             lastHealthAlertTime = Instant.now();
-            alert(VoiceAlertService.VoiceLine.HEALTH_LOW, hp + " hitpoints");
+            alerts.alert(VoiceAlertService.VoiceLine.HEALTH_LOW, hp + " hitpoints");
         }
     }
 
@@ -1683,7 +1598,7 @@ public class BradsMultiToolPlugin extends Plugin {
         if (isZero && !zeroPrayerAlert) {
             zeroPrayerAlert = true;
             lowPrayerAlert = false;
-            alert(VoiceAlertService.VoiceLine.OUT_OF_PRAYER, null);
+            alerts.alert(VoiceAlertService.VoiceLine.OUT_OF_PRAYER, null);
             return;
         } else if (!isZero) {
             zeroPrayerAlert = false;
@@ -1709,7 +1624,7 @@ public class BradsMultiToolPlugin extends Plugin {
             }
 
             if (canSound) {
-                alert(VoiceAlertService.VoiceLine.PRAYER_LOW, currentPrayer + " points");
+                alerts.alert(VoiceAlertService.VoiceLine.PRAYER_LOW, currentPrayer + " points");
             }
         } else if (currentPrayer > threshold(Skill.PRAYER, config.lowPrayerPercent())) {
             lowPrayerAlert = false;
@@ -1764,7 +1679,7 @@ public class BradsMultiToolPlugin extends Plugin {
             characterIdleAlerted = true;
             characterWasActive = false;
             actionTicks = 0;
-            alert(VoiceAlertService.VoiceLine.CHARACTER_IDLE, idleSeconds + " seconds");
+            alerts.alert(VoiceAlertService.VoiceLine.CHARACTER_IDLE, idleSeconds + " seconds");
         }
     }
 
@@ -1835,9 +1750,9 @@ public class BradsMultiToolPlugin extends Plugin {
             timesIdleAlerted++;
             lastIdleAlertTime = Instant.now();
             if (timesIdleAlerted == 1) {
-                alert(VoiceAlertService.VoiceLine.IDLE_LOGOUT, null);
+                alerts.alert(VoiceAlertService.VoiceLine.IDLE_LOGOUT, null);
             } else {
-                speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
+                alerts.speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
             }
         }
     }
@@ -2343,10 +2258,8 @@ public class BradsMultiToolPlugin extends Plugin {
         if (previous == null || level <= previous || !alertsReady()) {
             return;
         }
-        if (voiceEnabled() && toggle(AlertType.LEVEL_UP.voiceKey)) {
-            voiceService.speakClipsAsync(voicePersona(), voiceVolume(), VoiceAlertService.levelUpClips(skill, level));
-        }
-        sendGameChatMessage(AlertType.LEVEL_UP, skill.getName() + " level " + level + "!");
+        alerts.speakClips(AlertType.LEVEL_UP, VoiceAlertService.levelUpClips(skill, level));
+        alerts.chat(AlertType.LEVEL_UP, skill.getName() + " level " + level + "!");
         announceNewMethod(skill, previous, level);
     }
 
@@ -2481,6 +2394,16 @@ public class BradsMultiToolPlugin extends Plugin {
             playerAttackingCrab = false;
             targetCrabHp = "No Target";
         }
+    }
+
+    @Provides
+    PluginIdentity provideIdentity() {
+        return PluginIdentity.MULTI_TOOL;
+    }
+
+    @Provides
+    CommonConfig provideCommonConfig(BradsMultiToolConfig config) {
+        return config;
     }
 
     @Provides
