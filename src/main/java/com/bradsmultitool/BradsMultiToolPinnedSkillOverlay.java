@@ -3,7 +3,9 @@ package com.bradsmultitool;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
@@ -90,6 +92,12 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             GoalLines.ItemLine item = config.showTrainingSuggestion() ? GoalLines.itemLine(plugin, skill) : null;
             if (item != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(item.label + " " + item.item + " " + item.have, SOFT, false));
+            }
+            Map<String, Boolean> tools = config.showTrainingSuggestion()
+                ? GoalLines.tools(plugin, skill, level) : Collections.emptyMap();
+            if (!tools.isEmpty()) {
+                line("Needs:", String.join(", ", tools.keySet()),
+                    tools.containsValue(false) ? BradsMultiToolOverlay.BAD : BradsMultiToolOverlay.GOOD);
             }
         }
         // Actions (or kills) left, as on the tracker card

@@ -35,6 +35,8 @@ class RecipeData {
         final String facility;
         /** Material name -> how many one needs. */
         final Map<String, Integer> materials = new LinkedHashMap<>();
+        /** Tools it needs ("Knife", "Hammer", "Tinderbox"), not used up. */
+        final List<String> tools = new ArrayList<>();
 
         Recipe(JsonObject o) {
             name = o.get("name").getAsString();
@@ -43,6 +45,11 @@ class RecipeData {
             facility = o.has("facility") ? o.get("facility").getAsString() : null;
             for (Map.Entry<String, JsonElement> m : o.getAsJsonObject("materials").entrySet()) {
                 materials.put(m.getKey(), m.getValue().getAsInt());
+            }
+            if (o.has("tools")) {
+                for (JsonElement t : o.getAsJsonArray("tools")) {
+                    tools.add(t.getAsString());
+                }
             }
         }
 

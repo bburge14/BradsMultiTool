@@ -242,6 +242,9 @@ Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Id
 **What it does:**
 - Skills with a goal are pinned under **GOALS** at the top of the tracker (even before you train them this
   session), with a gold goal bar, XP left and time to reach it. Everything else is under **THIS SESSION**.
+- **Needs:** the tools the suggestion takes (an axe or pickaxe, the trap, a tinderbox, or the recipe's
+  knife, chisel, hammer, needle, mould...), green if you carry, wear or bank one (the bank as last opened)
+  and red if not.
 - Suggestions skip methods you can't do yet: the guide's required quests (checked against your quest
   log) and other skills' levels (Sulphur Naguas need 48 Slayer). At low levels the card also lists
   **Quest XP:** quests the guide recommends for that skill's XP that you haven't done (hover for all).

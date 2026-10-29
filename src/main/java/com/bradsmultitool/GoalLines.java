@@ -1,6 +1,10 @@
 package com.bradsmultitool;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import net.runelite.api.Experience;
 import net.runelite.api.Skill;
@@ -108,5 +112,27 @@ final class GoalLines {
             }
         }
         return new ItemLine("Make:", make.name, have);
+    }
+
+    /**
+     * Tools the goal's method needs, each with whether you have it (carried, worn or banked): the item line's
+     * recipe ("Knife" to fletch), else the suggestion ("Axe" for trees, "Tinderbox" to burn logs). Empty if none.
+     */
+    static Map<String, Boolean> tools(BradsMultiToolPlugin plugin, Skill skill, int level) {
+        List<String> names = new ArrayList<>();
+        RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
+        if (make != null) {
+            names.addAll(make.tools);
+        } else if (plugin.getGoalTarget(skill) == null) {
+            TrainingAdvisor.Suggestion suggestion = plugin.getTrainingAdvisor().suggest(skill, level);
+            if (suggestion != null) {
+                names.addAll(suggestion.tools);
+            }
+        }
+        Map<String, Boolean> out = new LinkedHashMap<>();
+        for (String name : names) {
+            out.put(name, plugin.getGoalItems().owns(name));
+        }
+        return out;
     }
 }

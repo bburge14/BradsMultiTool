@@ -31,16 +31,19 @@ class TrainingAdvisor {
         final TrainingData.Method method;
         /** XP for one action of it (one log, one item made), 0 if unknown. */
         final double xpEach;
+        /** Tools it needs ("Axe", "Knife", "Box trap"), not used up. */
+        final List<String> tools;
 
         Suggestion(String label, String text, TrainingData.Method method) {
-            this(label, text, method, 0);
+            this(label, text, method, 0, new ArrayList<>());
         }
 
-        Suggestion(String label, String text, TrainingData.Method method, double xpEach) {
+        Suggestion(String label, String text, TrainingData.Method method, double xpEach, List<String> tools) {
             this.label = label;
             this.text = text;
             this.method = method;
             this.xpEach = xpEach;
+            this.tools = tools;
         }
 
         @Override
@@ -102,14 +105,42 @@ class TrainingAdvisor {
                 RecipeData.Recipe recipe = cheapest(skill, level);
                 if (recipe != null) {
                     double gpPerXp = prices.profit(recipe) / recipe.xp;
-                    return new Suggestion("Cheapest:", recipe.name + " (" + String.format("%+.1f", gpPerXp) + " gp/xp)", null, recipe.xp);
+                    return new Suggestion("Cheapest:", recipe.name + " (" + String.format("%+.1f", gpPerXp) + " gp/xp)", null, recipe.xp,
+                        recipe.tools);
                 }
                 break;
             default:
                 break;
         }
         TrainingData.Method method = training.suggest(skill, level, focus == BradsMultiToolConfig.TrainingFocus.OTHER, this::canDo);
-        return method == null ? null : new Suggestion("Train:", method.name, method, xpEach(method));
+        return method == null ? null : new Suggestion("Train:", method.name, method, xpEach(method), toolsFor(skill, method));
+    }
+
+    // What a guide method needs to hand: an axe or pickaxe for its trees or rocks, the trap for its creature,
+    // a tinderbox to burn logs
+    private List<String> toolsFor(Skill skill, TrainingData.Method method) {
+        List<String> tools = new ArrayList<>();
+        for (int id : method.objects) {
+            SkillingData.Resource resource = skilling.object(id, null);
+            if (resource != null && "Woodcutting".equals(resource.skill)) {
+                tools.add("Axe");
+                break;
+            }
+            if (resource != null && "Mining".equals(resource.skill)) {
+                tools.add("Pickaxe");
+                break;
+            }
+        }
+        for (String npc : method.npcs) {
+            SkillHelperData.Creature creature = helpers.creature(npc);
+            if (creature != null && creature.trap != null && !creature.trap.isEmpty() && !tools.contains(creature.trap)) {
+                tools.add(creature.trap);
+            }
+        }
+        if (skill == Skill.FIREMAKING && method.name.toLowerCase().contains("burn")) {
+            tools.add("Tinderbox");
+        }
+        return tools;
     }
 
     /**

@@ -654,6 +654,13 @@ public class BradsMultiToolPanel extends PluginPanel {
                 if (item != null) {
                     lines.add(label(item.label) + item.item + " " + label(item.have));
                 }
+                // The tools it needs: green if you have them (carried, worn or banked), red if not
+                Map<String, Boolean> tools = GoalLines.tools(plugin, skill, level);
+                if (!tools.isEmpty()) {
+                    List<String> parts = new ArrayList<>();
+                    tools.forEach((name, have) -> parts.add("<font color='" + (have ? "#64dc64" : "#ff6464") + "'>" + name + "</font>"));
+                    lines.add(label("Needs:") + String.join(", ", parts));
+                }
             }
             if (suggestion.isVisible() != !lines.isEmpty()) {
                 suggestion.setVisible(!lines.isEmpty());

@@ -2,7 +2,9 @@ package com.bradsmultitool;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
@@ -40,6 +42,8 @@ class GoalItems {
     private volatile Map<Skill, Integer> counts = Collections.emptyMap();
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
+    // Everything you carry, wear or bank (lower-case names), for checking tools
+    private volatile Set<String> owned = Collections.emptySet();
     private boolean dirty = true;
 
     @Inject
@@ -63,6 +67,20 @@ class GoalItems {
         return counts.getOrDefault(skill, 0);
     }
 
+    /**
+     * Whether you carry, wear or (as last seen) bank this tool, or a better kind of it: "Axe" matches a rune
+     * axe, "Hammer" an imcando hammer, "Pickaxe" any pickaxe.
+     */
+    boolean owns(String tool) {
+        String t = tool.toLowerCase();
+        for (String item : owned) {
+            if (item.equals(t) || item.startsWith(t + " (") || item.endsWith(" " + t)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** The tooltip for an item that's a material for a goal suggestion, or null. */
     String tooltip(String itemName) {
         return itemName == null ? null : highlighted.get(itemName.toLowerCase());
@@ -78,7 +96,8 @@ class GoalItems {
             bank.clear();
             count(event.getItemContainer(), bank);
         }
-        if (event.getContainerId() == InventoryID.BANK || event.getContainerId() == InventoryID.INV) {
+        if (event.getContainerId() == InventoryID.BANK || event.getContainerId() == InventoryID.INV
+            || event.getContainerId() == InventoryID.WORN) {
             dirty = true;
         }
     }
@@ -107,6 +126,9 @@ class GoalItems {
     private void update() {
         Map<String, Integer> have = new HashMap<>(bank);
         count(client.getItemContainer(InventoryID.INV), have);
+        Map<String, Integer> all = new HashMap<>(have);
+        count(client.getItemContainer(InventoryID.WORN), all);
+        owned = new HashSet<>(all.keySet());
         Map<Skill, RecipeData.Recipe> suggestions = new HashMap<>();
         Map<String, String> highlighted = new HashMap<>();
         Map<Skill, Integer> counts = new HashMap<>();
