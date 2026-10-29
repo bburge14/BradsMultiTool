@@ -163,6 +163,8 @@ own rate show while you're training that skill.
 | Sea charting spot | The task, what to do, level, XP, the riddle answer for mermaid dives | Sailing > Sailing Hover |
 | Shipwreck | Level, salvage XP, what it gives, the best hook for you | Sailing > Sailing Hover |
 | Trawling shoal | Level, depth, bait, fish | Sailing > Sailing Hover |
+| Sea monster (sharks, rays, krakens, sea birds...) | Combat level, HP, aggressive, max hit with no keel, the keel it can't hurt you through, bounty task parts and the Sailing level for each; "Harvest" once defeated | Sailing > Sailing Hover |
+| Current duck | Drifting or stopped, and once stopped how long until it despawns | Sailing > Sailing Hover |
 
 **Best Choice By (Skilling):** how cards pick the "best" thing to make. **Most XP** (default) or **Most
 profit** at Grand Exchange prices; with profit on, the anvil and furnace cards add a Profit line.

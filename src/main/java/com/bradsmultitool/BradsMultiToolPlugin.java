@@ -507,6 +507,7 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(farmingData);
         eventBus.register(birdhouseTracker);
         eventBus.register(otherTimerPlugins);
+        eventBus.register(skillingOverlay);
         otherTimerPlugins.refresh();
         slayerCardHidden = Boolean.parseBoolean(configManager.getConfiguration(CONFIG_GROUP, SLAYER_CARD_HIDDEN));
         keyManager.registerKeyListener(slayerToggleListener);
@@ -552,6 +553,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(slayerHighlightOverlay);
         overlayManager.remove(pinnedSkillOverlay);
         eventBus.unregister(trainingOverlay);
+        eventBus.unregister(skillingOverlay);
         eventBus.unregister(goalItems);
         eventBus.unregister(goalTargetMenu);
         eventBus.unregister(extraAlerts);

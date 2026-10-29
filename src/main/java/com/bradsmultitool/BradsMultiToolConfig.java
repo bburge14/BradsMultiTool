@@ -1856,7 +1856,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "showSailingHover",
         name = "Sailing Hover",
-        description = "Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you) and trawling shoals (Fishing level, fish, depth, bait)",
+        description = "Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you), trawling shoals (Fishing level, fish, depth, bait), sea monsters (HP, safe keel, bounty parts) and your current duck",
         section = sailingSection,
         position = 2
     )

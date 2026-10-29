@@ -111,4 +111,14 @@ public class SkillHelperDataTest {
         assertEquals("Generic", glider.type);
         assertEquals(35, glider.xp, 0.01);
     }
+
+    @Test
+    public void seaMonsters() {
+        SkillHelperData.SeaMonster shark = DATA.seaMonster("Bull shark");
+        assertEquals(65, shark.combat);
+        assertEquals(81, shark.hp);
+        assertEquals("Adamant keel", shark.safeKeel());
+        assertEquals(Integer.valueOf(30), shark.bounties.get("Bull shark jaw"));
+        assertNull(DATA.seaMonster("Current duck"));
+    }
 }

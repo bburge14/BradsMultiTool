@@ -37,6 +37,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     private final SpriteManager spriteManager;
     private final SkillingData skillingData;
     @Inject
+    private SkillHelperData skillHelpers;
+    @Inject
     private SlayerMonsterInfo slayerInfo;
     private final PanelComponent panel = new PanelComponent();
 
@@ -62,7 +64,9 @@ public class BradsMultiToolHoverOverlay extends Overlay {
         }
 
         NPC npc = hoveredNpc();
-        if (npc == null || !plugin.isAttackable(npc) || plugin.isGemstoneCrab(npc) || isAlreadyShownByPvmHud(npc)) {
+        if (npc == null || !plugin.isAttackable(npc) || plugin.isGemstoneCrab(npc) || isAlreadyShownByPvmHud(npc)
+            // Sea monsters get the Sailing card instead
+            || (config.showSailingHover() && skillHelpers.seaMonster(npc.getName()) != null)) {
             return null;
         }
 

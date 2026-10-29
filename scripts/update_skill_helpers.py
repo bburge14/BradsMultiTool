@@ -235,7 +235,43 @@ def sailing():
             shoals[name.lower()] = {"name": name, "level": int(number(cells[0])), "depths": plain(cells[2]),
                                     "bait": plain(cells[3] if mixed else cells[4]),
                                     "fish": "Mixed deep sea fish" if mixed else plain(cells[5])}
-    return {"charting": tasks, "shipwrecks": wrecks, "hooks": hooks, "shoals": shoals}
+    return {"charting": tasks, "shipwrecks": wrecks, "hooks": hooks, "shoals": shoals, "monsters": sea_monsters()}
+
+
+KEELS = ["None", "Bronze", "Iron", "Steel", "Mithril", "Adamant", "Rune", "Dragon"]
+
+
+def sea_monsters():
+    """Sea monsters fought from a boat: HP, max hit on each keel, aggression (Boat combat), combat level, and the
+    parts bounty tasks ask for with the lowest Sailing level for each (Bounty tasks)."""
+    monsters = {}
+    combat = wikitext("Boat combat")
+    for cells in rows_of(tables(combat[combat.find("==Monsters"):])[0]):
+        if len(cells) < 11 or number(cells[1]) is None:
+            continue
+        hits = [number(re.sub(r"\{\{\w+\|(\d+)\}\}", r"\1", c)) for c in cells[2:10]]
+        if any(h is None for h in hits):
+            continue
+        page = re.search(r"\[\[([^|\]]+)", cells[0]).group(1)
+        name = plain(cells[0])
+        monsters[name.lower()] = {"name": name, "page": page, "hp": int(number(cells[1])),
+                                  "maxHits": [int(h) for h in hits], "aggressive": "|Yes}}" in cells[10], "bounties": {}}
+    for line in re.findall(r"\{\{BountyTaskLine\|([^}]*)\}\}", wikitext("Bounty tasks")):
+        fields = dict(re.findall(r"(\w+)=([^|]*)", line))
+        monster = monsters.get(fields.get("monster", "").lower())
+        if monster is None or not fields.get("level", "").isdigit():
+            continue
+        item = fields["item"]
+        level = int(fields["level"])
+        bounty = monster["bounties"].setdefault(item, {"level": level, "xp": int(number(fields.get("xp", "0")) or 0)})
+        bounty["level"] = min(bounty["level"], level)
+    for m in monsters.values():
+        rows = api({"action": "bucket", "query": "bucket('infobox_monster').select('combat_level').where('page_name','%s').run()"
+                    % m["page"].replace("'", "\\'")}).get("bucket", [])
+        if rows and rows[0].get("combat_level"):
+            m["combat"] = int(rows[0]["combat_level"])
+        del m["page"]
+    return monsters
 
 
 def recipes(skill):

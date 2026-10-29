@@ -22,6 +22,10 @@ import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.NpcChanged;
+import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.NpcSpawned;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
 import net.runelite.http.api.item.ItemPrice;
@@ -55,6 +59,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final SkillIconManager skillIcons;
     private final ItemManager itemManager;
     private final PanelComponent panel = new PanelComponent();
+    private final Map<NPC, Integer> duckStopped = new HashMap<>();
+    // A current duck despawns two minutes after it stops
+    private static final int DUCK_DESPAWN_TICKS = 200;
     // Grand Exchange price by item name (0 if unknown), looked up once
     private final Map<String, Integer> prices = new HashMap<>();
 
@@ -104,6 +111,11 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         NPC npc = entry.getNpc();
         if (npc != null) {
             return buildNpcCard(npc, Text.removeTags(entry.getOption()));
+        }
+        // Sea monsters and the current duck often have no left-click option (it's "Set heading" or
+        // "Walk here"), so look for them further down the menu
+        if (config.showSailingHover() && buildSeaCard(entries)) {
+            return true;
         }
         if (isObjectAction(entry.getType())) {
             if (config.showFarmingHover() && buildFarmingCard(entry)) {
@@ -551,6 +563,102 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         return true;
     }
 
+    private boolean buildSeaCard(MenuEntry[] entries) {
+        for (int i = entries.length - 2; i >= 0; i--) {
+            NPC npc = entries[i].getNpc();
+            if (npc != null) {
+                return buildSeaMonsterCard(npc) || buildCurrentDuckCard(npc);
+            }
+        }
+        return false;
+    }
+
+    /** A sea monster fought from your boat: its HP, what keel it can't hurt you through, and bounty parts. */
+    private boolean buildSeaMonsterCard(NPC npc) {
+        SkillHelperData.SeaMonster monster = helpers.seaMonster(npc.getName());
+        if (monster == null) {
+            return false;
+        }
+        panel.getChildren().clear();
+        boolean defeated = hasAction(npc, "harvest");
+        panel.getChildren().add(TitleComponent.builder()
+            .text(monster.name + (monster.combat > 0 ? " (Lvl " + monster.combat + ")" : ""))
+            .color(TITLE_COLOR).build());
+        if (defeated) {
+            line("Defeated:", "Harvest it for its drops", BradsMultiToolOverlay.GOOD);
+        } else {
+            int ratio = npc.getHealthRatio();
+            int scale = npc.getHealthScale();
+            int percent = ratio >= 0 && scale > 0 ? ratio * 100 / scale : 100;
+            panel.getChildren().add(new CenteredHealthBarComponent(percent,
+                (int) Math.ceil(percent * monster.hp / 100.0), monster.hp));
+            line("Aggressive:", monster.aggressive ? "Yes" : "No",
+                monster.aggressive ? BradsMultiToolOverlay.WARN : BradsMultiToolOverlay.GOOD);
+            line("Max Hit (No Keel):", String.valueOf(monster.maxHits.length > 0 ? monster.maxHits[0] : 0), Color.WHITE);
+            String safe = monster.safeKeel();
+            line("No Damage With:", safe != null ? safe : "Nothing yet", safe != null ? Color.WHITE : BradsMultiToolOverlay.WARN);
+            line("Fight With:", "Cannons, ranged or magic", new Color(180, 180, 180));
+        }
+        if (!monster.bounties.isEmpty()) {
+            header("Bounty Parts", "", Color.WHITE);
+            for (Map.Entry<String, Integer> bounty : monster.bounties.entrySet()) {
+                levelLine("  " + bounty.getKey(), Skill.SAILING, bounty.getValue());
+            }
+        }
+        return true;
+    }
+
+    /** Your current duck from a sea charting task: follow it, then collect it before it despawns. */
+    private boolean buildCurrentDuckCard(NPC npc) {
+        if (!"current duck".equalsIgnoreCase(npc.getName())) {
+            return false;
+        }
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text("Current Duck").color(TITLE_COLOR).build());
+        line("Task:", "Sea charting (current)", Color.WHITE);
+        if (hasAction(npc, "collect")) {
+            line("Stopped:", "Collect it for the XP", BradsMultiToolOverlay.GOOD);
+            Integer stoppedTick = duckStopped.get(npc);
+            if (stoppedTick != null) {
+                int left = Math.max(0, DUCK_DESPAWN_TICKS - (client.getTickCount() - stoppedTick)) * 600 / 1000;
+                line("Despawns In:", String.format("%d:%02d", left / 60, left % 60),
+                    left < 30 ? BradsMultiToolOverlay.WARN : Color.WHITE);
+            }
+        } else {
+            line("Drifting:", "Follow it, or sail to", Color.WHITE);
+            line("", "where it stops", Color.WHITE);
+        }
+        return true;
+    }
+
+    // When each current duck came to a stop (it despawns two minutes later)
+    @Subscribe
+    public void onNpcChanged(NpcChanged event) {
+        noteDuckStopped(event.getNpc());
+    }
+
+    // Also when it appears already stopped (the stopped duck can be a new NPC): counted from then
+    @Subscribe
+    public void onNpcSpawned(NpcSpawned event) {
+        noteDuckStopped(event.getNpc());
+    }
+
+    private void noteDuckStopped(NPC npc) {
+        if ("current duck".equalsIgnoreCase(npc.getName()) && hasAction(npc, "collect")) {
+            duckStopped.putIfAbsent(npc, client.getTickCount());
+        }
+    }
+
+    @Subscribe
+    public void onNpcDespawned(NpcDespawned event) {
+        duckStopped.remove(event.getNpc());
+    }
+
+    private static boolean hasAction(NPC npc, String action) {
+        NPCComposition comp = npc.getTransformedComposition() != null ? npc.getTransformedComposition() : npc.getComposition();
+        return comp != null && hasAction(comp, action);
+    }
+
     private boolean buildHunterCard(NPC npc) {
         SkillHelperData.Creature creature = helpers.creature(npc.getName());
         if (creature == null) {
@@ -742,7 +850,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
         }
         if (fishingOptions.isEmpty()) {
-            return (config.showSailingHover() && buildShoalCard(npc)) || (config.showHunterHover() && buildHunterCard(npc));
+            return (config.showSailingHover() && (buildShoalCard(npc) || buildSeaMonsterCard(npc) || buildCurrentDuckCard(npc)))
+                || (config.showHunterHover() && buildHunterCard(npc));
         }
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(npc.getName()).color(TITLE_COLOR).build());
