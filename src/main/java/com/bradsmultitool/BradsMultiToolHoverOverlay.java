@@ -153,8 +153,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
         panel.getChildren().add(LineComponent.builder()
             .left("Aggressive:")
             .right(aggro.text)
-            .rightColor(aggro.state == Aggression.State.YES ? BradsMultiToolOverlay.WARN
-                : aggro.state == Aggression.State.NO ? BradsMultiToolOverlay.GOOD : Color.WHITE)
+            .rightColor(aggro.state == Aggression.State.YES ? HudColors.WARN
+                : aggro.state == Aggression.State.NO ? HudColors.GOOD : Color.WHITE)
             .build());
 
         if (config.showSlayerMonsterInfo()) {

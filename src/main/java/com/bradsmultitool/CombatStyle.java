@@ -251,8 +251,8 @@ class CombatStyle {
     // Green = your style hits the weakness, red = it doesn't, white = can't tell
     // (weakness unknown, or the ammo type / spell element couldn't be detected).
     public static Color weaknessMatchColor(WeaponStyles.Style style, MonsterWeakness weakness) {
-        Color match = BradsMultiToolOverlay.GOOD;
-        Color mismatch = BradsMultiToolOverlay.BAD;
+        Color match = HudColors.GOOD;
+        Color mismatch = HudColors.BAD;
         Color unsure = Color.WHITE;
 
         if (weakness.type == MonsterWeakness.Type.UNKNOWN) {

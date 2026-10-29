@@ -89,7 +89,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         SlayerTracker.Requirement requirement = tracker.getRequirement();
         if (config.slayerRequiredItem() && requirement != null) {
             boolean has = tracker.isHasRequiredItem();
-            line("Needs:", requirement.display + (has ? "" : " (missing)"), has ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            line("Needs:", requirement.display + (has ? "" : " (missing)"), has ? HudColors.GOOD : HudColors.BAD);
         }
         if (config.showSlayerDirections() && task != null && !task.places.isEmpty()) {
             addPlaces(task, area);
@@ -130,7 +130,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         if (master == null) {
             return;
         }
-        panel.getChildren().add(new PortraitHeaderComponent(picture(master.icon), master.name, BradsMultiToolOverlay.GOOD,
+        panel.getChildren().add(new PortraitHeaderComponent(picture(master.icon), master.name, HudColors.GOOD,
             "No task: get one here" + (master.area != null ? "\n" + master.area : "")));
         if (master.quest != null) {
             line("Quest:", master.quest, SOFT);

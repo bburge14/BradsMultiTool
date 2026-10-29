@@ -62,10 +62,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 continue;
             }
             double left = timer.progress();
-            Color color = left > 0.5 ? BradsMultiToolOverlay.GOOD : left > 0.2 ? BradsMultiToolOverlay.WARN : BradsMultiToolOverlay.BAD;
+            Color color = left > 0.5 ? HudColors.GOOD : left > 0.2 ? HudColors.WARN : HudColors.BAD;
             // A trap goes green once something's caught, red if it sprang empty
             if (timer.kind == ResourceTimers.Kind.TRAP && timer.trapState != ResourceTimers.TrapState.SET) {
-                color = timer.trapState == ResourceTimers.TrapState.CAUGHT ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD;
+                color = timer.trapState == ResourceTimers.TrapState.CAUGHT ? HudColors.GOOD : HudColors.BAD;
             }
             int alpha = 150;
             if (timer.due()) {

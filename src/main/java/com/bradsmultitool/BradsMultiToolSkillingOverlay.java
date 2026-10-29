@@ -152,7 +152,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text("Libation Bowl").color(TITLE_COLOR).build());
         addRequirement(Skill.PRAYER, 30);
-        line("Bone Shards:", NUMBER.format(shards), shards > 0 ? Color.WHITE : BradsMultiToolOverlay.BAD);
+        line("Bone Shards:", NUMBER.format(shards), shards > 0 ? Color.WHITE : HudColors.BAD);
         // 5 XP a shard with blessed wine, 6 with sunfire wine (the sunfire jugs are used first here)
         int sunfireShards = Math.min(shards, sunfire * SHARDS_PER_WINE);
         int xp = sunfireShards * 6 + (shards - sunfireShards) * 5;
@@ -160,12 +160,12 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         int jugsNeeded = (shards + SHARDS_PER_WINE - 1) / SHARDS_PER_WINE;
         int jugs = wine + sunfire;
         line("Wine Needed:", NUMBER.format(jugsNeeded) + " jugs (you carry " + jugs + ")",
-            jugs >= jugsNeeded ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            jugs >= jugsNeeded ? HudColors.GOOD : HudColors.WARN);
         int prayerNeeded = (shards + SHARDS_PER_OFFERING - 1) / SHARDS_PER_OFFERING * 2;
         line("Prayer Points:", NUMBER.format(prayerNeeded) + " (you have " + client.getBoostedSkillLevel(Skill.PRAYER) + ")", Color.WHITE);
         int now = client.getSkillExperience(Skill.PRAYER);
         int after = Experience.getLevelForXp(Math.min(Experience.MAX_SKILL_XP, now + xp));
-        line("Level:", Experience.getLevelForXp(now) + " -> " + after, BradsMultiToolOverlay.GOOD);
+        line("Level:", Experience.getLevelForXp(now) + " -> " + after, HudColors.GOOD);
         addYourRate(Skill.PRAYER);
     }
 
@@ -230,11 +230,11 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         panel.getChildren().add(TitleComponent.builder().text(type != null ? type : "Bird house space").color(TITLE_COLOR).build());
         line("Spot:", BirdhouseTracker.SPOT_NAMES[spot], Color.WHITE);
         if (type == null) {
-            line("Status:", "Empty", BradsMultiToolOverlay.WARN);
+            line("Status:", "Empty", HudColors.WARN);
             return;
         }
         if (!BirdhouseTracker.isSeeded(value)) {
-            line("Status:", "Built (add seeds)", BradsMultiToolOverlay.WARN);
+            line("Status:", "Built (add seeds)", HudColors.WARN);
             return;
         }
         long seeded = birdhouses.seededAt(spot);
@@ -243,7 +243,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return;
         }
         long left = seeded + BirdhouseTracker.FULL_AFTER_SECONDS - System.currentTimeMillis() / 1000;
-        line("Status:", left <= 0 ? "Full" : "Filling", left <= 0 ? BradsMultiToolOverlay.GOOD : Color.WHITE);
+        line("Status:", left <= 0 ? "Full" : "Filling", left <= 0 ? HudColors.GOOD : Color.WHITE);
         if (left > 0) {
             line("Full In:", duration(left), Color.WHITE);
         }
@@ -258,7 +258,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             line("XP Each:", trim(rune.xp), Color.WHITE);
         }
         if (level >= rune.level) {
-            line("Runes / Essence:", String.valueOf(rune.perEssence(level)), BradsMultiToolOverlay.GOOD);
+            line("Runes / Essence:", String.valueOf(rune.perEssence(level)), HudColors.GOOD);
             int next = rune.nextMultiple(level);
             if (next > 0) {
                 line("Next Multiple:", "Level " + next, Color.WHITE);
@@ -313,17 +313,17 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             any = true;
             String name = (recipe != null ? recipe.name : food.name) + " x" + entry.getValue();
             if (recipe != null && level < recipe.level) {
-                header(name, "Needs Level " + recipe.level, BradsMultiToolOverlay.BAD);
+                header(name, "Needs Level " + recipe.level, HudColors.BAD);
                 continue;
             }
-            header(name, recipe != null ? trim(recipe.xp) + " XP" : "", BradsMultiToolOverlay.GOOD);
+            header(name, recipe != null ? trim(recipe.xp) + " XP" : "", HudColors.GOOD);
             if (recipe != null) {
                 totalXp += recipe.xp * entry.getValue();
             }
             int stop = food == null ? 0 : gauntlets && food.gauntlets > 0 ? food.gauntlets : fire ? food.fire : food.range;
             if (stop > 0) {
                 line("  Burning:", stop >= 100 ? "Can always burn" : level >= stop ? "Never burns" : "Stops at Level " + stop,
-                    level >= stop && stop < 100 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+                    level >= stop && stop < 100 ? HudColors.GOOD : HudColors.WARN);
             }
         }
         if (!any) {
@@ -370,7 +370,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
                 }
             }
             if (best == null) {
-                header(entry.getKey() + " x" + bars, "Needs Level " + items.get(0).level, BradsMultiToolOverlay.BAD);
+                header(entry.getKey() + " x" + bars, "Needs Level " + items.get(0).level, HudColors.BAD);
                 continue;
             }
             header(entry.getKey() + " x" + bars, "", Color.WHITE);
@@ -378,10 +378,10 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             int makes = bars / perItem;
             line("  Best: " + best.name, perItem + (perItem == 1 ? " bar" : " bars"), Color.WHITE);
             line("  Makes:", makes + " (" + String.format("%,d", Math.round(makes * best.xp)) + " XP)",
-                makes > 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+                makes > 0 ? HudColors.GOOD : HudColors.WARN);
             if (byProfit && makes > 0) {
                 long profit = Math.round(perBar(best, entry.getKey(), true) * makes * perItem);
-                line("  Profit:", String.format("%+,d gp", profit), profit >= 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+                line("  Profit:", String.format("%+,d gp", profit), profit >= 0 ? HudColors.GOOD : HudColors.BAD);
             }
             if (next != null) {
                 line("  Next: " + next.name, "Level " + next.level, new Color(180, 180, 180));
@@ -416,15 +416,15 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
             any = true;
             if (level < bar.level) {
-                header(bar.name, "Needs Level " + bar.level, BradsMultiToolOverlay.BAD);
+                header(bar.name, "Needs Level " + bar.level, HudColors.BAD);
                 continue;
             }
             header(bar.name, trim(bar.xp) + " XP each", Color.WHITE);
             Integer coal = bar.materials.get("Coal");
             line("  Makes:", makes + (makes > 0 ? " (" + String.format("%,d", Math.round(makes * bar.xp)) + " XP)" : ""),
-                makes > 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+                makes > 0 ? HudColors.GOOD : HudColors.WARN);
             if (coal != null && makes == 0) {
-                line("  Needs:", coal + " coal per bar", BradsMultiToolOverlay.WARN);
+                line("  Needs:", coal + " coal per bar", HudColors.WARN);
             }
             if (config.bestChoice() == SkillTrackerConfig.BestChoice.PROFIT && makes > 0) {
                 double each = price(bar.name);
@@ -432,7 +432,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
                     each -= price(material.getKey()) * (double) material.getValue();
                 }
                 long profit = Math.round(each * makes);
-                line("  Profit:", String.format("%+,d gp", profit), profit >= 0 ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+                line("  Profit:", String.format("%+,d gp", profit), profit >= 0 ? HudColors.GOOD : HudColors.BAD);
             }
         }
         if (!any) {
@@ -526,7 +526,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         for (SkillHelperData.Creature creature : here.isEmpty() ? creatures : here) {
             boolean can = level >= creature.level;
             line(creature.name + ":", "Lvl " + creature.level + (creature.xp > 0 ? ", " + trim(creature.xp) + " XP" : ""),
-                can ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+                can ? HudColors.GOOD : HudColors.BAD);
         }
         addYourRate(Skill.HUNTER);
         return true;
@@ -552,7 +552,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
                 line("Lasts:", wreck.duration, Color.WHITE);
             }
             String hook = helpers.bestHook(level);
-            line("Best Hook For You:", hook != null ? hook : "None yet (level 15)", hook != null ? Color.WHITE : BradsMultiToolOverlay.BAD);
+            line("Best Hook For You:", hook != null ? hook : "None yet (level 15)", hook != null ? Color.WHITE : HudColors.BAD);
             addYourRate(Skill.SAILING);
             return true;
         }
@@ -577,7 +577,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         if (task.answer != null) {
             panel.getChildren().add(LineComponent.builder().left("Riddle Answer:").build());
-            panel.getChildren().add(LineComponent.builder().left(task.answer).leftColor(BradsMultiToolOverlay.GOOD).build());
+            panel.getChildren().add(LineComponent.builder().left(task.answer).leftColor(HudColors.GOOD).build());
         }
         if (task.note != null) {
             panel.getChildren().add(LineComponent.builder().left(task.note).leftColor(new Color(180, 180, 180)).build());
@@ -623,7 +623,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             .text(monster.name + (monster.combat > 0 ? " (Lvl " + monster.combat + ")" : ""))
             .color(TITLE_COLOR).build());
         if (defeated) {
-            line("Defeated:", "Harvest it for its drops", BradsMultiToolOverlay.GOOD);
+            line("Defeated:", "Harvest it for its drops", HudColors.GOOD);
         } else {
             int ratio = npc.getHealthRatio();
             int scale = npc.getHealthScale();
@@ -631,10 +631,10 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             panel.getChildren().add(new CenteredHealthBarComponent(percent,
                 (int) Math.ceil(percent * monster.hp / 100.0), monster.hp));
             line("Aggressive:", monster.aggressive ? "Yes" : "No",
-                monster.aggressive ? BradsMultiToolOverlay.WARN : BradsMultiToolOverlay.GOOD);
+                monster.aggressive ? HudColors.WARN : HudColors.GOOD);
             line("Max Hit (No Keel):", String.valueOf(monster.maxHits.length > 0 ? monster.maxHits[0] : 0), Color.WHITE);
             String safe = monster.safeKeel();
-            line("No Damage With:", safe != null ? safe : "Nothing yet", safe != null ? Color.WHITE : BradsMultiToolOverlay.WARN);
+            line("No Damage With:", safe != null ? safe : "Nothing yet", safe != null ? Color.WHITE : HudColors.WARN);
             line("Fight With:", "Cannons, ranged or magic", new Color(180, 180, 180));
         }
         if (!monster.bounties.isEmpty()) {
@@ -655,12 +655,12 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         panel.getChildren().add(TitleComponent.builder().text("Current Duck").color(TITLE_COLOR).build());
         line("Task:", "Sea charting (current)", Color.WHITE);
         if (hasAction(npc, "collect")) {
-            line("Stopped:", "Collect it for the XP", BradsMultiToolOverlay.GOOD);
+            line("Stopped:", "Collect it for the XP", HudColors.GOOD);
             Integer stoppedTick = duckStopped.get(npc);
             if (stoppedTick != null) {
                 int left = Math.max(0, DUCK_DESPAWN_TICKS - (client.getTickCount() - stoppedTick)) * 600 / 1000;
                 line("Despawns In:", String.format("%d:%02d", left / 60, left % 60),
-                    left < 30 ? BradsMultiToolOverlay.WARN : Color.WHITE);
+                    left < 30 ? HudColors.WARN : Color.WHITE);
             }
         } else {
             line("Drifting:", "Follow it, or sail to", Color.WHITE);
@@ -742,9 +742,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         if (state.isEmpty()) {
             boolean raked = FarmingData.WEEDS.equals(state.produce.id) && state.stage == 0;
             line("Status:", raked ? "Empty, ready to plant" : "Overgrown, rake it first",
-                raked ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+                raked ? HudColors.GOOD : HudColors.WARN);
             // Compost goes on before planting
-            line("Compost:", compost != null ? compost : "Not added yet", compost != null ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+            line("Compost:", compost != null ? compost : "Not added yet", compost != null ? HudColors.GOOD : HudColors.WARN);
             addPlantable(patch);
             return true;
         }
@@ -757,11 +757,11 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             long seconds = FarmingData.secondsUntilGrown(state, System.currentTimeMillis() / 1000);
             line("Ready In:", "~" + duration(seconds), Color.WHITE);
             if (FarmingData.WATERABLE.contains(patch.implementation)) {
-                line("Watered:", state.watered ? "Yes" : "No", state.watered ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+                line("Watered:", state.watered ? "Yes" : "No", state.watered ? HudColors.GOOD : HudColors.WARN);
             }
         }
-        line("Compost:", compost != null ? compost : "None", compost == null ? BradsMultiToolOverlay.WARN
-            : "Ultracompost".equals(compost) ? BradsMultiToolOverlay.GOOD : Color.WHITE);
+        line("Compost:", compost != null ? compost : "None", compost == null ? HudColors.WARN
+            : "Ultracompost".equals(compost) ? HudColors.GOOD : Color.WHITE);
         if (crop != null) {
             addRequirement(Skill.FARMING, crop.level);
             if (crop.payment != null) {
@@ -792,7 +792,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         for (int i = unlocked; i < crops.size() && i < unlocked + 2; i++) {
             shown.add(crops.get(i));
         }
-        header("Can Grow Here", unlocked == 0 ? "None at your level" : "", BradsMultiToolOverlay.BAD);
+        header("Can Grow Here", unlocked == 0 ? "None at your level" : "", HudColors.BAD);
         for (FarmingData.Crop crop : shown) {
             levelLine("  " + crop.name, Skill.FARMING, crop.level);
         }
@@ -810,9 +810,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
     private static Color statusColor(FarmingData.State state) {
         switch (state.cropState) {
-            case FarmingData.HARVESTABLE: return BradsMultiToolOverlay.GOOD;
-            case FarmingData.DISEASED: return BradsMultiToolOverlay.WARN;
-            case FarmingData.DEAD: return BradsMultiToolOverlay.BAD;
+            case FarmingData.HARVESTABLE: return HudColors.GOOD;
+            case FarmingData.DISEASED: return HudColors.WARN;
+            case FarmingData.DEAD: return HudColors.BAD;
             default: return Color.WHITE;
         }
     }
@@ -872,7 +872,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             if (pickpocket.ardyCloakLevel > 0) {
                 boolean never = client.getRealSkillLevel(Skill.THIEVING) >= pickpocket.ardyCloakLevel;
                 line("Never Fails At:", "Level " + pickpocket.ardyCloakLevel + " (Ardy cloak)",
-                    never ? BradsMultiToolOverlay.GOOD : Color.WHITE);
+                    never ? HudColors.GOOD : Color.WHITE);
             }
             if (!pickpocket.stunDamage.isEmpty()) {
                 line("Stun Damage:", pickpocket.stunDamage, Color.WHITE);
@@ -908,7 +908,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             // Each method: its name and the tool it needs (green if you have it), then each fish with its level
             String tool = SkillingData.fishingTool(option);
             boolean hasTool = SkillingData.hasFishingTool(option, owned);
-            header(option, tool != null ? tool : "", hasTool ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            header(option, tool != null ? tool : "", hasTool ? HudColors.GOOD : HudColors.BAD);
             for (SkillingData.Fish fish : SkillingData.fishFor(option, fishingOptions)) {
                 levelLine("  " + fish.name + " (" + trim(fish.xp) + " xp)", Skill.FISHING, fish.level);
             }
@@ -925,7 +925,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         for (Map.Entry<String, List<SkillHelperData.Catch>> option : spot.options.entrySet()) {
             String tool = option.getValue().isEmpty() ? "" : option.getValue().get(0).tool;
             boolean hasTool = tool == null || tool.isEmpty() || hasTool(tool, owned);
-            header(option.getKey(), tool != null ? tool : "", hasTool ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            header(option.getKey(), tool != null ? tool : "", hasTool ? HudColors.GOOD : HudColors.BAD);
             for (SkillHelperData.Catch fish : option.getValue()) {
                 levelLine("  " + fish.name + (fish.xp > 0 ? " (" + trim(fish.xp) + " xp)" : ""), Skill.FISHING, fish.level);
             }
@@ -981,7 +981,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private void levelLine(String left, Skill skill, int level) {
         boolean ok = client.getRealSkillLevel(skill) >= level;
         panel.getChildren().add(IconLineComponent.textThenIcon(left, skillIcons.getSkillImage(skill, true),
-            "Level " + level, ok ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD));
+            "Level " + level, ok ? HudColors.GOOD : HudColors.BAD));
     }
 
     private void addRequirement(Skill skill, int level) {
@@ -990,7 +990,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         boolean ok = client.getRealSkillLevel(skill) >= level;
         panel.getChildren().add(IconLineComponent.textThenIcon("Requires:", skillIcons.getSkillImage(skill, true),
-            "Level " + level, ok ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD));
+            "Level " + level, ok ? HudColors.GOOD : HudColors.BAD));
     }
 
     private void addTools(String skillName, Skill skill) {
@@ -1001,7 +1001,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         SkillingData.Tool owned = SkillingData.bestOwnedTool(tools, ownedItemNames());
         SkillingData.Tool best = SkillingData.bestToolForLevel(tools, client.getRealSkillLevel(skill));
         // Each tool in its metal's colour
-        line("Your Tool:", owned != null ? owned.name : "None", owned != null ? owned.color : BradsMultiToolOverlay.BAD);
+        line("Your Tool:", owned != null ? owned.name : "None", owned != null ? owned.color : HudColors.BAD);
         if (best != null && best != owned) {
             line("Best For You:", best.name, best.color);
         }

@@ -136,6 +136,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private BradsMultiToolCrabOutlineOverlay crabOutlineOverlay;
 
     @Inject
+    private CrabHudOverlay crabHudOverlay;
+
+    @Inject
     private ResourceTimers resourceTimers;
 
     @Inject
@@ -273,6 +276,9 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(skillingOverlay);
         overlayManager.add(resourceTimerOverlay);
         overlayManager.add(crabOutlineOverlay);
+        overlayManager.add(crabHudOverlay);
+        // With PvM running too, the crab's card also shows buff timers and LOW prayer/health
+        crabHudOverlay.setExtraRows(overlay::addStatusRows);
         overlayManager.add(trainingOverlay);
         overlayManager.add(goalItemOverlay);
         overlayManager.add(slayerHighlightOverlay);
@@ -296,6 +302,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(skillingOverlay);
         overlayManager.remove(resourceTimerOverlay);
         overlayManager.remove(crabOutlineOverlay);
+        overlayManager.remove(crabHudOverlay);
         overlayManager.remove(trainingOverlay);
         overlayManager.remove(goalItemOverlay);
         overlayManager.remove(slayerHighlightOverlay);

@@ -78,7 +78,7 @@ class SlayerMonsterInfo {
         Image icon = skillIcons.getSkillImage(Skill.SLAYER, true);
         panel.getChildren().add(IconLineComponent.textThenIcon("Requires:", icon,
             "Level " + stats.slayerLevel + (canHit ? "" : " (can't damage)"),
-            canHit ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD));
+            canHit ? HudColors.GOOD : HudColors.BAD));
         SlayerTracker tracker = slayerTracker;
         SlayerTracker.Requirement needs = SlayerTracker.requirementFor(stats.slayerCategory);
         if (needs == null) {
@@ -86,16 +86,16 @@ class SlayerMonsterInfo {
         }
         if (needs != null) {
             boolean has = tracker.carries(needs);
-            line(panel, "Wear / Use:", needs.display + (has ? "" : " (missing)"), has ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            line(panel, "Wear / Use:", needs.display + (has ? "" : " (missing)"), has ? HudColors.GOOD : HudColors.BAD);
         }
         if (stats.slayerCategory != null) {
             Match match = match(npc, stats);
             line(panel, "Task:", stats.slayerCategory + (match == Match.TASK ? " (on task)" : ""),
-                match == Match.TASK ? BradsMultiToolOverlay.GOOD : SOFT);
+                match == Match.TASK ? HudColors.GOOD : SOFT);
             if (match == Match.WRONG_PLACE) {
                 // Konar wants them somewhere else; kills here don't count
                 panel.getChildren().add(new TextBlockComponent("Wrong place: Konar wants these in "
-                    + tracker.getKonarArea() + ", kills here won't count", BradsMultiToolOverlay.BAD, false));
+                    + tracker.getKonarArea() + ", kills here won't count", HudColors.BAD, false));
             } else if (match == Match.NOT_TASK && tracker.hadTask()) {
                 line(panel, "Your Task:", tracker.getTaskName(), SOFT);
             }

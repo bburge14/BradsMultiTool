@@ -29,49 +29,23 @@ public class BradsMultiToolOverlay extends Overlay {
     @Inject
     private CombatStyle combatStyle;
 
-    @Inject
-    private GemCrabTracker gemCrab;
-
-    // Text is white unless colour carries meaning: good/bad state, or a warning
-    static final Color GOOD = new Color(50, 220, 50);
-    static final Color BAD = new Color(255, 70, 70);
-    static final Color WARN = new Color(255, 150, 0);
+    private static final Color GOOD = HudColors.GOOD;
+    private static final Color BAD = HudColors.BAD;
+    private static final Color WARN = HudColors.WARN;
 
     private final Client client;
     private final PvmTracker plugin;
-    private final BradsMultiToolConfig config;
+    private final PvmConfig config;
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
     private final SkillIconManager skillIconManager;
     private final PanelComponent panelComponent = new PanelComponent();
-    // After the crab moves its stats stay up this long before the radar takes over
-    private static final long CRAB_STATS_LINGER_MILLIS = 12_000;
-    private long lastCrabActiveMillis;
-    private CrabFight lastFight;
 
-    /** The crab fight's numbers, as of the last frame the crab was up. */
-    private static final class CrabFight {
-        final long damage;
-        final double dps;
-        final int lastHit;
-        final int maxHit;
-        final List<Skill> xpSkills;
-        final String xpType;
-
-        CrabFight(long damage, double dps, int lastHit, int maxHit, List<Skill> xpSkills, String xpType) {
-            this.damage = damage;
-            this.dps = dps;
-            this.lastHit = lastHit;
-            this.maxHit = maxHit;
-            this.xpSkills = xpSkills;
-            this.xpType = xpType;
-        }
-    }
     @Inject
     private SlayerMonsterInfo slayerInfo;
 
     @Inject
-    public BradsMultiToolOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
+    public BradsMultiToolOverlay(Client client, PvmTracker plugin, PvmConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -166,9 +140,9 @@ public class BradsMultiToolOverlay extends Overlay {
 
             if (config.showPvmDps()) {
                 String dpsLabel = "Encounter DPS:";
-                if (config.dpsMode() == BradsMultiToolConfig.DpsTrackingMode.CONTINUOUS_SESSION) {
+                if (config.dpsMode() == PvmConfig.DpsTrackingMode.CONTINUOUS_SESSION) {
                     dpsLabel = "Session DPS:";
-                } else if (config.dpsMode() == BradsMultiToolConfig.DpsTrackingMode.PER_TARGET_TYPE) {
+                } else if (config.dpsMode() == PvmConfig.DpsTrackingMode.PER_TARGET_TYPE) {
                     dpsLabel = "Type DPS:";
                 }
                 panelComponent.getChildren().add(LineComponent.builder()
@@ -191,167 +165,14 @@ public class BradsMultiToolOverlay extends Overlay {
                     .build());
             }
 
-            if (config.enableBuffStatus()) {
-                addBuffRows();
-            }
-
-            if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Prayer:")
-                    .right("LOW")
-                    .rightColor(BAD)
-                    .build());
-            }
-
-            if (config.enableLowHealthAlert() && plugin.isLowHealthAlert()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Health:")
-                    .right("LOW")
-                    .rightColor(BAD)
-                    .build());
-            }
+            addStatusRows(panelComponent);
 
             return panelComponent.render(graphics);
         }
 
-        // -------------------------------------------------------------
-        // BRANCH 2: Gemstone Crab Features & HUD
-        // -------------------------------------------------------------
-        if (!config.enableCrabFeatures() || !gemCrab.isInSpawnVicinity()) {
-            return null;
-        }
-
-        // Outlines are drawn by BradsMultiToolCrabOutlineOverlay, under the game's interface
-
-        // Mode A: Active fighting crab in cove, and for a few seconds after it moves so you can read the
-        // final stats; then Mode B, the radar
-        long now = System.currentTimeMillis();
-        boolean active = gemCrab.isCrabActive();
-        if (active) {
-            lastCrabActiveMillis = now;
-        }
-        long lingerLeft = CRAB_STATS_LINGER_MILLIS - (now - lastCrabActiveMillis);
-        if (active) {
-            // Kept so the stats can still be read for a few seconds after the crab moves (they reset then)
-            lastFight = new CrabFight(gemCrab.getCurrentCrabDamage(), gemCrab.getCrabLiveDps(), gemCrab.getCrabLastHit(),
-                gemCrab.getCrabMaxHit(), new ArrayList<>(gemCrab.getCrabCombatXpSkills()), gemCrab.getCrabCombatXpType());
-        }
-        if (active || (lingerLeft > 0 && lastFight != null)) {
-            CrabFight fight = lastFight;
-            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", active ? "" : " (moved)", Color.WHITE));
-
-            if (!active) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Radar in:")
-                    .right((lingerLeft / 1000 + 1) + "s")
-                    .build());
-            } else if (gemCrab.getCrabHpPercent() >= 0) {
-                // No max HP for the crab, so the bar shows just the percentage
-                panelComponent.getChildren().add(new CenteredHealthBarComponent(liveCrabHpPercent(), 0, 0, true));
-            } else {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Target:")
-                    .right(gemCrab.getTargetCrabHp())
-                    .build());
-            }
-
-            if (active) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Burrows in:")
-                    .right(gemCrab.getEstimatedBurrowTime())
-                    .build());
-
-                boolean attacking = gemCrab.isPlayerAttackingCrab();
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Attacking:")
-                    .right(attacking ? "YES" : "NO")
-                    .rightColor(attacking ? GOOD : BAD)
-                    .build());
-            }
-
-            // Preserved: Exact XP Type ground truth
-            List<Image> skillIcons = new ArrayList<>();
-            for (Skill skill : fight.xpSkills) {
-                skillIcons.add(skillIconManager.getSkillImage(skill, true));
-            }
-            panelComponent.getChildren().add(new IconLineComponent("XP Type:", skillIcons, fight.xpType, Color.WHITE));
-
-            if (config.showCrabLastHit() && fight.lastHit > 0) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Last Hit:")
-                    .right(String.valueOf(fight.lastHit))
-                    .build());
-            }
-
-            if (config.showCrabMaxHit() && fight.maxHit > 0) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Max Hit:")
-                    .right(String.valueOf(fight.maxHit))
-                    .build());
-            }
-
-            if (config.enableBuffStatus()) {
-                addBuffRows();
-            }
-
-            if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Prayer:")
-                    .right("LOW")
-                    .rightColor(BAD)
-                    .build());
-            }
-
-            if (config.enableLowHealthAlert() && plugin.isLowHealthAlert()) {
-                panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Health:")
-                    .right("LOW")
-                    .rightColor(BAD)
-                    .build());
-            }
-
-            // Crab damage reflects only the current (or just-moved) crab
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Crab Dmg:")
-                .right(String.format("%,d (%.1f DPS)", fight.damage, fight.dps))
-                .build());
-        }
-        // Mode B: Crab Radar
-        else {
-            panelComponent.getChildren().add(new RainbowTitleComponent("Gemstone Crab", " Radar", new Color(255, 180, 0)));
-
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Current Cove:")
-                .right(gemCrab.getCurrentCoveName())
-                .build());
-
-            boolean shellPresent = gemCrab.getDormantCrabShellNpc() != null || !gemCrab.getTrackedShellObjects().isEmpty();
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Crab Status:")
-                .right(shellPresent ? "Burrowed (Shell)" : "In Other Cave")
-                .build());
-
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Next Action:")
-                .right("Use Tunnel")
-                .build());
-        }
-
-        return panelComponent.render(graphics);
+        return null;
     }
 
-    /**
-     * The game's right-click colour for a monster's combat level relative to the player's: green when
-     * lower, yellow when equal, through orange to red when higher.
-     */
-    // Live health bar reading, falling back to the last known value while the bar isn't shown
-    private int liveCrabHpPercent() {
-        NPC crab = gemCrab.getActiveCrab();
-        if (crab != null && crab.getHealthRatio() >= 0 && crab.getHealthScale() > 0) {
-            return crab.getHealthRatio() * 100 / crab.getHealthScale();
-        }
-        return gemCrab.getCrabHpPercent();
-    }
 
     static Color combatLevelColor(int playerLevel, int npcLevel) {
         if (npcLevel <= 0) {
@@ -389,7 +210,23 @@ public class BradsMultiToolOverlay extends Overlay {
      * One row per active buff with its potion icon, boost and time left (counting down smoothly
      * between game ticks); otherwise a single Buff Status line, flashing when expired.
      */
-    private void addBuffRows() {
+    /**
+     * Buff timers (or Buff Status), and LOW prayer and health warnings: on this HUD, and on the Gemstone
+     * Crab's when both run in the all-in-one.
+     */
+    void addStatusRows(PanelComponent panel) {
+        if (config.enableBuffStatus()) {
+            addBuffRows(panel);
+        }
+        if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
+            panel.getChildren().add(LineComponent.builder().left("Prayer:").right("LOW").rightColor(BAD).build());
+        }
+        if (config.enableLowHealthAlert() && plugin.isLowHealthAlert()) {
+            panel.getChildren().add(LineComponent.builder().left("Health:").right("LOW").rightColor(BAD).build());
+        }
+    }
+
+    private void addBuffRows(PanelComponent panelComponent) {
         if (plugin.getBuffState() == PvmTracker.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
             long now = System.currentTimeMillis();
             for (ActiveBuffs.Buff buff : plugin.getActiveBuffs()) {
