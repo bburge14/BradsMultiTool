@@ -110,27 +110,11 @@ public class BradsMultiToolPlugin extends Plugin {
         new WorldPoint(1275, 3160, 0), new WorldPoint(1351, 3110, 0), new WorldPoint(1237, 3042, 0)};
     private static final String[] CRAB_COVE_NAMES = {"North Cove", "East Cove", "West Cove"};
     private static final int CRAB_AREA_RADIUS = 40;
-    // Client idle timeouts in 20ms client cycles: 5 minutes normally, 20 minutes (clicks/keys only) in combat
-    private static final int DEFAULT_IDLE_LOGOUT_CYCLES = 15000;
-    private static final int COMBAT_IDLE_LOGOUT_CYCLES = 60000;
     private static final int INSIDE_WILDERNESS_VARBIT = 5963;
-    // Bank, bank side panel, deposit box, bank PIN, shop, GE collect, GE offers, seed vault
-    // Bank, bank side panel, deposit box, bank PIN, shop, collection box, GE, GE side panel
-    private static final int[] BANKING_INTERFACES = {12, 15, 192, 213, 300, 402, 465, 631};
-    // Talking or choosing: NPC and player dialogue, options, sprite and message boxes, double item box,
-    // Make-X; you're busy with the game, not idle, while one is open
-    private static final int[] DIALOGUE_INTERFACES = {231, 217, 219, 193, 229, 11, 270};
-    // An action counts towards the AFK alert only while it's giving XP (an XP drop in the last 30 seconds, for slow trees)
-    private static final int XP_ACTION_TICKS = 50;
-    // XP within this many ticks (about 5s) counts as doing something for the AFK alert
-    private static final int RECENT_XP_TICKS = 8;
     // Repeat counter value meaning "already handled, don't sound or repeat"
     private static final int SILENCED = Integer.MAX_VALUE / 2;
-    // Character idle: what counts as having been doing something before going AFK
-    private static final int MIN_ACTION_TICKS = 5;
     private static final int TRAINING_WINDOW_TICKS = 25;
     private static final int PIE_TRAINING_TICKS = 200;
-    private static final int COMBAT_WINDOW_TICKS = 8;
     // The shell lasts 90 seconds (150 ticks); allow a little slack
     private static final int SHELL_LIFETIME_TICKS = 160;
     private static final int GEMS_PER_SHELL = 3;
@@ -292,6 +276,9 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private Alerts alerts;
+
+    @Inject
+    private IdleWarnings idleWarnings;
     private NavigationButton navButton;
     private BradsMultiToolPanel panel;
 
@@ -366,24 +353,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Getter
     private String estimatedBurrowTime = "--:--";
-
-    @Getter
-    private boolean logoutImminent = false;
-    private int timesIdleAlerted = 0;
-    private int idleLogoutAfterSeconds = 300;
-    // Ticks left of "in combat" after you hit or are hit (same 8-tick window as RuneLite's Idle Notifier)
-    private int combatTicks = 0;
-
-    private WorldPoint lastPlayerLocation = null;
-    private boolean characterWasActive = false;
-    private boolean characterIdleAlerted = false;
-    private int lastActiveTick = 0;
-    private int actionTicks = 0;
-    private int lastXpTick = -1000;
-    private Instant lastIdleAlertTime = Instant.EPOCH;
-
-    @Getter
-    private int engineIdleSeconds = 0;
 
     @Getter
     private boolean inSpawnVicinity = false;
@@ -519,6 +488,9 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(otherTimerPlugins);
         pluginFamily.start();
         eventBus.register(alerts);
+        eventBus.register(idleWarnings);
+        // Hitting the Gemstone Crab counts as busy for the idle alert (its hits come slowly)
+        idleWarnings.addBusy(() -> playerAttackingCrab);
         eventBus.register(questProgress);
         eventBus.register(skillingOverlay);
         otherTimerPlugins.refresh();
@@ -581,6 +553,7 @@ public class BradsMultiToolPlugin extends Plugin {
             clientToolbar.removeNavigation(navButton);
         }
         eventBus.unregister(alerts);
+        eventBus.unregister(idleWarnings);
         alerts.shutDown();
         activeCrab = null;
         dormantCrabShellNpc = null;
@@ -588,7 +561,6 @@ public class BradsMultiToolPlugin extends Plugin {
         trackedShellObjects.clear();
         trackedTunnels.clear();
         pausedSkills.clear();
-        logoutImminent = false;
         inSpawnVicinity = false;
         pvmOverlayActive = false;
         buffState = BuffState.UNPOTTED;
@@ -923,9 +895,6 @@ public class BradsMultiToolPlugin extends Plugin {
             slayerTracker.reset();
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
-            characterWasActive = false;
-            actionTicks = 0;
-            lastPlayerLocation = null;
             activeCrab = null;
             dormantCrabShellNpc = null;
             currentPvmTarget = null;
@@ -934,7 +903,6 @@ public class BradsMultiToolPlugin extends Plugin {
             inSpawnVicinity = false;
             buffState = BuffState.UNPOTTED;
             pvmOverlayActive = false;
-            logoutImminent = false;
             wasDirectlyTrackingCrab = false;
             aggroTimerStart = null;
             lastAggroAnchor = null;
@@ -1297,12 +1265,8 @@ public class BradsMultiToolPlugin extends Plugin {
         }
 
         processSimpleBuffStatus();
-        if (player != null) {
-            updateCharacterIdle(player);
-        }
         monitorPrayer();
         monitorHealth();
-        updateIdleState();
         updateRealtimeCombatMethod();
 
         for (Skill s : gainedSkillXp.keySet()) {
@@ -1638,129 +1602,6 @@ public class BradsMultiToolPlugin extends Plugin {
      * or walking around never arm it, and opening a bank, deposit box, shop, Grand Exchange or seed vault
      * disarms it until you're training again.
      */
-    private void updateCharacterIdle(Player player) {
-        WorldPoint location = player.getWorldLocation();
-        boolean moved = lastPlayerLocation != null && !lastPlayerLocation.equals(location);
-        lastPlayerLocation = location;
-        int tick = client.getTickCount();
-        // Gaining XP means you're not idle, even between attacks when you aren't animating or your target
-        // flickers (big monsters like the Gemstone Crab); so does attacking the crab
-        boolean doing = player.getAnimation() != -1 || player.getInteracting() != null
-            || tick - lastXpTick <= RECENT_XP_TICKS || playerAttackingCrab;
-
-        // Banking, a shop or a dialogue: not idle, and the idle clock starts again once it's closed
-        if (isBankingInterfaceOpen() || isDialogueOpen()) {
-            characterWasActive = false;
-            characterIdleAlerted = false;
-            actionTicks = 0;
-            lastActiveTick = tick;
-            return;
-        }
-        if (doing && tick - lastXpTick <= XP_ACTION_TICKS) {
-            actionTicks++;
-            if (actionTicks >= MIN_ACTION_TICKS) {
-                characterWasActive = true;
-            }
-        }
-        if (doing || moved) {
-            characterIdleAlerted = false;
-            lastActiveTick = tick;
-            return;
-        }
-        if (!config.characterIdleAlert() || !characterWasActive || characterIdleAlerted) {
-            return;
-        }
-
-        // Idle is the shorter of: time since the character stopped, time since your last click or key press
-        long sinceInputMillis = Math.min(client.getKeyboardIdleTicks() * 20L,
-            System.currentTimeMillis() - client.getMouseLastPressedMillis());
-        int idleSeconds = (int) Math.min((tick - lastActiveTick) * 0.6, sinceInputMillis / 1000);
-        if (idleSeconds >= config.characterIdleSeconds()) {
-            characterIdleAlerted = true;
-            characterWasActive = false;
-            actionTicks = 0;
-            alerts.alert(VoiceAlertService.VoiceLine.CHARACTER_IDLE, idleSeconds + " seconds");
-        }
-    }
-
-    private boolean isDialogueOpen() {
-        for (int group : DIALOGUE_INTERFACES) {
-            if (isWidgetVisible(group)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isBankingInterfaceOpen() {
-        for (int group : BANKING_INTERFACES) {
-            if (isWidgetVisible(group)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Idle logout follows the game's rules (as RuneLite's Idle Notifier does): out of combat you're logged
-     * out after the client idle timeout (5 minutes, or what the Logout Timer plugin sets) without mouse or
-     * keyboard input. In combat that timeout doesn't apply; you're only logged out after 20 minutes
-     * without a mouse click or key press (moving the mouse doesn't count).
-     */
-    private void updateIdleState() {
-        if (combatTicks > 0) {
-            combatTicks--;
-        }
-        int idleCycles;
-        int timeoutCycles;
-        if (combatTicks > 0) {
-            long sinceClick = (System.currentTimeMillis() - client.getMouseLastPressedMillis()) / 20;
-            idleCycles = (int) Math.min(client.getKeyboardIdleTicks(), sinceClick);
-            timeoutCycles = COMBAT_IDLE_LOGOUT_CYCLES;
-        } else {
-            idleCycles = Math.min(client.getKeyboardIdleTicks(), client.getMouseIdleTicks());
-            timeoutCycles = client.getIdleTimeout() > 0 ? client.getIdleTimeout() : DEFAULT_IDLE_LOGOUT_CYCLES;
-        }
-        engineIdleSeconds = idleCycles / 50;
-        idleLogoutAfterSeconds = timeoutCycles / 50;
-
-        int logoutAfter = idleLogoutAfterSeconds;
-        int warnAt = logoutAfter - Math.max(5, Math.min(logoutAfter - 5, config.idleWarningSeconds()));
-        boolean imminent = engineIdleSeconds >= warnAt;
-        if (!imminent) {
-            logoutImminent = false;
-            timesIdleAlerted = 0;
-            return;
-        }
-
-        boolean alert = false;
-        if (!logoutImminent) {
-            alert = true;
-            if (alertsReady()) {
-                notifier.notify("Snuffy's Multi-Tool: You are about to be logged out for inactivity!");
-            }
-        } else if (config.repeatIdleAlert()
-            && Duration.between(lastIdleAlertTime, Instant.now()).getSeconds() >= config.repeatIdleInterval()
-            && timesIdleAlerted <= config.maxIdleRepeats()) {
-            alert = true;
-        }
-        logoutImminent = true;
-
-        if (alert) {
-            timesIdleAlerted++;
-            lastIdleAlertTime = Instant.now();
-            if (timesIdleAlerted == 1) {
-                alerts.alert(VoiceAlertService.VoiceLine.IDLE_LOGOUT, null);
-            } else {
-                alerts.speak(VoiceAlertService.VoiceLine.IDLE_LOGOUT);
-            }
-        }
-    }
-
-    public int getSecondsUntilIdleLogout() {
-        return Math.max(0, idleLogoutAfterSeconds - engineIdleSeconds);
-    }
-
     private void updateGeneralPvmTarget(Player player) {
         Actor target = player.getInteracting();
 
@@ -2133,9 +1974,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Subscribe
     public void onHitsplatApplied(HitsplatApplied event) {
-        if (event.getActor() == client.getLocalPlayer() || event.getHitsplat().isMine()) {
-            combatTicks = COMBAT_WINDOW_TICKS;
-        }
         if (!(event.getActor() instanceof NPC)) return;
         NPC npc = (NPC) event.getActor();
         Hitsplat hitsplat = event.getHitsplat();
@@ -2243,7 +2081,6 @@ public class BradsMultiToolPlugin extends Plugin {
             if (drop > 0) {
                 lastXpDrops.put(skill, drop);
                 lastXpTicks.put(skill, client.getTickCount());
-                lastXpTick = client.getTickCount();
                 tickXpChanges.add(skill);
             }
             gainedSkillXp.put(skill, gained);
