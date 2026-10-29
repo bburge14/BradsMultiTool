@@ -29,11 +29,18 @@ class TrainingAdvisor {
         final String label;
         final String text;
         final TrainingData.Method method;
+        /** XP for one action of it (one log, one item made), 0 if unknown. */
+        final double xpEach;
 
         Suggestion(String label, String text, TrainingData.Method method) {
+            this(label, text, method, 0);
+        }
+
+        Suggestion(String label, String text, TrainingData.Method method, double xpEach) {
             this.label = label;
             this.text = text;
             this.method = method;
+            this.xpEach = xpEach;
         }
 
         @Override
@@ -54,13 +61,16 @@ class TrainingAdvisor {
     private final RecipeData recipes;
     private final MoneyData money;
     private final ItemPrices prices;
+    private final SkillingData skilling;
+    private final SkillHelperData helpers;
     // The cheapest recipe per skill and level (prices only looked up once)
     private final Map<String, Object> cheapest = new ConcurrentHashMap<>();
     private static final Object NONE = new Object();
 
     @Inject
     TrainingAdvisor(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, TrainingData training,
-                    RecipeData recipes, MoneyData money, ItemPrices prices) {
+                    RecipeData recipes, MoneyData money, ItemPrices prices, SkillingData skilling,
+                    SkillHelperData helpers) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -68,6 +78,8 @@ class TrainingAdvisor {
         this.recipes = recipes;
         this.money = money;
         this.prices = prices;
+        this.skilling = skilling;
+        this.helpers = helpers;
     }
 
     /** What to train at this level, or null. */
@@ -88,14 +100,67 @@ class TrainingAdvisor {
                 RecipeData.Recipe recipe = cheapest(skill, level);
                 if (recipe != null) {
                     double gpPerXp = prices.profit(recipe) / recipe.xp;
-                    return new Suggestion("Cheapest:", recipe.name + " (" + String.format("%+.1f", gpPerXp) + " gp/xp)", null);
+                    return new Suggestion("Cheapest:", recipe.name + " (" + String.format("%+.1f", gpPerXp) + " gp/xp)", null, recipe.xp);
                 }
                 break;
             default:
                 break;
         }
         TrainingData.Method method = training.suggest(skill, level, focus == BradsMultiToolConfig.TrainingFocus.OTHER);
-        return method == null ? null : new Suggestion("Train:", method.name, method);
+        return method == null ? null : new Suggestion("Train:", method.name, method, xpEach(method));
+    }
+
+    // XP per action of a guide method: its tree/rock/stall's XP, else its NPC's (pickpocket or hunter creature)
+    private double xpEach(TrainingData.Method method) {
+        for (int id : method.objects) {
+            SkillingData.Resource resource = skilling.object(id, null);
+            if (resource != null && resource.xp > 0) {
+                return resource.xp;
+            }
+        }
+        for (String npc : method.npcs) {
+            double xp = npcXp(npc);
+            if (xp > 0) {
+                return xp;
+            }
+        }
+        return 0;
+    }
+
+    private double npcXp(String npc) {
+        SkillingData.Pickpocket pickpocket = skilling.pickpocket(npc);
+        if (pickpocket != null && pickpocket.xp > 0) {
+            return pickpocket.xp;
+        }
+        SkillHelperData.Creature creature = helpers.creature(npc);
+        return creature != null ? creature.xp : 0;
+    }
+
+    /**
+     * XP you'll likely get per action toward this skill's goal, before you've had an XP drop: what you picked
+     * with "Track for goal", else what to make from your items, else the suggested method. 0 if unknown.
+     */
+    double estimatedXpEach(Skill skill, int level) {
+        String target = plugin.getGoalTarget(skill);
+        if (target != null) {
+            String name = BradsMultiToolPlugin.goalTargetName(target);
+            if (target.startsWith("object:")) {
+                SkillingData.Resource resource = skilling.object(-1, name);
+                return resource != null ? resource.xp : 0;
+            }
+            return npcXp(name);
+        }
+        RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
+        if (make != null) {
+            return make.xp;
+        }
+        Suggestion suggestion = suggest(skill, level);
+        if (suggestion != null && suggestion.xpEach > 0) {
+            return suggestion.xpEach;
+        }
+        // A general method ("Making potions"): the most XP thing you can make at your level
+        RecipeData.Recipe best = recipes.covers(skill) ? recipes.best(skill, level, null, r -> r.xp) : null;
+        return best != null ? best.xp : 0;
     }
 
     /** One leg of the way to a goal: train this from one level until another. */

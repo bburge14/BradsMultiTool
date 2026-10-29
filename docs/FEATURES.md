@@ -279,6 +279,8 @@ most profitable wiki money making guide you meet the requirements for, e.g. "Mon
 Items; Highlight Colour;
 Actions Until Goal (the actions field counts to the goal instead of the next level; when the suggested
 method changes before the goal it counts to the end of the step you're on, shown as "Step Actions").
+Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
+picked with Track for goal, or can make from your items), shown with a "~".
 
 ---
 

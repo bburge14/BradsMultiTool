@@ -614,8 +614,14 @@ public class BradsMultiToolPanel extends PluginPanel {
                     name = "Step Actions";
                 }
             }
-            int perAction = plugin.getLastXpDrop(skill);
-            setStat(actions, name, perAction > 0 && remaining > 0 ? shortNumber((remaining + perAction - 1) / perAction) : "--");
+            // Your last XP drop, else what the goal's method gives per action (shown as an estimate: "~")
+            double perAction = plugin.getLastXpDrop(skill);
+            String prefix = "";
+            if (perAction <= 0 && goalXp > xp) {
+                perAction = plugin.getTrainingAdvisor().estimatedXpEach(skill, Experience.getLevelForXp(xp));
+                prefix = "~";
+            }
+            setStat(actions, name, perAction > 0 && remaining > 0 ? prefix + shortNumber((int) Math.ceil(remaining / perAction)) : "--");
         }
 
         // The wiki guide's method for this level, and what to switch to before the goal
