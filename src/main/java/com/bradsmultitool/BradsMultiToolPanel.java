@@ -1,13 +1,19 @@
 package com.bradsmultitool;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -22,22 +28,23 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JMenu;
-import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.api.Experience;
 import net.runelite.api.Skill;
@@ -238,6 +245,24 @@ public class BradsMultiToolPanel extends PluginPanel {
     /**
      * Set a goal: a level (2-99) or an XP amount. With no skill given, asks which skill too.
      */
+    // A small red push pin (drawn here rather than shipped as an image)
+    private static final BufferedImage PIN_IMAGE = drawPin();
+
+    private static BufferedImage drawPin() {
+        BufferedImage image = new BufferedImage(12, 12, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(new Color(200, 200, 200));
+        g.setStroke(new BasicStroke(1.5f));
+        g.drawLine(5, 7, 1, 11);
+        g.setColor(new Color(220, 50, 50));
+        g.fillOval(4, 0, 8, 8);
+        g.setColor(new Color(255, 140, 140));
+        g.fillOval(6, 2, 3, 3);
+        g.dispose();
+        return image;
+    }
+
     // Most legs of the goal's training plan listed on a skill card
     private static final int MAX_PLAN_LINES = 5;
 
@@ -377,6 +402,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
         private final JLabel suggestion = stat();
+        private final JLabel pinIcon = new JLabel();
         // Which fields are currently laid out, so they're only rebuilt when the settings change
         private String layout = "";
         private final JMenuItem pauseItem = new JMenuItem();
@@ -419,7 +445,26 @@ public class BradsMultiToolPanel extends PluginPanel {
             }
             goalBar.setGoalStyle();
 
-            add(icon, BorderLayout.WEST);
+            // A pin under the skill icon while this skill is pinned to the game screen; click it to unpin
+            pinIcon.setIcon(new ImageIcon(PIN_IMAGE));
+            pinIcon.setHorizontalAlignment(SwingConstants.CENTER);
+            pinIcon.setToolTipText("Pinned to the game screen - click to unpin");
+            pinIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            pinIcon.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (SwingUtilities.isLeftMouseButton(e)) {
+                        plugin.setPinnedSkill(null);
+                    }
+                }
+            });
+            pinIcon.setVisible(false);
+            JPanel west = new JPanel(new BorderLayout(0, 2));
+            west.setOpaque(false);
+            west.add(icon, BorderLayout.CENTER);
+            west.add(pinIcon, BorderLayout.SOUTH);
+
+            add(west, BorderLayout.WEST);
             add(stats, BorderLayout.CENTER);
             add(bars, BorderLayout.SOUTH);
             layoutStats();
@@ -527,7 +572,11 @@ public class BradsMultiToolPanel extends PluginPanel {
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
-            pinItem.setText(skill == plugin.getPinnedSkill() ? "Unpin from screen" : "Pin to screen");
+            boolean pinned = skill == plugin.getPinnedSkill();
+            pinItem.setText(pinned ? "Unpin from screen" : "Pin to screen");
+            if (pinIcon.isVisible() != pinned) {
+                pinIcon.setVisible(pinned);
+            }
             BradsMultiToolConfig.TrainingFocus own = plugin.getOwnTrainingFocus(skill);
             defaultFocusItem.setText("Default (" + config.trainingFocus() + ")");
             (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);

@@ -99,7 +99,7 @@ work a resource.
   **Highlight Goal Items**).
 - **Pin to screen**: right-click a card > **Pin to screen** to show that skill on the game screen (level
   bar, XP/hr, gained, time to level, goal and suggested method) without the sidebar open. One skill at a
-  time; right-click the overlay > **Unpin** (or the card > Unpin from screen) to remove it.
+  time; its card shows a red pin (click it to unpin), or right-click the overlay > **Unpin**.
 - **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").

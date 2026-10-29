@@ -220,8 +220,9 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
   every skill.
 - **Pin to screen**: right-click a card > Pin to screen puts that skill on the game screen as a movable
   overlay (level bar, XP/hr, gained, time to level, goal bar and suggested method). Only one at a time:
-  pinning another replaces it. Right-click the overlay > Unpin, or the card > Unpin from screen. It stays
-  pinned after a restart.
+  pinning another replaces it. The pinned skill's card shows a red pin under its icon; click the pin,
+  right-click the overlay > Unpin, or the card > Unpin from screen to remove it. It stays pinned after a
+  restart.
 - A skill's rate clock **auto-pauses** after a few minutes without XP and resumes on your next XP.
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
 
