@@ -11,6 +11,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -402,7 +403,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
         private final JLabel suggestion = stat();
-        private final JLabel pinIcon = new JLabel();
+        private boolean pinned;
         // Which fields are currently laid out, so they're only rebuilt when the settings change
         private String layout = "";
         private final JMenuItem pauseItem = new JMenuItem();
@@ -445,26 +446,26 @@ public class BradsMultiToolPanel extends PluginPanel {
             }
             goalBar.setGoalStyle();
 
-            // A pin under the skill icon while this skill is pinned to the game screen; click it to unpin
-            pinIcon.setIcon(new ImageIcon(PIN_IMAGE));
-            pinIcon.setHorizontalAlignment(SwingConstants.CENTER);
-            pinIcon.setToolTipText("Pinned to the game screen - click to unpin");
-            pinIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            pinIcon.addMouseListener(new MouseAdapter() {
+            // While this skill is pinned to the game screen, a pin is drawn over the card's top-right
+            // corner (see paintChildren), so nothing else moves; clicking it unpins
+            addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    if (SwingUtilities.isLeftMouseButton(e)) {
+                    if (SwingUtilities.isLeftMouseButton(e) && pinned && pinBounds().contains(e.getPoint())) {
                         plugin.setPinnedSkill(null);
                     }
                 }
             });
-            pinIcon.setVisible(false);
-            JPanel west = new JPanel(new BorderLayout(0, 2));
-            west.setOpaque(false);
-            west.add(icon, BorderLayout.CENTER);
-            west.add(pinIcon, BorderLayout.SOUTH);
+            addMouseMotionListener(new MouseAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    boolean over = pinned && pinBounds().contains(e.getPoint());
+                    setCursor(over ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+                    setToolTipText(over ? "Pinned to the game screen - click to unpin" : skill.getName() + " - right-click for options");
+                }
+            });
 
-            add(west, BorderLayout.WEST);
+            add(icon, BorderLayout.WEST);
             add(stats, BorderLayout.CENTER);
             add(bars, BorderLayout.SOUTH);
             layoutStats();
@@ -499,6 +500,20 @@ public class BradsMultiToolPanel extends PluginPanel {
             setComponentPopupMenu(menu);
             setToolTipText(skill.getName() + " - right-click for options");
             inheritPopupMenu(this);
+        }
+
+        // The pin's spot: the card's top-right corner, inside its padding
+        private Rectangle pinBounds() {
+            return new Rectangle(getWidth() - PIN_IMAGE.getWidth() - 2, 1, PIN_IMAGE.getWidth(), PIN_IMAGE.getHeight());
+        }
+
+        @Override
+        protected void paintChildren(Graphics g) {
+            super.paintChildren(g);
+            if (pinned) {
+                Rectangle at = pinBounds();
+                g.drawImage(PIN_IMAGE, at.x, at.y, null);
+            }
         }
 
         // Only the fields switched on under Skill Tracker, two to a row
@@ -572,10 +587,11 @@ public class BradsMultiToolPanel extends PluginPanel {
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
-            boolean pinned = skill == plugin.getPinnedSkill();
-            pinItem.setText(pinned ? "Unpin from screen" : "Pin to screen");
-            if (pinIcon.isVisible() != pinned) {
-                pinIcon.setVisible(pinned);
+            boolean nowPinned = skill == plugin.getPinnedSkill();
+            pinItem.setText(nowPinned ? "Unpin from screen" : "Pin to screen");
+            if (pinned != nowPinned) {
+                pinned = nowPinned;
+                repaint();
             }
             BradsMultiToolConfig.TrainingFocus own = plugin.getOwnTrainingFocus(skill);
             defaultFocusItem.setText("Default (" + config.trainingFocus() + ")");
