@@ -106,7 +106,8 @@ work a resource.
 - **Pin to screen**: right-click a card > **Pin to screen** to show that skill on the game screen (level
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
   time; its card shows a red pin (click it to unpin), or right-click the overlay > **Unpin**.
-- **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
+- **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 5 minutes by default) and resumes on your
+  next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.

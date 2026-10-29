@@ -28,6 +28,9 @@ import net.runelite.client.game.ItemManager;
 @Singleton
 class GoalItems {
 
+    private static final String SHARDS = "Blessed bone shards";
+    private static final double SUNFIRE_SHARD_XP = 6;
+
     private final Client client;
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
@@ -88,11 +91,42 @@ class GoalItems {
     boolean owns(String tool) {
         String t = tool.toLowerCase();
         for (String item : owned) {
-            if (item.equals(t) || item.startsWith(t + " (") || item.endsWith(" " + t)) {
+            if (item.equals(t) || item.startsWith(t + " (") || item.endsWith(" " + t) || variantOf(item, t)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * A kind of the tool with an extra word in the middle: "jug of blessed sunfire wine" for "jug of blessed
+     * wine" (every word of the tool, in order, starting and ending the same).
+     */
+    static boolean variantOf(String item, String tool) {
+        String[] words = tool.split(" ");
+        String[] have = item.split(" ");
+        if (words.length < 2 || !have[0].equals(words[0]) || !have[have.length - 1].equals(words[words.length - 1])) {
+            return false;
+        }
+        int at = 0;
+        for (String word : have) {
+            if (at < words.length && word.equals(words[at])) {
+                at++;
+            }
+        }
+        return at == words.length;
+    }
+
+    /** XP per action of this skill's suggestion: blessed bone shards give 6 with sunfire wine on you, not 5. */
+    double xpEach(Skill skill) {
+        RecipeData.Recipe make = suggestion(skill);
+        if (make == null) {
+            return 0;
+        }
+        if (make.materials.containsKey(SHARDS) && carried("Jug of blessed sunfire wine") > 0) {
+            return SUNFIRE_SHARD_XP;
+        }
+        return make.xp;
     }
 
     /** The tooltip for an item that's a material for a goal suggestion, or null. */

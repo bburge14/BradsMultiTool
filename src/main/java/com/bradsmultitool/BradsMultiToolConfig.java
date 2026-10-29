@@ -2080,17 +2080,17 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
-    @Range(min = 1, max = 60)
+    @Range(min = 10, max = 3600)
     @ConfigItem(
-        keyName = "autoPauseMinutes",
+        keyName = "autoPauseSeconds",
         name = "Auto-Pause After",
-        description = "Minutes without XP in a skill before it auto-pauses",
+        description = "Seconds without XP in a skill before it auto-pauses (10 seconds to an hour)",
         section = trackerSection,
         position = 75
     )
-    @Units(Units.MINUTES)
-    default int autoPauseMinutes() {
-        return 5;
+    @Units(Units.SECONDS)
+    default int autoPauseSeconds() {
+        return 300;
     }
 
     @ConfigItem(

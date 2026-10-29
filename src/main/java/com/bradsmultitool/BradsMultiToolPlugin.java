@@ -825,7 +825,7 @@ public class BradsMultiToolPlugin extends Plugin {
             return false;
         }
         Integer last = lastXpTicks.get(skill);
-        return last != null && client.getTickCount() - last > config.autoPauseMinutes() * 100;
+        return last != null && client.getTickCount() - last > config.autoPauseSeconds() / 0.6;
     }
 
     // ---- Goals: a target XP per skill, kept with your RuneScape profile ----

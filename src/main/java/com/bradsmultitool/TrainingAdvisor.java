@@ -259,9 +259,9 @@ class TrainingAdvisor {
             }
             return npcXp(name);
         }
-        RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
-        if (make != null) {
-            return make.xp;
+        double makeXp = plugin.getGoalItems().xpEach(skill);
+        if (makeXp > 0) {
+            return makeXp;
         }
         Suggestion suggestion = suggest(skill, level);
         if (suggestion != null && suggestion.xpEach > 0) {
