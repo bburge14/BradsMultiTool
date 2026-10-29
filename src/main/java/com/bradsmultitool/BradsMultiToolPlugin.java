@@ -102,22 +102,11 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int ENUM_WEAPON_STYLES = 3908;
     private static final int PARAM_ATTACK_STYLE_NAME = 1407;
 
-    private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
-    private static final int GEMSTONE_CRAB_ID = 14779;
-    private static final int GEMSTONE_CRAB_SHELL_ID = 14780;
-    // The crab's three mines in the Tlati Rainforest (OSRS Wiki); crab tunnels and shells only count near these
-    private static final WorldPoint[] CRAB_SPOTS = {
-        new WorldPoint(1275, 3160, 0), new WorldPoint(1351, 3110, 0), new WorldPoint(1237, 3042, 0)};
-    private static final String[] CRAB_COVE_NAMES = {"North Cove", "East Cove", "West Cove"};
-    private static final int CRAB_AREA_RADIUS = 40;
     private static final int INSIDE_WILDERNESS_VARBIT = 5963;
     // Repeat counter value meaning "already handled, don't sound or repeat"
     private static final int SILENCED = Integer.MAX_VALUE / 2;
     private static final int TRAINING_WINDOW_TICKS = 25;
     private static final int PIE_TRAINING_TICKS = 200;
-    // The shell lasts 90 seconds (150 ticks); allow a little slack
-    private static final int SHELL_LIFETIME_TICKS = 160;
-    private static final int GEMS_PER_SHELL = 3;
 
     private static final Set<Skill> BOOSTABLE_COMBAT_SKILLS =
         EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC);
@@ -279,57 +268,18 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Inject
     private IdleWarnings idleWarnings;
+
+    @Inject
+    @Getter
+    private GemCrabTracker gemCrab;
     private NavigationButton navButton;
     private BradsMultiToolPanel panel;
-
-    @Getter
-    private NPC activeCrab = null;
-
-    @Getter
-    private NPC dormantCrabShellNpc = null;
-
-    /** Active crab's health 0-100, or -1 before its health bar has been seen. */
-    @Getter
-    private int crabHpPercent = -1;
-    private boolean crabLowHealthAlerted = false;
-
-    // Tick of the "enough understanding" message for the latest shell, -1 when not eligible
-    private int shellEligibleTick = -1;
-    private int shellGemsMined = 0;
-
-    @Getter
-    private final List<TileObject> trackedShellObjects = new ArrayList<>();
-
-    @Getter
-    private final List<TileObject> trackedTunnels = new ArrayList<>();
-
-    // Gemstone Crab Specific Damage & Telemetry
-    @Getter
-    private long currentCrabDamage = 0;
-
-    @Getter
-    private int crabLastHit = 0;
-
-    @Getter
-    private int crabMaxHit = 0;
-
-    @Getter
-    private double crabLiveDps = 0.0;
-    private Instant crabFightStartTime = null;
-    private boolean wasDirectlyTrackingCrab = false;
 
     @Getter
     private String combatDiscipline = "Melee";
 
     @Getter
     private String combatMethod = "Slash";
-
-    @Getter
-    private String crabCombatXpType = "Strength";
-
-    /** The skills behind crabCombatXpType, for showing their icons. */
-    @Getter
-    private List<Skill> crabCombatXpSkills = Collections.singletonList(Skill.STRENGTH);
 
     @Getter
     private Color combatMethodColor = Color.WHITE;
@@ -347,21 +297,6 @@ public class BradsMultiToolPlugin extends Plugin {
     private String manualSpellName = null;
     private int manualSpellSpriteId = -1;
     private int manualCastTick = -1;
-
-    @Getter
-    private String targetCrabHp = "No Target";
-
-    @Getter
-    private String estimatedBurrowTime = "--:--";
-
-    @Getter
-    private boolean inSpawnVicinity = false;
-
-    @Getter
-    private String currentCoveName = "Cavern Complex";
-
-    @Getter
-    private boolean playerAttackingCrab = false;
 
     // General PvM Target & Telemetry
     @Getter
@@ -454,11 +389,8 @@ public class BradsMultiToolPlugin extends Plugin {
     private int timesPrayerAlertSounded = 0;
     private Instant lastPrayerAlertTime = Instant.EPOCH;
 
-    private Instant fightStartTime = null;
-    private int initialHealthRatio = -1;
 
     // Tick-level XP change detection accumulator
-    private final Set<Skill> tickXpChanges = EnumSet.noneOf(Skill.class);
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
@@ -490,7 +422,8 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(alerts);
         eventBus.register(idleWarnings);
         // Hitting the Gemstone Crab counts as busy for the idle alert (its hits come slowly)
-        idleWarnings.addBusy(() -> playerAttackingCrab);
+        idleWarnings.addBusy(gemCrab::isPlayerAttackingCrab);
+        eventBus.register(gemCrab);
         eventBus.register(questProgress);
         eventBus.register(skillingOverlay);
         otherTimerPlugins.refresh();
@@ -555,17 +488,12 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.unregister(alerts);
         eventBus.unregister(idleWarnings);
         alerts.shutDown();
-        activeCrab = null;
-        dormantCrabShellNpc = null;
+        eventBus.unregister(gemCrab);
+        gemCrab.reset();
         currentPvmTarget = null;
-        trackedShellObjects.clear();
-        trackedTunnels.clear();
         pausedSkills.clear();
-        inSpawnVicinity = false;
         pvmOverlayActive = false;
         buffState = BuffState.UNPOTTED;
-        wasDirectlyTrackingCrab = false;
-        resetFightTracking();
     }
 
     /** Alerts are held back until you're really in the game (see Alerts.ready). */
@@ -578,13 +506,7 @@ public class BradsMultiToolPlugin extends Plugin {
         return widget != null && !widget.isHidden();
     }
 
-    public String getPvmTargetHp() {
-        return pvmHpPercent + "%";
-    }
 
-    public String getCombatXpType() {
-        return crabCombatXpType;
-    }
 
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
     // which changes when synced settings arrive), so redraw the tracker then
@@ -627,13 +549,7 @@ public class BradsMultiToolPlugin extends Plugin {
         return icon;
     }
 
-    public boolean isCrabActive() {
-        return activeCrab != null && !activeCrab.isDead();
-    }
 
-    public boolean isCrabBurrowed() {
-        return !isCrabActive() || dormantCrabShellNpc != null || !trackedShellObjects.isEmpty();
-    }
 
     public boolean isSkillIgnored(Skill skill) {
         String ignored = config.ignoredSkills();
@@ -664,9 +580,7 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     public void resetSession() {
-        currentCrabDamage = 0;
-        crabLiveDps = 0.0;
-        crabFightStartTime = null;
+        gemCrab.resetSession();
         sessionPvmDamage = 0;
         sessionPvmActiveSeconds = 0;
         sessionCombatSecondMarker = null;
@@ -678,17 +592,9 @@ public class BradsMultiToolPlugin extends Plugin {
         buffState = BuffState.UNPOTTED;
         pvmLiveDps = 0.0;
         pvmOverlayActive = false;
-        resetFightTracking();
         updatePanelUI();
     }
 
-    private void resetFightTracking() {
-        fightStartTime = null;
-        initialHealthRatio = -1;
-        estimatedBurrowTime = "--:--";
-        crabFightStartTime = null;
-        currentCrabDamage = 0;
-    }
 
     public void resetSkillRate(Skill skill) {
         int currentXp = client.getSkillExperience(skill);
@@ -895,47 +801,19 @@ public class BradsMultiToolPlugin extends Plugin {
             slayerTracker.reset();
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
-            activeCrab = null;
-            dormantCrabShellNpc = null;
             currentPvmTarget = null;
-            trackedShellObjects.clear();
-            trackedTunnels.clear();
-            inSpawnVicinity = false;
             buffState = BuffState.UNPOTTED;
             pvmOverlayActive = false;
-            wasDirectlyTrackingCrab = false;
             aggroTimerStart = null;
             lastAggroAnchor = null;
-            resetFightTracking();
-            targetCrabHp = "Logged Out";
-            playerAttackingCrab = false;
             updatePanelUI();
         }
     }
 
-    @Subscribe
-    public void onNpcSpawned(NpcSpawned event) {
-        evaluateNpc(event.getNpc());
-    }
 
     @Subscribe
     public void onNpcDespawned(NpcDespawned event) {
         NPC npc = event.getNpc();
-        if (npc == activeCrab) {
-            activeCrab = null;
-            targetCrabHp = "Burrowed";
-            estimatedBurrowTime = "Burrowed";
-            playerAttackingCrab = false;
-            resetFightTracking();
-
-            if (inSpawnVicinity && wasDirectlyTrackingCrab && isNearPlayer(npc, CRAB_BURROW_ALERT_DISTANCE)) {
-                alerts.alert(VoiceAlertService.VoiceLine.CRAB_MOVED, null);
-            }
-            wasDirectlyTrackingCrab = false;
-        }
-        if (npc == dormantCrabShellNpc) {
-            dormantCrabShellNpc = null;
-        }
         if (npc == currentPvmTarget) {
             currentPvmTarget = null;
             pvmHpPercent = 0;
@@ -945,26 +823,8 @@ public class BradsMultiToolPlugin extends Plugin {
         }
     }
 
-    // NPCs also despawn when they leave the player's view (~15 tiles), so only a despawn
-    // well inside that range is the crab actually burrowing rather than the player walking away.
-    private boolean isNearPlayer(NPC npc, int maxDistance) {
-        Player player = client.getLocalPlayer();
-        if (player == null || npc.getWorldLocation() == null) {
-            return false;
-        }
-        WorldPoint playerLocation = player.getWorldLocation();
-        return playerLocation != null && playerLocation.distanceTo(npc.getWorldLocation()) <= maxDistance;
-    }
 
-    private enum CrabForm {
-        NONE,
-        ACTIVE,
-        SHELL
-    }
 
-    public boolean isGemstoneCrab(NPC npc) {
-        return classifyCrab(npc) != CrabForm.NONE;
-    }
 
     /** Wiki stats for an NPC, or null if it isn't in the bundled data. */
     // By the NPC's id, its transformed id (NPCs that change form), then its name
@@ -1015,141 +875,12 @@ public class BradsMultiToolPlugin extends Plugin {
         return hasAttackOption(npc);
     }
 
-    private CrabForm classifyCrab(NPC npc) {
-        if (npc == null) {
-            return CrabForm.NONE;
-        }
-        if (npc.getId() == GEMSTONE_CRAB_ID) {
-            return CrabForm.ACTIVE;
-        }
-        if (npc.getId() == GEMSTONE_CRAB_SHELL_ID) {
-            return CrabForm.SHELL;
-        }
 
-        // Fallback in case the ids change: match the name and tell the shell apart by its "Mine" option
-        NPCComposition comp = npc.getTransformedComposition();
-        if (comp == null) {
-            comp = npc.getComposition();
-        }
-        String name = comp != null && comp.getName() != null ? comp.getName() : npc.getName();
-        if (name == null) {
-            return CrabForm.NONE;
-        }
-        name = name.toLowerCase();
-        if (!name.contains("gemstone crab") && !name.contains("gem crab")) {
-            return CrabForm.NONE;
-        }
-        if (name.contains("shell")) {
-            return CrabForm.SHELL;
-        }
-        if (comp != null && comp.getActions() != null) {
-            for (String action : comp.getActions()) {
-                if ("Mine".equalsIgnoreCase(action)) {
-                    return CrabForm.SHELL;
-                }
-            }
-        }
-        return CrabForm.ACTIVE;
-    }
 
-    /**
-     * Whether you can mine the current shell. Only the 16 players who dealt the most damage may mine it,
-     * which the game announces in chat when the crab burrows; the shell lasts 90 seconds and gives each
-     * eligible player 3 gems.
-     */
-    public boolean isShellMineable() {
-        return shellEligibleTick >= 0
-            && client.getTickCount() - shellEligibleTick <= SHELL_LIFETIME_TICKS
-            && shellGemsMined < GEMS_PER_SHELL;
-    }
 
-    @Subscribe
-    public void onChatMessage(ChatMessage event) {
-        if (event.getType() != ChatMessageType.GAMEMESSAGE && event.getType() != ChatMessageType.SPAM) {
-            return;
-        }
-        String message = Text.removeTags(event.getMessage()).toLowerCase();
-        if (message.contains("enough understanding of the crab to mine")) {
-            shellEligibleTick = client.getTickCount();
-            shellGemsMined = 0;
-        } else if (message.contains("understanding of the gemstone crab is not great enough")) {
-            shellEligibleTick = -1;
-        } else if (message.contains("from the crab shell")) {
-            shellGemsMined++;
-        }
-    }
 
-    private void evaluateNpc(NPC npc) {
-        switch (classifyCrab(npc)) {
-            case ACTIVE:
-                setActiveCrab(npc);
-                break;
-            case SHELL:
-                dormantCrabShellNpc = npc;
-                if (activeCrab == npc) {
-                    activeCrab = null;
-                    resetFightTracking();
-                }
-                break;
-            default:
-                break;
-        }
-    }
 
-    private void setActiveCrab(NPC npc) {
-        if (activeCrab != npc) {
-            log.debug("Gemstone Crab detected: id={} at {}", npc.getId(), npc.getWorldLocation());
-            resetFightTracking();
-            crabHpPercent = -1;
-            crabLowHealthAlerted = false;
-        }
-        activeCrab = npc;
-        wasDirectlyTrackingCrab = true;
-        dormantCrabShellNpc = null;
-    }
 
-    // The health bar is only sent while the crab is in view and in combat, so keep the last known value
-    private void updateCrabHealth() {
-        if (activeCrab == null) {
-            return;
-        }
-        int ratio = activeCrab.getHealthRatio();
-        int scale = activeCrab.getHealthScale();
-        if (ratio >= 0 && scale > 0) {
-            crabHpPercent = (ratio * 100) / scale;
-        }
-        if (crabHpPercent < 0) {
-            return;
-        }
-
-        if (crabHpPercent > config.crabLowHealthPercent()) {
-            crabLowHealthAlerted = false;
-        } else if (!crabLowHealthAlerted && inSpawnVicinity) {
-            crabLowHealthAlerted = true;
-            alerts.alert(VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH, crabHpPercent + "% health");
-        }
-    }
-
-    // Spawn events can be missed (e.g. arriving through a cave reloads the scene and clears tracking),
-    // so re-check the NPCs around the player every tick.
-    private void scanForCrab() {
-        NPC crab = null;
-        NPC shell = null;
-        for (NPC npc : client.getTopLevelWorldView().npcs()) {
-            CrabForm form = classifyCrab(npc);
-            if (form == CrabForm.ACTIVE && !npc.isDead()) {
-                crab = npc;
-            } else if (form == CrabForm.SHELL) {
-                shell = npc;
-            }
-        }
-
-        if (crab != null) {
-            setActiveCrab(crab);
-        } else if (shell != null) {
-            dormantCrabShellNpc = shell;
-        }
-    }
 
     private boolean hasAttackOption(NPC npc) {
         if (npc == null) return false;
@@ -1165,75 +896,13 @@ public class BradsMultiToolPlugin extends Plugin {
         return false;
     }
 
-    @Subscribe
-    public void onGameObjectSpawned(GameObjectSpawned event) {
-        checkTileObject(event.getGameObject());
-    }
 
-    @Subscribe
-    public void onGameObjectDespawned(GameObjectDespawned event) {
-        removeTileObject(event.getGameObject());
-    }
 
-    @Subscribe
-    public void onGroundObjectSpawned(GroundObjectSpawned event) {
-        checkTileObject(event.getGroundObject());
-    }
 
-    @Subscribe
-    public void onGroundObjectDespawned(GroundObjectDespawned event) {
-        removeTileObject(event.getGroundObject());
-    }
 
-    @Subscribe
-    public void onWallObjectSpawned(WallObjectSpawned event) {
-        checkTileObject(event.getWallObject());
-    }
 
-    @Subscribe
-    public void onWallObjectDespawned(WallObjectDespawned event) {
-        removeTileObject(event.getWallObject());
-    }
 
-    private void checkTileObject(TileObject obj) {
-        // Tunnels and shells elsewhere (Draynor sewers, say) have nothing to do with the crab
-        if (obj == null || crabSpotNear(obj.getWorldLocation()) < 0) return;
 
-        ObjectComposition def = client.getObjectDefinition(obj.getId());
-        if (def == null) return;
-
-        String name = def.getName() != null ? def.getName().toLowerCase() : "";
-        String[] actions = def.getActions();
-
-        if (name.contains("shell") || (name.contains("gemstone") && name.contains("crab"))) {
-            if (!trackedShellObjects.contains(obj)) trackedShellObjects.add(obj);
-            return;
-        }
-
-        boolean isCavernTunnel = false;
-        if (name.contains("crevice") || name.contains("cove tunnel") || name.contains("tunnel")) {
-            isCavernTunnel = true;
-        } else if (actions != null) {
-            for (String act : actions) {
-                if (act != null) {
-                    String a = act.toLowerCase();
-                    if (a.contains("crawl-through") || a.contains("squeeze-through")) {
-                        isCavernTunnel = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (isCavernTunnel && !trackedTunnels.contains(obj)) {
-            trackedTunnels.add(obj);
-        }
-    }
-
-    private void removeTileObject(TileObject obj) {
-        trackedShellObjects.remove(obj);
-        trackedTunnels.remove(obj);
-    }
 
     @Subscribe
     public void onGameTick(GameTick tick) {
@@ -1242,26 +911,14 @@ public class BradsMultiToolPlugin extends Plugin {
             return;
         }
 
-        // Process ground-truth XP drop accumulator from this tick
-        resolveXpTypeFromTickDrops();
-        tickXpChanges.clear();
 
         Player player = client.getLocalPlayer();
         if (player != null) {
             combatLevel = player.getCombatLevel();
             WorldPoint wp = player.getWorldLocation();
-            scanForCrab();
-            updateSpatialPresence(player, wp);
-            updateCrabHealth();
             slayerTracker.update();
-            updateTargetCrabStatus(player);
             updateGeneralPvmTarget(player);
             updateAggroCountdown(wp);
-
-            if (crabFightStartTime != null && isCrabActive() && playerAttackingCrab) {
-                long elapsed = Math.max(1, Duration.between(crabFightStartTime, Instant.now()).getSeconds());
-                crabLiveDps = (double) currentCrabDamage / elapsed;
-            }
         }
 
         processSimpleBuffStatus();
@@ -1276,46 +933,9 @@ public class BradsMultiToolPlugin extends Plugin {
             }
         }
 
-        calculateBurrowCountdown();
         updatePanelUI();
     }
 
-    private void resolveXpTypeFromTickDrops() {
-        if (tickXpChanges.isEmpty()) return;
-
-        boolean hasAtk = tickXpChanges.contains(Skill.ATTACK);
-        boolean hasStr = tickXpChanges.contains(Skill.STRENGTH);
-        boolean hasDef = tickXpChanges.contains(Skill.DEFENCE);
-        boolean hasRng = tickXpChanges.contains(Skill.RANGED);
-        boolean hasMag = tickXpChanges.contains(Skill.MAGIC);
-
-        crabCombatXpSkills = new ArrayList<>();
-        if (hasAtk && hasStr && hasDef) {
-            crabCombatXpType = "Shared";
-            crabCombatXpSkills.addAll(Arrays.asList(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE));
-        } else if (hasRng && hasDef) {
-            crabCombatXpType = "Ranged / Def";
-            crabCombatXpSkills.addAll(Arrays.asList(Skill.RANGED, Skill.DEFENCE));
-        } else if (hasMag && hasDef) {
-            crabCombatXpType = "Magic / Def";
-            crabCombatXpSkills.addAll(Arrays.asList(Skill.MAGIC, Skill.DEFENCE));
-        } else if (hasAtk) {
-            crabCombatXpType = "Attack";
-            crabCombatXpSkills.add(Skill.ATTACK);
-        } else if (hasStr) {
-            crabCombatXpType = "Strength";
-            crabCombatXpSkills.add(Skill.STRENGTH);
-        } else if (hasDef) {
-            crabCombatXpType = "Defence";
-            crabCombatXpSkills.add(Skill.DEFENCE);
-        } else if (hasRng) {
-            crabCombatXpType = "Ranged";
-            crabCombatXpSkills.add(Skill.RANGED);
-        } else if (hasMag) {
-            crabCombatXpType = "Magic";
-            crabCombatXpSkills.add(Skill.MAGIC);
-        }
-    }
 
     private void updateAggroCountdown(WorldPoint playerLocation) {
         if (playerLocation == null) return;
@@ -1608,7 +1228,7 @@ public class BradsMultiToolPlugin extends Plugin {
         NPC attackingNpc = null;
         for (NPC npc : client.getTopLevelWorldView().npcs()) {
             if (npc != null && npc.getInteracting() == player && !npc.isDead()) {
-                if (classifyCrab(npc) == CrabForm.NONE && hasAttackOption(npc)) {
+                if (!GemstoneCrabs.isGemstoneCrab(npc) && hasAttackOption(npc)) {
                     attackingNpc = npc;
                     break;
                 }
@@ -1624,7 +1244,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
         if (activeFightNpc != null) {
             String name = activeFightNpc.getName() != null ? activeFightNpc.getName() : "Monster";
-            if (classifyCrab(activeFightNpc) != CrabForm.NONE) {
+            if (GemstoneCrabs.isGemstoneCrab(activeFightNpc)) {
                 currentPvmTarget = null;
                 pvmOverlayActive = false;
                 return;
@@ -1906,71 +1526,8 @@ public class BradsMultiToolPlugin extends Plugin {
         return weakness.subType.equalsIgnoreCase(style.damageType) ? match : mismatch;
     }
 
-    private void updateSpatialPresence(Player player, WorldPoint wp) {
-        if (wp == null) {
-            inSpawnVicinity = false;
-            return;
-        }
 
-        if (activeCrab != null && !activeCrab.isDead()) {
-            if (wp.distanceTo(activeCrab.getWorldLocation()) <= 28) {
-                inSpawnVicinity = true;
-                updateCoveName(wp);
-                return;
-            }
-        }
 
-        if (dormantCrabShellNpc != null && !dormantCrabShellNpc.isDead()) {
-            if (wp.distanceTo(dormantCrabShellNpc.getWorldLocation()) <= 28) {
-                inSpawnVicinity = true;
-                updateCoveName(wp);
-                return;
-            }
-        }
-
-        if (crabSpotNear(wp) < 0) {
-            inSpawnVicinity = false;
-            return;
-        }
-
-        for (TileObject tunnel : trackedTunnels) {
-            if (tunnel != null && wp.distanceTo(tunnel.getWorldLocation()) <= 24) {
-                inSpawnVicinity = true;
-                updateCoveName(wp);
-                return;
-            }
-        }
-
-        for (TileObject shell : trackedShellObjects) {
-            if (shell != null && wp.distanceTo(shell.getWorldLocation()) <= 24) {
-                inSpawnVicinity = true;
-                updateCoveName(wp);
-                return;
-            }
-        }
-
-        inSpawnVicinity = false;
-    }
-
-    private void updateCoveName(WorldPoint wp) {
-        int spot = crabSpotNear(wp);
-        if (spot >= 0) {
-            currentCoveName = CRAB_COVE_NAMES[spot];
-        }
-    }
-
-    /** Index of the crab mine within range of {@code wp}, or -1 when it's nowhere near one. */
-    private static int crabSpotNear(WorldPoint wp) {
-        if (wp == null) {
-            return -1;
-        }
-        for (int i = 0; i < CRAB_SPOTS.length; i++) {
-            if (wp.getPlane() == CRAB_SPOTS[i].getPlane() && wp.distanceTo2D(CRAB_SPOTS[i]) <= CRAB_AREA_RADIUS) {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     @Subscribe
     public void onHitsplatApplied(HitsplatApplied event) {
@@ -1981,24 +1538,6 @@ public class BradsMultiToolPlugin extends Plugin {
         if (hitsplat.isMine()) {
             int dmg = hitsplat.getAmount();
 
-            if (npc == activeCrab || classifyCrab(npc) == CrabForm.ACTIVE) {
-                activeCrab = npc;
-                playerAttackingCrab = true;
-                wasDirectlyTrackingCrab = true;
-                currentCrabDamage += dmg;
-
-                // Persistent Last Hit and Max Hit for Gemstone Crab
-                crabLastHit = dmg;
-                if (dmg > crabMaxHit) {
-                    crabMaxHit = dmg;
-                }
-
-                if (crabFightStartTime == null) {
-                    crabFightStartTime = Instant.now();
-                }
-                long elapsed = Math.max(1, Duration.between(crabFightStartTime, Instant.now()).getSeconds());
-                crabLiveDps = (double) currentCrabDamage / elapsed;
-            }
             if (npc == currentPvmTarget) {
                 // Persistent Last Hit and Max Hit for PvM
                 pvmLastHit = dmg;
@@ -2013,46 +1552,6 @@ public class BradsMultiToolPlugin extends Plugin {
         }
     }
 
-    private void calculateBurrowCountdown() {
-        if (activeCrab == null || activeCrab.isDead()) {
-            resetFightTracking();
-            return;
-        }
-
-        int currentRatio = activeCrab.getHealthRatio();
-        int scale = activeCrab.getHealthScale();
-
-        if (currentRatio <= 0 || scale <= 0) {
-            estimatedBurrowTime = "Burrowing...";
-            return;
-        }
-
-        if (initialHealthRatio == -1 || fightStartTime == null) {
-            initialHealthRatio = currentRatio;
-            fightStartTime = Instant.now();
-            estimatedBurrowTime = "--:--";
-            return;
-        }
-
-        long elapsedSec = Duration.between(fightStartTime, Instant.now()).getSeconds();
-        int ratioLost = initialHealthRatio - currentRatio;
-
-        if (elapsedSec < 3 || ratioLost <= 0) {
-            estimatedBurrowTime = "--:--";
-            return;
-        }
-
-        double ratioPerSecond = (double) ratioLost / elapsedSec;
-        int secondsRemaining = (int) Math.ceil(currentRatio / ratioPerSecond);
-
-        if (secondsRemaining <= 0) {
-            estimatedBurrowTime = "00:00";
-        } else {
-            int m = secondsRemaining / 60;
-            int s = secondsRemaining % 60;
-            estimatedBurrowTime = String.format("%02d:%02d", m, s);
-        }
-    }
 
     @Subscribe
     public void onStatChanged(StatChanged event) {
@@ -2081,7 +1580,6 @@ public class BradsMultiToolPlugin extends Plugin {
             if (drop > 0) {
                 lastXpDrops.put(skill, drop);
                 lastXpTicks.put(skill, client.getTickCount());
-                tickXpChanges.add(skill);
             }
             gainedSkillXp.put(skill, gained);
             updatePanelUI();
@@ -2200,38 +1698,6 @@ public class BradsMultiToolPlugin extends Plugin {
         return total;
     }
 
-    private void updateTargetCrabStatus(Player player) {
-        Actor target = player.getInteracting();
-        boolean interactingWithCrab = false;
-
-        if (target instanceof NPC) {
-            NPC targetNpc = (NPC) target;
-            if (classifyCrab(targetNpc) == CrabForm.ACTIVE) {
-                interactingWithCrab = true;
-                activeCrab = targetNpc;
-            }
-        }
-
-        if (interactingWithCrab && activeCrab != null) {
-            playerAttackingCrab = true;
-            wasDirectlyTrackingCrab = true;
-            if (activeCrab.getHealthRatio() > 0 && activeCrab.getHealthScale() > 0) {
-                int hpPercent = (activeCrab.getHealthRatio() * 100) / activeCrab.getHealthScale();
-                targetCrabHp = hpPercent + "%";
-            } else {
-                targetCrabHp = "Active (100%)";
-            }
-        } else if (activeCrab != null && !activeCrab.isDead()) {
-            playerAttackingCrab = false;
-            targetCrabHp = "Active (Idle)";
-        } else if (dormantCrabShellNpc != null || !trackedShellObjects.isEmpty()) {
-            playerAttackingCrab = false;
-            targetCrabHp = "Shell (Burrowed)";
-        } else {
-            playerAttackingCrab = false;
-            targetCrabHp = "No Target";
-        }
-    }
 
     @Provides
     PluginIdentity provideIdentity() {

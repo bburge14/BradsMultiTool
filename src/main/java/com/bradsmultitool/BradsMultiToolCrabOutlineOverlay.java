@@ -17,6 +17,9 @@ import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
  */
 public class BradsMultiToolCrabOutlineOverlay extends Overlay {
 
+    @Inject
+    private GemCrabTracker gemCrab;
+
     private final BradsMultiToolPlugin plugin;
     private final BradsMultiToolConfig config;
     private final ModelOutlineRenderer outlines;
@@ -32,23 +35,23 @@ public class BradsMultiToolCrabOutlineOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!config.enableCrabFeatures() || !plugin.isInSpawnVicinity()) {
+        if (!config.enableCrabFeatures() || !gemCrab.isInSpawnVicinity()) {
             return null;
         }
-        NPC crab = plugin.getActiveCrab();
-        if (crab != null && !crab.isDead() && plugin.isCrabActive()) {
+        NPC crab = gemCrab.getActiveCrab();
+        if (crab != null && !crab.isDead() && gemCrab.isCrabActive()) {
             outlines.drawOutline(crab, 2, config.activeCrabColor(), 1);
         }
-        Color shell = plugin.isShellMineable() ? config.mineableShellColor() : config.depletedShellColor();
-        NPC shellNpc = plugin.getDormantCrabShellNpc();
+        Color shell = gemCrab.isShellMineable() ? config.mineableShellColor() : config.depletedShellColor();
+        NPC shellNpc = gemCrab.getDormantCrabShellNpc();
         if (shellNpc != null && !shellNpc.isDead()) {
             outlines.drawOutline(shellNpc, 2, shell, 1);
         }
-        for (TileObject shellObject : plugin.getTrackedShellObjects()) {
+        for (TileObject shellObject : gemCrab.getTrackedShellObjects()) {
             outlines.drawOutline(shellObject, 2, shell, 1);
         }
-        if (plugin.isCrabBurrowed()) {
-            for (TileObject tunnel : plugin.getTrackedTunnels()) {
+        if (gemCrab.isCrabBurrowed()) {
+            for (TileObject tunnel : gemCrab.getTrackedTunnels()) {
                 if (tunnel != null) {
                     outlines.drawOutline(tunnel, 2, config.tunnelColor(), 1);
                 }

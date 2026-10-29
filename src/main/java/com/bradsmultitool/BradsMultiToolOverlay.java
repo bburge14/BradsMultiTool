@@ -26,6 +26,9 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
 
 public class BradsMultiToolOverlay extends Overlay {
 
+    @Inject
+    private GemCrabTracker gemCrab;
+
     // Text is white unless colour carries meaning: good/bad state, or a warning
     static final Color GOOD = new Color(50, 220, 50);
     static final Color BAD = new Color(255, 70, 70);
@@ -211,7 +214,7 @@ public class BradsMultiToolOverlay extends Overlay {
         // -------------------------------------------------------------
         // BRANCH 2: Gemstone Crab Features & HUD
         // -------------------------------------------------------------
-        if (!config.enableCrabFeatures() || !plugin.isInSpawnVicinity()) {
+        if (!config.enableCrabFeatures() || !gemCrab.isInSpawnVicinity()) {
             return null;
         }
 
@@ -220,15 +223,15 @@ public class BradsMultiToolOverlay extends Overlay {
         // Mode A: Active fighting crab in cove, and for a few seconds after it moves so you can read the
         // final stats; then Mode B, the radar
         long now = System.currentTimeMillis();
-        boolean active = plugin.isCrabActive();
+        boolean active = gemCrab.isCrabActive();
         if (active) {
             lastCrabActiveMillis = now;
         }
         long lingerLeft = CRAB_STATS_LINGER_MILLIS - (now - lastCrabActiveMillis);
         if (active) {
             // Kept so the stats can still be read for a few seconds after the crab moves (they reset then)
-            lastFight = new CrabFight(plugin.getCurrentCrabDamage(), plugin.getCrabLiveDps(), plugin.getCrabLastHit(),
-                plugin.getCrabMaxHit(), new ArrayList<>(plugin.getCrabCombatXpSkills()), plugin.getCrabCombatXpType());
+            lastFight = new CrabFight(gemCrab.getCurrentCrabDamage(), gemCrab.getCrabLiveDps(), gemCrab.getCrabLastHit(),
+                gemCrab.getCrabMaxHit(), new ArrayList<>(gemCrab.getCrabCombatXpSkills()), gemCrab.getCrabCombatXpType());
         }
         if (active || (lingerLeft > 0 && lastFight != null)) {
             CrabFight fight = lastFight;
@@ -239,23 +242,23 @@ public class BradsMultiToolOverlay extends Overlay {
                     .left("Radar in:")
                     .right((lingerLeft / 1000 + 1) + "s")
                     .build());
-            } else if (plugin.getCrabHpPercent() >= 0) {
+            } else if (gemCrab.getCrabHpPercent() >= 0) {
                 // No max HP for the crab, so the bar shows just the percentage
                 panelComponent.getChildren().add(new CenteredHealthBarComponent(liveCrabHpPercent(), 0, 0, true));
             } else {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Target:")
-                    .right(plugin.getTargetCrabHp())
+                    .right(gemCrab.getTargetCrabHp())
                     .build());
             }
 
             if (active) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Burrows in:")
-                    .right(plugin.getEstimatedBurrowTime())
+                    .right(gemCrab.getEstimatedBurrowTime())
                     .build());
 
-                boolean attacking = plugin.isPlayerAttackingCrab();
+                boolean attacking = gemCrab.isPlayerAttackingCrab();
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Attacking:")
                     .right(attacking ? "YES" : "NO")
@@ -316,10 +319,10 @@ public class BradsMultiToolOverlay extends Overlay {
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Current Cove:")
-                .right(plugin.getCurrentCoveName())
+                .right(gemCrab.getCurrentCoveName())
                 .build());
 
-            boolean shellPresent = plugin.getDormantCrabShellNpc() != null || !plugin.getTrackedShellObjects().isEmpty();
+            boolean shellPresent = gemCrab.getDormantCrabShellNpc() != null || !gemCrab.getTrackedShellObjects().isEmpty();
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Crab Status:")
                 .right(shellPresent ? "Burrowed (Shell)" : "In Other Cave")
@@ -340,11 +343,11 @@ public class BradsMultiToolOverlay extends Overlay {
      */
     // Live health bar reading, falling back to the last known value while the bar isn't shown
     private int liveCrabHpPercent() {
-        NPC crab = plugin.getActiveCrab();
+        NPC crab = gemCrab.getActiveCrab();
         if (crab != null && crab.getHealthRatio() >= 0 && crab.getHealthScale() > 0) {
             return crab.getHealthRatio() * 100 / crab.getHealthScale();
         }
-        return plugin.getCrabHpPercent();
+        return gemCrab.getCrabHpPercent();
     }
 
     static Color combatLevelColor(int playerLevel, int npcLevel) {
