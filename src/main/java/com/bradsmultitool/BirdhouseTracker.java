@@ -31,15 +31,13 @@ class BirdhouseTracker {
 
     private final Client client;
     private final ConfigManager configManager;
-    private final BradsMultiToolConfig config;
-    private final BradsMultiToolPlugin plugin;
+    private final SkillTrackerConfig config;
 
     @Inject
-    BirdhouseTracker(Client client, ConfigManager configManager, BradsMultiToolConfig config, BradsMultiToolPlugin plugin) {
+    BirdhouseTracker(Client client, ConfigManager configManager, SkillTrackerConfig config) {
         this.client = client;
         this.configManager = configManager;
         this.config = config;
-        this.plugin = plugin;
     }
 
     /** Index into {@link #SPOTS} for a player variable, or -1. */

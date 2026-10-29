@@ -22,11 +22,11 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 public class BradsMultiToolPrayerOverlay extends Overlay {
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
+    private final PvmTracker plugin;
     private final BradsMultiToolConfig config;
 
     @Inject
-    public BradsMultiToolPrayerOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config) {
+    public BradsMultiToolPrayerOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;

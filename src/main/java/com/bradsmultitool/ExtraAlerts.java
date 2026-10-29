@@ -72,7 +72,7 @@ class ExtraAlerts {
 
     private final Client client;
     private final BradsMultiToolConfig config;
-    private final BradsMultiToolPlugin plugin;
+    private final PvmTracker plugin;
 
     // Special attack: last energy seen (-1 = none since login), and whether some was spent since the last alert
     private int lastSpecPercent = -1;
@@ -112,7 +112,7 @@ class ExtraAlerts {
     private static final int BATCH_GAP_TICKS = 8;
 
     @Inject
-    ExtraAlerts(Client client, BradsMultiToolConfig config, BradsMultiToolPlugin plugin) {
+    ExtraAlerts(Client client, BradsMultiToolConfig config, PvmTracker plugin) {
         this.client = client;
         this.config = config;
         this.plugin = plugin;

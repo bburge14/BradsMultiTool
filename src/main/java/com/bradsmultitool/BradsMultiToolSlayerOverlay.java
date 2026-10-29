@@ -32,7 +32,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
     private static final Color SOFT = new Color(180, 180, 180);
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
+    private final PvmTracker plugin;
     private final BradsMultiToolConfig config;
     private final SlayerData slayerData;
     private final ItemManager itemManager;
@@ -40,7 +40,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
     private FontMetrics metrics;
 
     @Inject
-    public BradsMultiToolSlayerOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
+    public BradsMultiToolSlayerOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config,
                                        SlayerData slayerData, ItemManager itemManager) {
         this.client = client;
         this.plugin = plugin;

@@ -34,7 +34,7 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     private static final int WIDTH = 205;
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
+    private final PvmTracker plugin;
     private final BradsMultiToolConfig config;
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
@@ -46,7 +46,7 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
-    public BradsMultiToolHoverOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
+    public BradsMultiToolHoverOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config,
                                       ItemManager itemManager, SpriteManager spriteManager, SkillingData skillingData) {
         this.client = client;
         this.skillingData = skillingData;

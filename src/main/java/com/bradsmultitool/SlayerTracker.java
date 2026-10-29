@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import lombok.Getter;
 import net.runelite.api.Client;
@@ -71,8 +72,9 @@ class SlayerTracker {
     }
 
     private final Client client;
-    private final BradsMultiToolConfig config;
-    private final BradsMultiToolPlugin plugin;
+    private final PvmConfig config;
+    // PvM holds this tracker too, so it's fetched when first needed
+    private final Provider<PvmTracker> pvm;
 
     @Getter
     private String taskName = null;
@@ -85,10 +87,10 @@ class SlayerTracker {
     private boolean missingItemAlerted = false;
 
     @Inject
-    SlayerTracker(Client client, BradsMultiToolConfig config, BradsMultiToolPlugin plugin) {
+    SlayerTracker(Client client, PvmConfig config, Provider<PvmTracker> pvm) {
         this.client = client;
         this.config = config;
-        this.plugin = plugin;
+        this.pvm = pvm;
     }
 
     boolean hadTask() {
@@ -197,7 +199,7 @@ class SlayerTracker {
         if (requirement == null || hasRequiredItem || missingItemAlerted || !config.slayerItemAlert()) {
             return;
         }
-        NPC target = plugin.getCurrentPvmTarget();
+        NPC target = pvm.get().getCurrentPvmTarget();
         if (target != null && isTaskMonster(target)) {
             missingItemAlerted = true;
             alerts.alert(VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING, requirement.display.toLowerCase() + " for " + taskName.toLowerCase());

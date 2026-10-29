@@ -38,7 +38,7 @@ public class BradsMultiToolOverlay extends Overlay {
     static final Color WARN = new Color(255, 150, 0);
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
+    private final PvmTracker plugin;
     private final BradsMultiToolConfig config;
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
@@ -71,7 +71,7 @@ public class BradsMultiToolOverlay extends Overlay {
     private SlayerMonsterInfo slayerInfo;
 
     @Inject
-    public BradsMultiToolOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
+    public BradsMultiToolOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -390,7 +390,7 @@ public class BradsMultiToolOverlay extends Overlay {
      * between game ticks); otherwise a single Buff Status line, flashing when expired.
      */
     private void addBuffRows() {
-        if (plugin.getBuffState() == BradsMultiToolPlugin.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
+        if (plugin.getBuffState() == PvmTracker.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
             long now = System.currentTimeMillis();
             for (ActiveBuffs.Buff buff : plugin.getActiveBuffs()) {
                 String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(buff.millisLeft(now));
@@ -403,7 +403,7 @@ public class BradsMultiToolOverlay extends Overlay {
         }
 
         Color color = getBuffColor(plugin.getBuffState());
-        boolean flashing = plugin.getBuffState() == BradsMultiToolPlugin.BuffState.EXPIRED;
+        boolean flashing = plugin.getBuffState() == PvmTracker.BuffState.EXPIRED;
         if (config.flashExpiredBuff() && flashing && (System.currentTimeMillis() / 350) % 2 == 0) {
             color = Color.WHITE;
         }
@@ -420,7 +420,7 @@ public class BradsMultiToolOverlay extends Overlay {
         return style != null ? CombatStyle.weaknessMatchColor(style, weakness) : Color.WHITE;
     }
 
-    private Color getBuffColor(BradsMultiToolPlugin.BuffState state) {
+    private Color getBuffColor(PvmTracker.BuffState state) {
         switch (state) {
             case EXPIRED: return BAD;
             case ACTIVE: return GOOD;

@@ -20,13 +20,11 @@ public class BradsMultiToolCrabOutlineOverlay extends Overlay {
     @Inject
     private GemCrabTracker gemCrab;
 
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final GemCrabConfig config;
     private final ModelOutlineRenderer outlines;
 
     @Inject
-    public BradsMultiToolCrabOutlineOverlay(BradsMultiToolPlugin plugin, BradsMultiToolConfig config, ModelOutlineRenderer outlines) {
-        this.plugin = plugin;
+    public BradsMultiToolCrabOutlineOverlay(GemCrabConfig config, ModelOutlineRenderer outlines) {
         this.config = config;
         this.outlines = outlines;
         setPosition(OverlayPosition.DYNAMIC);

@@ -25,7 +25,7 @@ class SlayerMonsterInfo {
     private static final Color SOFT = new Color(180, 180, 180);
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
+    private final SlayerTracker slayerTracker;
     private final SkillIconManager skillIcons;
     private final SlayerData slayerData;
 
@@ -33,9 +33,9 @@ class SlayerMonsterInfo {
     enum Match { NOT_TASK, TASK, WRONG_PLACE }
 
     @Inject
-    SlayerMonsterInfo(Client client, BradsMultiToolPlugin plugin, SkillIconManager skillIcons, SlayerData slayerData) {
+    SlayerMonsterInfo(Client client, SlayerTracker slayerTracker, SkillIconManager skillIcons, SlayerData slayerData) {
         this.client = client;
-        this.plugin = plugin;
+        this.slayerTracker = slayerTracker;
         this.skillIcons = skillIcons;
         this.slayerData = slayerData;
     }
@@ -45,7 +45,7 @@ class SlayerMonsterInfo {
      * (kills elsewhere don't count), else NOT_TASK.
      */
     Match match(NPC npc, MonsterData.Stats stats) {
-        SlayerTracker tracker = plugin.getSlayerTracker();
+        SlayerTracker tracker = slayerTracker;
         if (!tracker.hadTask() || stats == null || stats.slayerCategory == null) {
             return Match.NOT_TASK;
         }
@@ -79,7 +79,7 @@ class SlayerMonsterInfo {
         panel.getChildren().add(IconLineComponent.textThenIcon("Requires:", icon,
             "Level " + stats.slayerLevel + (canHit ? "" : " (can't damage)"),
             canHit ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD));
-        SlayerTracker tracker = plugin.getSlayerTracker();
+        SlayerTracker tracker = slayerTracker;
         SlayerTracker.Requirement needs = SlayerTracker.requirementFor(stats.slayerCategory);
         if (needs == null) {
             needs = SlayerTracker.requirementFor(npc.getName());
