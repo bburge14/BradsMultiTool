@@ -27,15 +27,13 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), ".piper-models")
 HF = "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
 
 # persona folder -> Piper voice (language/name/quality); licences are in VOICE_CREDITS.md
+# Four standard voices (US and UK, female and male); the rest are characters below
 PERSONAS = {
     # US voices must use espeak "en-us" in their .onnx.json; several en_US models use British "en"
     "amy": "en/en_US/amy/medium",
     "joe": "en/en_US/joe/medium",
-    "mike": "en/en_US/mike/medium",
     "cori": "en/en_GB/cori/high",
-    "alba": "en/en_GB/alba/medium",
     "alan": "en/en_GB/alan/medium",
-    "northern": "en/en_GB/northern_english_male/medium",
 }
 
 # Character voices: a base voice spoken at a different speed (length_scale), then pitch-shifted by
@@ -45,6 +43,7 @@ CHARACTERS = {
     "ogre": {"voice": "en/en_US/joe/medium", "length_scale": 0.9, "pitch": 0.68},
     "wizard": {"voice": "en/en_GB/alan/medium", "length_scale": 1.3, "pitch": 0.93, "vibrato": True, "echo": True},
     "robot": {"voice": "en/en_US/mike/medium", "length_scale": 1.05, "pitch": 0.95, "ring": 55},
+    "demon": {"voice": "en/en_GB/alan/medium", "length_scale": 1.15, "pitch": 0.62, "growl": 2.5, "echo": True},
 }
 
 LINES = {
@@ -120,14 +119,21 @@ LINES = {
     "batch_complete": "Batch complete.",
 }
 
-# Level-up alerts are spoken as two clips: "<Skill> level" then the number ("Woodcutting level", "45")
+# Level-up alerts: "<Skill> level" then the number, built from parts to keep the plugin small: 2-19 and
+# round tens ("Forty!") are single clips, the rest a tens prefix then a unit ("forty" + "five!")
 SKILLS = ["Attack", "Defence", "Strength", "Hitpoints", "Ranged", "Prayer", "Magic", "Cooking", "Woodcutting",
           "Fletching", "Fishing", "Firemaking", "Crafting", "Smithing", "Mining", "Herblore", "Agility",
           "Thieving", "Slayer", "Farming", "Runecraft", "Hunter", "Construction", "Sailing"]
 for _skill in SKILLS:
     LINES["skill_" + _skill.lower()] = _skill + " level"
-for _level in range(2, 100):
-    LINES["level_%d" % _level] = "%d!" % _level
+_UNITS = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve",
+          "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"]
+_TENS = {20: "Twenty", 30: "Thirty", 40: "Forty", 50: "Fifty", 60: "Sixty", 70: "Seventy", 80: "Eighty", 90: "Ninety"}
+for _n in range(1, 20):
+    LINES["num_%d" % _n] = _UNITS[_n] + "!"
+for _n, _word in _TENS.items():
+    LINES["num_%d" % _n] = _word + "!"
+    LINES["tens_%d" % _n] = _word
 
 
 def model_path(voice):
@@ -143,11 +149,11 @@ def model_path(voice):
     return path
 
 
-OUT_RATE = 16000
+OUT_RATE = 11025
 
 
 def write_compact_wav(path, samples, rate):
-    """Write 16 kHz 8-bit mu-law WAV (G.711, what phone audio uses): about a third the size of 22 kHz
+    """Write 11 kHz 8-bit mu-law WAV (G.711, what phone audio uses): about a quarter the size of 22 kHz
     16-bit PCM and still clear for short spoken alerts. Java Sound decodes it natively."""
     x = trim_silence(samples.astype(np.float64) / 32768.0, rate)
     if rate != OUT_RATE:
@@ -206,6 +212,9 @@ def apply_character(samples, rate, spec):
     if spec.get("ring"):
         # Ring modulation: the classic metallic robot sound
         y = 0.35 * y + 0.65 * y * np.sin(2 * math.pi * spec["ring"] * t)
+    if spec.get("growl"):
+        # Soft clipping: a gritty, distorted edge
+        y = np.tanh(spec["growl"] * y)
     if spec.get("echo"):
         delay = int(0.09 * rate)
         echoed = np.copy(y)

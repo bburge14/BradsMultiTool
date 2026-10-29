@@ -115,8 +115,9 @@ work a resource.
   announced.
 - Every alert has its own **Voice:** and **Chat:** switch in its section; **General** has the master
   switches, the voice and the volume.
-- 11 voices (pre-recorded, so they work on any OS): Amy, Joe, Mike, Cori, Alba, Alan, Northern, and four
-  characters: Gnome, Ogre, Old Wizard and Robot. Changing the voice plays a sample.
+- 9 voices (pre-recorded, so they work on any OS): Amy (US female), Joe (US male), Cori (UK female), Alan
+  (UK male), and five characters: Gnome, Ogre, Old Wizard, Robot and Demon. Changing the voice plays a
+  sample.
 - Chat messages use the same words as the voice line, with details in brackets.
 
 ## First-time setup (Windows, PowerShell)

@@ -117,18 +117,16 @@ public class VoiceAlertService {
 
     /** Voice personas; each folder under resources/voices holds one clip per VoiceLine. */
     public enum VoicePersona {
-        AMY("Amy"),
-        JOE("Joe"),
-        MIKE("Mike"),
-        CORI("Cori"),
-        ALBA("Alba"),
-        ALAN("Alan"),
-        NORTHERN("Northern"),
-        // Character voices: the voices above pitch-shifted with effects (see generate_voice_clips.py)
+        AMY("Amy (US female)"),
+        JOE("Joe (US male)"),
+        CORI("Cori (UK female)"),
+        ALAN("Alan (UK male)"),
+        // Character voices: Piper voices pitch-shifted with effects (see generate_voice_clips.py)
         GNOME("Gnome"),
         OGRE("Ogre"),
         WIZARD("Old Wizard"),
-        ROBOT("Robot");
+        ROBOT("Robot"),
+        DEMON("Demon");
 
         private final String displayName;
 
@@ -175,8 +173,16 @@ public class VoiceAlertService {
     }
 
     /** "Woodcutting level", then "45". */
+    /**
+     * "Woodcutting level" then the number, built from parts to keep the plugin small: 2-19 and round tens
+     * are one clip ("Forty!"), the rest a tens prefix and a unit ("forty" + "five!").
+     */
     static String[] levelUpClips(Skill skill, int level) {
-        return new String[]{"skill_" + skill.getName().toLowerCase(), "level_" + level};
+        String skillClip = "skill_" + skill.getName().toLowerCase();
+        if (level < 20 || level % 10 == 0) {
+            return new String[]{skillClip, "num_" + level};
+        }
+        return new String[]{skillClip, "tens_" + (level / 10 * 10), "num_" + (level % 10)};
     }
 
     private void playNext() {

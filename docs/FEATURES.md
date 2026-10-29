@@ -29,8 +29,8 @@ message uses the same words as the voice line, with details in brackets.
 
 **How to use:**
 - **General > Voice Alerts / Chat Messages** turn all voice or all chat on or off.
-- **General > Voice Persona** picks one of 11 voices (Amy, Joe, Mike, Cori, Alba, Alan, Northern, Gnome,
-  Ogre, Old Wizard, Robot). Changing it plays a sample.
+- **General > Voice Persona** picks one of 9 voices (Amy, Joe, Cori, Alan in US/UK female/male, and
+  the characters Gnome, Ogre, Old Wizard, Robot, Demon). Changing it plays a sample.
 - Each alert also has its own **Voice: ...** and **Chat: ...** switch in its section. Turning a Voice
   switch on plays that line as a preview.
 

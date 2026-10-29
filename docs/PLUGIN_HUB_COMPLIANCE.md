@@ -72,9 +72,10 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 
 ## Open questions before publishing
 
-- Plugin size: the bundled voice clips make the jar about 35 MB. The Plugin Hub may reject or question
-  a jar this large. Options: fewer personas, shorter level-up clips, or lower bitrate. Check before
-  submitting.
+- Plugin size: the jar is about 17.5 MB, nearly all voice clips (9 voices, 11 kHz mu-law, level-up
+  numbers built from parts; was 35 MB with 11 voices at 16 kHz). Still large for the Plugin Hub: if a
+  reviewer objects, ship fewer voices (e.g. the four standard ones) or move the character voices to their
+  own plugin. Check before submitting.
 - `Executors.newSingleThreadExecutor()` for audio is not forbidden, but reviewers may prefer the
   injected `ScheduledExecutorService`.
 - The skilling/farming data files are generated from the OSRS Wiki (CC BY-NC-SA) and RuneLite
