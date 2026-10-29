@@ -1,0 +1,112 @@
+package com.bradsmultitool;
+
+import java.util.EnumSet;
+import java.util.Set;
+import net.runelite.api.Experience;
+import net.runelite.api.Skill;
+
+/**
+ * The parts of a skill's goal shown both on its tracker card and on the pinned overlay: how many actions
+ * (or kills) are left, and what to make or use from your items.
+ */
+final class GoalLines {
+
+    /** Skills whose actions are counted as kills (an XP drop there is a hit, not an action). */
+    static final Set<Skill> KILL_SKILLS = EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE,
+        Skill.HITPOINTS, Skill.RANGED);
+
+    /** "Actions" / "Kills", the count ("~1.2K", "--") and what it counts to (for a tooltip). */
+    static final class Actions {
+        final String name;
+        final String value;
+        final String tip;
+
+        Actions(String name, String value, String tip) {
+            this.name = name;
+            this.value = value;
+            this.tip = tip;
+        }
+    }
+
+    /** "Cook:" "Raw karambwan" "(you have 1,240)". */
+    static final class ItemLine {
+        final String label;
+        final String item;
+        final String have;
+
+        ItemLine(String label, String item, String have) {
+            this.label = label;
+            this.item = item;
+            this.have = have;
+        }
+    }
+
+    private GoalLines() {
+    }
+
+    /**
+     * Actions left until the next level, or (with Actions Until Goal) until the goal or the end of the plan's
+     * step you're on ({@code stepEndLevel}, 0 if the method doesn't change before the goal). Per action: your
+     * last XP drop, else an estimate from the goal's method; combat skills count kills of the monster.
+     */
+    static Actions actions(BradsMultiToolPlugin plugin, BradsMultiToolConfig config, Skill skill, int xp, int stepEndLevel) {
+        int level = Experience.getLevelForXp(xp);
+        int toNextLevel = level >= Experience.MAX_REAL_LEVEL ? 0 : Experience.getXpForLevel(level + 1) - xp;
+        int goalXp = plugin.getSkillGoal(skill);
+        boolean toGoal = config.trackerActionsToGoal() && goalXp > xp;
+        int remaining = toGoal ? goalXp - xp : toNextLevel;
+        String until = toGoal ? "until your goal" : "until the next level";
+        if (toGoal && stepEndLevel > 0) {
+            int stepEndXp = Experience.getXpForLevel(stepEndLevel);
+            if (stepEndXp > xp && stepEndXp < goalXp) {
+                remaining = stepEndXp - xp;
+                until = "until level " + stepEndLevel + ", where the suggested method changes";
+            }
+        }
+        double perAction = plugin.getLastXpDrop(skill);
+        String prefix = "";
+        String name = "Actions";
+        String tip = "Actions " + until;
+        if (KILL_SKILLS.contains(skill)) {
+            TrainingAdvisor.KillEstimate kill = goalXp > xp ? plugin.getTrainingAdvisor().killEstimate(skill) : null;
+            perAction = kill != null ? kill.xpEach : 0;
+            prefix = "~";
+            name = "Kills";
+            tip = kill != null ? "Kills of " + kill.monster + " " + until + " (" + BradsMultiToolPanel.shortNumber((int) kill.xpEach)
+                + " " + skill.getName() + " XP each with your combat style)" : "Kills " + until;
+        } else if (perAction <= 0 && goalXp > xp) {
+            perAction = plugin.getTrainingAdvisor().estimatedXpEach(skill, level);
+            prefix = "~";
+            tip += " (estimated from the suggested method until your first XP drop)";
+        }
+        String value = perAction > 0 && remaining > 0 ? prefix + BradsMultiToolPanel.shortNumber((int) Math.ceil(remaining / perAction)) : "--";
+        return new Actions(name, value, tip);
+    }
+
+    /**
+     * For production skills and Prayer: the best thing to make or use from your inventory and bank, or null.
+     * Cooking, Firemaking and Prayer name the item you use ("Cook: Raw karambwan", "Burn: Yew logs").
+     */
+    static ItemLine itemLine(BradsMultiToolPlugin plugin, Skill skill) {
+        RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
+        if (make == null) {
+            return null;
+        }
+        int count = plugin.getGoalItems().count(skill);
+        String have = "(you have " + (count > 0 ? String.format("%,d", count) : "the items") + ")";
+        String material = make.materials.size() == 1 ? make.materials.keySet().iterator().next() : null;
+        if (material != null) {
+            switch (skill) {
+                case COOKING:
+                    return new ItemLine("Cook:", material, have);
+                case FIREMAKING:
+                    return new ItemLine("Burn:", material, have);
+                case PRAYER:
+                    return new ItemLine("Use:", material, have);
+                default:
+                    break;
+            }
+        }
+        return new ItemLine("Make:", make.name, have);
+    }
+}

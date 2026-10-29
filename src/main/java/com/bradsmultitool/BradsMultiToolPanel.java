@@ -21,7 +21,6 @@ import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +61,7 @@ public class BradsMultiToolPanel extends PluginPanel {
     private static final String NEW_ISSUE_URL = "https://github.com/bburge14/bradsmultitool/issues/new?body="
         + encode("**What happened?**\n\n\n**What did you expect?**\n\n\n**What were you doing / where in game?**\n\n");
 
-    private static final Set<Skill> COMBAT_SKILLS = EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE,
-        Skill.HITPOINTS, Skill.RANGED);
+    private static final Set<Skill> COMBAT_SKILLS = GoalLines.KILL_SKILLS;
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Color ACCENT_COLOR = new Color(0, 220, 220);
@@ -563,7 +561,7 @@ public class BradsMultiToolPanel extends PluginPanel {
 
             if (level >= Experience.MAX_REAL_LEVEL) {
                 setStat(left, "Left", "--");
-                setActions(xp, 0);
+                setActions(xp);
                 setStat(timeToLevel, "TTL", "--");
                 levelBar.set(1.0, "Lvl " + level, "Max", "");
             } else {
@@ -571,7 +569,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 int levelEnd = Experience.getXpForLevel(level + 1);
                 int remaining = levelEnd - xp;
                 setStat(left, "Left", shortNumber(remaining));
-                setActions(xp, remaining);
+                setActions(xp);
                 setStat(timeToLevel, "TTL", xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
                 double progress = (double) (xp - levelStart) / (levelEnd - levelStart);
                 levelBar.set(progress, "Lvl " + level, String.format("%.2f%%", progress * 100), "Lvl " + (level + 1));
@@ -602,42 +600,12 @@ public class BradsMultiToolPanel extends PluginPanel {
         }
 
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to
-        private void setActions(int xp, int toNextLevel) {
-            int goalXp = plugin.getSkillGoal(skill);
-            boolean toGoal = config.trackerActionsToGoal() && goalXp > xp;
-            int remaining = toGoal ? goalXp - xp : toNextLevel;
-            // The label stays short ("Actions", "Kills") so it fits; what it counts to is in the tooltip
-            String until = toGoal ? "until your goal" : "until the next level";
-            // When the suggested method changes before the goal: until the end of the step you're on
-            if (toGoal && stepEndLevel > 0) {
-                int stepEndXp = Experience.getXpForLevel(stepEndLevel);
-                if (stepEndXp > xp && stepEndXp < goalXp) {
-                    remaining = stepEndXp - xp;
-                    until = "until level " + stepEndLevel + ", where the suggested method changes";
-                }
+        private void setActions(int xp) {
+            GoalLines.Actions count = GoalLines.actions(plugin, config, skill, xp, stepEndLevel);
+            if (!Objects.equals(actions.getToolTipText(), count.tip)) {
+                actions.setToolTipText(count.tip);
             }
-            // Your last XP drop, else what the goal's method gives per action (shown as an estimate: "~")
-            double perAction = plugin.getLastXpDrop(skill);
-            String prefix = "";
-            String name = "Actions";
-            String tip = "Actions " + until;
-            if (COMBAT_SKILLS.contains(skill)) {
-                // Kills: XP per kill from the monster's hitpoints
-                TrainingAdvisor.KillEstimate kill = goalXp > xp ? plugin.getTrainingAdvisor().killEstimate(skill) : null;
-                perAction = kill != null ? kill.xpEach : 0;
-                prefix = "~";
-                name = "Kills";
-                tip = kill != null ? "Kills of " + kill.monster + " " + until + " (" + shortNumber((int) kill.xpEach) + " "
-                    + skill.getName() + " XP each with your combat style)" : "Kills " + until;
-            } else if (perAction <= 0 && goalXp > xp) {
-                perAction = plugin.getTrainingAdvisor().estimatedXpEach(skill, Experience.getLevelForXp(xp));
-                prefix = "~";
-                tip += " (estimated from the suggested method until your first XP drop)";
-            }
-            if (!Objects.equals(actions.getToolTipText(), tip)) {
-                actions.setToolTipText(tip);
-            }
-            setStat(actions, name, perAction > 0 && remaining > 0 ? prefix + shortNumber((int) Math.ceil(remaining / perAction)) : "--");
+            setStat(actions, count.name, count.value);
         }
 
         // The wiki guide's method for this level, and what to switch to before the goal
@@ -671,20 +639,9 @@ public class BradsMultiToolPanel extends PluginPanel {
                     }
                 }
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank
-                RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
-                if (make != null) {
-                    // Cooking, Firemaking and Prayer use one item ("Cook: Raw karambwan"); the rest name
-                    // what to make, its materials in the tooltip
-                    int count = plugin.getGoalItems().count(skill);
-                    String have = label("(you have " + (count > 0 ? String.format("%,d", count) : "the items") + ")");
-                    String material = make.materials.size() == 1 ? make.materials.keySet().iterator().next() : null;
-                    if (skill == Skill.COOKING && material != null) {
-                        lines.add(label("Cook:") + material + " " + have);
-                    } else if ((skill == Skill.PRAYER || skill == Skill.FIREMAKING) && material != null) {
-                        lines.add(label("Use:") + material + " " + have);
-                    } else {
-                        lines.add(label("Make:") + make.name + " " + have);
-                    }
+                GoalLines.ItemLine item = GoalLines.itemLine(plugin, skill);
+                if (item != null) {
+                    lines.add(label(item.label) + item.item + " " + label(item.have));
                 }
             }
             if (suggestion.isVisible() != !lines.isEmpty()) {

@@ -222,7 +222,8 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 - Right-click a card to pause/resume it, reset its rate, reset or hide it, set or clear a goal, or reset
   every skill.
 - **Pin to screen**: right-click a card > Pin to screen puts that skill on the game screen as a movable
-  overlay (level bar, XP/hr, gained, time to level, goal bar and suggested method). Only one at a time:
+  overlay (level bar, XP/hr, gained, time to level, actions left, goal bar, suggested method and what to
+  make or burn from your items). Only one at a time:
   pinning another replaces it. The pinned skill's card shows a red pin in its top-right corner; click the pin,
   right-click the overlay > Unpin, or the card > Unpin from screen to remove it. It stays pinned after a
   restart.
@@ -260,7 +261,7 @@ Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Id
   a goal are ever outlined.
 - For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
   Magic, Runecraft) and Prayer the card also says what to **Make** (or, by the item you use, **Cook**:
-  Raw karambwan, **Use**: bones, ashes, logs) and how many you have: the best thing you can make at your
+  Raw karambwan, **Burn**: logs, **Use**: bones, ashes) and how many you have: the best thing you can make at your
   level from what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
   materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
   Lobster". The bank counts once you've opened it this session.

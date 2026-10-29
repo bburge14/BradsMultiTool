@@ -86,8 +86,27 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             if (suggestion != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(suggestion, SOFT, false));
             }
+            // What to make or use from your items ("Burn: Yew logs (you have 200)")
+            GoalLines.ItemLine item = config.showTrainingSuggestion() ? GoalLines.itemLine(plugin, skill) : null;
+            if (item != null) {
+                panelComponent.getChildren().add(new TextBlockComponent(item.label + " " + item.item + " " + item.have, SOFT, false));
+            }
+        }
+        // Actions (or kills) left, as on the tracker card
+        if (config.showTrackerActions() && (goalXp > 0 || !GoalLines.KILL_SKILLS.contains(skill))) {
+            GoalLines.Actions count = GoalLines.actions(plugin, config, skill, xp, stepEndLevel(skill, level, goalXp));
+            line(count.name + ":", count.value, Color.WHITE);
         }
         return super.render(graphics);
+    }
+
+    // Where the plan's current step ends (the suggested method changes there before the goal), or 0
+    private int stepEndLevel(Skill skill, int level, int goalXp) {
+        if (goalXp <= 0 || !config.showTrainingSuggestion() || plugin.getGoalTarget(skill) != null) {
+            return 0;
+        }
+        List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level, Experience.getLevelForXp(goalXp));
+        return plan.size() > 1 ? plan.get(0).to : 0;
     }
 
     // What to train for the goal: your pick, else the suggestion for your Training Focus
