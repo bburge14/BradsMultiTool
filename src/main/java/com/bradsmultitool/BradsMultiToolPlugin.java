@@ -117,7 +117,11 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int WELCOME_SCREEN_GROUP = 378;
     private static final int INSIDE_WILDERNESS_VARBIT = 5963;
     // Bank, bank side panel, deposit box, bank PIN, shop, GE collect, GE offers, seed vault
+    // Bank, bank side panel, deposit box, bank PIN, shop, collection box, GE, GE side panel
     private static final int[] BANKING_INTERFACES = {12, 15, 192, 213, 300, 402, 465, 631};
+    // Talking or choosing: NPC and player dialogue, options, sprite and message boxes, double item box,
+    // Make-X; you're busy with the game, not idle, while one is open
+    private static final int[] DIALOGUE_INTERFACES = {231, 217, 219, 193, 229, 11, 270};
     // An action counts towards the AFK alert only while it's giving XP (an XP drop in the last 30 seconds, for slow trees)
     private static final int XP_ACTION_TICKS = 50;
     private static final int IN_GAME_SETTLE_TICKS = 3;
@@ -1714,9 +1718,12 @@ public class BradsMultiToolPlugin extends Plugin {
         boolean doing = player.getAnimation() != -1 || player.getInteracting() != null
             || tick - lastXpTick <= RECENT_XP_TICKS || playerAttackingCrab;
 
-        if (isBankingInterfaceOpen()) {
+        // Banking, a shop or a dialogue: not idle, and the idle clock starts again once it's closed
+        if (isBankingInterfaceOpen() || isDialogueOpen()) {
             characterWasActive = false;
+            characterIdleAlerted = false;
             actionTicks = 0;
+            lastActiveTick = tick;
             return;
         }
         if (doing && tick - lastXpTick <= XP_ACTION_TICKS) {
@@ -1744,6 +1751,15 @@ public class BradsMultiToolPlugin extends Plugin {
             actionTicks = 0;
             alert(VoiceAlertService.VoiceLine.CHARACTER_IDLE, idleSeconds + " seconds");
         }
+    }
+
+    private boolean isDialogueOpen() {
+        for (int group : DIALOGUE_INTERFACES) {
+            if (isWidgetVisible(group)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isBankingInterfaceOpen() {

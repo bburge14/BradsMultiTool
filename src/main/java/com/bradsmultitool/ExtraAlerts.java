@@ -12,6 +12,7 @@ import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.MenuAction;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.Skill;
@@ -91,6 +92,8 @@ class ExtraAlerts {
     private Skill lastProductionSkill = null;
     // XP drops in a row in the same production skill, each a few ticks apart
     private int productionDrops = 0;
+    // Clicks on items, objects or NPCs during the run (a Make-X batch needs just the one that started it)
+    private int productionClicks = 0;
     private boolean batchRunning = false;
     private static final Set<Skill> PRODUCTION_SKILLS = EnumSet.of(Skill.COOKING, Skill.SMITHING, Skill.CRAFTING,
         Skill.FLETCHING, Skill.HERBLORE);
@@ -320,9 +323,34 @@ class ExtraAlerts {
             }
             boolean continues = skill == lastProductionSkill && tick - lastProductionXpTick <= BATCH_GAP_TICKS;
             productionDrops = continues ? productionDrops + 1 : 1;
+            if (!continues) {
+                productionClicks = 0;
+            }
             lastProductionSkill = skill;
             lastProductionXpTick = tick;
             batchRunning = productionDrops >= BATCH_MIN_DROPS;
+        }
+    }
+
+    // Using an item, or clicking an object, NPC or inventory item (not walking or opening tabs)
+    private static boolean isActionClick(MenuAction action) {
+        switch (action) {
+            case WIDGET_TARGET_ON_GAME_OBJECT:
+            case WIDGET_TARGET_ON_NPC:
+            case WIDGET_TARGET_ON_WIDGET:
+            case GAME_OBJECT_FIRST_OPTION:
+            case GAME_OBJECT_SECOND_OPTION:
+            case GAME_OBJECT_THIRD_OPTION:
+            case GAME_OBJECT_FOURTH_OPTION:
+            case GAME_OBJECT_FIFTH_OPTION:
+            case NPC_FIRST_OPTION:
+            case NPC_SECOND_OPTION:
+            case NPC_THIRD_OPTION:
+            case NPC_FOURTH_OPTION:
+            case NPC_FIFTH_OPTION:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -333,8 +361,11 @@ class ExtraAlerts {
             return;
         }
         batchRunning = false;
+        // Clicking every item (1-ticking, or making them one at a time) isn't a batch the game ran for you
+        boolean byHand = productionClicks >= productionDrops / 2;
         productionDrops = 0;
-        if (config.batchCompleteAlert()) {
+        productionClicks = 0;
+        if (config.batchCompleteAlert() && !byHand) {
             alert(VoiceAlertService.VoiceLine.BATCH_COMPLETE, null);
         }
     }
@@ -382,6 +413,9 @@ class ExtraAlerts {
     // Remember which tree, rock or fishing spot was clicked so its disappearance can be announced
     @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (productionDrops > 0 && isActionClick(event.getMenuAction())) {
+            productionClicks++;
+        }
         String option = Text.removeTags(event.getMenuOption()).toLowerCase();
         NPC npc = event.getMenuEntry().getNpc();
         if (npc != null) {
