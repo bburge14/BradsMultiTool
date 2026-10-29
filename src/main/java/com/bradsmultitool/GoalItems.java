@@ -42,6 +42,8 @@ class GoalItems {
     private volatile Map<Skill, Integer> counts = Collections.emptyMap();
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
+    // How many of each item you carry or bank (lower-case names)
+    private volatile Map<String, Integer> amounts = Collections.emptyMap();
     // Everything you carry, wear or bank (lower-case names), for checking tools
     private volatile Set<String> owned = Collections.emptySet();
     private boolean dirty = true;
@@ -65,6 +67,18 @@ class GoalItems {
     /** How many of this skill's suggestion you can make from your inventory and bank, 0 if none. */
     int count(Skill skill) {
         return counts.getOrDefault(skill, 0);
+    }
+
+    /** How many of an item you carry or bank (the bank as last opened). */
+    int amount(String itemName) {
+        return amounts.getOrDefault(itemName.toLowerCase(), 0);
+    }
+
+    /** How many of an item are in your inventory now. */
+    int carried(String itemName) {
+        Map<String, Integer> inventory = new HashMap<>();
+        count(client.getItemContainer(InventoryID.INV), inventory);
+        return inventory.getOrDefault(itemName.toLowerCase(), 0);
     }
 
     /**
@@ -129,6 +143,7 @@ class GoalItems {
         Map<String, Integer> all = new HashMap<>(have);
         count(client.getItemContainer(InventoryID.WORN), all);
         owned = new HashSet<>(all.keySet());
+        amounts = have;
         Map<Skill, RecipeData.Recipe> suggestions = new HashMap<>();
         Map<String, String> highlighted = new HashMap<>();
         Map<Skill, Integer> counts = new HashMap<>();
@@ -142,8 +157,12 @@ class GoalItems {
             boolean byProfit = focus == BradsMultiToolConfig.TrainingFocus.MONEY
                 || (focus != BradsMultiToolConfig.TrainingFocus.CHEAPEST && config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT);
             boolean perXp = focus == BradsMultiToolConfig.TrainingFocus.CHEAPEST;
+            // Prayer: whatever's worth the most XP in all (4,000 bone shards beat ten dragon bones); you offer
+            // everything you have, so XP per item isn't the point there
+            boolean total = skill == Skill.PRAYER && !perXp && !byProfit;
             RecipeData.Recipe best = recipes.best(skill, client.getRealSkillLevel(skill), have,
-                recipe -> perXp ? prices.profit(recipe) / recipe.xp : byProfit ? prices.profit(recipe) : recipe.xp);
+                recipe -> total ? recipe.xp * recipe.makeable(have)
+                    : perXp ? prices.profit(recipe) / recipe.xp : byProfit ? prices.profit(recipe) : recipe.xp);
             if (best == null) {
                 continue;
             }

@@ -9,9 +9,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.Experience;
 import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
@@ -135,12 +137,48 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
     // ---- Hunter, Runecraft, Agility, Cooking ----
 
+    // The Teomat's libation bowl, empty and filled (OSRS Wiki, Libation bowl)
+    private static final Set<Integer> LIBATION_BOWLS = Set.of(52797, 52798, 53016, 53017);
+    // Per jug of blessed (sunfire) wine poured in: 400 shards; per 100-shard offering: 2 prayer points
+    private static final int SHARDS_PER_WINE = 400;
+    private static final int SHARDS_PER_OFFERING = 100;
+
+    // What your blessed bone shards are worth here: XP, the wine and prayer points they take, the level they reach
+    private void buildLibationBowlCard() {
+        GoalItems items = plugin.getGoalItems();
+        int shards = items.amount("Blessed bone shards");
+        int wine = items.carried("Jug of blessed wine");
+        int sunfire = items.carried("Jug of blessed sunfire wine");
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text("Libation Bowl").color(TITLE_COLOR).build());
+        addRequirement(Skill.PRAYER, 30);
+        line("Bone Shards:", NUMBER.format(shards), shards > 0 ? Color.WHITE : BradsMultiToolOverlay.BAD);
+        // 5 XP a shard with blessed wine, 6 with sunfire wine (the sunfire jugs are used first here)
+        int sunfireShards = Math.min(shards, sunfire * SHARDS_PER_WINE);
+        int xp = sunfireShards * 6 + (shards - sunfireShards) * 5;
+        line("XP From Them:", NUMBER.format(xp) + (sunfire > 0 ? "" : " (" + NUMBER.format(shards * 6) + " sunfire)"), Color.WHITE);
+        int jugsNeeded = (shards + SHARDS_PER_WINE - 1) / SHARDS_PER_WINE;
+        int jugs = wine + sunfire;
+        line("Wine Needed:", NUMBER.format(jugsNeeded) + " jugs (you carry " + jugs + ")",
+            jugs >= jugsNeeded ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.WARN);
+        int prayerNeeded = (shards + SHARDS_PER_OFFERING - 1) / SHARDS_PER_OFFERING * 2;
+        line("Prayer Points:", NUMBER.format(prayerNeeded) + " (you have " + client.getBoostedSkillLevel(Skill.PRAYER) + ")", Color.WHITE);
+        int now = client.getSkillExperience(Skill.PRAYER);
+        int after = Experience.getLevelForXp(Math.min(Experience.MAX_SKILL_XP, now + xp));
+        line("Level:", Experience.getLevelForXp(now) + " -> " + after, BradsMultiToolOverlay.GOOD);
+        addYourRate(Skill.PRAYER);
+    }
+
     private boolean buildSkillHelperCard(MenuEntry entry) {
         int id = entry.getIdentifier();
         ObjectComposition composition = client.getObjectDefinition(id);
         String option = Text.removeTags(entry.getOption()).toLowerCase();
         String target = Text.removeTags(entry.getTarget());
 
+        if (LIBATION_BOWLS.contains(id) && config.showSkillingHover()) {
+            buildLibationBowlCard();
+            return true;
+        }
         int spot = composition != null ? BirdhouseTracker.spotFor(composition.getVarPlayerId()) : -1;
         if (spot >= 0 && config.showBirdhouseHover()) {
             buildBirdhouseCard(spot);

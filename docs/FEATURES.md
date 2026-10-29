@@ -149,6 +149,7 @@ own rate show while you're training that skill.
 |---|---|---|
 | Tree | Level, XP, your axe (in its metal colour) and the best axe for you | Skilling > Skilling Hover Info |
 | Rock | Level, XP, pickaxe | Skilling > Skilling Hover Info |
+| Libation bowl (the Teomat) | Your blessed bone shards, the XP they give (5 each, 6 with sunfire wine), jugs of wine needed (one per 400) and carried, prayer points needed, the level they take you to | Skilling > Skilling Hover Info |
 | Fishing spot (every kind: net/bait, lure/bait, cage/harpoon, big net, karambwan, karambwanji, anglerfish, dark crab, sacred/lava/infernal eels, minnows, aerial, squid, boat spots...) | Each way to fish it with the tool it needs (green if you have it) and each catch with its level and XP | Skilling > Skilling Hover Info |
 | Stall | Level, XP, the kind of loot | Skilling > Skilling Hover Info |
 | Pickpocket NPC | Level, XP, never-fail level with the Ardougne cloak, stun damage | Skilling > Skilling Hover Info |

@@ -83,6 +83,12 @@ def prayer():
                 name = fields.get("name", page["title"]).strip()
                 xp = number(fields.get("xp", ""))
                 kind = fields.get("type", "bone").strip().lower()
+                # Blessed bone shards, offered at the libation bowl: one jug of blessed wine per 400 shards
+                if xp and "libation bowl" in fields.get("facility", "").lower() and page["title"] == "Blessed bone shards":
+                    out.append({"name": "Offer blessed bone shards", "level": int(number(fields.get("level", "1")) or 1),
+                                "xp": xp, "materials": {"Blessed bone shards": 1}, "tools": ["Jug of blessed wine"],
+                                "facility": "Libation bowl"})
+                    continue
                 # Only what you bury or scatter (ensouled heads and the like are reanimated with Magic)
                 if xp and kind in ("bone", "bones", "ash", "ashes", ""):
                     verb = "Scatter" if "ashes" in name.lower() else "Bury"
