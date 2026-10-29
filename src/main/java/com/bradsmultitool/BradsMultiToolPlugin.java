@@ -120,7 +120,10 @@ public class BradsMultiToolPlugin extends Plugin {
     private EventBus eventBus;
 
     @Inject
-    private ExtraAlerts extraAlerts;
+    private CombatAlerts combatAlerts;
+
+    @Inject
+    private SkillingAlerts skillingAlerts;
 
     @Inject
     private PluginFamily pluginFamily;
@@ -243,7 +246,8 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(trainingOverlay);
         eventBus.register(goalItems);
         eventBus.register(goalTargetMenu);
-        eventBus.register(extraAlerts);
+        eventBus.register(combatAlerts);
+        eventBus.register(skillingAlerts);
         eventBus.register(resourceTimers);
         eventBus.register(farmingData);
         eventBus.register(birdhouseTracker);
@@ -302,7 +306,8 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.unregister(skillingOverlay);
         eventBus.unregister(goalItems);
         eventBus.unregister(goalTargetMenu);
-        eventBus.unregister(extraAlerts);
+        eventBus.unregister(combatAlerts);
+        eventBus.unregister(skillingAlerts);
         eventBus.unregister(resourceTimers);
         eventBus.unregister(farmingData);
         eventBus.unregister(birdhouseTracker);
