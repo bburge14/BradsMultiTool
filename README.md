@@ -83,7 +83,8 @@ work a resource.
 - **Goals**: the **Set Goal** button at the top (or right-click a card > Set goal...) takes a skill and a
   level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
-  Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level.
+  Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level (or to
+  the end of the current step, "Step Actions", when the suggested method changes before the goal).
 - **Suggested method** (every skill): a goal card shows the wiki training guide's method for your level
   and the level it lasts to ("Train: Teak trees to 62"; hover it for every step to the goal); Slayer
   suggests the best Slayer master. Each skill's **Suggest** choice (right-click it, or when setting its

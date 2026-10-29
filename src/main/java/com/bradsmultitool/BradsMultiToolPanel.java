@@ -402,6 +402,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final LevelProgressBar goalBar = new LevelProgressBar();
         private final JLabel suggestion = stat();
         private boolean pinned;
+        // Where the step of the goal's plan you're on ends (the method changes there), or 0
+        private int stepEndLevel;
         // Which fields are currently laid out, so they're only rebuilt when the settings change
         private String layout = "";
         private final JMenuItem pauseItem = new JMenuItem();
@@ -554,6 +556,9 @@ public class BradsMultiToolPanel extends PluginPanel {
             setStat(gained, "Gained", shortNumber(plugin.getSkillGained(skill)));
             setStat(perHour, "XP/hr", plugin.isSkillAutoPaused(skill) ? "Idle" : paused ? "Paused" : shortNumber(xpPerHour));
             setStat(perMinute, "XP/min", shortNumber(plugin.getSkillXpPerMinute(skill)));
+            int goalXp = plugin.getSkillGoal(skill);
+            // First, as it finds where the current step ends (for the actions count)
+            updateSuggestion(level, goalXp, xp);
 
             if (level >= Experience.MAX_REAL_LEVEL) {
                 setStat(left, "Left", "--");
@@ -571,7 +576,6 @@ public class BradsMultiToolPanel extends PluginPanel {
                 levelBar.set(progress, "Lvl " + level, String.format("%.2f%%", progress * 100), "Lvl " + (level + 1));
             }
 
-            int goalXp = plugin.getSkillGoal(skill);
             if (goalXp > 0) {
                 int start = Math.min(plugin.getSkillGoalStart(skill), xp);
                 int remaining = Math.max(0, goalXp - xp);
@@ -581,7 +585,6 @@ public class BradsMultiToolPanel extends PluginPanel {
                 String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " left";
                 goalBar.set(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta);
             }
-            updateSuggestion(level, goalXp, xp);
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
@@ -602,8 +605,16 @@ public class BradsMultiToolPanel extends PluginPanel {
             int goalXp = plugin.getSkillGoal(skill);
             boolean toGoal = config.trackerActionsToGoal() && goalXp > xp;
             int remaining = toGoal ? goalXp - xp : toNextLevel;
-            int perAction = plugin.getLastXpDrop(skill);
             String name = toGoal ? "Goal Actions" : "Actions";
+            // When the suggested method changes before the goal: until the end of the step you're on
+            if (toGoal && stepEndLevel > 0) {
+                int stepEndXp = Experience.getXpForLevel(stepEndLevel);
+                if (stepEndXp > xp && stepEndXp < goalXp) {
+                    remaining = stepEndXp - xp;
+                    name = "Step Actions";
+                }
+            }
+            int perAction = plugin.getLastXpDrop(skill);
             setStat(actions, name, perAction > 0 && remaining > 0 ? shortNumber((remaining + perAction - 1) / perAction) : "--");
         }
 
@@ -611,6 +622,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         private void updateSuggestion(int level, int goalXp, int xp) {
             List<String> lines = new ArrayList<>();
             String tooltip = null;
+            stepEndLevel = 0;
             if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
                 String target = plugin.getGoalTarget(skill);
                 if (target != null) {
@@ -627,6 +639,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                             + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
                     }
                     if (plan.size() > 1) {
+                        stepEndLevel = plan.get(0).to;
                         StringBuilder steps = new StringBuilder("<html><b>On the way to your goal</b>");
                         for (TrainingAdvisor.Stage stage : plan) {
                             steps.append("<br>").append(stage.from).append("-").append(stage.to).append(": ")

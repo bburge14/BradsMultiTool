@@ -277,7 +277,8 @@ the fewest GP per XP at GE prices; gathering skills are free so they get the fas
 most profitable wiki money making guide you meet the requirements for, e.g. "Money: Cutting yew logs
 (~335K/hr)"). The Make: line follows it too; Highlight Suggested Method; Highlight Goal
 Items; Highlight Colour;
-Actions Until Goal (the actions field counts to the goal instead of the next level).
+Actions Until Goal (the actions field counts to the goal instead of the next level; when the suggested
+method changes before the goal it counts to the end of the step you're on, shown as "Step Actions").
 
 ---
 
