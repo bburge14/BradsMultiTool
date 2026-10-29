@@ -88,20 +88,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private static final int AGGRO_DURATION_SECONDS = 600;
 
-    // Raw ids rather than the deprecated VarPlayer/Varbits/InventoryID constants
-    private static final int VARP_ATTACK_STYLE = 43;
-    private static final int VARBIT_EQUIPPED_WEAPON_TYPE = 357;
-    private static final int VARBIT_DEFENSIVE_CASTING = 2668;
-    private static final int VARBIT_AUTOCAST_SPELL = 276;
     private static final int CONTAINER_EQUIPMENT = 94;
-    // A manual cast stays the "active" style this long; casting repeats every 5 ticks
-    private static final int MANUAL_CAST_TIMEOUT_TICKS = 10;
-    private static final int EQUIPMENT_WEAPON_SLOT = 3;
-    // The game's own combat style data: enum of weapon category -> enum of style structs, and the
-    // struct param naming each style's XP type ("Accurate", "Rapid", "Casting"...)
-    private static final int ENUM_WEAPON_STYLES = 3908;
-    private static final int PARAM_ATTACK_STYLE_NAME = 1407;
-
     private static final int INSIDE_WILDERNESS_VARBIT = 5963;
     // Repeat counter value meaning "already handled, don't sound or repeat"
     private static final int SILENCED = Integer.MAX_VALUE / 2;
@@ -272,31 +259,12 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     @Getter
     private GemCrabTracker gemCrab;
+
+    @Inject
+    @Getter
+    private CombatStyle combatStyle;
     private NavigationButton navButton;
     private BradsMultiToolPanel panel;
-
-    @Getter
-    private String combatDiscipline = "Melee";
-
-    @Getter
-    private String combatMethod = "Slash";
-
-    @Getter
-    private Color combatMethodColor = Color.WHITE;
-
-    @Getter
-    private CombatIcons.Icon combatMethodIcon = null;
-
-    /** The player's current combat style (weapon style, autocast or hand-cast spell). */
-    @Getter
-    private WeaponStyles.Style currentStyle = null;
-    private int xpStyleKey = -1;
-    private String xpStyle = "";
-
-    private final SpellbookReader spellbook = new SpellbookReader();
-    private String manualSpellName = null;
-    private int manualSpellSpriteId = -1;
-    private int manualCastTick = -1;
 
     // General PvM Target & Telemetry
     @Getter
@@ -424,6 +392,7 @@ public class BradsMultiToolPlugin extends Plugin {
         // Hitting the Gemstone Crab counts as busy for the idle alert (its hits come slowly)
         idleWarnings.addBusy(gemCrab::isPlayerAttackingCrab);
         eventBus.register(gemCrab);
+        eventBus.register(combatStyle);
         eventBus.register(questProgress);
         eventBus.register(skillingOverlay);
         otherTimerPlugins.refresh();
@@ -489,6 +458,7 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.unregister(idleWarnings);
         alerts.shutDown();
         eventBus.unregister(gemCrab);
+        eventBus.unregister(combatStyle);
         gemCrab.reset();
         currentPvmTarget = null;
         pausedSkills.clear();
@@ -836,29 +806,6 @@ public class BradsMultiToolPlugin extends Plugin {
         return stats != null ? stats : monsterData.get(npc.getId(), npc.getName());
     }
 
-    /**
-     * XP per damage your current combat style gives in this skill, for a kill estimate. A style that doesn't
-     * train it counts as if you switched to one that does (4 per damage; 2 for Defence by Longrange, 1 by
-     * defensive casting). Controlled splits 4/3 to each of Attack, Strength and Defence; Longrange 2 each to
-     * Ranged and Defence; Hitpoints is always 4/3.
-     */
-    public double xpPerDamage(Skill skill) {
-        if (skill == Skill.HITPOINTS) {
-            return 4.0 / 3;
-        }
-        boolean melee = skill == Skill.ATTACK || skill == Skill.STRENGTH || skill == Skill.DEFENCE;
-        String discipline = currentStyle != null ? currentStyle.discipline : "";
-        if (melee && "Melee".equals(discipline) && xpStyle.contains("controlled")) {
-            return 4.0 / 3;
-        }
-        if ((skill == Skill.RANGED || skill == Skill.DEFENCE) && "Ranged".equals(discipline) && xpStyle.contains("longrange")) {
-            return 2;
-        }
-        if (skill == Skill.DEFENCE && "Defensive Cast".equals(currentStyle != null ? currentStyle.buttonName : null)) {
-            return 1;
-        }
-        return 4;
-    }
 
     /** Wiki stats for a monster by name ("Sulphur Nagua"), or null. */
     public MonsterData.Stats statsFor(String name) {
@@ -924,7 +871,6 @@ public class BradsMultiToolPlugin extends Plugin {
         processSimpleBuffStatus();
         monitorPrayer();
         monitorHealth();
-        updateRealtimeCombatMethod();
 
         for (Skill s : gainedSkillXp.keySet()) {
             if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
@@ -1344,6 +1290,12 @@ public class BradsMultiToolPlugin extends Plugin {
         pvmTargetWeakness = stats != null ? MonsterData.weaknessOf(stats) : MonsterWeakness.fromName(npc.getName());
     }
 
+    /** Green when your combat style hits the current target's weakness, red when it doesn't, white if unsure. */
+    public Color getCombatMethodColor() {
+        WeaponStyles.Style style = combatStyle.getCurrentStyle();
+        return style != null ? CombatStyle.weaknessMatchColor(style, pvmTargetWeakness) : Color.WHITE;
+    }
+
     /** Whether this monster will attack you, given your combat level, the Wilderness and your gear. */
     Aggression.Verdict aggressionFor(NPC npc) {
         Player local = client.getLocalPlayer();
@@ -1360,171 +1312,10 @@ public class BradsMultiToolPlugin extends Plugin {
             local != null ? local.getCombatLevel() : 0, client.getVarbitValue(INSIDE_WILDERNESS_VARBIT) == 1, equipped);
     }
 
-    // Weapon category (varbit 357) -> its row in the game's weapon category table, or -1
-    private final Map<Integer, Integer> weaponCategoryRows = new HashMap<>();
 
-    private int weaponCategoryRow(int category) {
-        Integer row = weaponCategoryRows.get(category);
-        if (row == null) {
-            row = -1;
-            try {
-                List<Integer> rows = client.getDBRowsByValue(DBTableID.CombatInterfaceWeaponCategory.ID,
-                    DBTableID.CombatInterfaceWeaponCategory.COL_ID, 0, category);
-                if (!rows.isEmpty()) {
-                    row = rows.get(0);
-                }
-            } catch (RuntimeException e) {
-                log.debug("No weapon category row for {}", category, e);
-            }
-            log.debug("Weapon category {} is row {}", category, row);
-            weaponCategoryRows.put(category, row);
-        }
-        return row;
-    }
 
-    /** The game's name for a combat tab button's XP style ("Accurate", "Rapid"...), or null. */
-    private String gameStyleName(int category, int styleIndex) {
-        try {
-            int stylesEnum = client.getEnum(ENUM_WEAPON_STYLES).getIntValue(category);
-            if (stylesEnum == -1) {
-                return null;
-            }
-            int[] structs = client.getEnum(stylesEnum).getIntVals();
-            if (styleIndex < 0 || styleIndex >= structs.length) {
-                return null;
-            }
-            return client.getStructComposition(structs[styleIndex]).getStringValue(PARAM_ATTACK_STYLE_NAME);
-        } catch (RuntimeException e) {
-            return null;
-        }
-    }
 
-    public void updateRealtimeCombatMethod() {
-        int category = client.getVarbitValue(VARBIT_EQUIPPED_WEAPON_TYPE);
-        int styleIndex = client.getVarpValue(VARP_ATTACK_STYLE);
-        int categoryRow = weaponCategoryRow(category);
-        boolean defensiveCasting = client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1;
-        int autocastSpell = client.getVarbitValue(VARBIT_AUTOCAST_SPELL);
-        // The game's name for the style's XP type ("Accurate", "Controlled", "Longrange"...), looked up once per style
-        int styleKey = category * 16 + styleIndex;
-        if (styleKey != xpStyleKey) {
-            xpStyleKey = styleKey;
-            String name = styleIndex == 4 ? "Casting" : gameStyleName(category, styleIndex);
-            xpStyle = name != null ? name.toLowerCase() : "";
-        }
-        WeaponStyles.Style style = WeaponStyles.resolve(categoryRow, styleIndex, defensiveCasting, autocastSpell, null);
-        if ("Unknown".equals(style.buttonName)) {
-            // A weapon type the table doesn't know: go by the game's name for the style
-            style = WeaponStyles.resolve(categoryRow, styleIndex, defensiveCasting, autocastSpell,
-                gameStyleName(category, styleIndex));
-        }
 
-        int weaponId = equippedWeaponId();
-        if (weaponId > 0) {
-            style = WeaponStyles.withEquippedWeapon(style, client.getItemDefinition(weaponId).getName());
-        }
-
-        spellbook.refresh(client);
-
-        // Which spell is being cast: a recent hand cast wins, then the combat tab's autocast slot
-        String spellName = null;
-        int fallbackSprite = -1;
-        if (manualSpellName != null && client.getTickCount() - manualCastTick <= MANUAL_CAST_TIMEOUT_TICKS) {
-            spellName = manualSpellName;
-            fallbackSprite = manualSpellSpriteId;
-            style = WeaponStyles.manualCast(spellName);
-        } else if ("Spell Cast".equals(style.buttonName) || "Defensive Cast".equals(style.buttonName)) {
-            boolean defensive = "Defensive Cast".equals(style.buttonName);
-            spellName = spellbook.autocastSpell(client, defensive);
-            if (spellName != null) {
-                style = WeaponStyles.spellStyle(spellName, defensive);
-            }
-        }
-
-        combatDiscipline = style.discipline;
-        combatMethod = style.label();
-
-        int spellSprite = spellName != null ? spellbook.spriteFor(spellName) : -1;
-        if (spellSprite <= 0) {
-            spellSprite = fallbackSprite;
-        }
-        combatMethodIcon = spellSprite > 0 ? CombatIcons.sprite(spellSprite) : CombatIcons.forStyle(style, weaponId);
-
-        currentStyle = style;
-        combatMethodColor = weaknessMatchColor(style, pvmTargetWeakness);
-    }
-
-    // Spells cast by hand (not autocast) override the weapon's style for a few ticks after each cast
-    @Subscribe
-    public void onMenuOptionClicked(MenuOptionClicked event) {
-        if (event.getMenuAction() != MenuAction.WIDGET_TARGET_ON_NPC || !"Cast".equals(event.getMenuOption())) {
-            return;
-        }
-
-        String target = Text.removeTags(event.getMenuTarget());
-        int arrow = target.indexOf("->");
-        String spell = (arrow >= 0 ? target.substring(0, arrow) : target).trim();
-        if (spell.isEmpty()) {
-            return;
-        }
-
-        Widget selectedSpell = client.getSelectedWidget();
-        manualSpellName = spell;
-        manualSpellSpriteId = selectedSpell != null ? selectedSpell.getSpriteId() : -1;
-        manualCastTick = client.getTickCount();
-    }
-
-    /** Spellbook icon of the Strike spell for an element, as shown in the player's own spellbook. */
-    // The element's basic Strike spell icon (standard spellbook), whatever spellbook you're on
-    public CombatIcons.Icon elementSpellIcon(MonsterWeakness.Element element) {
-        switch (element) {
-            case AIR: return CombatIcons.sprite(SpriteID.Magicon.WIND_STRIKE);
-            case WATER: return CombatIcons.sprite(SpriteID.Magicon.WATER_STRIKE);
-            case EARTH: return CombatIcons.sprite(SpriteID.Magicon.EARTH_STRIKE);
-            case FIRE: return CombatIcons.sprite(SpriteID.Magicon.FIRE_STRIKE);
-            default: return CombatIcons.spell(element, null);
-        }
-    }
-
-    private int equippedWeaponId() {
-        ItemContainer equipment = client.getItemContainer(CONTAINER_EQUIPMENT);
-        if (equipment == null) {
-            return -1;
-        }
-        Item weapon = equipment.getItem(EQUIPMENT_WEAPON_SLOT);
-        return weapon != null ? weapon.getId() : -1;
-    }
-
-    // Green = your style hits the weakness, red = it doesn't, white = can't tell
-    // (weakness unknown, or the ammo type / spell element couldn't be detected).
-    public Color weaknessMatchColor(WeaponStyles.Style style, MonsterWeakness weakness) {
-        Color match = BradsMultiToolOverlay.GOOD;
-        Color mismatch = BradsMultiToolOverlay.BAD;
-        Color unsure = Color.WHITE;
-
-        if (weakness.type == MonsterWeakness.Type.UNKNOWN) {
-            return unsure;
-        }
-        if (weakness.type != style.type()) {
-            return mismatch;
-        }
-        if (weakness.type == MonsterWeakness.Type.MAGIC) {
-            if (weakness.element == null) {
-                return match;
-            }
-            if (style.element == null) {
-                return unsure;
-            }
-            return weakness.element == style.element ? match : mismatch;
-        }
-        if (weakness.subType == null) {
-            return match;
-        }
-        if (style.damageType == null) {
-            return unsure;
-        }
-        return weakness.subType.equalsIgnoreCase(style.damageType) ? match : mismatch;
-    }
 
 
 

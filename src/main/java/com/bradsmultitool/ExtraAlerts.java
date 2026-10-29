@@ -38,6 +38,9 @@ import net.runelite.client.util.Text;
 class ExtraAlerts {
 
     @Inject
+    private CombatStyle combatStyle;
+
+    @Inject
     private Alerts alerts;
 
     // Game variables (net.runelite.api.gameval)
@@ -272,7 +275,7 @@ class ExtraAlerts {
 
     // Thrown weapons stack in the weapon slot; arrows, bolts and javelins live in the ammo slot
     private void checkAmmo(ItemContainer equipment) {
-        WeaponStyles.Style style = plugin.getCurrentStyle();
+        WeaponStyles.Style style = combatStyle.getCurrentStyle();
         if (style == null || style.type() != MonsterWeakness.Type.RANGED) {
             return;
         }

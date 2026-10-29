@@ -24,6 +24,9 @@ import net.runelite.api.Skill;
 @Singleton
 class TrainingAdvisor {
 
+    @Inject
+    private CombatStyle combatStyle;
+
     /** A line for the card: "Train: Oak trees", and the method to outline (null if nothing to outline). */
     static final class Suggestion {
         final String label;
@@ -223,7 +226,7 @@ class TrainingAdvisor {
      */
     KillEstimate killEstimate(Skill skill) {
         // By your current style: Controlled splits the XP three ways, Longrange two
-        double perDamage = plugin.xpPerDamage(skill);
+        double perDamage = combatStyle.xpPerDamage(skill);
         List<String> monsters = new ArrayList<>();
         monsters.add(plugin.getLastPvmTargetName());
         String target = plugin.getGoalTarget(skill);

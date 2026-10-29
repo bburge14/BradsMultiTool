@@ -28,6 +28,9 @@ import net.runelite.client.util.Text;
  */
 public class BradsMultiToolHoverOverlay extends Overlay {
 
+    @Inject
+    private CombatStyle combatStyle;
+
     private static final int WIDTH = 205;
 
     private final Client client;
@@ -130,13 +133,13 @@ public class BradsMultiToolHoverOverlay extends Overlay {
 
         panel.getChildren().add(new IconLineComponent("Weakness:", icon(
             weakness.type == MonsterWeakness.Type.MAGIC && weakness.element != null
-                ? plugin.elementSpellIcon(weakness.element)
+                ? CombatStyle.elementSpellIcon(weakness.element)
                 : CombatIcons.forWeakness(weakness)),
             weakness.label(), weaknessColor(weakness)));
 
         if (weakness.hasSeparateElement()) {
             panel.getChildren().add(new IconLineComponent("Elemental:",
-                icon(plugin.elementSpellIcon(weakness.element)), weakness.elementLabel(), Color.WHITE));
+                icon(CombatStyle.elementSpellIcon(weakness.element)), weakness.elementLabel(), Color.WHITE));
         }
 
         if (stats != null && !stats.attackStyles.isEmpty()) {
@@ -161,8 +164,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
 
     // Green/red when your current style does/doesn't hit the weakness, white when it can't be told
     private Color weaknessColor(MonsterWeakness weakness) {
-        WeaponStyles.Style style = plugin.getCurrentStyle();
-        return style != null ? plugin.weaknessMatchColor(style, weakness) : Color.WHITE;
+        WeaponStyles.Style style = combatStyle.getCurrentStyle();
+        return style != null ? CombatStyle.weaknessMatchColor(style, weakness) : Color.WHITE;
     }
 
     private Color levelColor(int npcLevel) {

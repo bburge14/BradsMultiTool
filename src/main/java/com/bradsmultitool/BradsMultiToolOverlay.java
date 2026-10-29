@@ -27,6 +27,9 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
 public class BradsMultiToolOverlay extends Overlay {
 
     @Inject
+    private CombatStyle combatStyle;
+
+    @Inject
     private GemCrabTracker gemCrab;
 
     // Text is white unless colour carries meaning: good/bad state, or a warning
@@ -95,7 +98,7 @@ public class BradsMultiToolOverlay extends Overlay {
         // BRANCH 1: General PvM HUD (Active or Lingering Post-Combat)
         // -------------------------------------------------------------
         if (config.enablePvmOverlay() && plugin.isPvmOverlayActive()) {
-            plugin.updateRealtimeCombatMethod();
+            combatStyle.update();
             String name = plugin.getLastPvmTargetName();
             int cbLvl = plugin.getLastPvmCombatLevel();
 
@@ -130,7 +133,7 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(new IconLineComponent(
                     "Weakness:",
                     icon(weakness.type == MonsterWeakness.Type.MAGIC && weakness.element != null
-                        ? plugin.elementSpellIcon(weakness.element)
+                        ? CombatStyle.elementSpellIcon(weakness.element)
                         : CombatIcons.forWeakness(weakness)),
                     weakness.label(),
                     weaknessColor(weakness)));
@@ -138,7 +141,7 @@ public class BradsMultiToolOverlay extends Overlay {
                 if (weakness.hasSeparateElement()) {
                     panelComponent.getChildren().add(new IconLineComponent(
                         "Elemental:",
-                        icon(plugin.elementSpellIcon(weakness.element)),
+                        icon(CombatStyle.elementSpellIcon(weakness.element)),
                         weakness.elementLabel(),
                         Color.WHITE));
                 }
@@ -157,8 +160,8 @@ public class BradsMultiToolOverlay extends Overlay {
 
             panelComponent.getChildren().add(new IconLineComponent(
                 "Style:",
-                icon(plugin.getCombatMethodIcon()),
-                plugin.getCombatMethod(),
+                icon(combatStyle.getCombatMethodIcon()),
+                combatStyle.getCombatMethod(),
                 plugin.getCombatMethodColor()));
 
             if (config.showPvmDps()) {
@@ -413,8 +416,8 @@ public class BradsMultiToolOverlay extends Overlay {
 
     // Green when your current style hits the weakness, red when it doesn't, white when it can't be told
     private Color weaknessColor(MonsterWeakness weakness) {
-        WeaponStyles.Style style = plugin.getCurrentStyle();
-        return style != null ? plugin.weaknessMatchColor(style, weakness) : Color.WHITE;
+        WeaponStyles.Style style = combatStyle.getCurrentStyle();
+        return style != null ? CombatStyle.weaknessMatchColor(style, weakness) : Color.WHITE;
     }
 
     private Color getBuffColor(BradsMultiToolPlugin.BuffState state) {
