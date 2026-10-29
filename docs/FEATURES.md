@@ -241,6 +241,9 @@ Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Id
 **What it does:**
 - Skills with a goal are pinned under **GOALS** at the top of the tracker (even before you train them this
   session), with a gold goal bar, XP left and time to reach it. Everything else is under **THIS SESSION**.
+- Suggestions skip methods you can't do yet: the guide's required quests (checked against your quest
+  log) and other skills' levels (Sulphur Naguas need 48 Slayer). At low levels the card also lists
+  **Quest XP:** quests the guide recommends for that skill's XP that you haven't done (hover for all).
 - Each skill can aim for something different: right-click it in the tracker > **Suggest** (or pick
   **Suggest** when setting its goal) and choose Fastest XP, Other methods, Cheapest or Money maker, or
   Default to follow the setting. Saved with your goals, per account.

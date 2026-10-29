@@ -30,7 +30,8 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | No `java.io` file APIs (resources via `getResourceAsStream` are fine) | OK |
 | No `Runtime`, `KeyboardFocusManager`, non-OkHttp network clients | OK (no network use at all) |
 | Don't create your own `Gson` / `OkHttpClient` (inject them) | OK. Plugin code uses the injected `Gson` (tests create their own, which isn't shipped) |
-| No `Client.menuAction`, `runScript`, `hopToWorld` | OK |
+| No `Client.menuAction`, `hopToWorld` | OK |
+| `Client.runScript` is a "sensitive API": allowed, with extra review when code around it changes | Only through RuneLite's own `Quest.getState` (a read-only quest-status script), on the client thread, after login, after a quest completes and every 5 minutes (`QuestProgress`), to leave out training methods whose quests you haven't done. Nothing that sends anything to the server |
 | Don't modify other plugins' configs | OK. Reads the client's idle timeout, and reads (never changes) which plugins are enabled via `PluginManager.getPlugins()` / `isPluginEnabled()` so our timer pies can step aside for a dedicated timer plugin. Matched by class name, no reflection/annotations |
 | Third-party dependencies need hash verification | OK, none |
 | Plugins talking to each other | OK. Only through RuneLite's `PluginMessage` events (`PluginFamily`): no shared code, no reflection, and no reading or changing another plugin's config. Each plugin works alone |

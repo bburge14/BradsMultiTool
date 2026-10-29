@@ -190,6 +190,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private PluginFamily pluginFamily;
 
     @Inject
+    private QuestProgress questProgress;
+
+    @Inject
     @Getter
     private SlayerTracker slayerTracker;
 
@@ -518,6 +521,7 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(birdhouseTracker);
         eventBus.register(otherTimerPlugins);
         pluginFamily.start();
+        eventBus.register(questProgress);
         eventBus.register(skillingOverlay);
         otherTimerPlugins.refresh();
         slayerCardHidden = Boolean.parseBoolean(configManager.getConfiguration(CONFIG_GROUP, SLAYER_CARD_HIDDEN));
@@ -565,6 +569,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(pinnedSkillOverlay);
         eventBus.unregister(trainingOverlay);
         pluginFamily.stop();
+        eventBus.unregister(questProgress);
         eventBus.unregister(skillingOverlay);
         eventBus.unregister(goalItems);
         eventBus.unregister(goalTargetMenu);

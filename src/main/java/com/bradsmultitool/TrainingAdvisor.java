@@ -63,6 +63,7 @@ class TrainingAdvisor {
     private final ItemPrices prices;
     private final SkillingData skilling;
     private final SkillHelperData helpers;
+    private final QuestProgress quests;
     // The cheapest recipe per skill and level (prices only looked up once)
     private final Map<String, Object> cheapest = new ConcurrentHashMap<>();
     private static final Object NONE = new Object();
@@ -70,7 +71,7 @@ class TrainingAdvisor {
     @Inject
     TrainingAdvisor(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, TrainingData training,
                     RecipeData recipes, MoneyData money, ItemPrices prices, SkillingData skilling,
-                    SkillHelperData helpers) {
+                    SkillHelperData helpers, QuestProgress quests) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -80,6 +81,7 @@ class TrainingAdvisor {
         this.prices = prices;
         this.skilling = skilling;
         this.helpers = helpers;
+        this.quests = quests;
     }
 
     /** What to train at this level, or null. */
@@ -106,8 +108,44 @@ class TrainingAdvisor {
             default:
                 break;
         }
-        TrainingData.Method method = training.suggest(skill, level, focus == BradsMultiToolConfig.TrainingFocus.OTHER);
+        TrainingData.Method method = training.suggest(skill, level, focus == BradsMultiToolConfig.TrainingFocus.OTHER, this::canDo);
         return method == null ? null : new Suggestion("Train:", method.name, method, xpEach(method));
+    }
+
+    /**
+     * At low levels, the quests the guide recommends for this skill's XP that you haven't done, best first;
+     * empty when there are none or you're past the guide's questing levels.
+     */
+    List<String> xpQuests(Skill skill, int level) {
+        TrainingData.Method questing = training.questing(skill, level);
+        List<String> out = new ArrayList<>();
+        if (questing != null) {
+            for (String quest : questing.rewards) {
+                if (!quests.isFinished(quest)) {
+                    out.add(quest);
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Whether you meet a method's requirements: its quests finished, other skills at the levels it needs. */
+    boolean canDo(TrainingData.Method method) {
+        for (String quest : method.quests) {
+            if (!quests.isFinished(quest)) {
+                return false;
+            }
+        }
+        for (Map.Entry<String, Integer> need : method.skills.entrySet()) {
+            try {
+                if (plugin.getCurrentSkillLevel(Skill.valueOf(need.getKey())) < need.getValue()) {
+                    return false;
+                }
+            } catch (IllegalArgumentException e) {
+                // A skill this client doesn't know: don't hold the method back for it
+            }
+        }
+        return true;
     }
 
     // XP per action of a guide method: its tree/rock/stall's XP, else its NPC's (pickpocket or hunter creature)

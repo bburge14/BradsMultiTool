@@ -13,7 +13,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from update_skilling_data import wikitext  # noqa: E402
+from update_skilling_data import api, wikitext  # noqa: E402
 
 HERE = os.path.dirname(__file__)
 RESOURCES = os.path.join(HERE, "..", "src", "main", "resources", "com", "bradsmultitool")
@@ -31,6 +31,55 @@ NOT_METHODS = re.compile(r"quest|equipment|overview|^starting off$|general|refer
                          r"crew|requirement|^method$|choice|weapon|post 99|table|^fish$|unlock", re.I)
 METHOD = re.compile(r"^Levels?\s*(\d+)(?:[/\d]*)\s*(?:[–\-]\s*(\d+)(?:/(\d+))*|(\+))?[^:]*:?\s*(.+)$")
 SUFFIXES = (" ore vein", " rocks", " rock", " ore", " trees", " tree", " stalls", " stall")
+
+
+def category(name):
+    """Page titles in a wiki category (main namespace)."""
+    out, cont = [], {}
+    while True:
+        r = api(dict({"action": "query", "list": "categorymembers", "cmtitle": name, "cmlimit": 500, "cmnamespace": 0}, **cont))
+        out += [m["title"] for m in r["query"]["categorymembers"]]
+        if "continue" not in r:
+            return out
+        cont = r["continue"]
+
+
+QUESTS = None
+SKILL_NAMES = {"Attack", "Strength", "Defence", "Ranged", "Prayer", "Magic", "Runecraft", "Construction", "Hitpoints",
+               "Agility", "Herblore", "Thieving", "Crafting", "Fletching", "Slayer", "Hunter", "Mining", "Smithing",
+               "Fishing", "Cooking", "Firemaking", "Woodcutting", "Farming", "Sailing"}
+
+
+def requirements(body, skill):
+    """Quests and other skill levels a method's section says it requires: quest/miniquest links and {{SCP}}
+    levels in its sentences about requirements."""
+    global QUESTS
+    if QUESTS is None:
+        QUESTS = {t for t in category("Category:Quests") + category("Category:Miniquests") if "/" not in t}
+    quests, skills = [], {}
+    for sentence in re.split(r"(?<=[.!?])\s+|\n", body):
+        # Only what the guide says the method requires ("This requires completion of Shades of Mort'ton");
+        # sentences about other places or optional unlocks would hide methods you can do
+        # Not template fields, bracketed notes about optional gear ("(requires Family Crest)"), or one place
+        # among several ("This area requires...")
+        # (links are set aside first so "[[Shilo Village (location)|...]]" isn't cut); bullet points are about
+        # places and teleports
+        links = re.findall(r"\[\[[^\]]*\]\]", sentence)
+        for i, link in enumerate(links):
+            sentence = sentence.replace(link, "\x00%d\x00" % i, 1)
+        sentence = re.sub(r"\([^)]*\)", "", sentence)
+        sentence = re.sub(r"\x00(\d+)\x00", lambda m: links[int(m.group(1))], sentence)
+        if sentence.lstrip().startswith(("|", "*")) or not re.search(r"requir", sentence, re.I) \
+                or re.search(r"\barea\b|\bisland\b|teleport", sentence, re.I):
+            continue
+        for link in re.findall(r"\[\[([^|\]#]+)", sentence):
+            link = link.strip()
+            if link in QUESTS and link not in quests:
+                quests.append(link)
+        for name, level in re.findall(r"\{\{SCP\|([A-Za-z]+)\|(\d+)", sentence):
+            if name in SKILL_NAMES and name != skill:
+                skills[name.upper()] = max(skills.get(name.upper(), 0), int(level))
+    return quests, skills
 
 
 def key(name):
@@ -82,9 +131,15 @@ def targets(method, objects, npcs):
 
 def methods(skill, objects, npcs):
     text = wikitext(GUIDES.get(skill, "Pay-to-play %s training" % skill)) or wikitext("%s training" % skill)
-    out = by_level(text, objects, npcs)
+    out = by_level(text, objects, npcs, skill)
     # A guide with only one or two level headings (Herblore) is really organised by section
-    return out if len(out) >= 3 else by_heading(text, objects, npcs)
+    return out if len(out) >= 3 else by_heading(text, objects, npcs, skill)
+
+
+def body_after(text, heading):
+    """A heading's own text, up to the next heading of any depth."""
+    nxt = re.search(r"\n=", text[heading.end():])
+    return text[heading.end():heading.end() + nxt.start()] if nxt else text[heading.end():]
 
 
 def plain_name(text):
@@ -92,9 +147,22 @@ def plain_name(text):
     return re.sub(r"\{\{[^}]*\}\}", "", text).strip()
 
 
-def entry(name, start, end, fastest, objects, npcs):
+def entry(name, start, end, fastest, objects, npcs, body="", skill=""):
     ids, names = targets(name, objects, npcs)
     out = {"name": name, "from": start, "to": end, "fastest": fastest}
+    # A questing method lists the quests that give XP, not ones it needs: keep those as its XP rewards
+    if name.lower().startswith("quest"):
+        quests, skills = [], {}
+        requirements("", skill)
+        rewards = [q for q in re.findall(r"\[\[([^|\]#]+)", body) if q.strip() in QUESTS and "experience" not in q]
+        if rewards:
+            out["rewards"] = list(dict.fromkeys(q.strip() for q in rewards))
+    else:
+        quests, skills = requirements(body, skill)
+    if quests:
+        out["quests"] = quests
+    if skills:
+        out["skills"] = skills
     if ids:
         out["objects"] = ids
     if names:
@@ -102,31 +170,31 @@ def entry(name, start, end, fastest, objects, npcs):
     return out
 
 
-def by_heading(text, objects, npcs):
+def by_heading(text, objects, npcs, skill):
     """For guides that don't split by level (Prayer, Herblore, Sailing): each section's methods, all levels.
     A section with method sub-headings gives those; otherwise the section itself is the method."""
     sections, current = [], None
     for m in re.finditer(r"\n(==+)\s*([^=\n]+?)\s*\1", text):
         depth, heading = len(m.group(1)), plain_name(m.group(2))
         if depth == 2:
-            current = [heading, []]
+            current = [heading, [], body_after(text, m)]
             sections.append(current)
         elif depth == 3 and current is not None and not NOT_METHODS.search(heading):
-            current[1].append(heading)
+            current[1].append((heading, body_after(text, m)))
     out = []
-    for heading, children in sections:
+    for heading, children, body in sections:
         other = re.search(r"other|passive|alternat", heading, re.I) is not None
-        names = children if children else ([] if NOT_METHODS.search(heading) or other else [heading])
-        for name in names:
+        names = children if children else ([] if NOT_METHODS.search(heading) or other else [(heading, body)])
+        for name, section_body in names:
             level = re.match(r"Levels?\s*(\d+)", name)
             start = int(level.group(1)) if level else 1
             name = re.sub(r"^Levels?\s*[\d/+–\-, ]+:?\s*", "", name)
             if name and not any(e["name"] == name for e in out):
-                out.append(entry(name, start, 99, not other and not out, objects, npcs))
+                out.append(entry(name, start, 99, not other and not out, objects, npcs, section_body, skill))
     return out
 
 
-def by_level(text, objects, npcs):
+def by_level(text, objects, npcs, skill):
     out, section = [], ""
     for m in re.finditer(r"\n(==+)\s*([^=\n]+?)\s*\1", text):
         depth, heading = len(m.group(1)), m.group(2)
@@ -145,7 +213,7 @@ def by_level(text, objects, npcs):
         name = plain_name(re.sub(r"^Levels?\s*[\d/+–\-, ]+:?\s*", "", heading))
         if len(name) < 3:
             continue
-        out.append(entry(name, start, end, section.startswith("fastest"), objects, npcs))
+        out.append(entry(name, start, end, section.startswith("fastest"), objects, npcs, body_after(text, m), skill))
     return out
 
 

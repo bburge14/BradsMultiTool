@@ -89,7 +89,8 @@ work a resource.
   goals count kills of the monster you're fighting, from its hitpoints ("Kills: ~240").
 - **Suggested method** (every skill): a goal card shows the wiki training guide's method for your level
   and the level it lasts to ("Train: Teak trees to 62"; hover it for every step to the goal); Slayer
-  suggests the best Slayer master. Each skill's **Suggest** choice (right-click it, or when setting its
+  suggests the best Slayer master. Methods whose quests or other levels you don't have yet are skipped, and at
+  low levels the card lists quests worth doing for that skill's XP. Each skill's **Suggest** choice (right-click it, or when setting its
   goal; otherwise the **Default Training Focus** setting) chooses what it
   aims for: **Fastest XP**, the guide's **Other methods** (often AFK), **Cheapest** (fewest GP per XP when
   making things; gathering is free) or **Money maker** (the most profitable wiki money making guide you

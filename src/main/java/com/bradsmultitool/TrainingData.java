@@ -36,6 +36,12 @@ class TrainingData {
         final boolean fastest;
         final Set<Integer> objects = new HashSet<>();
         final Set<String> npcs = new HashSet<>();
+        /** Quests (or miniquests) the guide says it requires. */
+        final List<String> quests = new ArrayList<>();
+        /** Other skills' levels it requires (skill name -> level). */
+        final Map<String, Integer> skills = new HashMap<>();
+        /** For "Questing": the quests the guide recommends for their XP. */
+        final List<String> rewards = new ArrayList<>();
 
         Method(JsonObject o) {
             name = o.get("name").getAsString();
@@ -50,6 +56,21 @@ class TrainingData {
             if (o.has("npcs")) {
                 for (JsonElement e : o.getAsJsonArray("npcs")) {
                     npcs.add(e.getAsString());
+                }
+            }
+            if (o.has("quests")) {
+                for (JsonElement e : o.getAsJsonArray("quests")) {
+                    quests.add(e.getAsString());
+                }
+            }
+            if (o.has("rewards")) {
+                for (JsonElement e : o.getAsJsonArray("rewards")) {
+                    rewards.add(e.getAsString());
+                }
+            }
+            if (o.has("skills")) {
+                for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("skills").entrySet()) {
+                    skills.put(e.getKey(), e.getValue().getAsInt());
                 }
             }
         }
@@ -100,11 +121,16 @@ class TrainingData {
      * other methods first (often more AFK or cheaper). Falls back to whatever covers the level.
      */
     Method suggest(Skill skill, int level, boolean alternatives) {
+        return suggest(skill, level, alternatives, m -> true);
+    }
+
+    /** As above, only among methods you can do ({@code canDo}: quests and other skills' levels). */
+    Method suggest(Skill skill, int level, boolean alternatives, java.util.function.Predicate<Method> canDo) {
         List<Method> list = methods.getOrDefault(skill.name(), Collections.emptyList());
         Method fallback = null;
         Method questing = null;
         for (Method method : list) {
-            if (!method.covers(level)) {
+            if (!method.covers(level) || !canDo.test(method)) {
                 continue;
             }
             // The guides open with "Questing"; suggest a method you can repeat, and questing only if there's none
@@ -120,6 +146,16 @@ class TrainingData {
             }
         }
         return fallback != null ? fallback : questing;
+    }
+
+    /** The guide's questing method for this level (quests worth doing for their XP), or null. */
+    Method questing(Skill skill, int level) {
+        for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
+            if (method.isQuesting() && method.covers(level) && !method.rewards.isEmpty()) {
+                return method;
+            }
+        }
+        return null;
     }
 
     /** The method to switch to next on the way to {@code goalLevel}, or null if the current one lasts. */

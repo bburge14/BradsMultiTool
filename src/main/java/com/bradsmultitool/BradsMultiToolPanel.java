@@ -639,6 +639,17 @@ public class BradsMultiToolPanel extends PluginPanel {
                     }
                 }
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank
+                // Low levels: quests worth doing for their XP instead ("Quest XP: The Tourist Trap, +3 more")
+                if (target == null && skill != Skill.SLAYER) {
+                    List<String> xpQuests = plugin.getTrainingAdvisor().xpQuests(skill, level);
+                    if (!xpQuests.isEmpty()) {
+                        lines.add(label("Quest XP:") + xpQuests.get(0)
+                            + (xpQuests.size() > 1 ? " " + label("+" + (xpQuests.size() - 1) + " more") : ""));
+                        String quests = "<b>Quests worth doing for " + skill.getName() + " XP</b><br>" + String.join("<br>", xpQuests);
+                        tooltip = tooltip == null ? "<html>" + quests + "</html>"
+                            : tooltip.replace("</html>", "<br><br>" + quests + "</html>");
+                    }
+                }
                 GoalLines.ItemLine item = GoalLines.itemLine(plugin, skill);
                 if (item != null) {
                     lines.add(label(item.label) + item.item + " " + label(item.have));
