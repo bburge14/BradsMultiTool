@@ -282,8 +282,11 @@ method changes before the goal it counts to the end of the step you're on, shown
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
 picked with Track for goal, or can make from your items), shown with a "~". Attack, Strength, Defence,
 Ranged and Hitpoints goals count **kills** instead ("Goal Kills: ~240"): XP per kill from the hitpoints of
-the monster you last fought (else your Track for goal pick, else the suggested monster), 4 XP per damage
-(4/3 for Hitpoints); hover the count to see which monster. A Gemstone Crab has no kill count.
+the monster you last fought (else your Track for goal pick, else the suggested monster), at the XP per
+damage of your combat style: 4 in the skill it trains, 4/3 each to Attack, Strength and Defence in
+Controlled, 2 each to Ranged and Defence in Longrange, 1 to Defence by defensive casting, 4/3 to Hitpoints
+(a style that doesn't train the skill counts as 4, as if you switched to one); hover the count to see which
+monster. A Gemstone Crab has no kill count.
 
 ---
 

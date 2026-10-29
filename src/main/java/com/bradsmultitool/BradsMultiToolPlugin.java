@@ -344,6 +344,8 @@ public class BradsMultiToolPlugin extends Plugin {
     /** The player's current combat style (weapon style, autocast or hand-cast spell). */
     @Getter
     private WeaponStyles.Style currentStyle = null;
+    private int xpStyleKey = -1;
+    private String xpStyle = "";
 
     private final SpellbookReader spellbook = new SpellbookReader();
     private String manualSpellName = null;
@@ -1043,6 +1045,30 @@ public class BradsMultiToolPlugin extends Plugin {
             stats = monsterData.get(npc.getTransformedComposition().getId());
         }
         return stats != null ? stats : monsterData.get(npc.getId(), npc.getName());
+    }
+
+    /**
+     * XP per damage your current combat style gives in this skill, for a kill estimate. A style that doesn't
+     * train it counts as if you switched to one that does (4 per damage; 2 for Defence by Longrange, 1 by
+     * defensive casting). Controlled splits 4/3 to each of Attack, Strength and Defence; Longrange 2 each to
+     * Ranged and Defence; Hitpoints is always 4/3.
+     */
+    public double xpPerDamage(Skill skill) {
+        if (skill == Skill.HITPOINTS) {
+            return 4.0 / 3;
+        }
+        boolean melee = skill == Skill.ATTACK || skill == Skill.STRENGTH || skill == Skill.DEFENCE;
+        String discipline = currentStyle != null ? currentStyle.discipline : "";
+        if (melee && "Melee".equals(discipline) && xpStyle.contains("controlled")) {
+            return 4.0 / 3;
+        }
+        if ((skill == Skill.RANGED || skill == Skill.DEFENCE) && "Ranged".equals(discipline) && xpStyle.contains("longrange")) {
+            return 2;
+        }
+        if (skill == Skill.DEFENCE && "Defensive Cast".equals(currentStyle != null ? currentStyle.buttonName : null)) {
+            return 1;
+        }
+        return 4;
     }
 
     /** Wiki stats for a monster by name ("Sulphur Nagua"), or null. */
@@ -1950,6 +1976,13 @@ public class BradsMultiToolPlugin extends Plugin {
         int categoryRow = weaponCategoryRow(category);
         boolean defensiveCasting = client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1;
         int autocastSpell = client.getVarbitValue(VARBIT_AUTOCAST_SPELL);
+        // The game's name for the style's XP type ("Accurate", "Controlled", "Longrange"...), looked up once per style
+        int styleKey = category * 16 + styleIndex;
+        if (styleKey != xpStyleKey) {
+            xpStyleKey = styleKey;
+            String name = styleIndex == 4 ? "Casting" : gameStyleName(category, styleIndex);
+            xpStyle = name != null ? name.toLowerCase() : "";
+        }
         WeaponStyles.Style style = WeaponStyles.resolve(categoryRow, styleIndex, defensiveCasting, autocastSpell, null);
         if ("Unknown".equals(style.buttonName)) {
             // A weapon type the table doesn't know: go by the game's name for the style

@@ -624,7 +624,8 @@ public class BradsMultiToolPanel extends PluginPanel {
                 perAction = kill != null ? kill.xpEach : 0;
                 prefix = "~";
                 name = name.replace("Actions", "Kills");
-                String tip = kill != null ? "Kills of " + kill.monster + " (" + shortNumber((int) kill.xpEach) + " XP each)" : null;
+                String tip = kill != null ? "Kills of " + kill.monster + " (" + shortNumber((int) kill.xpEach) + " " + skill.getName()
+                    + " XP each with your combat style)" : null;
                 if (!Objects.equals(actions.getToolTipText(), tip)) {
                     actions.setToolTipText(tip);
                 }

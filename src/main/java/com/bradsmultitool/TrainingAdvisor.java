@@ -148,12 +148,13 @@ class TrainingAdvisor {
     }
 
     /**
-     * XP per kill for a melee, Ranged or Hitpoints goal (4 XP per damage in the style's skill, 4/3 in
-     * Hitpoints), on the monster you last fought, else the one you picked with "Track for goal", else the
+     * XP per kill for a melee, Ranged or Hitpoints goal (XP per damage by your style, see
+     * {@link BradsMultiToolPlugin#xpPerDamage}), on the monster you last fought, else the one you picked with "Track for goal", else the
      * suggested one. Null if none of them has known hitpoints (a Gemstone Crab doesn't die).
      */
     KillEstimate killEstimate(Skill skill) {
-        double perDamage = skill == Skill.HITPOINTS ? 4.0 / 3 : 4;
+        // By your current style: Controlled splits the XP three ways, Longrange two
+        double perDamage = plugin.xpPerDamage(skill);
         List<String> monsters = new ArrayList<>();
         monsters.add(plugin.getLastPvmTargetName());
         String target = plugin.getGoalTarget(skill);
