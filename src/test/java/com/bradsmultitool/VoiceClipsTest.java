@@ -24,7 +24,7 @@ public class VoiceClipsTest {
     public void everyPersonaHasAPlayableClipForEveryLine() throws Exception {
         for (VoiceAlertService.VoicePersona persona : VoiceAlertService.VoicePersona.values()) {
             for (VoiceAlertService.VoiceLine line : VoiceAlertService.VoiceLine.values()) {
-                String resource = "voices/" + persona.folder() + "/" + line.fileName + ".wav";
+                String resource = VoiceAlertService.clipResource(persona, line.fileName);
                 try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
                     assertNotNull("missing " + resource, raw);
                     try (AudioInputStream audio = VoiceAlertService.toPcm(
@@ -47,7 +47,7 @@ public class VoiceClipsTest {
                 }
                 for (int level = 2; level <= 99; level++) {
                     for (String clip : VoiceAlertService.levelUpClips(skill, level)) {
-                        String resource = "voices/" + persona.folder() + "/" + clip + ".wav";
+                        String resource = VoiceAlertService.clipResource(persona, clip);
                         try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
                             assertNotNull("missing " + resource, raw);
                         }

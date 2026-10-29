@@ -41,10 +41,23 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 The multi-tool will also be split into stand-alone plugins alongside the all-in-one version. New features
 are kept self-contained with that in mind.
 
-| Plugin | What goes in it |
-|---|---|
-| **Brad's Skill Tracker** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button. Data: `training.json`, `recipes.json`, `money.json` |
-| Skilling helpers | Hover cards, timer pies, skilling alerts (`skilling.json`, `skill_helpers.json`, `farming*.json`) |
-| PvM | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts (`monsters.json`) |
-| Slayer | Slayer card, task monster outlines, Slayer info on monsters (`slayer.json`) |
-| Gemstone Crab | Crab HUD, outlines, radar and alerts |
+| Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
+|---|---|---|
+| **Snuffy's Skill Tracker** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
+| **Snuffy's PvM & Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (buffs, potions, health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `shared` |
+| **Snuffy's Gemstone Crab** | Crab HUD, outlines, radar and alerts | `gemcrab` (crab moved, about to burrow) + `shared` |
+| **Snuffy's Voices** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
+
+PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card and buff alerts.
+
+### Voice lines
+
+Every plugin ships its own clips (only its folder under `voices/<voice>/`, plus `shared` for the idle and
+logout warnings) and keeps the switches for its lines in its own settings sections, so it works alone.
+`VoiceAlertService.VoicePlugin` (and `plugin_of()` in `generate_voice_clips.py`) says which folder a clip
+belongs to; add new lines there too.
+
+The plugins find each other with RuneLite's `PluginMessage` events (`PluginFamily`, namespace `snuffys`):
+each says "hello" on start and "bye" on stop, and the others answer "here". The Voices plugin also sends
+"voice-settings" (persona, volume, on/off); while it runs, every plugin speaks with that voice and volume
+instead of its own (each plugin's own per-line switches still apply).

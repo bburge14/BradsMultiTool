@@ -182,6 +182,9 @@ public class BradsMultiToolPlugin extends Plugin {
     private ExtraAlerts extraAlerts;
 
     @Inject
+    private PluginFamily pluginFamily;
+
+    @Inject
     @Getter
     private SlayerTracker slayerTracker;
 
@@ -509,6 +512,7 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.register(farmingData);
         eventBus.register(birdhouseTracker);
         eventBus.register(otherTimerPlugins);
+        pluginFamily.start();
         eventBus.register(skillingOverlay);
         otherTimerPlugins.refresh();
         slayerCardHidden = Boolean.parseBoolean(configManager.getConfiguration(CONFIG_GROUP, SLAYER_CARD_HIDDEN));
@@ -555,6 +559,7 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.remove(slayerHighlightOverlay);
         overlayManager.remove(pinnedSkillOverlay);
         eventBus.unregister(trainingOverlay);
+        pluginFamily.stop();
         eventBus.unregister(skillingOverlay);
         eventBus.unregister(goalItems);
         eventBus.unregister(goalTargetMenu);
@@ -584,8 +589,9 @@ public class BradsMultiToolPlugin extends Plugin {
 
     // Plays a random real alert in the newly selected voice
     private void previewVoice() {
+        // The voice just picked here, even while the Voices plugin sets the one alerts use
         VoiceAlertService.VoiceLine[] lines = VoiceAlertService.VoiceLine.values();
-        playVoice(lines[ThreadLocalRandom.current().nextInt(lines.length)]);
+        voiceService.speakAsync(lines[ThreadLocalRandom.current().nextInt(lines.length)], config.voicePersona(), config.voiceVolume());
     }
 
     /**
@@ -603,13 +609,29 @@ public class BradsMultiToolPlugin extends Plugin {
 
     /** Speaks an alert, if you're in game and its voice is turned on. */
     void speak(VoiceAlertService.VoiceLine line) {
-        if (alertsReady() && config.voiceEnabled() && voiceAllowed(line)) {
+        if (alertsReady() && voiceEnabled() && voiceAllowed(line)) {
             playVoice(line);
         }
     }
 
     private void playVoice(VoiceAlertService.VoiceLine line) {
-        voiceService.speakAsync(line, config.voicePersona(), config.voiceVolume());
+        voiceService.speakAsync(line, voicePersona(), voiceVolume());
+    }
+
+    // The Voices plugin's voice and volume while it's running (PluginFamily), else this plugin's settings
+    private boolean voiceEnabled() {
+        PluginFamily.VoiceSettings shared = pluginFamily.voiceSettings();
+        return shared != null ? shared.enabled : config.voiceEnabled();
+    }
+
+    private VoiceAlertService.VoicePersona voicePersona() {
+        PluginFamily.VoiceSettings shared = pluginFamily.voiceSettings();
+        return shared != null ? shared.persona : config.voicePersona();
+    }
+
+    private int voiceVolume() {
+        PluginFamily.VoiceSettings shared = pluginFamily.voiceSettings();
+        return shared != null ? shared.volume : config.voiceVolume();
     }
 
     private boolean voiceAllowed(VoiceAlertService.VoiceLine line) {
@@ -665,7 +687,7 @@ public class BradsMultiToolPlugin extends Plugin {
         } else if (Boolean.parseBoolean(event.getNewValue())) {
             for (AlertType type : AlertType.values()) {
                 if (type.voiceKey.equals(key)) {
-                    voiceService.speakClipsAsync(config.voicePersona(), config.voiceVolume(), type.preview);
+                    voiceService.speakClipsAsync(voicePersona(), voiceVolume(), type.preview);
                 }
             }
         }
@@ -2290,8 +2312,8 @@ public class BradsMultiToolPlugin extends Plugin {
         if (previous == null || level <= previous || !alertsReady()) {
             return;
         }
-        if (config.voiceEnabled() && toggle(AlertType.LEVEL_UP.voiceKey)) {
-            voiceService.speakClipsAsync(config.voicePersona(), config.voiceVolume(), VoiceAlertService.levelUpClips(skill, level));
+        if (voiceEnabled() && toggle(AlertType.LEVEL_UP.voiceKey)) {
+            voiceService.speakClipsAsync(voicePersona(), voiceVolume(), VoiceAlertService.levelUpClips(skill, level));
         }
         sendGameChatMessage(AlertType.LEVEL_UP, skill.getName() + " level " + level + "!");
         announceNewMethod(skill, previous, level);

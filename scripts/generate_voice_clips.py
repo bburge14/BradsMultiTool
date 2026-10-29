@@ -274,6 +274,26 @@ def compact_existing():
             write_compact_wav(path, samples, rate)
 
 
+# Which separate plugin each clip ships with: voices/<persona>/<plugin>/<clip>.wav, so each plugin's build
+# takes just its folder. Keep in step with VoiceAlertService.VoicePlugin.of()
+SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_moved", "coin_pouch_full",
+                  "birdhouses_ready", "batch_complete"}
+
+
+def plugin_of(key):
+    if key.startswith(("skill_", "num_", "tens_")) or key in SKILLING_LINES:
+        return "skilling"
+    if key in ("crab_moved", "crab_low_health"):
+        return "gemcrab"
+    if key in ("character_idle", "idle_logout"):
+        return "shared"
+    return "pvm"
+
+
+def clip_path(folder, key):
+    return os.path.join(folder, plugin_of(key), key + ".wav")
+
+
 def main():
     if "--compact-existing" in sys.argv:
         compact_existing()
@@ -286,26 +306,28 @@ def main():
     for persona, voice in PERSONAS.items():
         folder = os.path.join(OUT_DIR, persona)
         os.makedirs(folder, exist_ok=True)
-        missing = {k: t for k, t in LINES.items() if force or not os.path.exists(os.path.join(folder, k + ".wav"))}
+        missing = {k: t for k, t in LINES.items() if force or not os.path.exists(clip_path(folder, k))}
         if not missing:
             continue
         piper_voice = PiperVoice.load(model_path(voice))
         for key, text in missing.items():
             chunks = list(piper_voice.synthesize(text))
             samples = np.concatenate([c.audio_int16_array for c in chunks])
-            write_compact_wav(os.path.join(folder, key + ".wav"), samples, chunks[0].sample_rate)
+            os.makedirs(os.path.dirname(clip_path(folder, key)), exist_ok=True)
+            write_compact_wav(clip_path(folder, key), samples, chunks[0].sample_rate)
         print("Generated", persona, ", ".join(missing))
 
     for character, spec in CHARACTERS.items():
         folder = os.path.join(OUT_DIR, character)
         os.makedirs(folder, exist_ok=True)
-        missing = {k: t for k, t in LINES.items() if force or not os.path.exists(os.path.join(folder, k + ".wav"))}
+        missing = {k: t for k, t in LINES.items() if force or not os.path.exists(clip_path(folder, k))}
         if not missing:
             continue
         piper_voice = PiperVoice.load(model_path(spec["voice"]))
         for key, text in missing.items():
             rate, audio = synth_character(piper_voice, text, spec)
-            write_compact_wav(os.path.join(folder, key + ".wav"), audio, rate)
+            os.makedirs(os.path.dirname(clip_path(folder, key)), exist_ok=True)
+            write_compact_wav(clip_path(folder, key), audio, rate)
         print("Generated", character, ", ".join(missing))
 
 

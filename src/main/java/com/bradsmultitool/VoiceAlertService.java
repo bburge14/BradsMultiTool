@@ -115,6 +115,51 @@ public class VoiceAlertService {
         }
     }
 
+    /**
+     * Which of the separate plugins a clip ships with (see docs/DEVELOPMENT.md "Planned: separate plugins");
+     * each persona's clips are in one folder per plugin, so a plugin's build takes just its folder.
+     * Keep in step with plugin_of() in scripts/generate_voice_clips.py.
+     */
+    enum VoicePlugin {
+        /** Skill Tracker (with the skilling helpers): skilling alerts and level-ups. */
+        SKILLING("skilling"),
+        /** PvM & Slayer: buffs, potions, health, prayer, combat and Slayer alerts. */
+        PVM("pvm"),
+        GEM_CRAB("gemcrab"),
+        /** Idle and logout warnings: every plugin carries these. */
+        SHARED("shared");
+
+        final String folder;
+
+        VoicePlugin(String folder) {
+            this.folder = folder;
+        }
+
+        static VoicePlugin of(String clip) {
+            if (clip.startsWith("skill_") || clip.startsWith("num_") || clip.startsWith("tens_")) {
+                return SKILLING;
+            }
+            switch (clip) {
+                case "inventory_full":
+                case "tree_gone":
+                case "rock_depleted":
+                case "fishing_spot_moved":
+                case "coin_pouch_full":
+                case "birdhouses_ready":
+                case "batch_complete":
+                    return SKILLING;
+                case "crab_moved":
+                case "crab_low_health":
+                    return GEM_CRAB;
+                case "character_idle":
+                case "idle_logout":
+                    return SHARED;
+                default:
+                    return PVM;
+            }
+        }
+    }
+
     /** Voice personas; each folder under resources/voices holds one clip per VoiceLine. */
     public enum VoicePersona {
         AMY("Amy (US female)"),
@@ -159,11 +204,16 @@ public class VoiceAlertService {
         speakClipsAsync(persona, volumePercent, line.fileName);
     }
 
+    /** Where a clip is bundled: voices/amy/skilling/inventory_full.wav. */
+    static String clipResource(VoicePersona persona, String clip) {
+        return "voices/" + persona.folder() + "/" + VoicePlugin.of(clip).folder + "/" + clip + ".wav";
+    }
+
     /** Plays several clips back to back as one alert (nothing else can cut in between). */
     public void speakClipsAsync(VoicePersona persona, int volumePercent, String... fileNames) {
         synchronized (queue) {
             for (String fileName : fileNames) {
-                queue.add(new String[]{"voices/" + persona.folder() + "/" + fileName + ".wav", String.valueOf(volumePercent)});
+                queue.add(new String[]{clipResource(persona, fileName), String.valueOf(volumePercent)});
             }
             if (playing) {
                 return;

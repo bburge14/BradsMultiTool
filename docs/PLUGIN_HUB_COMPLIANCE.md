@@ -13,8 +13,8 @@ Last checked: 2026-10-28.
 
 ## Planned split
 
-The multi-tool will also be published as separate plugins (Gemstone Crab, skilling helpers, Brad's Skill
-Tracker, PvM HUD, Slayer, alerts...; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
+The multi-tool will also be published as separate plugins (Snuffy's Skill Tracker, PvM & Slayer, Gemstone
+Crab and an optional Voices plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
 its own data files, overlay(s) and config section, talking to the rest only through small shared helpers
 (voice alerts, chat messages, cursor tooltip).
 
@@ -33,6 +33,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | No `Client.menuAction`, `runScript`, `hopToWorld` | OK |
 | Don't modify other plugins' configs | OK. Reads the client's idle timeout, and reads (never changes) which plugins are enabled via `PluginManager.getPlugins()` / `isPluginEnabled()` so our timer pies can step aside for a dedicated timer plugin. Matched by class name, no reflection/annotations |
 | Third-party dependencies need hash verification | OK, none |
+| Plugins talking to each other | OK. Only through RuneLite's `PluginMessage` events (`PluginFamily`): no shared code, no reflection, and no reading or changing another plugin's config. Each plugin works alone |
 
 ## Feature rules (Jagex guidelines + rejected features)
 
