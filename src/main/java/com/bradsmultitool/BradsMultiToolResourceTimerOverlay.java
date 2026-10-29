@@ -11,6 +11,7 @@ import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
 import net.runelite.api.Perspective;
 import net.runelite.api.Point;
+import net.runelite.api.Skill;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -19,8 +20,8 @@ import net.runelite.client.ui.overlay.components.ProgressPieComponent;
 
 /**
  * Countdown pies over trees, Motherlode veins, calcified rocks, Daeyalt essence, shooting stars, fishing
- * spots and shipwrecks
- * (see {@link ResourceTimers}): green, then yellow, then red as each runs out, pulsing once it's due.
+ * spots, shipwrecks, traps, fires and Forester's Campfires (see {@link ResourceTimers}), each only while
+ * you train its skill unless Pies When Not Training is on: green, then yellow, then red as each runs out, pulsing once it's due.
  */
 public class BradsMultiToolResourceTimerOverlay extends Overlay {
 
@@ -30,12 +31,14 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private final BradsMultiToolConfig config;
     private final ResourceTimers timers;
     private final OtherTimerPlugins otherPlugins;
+    private final BradsMultiToolPlugin plugin;
     private final ProgressPieComponent pie = new ProgressPieComponent();
 
     @Inject
     public BradsMultiToolResourceTimerOverlay(Client client, BradsMultiToolConfig config, ResourceTimers timers,
-                                              OtherTimerPlugins otherPlugins) {
+                                              OtherTimerPlugins otherPlugins, BradsMultiToolPlugin plugin) {
         this.otherPlugins = otherPlugins;
+        this.plugin = plugin;
         this.client = client;
         this.config = config;
         this.timers = timers;
@@ -50,7 +53,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             return null;
         }
         for (ResourceTimers.Timer timer : timers.all()) {
-            if (!enabled(timer.kind) || !timer.visible()
+            if (!enabled(timer.kind) || !timer.visible() || !(config.piesAlwaysShown() || training(timer.kind))
                 || (config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind))) {
                 continue;
             }
@@ -79,6 +82,25 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         return null;
     }
 
+    // Whether you're training the skill the resource is for (an XP drop in it lately)
+    private boolean training(ResourceTimers.Kind kind) {
+        switch (kind) {
+            case TREE:
+                return plugin.trainedRecently(Skill.WOODCUTTING);
+            case FISHING_SPOT:
+                return plugin.trainedRecently(Skill.FISHING);
+            case SHIPWRECK:
+                return plugin.trainedRecently(Skill.SAILING);
+            case TRAP:
+                return plugin.trainedRecently(Skill.HUNTER);
+            case FIRE:
+            case CAMPFIRE:
+                return plugin.trainedRecently(Skill.COOKING) || plugin.trainedRecently(Skill.FIREMAKING);
+            default:
+                return plugin.trainedRecently(Skill.MINING);
+        }
+    }
+
     private boolean enabled(ResourceTimers.Kind kind) {
         switch (kind) {
             case TREE:
@@ -90,6 +112,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             case TRAP:
                 return config.showTrapTimer();
             case FIRE:
+            case CAMPFIRE:
                 return config.showFireTimer();
             default:
                 return config.showMiningTimer();

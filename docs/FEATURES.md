@@ -183,9 +183,12 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 | Fishing spots that moved while you were there | How soon they may move again | Fishing > Fishing Spot Pies |
 | Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timer Pies |
 | Fires lit nearby | How long it may burn | Firemaking > Fire Timer Pies |
+| Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Fire Timer Pies |
 | Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Pies |
 
-**Good to know:** Pies draw under the bank and other interfaces. A tree already being chopped when you
+**Good to know:** Each pie only shows while you're training its skill (an XP drop in it in the last two
+minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
+Turn on **Skilling > Pies When Not Training** to see them all the time. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
 Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin...), our pie for that timer hides

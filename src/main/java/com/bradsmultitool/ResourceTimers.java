@@ -25,6 +25,7 @@ import net.runelite.api.coords.Angle;
 import net.runelite.api.coords.Direction;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
@@ -38,6 +39,7 @@ import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.api.gameval.AnimationID;
 import net.runelite.api.gameval.ObjectID;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.util.Text;
 
 /**
  * Countdown timers for resources that run out on a timer rather than per harvest, worked out the way the
@@ -65,7 +67,7 @@ import net.runelite.client.eventbus.Subscribe;
 @Singleton
 class ResourceTimers {
 
-    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK, TRAP, FIRE }
+    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK, TRAP, FIRE, CAMPFIRE }
 
     enum TrapState { SET, CAUGHT, FAILED }
 
@@ -107,6 +109,7 @@ class ResourceTimers {
             switch (kind) {
                 case TREE:
                 case CALCIFIED:
+                case CAMPFIRE:
                     return Math.max(0, (double) ticksLeft / maxTicks);
                 case STAR:
                     return Math.max(0, health);
@@ -120,6 +123,7 @@ class ResourceTimers {
             switch (kind) {
                 case TREE:
                 case CALCIFIED:
+                case CAMPFIRE:
                     return ticksLeft <= 0;
                 case STAR:
                     return health >= 0 && health < 0.1;
@@ -137,6 +141,7 @@ class ResourceTimers {
                     return choppers > 0 || ticksLeft < maxTicks;
                 case VEIN:
                 case CALCIFIED:
+                case CAMPFIRE:
                     return started;
                 case STAR:
                     return health >= 0;
@@ -147,6 +152,23 @@ class ResourceTimers {
     }
 
     private static final double TICK_SECONDS = 0.6;
+    // Forester's Campfires (OSRS Wiki, Forester's Campfire): burn up to 300 ticks; the log that turns a fire
+    // into one sets its time, and each log added after adds more. By the log's Firemaking XP:
+    // {xp, ticks when it starts the campfire, ticks it adds}; the wiki's unknowns are filled in between
+    private static final Set<Integer> CAMPFIRES = Set.of(49927, 49928, 49929, 49930, 49931, 49932);
+    private static final int CAMPFIRE_MAX_TICKS = 300;
+    private static final int CAMPFIRE_DEFAULT_TICKS = 110;
+    private static final double[][] CAMPFIRE_LOGS = {
+        {40, 102, 3}, {60, 109, 10}, {90, 116, 17}, {96, 131, 32}, {105, 118, 19}, {125, 121, 22},
+        {135, 123, 24}, {157.5, 125, 26}, {180, 128, 29}, {202.5, 130, 31}, {220.5, 134, 35}, {268, 140, 40},
+        {303.8, 137, 38}, {350, 144, 45}};
+    // "Check" on a campfire: its message and the time left it means, in ticks {min, max}
+    private static final Map<String, int[]> CAMPFIRE_CHECKS = Map.of(
+        "The embers glow softly.", new int[]{1, 58},
+        "The flames flicker gently.", new int[]{59, 118},
+        "The fire burns steadily.", new int[]{119, 178},
+        "The fire burns brightly.", new int[]{179, 238},
+        "The roaring fire crackles invitingly.", new int[]{239, 299});
     // Motherlode Mine (MLM Despawn Timer): 23-27s downstairs, 36-40s upstairs; the upper floor sits below this height
     private static final Set<Integer> VEINS = Set.of(26661, 26662, 26663, 26664);
     private static final int UPPER_FLOOR_HEIGHT = -490;
@@ -333,6 +355,7 @@ class ResourceTimers {
     private final SkillingData data;
 
     private final Map<WorldPoint, Timer> byTile = new HashMap<>();
+    private Integer firemakingXp;
     private final Set<Timer> timers = new HashSet<>();
     private final Map<NPC, Timer> fishingSpots = new HashMap<>();
     // Spots that went out of view: where they were and when they appeared there (tick) / left view (tick)
@@ -381,6 +404,15 @@ class ResourceTimers {
         int id = object.getId();
         if (CALCIFIED_ROCKS.contains(id)) {
             add(new Timer(Kind.CALCIFIED, object, null, CALCIFIED_TICKS, CALCIFIED_TICKS), object);
+            return;
+        }
+        if (CAMPFIRES.contains(id)) {
+            Timer campfire = new Timer(Kind.CAMPFIRE, object, null, 0, CAMPFIRE_MAX_TICKS);
+            campfire.ticksLeft = CAMPFIRE_DEFAULT_TICKS;
+            // Lit just now: its time is known (roughly, until your log or a Check says more)
+            campfire.started = client.getGameState() == GameState.LOGGED_IN;
+            campfire.elapsed = 0;
+            add(campfire, object);
             return;
         }
         if (id == FIRE) {
@@ -532,8 +564,66 @@ class ResourceTimers {
         }
     }
 
+    /** The campfire log row for this Firemaking XP (outfit bonuses allowed for), or null. */
+    static double[] campfireLog(double xp) {
+        for (double[] log : CAMPFIRE_LOGS) {
+            if (xp >= log[0] && xp <= log[0] * 1.03) {
+                return log;
+            }
+        }
+        return null;
+    }
+
+    // A log you put on a campfire next to you: it sets the time if it's what lit the campfire, else adds to it
+    private void onFiremakingXp(int gained) {
+        Player local = client.getLocalPlayer();
+        double[] log = campfireLog(gained);
+        if (local == null || log == null) {
+            return;
+        }
+        for (Timer timer : timers) {
+            if (timer.kind == Kind.CAMPFIRE && timer.object != null
+                && timer.object.getWorldLocation().distanceTo(local.getWorldLocation()) <= 2) {
+                if (timer.elapsed <= 3) {
+                    timer.ticksLeft = (int) log[1];
+                } else {
+                    timer.ticksLeft = Math.min(CAMPFIRE_MAX_TICKS, timer.ticksLeft + (int) log[2]);
+                }
+                timer.started = true;
+                return;
+            }
+        }
+    }
+
+    // "Check" says roughly how long the campfire next to you has left: pull our count into that range
+    @Subscribe
+    public void onChatMessage(ChatMessage event) {
+        int[] range = CAMPFIRE_CHECKS.get(Text.removeTags(event.getMessage()));
+        Player local = client.getLocalPlayer();
+        if (range == null || local == null) {
+            return;
+        }
+        for (Timer timer : timers) {
+            if (timer.kind == Kind.CAMPFIRE && timer.object != null
+                && timer.object.getWorldLocation().distanceTo(local.getWorldLocation()) <= 3) {
+                if (!timer.started || timer.ticksLeft < range[0] || timer.ticksLeft > range[1]) {
+                    timer.ticksLeft = (range[0] + range[1]) / 2;
+                }
+                timer.started = true;
+                return;
+            }
+        }
+    }
+
     @Subscribe
     public void onStatChanged(StatChanged event) {
+        if (event.getSkill() == Skill.FIREMAKING) {
+            Integer before = firemakingXp;
+            firemakingXp = event.getXp();
+            if (before != null && event.getXp() > before) {
+                onFiremakingXp(event.getXp() - before);
+            }
+        }
         // Your first log starts a tree's timer (you can't see when others get theirs)
         if (event.getSkill() == Skill.WOODCUTTING) {
             Player local = client.getLocalPlayer();
@@ -604,6 +694,12 @@ class ResourceTimers {
                 case VEIN:
                     if (timer.started) {
                         timer.elapsed++;
+                    }
+                    break;
+                case CAMPFIRE:
+                    timer.elapsed++;
+                    if (timer.ticksLeft > 0) {
+                        timer.ticksLeft--;
                     }
                     break;
                 default:

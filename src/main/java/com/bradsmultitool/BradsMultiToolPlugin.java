@@ -132,6 +132,7 @@ public class BradsMultiToolPlugin extends Plugin {
     // Character idle: what counts as having been doing something before going AFK
     private static final int MIN_ACTION_TICKS = 5;
     private static final int TRAINING_WINDOW_TICKS = 25;
+    private static final int PIE_TRAINING_TICKS = 200;
     private static final int COMBAT_WINDOW_TICKS = 8;
     // The shell lasts 90 seconds (150 ticks); allow a little slack
     private static final int SHELL_LIFETIME_TICKS = 160;
@@ -2385,6 +2386,15 @@ public class BradsMultiToolPlugin extends Plugin {
     }
 
     /** True while you're training the skill: XP from it in the last 15 seconds. */
+    /**
+     * An XP drop in the skill in the last two minutes: long enough to cover slow trees and walking between
+     * resources, for showing that skill's timer pies only while you train it.
+     */
+    boolean trainedRecently(Skill skill) {
+        Integer last = lastXpTicks.get(skill);
+        return last != null && client.getTickCount() - last <= PIE_TRAINING_TICKS;
+    }
+
     boolean isTraining(Skill skill) {
         Integer last = lastXpTicks.get(skill);
         return last != null && client.getTickCount() - last <= TRAINING_WINDOW_TICKS;

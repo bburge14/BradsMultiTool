@@ -1403,6 +1403,17 @@ public interface BradsMultiToolConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "piesAlwaysShown",
+        name = "Pies When Not Training",
+        description = "Show timer pies all the time. Off: a resource's pies only show while you train its skill (trees while you chop, rocks while you mine, fires while you cook or burn logs...)",
+        section = skillingSection,
+        position = 3
+    )
+    default boolean piesAlwaysShown() {
+        return false;
+    }
+
+    @ConfigItem(
         keyName = "bestChoice",
         name = "Best Choice By",
         description = "How cards pick the \"best\" thing to make from what you carry (e.g. the anvil card): most XP, or most profit at Grand Exchange prices",
