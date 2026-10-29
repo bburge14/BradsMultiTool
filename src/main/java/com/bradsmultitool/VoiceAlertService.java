@@ -121,12 +121,13 @@ public class VoiceAlertService {
         JOE("Joe (US male)"),
         CORI("Cori (UK female)"),
         ALAN("Alan (UK male)"),
-        // Character voices: Piper voices pitch-shifted with effects (see generate_voice_clips.py)
-        GNOME("Gnome"),
-        OGRE("Ogre"),
-        WIZARD("Old Wizard"),
-        ROBOT("Robot"),
-        DEMON("Demon");
+        // Character voices inspired by RuneScape characters: Piper voices pitch-shifted with effects
+        // (see generate_voice_clips.py)
+        GNOME_CHILD("Gnome Child"),
+        WISE_OLD_MAN("Wise Old Man"),
+        ZAMORAK("Zamorak"),
+        TZHAAR("TzHaar"),
+        GHOST("Ghost");
 
         private final String displayName;
 

@@ -62,7 +62,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Goal items: outline in inventory/bank the materials of the best thing to make for a goal, with a tooltip | OK. Same as core Inventory Tags / Bank Tags style highlighting; reads containers only, never moves or uses items |
 | Training Focus (fastest / other / cheapest / money maker) | OK. Wiki guide data and GE prices via ItemManager; suggestions only |
 | Suggested training method on goal cards, outline of that method's trees/rocks/stalls/NPCs | OK. Wiki guide text plus object/NPC outlines (like core Object Markers / NPC Indicators); never clicks or moves the player |
-| Voice alerts (bundled clips) | OK |
+| Voice alerts (bundled clips) | OK. Character voices are named after RuneScape characters but are our own synthesized clips, not Jagex audio |
 | Skill tracker panel, level-up alerts | OK |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
 
@@ -72,7 +72,7 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 
 ## Open questions before publishing
 
-- Plugin size: the jar is about 17.5 MB, nearly all voice clips (9 voices, 11 kHz mu-law, level-up
+- Plugin size: the jar is about 17.5 MB, nearly all voice clips (9 voices: 4 standard, 5 RuneScape-inspired characters; 11 kHz mu-law, level-up
   numbers built from parts; was 35 MB with 11 voices at 16 kHz). Still large for the Plugin Hub: if a
   reviewer objects, ship fewer voices (e.g. the four standard ones) or move the character voices to their
   own plugin. Check before submitting.

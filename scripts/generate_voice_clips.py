@@ -36,14 +36,16 @@ PERSONAS = {
     "alan": "en/en_GB/alan/medium",
 }
 
-# Character voices: a base voice spoken at a different speed (length_scale), then pitch-shifted by
-# resampling (which also changes speed) and given an effect. Net speed = pitch / length_scale.
+# Character voices inspired by RuneScape characters (not their real voices): a base voice spoken at a
+# different speed (length_scale), then pitch-shifted by resampling (which also changes speed) and given an
+# effect. Net speed = pitch / length_scale.
 CHARACTERS = {
-    "gnome": {"voice": "en/en_GB/cori/high", "length_scale": 1.25, "pitch": 1.5},
-    "ogre": {"voice": "en/en_US/joe/medium", "length_scale": 0.9, "pitch": 0.68},
-    "wizard": {"voice": "en/en_GB/alan/medium", "length_scale": 1.3, "pitch": 0.93, "vibrato": True, "echo": True},
-    "robot": {"voice": "en/en_US/mike/medium", "length_scale": 1.05, "pitch": 0.95, "ring": 55},
-    "demon": {"voice": "en/en_GB/alan/medium", "length_scale": 1.15, "pitch": 0.62, "growl": 2.5, "echo": True},
+    "gnome_child": {"voice": "en/en_GB/cori/high", "length_scale": 1.2, "pitch": 1.6},
+    "wise_old_man": {"voice": "en/en_GB/alan/medium", "length_scale": 1.3, "pitch": 0.9, "vibrato": True, "echo": True},
+    "zamorak": {"voice": "en/en_GB/alan/medium", "length_scale": 1.15, "pitch": 0.62, "growl": 2.5, "echo": True},
+    "tzhaar": {"voice": "en/en_US/joe/medium", "length_scale": 0.85, "pitch": 0.72, "growl": 1.6},
+    "ghost": {"voice": "en/en_US/amy/medium", "length_scale": 1.35, "pitch": 1.05, "vibrato": True, "echo": True,
+              "long_echo": True},
 }
 
 LINES = {
@@ -219,6 +221,12 @@ def apply_character(samples, rate, spec):
         delay = int(0.09 * rate)
         echoed = np.copy(y)
         echoed[delay:] += 0.35 * y[:-delay]
+        y = echoed
+    if spec.get("long_echo"):
+        # A second, later and softer echo: hollow and ghostly
+        delay = int(0.22 * rate)
+        echoed = np.copy(y)
+        echoed[delay:] += 0.3 * y[:-delay]
         y = echoed
     y = y / max(1e-9, np.max(np.abs(y))) * 0.89
     return (y * 32767).astype(np.int16)
