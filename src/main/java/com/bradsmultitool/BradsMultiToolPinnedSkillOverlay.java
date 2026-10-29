@@ -3,6 +3,7 @@ package com.bradsmultitool;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
@@ -98,8 +99,14 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         if (target != null) {
             return "Tracking: " + BradsMultiToolPlugin.goalTargetName(target);
         }
-        TrainingAdvisor.Suggestion suggestion = plugin.getTrainingAdvisor().suggest(skill, level);
-        return suggestion != null ? suggestion.label + " " + suggestion.text : null;
+        // The current leg of the plan, and the level it lasts to when the method changes before the goal
+        List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level,
+            Experience.getLevelForXp(plugin.getSkillGoal(skill)));
+        if (plan.isEmpty()) {
+            return null;
+        }
+        TrainingAdvisor.Suggestion now = plan.get(0).suggestion;
+        return now.label + " " + now.text + (plan.size() > 1 ? " (to " + plan.get(0).to + ")" : "");
     }
 
     private static ProgressBarComponent bar(double progress, String left, String centre, String right, Color fill) {

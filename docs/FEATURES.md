@@ -226,7 +226,7 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
 
 **Settings (Skill Tracker):** a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
-Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
+Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
 (minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up.
 
 ---
@@ -236,8 +236,12 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
 **What it does:**
 - Skills with a goal are pinned under **GOALS** at the top of the tracker (even before you train them this
   session), with a gold goal bar, XP left and time to reach it. Everything else is under **THIS SESSION**.
-- A goal card shows the wiki training guide's method for your level (**Train: Oak trees**) and what to
-  switch to before the goal (**At 35: Teak trees**). Every skill is covered: combat skills and Hitpoints
+- Each skill can aim for something different: right-click it in the tracker > **Suggest** (or pick
+  **Suggest** when setting its goal) and choose Fastest XP, Other methods, Cheapest or Money maker, or
+  Default to follow the setting. Saved with your goals, per account.
+- A goal card shows the wiki training guide's method for your level and every change on the way to the
+  goal: **Train: Teak trees to 62**, **62-90: Blisterwood tree**, **90-99: Sulliuscep**. The pinned
+  overlay shows the current leg ("Train: Teak trees (to 62)"). Every skill is covered: combat skills and Hitpoints
   use the melee or ranged guide, Prayer, Herblore and Sailing list their guide's methods, and **Slayer**
   suggests the best Slayer master for your levels (and the next one: "At Combat 100, Slayer 50:
   Duradel"). Questing is only suggested when the guide has nothing else for your level.
@@ -264,7 +268,8 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
 Goals are saved with your RuneScape profile, so they stay after a relaunch. To have them on another PC,
 log in to a RuneLite account on both and turn on **Sync** for your profile (Profiles panel).
 
-**Settings (Skill Tracker):** Suggested Method; **Training Focus**: Fastest XP (the guide's fastest
+**Settings (Skill Tracker):** Suggested Method; **Default Training Focus** (for skills without their
+own): Fastest XP (the guide's fastest
 method), Other methods (the guide's others, often more AFK), Cheapest (for making things: the recipe with
 the fewest GP per XP at GE prices; gathering skills are free so they get the fastest), or Money maker (the
 most profitable wiki money making guide you meet the requirements for, e.g. "Money: Cutting yew logs

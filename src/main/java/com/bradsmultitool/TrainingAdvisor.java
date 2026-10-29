@@ -1,5 +1,7 @@
 package com.bradsmultitool;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,7 +76,8 @@ class TrainingAdvisor {
             SlayerData.Master master = plugin.getSlayerData().bestMaster(plugin.getCombatLevel(), level);
             return master == null ? null : new Suggestion("Train:", "Tasks from " + master.name, null);
         }
-        switch (config.trainingFocus()) {
+        BradsMultiToolConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
+        switch (focus) {
             case MONEY:
                 MoneyData.Guide guide = money.best(skill, level, this::levelOf);
                 if (guide != null) {
@@ -91,21 +94,48 @@ class TrainingAdvisor {
             default:
                 break;
         }
-        TrainingData.Method method = training.suggest(skill, level, config.trainingFocus() == BradsMultiToolConfig.TrainingFocus.OTHER);
+        TrainingData.Method method = training.suggest(skill, level, focus == BradsMultiToolConfig.TrainingFocus.OTHER);
         return method == null ? null : new Suggestion("Train:", method.name, method);
     }
 
-    /** The first level on the way to the goal where the suggestion changes, and what it changes to, or null. */
-    Map.Entry<Integer, Suggestion> next(Skill skill, int level, int goalLevel) {
+    /** One leg of the way to a goal: train this from one level until another. */
+    static final class Stage {
+        final int from;
+        final int to;
+        final Suggestion suggestion;
+
+        Stage(int from, int to, Suggestion suggestion) {
+            this.from = from;
+            this.to = to;
+            this.suggestion = suggestion;
+        }
+    }
+
+    /**
+     * What to train from your level to the goal, split where the suggestion changes ("Willow trees" to 60,
+     * then "Maple trees" to 75...). Quest methods along the way don't start a new leg. Empty if there's
+     * nothing to suggest.
+     */
+    List<Stage> plan(Skill skill, int level, int goalLevel) {
+        List<Stage> stages = new ArrayList<>();
+        int end = Math.max(level, Math.min(goalLevel, 99));
         Suggestion current = suggest(skill, level);
-        for (int at = level + 1; at <= Math.min(goalLevel, 99); at++) {
+        int from = level;
+        for (int at = level + 1; at <= end; at++) {
             Suggestion later = suggest(skill, at);
             if (later != null && !Objects.equals(later, current)
                 && (later.method == null || !later.method.isQuesting())) {
-                return Map.entry(at, later);
+                if (current != null) {
+                    stages.add(new Stage(from, at, current));
+                }
+                current = later;
+                from = at;
             }
         }
-        return null;
+        if (current != null) {
+            stages.add(new Stage(from, Math.max(goalLevel, from), current));
+        }
+        return stages;
     }
 
     // Fewest GP per XP (most profit per XP) among recipes at your level whose materials have GE prices

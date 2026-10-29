@@ -855,6 +855,35 @@ public class BradsMultiToolPlugin extends Plugin {
         updatePanelUI();
     }
 
+    /** What this skill's goal suggestions aim for: its own choice, else the Default Training Focus setting. */
+    public BradsMultiToolConfig.TrainingFocus getTrainingFocus(Skill skill) {
+        BradsMultiToolConfig.TrainingFocus own = getOwnTrainingFocus(skill);
+        return own != null ? own : config.trainingFocus();
+    }
+
+    /** The focus picked for this skill, or null when it follows the default. */
+    public BradsMultiToolConfig.TrainingFocus getOwnTrainingFocus(Skill skill) {
+        String value = configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(CONFIG_GROUP, "trainingFocus." + skill.name());
+        if (value == null) {
+            return null;
+        }
+        try {
+            return BradsMultiToolConfig.TrainingFocus.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    public void setTrainingFocus(Skill skill, BradsMultiToolConfig.TrainingFocus focus) {
+        if (focus == null) {
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "trainingFocus." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, "trainingFocus." + skill.name(), focus.name());
+        }
+        updatePanelUI();
+    }
+
     /** "Ruby harvest" from "npc:ruby harvest". */
     static String goalTargetName(String target) {
         String name = target.substring(target.indexOf(':') + 1);

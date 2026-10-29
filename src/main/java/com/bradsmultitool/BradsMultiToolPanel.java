@@ -26,6 +26,9 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JMenu;
+import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -235,6 +238,12 @@ public class BradsMultiToolPanel extends PluginPanel {
     /**
      * Set a goal: a level (2-99) or an XP amount. With no skill given, asks which skill too.
      */
+    // Most legs of the goal's training plan listed on a skill card
+    private static final int MAX_PLAN_LINES = 5;
+
+    // The "follow the settings" choice in the Suggest pickers
+    private static final String DEFAULT_FOCUS = "Default (from settings)";
+
     private void askForGoal(Skill skill) {
         JComboBox<Skill> skills = new JComboBox<>();
         for (Skill s : Skill.values()) {
@@ -268,6 +277,22 @@ public class BradsMultiToolPanel extends PluginPanel {
         form.add(current);
         form.add(new JLabel("Goal (a level like 70, or XP like 1,000,000):"));
         form.add(target);
+        // What its suggestions aim for: the skill's own focus, or the default from the settings
+        JComboBox<Object> focus = new JComboBox<>();
+        Runnable fillFocus = () -> {
+            Skill chosen = (Skill) skills.getSelectedItem();
+            focus.removeAllItems();
+            focus.addItem(DEFAULT_FOCUS);
+            for (BradsMultiToolConfig.TrainingFocus f : BradsMultiToolConfig.TrainingFocus.values()) {
+                focus.addItem(f);
+            }
+            BradsMultiToolConfig.TrainingFocus own = chosen != null ? plugin.getOwnTrainingFocus(chosen) : null;
+            focus.setSelectedItem(own != null ? own : DEFAULT_FOCUS);
+        };
+        skills.addActionListener(e -> fillFocus.run());
+        fillFocus.run();
+        form.add(new JLabel("Suggest:"));
+        form.add(focus);
         int result = JOptionPane.showConfirmDialog(this, form, skill == null ? "Set goal" : "Goal for " + skill.getName(),
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result != JOptionPane.OK_OPTION || target.getText().trim().isEmpty()) {
@@ -276,6 +301,9 @@ public class BradsMultiToolPanel extends PluginPanel {
         try {
             int value = Integer.parseInt(target.getText().trim().replace(",", ""));
             int goalXp = value <= Experience.MAX_REAL_LEVEL ? Experience.getXpForLevel(Math.max(2, value)) : value;
+            Object picked = focus.getSelectedItem();
+            plugin.setTrainingFocus((Skill) skills.getSelectedItem(),
+                picked instanceof BradsMultiToolConfig.TrainingFocus ? (BradsMultiToolConfig.TrainingFocus) picked : null);
             plugin.setSkillGoal((Skill) skills.getSelectedItem(), Math.min(goalXp, Experience.MAX_SKILL_XP));
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Enter a level like 70 or an XP amount like 1,000,000.");
@@ -356,6 +384,10 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JMenuItem suggestedItem = new JMenuItem("Use suggested method");
         // Pin this skill to the game screen (only one at a time), or unpin it
         private final JMenuItem pinItem = new JMenuItem();
+        // What this skill's goal suggestions aim for (its own choice, or the default)
+        private final JMenu focusMenu = new JMenu("Suggest");
+        private final Map<BradsMultiToolConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(BradsMultiToolConfig.TrainingFocus.class);
+        private final JRadioButtonMenuItem defaultFocusItem = new JRadioButtonMenuItem();
 
         SkillCard(Skill skill) {
             this.skill = skill;
@@ -400,6 +432,19 @@ public class BradsMultiToolPanel extends PluginPanel {
             menu.add(menuItem("Reset rate", () -> plugin.resetSkillRate(skill)));
             menu.add(menuItem("Set goal...", () -> askForGoal(skill)));
             menu.add(menuItem("Clear goal", () -> plugin.setSkillGoal(skill, 0)));
+            ButtonGroup focusGroup = new ButtonGroup();
+            defaultFocusItem.addActionListener(e -> plugin.setTrainingFocus(skill, null));
+            focusGroup.add(defaultFocusItem);
+            focusMenu.add(defaultFocusItem);
+            focusMenu.addSeparator();
+            for (BradsMultiToolConfig.TrainingFocus f : BradsMultiToolConfig.TrainingFocus.values()) {
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem(f.toString());
+                item.addActionListener(e -> plugin.setTrainingFocus(skill, f));
+                focusGroup.add(item);
+                focusMenu.add(item);
+                focusItems.put(f, item);
+            }
+            menu.add(focusMenu);
             menu.add(suggestedItem);
             menu.add(pinItem);
             menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
@@ -483,6 +528,10 @@ public class BradsMultiToolPanel extends PluginPanel {
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
             pinItem.setText(skill == plugin.getPinnedSkill() ? "Unpin from screen" : "Pin to screen");
+            BradsMultiToolConfig.TrainingFocus own = plugin.getOwnTrainingFocus(skill);
+            defaultFocusItem.setText("Default (" + config.trainingFocus() + ")");
+            (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);
+            focusMenu.setVisible(skill != Skill.SLAYER);
         }
 
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to
@@ -506,14 +555,19 @@ public class BradsMultiToolPanel extends PluginPanel {
                     slayerSuggestion(lines);
                 } else {
                     // By the Training Focus setting: fastest, other methods, cheapest or money maker
-                    TrainingAdvisor advisor = plugin.getTrainingAdvisor();
-                    TrainingAdvisor.Suggestion now = advisor.suggest(skill, level);
-                    Map.Entry<Integer, TrainingAdvisor.Suggestion> next = advisor.next(skill, level, Experience.getLevelForXp(goalXp));
-                    if (now != null) {
-                        lines.add(label(now.label) + now.text);
+                    // and where it changes on the way: "Train: Willow trees to 60", "60-75: Maple trees"...
+                    List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level, Experience.getLevelForXp(goalXp));
+                    for (int i = 0; i < plan.size() && i < MAX_PLAN_LINES; i++) {
+                        TrainingAdvisor.Stage stage = plan.get(i);
+                        if (i == 0) {
+                            lines.add(label(stage.suggestion.label) + stage.suggestion.text
+                                + (plan.size() > 1 ? " " + label("to " + stage.to) : ""));
+                        } else {
+                            lines.add(label(stage.from + "-" + stage.to + ":") + stage.suggestion.text);
+                        }
                     }
-                    if (next != null) {
-                        lines.add(label("At " + next.getKey() + ":") + next.getValue().text);
+                    if (plan.size() > MAX_PLAN_LINES) {
+                        lines.add(label("then " + (plan.size() - MAX_PLAN_LINES) + " more changes on the way"));
                     }
                 }
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank

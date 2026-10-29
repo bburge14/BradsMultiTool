@@ -100,18 +100,18 @@ class GoalItems {
     private void update() {
         Map<String, Integer> have = new HashMap<>(bank);
         count(client.getItemContainer(InventoryID.INV), have);
-        // Training Focus picks the score: cheapest = most profit per XP, money maker = most profit;
-        // otherwise the Best Choice setting (most XP or most profit)
-        BradsMultiToolConfig.TrainingFocus focus = config.trainingFocus();
-        boolean byProfit = focus == BradsMultiToolConfig.TrainingFocus.MONEY
-            || (focus != BradsMultiToolConfig.TrainingFocus.CHEAPEST && config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT);
-        boolean perXp = focus == BradsMultiToolConfig.TrainingFocus.CHEAPEST;
         Map<Skill, RecipeData.Recipe> suggestions = new HashMap<>();
         Map<String, String> highlighted = new HashMap<>();
         for (Skill skill : plugin.getGoalSkills()) {
             if (!recipes.covers(skill) || plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
                 continue;
             }
+            // The skill's training focus picks the score: cheapest = most profit per XP, money maker = most
+            // profit; otherwise the Best Choice setting (most XP or most profit)
+            BradsMultiToolConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
+            boolean byProfit = focus == BradsMultiToolConfig.TrainingFocus.MONEY
+                || (focus != BradsMultiToolConfig.TrainingFocus.CHEAPEST && config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT);
+            boolean perXp = focus == BradsMultiToolConfig.TrainingFocus.CHEAPEST;
             RecipeData.Recipe best = recipes.best(skill, client.getRealSkillLevel(skill), have,
                 recipe -> perXp ? prices.profit(recipe) / recipe.xp : byProfit ? prices.profit(recipe) : recipe.xp);
             if (best == null) {

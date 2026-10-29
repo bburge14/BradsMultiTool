@@ -85,8 +85,9 @@ work a resource.
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
   Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level.
 - **Suggested method** (every skill): a goal card shows the wiki training guide's method for your level
-  ("Train: Oak trees") and what to switch to before the goal ("At 35: Teak trees"); Slayer suggests the
-  best Slayer master. **Training Focus** chooses what it
+  and each change on the way to the goal ("Train: Teak trees to 62", "62-90: Blisterwood tree"); Slayer
+  suggests the best Slayer master. Each skill's **Suggest** choice (right-click it, or when setting its
+  goal; otherwise the **Default Training Focus** setting) chooses what it
   aims for: **Fastest XP**, the guide's **Other methods** (often AFK), **Cheapest** (fewest GP per XP when
   making things; gathering is free) or **Money maker** (the most profitable wiki money making guide you
   can do). Where the method is a tree,

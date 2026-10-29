@@ -2003,8 +2003,8 @@ public interface BradsMultiToolConfig extends Config {
 
     @ConfigItem(
         keyName = "trainingFocus",
-        name = "Training Focus",
-        description = "What goal suggestions aim for: the wiki guide's fastest XP, its other methods (often more AFK), the cheapest way (fewest GP per XP when making things; gathering is free), or the best money maker you can do. Slayer always suggests the best Slayer master",
+        name = "Default Training Focus",
+        description = "What goal suggestions aim for unless a skill has its own (right-click a skill in the tracker > Suggest, or pick it when setting a goal): the wiki guide's fastest XP, its other methods (often more AFK), the cheapest way (fewest GP per XP when making things; gathering is free), or the best money maker you can do. Slayer always suggests the best Slayer master",
         section = trackerSection,
         position = 70
     )
