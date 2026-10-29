@@ -843,6 +843,16 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return true;
         }
 
+        // Every kind of fishing spot, from the wiki (karambwan, anglerfish, dark crabs, eels, minnows, boat spots...)
+        SkillHelperData.FishingSpot spot = helpers.fishingSpot(npc.getId());
+        if (spot == null && npc.getTransformedComposition() != null) {
+            spot = helpers.fishingSpot(npc.getTransformedComposition().getId());
+        }
+        if (spot != null) {
+            buildFishingSpotCard(npc, spot);
+            return true;
+        }
+
         List<String> fishingOptions = new ArrayList<>();
         for (String action : comp.getActions()) {
             if (action != null && SkillingData.isFishingOption(action)) {
@@ -866,6 +876,41 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             }
         }
         addYourRate(Skill.FISHING);
+        return true;
+    }
+
+    // Each way to fish the spot with the tool it needs (green if you have it), then each catch with its level
+    private void buildFishingSpotCard(NPC npc, SkillHelperData.FishingSpot spot) {
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(npc.getName()).color(TITLE_COLOR).build());
+        List<String> owned = ownedItemNames();
+        for (Map.Entry<String, List<SkillHelperData.Catch>> option : spot.options.entrySet()) {
+            String tool = option.getValue().isEmpty() ? "" : option.getValue().get(0).tool;
+            boolean hasTool = tool == null || tool.isEmpty() || hasTool(tool, owned);
+            header(option.getKey(), tool != null ? tool : "", hasTool ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            for (SkillHelperData.Catch fish : option.getValue()) {
+                levelLine("  " + fish.name + (fish.xp > 0 ? " (" + trim(fish.xp) + " xp)" : ""), Skill.FISHING, fish.level);
+            }
+        }
+        addYourRate(Skill.FISHING);
+    }
+
+    // Every part of "Harpoon + Lantern" carried or worn; better versions count ("Dragon harpoon", "Pearl fishing rod")
+    static boolean hasTool(String tool, List<String> owned) {
+        for (String part : tool.toLowerCase().split("\\s*\\+\\s*")) {
+            boolean found = false;
+            for (String item : owned) {
+                // ("fly fishing rod" and "oily fishing rod" aren't a "fishing rod" for bait)
+                boolean better = item.endsWith(" " + part) && !item.startsWith("fly ") && !item.startsWith("oily ");
+                if (item.equals(part) || item.startsWith(part + " (") || better) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
         return true;
     }
 

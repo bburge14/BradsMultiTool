@@ -121,4 +121,15 @@ public class SkillHelperDataTest {
         assertEquals(Integer.valueOf(30), shark.bounties.get("Bull shark jaw"));
         assertNull(DATA.seaMonster("Current duck"));
     }
+
+    @Test
+    public void fishingSpots() {
+        SkillHelperData.FishingSpot karambwan = DATA.fishingSpot(4712);
+        assertEquals("Raw karambwan", karambwan.options.get("Fish").get(0).name);
+        assertEquals(65, karambwan.options.get("Fish").get(0).level);
+        assertEquals("Karambwan vessel", karambwan.options.get("Fish").get(0).tool);
+        java.util.List<String> owned = java.util.Arrays.asList("dragon harpoon", "fly fishing rod", "lantern");
+        org.junit.Assert.assertTrue(BradsMultiToolSkillingOverlay.hasTool("Harpoon + Lantern", owned));
+        org.junit.Assert.assertFalse(BradsMultiToolSkillingOverlay.hasTool("Fishing rod", owned));
+    }
 }

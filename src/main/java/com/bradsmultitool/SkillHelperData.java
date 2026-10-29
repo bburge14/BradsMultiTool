@@ -188,6 +188,39 @@ class SkillHelperData {
         }
     }
 
+    /** A kind of fishing spot: for each way to fish it, what it catches. */
+    static final class FishingSpot {
+        final String name;
+        /** "Small net" -> its catches, lowest level first. */
+        final Map<String, List<Catch>> options = new LinkedHashMap<>();
+
+        FishingSpot(JsonObject o) {
+            name = o.get("name").getAsString();
+            for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("options").entrySet()) {
+                List<Catch> catches = new ArrayList<>();
+                for (JsonElement c : e.getValue().getAsJsonArray()) {
+                    catches.add(new Catch(c.getAsJsonObject()));
+                }
+                options.put(e.getKey(), catches);
+            }
+        }
+    }
+
+    static final class Catch {
+        final String name;
+        final int level;
+        final double xp;
+        /** What you need to catch it ("Small fishing net", "Harpoon + Lantern"). */
+        final String tool;
+
+        Catch(JsonObject o) {
+            name = o.get("name").getAsString();
+            level = o.get("level").getAsInt();
+            xp = o.get("xp").getAsDouble();
+            tool = text(o, "tool");
+        }
+    }
+
     /** A sea monster fought from a boat. */
     static final class SeaMonster {
         static final String[] KEELS = {"No", "Bronze", "Iron", "Steel", "Mithril", "Adamant", "Rune", "Dragon"};
@@ -251,6 +284,7 @@ class SkillHelperData {
     private final List<String> hookNames = new ArrayList<>();
     private final Map<String, Shoal> shoals = new HashMap<>();
     private final Map<String, SeaMonster> seaMonsters = new HashMap<>();
+    private final Map<Integer, FishingSpot> fishingSpots = new HashMap<>();
     private final Map<String, Creature> creatures = new HashMap<>();
     private final Map<String, Rune> runes = new HashMap<>();
     private final Map<Integer, Rune> altars = new HashMap<>();
@@ -269,6 +303,7 @@ class SkillHelperData {
         hookNames.clear();
         shoals.clear();
         seaMonsters.clear();
+        fishingSpots.clear();
         runes.clear();
         altars.clear();
         foods.clear();
@@ -332,6 +367,19 @@ class SkillHelperData {
                     Recipe recipe = new Recipe(o.get("name").getAsString(), o.get("level").getAsInt(), number(o, "xp"));
                     recipe.materials.put(e.getKey(), 1);
                     cooking.put(e.getKey(), recipe);
+                }
+                if (root.has("fishing")) {
+                    JsonObject fishing = root.getAsJsonObject("fishing");
+                    Map<String, FishingSpot> spots = new HashMap<>();
+                    for (Map.Entry<String, JsonElement> e : fishing.getAsJsonObject("spots").entrySet()) {
+                        spots.put(e.getKey(), new FishingSpot(e.getValue().getAsJsonObject()));
+                    }
+                    for (Map.Entry<String, JsonElement> e : fishing.getAsJsonObject("npcs").entrySet()) {
+                        FishingSpot spot = spots.get(e.getValue().getAsString());
+                        if (spot != null) {
+                            fishingSpots.put(Integer.parseInt(e.getKey()), spot);
+                        }
+                    }
                 }
                 JsonObject smithing = root.getAsJsonObject("smithing");
                 for (JsonElement e : smithing.getAsJsonArray("anvil")) {
@@ -441,6 +489,11 @@ class SkillHelperData {
 
     Shoal shoal(String name) {
         return name == null ? null : shoals.get(name.toLowerCase());
+    }
+
+    /** The kind of fishing spot an NPC id is, or null. */
+    FishingSpot fishingSpot(int npcId) {
+        return fishingSpots.get(npcId);
     }
 
     SeaMonster seaMonster(String name) {

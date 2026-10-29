@@ -294,6 +294,54 @@ def skill_of(recipe, skill):
     return None
 
 
+def fishing_spots():
+    """Every fishing spot type (Fishing spots page): its NPC ids, and for each option the fish it catches with
+    their level, XP and the tool needed (each spot page's drops, the 'recipe' bucket's Fishing entries)."""
+    fish = {}
+    for recipe in recipes("Fishing"):
+        stats = skill_of(recipe, "Fishing")
+        name = (recipe.get("name") or "").lower()
+        # Several recipes for a fish (barbarian fishing without a harpoon, special harpoons...): the usual way
+        # gives the most XP, at the lowest level
+        if stats and name and (name not in fish or (-stats[1], stats[0]) < (-fish[name]["xp"], fish[name]["level"])):
+            # Rendered links ("[[File:Fishing rod.png|...]][[Fishing rod|Fishing rod]]"); of "A OR B", the first
+            tools = re.sub(r"\[\[File:[^\]]*\]\]", "", recipe.get("tools") or "")
+            tools = re.split(r"<br\s*/?>\s*OR\s*<br\s*/?>", tools)[0]
+            fish[name] = {"level": stats[0], "xp": stats[1], "tool": plain(tools).split(",")[0].strip()}
+    index = wikitext("Fishing spots")
+    pages = []
+    for page in re.findall(r"^\|\[\[((?:Rod |Boat )?[Ff]ishing spot[^|\]]*)", index, re.M):
+        if page not in pages:
+            pages.append(page)
+    spots, ids = {}, {}
+    for page in pages:
+        text = wikitext(page)
+        npc_ids = [int(i) for field in re.findall(r"\|id\d* *= *([\d, ]+)", text) for i in re.findall(r"\d+", field)]
+        options_field = re.search(r"\|options\d* *= *([^\n]*)", text)
+        options = [o.strip() for o in re.split(r",", options_field.group(1))] if options_field else []
+        if not npc_ids or not options:
+            continue
+        catches = {}
+        # Each option's main drops; a spot with one option has no drop versions
+        # (only fish count, so tables of clue bottles and other extras add nothing)
+        for section in text.split("{{DropsTableHead")[1:]:
+            head = re.match(r"(?:\|dropversion=([^}|]*))?", section)
+            body = section[:section.find("{{DropsTableBottom")]
+            version = (head.group(1) if head.group(1) else options[0]).strip()
+            for name in re.findall(r"\{\{DropsLineSkill\|name=([^|}]+)", body):
+                info = fish.get(name.strip().lower())
+                # "Big swordfish" and the like are rare extras of the normal catch
+                if info and not name.startswith("Big "):
+                    catches.setdefault(version, []).append(dict(info, name=name.strip()))
+        if not catches:
+            continue
+        key = page.lower()
+        spots[key] = {"name": page, "options": {o: sorted(c, key=lambda f: f["level"]) for o, c in catches.items()}}
+        for i in npc_ids:
+            ids.setdefault(str(i), key)
+    return {"spots": spots, "npcs": ids}
+
+
 def cooking():
     """What each raw food cooks into on a range or fire: {raw name: {name, level, xp}}."""
     out = {}
@@ -341,7 +389,7 @@ def main():
     ids = object_ids()
     data = {"source": "oldschool.runescape.wiki; RuneLite (BSD-2-Clause)", "hunter": hunter(), "runecraft": runecraft(),
             "burn": burn_levels(), "agility": courses(ids), "shortcuts": shortcuts(ids), "sailing": sailing(),
-            "cooking": cooking(), "smithing": smithing()}
+            "cooking": cooking(), "smithing": smithing(), "fishing": fishing_spots()}
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     print("Cooking: %d foods; Smithing: %d anvil items, %d bars" % (

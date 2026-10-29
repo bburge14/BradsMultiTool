@@ -33,7 +33,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `money.json` | `update_money_data.py` | Wiki: money making guides (skill, requirements, profit) |
 | `training.json` | `update_training_data.py` | Wiki: training guides' methods by level |
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
-| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing |
+| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing, fishing spots (every spot type by NPC id) |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](../VOICE_CREDITS.md)) |
 
 ## Planned: separate plugins
