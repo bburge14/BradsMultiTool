@@ -375,6 +375,18 @@ public interface BradsMultiToolConfig extends Config {
         return true;
     }
 
+    @Range(min = 10, max = 48)
+    @ConfigItem(
+        keyName = "outOfPrayerTextSize",
+        name = "Out of Prayer Text Size",
+        description = "How big the flashing OUT OF PRAYER message over your head is (16 is the game's bold text size)",
+        section = prayerSection,
+        position = 26
+    )
+    default int outOfPrayerTextSize() {
+        return 16;
+    }
+
     @ConfigItem(
         keyName = "repeatPrayerAlert",
         name = "Repeat Voice Alert",

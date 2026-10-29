@@ -80,7 +80,8 @@ Repeat Expired Alert, Repeat Every, Max Repeats; Voice/Chat switches.
 ## Health and prayer
 
 **What it does:** Alerts when health or prayer drops to your threshold (as a % of your level), flashes the
-orb by the minimap, and shows an "OUT OF PRAYER" warning above your character.
+orb by the minimap, and shows an "OUT OF PRAYER" warning above your character (its size: **Prayer > Out
+of Prayer Text Size**).
 
 **Settings (Health / Prayer):** Alert switch; Alert Below (%); Flash Health/Prayer Orb; Overhead 'Out of
 Prayer' Flash; Repeat Voice Alert, Repeat Every, Max Repeats; Voice/Chat switches.

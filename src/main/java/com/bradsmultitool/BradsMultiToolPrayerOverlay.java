@@ -52,12 +52,13 @@ public class BradsMultiToolPrayerOverlay extends Overlay {
         LocalPoint lp = player.getLocalLocation();
         if (lp == null) return null;
 
+        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        // The game's bold font at the size picked in the settings (set before placing it, so it centres)
+        Font boldFont = FontManager.getRunescapeBoldFont().deriveFont((float) config.outOfPrayerTextSize());
+        graphics.setFont(boldFont);
         Point p = Perspective.getCanvasTextLocation(client, graphics, lp, "OUT OF PRAYER", player.getLogicalHeight() + 35);
         if (p == null) return null;
 
-        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        Font boldFont = FontManager.getRunescapeBoldFont();
-        graphics.setFont(boldFont);
         FontMetrics fm = graphics.getFontMetrics(boldFont);
         int textWidth = fm.stringWidth("OUT OF PRAYER");
 
