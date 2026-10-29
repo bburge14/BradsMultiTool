@@ -224,18 +224,19 @@ class TrainingAdvisor {
 
     /**
      * XP per kill for a melee, Ranged or Hitpoints goal (XP per damage by your style, see
-     * {@link SkillTracker#xpPerDamage}), on the monster you last fought, else the one you picked with "Track for goal", else the
-     * suggested one. Null if none of them has known hitpoints (a Gemstone Crab doesn't die).
+     * {@link CombatStyle#xpPerDamage}), on the monster you picked with "Track for goal", else the one you
+     * last fought, else the suggested one. Null if none of them has known hitpoints (a Gemstone Crab doesn't die).
      */
     KillEstimate killEstimate(Skill skill) {
         // By your current style: Controlled splits the XP three ways, Longrange two
         double perDamage = combatStyle.xpPerDamage(skill);
         List<String> monsters = new ArrayList<>();
-        monsters.add(combatStyle.getLastTargetName());
+        // Your "Track for goal" pick first, then what you last fought, then the suggestion
         String target = plugin.getGoalTarget(skill);
         if (target != null && target.startsWith("npc:")) {
             monsters.add(SkillTracker.goalTargetName(target));
         }
+        monsters.add(combatStyle.getLastTargetName());
         Suggestion suggestion = suggest(skill, plugin.getCurrentSkillLevel(skill));
         if (suggestion != null && suggestion.method != null) {
             monsters.addAll(suggestion.method.npcs);

@@ -264,7 +264,8 @@ Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Id
 - Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
   world.
 - **Train something else:** right-click a Hunter creature, pickpocket NPC, fishing spot, tree, rock or
-  stall for a skill you have a goal in and choose **Track for goal**. That's outlined instead of the
+  stall for a skill you have a goal in, or any monster while a combat skill has a goal, and choose
+  **Track for goal** (a monster counts for every combat skill with a goal, and its kills are counted). That's outlined instead of the
   suggestion and the card says "Tracking: Ruby harvest (your pick)". **Untrack for goal** on it, or
   **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
   a goal are ever outlined.
