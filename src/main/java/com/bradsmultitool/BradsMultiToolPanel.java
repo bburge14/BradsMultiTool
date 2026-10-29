@@ -25,6 +25,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -263,9 +264,6 @@ public class BradsMultiToolPanel extends PluginPanel {
         g.dispose();
         return image;
     }
-
-    // Most legs of the goal's training plan listed on a skill card
-    private static final int MAX_PLAN_LINES = 5;
 
     // The "follow the settings" choice in the Suggest pickers
     private static final String DEFAULT_FOCUS = "Default (from settings)";
@@ -612,6 +610,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         // The wiki guide's method for this level, and what to switch to before the goal
         private void updateSuggestion(int level, int goalXp, int xp) {
             List<String> lines = new ArrayList<>();
+            String tooltip = null;
             if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
                 String target = plugin.getGoalTarget(skill);
                 if (target != null) {
@@ -620,19 +619,20 @@ public class BradsMultiToolPanel extends PluginPanel {
                     slayerSuggestion(lines);
                 } else {
                     // By the Training Focus setting: fastest, other methods, cheapest or money maker
-                    // and where it changes on the way: "Train: Willow trees to 60", "60-75: Maple trees"...
+                    // The leg you're on ("Train: Willow trees to 60"); hover it for the whole way to the goal
                     List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level, Experience.getLevelForXp(goalXp));
-                    for (int i = 0; i < plan.size() && i < MAX_PLAN_LINES; i++) {
-                        TrainingAdvisor.Stage stage = plan.get(i);
-                        if (i == 0) {
-                            lines.add(label(stage.suggestion.label) + stage.suggestion.text
-                                + (plan.size() > 1 ? " " + label("to " + stage.to) : ""));
-                        } else {
-                            lines.add(label(stage.from + "-" + stage.to + ":") + stage.suggestion.text);
-                        }
+                    if (!plan.isEmpty()) {
+                        TrainingAdvisor.Stage first = plan.get(0);
+                        lines.add(label(first.suggestion.label) + first.suggestion.text
+                            + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
                     }
-                    if (plan.size() > MAX_PLAN_LINES) {
-                        lines.add(label("then " + (plan.size() - MAX_PLAN_LINES) + " more changes on the way"));
+                    if (plan.size() > 1) {
+                        StringBuilder steps = new StringBuilder("<html><b>On the way to your goal</b>");
+                        for (TrainingAdvisor.Stage stage : plan) {
+                            steps.append("<br>").append(stage.from).append("-").append(stage.to).append(": ")
+                                .append(stage.suggestion.text);
+                        }
+                        tooltip = steps.append("</html>").toString();
                     }
                 }
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank
@@ -646,6 +646,9 @@ public class BradsMultiToolPanel extends PluginPanel {
                 suggestion.setVisible(!lines.isEmpty());
             }
             setText(suggestion, "<html>" + String.join("<br>", lines) + "</html>");
+            if (!Objects.equals(suggestion.getToolTipText(), tooltip)) {
+                suggestion.setToolTipText(tooltip);
+            }
         }
 
         // Slayer: the best master for your combat and Slayer level, and the next one up

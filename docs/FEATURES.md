@@ -240,8 +240,9 @@ Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Id
 - Each skill can aim for something different: right-click it in the tracker > **Suggest** (or pick
   **Suggest** when setting its goal) and choose Fastest XP, Other methods, Cheapest or Money maker, or
   Default to follow the setting. Saved with your goals, per account.
-- A goal card shows the wiki training guide's method for your level and every change on the way to the
-  goal: **Train: Teak trees to 62**, **62-90: Blisterwood tree**, **90-99: Sulliuscep**. The pinned
+- A goal card shows the wiki training guide's method for your level and, when it changes before the
+  goal, the level it lasts to (**Train: Teak trees to 62**). Hover it for every step on the way:
+  50-62: Teak trees, 62-90: Blisterwood tree, 90-99: Sulliuscep. The pinned
   overlay shows the current leg ("Train: Teak trees (to 62)"). Every skill is covered: combat skills and Hitpoints
   use the melee or ranged guide, Prayer, Herblore and Sailing list their guide's methods, and **Slayer**
   suggests the best Slayer master for your levels (and the next one: "At Combat 100, Slayer 50:
