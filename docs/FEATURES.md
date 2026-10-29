@@ -29,7 +29,7 @@ message uses the same words as the voice line, with details in brackets.
 
 **How to use:**
 - **General > Voice Alerts / Chat Messages** turn all voice or all chat on or off.
-- **General > Voice Persona** picks one of 10 voices (Amy, Cori, Alan, Ryan, Arctic, L2 Arctic, John the helmet-radio soldier, Wise
+- **General > Voice Persona** picks one of 10 voices (Amy, Cori, Alan, Ryan, Arctic, L2 Arctic, John, Wise
   Old Man, TzHaar, Ghost) or **Random** (a different one each alert). Changing it plays a sample.
 - Each alert also has its own **Voice: ...** and **Chat: ...** switch in its section. Turning a Voice
   switch on plays that line as a preview.

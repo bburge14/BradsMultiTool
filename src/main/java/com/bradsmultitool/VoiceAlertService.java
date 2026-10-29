@@ -169,7 +169,7 @@ public class VoiceAlertService {
         ARCTIC("Arctic (Scottish male)"),
         L2ARCTIC("L2 Arctic (Mandarin-accented male)"),
         // Character voices: Piper voices pitch-shifted with effects (see generate_voice_clips.py)
-        JOHN("John (soldier on a helmet radio)"),
+        JOHN("John (US male)"),
         WISE_OLD_MAN("Wise Old Man"),
         TZHAAR("TzHaar"),
         GHOST("Ghost"),

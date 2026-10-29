@@ -33,6 +33,8 @@ PERSONAS = {
     # US voices must use espeak "en-us" in their .onnx.json; several en_US models use British "en"
     "amy": "en/en_US/amy/medium",
     "ryan": "en/en_US/ryan/high",
+    # Piper's Joe voice as recorded (it already sounds like a certain armoured Spartan)
+    "john": "en/en_US/joe/medium",
     # Multi-speaker models: (model, speaker); the demo page's first speaker of each
     "arctic": ("en/en_US/arctic/medium", "awb"),      # Scottish man
     "l2arctic": ("en/en_US/l2arctic/medium", "TXHC"),  # Mandarin Chinese-accented man
@@ -44,8 +46,6 @@ PERSONAS = {
 # different speed (length_scale), then pitch-shifted by resampling (which also changes speed) and given an
 # effect. Net speed = pitch / length_scale.
 CHARACTERS = {
-    # John: a calm, deep soldier speaking over a helmet radio (in the spirit of a certain armoured Spartan)
-    "john": {"voice": "en/en_US/joe/medium", "length_scale": 1.12, "pitch": 0.84, "growl": 1.4, "radio": True},
     "wise_old_man": {"voice": "en/en_GB/alan/medium", "length_scale": 1.3, "pitch": 0.9, "vibrato": True, "echo": True},
     "tzhaar": {"voice": "en/en_US/joe/medium", "length_scale": 0.85, "pitch": 0.72, "growl": 1.6},
     "ghost": {"voice": "en/en_US/amy/medium", "length_scale": 1.35, "pitch": 1.05, "vibrato": True, "echo": True,
