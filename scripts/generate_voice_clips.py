@@ -224,6 +224,16 @@ def apply_character(samples, rate, spec):
         y = np.fft.irfft(spectrum, len(y))
         y = y / max(1e-9, np.max(np.abs(y)))
         y = np.tanh(1.8 * y) + np.random.default_rng(117).normal(0, 0.012, len(y))
+    if spec.get("tremolo"):
+        # A quavering, creaky old voice: volume wobbling ~7 times a second
+        y = y * (1 - spec["tremolo"] * (0.5 + 0.5 * np.sin(2 * math.pi * 7.0 * t)))
+    if spec.get("arena"):
+        # A big hall: several fading echoes
+        hall = np.copy(y)
+        for seconds, gain in ((0.11, 0.42), (0.23, 0.28), (0.37, 0.17), (0.55, 0.09)):
+            delay = int(seconds * rate)
+            hall[delay:] += gain * y[:-delay]
+        y = hall
     if spec.get("echo"):
         delay = int(0.09 * rate)
         echoed = np.copy(y)
