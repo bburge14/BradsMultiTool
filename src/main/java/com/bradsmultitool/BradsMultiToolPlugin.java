@@ -1045,6 +1045,11 @@ public class BradsMultiToolPlugin extends Plugin {
         return stats != null ? stats : monsterData.get(npc.getId(), npc.getName());
     }
 
+    /** Wiki stats for a monster by name ("Sulphur Nagua"), or null. */
+    public MonsterData.Stats statsFor(String name) {
+        return name == null || name.isEmpty() ? null : monsterData.get(-1, name);
+    }
+
     public MonsterWeakness weaknessFor(NPC npc) {
         MonsterData.Stats stats = statsFor(npc);
         return stats != null ? MonsterData.weaknessOf(stats) : MonsterWeakness.fromName(npc.getName());

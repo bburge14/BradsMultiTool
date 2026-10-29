@@ -518,7 +518,8 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         // Only the fields switched on under Skill Tracker, two to a row
         private void layoutStats() {
-            boolean showActions = config.showTrackerActions() && !COMBAT_SKILLS.contains(skill);
+            // Combat skills count kills instead, once they have a goal (an action is a hit otherwise)
+            boolean showActions = config.showTrackerActions() && (!COMBAT_SKILLS.contains(skill) || plugin.getSkillGoal(skill) > 0);
             boolean goal = config.showTrackerGoal() && plugin.getSkillGoal(skill) > 0;
             String wanted = "" + config.showTrackerProgressBar() + config.showTrackerXpGained() + config.showTrackerXpToLevel()
                 + showActions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel() + goal;
@@ -617,7 +618,17 @@ public class BradsMultiToolPanel extends PluginPanel {
             // Your last XP drop, else what the goal's method gives per action (shown as an estimate: "~")
             double perAction = plugin.getLastXpDrop(skill);
             String prefix = "";
-            if (perAction <= 0 && goalXp > xp) {
+            if (COMBAT_SKILLS.contains(skill)) {
+                // Kills: XP per kill from the monster's hitpoints
+                TrainingAdvisor.KillEstimate kill = goalXp > xp ? plugin.getTrainingAdvisor().killEstimate(skill) : null;
+                perAction = kill != null ? kill.xpEach : 0;
+                prefix = "~";
+                name = name.replace("Actions", "Kills");
+                String tip = kill != null ? "Kills of " + kill.monster + " (" + shortNumber((int) kill.xpEach) + " XP each)" : null;
+                if (!Objects.equals(actions.getToolTipText(), tip)) {
+                    actions.setToolTipText(tip);
+                }
+            } else if (perAction <= 0 && goalXp > xp) {
                 perAction = plugin.getTrainingAdvisor().estimatedXpEach(skill, Experience.getLevelForXp(xp));
                 prefix = "~";
             }

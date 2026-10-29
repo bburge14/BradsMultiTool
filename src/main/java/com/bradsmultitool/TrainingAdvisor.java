@@ -136,6 +136,45 @@ class TrainingAdvisor {
         return creature != null ? creature.xp : 0;
     }
 
+    /** For a combat goal: the monster kills are counted on, and the XP one kill gives in the skill. */
+    static final class KillEstimate {
+        final String monster;
+        final double xpEach;
+
+        KillEstimate(String monster, double xpEach) {
+            this.monster = monster;
+            this.xpEach = xpEach;
+        }
+    }
+
+    /**
+     * XP per kill for a melee, Ranged or Hitpoints goal (4 XP per damage in the style's skill, 4/3 in
+     * Hitpoints), on the monster you last fought, else the one you picked with "Track for goal", else the
+     * suggested one. Null if none of them has known hitpoints (a Gemstone Crab doesn't die).
+     */
+    KillEstimate killEstimate(Skill skill) {
+        double perDamage = skill == Skill.HITPOINTS ? 4.0 / 3 : 4;
+        List<String> monsters = new ArrayList<>();
+        monsters.add(plugin.getLastPvmTargetName());
+        String target = plugin.getGoalTarget(skill);
+        if (target != null && target.startsWith("npc:")) {
+            monsters.add(BradsMultiToolPlugin.goalTargetName(target));
+        }
+        Suggestion suggestion = suggest(skill, plugin.getCurrentSkillLevel(skill));
+        if (suggestion != null && suggestion.method != null) {
+            monsters.addAll(suggestion.method.npcs);
+            // The guide names them in the plural ("Sulphur Naguas")
+            monsters.add(suggestion.method.name.replaceAll("s$", ""));
+        }
+        for (String monster : monsters) {
+            MonsterData.Stats stats = plugin.statsFor(monster);
+            if (stats != null && stats.hitpoints > 0) {
+                return new KillEstimate(monster, stats.hitpoints * perDamage);
+            }
+        }
+        return null;
+    }
+
     /**
      * XP you'll likely get per action toward this skill's goal, before you've had an XP drop: what you picked
      * with "Track for goal", else what to make from your items, else the suggested method. 0 if unknown.

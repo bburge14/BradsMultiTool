@@ -280,7 +280,10 @@ Items; Highlight Colour;
 Actions Until Goal (the actions field counts to the goal instead of the next level; when the suggested
 method changes before the goal it counts to the end of the step you're on, shown as "Step Actions").
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
-picked with Track for goal, or can make from your items), shown with a "~".
+picked with Track for goal, or can make from your items), shown with a "~". Attack, Strength, Defence,
+Ranged and Hitpoints goals count **kills** instead ("Goal Kills: ~240"): XP per kill from the hitpoints of
+the monster you last fought (else your Track for goal pick, else the suggested monster), 4 XP per damage
+(4/3 for Hitpoints); hover the count to see which monster. A Gemstone Crab has no kill count.
 
 ---
 
