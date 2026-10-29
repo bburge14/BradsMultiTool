@@ -81,7 +81,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Monsters with no Slayer level (cows, goblins) have no Slayer section.
 - [x] Set Goal button: pick a skill, enter a level (e.g. 80) or XP (e.g. 2000000); the skill appears under GOALS.
 - [x] A goal skill stays pinned under GOALS after logging out and back in, even before you train it.
-- [x] Actions Until Goal on: a goal skill's card shows "Goal Actions" counting to the goal; off (default): "Actions" to the next level.
+- [x] Actions Until Goal on: a goal skill's card counts actions to the goal (hover: "until your goal"); off (default): to the next level.
 - [ ] Goal card shows "Train: ..." and "At N: ..."; Training Focus changes it.
 - [x] With a Woodcutting/Mining/Thieving goal, the suggested trees/rocks/stalls/NPCs are outlined.
 - [ ] Cooking goal with raw food in inventory/bank: card says Make: ..., the raw food is outlined in inventory and bank, hover shows the goal tooltip.

@@ -1938,7 +1938,7 @@ public interface BradsMultiToolConfig extends Config {
     @ConfigItem(
         keyName = "trackerActionsToGoal",
         name = "Actions Until Goal",
-        description = "When a skill has a goal, count actions left until the goal instead of until the next level. When the suggested method changes before the goal, it counts to the end of the step you're on (Step Actions)",
+        description = "When a skill has a goal, count actions left until the goal instead of until the next level. When the suggested method changes before the goal, it counts to the end of the step you're on (hover the count to see what it counts to)",
         section = trackerSection,
         position = 64
     )

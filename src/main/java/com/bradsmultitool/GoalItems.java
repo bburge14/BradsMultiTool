@@ -36,6 +36,8 @@ class GoalItems {
     private final Map<String, Integer> bank = new HashMap<>();
     // Replaced whole after each update, so readers (the panel, the item overlay) never see a half-built map
     private volatile Map<Skill, RecipeData.Recipe> suggestions = Collections.emptyMap();
+    // How many times each suggestion can be made from what you have
+    private volatile Map<Skill, Integer> counts = Collections.emptyMap();
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
     private boolean dirty = true;
@@ -54,6 +56,11 @@ class GoalItems {
     /** What to make for this skill's goal, or null. */
     RecipeData.Recipe suggestion(Skill skill) {
         return suggestions.get(skill);
+    }
+
+    /** How many of this skill's suggestion you can make from your inventory and bank, 0 if none. */
+    int count(Skill skill) {
+        return counts.getOrDefault(skill, 0);
     }
 
     /** The tooltip for an item that's a material for a goal suggestion, or null. */
@@ -102,6 +109,7 @@ class GoalItems {
         count(client.getItemContainer(InventoryID.INV), have);
         Map<Skill, RecipeData.Recipe> suggestions = new HashMap<>();
         Map<String, String> highlighted = new HashMap<>();
+        Map<Skill, Integer> counts = new HashMap<>();
         for (Skill skill : plugin.getGoalSkills()) {
             if (!recipes.covers(skill) || plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
                 continue;
@@ -118,11 +126,13 @@ class GoalItems {
                 continue;
             }
             suggestions.put(skill, best);
+            counts.put(skill, best.makeable(have));
             for (String material : best.materials.keySet()) {
                 highlighted.putIfAbsent(material.toLowerCase(), "Suggested for your " + skill.getName() + " goal: " + best.name);
             }
         }
         this.suggestions = suggestions;
+        this.counts = counts;
         this.highlighted = highlighted;
     }
 

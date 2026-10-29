@@ -256,8 +256,9 @@ Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Id
   **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
   a goal are ever outlined.
 - For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
-  Magic, Runecraft) and Prayer the card also says what to **Make** (or **Use**: bones, ashes, logs): the best thing you can make at your level from
-  what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
+  Magic, Runecraft) and Prayer the card also says what to **Make** (or, by the item you use, **Cook**:
+  Raw karambwan, **Use**: bones, ashes, logs) and how many you have: the best thing you can make at your
+  level from what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
   materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
   Lobster". The bank counts once you've opened it this session.
 
@@ -278,10 +279,10 @@ most profitable wiki money making guide you meet the requirements for, e.g. "Mon
 (~335K/hr)"). The Make: line follows it too; Highlight Suggested Method; Highlight Goal
 Items; Highlight Colour;
 Actions Until Goal (the actions field counts to the goal instead of the next level; when the suggested
-method changes before the goal it counts to the end of the step you're on, shown as "Step Actions").
+method changes before the goal it counts to the end of the step you're on; hover the count to see what it counts to).
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
 picked with Track for goal, or can make from your items), shown with a "~". Attack, Strength, Defence,
-Ranged and Hitpoints goals count **kills** instead ("Goal Kills: ~240"): XP per kill from the hitpoints of
+Ranged and Hitpoints goals count **kills** instead ("Kills: ~240"): XP per kill from the hitpoints of
 the monster you last fought (else your Track for goal pick, else the suggested monster), at the XP per
 damage of your combat style: 4 in the skill it trains, 4/3 each to Attack, Strength and Defence in
 Controlled, 2 each to Ranged and Defence in Longrange, 1 to Defence by defensive casting, 4/3 to Hitpoints

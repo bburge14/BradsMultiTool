@@ -606,32 +606,36 @@ public class BradsMultiToolPanel extends PluginPanel {
             int goalXp = plugin.getSkillGoal(skill);
             boolean toGoal = config.trackerActionsToGoal() && goalXp > xp;
             int remaining = toGoal ? goalXp - xp : toNextLevel;
-            String name = toGoal ? "Goal Actions" : "Actions";
+            // The label stays short ("Actions", "Kills") so it fits; what it counts to is in the tooltip
+            String until = toGoal ? "until your goal" : "until the next level";
             // When the suggested method changes before the goal: until the end of the step you're on
             if (toGoal && stepEndLevel > 0) {
                 int stepEndXp = Experience.getXpForLevel(stepEndLevel);
                 if (stepEndXp > xp && stepEndXp < goalXp) {
                     remaining = stepEndXp - xp;
-                    name = "Step Actions";
+                    until = "until level " + stepEndLevel + ", where the suggested method changes";
                 }
             }
             // Your last XP drop, else what the goal's method gives per action (shown as an estimate: "~")
             double perAction = plugin.getLastXpDrop(skill);
             String prefix = "";
+            String name = "Actions";
+            String tip = "Actions " + until;
             if (COMBAT_SKILLS.contains(skill)) {
                 // Kills: XP per kill from the monster's hitpoints
                 TrainingAdvisor.KillEstimate kill = goalXp > xp ? plugin.getTrainingAdvisor().killEstimate(skill) : null;
                 perAction = kill != null ? kill.xpEach : 0;
                 prefix = "~";
-                name = name.replace("Actions", "Kills");
-                String tip = kill != null ? "Kills of " + kill.monster + " (" + shortNumber((int) kill.xpEach) + " " + skill.getName()
-                    + " XP each with your combat style)" : null;
-                if (!Objects.equals(actions.getToolTipText(), tip)) {
-                    actions.setToolTipText(tip);
-                }
+                name = "Kills";
+                tip = kill != null ? "Kills of " + kill.monster + " " + until + " (" + shortNumber((int) kill.xpEach) + " "
+                    + skill.getName() + " XP each with your combat style)" : "Kills " + until;
             } else if (perAction <= 0 && goalXp > xp) {
                 perAction = plugin.getTrainingAdvisor().estimatedXpEach(skill, Experience.getLevelForXp(xp));
                 prefix = "~";
+                tip += " (estimated from the suggested method until your first XP drop)";
+            }
+            if (!Objects.equals(actions.getToolTipText(), tip)) {
+                actions.setToolTipText(tip);
             }
             setStat(actions, name, perAction > 0 && remaining > 0 ? prefix + shortNumber((int) Math.ceil(remaining / perAction)) : "--");
         }
@@ -669,8 +673,18 @@ public class BradsMultiToolPanel extends PluginPanel {
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank
                 RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
                 if (make != null) {
-                    boolean uses = skill == Skill.PRAYER || skill == Skill.FIREMAKING;
-                    lines.add(label(uses ? "Use:" : "Make:") + make.name + " " + label("(you have the items)"));
+                    // Cooking, Firemaking and Prayer use one item ("Cook: Raw karambwan"); the rest name
+                    // what to make, its materials in the tooltip
+                    int count = plugin.getGoalItems().count(skill);
+                    String have = label("(you have " + (count > 0 ? String.format("%,d", count) : "the items") + ")");
+                    String material = make.materials.size() == 1 ? make.materials.keySet().iterator().next() : null;
+                    if (skill == Skill.COOKING && material != null) {
+                        lines.add(label("Cook:") + material + " " + have);
+                    } else if ((skill == Skill.PRAYER || skill == Skill.FIREMAKING) && material != null) {
+                        lines.add(label("Use:") + material + " " + have);
+                    } else {
+                        lines.add(label("Make:") + make.name + " " + have);
+                    }
                 }
             }
             if (suggestion.isVisible() != !lines.isEmpty()) {
