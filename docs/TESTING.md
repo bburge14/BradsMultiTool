@@ -12,6 +12,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 ## PvM
 - [x] PvM HUD appears on attacking a monster: HP bar, aggro line, weakness, style, DPS, last/max hit.
 - [x] Elemental weakness shows the Strike spell icon for that element.
+- [ ] PvM HUD Weakness line is green when your style hits it, red when it doesn't (like the hover card).
 - [x] Monster hover: aggression reads "No (lvl X+)" for low-level monsters when you're over twice their level.
 - [ ] God Wars: aggression changes when you equip a god item.
 - [ ] Buff timers count down correctly; running out / expired alerts fire once (plus repeats if on).

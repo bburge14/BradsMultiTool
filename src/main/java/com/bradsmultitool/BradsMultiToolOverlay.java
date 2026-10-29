@@ -130,7 +130,7 @@ public class BradsMultiToolOverlay extends Overlay {
                         ? plugin.elementSpellIcon(weakness.element)
                         : CombatIcons.forWeakness(weakness)),
                     weakness.label(),
-                    Color.WHITE));
+                    weaknessColor(weakness)));
 
                 if (weakness.hasSeparateElement()) {
                     panelComponent.getChildren().add(new IconLineComponent(
@@ -406,6 +406,12 @@ public class BradsMultiToolOverlay extends Overlay {
             .right(plugin.getBuffStatusText())
             .rightColor(color)
             .build());
+    }
+
+    // Green when your current style hits the weakness, red when it doesn't, white when it can't be told
+    private Color weaknessColor(MonsterWeakness weakness) {
+        WeaponStyles.Style style = plugin.getCurrentStyle();
+        return style != null ? plugin.weaknessMatchColor(style, weakness) : Color.WHITE;
     }
 
     private Color getBuffColor(BradsMultiToolPlugin.BuffState state) {
