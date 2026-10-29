@@ -22,7 +22,7 @@ public class VoiceClipsTest {
 
     @Test
     public void everyPersonaHasAPlayableClipForEveryLine() throws Exception {
-        for (VoiceAlertService.VoicePersona persona : VoiceAlertService.VoicePersona.values()) {
+        for (VoiceAlertService.VoicePersona persona : VoiceAlertService.VoicePersona.voices()) {
             for (VoiceAlertService.VoiceLine line : VoiceAlertService.VoiceLine.values()) {
                 String resource = VoiceAlertService.clipResource(persona, line.fileName);
                 try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
@@ -40,7 +40,7 @@ public class VoiceClipsTest {
 
     @Test
     public void everyPersonaCanSayEveryLevelUp() throws Exception {
-        for (VoiceAlertService.VoicePersona persona : VoiceAlertService.VoicePersona.values()) {
+        for (VoiceAlertService.VoicePersona persona : VoiceAlertService.VoicePersona.voices()) {
             for (Skill skill : Skill.values()) {
                 if (skill.ordinal() >= Skill.SAILING.ordinal() + 1) {
                     continue; // Overall

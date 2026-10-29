@@ -601,7 +601,7 @@ public class BradsMultiToolPlugin extends Plugin {
     private void previewVoice() {
         // The voice just picked here, even while the Voices plugin sets the one alerts use
         VoiceAlertService.VoiceLine[] lines = VoiceAlertService.VoiceLine.values();
-        voiceService.speakAsync(lines[ThreadLocalRandom.current().nextInt(lines.length)], config.voicePersona(), config.voiceVolume());
+        voiceService.speakAsync(lines[ThreadLocalRandom.current().nextInt(lines.length)], pick(config.voicePersona()), config.voiceVolume());
     }
 
     /**
@@ -636,7 +636,16 @@ public class BradsMultiToolPlugin extends Plugin {
 
     private VoiceAlertService.VoicePersona voicePersona() {
         PluginFamily.VoiceSettings shared = pluginFamily.voiceSettings();
-        return shared != null ? shared.persona : config.voicePersona();
+        return pick(shared != null ? shared.persona : config.voicePersona());
+    }
+
+    // Random: one of the voices, picked afresh for each alert
+    private static VoiceAlertService.VoicePersona pick(VoiceAlertService.VoicePersona persona) {
+        if (persona != VoiceAlertService.VoicePersona.RANDOM) {
+            return persona;
+        }
+        VoiceAlertService.VoicePersona[] voices = VoiceAlertService.VoicePersona.voices();
+        return voices[ThreadLocalRandom.current().nextInt(voices.length)];
     }
 
     private int voiceVolume() {

@@ -28,9 +28,9 @@ public class PluginFamilyTest {
         family.start();
         assertNull(family.voiceSettings());
 
-        bus.post(message("voice-settings", "plugin", "voices", "persona", "GNOME_CHILD", "volume", 70, "enabled", true));
+        bus.post(message("voice-settings", "plugin", "voices", "persona", "JOHN", "volume", 70, "enabled", true));
         assertTrue(family.isRunning("voices"));
-        assertEquals(VoiceAlertService.VoicePersona.GNOME_CHILD, family.voiceSettings().persona);
+        assertEquals(VoiceAlertService.VoicePersona.JOHN, family.voiceSettings().persona);
         assertEquals(70, family.voiceSettings().volume);
 
         bus.post(message("bye", "plugin", "voices"));

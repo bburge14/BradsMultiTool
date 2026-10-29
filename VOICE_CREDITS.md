@@ -8,18 +8,16 @@ The spoken alerts in `src/main/resources/com/bradsmultitool/voices/` were genera
 | Persona | Piper voice | Training data licence |
 |---|---|---|
 | Amy (US female) | en_US-amy-medium | See the [mimic3-voices](https://github.com/MycroftAI/mimic3-voices) model card |
-| Joe (US male) | en_US-joe-medium | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| (John's and TzHaar's base voice) | en_US-joe-medium | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | Cori (UK female) | en_GB-cori-high | Public domain (LibriVox) |
 | Alan (UK male) | en_GB-alan-medium | See the [mimic3-voices](https://github.com/MycroftAI/mimic3-voices) model card |
-| (Robot's base voice) | en_US-mike-medium | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
-Character voices are inspired by RuneScape characters (they are not the game's voices): the voices above
-with pitch, speed and effects applied by the generator.
+Character voices are the voices above with pitch, speed and effects applied by the generator. They are
+inspired by characters (they are not anyone's real voice).
 
 | Character | Based on | Effect |
 |---|---|---|
-| Gnome Child | Cori | Pitched well up, quick |
+| John | Joe | Deeper, measured, slight grit, helmet-radio band and static (a calm armoured soldier) |
 | Wise Old Man | Alan | Slower, slightly lower, wavering, light echo |
-| Zamorak | Alan | Pitched well down, slower, distorted, echo |
 | TzHaar | Joe | Pitched down, brisk, rough edge |
 | Ghost | Amy | Slow, wavering, hollow double echo |

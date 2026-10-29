@@ -27,11 +27,10 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), ".piper-models")
 HF = "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
 
 # persona folder -> Piper voice (language/name/quality); licences are in VOICE_CREDITS.md
-# Four standard voices (US and UK, female and male); the rest are characters below
+# Standard voices (US female, UK female and male); John and the rest are characters below
 PERSONAS = {
     # US voices must use espeak "en-us" in their .onnx.json; several en_US models use British "en"
     "amy": "en/en_US/amy/medium",
-    "joe": "en/en_US/joe/medium",
     "cori": "en/en_GB/cori/high",
     "alan": "en/en_GB/alan/medium",
 }
@@ -40,9 +39,9 @@ PERSONAS = {
 # different speed (length_scale), then pitch-shifted by resampling (which also changes speed) and given an
 # effect. Net speed = pitch / length_scale.
 CHARACTERS = {
-    "gnome_child": {"voice": "en/en_GB/cori/high", "length_scale": 1.2, "pitch": 1.6},
+    # John: a calm, deep soldier speaking over a helmet radio (in the spirit of a certain armoured Spartan)
+    "john": {"voice": "en/en_US/joe/medium", "length_scale": 1.12, "pitch": 0.84, "growl": 1.4, "radio": True},
     "wise_old_man": {"voice": "en/en_GB/alan/medium", "length_scale": 1.3, "pitch": 0.9, "vibrato": True, "echo": True},
-    "zamorak": {"voice": "en/en_GB/alan/medium", "length_scale": 1.15, "pitch": 0.62, "growl": 2.5, "echo": True},
     "tzhaar": {"voice": "en/en_US/joe/medium", "length_scale": 0.85, "pitch": 0.72, "growl": 1.6},
     "ghost": {"voice": "en/en_US/amy/medium", "length_scale": 1.35, "pitch": 1.05, "vibrato": True, "echo": True,
               "long_echo": True},
@@ -217,6 +216,14 @@ def apply_character(samples, rate, spec):
     if spec.get("growl"):
         # Soft clipping: a gritty, distorted edge
         y = np.tanh(spec["growl"] * y)
+    if spec.get("radio"):
+        # Helmet radio: only the 300-3000 Hz band, a little static
+        spectrum = np.fft.rfft(y)
+        freqs = np.fft.rfftfreq(len(y), 1.0 / rate)
+        spectrum[(freqs < 300) | (freqs > 3000)] = 0
+        y = np.fft.irfft(spectrum, len(y))
+        y = y / max(1e-9, np.max(np.abs(y)))
+        y = np.tanh(1.8 * y) + np.random.default_rng(117).normal(0, 0.012, len(y))
     if spec.get("echo"):
         delay = int(0.09 * rate)
         echoed = np.copy(y)

@@ -163,16 +163,21 @@ public class VoiceAlertService {
     /** Voice personas; each folder under resources/voices holds one clip per VoiceLine. */
     public enum VoicePersona {
         AMY("Amy (US female)"),
-        JOE("Joe (US male)"),
         CORI("Cori (UK female)"),
         ALAN("Alan (UK male)"),
-        // Character voices inspired by RuneScape characters: Piper voices pitch-shifted with effects
-        // (see generate_voice_clips.py)
-        GNOME_CHILD("Gnome Child"),
+        // Character voices: Piper voices pitch-shifted with effects (see generate_voice_clips.py)
+        JOHN("John (soldier on a helmet radio)"),
         WISE_OLD_MAN("Wise Old Man"),
-        ZAMORAK("Zamorak"),
         TZHAAR("TzHaar"),
-        GHOST("Ghost");
+        GHOST("Ghost"),
+        /** A different one of the voices above for each alert (no clips of its own). */
+        RANDOM("Random");
+
+        /** The voices with clips, for Random to pick from. */
+        static VoicePersona[] voices() {
+            VoicePersona[] all = values();
+            return java.util.Arrays.copyOf(all, all.length - 1);
+        }
 
         private final String displayName;
 
