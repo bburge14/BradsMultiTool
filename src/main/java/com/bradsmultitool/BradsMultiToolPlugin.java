@@ -1456,30 +1456,27 @@ public class BradsMultiToolPlugin extends Plugin {
         return buff.millisLeft(System.currentTimeMillis()) <= warnSeconds * 1000L;
     }
 
-    // Warn once per dose for each buff, only when its time left is exact
+    // Warn once each time a buff runs low
     private void checkBuffRunningOut() {
-        int warnSeconds = config.buffWarningSeconds();
         long now = System.currentTimeMillis();
         for (ActiveBuffs.Buff buff : activeBuffs) {
-            Integer warnedAt = buffWarnedAtBoost.get(buff.name);
-            if (warnedAt != null && buff.boost <= warnedAt) {
+            // Warn once each time a buff enters the "running out" window; leaving it (a new dose, a divine
+            // refresh at the same boost) arms it again
+            if (!isBuffRunningOut(buff)) {
+                buffWarnedAtBoost.remove(buff.name);
                 continue;
             }
-            // Before the decay timer is synced (no stat drop seen since login or a hop) the time left isn't
-            // exact, but a buff down to +1 has at most one decay period left, so warn then
-            boolean lastLevel = !buff.exact && buff.boost == 1;
-            if (warnSeconds <= 0 || (!lastLevel && (!buff.exact || buff.millisLeft(now) > warnSeconds * 1000L))) {
-                if (warnedAt != null) {
-                    buffWarnedAtBoost.remove(buff.name);
-                }
+            if (buffWarnedAtBoost.containsKey(buff.name)) {
                 continue;
             }
             buffWarnedAtBoost.put(buff.name, buff.boost);
-            String left = lastLevel ? "under " + BuffTimer.formatMillis(buff.millisLeft(now)) + " left"
-                : BuffTimer.formatMillis(buff.millisLeft(now)) + " left";
+            // Before the decay timer is synced (no stat drop seen since login or a hop) the time left isn't
+            // exact, but a buff down to +1 has at most one decay period left
+            String left = (buff.exact ? "" : "under ") + BuffTimer.formatMillis(buff.millisLeft(now)) + " left";
             alert(potionLine(buff.name, true, runningOutLine(buff.category)), left);
         }
     }
+
 
     // A buff that ends while others are still active gets its own "has run out"; when the last one ends,
     // the expired alert above speaks for it (using lastEndedCategory)
