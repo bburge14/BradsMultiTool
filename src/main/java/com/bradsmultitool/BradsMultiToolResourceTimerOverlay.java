@@ -28,15 +28,15 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private static final int DIAMETER = 22;
 
     private final Client client;
-    private final BradsMultiToolConfig config;
+    private final SkillTrackerConfig config;
     private final ResourceTimers timers;
     private final OtherTimerPlugins otherPlugins;
-    private final BradsMultiToolPlugin plugin;
+    private final SkillTracker plugin;
     private final ProgressPieComponent pie = new ProgressPieComponent();
 
     @Inject
-    public BradsMultiToolResourceTimerOverlay(Client client, BradsMultiToolConfig config, ResourceTimers timers,
-                                              OtherTimerPlugins otherPlugins, BradsMultiToolPlugin plugin) {
+    public BradsMultiToolResourceTimerOverlay(Client client, SkillTrackerConfig config, ResourceTimers timers,
+                                              OtherTimerPlugins otherPlugins, SkillTracker plugin) {
         this.otherPlugins = otherPlugins;
         this.plugin = plugin;
         this.client = client;

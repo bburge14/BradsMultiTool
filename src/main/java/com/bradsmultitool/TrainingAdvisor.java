@@ -27,6 +27,9 @@ class TrainingAdvisor {
     @Inject
     private CombatStyle combatStyle;
 
+    @Inject
+    private MonsterData monsterData;
+
     /** A line for the card: "Train: Oak trees", and the method to outline (null if nothing to outline). */
     static final class Suggestion {
         final String label;
@@ -61,8 +64,8 @@ class TrainingAdvisor {
     }
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final TrainingData training;
     private final RecipeData recipes;
     private final MoneyData money;
@@ -75,7 +78,7 @@ class TrainingAdvisor {
     private static final Object NONE = new Object();
 
     @Inject
-    TrainingAdvisor(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, TrainingData training,
+    TrainingAdvisor(Client client, SkillTracker plugin, SkillTrackerConfig config, TrainingData training,
                     RecipeData recipes, MoneyData money, ItemPrices prices, SkillingData skilling,
                     SkillHelperData helpers, QuestProgress quests) {
         this.client = client;
@@ -96,7 +99,7 @@ class TrainingAdvisor {
             SlayerData.Master master = plugin.getSlayerData().bestMaster(plugin.getCombatLevel(), level);
             return master == null ? null : new Suggestion("Train:", "Tasks from " + master.name, null);
         }
-        BradsMultiToolConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
+        SkillTrackerConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
         switch (focus) {
             case MONEY:
                 MoneyData.Guide guide = money.best(skill, level, this::levelOf);
@@ -115,7 +118,7 @@ class TrainingAdvisor {
             default:
                 break;
         }
-        TrainingData.Method method = training.suggest(skill, level, focus == BradsMultiToolConfig.TrainingFocus.OTHER, this::canDo);
+        TrainingData.Method method = training.suggest(skill, level, focus == SkillTrackerConfig.TrainingFocus.OTHER, this::canDo);
         return method == null ? null : new Suggestion("Train:", method.name, method, xpEach(method), toolsFor(skill, method));
     }
 
@@ -221,17 +224,17 @@ class TrainingAdvisor {
 
     /**
      * XP per kill for a melee, Ranged or Hitpoints goal (XP per damage by your style, see
-     * {@link BradsMultiToolPlugin#xpPerDamage}), on the monster you last fought, else the one you picked with "Track for goal", else the
+     * {@link SkillTracker#xpPerDamage}), on the monster you last fought, else the one you picked with "Track for goal", else the
      * suggested one. Null if none of them has known hitpoints (a Gemstone Crab doesn't die).
      */
     KillEstimate killEstimate(Skill skill) {
         // By your current style: Controlled splits the XP three ways, Longrange two
         double perDamage = combatStyle.xpPerDamage(skill);
         List<String> monsters = new ArrayList<>();
-        monsters.add(plugin.getLastPvmTargetName());
+        monsters.add(combatStyle.getLastTargetName());
         String target = plugin.getGoalTarget(skill);
         if (target != null && target.startsWith("npc:")) {
-            monsters.add(BradsMultiToolPlugin.goalTargetName(target));
+            monsters.add(SkillTracker.goalTargetName(target));
         }
         Suggestion suggestion = suggest(skill, plugin.getCurrentSkillLevel(skill));
         if (suggestion != null && suggestion.method != null) {
@@ -240,7 +243,7 @@ class TrainingAdvisor {
             monsters.add(suggestion.method.name.replaceAll("s$", ""));
         }
         for (String monster : monsters) {
-            MonsterData.Stats stats = plugin.statsFor(monster);
+            MonsterData.Stats stats = monsterData.statsFor(monster);
             if (stats != null && stats.hitpoints > 0) {
                 return new KillEstimate(monster, stats.hitpoints * perDamage);
             }
@@ -255,7 +258,7 @@ class TrainingAdvisor {
     double estimatedXpEach(Skill skill, int level) {
         String target = plugin.getGoalTarget(skill);
         if (target != null) {
-            String name = BradsMultiToolPlugin.goalTargetName(target);
+            String name = SkillTracker.goalTargetName(target);
             if (target.startsWith("object:")) {
                 SkillingData.Resource resource = skilling.object(-1, name);
                 return resource != null ? resource.xp : 0;

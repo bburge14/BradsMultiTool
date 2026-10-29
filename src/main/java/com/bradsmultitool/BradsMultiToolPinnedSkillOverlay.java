@@ -32,12 +32,12 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
     private static final Color SOFT = new Color(190, 190, 190);
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final SkillIconManager skillIcons;
 
     @Inject
-    BradsMultiToolPinnedSkillOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
+    BradsMultiToolPinnedSkillOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
                                      SkillIconManager skillIcons) {
         this.client = client;
         this.plugin = plugin;
@@ -124,7 +124,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         }
         String target = plugin.getGoalTarget(skill);
         if (target != null) {
-            return "Tracking: " + BradsMultiToolPlugin.goalTargetName(target);
+            return "Tracking: " + SkillTracker.goalTargetName(target);
         }
         // The current leg of the plan, and the level it lasts to when the method changes before the goal
         List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level,

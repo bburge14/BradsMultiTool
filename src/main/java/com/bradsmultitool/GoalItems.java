@@ -32,8 +32,8 @@ class GoalItems {
     private static final double SUNFIRE_SHARD_XP = 6;
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final RecipeData recipes;
     private final ItemManager itemManager;
     private final ItemPrices prices;
@@ -52,7 +52,7 @@ class GoalItems {
     private boolean dirty = true;
 
     @Inject
-    GoalItems(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, RecipeData recipes,
+    GoalItems(Client client, SkillTracker plugin, SkillTrackerConfig config, RecipeData recipes,
               ItemManager itemManager, ItemPrices prices) {
         this.client = client;
         this.plugin = plugin;
@@ -187,10 +187,10 @@ class GoalItems {
             }
             // The skill's training focus picks the score: cheapest = most profit per XP, money maker = most
             // profit; otherwise the Best Choice setting (most XP or most profit)
-            BradsMultiToolConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
-            boolean byProfit = focus == BradsMultiToolConfig.TrainingFocus.MONEY
-                || (focus != BradsMultiToolConfig.TrainingFocus.CHEAPEST && config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT);
-            boolean perXp = focus == BradsMultiToolConfig.TrainingFocus.CHEAPEST;
+            SkillTrackerConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
+            boolean byProfit = focus == SkillTrackerConfig.TrainingFocus.MONEY
+                || (focus != SkillTrackerConfig.TrainingFocus.CHEAPEST && config.bestChoice() == SkillTrackerConfig.BestChoice.PROFIT);
+            boolean perXp = focus == SkillTrackerConfig.TrainingFocus.CHEAPEST;
             // Prayer: whatever's worth the most XP in all (4,000 bone shards beat ten dragon bones); you offer
             // everything you have, so XP per item isn't the point there
             boolean total = skill == Skill.PRAYER && !perXp && !byProfit;

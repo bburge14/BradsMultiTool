@@ -72,8 +72,8 @@ public class BradsMultiToolPanel extends PluginPanel {
     static final Color BAR_BACKGROUND = new Color(60, 60, 60);
     static final Color GOAL_FILL = new Color(200, 160, 40);
 
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final SkillIconManager skillIconManager;
 
     private final JLabel totalXpLabel = new JLabel();
@@ -87,7 +87,7 @@ public class BradsMultiToolPanel extends PluginPanel {
     private String cardOrder = "";
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
 
-    public BradsMultiToolPanel(BradsMultiToolPlugin plugin, BradsMultiToolConfig config, SkillIconManager skillIconManager) {
+    public BradsMultiToolPanel(SkillTracker plugin, SkillTrackerConfig config, SkillIconManager skillIconManager) {
         super();
         this.plugin = plugin;
         this.config = config;
@@ -305,10 +305,10 @@ public class BradsMultiToolPanel extends PluginPanel {
             Skill chosen = (Skill) skills.getSelectedItem();
             focus.removeAllItems();
             focus.addItem(DEFAULT_FOCUS);
-            for (BradsMultiToolConfig.TrainingFocus f : BradsMultiToolConfig.TrainingFocus.values()) {
+            for (SkillTrackerConfig.TrainingFocus f : SkillTrackerConfig.TrainingFocus.values()) {
                 focus.addItem(f);
             }
-            BradsMultiToolConfig.TrainingFocus own = chosen != null ? plugin.getOwnTrainingFocus(chosen) : null;
+            SkillTrackerConfig.TrainingFocus own = chosen != null ? plugin.getOwnTrainingFocus(chosen) : null;
             focus.setSelectedItem(own != null ? own : DEFAULT_FOCUS);
         };
         skills.addActionListener(e -> fillFocus.run());
@@ -325,7 +325,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             int goalXp = value <= Experience.MAX_REAL_LEVEL ? Experience.getXpForLevel(Math.max(2, value)) : value;
             Object picked = focus.getSelectedItem();
             plugin.setTrainingFocus((Skill) skills.getSelectedItem(),
-                picked instanceof BradsMultiToolConfig.TrainingFocus ? (BradsMultiToolConfig.TrainingFocus) picked : null);
+                picked instanceof SkillTrackerConfig.TrainingFocus ? (SkillTrackerConfig.TrainingFocus) picked : null);
             plugin.setSkillGoal((Skill) skills.getSelectedItem(), Math.min(goalXp, Experience.MAX_SKILL_XP));
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Enter a level like 70 or an XP amount like 1,000,000.");
@@ -411,7 +411,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JMenuItem pinItem = new JMenuItem();
         // What this skill's goal suggestions aim for (its own choice, or the default)
         private final JMenu focusMenu = new JMenu("Suggest");
-        private final Map<BradsMultiToolConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(BradsMultiToolConfig.TrainingFocus.class);
+        private final Map<SkillTrackerConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(SkillTrackerConfig.TrainingFocus.class);
         private final JRadioButtonMenuItem defaultFocusItem = new JRadioButtonMenuItem();
 
         SkillCard(Skill skill) {
@@ -481,7 +481,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             focusGroup.add(defaultFocusItem);
             focusMenu.add(defaultFocusItem);
             focusMenu.addSeparator();
-            for (BradsMultiToolConfig.TrainingFocus f : BradsMultiToolConfig.TrainingFocus.values()) {
+            for (SkillTrackerConfig.TrainingFocus f : SkillTrackerConfig.TrainingFocus.values()) {
                 JRadioButtonMenuItem item = new JRadioButtonMenuItem(f.toString());
                 item.addActionListener(e -> plugin.setTrainingFocus(skill, f));
                 focusGroup.add(item);
@@ -593,7 +593,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 pinned = nowPinned;
                 repaint();
             }
-            BradsMultiToolConfig.TrainingFocus own = plugin.getOwnTrainingFocus(skill);
+            SkillTrackerConfig.TrainingFocus own = plugin.getOwnTrainingFocus(skill);
             defaultFocusItem.setText("Default (" + config.trainingFocus() + ")");
             (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);
             focusMenu.setVisible(skill != Skill.SLAYER);
@@ -616,7 +616,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
                 String target = plugin.getGoalTarget(skill);
                 if (target != null) {
-                    lines.add(label("Tracking:") + BradsMultiToolPlugin.goalTargetName(target) + " " + label("(your pick)"));
+                    lines.add(label("Tracking:") + SkillTracker.goalTargetName(target) + " " + label("(your pick)"));
                 } else if (skill == Skill.SLAYER) {
                     slayerSuggestion(lines);
                 } else {

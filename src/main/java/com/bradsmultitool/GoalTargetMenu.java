@@ -24,13 +24,13 @@ class GoalTargetMenu {
     private static final String UNTRACK = "Untrack for goal";
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final SkillingData skilling;
     private final SkillHelperData helpers;
 
     @Inject
-    GoalTargetMenu(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, SkillingData skilling,
+    GoalTargetMenu(Client client, SkillTracker plugin, SkillTrackerConfig config, SkillingData skilling,
                    SkillHelperData helpers) {
         this.client = client;
         this.plugin = plugin;

@@ -52,8 +52,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private static final Color HEADER_COLOR = new Color(255, 200, 80);
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final SkillingData data;
     private final FarmingData farming;
     private final SkillHelperData helpers;
@@ -68,7 +68,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final Map<String, Integer> prices = new HashMap<>();
 
     @Inject
-    public BradsMultiToolSkillingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
+    public BradsMultiToolSkillingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
                                          SkillingData data, FarmingData farming, SkillHelperData helpers,
                                          BirdhouseTracker birdhouses, SkillIconManager skillIcons, ItemManager itemManager) {
         this.client = client;
@@ -356,7 +356,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             int bars = entry.getValue();
             SkillHelperData.Recipe best = null;
             SkillHelperData.Recipe next = null;
-            boolean byProfit = config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT;
+            boolean byProfit = config.bestChoice() == SkillTrackerConfig.BestChoice.PROFIT;
             for (SkillHelperData.Recipe item : items) {
                 if (item.level > level) {
                     if (next == null) {
@@ -426,7 +426,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             if (coal != null && makes == 0) {
                 line("  Needs:", coal + " coal per bar", BradsMultiToolOverlay.WARN);
             }
-            if (config.bestChoice() == BradsMultiToolConfig.BestChoice.PROFIT && makes > 0) {
+            if (config.bestChoice() == SkillTrackerConfig.BestChoice.PROFIT && makes > 0) {
                 double each = price(bar.name);
                 for (Map.Entry<String, Integer> material : bar.materials.entrySet()) {
                     each -= price(material.getKey()) * (double) material.getValue();
@@ -953,7 +953,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     }
 
     /** Auto retaliate is off and the player wants skilling cards then (they're not out to fight). */
-    static boolean preferSkilling(Client client, BradsMultiToolConfig config) {
+    static boolean preferSkilling(Client client, SkillTrackerConfig config) {
         return config.skillingWhenNotRetaliating() && client.getVarpValue(VarPlayerID.OPTION_NODEF) == 1;
     }
 

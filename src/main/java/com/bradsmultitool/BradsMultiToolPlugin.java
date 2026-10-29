@@ -92,8 +92,6 @@ public class BradsMultiToolPlugin extends Plugin {
     private static final int INSIDE_WILDERNESS_VARBIT = 5963;
     // Repeat counter value meaning "already handled, don't sound or repeat"
     private static final int SILENCED = Integer.MAX_VALUE / 2;
-    private static final int TRAINING_WINDOW_TICKS = 25;
-    private static final int PIE_TRAINING_TICKS = 200;
 
     private static final Set<Skill> BOOSTABLE_COMBAT_SKILLS =
         EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC);
@@ -206,7 +204,6 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     private SlayerData slayerData;
 
-    private volatile int combatLevel = 3;
 
     @Inject
     private TrainingData trainingData;
@@ -263,8 +260,10 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     @Getter
     private CombatStyle combatStyle;
-    private NavigationButton navButton;
-    private BradsMultiToolPanel panel;
+
+    @Inject
+    @Getter
+    private SkillTracker skillTracker;
 
     // General PvM Target & Telemetry
     @Getter
@@ -322,7 +321,8 @@ public class BradsMultiToolPlugin extends Plugin {
     private long sessionPvmActiveSeconds = 0;
     private Instant sessionCombatSecondMarker = null;
 
-    private final MonsterData monsterData = new MonsterData();
+    @Inject
+    private MonsterData monsterData;
 
     // Buff state
     @Getter
@@ -360,13 +360,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
     // Tick-level XP change detection accumulator
 
-    private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
-    private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
-    private final Map<Skill, Integer> realLevels = new EnumMap<>(Skill.class);
-    private final Map<Skill, Integer> lastXpTicks = new EnumMap<>(Skill.class);
-    private final Map<Skill, Long> skillActiveTicks = new EnumMap<>(Skill.class);
-    private final Map<Skill, Integer> lastXpDrops = new EnumMap<>(Skill.class);
-    private final Set<Skill> pausedSkills = EnumSet.noneOf(Skill.class);
 
     @Override
     protected void startUp() throws Exception {
@@ -412,16 +405,10 @@ public class BradsMultiToolPlugin extends Plugin {
         overlayManager.add(slayerHighlightOverlay);
         overlayManager.add(pinnedSkillOverlay);
 
-        panel = new BradsMultiToolPanel(this, config, skillIconManager);
-
-        navButton = NavigationButton.builder()
-            .tooltip("Snuffy's Skill Tracker")
-            .icon(createCrabToolIcon())
-            .priority(5)
-            .panel(panel)
-            .build();
-
-        clientToolbar.addNavigation(navButton);
+        eventBus.register(skillTracker);
+        skillTracker.startUp();
+        // The tracker's Reset all also clears the crab's and PvM's session numbers here
+        skillTracker.addResetListener(this::resetSession);
     }
 
     @Override
@@ -451,9 +438,8 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.unregister(birdhouseTracker);
         eventBus.unregister(otherTimerPlugins);
         keyManager.unregisterKeyListener(slayerToggleListener);
-        if (navButton != null) {
-            clientToolbar.removeNavigation(navButton);
-        }
+        eventBus.unregister(skillTracker);
+        skillTracker.shutDown();
         eventBus.unregister(alerts);
         eventBus.unregister(idleWarnings);
         alerts.shutDown();
@@ -461,7 +447,6 @@ public class BradsMultiToolPlugin extends Plugin {
         eventBus.unregister(combatStyle);
         gemCrab.reset();
         currentPvmTarget = null;
-        pausedSkills.clear();
         pvmOverlayActive = false;
         buffState = BuffState.UNPOTTED;
     }
@@ -478,285 +463,49 @@ public class BradsMultiToolPlugin extends Plugin {
 
 
 
-    // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
-    // which changes when synced settings arrive), so redraw the tracker then
-    @Subscribe
-    public void onRuneScapeProfileChanged(RuneScapeProfileChanged event) {
-        updatePanelUI();
-    }
-
-    @Subscribe
-    public void onConfigChanged(ConfigChanged event) {
-        if (!CONFIG_GROUP.equals(event.getGroup())) {
-            return;
-        }
-
-        String key = event.getKey();
-        if (key.startsWith("showTracker") || key.startsWith("tracker") || key.startsWith("goal") || "showXpPerMinute".equals(key) || key.startsWith("autoPause")) {
-            updatePanelUI();
-        }
-    }
-
-    private BufferedImage createCrabToolIcon() {
-        BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = icon.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        g.setColor(new Color(24, 32, 45));
-        g.fillRoundRect(0, 0, 16, 16, 4, 4);
-
-        g.setColor(new Color(0, 230, 230));
-        g.fillOval(3, 4, 10, 8);
-
-        g.setColor(new Color(255, 170, 0));
-        g.fillOval(1, 2, 4, 4);
-        g.fillOval(11, 2, 4, 4);
-
-        g.setColor(new Color(255, 255, 255, 210));
-        g.fillOval(6, 6, 4, 4);
-
-        g.dispose();
-        return icon;
-    }
 
 
 
-    public boolean isSkillIgnored(Skill skill) {
-        String ignored = config.ignoredSkills();
-        if (ignored == null || ignored.trim().isEmpty()) {
-            return false;
-        }
-        String skillName = skill.getName().toLowerCase();
-        for (String part : ignored.split(",")) {
-            if (part.trim().toLowerCase().equals(skillName)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
-    public void addIgnoredSkill(Skill skill) {
-        String raw = config.ignoredSkills();
-        Set<String> set = new HashSet<>();
-        if (raw != null && !raw.trim().isEmpty()) {
-            set = Arrays.stream(raw.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toCollection(HashSet::new));
-        }
-        set.add(skill.getName());
-        configManager.setConfiguration(CONFIG_GROUP, "ignoredSkills", String.join(", ", set));
-        updatePanelUI();
-    }
 
-    public void resetSession() {
+
+
+    // The tracker's Reset all: the crab's and PvM's session numbers
+    private void resetSession() {
         gemCrab.resetSession();
         sessionPvmDamage = 0;
         sessionPvmActiveSeconds = 0;
         sessionCombatSecondMarker = null;
-        baseSkillXp.clear();
-        gainedSkillXp.clear();
-        skillActiveTicks.clear();
-        lastXpDrops.clear();
-        pausedSkills.clear();
         buffState = BuffState.UNPOTTED;
         pvmLiveDps = 0.0;
         pvmOverlayActive = false;
-        updatePanelUI();
     }
 
 
-    public void resetSkillRate(Skill skill) {
-        int currentXp = client.getSkillExperience(skill);
-        baseSkillXp.put(skill, currentXp);
-        gainedSkillXp.put(skill, 0);
-        skillActiveTicks.put(skill, 0L);
-        updatePanelUI();
-    }
 
-    public void toggleSkillPause(Skill skill) {
-        if (pausedSkills.contains(skill)) {
-            pausedSkills.remove(skill);
-        } else {
-            pausedSkills.add(skill);
-        }
-        updatePanelUI();
-    }
 
-    /** Paused by you, or auto-paused after going without XP in the skill for a while. */
-    public boolean isSkillPaused(Skill skill) {
-        return pausedSkills.contains(skill) || isSkillAutoPaused(skill);
-    }
 
-    /** No XP in the skill for the auto-pause time: the rate stops counting until you gain XP again. */
-    public boolean isSkillAutoPaused(Skill skill) {
-        if (!config.autoPauseSkills() || pausedSkills.contains(skill)) {
-            return false;
-        }
-        Integer last = lastXpTicks.get(skill);
-        return last != null && client.getTickCount() - last > config.autoPauseSeconds() / 0.6;
-    }
 
     // ---- Goals: a target XP per skill, kept with your RuneScape profile ----
 
-    /** The skill's goal in XP, or 0 for none. */
-    public int getSkillGoal(Skill skill) {
-        String value = configManager.getRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name());
-        try {
-            return value == null ? 0 : Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return 0;
-        }
-    }
 
-    public void setSkillGoal(Skill skill, int goalXp) {
-        if (goalXp <= 0) {
-            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name());
-            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name());
-            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
-        } else {
-            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goal." + skill.name(), goalXp);
-            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name(), client.getSkillExperience(skill));
-        }
-        updatePanelUI();
-    }
 
-    /** What to train for a goal, by the Training Focus setting. */
-    public TrainingAdvisor getTrainingAdvisor() {
-        return trainingAdvisor;
-    }
 
-    /** The wiki's training methods by level, for the tracker's goal suggestions. */
-    public TrainingData getTrainingData() {
-        return trainingData;
-    }
 
-    /** Your combat level as of the last game tick (safe to read from the panel). */
-    public int getCombatLevel() {
-        return combatLevel;
-    }
 
-    public int getCurrentSkillLevel(Skill skill) {
-        return Experience.getLevelForXp(client.getSkillExperience(skill));
-    }
 
-    public SlayerData getSlayerData() {
-        return slayerData;
-    }
 
-    /** What to make for production-skill goals, from your inventory and bank. */
-    public GoalItems getGoalItems() {
-        return goalItems;
-    }
 
-    /**
-     * What you chose to train for this skill's goal instead of the suggestion ("npc:ruby harvest",
-     * "object:Teak tree"), or null to follow the suggestion.
-     */
-    public String getGoalTarget(Skill skill) {
-        return configManager.getRSProfileKey() == null ? null
-            : configManager.getRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
-    }
 
-    public void setGoalTarget(Skill skill, String target) {
-        if (target == null) {
-            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name());
-        } else {
-            configManager.setRSProfileConfiguration(CONFIG_GROUP, "goalTarget." + skill.name(), target);
-        }
-        updatePanelUI();
-    }
 
-    /** What this skill's goal suggestions aim for: its own choice, else the Default Training Focus setting. */
-    public BradsMultiToolConfig.TrainingFocus getTrainingFocus(Skill skill) {
-        BradsMultiToolConfig.TrainingFocus own = getOwnTrainingFocus(skill);
-        return own != null ? own : config.trainingFocus();
-    }
 
-    /** The focus picked for this skill, or null when it follows the default. */
-    public BradsMultiToolConfig.TrainingFocus getOwnTrainingFocus(Skill skill) {
-        String value = configManager.getRSProfileKey() == null ? null
-            : configManager.getRSProfileConfiguration(CONFIG_GROUP, "trainingFocus." + skill.name());
-        if (value == null) {
-            return null;
-        }
-        try {
-            return BradsMultiToolConfig.TrainingFocus.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
 
-    public void setTrainingFocus(Skill skill, BradsMultiToolConfig.TrainingFocus focus) {
-        if (focus == null) {
-            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "trainingFocus." + skill.name());
-        } else {
-            configManager.setRSProfileConfiguration(CONFIG_GROUP, "trainingFocus." + skill.name(), focus.name());
-        }
-        updatePanelUI();
-    }
 
-    /** "Ruby harvest" from "npc:ruby harvest". */
-    static String goalTargetName(String target) {
-        String name = target.substring(target.indexOf(':') + 1);
-        return name.isEmpty() ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
-    }
 
-    /** The one skill pinned to the game screen from the tracker, or null. Kept across restarts. */
-    public Skill getPinnedSkill() {
-        String name = configManager.getConfiguration(CONFIG_GROUP, "pinnedSkill");
-        if (name == null || name.isEmpty()) {
-            return null;
-        }
-        try {
-            return Skill.valueOf(name);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
 
-    /** Pin a skill to the screen (replacing any other), or unpin with null. */
-    public void setPinnedSkill(Skill skill) {
-        if (skill == null) {
-            configManager.unsetConfiguration(CONFIG_GROUP, "pinnedSkill");
-        } else {
-            configManager.setConfiguration(CONFIG_GROUP, "pinnedSkill", skill.name());
-        }
-        updatePanelUI();
-    }
 
-    /** Skills you've set a goal for, in skill order. */
-    public List<Skill> getGoalSkills() {
-        List<Skill> skills = new ArrayList<>();
-        if (configManager.getRSProfileKey() == null) {
-            return skills;
-        }
-        for (Skill skill : Skill.values()) {
-            if (!"OVERALL".equals(skill.name()) && getSkillGoal(skill) > 0) {
-                skills.add(skill);
-            }
-        }
-        return skills;
-    }
 
-    /** Your XP in the skill when you set its goal (for the goal bar), or 0 if unknown. */
-    public int getSkillGoalStart(Skill skill) {
-        String value = configManager.getRSProfileConfiguration(CONFIG_GROUP, "goalStart." + skill.name());
-        try {
-            return value == null ? 0 : Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return 0;
-        }
-    }
 
-    public void resetSkill(Skill skill) {
-        baseSkillXp.remove(skill);
-        gainedSkillXp.remove(skill);
-        skillActiveTicks.remove(skill);
-        lastXpDrops.remove(skill);
-        pausedSkills.remove(skill);
-        updatePanelUI();
-    }
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
@@ -767,7 +516,6 @@ public class BradsMultiToolPlugin extends Plugin {
             divineEndMillis.clear();
         }
         if (event.getGameState() == GameState.LOGIN_SCREEN) {
-            realLevels.clear();
             slayerTracker.reset();
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
@@ -776,7 +524,6 @@ public class BradsMultiToolPlugin extends Plugin {
             pvmOverlayActive = false;
             aggroTimerStart = null;
             lastAggroAnchor = null;
-            updatePanelUI();
         }
     }
 
@@ -797,20 +544,10 @@ public class BradsMultiToolPlugin extends Plugin {
 
 
     /** Wiki stats for an NPC, or null if it isn't in the bundled data. */
-    // By the NPC's id, its transformed id (NPCs that change form), then its name
     public MonsterData.Stats statsFor(NPC npc) {
-        MonsterData.Stats stats = monsterData.get(npc.getId());
-        if (stats == null && npc.getTransformedComposition() != null) {
-            stats = monsterData.get(npc.getTransformedComposition().getId());
-        }
-        return stats != null ? stats : monsterData.get(npc.getId(), npc.getName());
+        return monsterData.statsFor(npc);
     }
 
-
-    /** Wiki stats for a monster by name ("Sulphur Nagua"), or null. */
-    public MonsterData.Stats statsFor(String name) {
-        return name == null || name.isEmpty() ? null : monsterData.get(-1, name);
-    }
 
     public MonsterWeakness weaknessFor(NPC npc) {
         MonsterData.Stats stats = statsFor(npc);
@@ -861,7 +598,6 @@ public class BradsMultiToolPlugin extends Plugin {
 
         Player player = client.getLocalPlayer();
         if (player != null) {
-            combatLevel = player.getCombatLevel();
             WorldPoint wp = player.getWorldLocation();
             slayerTracker.update();
             updateGeneralPvmTarget(player);
@@ -871,15 +607,6 @@ public class BradsMultiToolPlugin extends Plugin {
         processSimpleBuffStatus();
         monitorPrayer();
         monitorHealth();
-
-        for (Skill s : gainedSkillXp.keySet()) {
-            if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
-                long current = skillActiveTicks.getOrDefault(s, 0L);
-                skillActiveTicks.put(s, current + 1);
-            }
-        }
-
-        updatePanelUI();
     }
 
 
@@ -1339,7 +1066,6 @@ public class BradsMultiToolPlugin extends Plugin {
                 sessionPvmDamage += dmg;
                 lastPvmCombatActivity = Instant.now();
             }
-            updatePanelUI();
         }
     }
 
@@ -1356,138 +1082,20 @@ public class BradsMultiToolPlugin extends Plugin {
                 buffTimer.onDecay(client.getTickCount());
             }
         }
-
-        announceLevelUp(skill, currentXp);
-
-        if (!baseSkillXp.containsKey(skill)) {
-            baseSkillXp.put(skill, currentXp);
-            return;
-        }
-
-        int gained = currentXp - baseSkillXp.get(skill);
-        if (gained > 0) {
-            int previousGained = gainedSkillXp.getOrDefault(skill, 0);
-            int drop = gained - previousGained;
-            if (drop > 0) {
-                lastXpDrops.put(skill, drop);
-                lastXpTicks.put(skill, client.getTickCount());
-            }
-            gainedSkillXp.put(skill, gained);
-            updatePanelUI();
-        }
     }
 
-    // "Woodcutting level 45!" when a real level goes up (levels already reached at login aren't announced)
-    private void announceLevelUp(Skill skill, int xp) {
-        int level = Experience.getLevelForXp(xp);
-        Integer previous = realLevels.put(skill, level);
-        if (previous == null || level <= previous || !alertsReady()) {
-            return;
-        }
-        alerts.speakClips(AlertType.LEVEL_UP, VoiceAlertService.levelUpClips(skill, level));
-        alerts.chat(AlertType.LEVEL_UP, skill.getName() + " level " + level + "!");
-        announceNewMethod(skill, previous, level);
-    }
 
-    // A level-up that moves a goal skill onto a different suggested method says so in chat
-    private void announceNewMethod(Skill skill, int before, int now) {
-        if (!config.showTrainingSuggestion() || getSkillGoal(skill) <= client.getSkillExperience(skill)
-            || getGoalTarget(skill) != null) {
-            return;
-        }
-        if (skill == Skill.SLAYER) {
-            SlayerData.Master was = slayerData.bestMaster(combatLevel, before);
-            SlayerData.Master master = slayerData.bestMaster(combatLevel, now);
-            if (master != null && master != was) {
-                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Snuffy's Multi-Tool]</col> "
-                    + "Slayer goal: you can now get tasks from " + master.name, null);
-            }
-            return;
-        }
-        TrainingAdvisor.Suggestion was = trainingAdvisor.suggest(skill, before);
-        TrainingAdvisor.Suggestion suggestion = trainingAdvisor.suggest(skill, now);
-        if (suggestion != null && !suggestion.equals(was)) {
-            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Snuffy's Multi-Tool]</col> "
-                + skill.getName() + " goal: you can now switch to " + suggestion.text, null);
-        }
-    }
 
-    // Combat asks for an update on every hit; queue at most one at a time
-    private final java.util.concurrent.atomic.AtomicBoolean panelUpdateQueued = new java.util.concurrent.atomic.AtomicBoolean();
 
-    private void updatePanelUI() {
-        if (panel != null && panelUpdateQueued.compareAndSet(false, true)) {
-            SwingUtilities.invokeLater(() -> {
-                panelUpdateQueued.set(false);
-                panel.updatePanel();
-            });
-        }
-    }
 
-    public int getCurrentSkillXp(Skill skill) {
-        return client.getSkillExperience(skill);
-    }
 
-    public List<Skill> getTrackedSkills() {
-        List<Skill> skills = new ArrayList<>();
-        for (Map.Entry<Skill, Integer> entry : gainedSkillXp.entrySet()) {
-            if (entry.getValue() > 0 && !isSkillIgnored(entry.getKey())) {
-                skills.add(entry.getKey());
-            }
-        }
-        return skills;
-    }
 
-    /** True while you're training the skill: XP from it in the last 15 seconds. */
-    /**
-     * An XP drop in the skill in the last two minutes: long enough to cover slow trees and walking between
-     * resources, for showing that skill's timer pies only while you train it.
-     */
-    boolean trainedRecently(Skill skill) {
-        Integer last = lastXpTicks.get(skill);
-        return last != null && client.getTickCount() - last <= PIE_TRAINING_TICKS;
-    }
 
-    boolean isTraining(Skill skill) {
-        Integer last = lastXpTicks.get(skill);
-        return last != null && client.getTickCount() - last <= TRAINING_WINDOW_TICKS;
-    }
 
-    public int getLastXpDrop(Skill skill) {
-        return lastXpDrops.getOrDefault(skill, 0);
-    }
 
-    public int getSkillGained(Skill skill) {
-        return gainedSkillXp.getOrDefault(skill, 0);
-    }
 
-    public int getSkillXpPerHour(Skill skill) {
-        int gained = getSkillGained(skill);
-        if (gained <= 0) return 0;
-        long ticks = skillActiveTicks.getOrDefault(skill, 0L);
-        if (ticks < 8) return 0;
-        long elapsedSeconds = (long) (ticks * 0.6);
-        return (int) ((gained * 3600L) / elapsedSeconds);
-    }
 
-    public int getSkillXpPerMinute(Skill skill) {
-        int gained = getSkillGained(skill);
-        if (gained <= 0) return 0;
-        long ticks = skillActiveTicks.getOrDefault(skill, 0L);
-        if (ticks < 8) return 0;
-        long elapsedSeconds = (long) (ticks * 0.6);
-        return (int) ((gained * 60L) / elapsedSeconds);
-    }
 
-    public int getTotalCombatXp() {
-        int total = 0;
-        for (Map.Entry<Skill, Integer> entry : gainedSkillXp.entrySet()) {
-            if (!isSkillIgnored(entry.getKey())) {
-                total += entry.getValue();
-            }
-        }
-        return total;
-    }
 
 
     @Provides
@@ -1495,8 +1103,24 @@ public class BradsMultiToolPlugin extends Plugin {
         return PluginIdentity.MULTI_TOOL;
     }
 
+    // The all-in-one's settings stand in for each plugin's own (same keys, one group)
     @Provides
     CommonConfig provideCommonConfig(BradsMultiToolConfig config) {
+        return config;
+    }
+
+    @Provides
+    SkillTrackerConfig provideSkillTrackerConfig(BradsMultiToolConfig config) {
+        return config;
+    }
+
+    @Provides
+    PvmConfig providePvmConfig(BradsMultiToolConfig config) {
+        return config;
+    }
+
+    @Provides
+    GemCrabConfig provideGemCrabConfig(BradsMultiToolConfig config) {
         return config;
     }
 

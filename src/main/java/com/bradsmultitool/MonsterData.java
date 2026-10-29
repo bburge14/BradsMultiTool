@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * (regenerate with scripts/update_monster_data.py).
  */
 @Slf4j
+@javax.inject.Singleton
 public class MonsterData {
 
     private static final String RESOURCE = "monsters.json";
@@ -227,5 +228,19 @@ public class MonsterData {
             }
         }
         return null;
+    }
+
+    /** Wiki stats for an NPC, by its id, its transformed id (NPCs that change form), then its name; or null. */
+    public Stats statsFor(net.runelite.api.NPC npc) {
+        Stats stats = get(npc.getId());
+        if (stats == null && npc.getTransformedComposition() != null) {
+            stats = get(npc.getTransformedComposition().getId());
+        }
+        return stats != null ? stats : get(npc.getId(), npc.getName());
+    }
+
+    /** Wiki stats for a monster by name ("Sulphur Nagua"), or null. */
+    public Stats statsFor(String name) {
+        return name == null || name.isEmpty() ? null : get(-1, name);
     }
 }

@@ -65,6 +65,10 @@ class CombatStyle {
     private int manualSpellSpriteId = -1;
     private int manualCastTick = -1;
 
+    /** The last monster you hit (for the Skill Tracker's kill counts), or "". */
+    @Getter
+    private String lastTargetName = "";
+
     private final Client client;
 
     @Inject
@@ -194,6 +198,13 @@ class CombatStyle {
         combatMethodIcon = spellSprite > 0 ? CombatIcons.sprite(spellSprite) : CombatIcons.forStyle(style, weaponId);
 
         currentStyle = style;
+    }
+
+    @Subscribe
+    public void onHitsplatApplied(net.runelite.api.events.HitsplatApplied event) {
+        if (event.getHitsplat().isMine() && event.getActor() instanceof net.runelite.api.NPC && event.getActor().getName() != null) {
+            lastTargetName = event.getActor().getName();
+        }
     }
 
     // Spells cast by hand (not autocast) override the weapon's style for a few ticks after each cast

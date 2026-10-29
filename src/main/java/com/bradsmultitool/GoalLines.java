@@ -53,7 +53,7 @@ final class GoalLines {
      * step you're on ({@code stepEndLevel}, 0 if the method doesn't change before the goal). Per action: your
      * last XP drop, else an estimate from the goal's method; combat skills count kills of the monster.
      */
-    static Actions actions(BradsMultiToolPlugin plugin, BradsMultiToolConfig config, Skill skill, int xp, int stepEndLevel) {
+    static Actions actions(SkillTracker plugin, SkillTrackerConfig config, Skill skill, int xp, int stepEndLevel) {
         int level = Experience.getLevelForXp(xp);
         int toNextLevel = level >= Experience.MAX_REAL_LEVEL ? 0 : Experience.getXpForLevel(level + 1) - xp;
         int goalXp = plugin.getSkillGoal(skill);
@@ -91,7 +91,7 @@ final class GoalLines {
      * For production skills and Prayer: the best thing to make or use from your inventory and bank, or null.
      * Cooking, Firemaking and Prayer name the item you use ("Cook: Raw karambwan", "Burn: Yew logs").
      */
-    static ItemLine itemLine(BradsMultiToolPlugin plugin, Skill skill) {
+    static ItemLine itemLine(SkillTracker plugin, Skill skill) {
         RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
         if (make == null) {
             return null;
@@ -118,7 +118,7 @@ final class GoalLines {
      * Tools the goal's method needs, each with whether you have it (carried, worn or banked): the item line's
      * recipe ("Knife" to fletch), else the suggestion ("Axe" for trees, "Tinderbox" to burn logs). Empty if none.
      */
-    static Map<String, Boolean> tools(BradsMultiToolPlugin plugin, Skill skill, int level) {
+    static Map<String, Boolean> tools(SkillTracker plugin, Skill skill, int level) {
         List<String> names = new ArrayList<>();
         RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
         if (make != null) {
