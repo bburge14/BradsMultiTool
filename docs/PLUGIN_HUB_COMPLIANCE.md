@@ -1,6 +1,6 @@
 # Plugin Hub & Jagex compliance
 
-Brad's Multi-Tool is meant to be published on the RuneLite Plugin Hub, so every feature and every line of
+Snuffy's Multi-Tool is meant to be published on the RuneLite Plugin Hub, so every feature and every line of
 code has to pass the Plugin Hub review. This file tracks the rules and where the plugin stands. Check it
 before adding a feature, and update it when something changes.
 

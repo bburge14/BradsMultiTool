@@ -1,4 +1,4 @@
-# Brad's Multi-Tool
+# Snuffy's Multi-Tool
 
 A RuneLite plugin that bundles PvM, Gemstone Crab, Slayer and skilling helpers, alerts with voice lines,
 and a skill tracker into one place. Everything can be switched on or off in the plugin's settings.
@@ -76,7 +76,7 @@ RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't st
 Timer Plugins). XP rates on the cards only show while you're training that skill. Inventory full is announced while you
 work a resource.
 
-### Brad's Skill Tracker (sidebar)
+### Snuffy's Skill Tracker (sidebar)
 - A card per skill you train: XP gained, XP to next level, actions left (from your last XP drop; not for
   combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar. Each field has its
   own switch.
@@ -153,7 +153,7 @@ a browser window to sign in to GitHub.
 **3. (Optional) Desktop shortcut:** run this once to put a launch button on your desktop:
 
 ```powershell
-$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Brad's Multi-Tool.lnk")
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Multi-Tool.lnk")
 $s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
 $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()

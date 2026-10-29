@@ -78,9 +78,9 @@ import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(
-    name = "Brad's Multi-Tool",
-    description = "Logout warning bell, Gemstone Crab 3D model tracker, multi-skill rate panel, voice announcements",
-    tags = {"brad", "xp", "skills", "gemstone", "crab", "shell", "tunnel", "logout", "voice"}
+    name = "Snuffy's Multi-Tool",
+    description = "Skill tracker with goals and training suggestions, skilling hover cards and timers, PvM HUD with buff timers and voice alerts, Slayer helper, Gemstone Crab tracker",
+    tags = {"snuffy", "xp", "skills", "gemstone", "crab", "shell", "tunnel", "logout", "voice"}
 )
 public class BradsMultiToolPlugin extends Plugin {
 
@@ -228,7 +228,7 @@ public class BradsMultiToolPlugin extends Plugin {
             // Say what happened, since without a task there's no card to see change
             String state = slayerCardHidden ? "hidden" : slayerTracker.hadTask() ? "shown" : "shown (no Slayer task right now)";
             clientThread.invokeLater(() -> client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
-                "<col=00ffff>[Brad's Multi-Tool]</col> Slayer card " + state, null));
+                "<col=00ffff>[Snuffy's Multi-Tool]</col> Slayer card " + state, null));
         }
     };
 
@@ -534,7 +534,7 @@ public class BradsMultiToolPlugin extends Plugin {
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
 
         navButton = NavigationButton.builder()
-            .tooltip("Brad's Skill Tracker")
+            .tooltip("Snuffy's Skill Tracker")
             .icon(createCrabToolIcon())
             .priority(5)
             .panel(panel)
@@ -661,7 +661,7 @@ public class BradsMultiToolPlugin extends Plugin {
     /** Posts an alert in chat, if you're in game and its chat message is turned on. */
     void sendGameChatMessage(AlertType type, String message) {
         if (config.sendChatMessages() && alertsReady() && toggle(type.chatKey)) {
-            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> " + message, null);
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Snuffy's Multi-Tool]</col> " + message, null);
         }
     }
 
@@ -1791,7 +1791,7 @@ public class BradsMultiToolPlugin extends Plugin {
         if (!logoutImminent) {
             alert = true;
             if (alertsReady()) {
-                notifier.notify("Brad's Multi-Tool: You are about to be logged out for inactivity!");
+                notifier.notify("Snuffy's Multi-Tool: You are about to be logged out for inactivity!");
             }
         } else if (config.repeatIdleAlert()
             && Duration.between(lastIdleAlertTime, Instant.now()).getSeconds() >= config.repeatIdleInterval()
@@ -2329,7 +2329,7 @@ public class BradsMultiToolPlugin extends Plugin {
             SlayerData.Master was = slayerData.bestMaster(combatLevel, before);
             SlayerData.Master master = slayerData.bestMaster(combatLevel, now);
             if (master != null && master != was) {
-                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> "
+                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Snuffy's Multi-Tool]</col> "
                     + "Slayer goal: you can now get tasks from " + master.name, null);
             }
             return;
@@ -2337,7 +2337,7 @@ public class BradsMultiToolPlugin extends Plugin {
         TrainingAdvisor.Suggestion was = trainingAdvisor.suggest(skill, before);
         TrainingAdvisor.Suggestion suggestion = trainingAdvisor.suggest(skill, now);
         if (suggestion != null && !suggestion.equals(was)) {
-            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Brad's Multi-Tool]</col> "
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[Snuffy's Multi-Tool]</col> "
                 + skill.getName() + " goal: you can now switch to " + suggestion.text, null);
         }
     }
