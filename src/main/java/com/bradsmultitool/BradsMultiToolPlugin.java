@@ -41,6 +41,7 @@ import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.DBTableID;
 import net.runelite.api.gameval.SpriteID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.events.GameObjectDespawned;
@@ -96,6 +97,10 @@ public class BradsMultiToolPlugin extends Plugin {
     // A manual cast stays the "active" style this long; casting repeats every 5 ticks
     private static final int MANUAL_CAST_TIMEOUT_TICKS = 10;
     private static final int EQUIPMENT_WEAPON_SLOT = 3;
+    // The game's own combat style data: enum of weapon category -> enum of style structs, and the
+    // struct param naming each style's XP type ("Accurate", "Rapid", "Casting"...)
+    private static final int ENUM_WEAPON_STYLES = 3908;
+    private static final int PARAM_ATTACK_STYLE_NAME = 1407;
 
     private static final int CRAB_BURROW_ALERT_DISTANCE = 10;
     private static final int GEMSTONE_CRAB_ID = 14779;
@@ -1864,12 +1869,57 @@ public class BradsMultiToolPlugin extends Plugin {
             local != null ? local.getCombatLevel() : 0, client.getVarbitValue(INSIDE_WILDERNESS_VARBIT) == 1, equipped);
     }
 
+    // Weapon category (varbit 357) -> its row in the game's weapon category table, or -1
+    private final Map<Integer, Integer> weaponCategoryRows = new HashMap<>();
+
+    private int weaponCategoryRow(int category) {
+        Integer row = weaponCategoryRows.get(category);
+        if (row == null) {
+            row = -1;
+            try {
+                List<Integer> rows = client.getDBRowsByValue(DBTableID.CombatInterfaceWeaponCategory.ID,
+                    DBTableID.CombatInterfaceWeaponCategory.COL_ID, 0, category);
+                if (!rows.isEmpty()) {
+                    row = rows.get(0);
+                }
+            } catch (RuntimeException e) {
+                log.debug("No weapon category row for {}", category, e);
+            }
+            log.debug("Weapon category {} is row {}", category, row);
+            weaponCategoryRows.put(category, row);
+        }
+        return row;
+    }
+
+    /** The game's name for a combat tab button's XP style ("Accurate", "Rapid"...), or null. */
+    private String gameStyleName(int category, int styleIndex) {
+        try {
+            int stylesEnum = client.getEnum(ENUM_WEAPON_STYLES).getIntValue(category);
+            if (stylesEnum == -1) {
+                return null;
+            }
+            int[] structs = client.getEnum(stylesEnum).getIntVals();
+            if (styleIndex < 0 || styleIndex >= structs.length) {
+                return null;
+            }
+            return client.getStructComposition(structs[styleIndex]).getStringValue(PARAM_ATTACK_STYLE_NAME);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
     public void updateRealtimeCombatMethod() {
-        WeaponStyles.Style style = WeaponStyles.resolve(
-            client.getVarbitValue(VARBIT_EQUIPPED_WEAPON_TYPE),
-            client.getVarpValue(VARP_ATTACK_STYLE),
-            client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1,
-            client.getVarbitValue(VARBIT_AUTOCAST_SPELL));
+        int category = client.getVarbitValue(VARBIT_EQUIPPED_WEAPON_TYPE);
+        int styleIndex = client.getVarpValue(VARP_ATTACK_STYLE);
+        int categoryRow = weaponCategoryRow(category);
+        boolean defensiveCasting = client.getVarbitValue(VARBIT_DEFENSIVE_CASTING) == 1;
+        int autocastSpell = client.getVarbitValue(VARBIT_AUTOCAST_SPELL);
+        WeaponStyles.Style style = WeaponStyles.resolve(categoryRow, styleIndex, defensiveCasting, autocastSpell, null);
+        if ("Unknown".equals(style.buttonName)) {
+            // A weapon type the table doesn't know: go by the game's name for the style
+            style = WeaponStyles.resolve(categoryRow, styleIndex, defensiveCasting, autocastSpell,
+                gameStyleName(category, styleIndex));
+        }
 
         int weaponId = equippedWeaponId();
         if (weaponId > 0) {

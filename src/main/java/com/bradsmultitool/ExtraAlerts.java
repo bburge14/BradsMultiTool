@@ -88,11 +88,19 @@ class ExtraAlerts {
     private boolean coinPouchesFull = false;
     private final Map<Skill, Integer> productionXp = new EnumMap<>(Skill.class);
     private int lastProductionXpTick = -1000;
+    private Skill lastProductionSkill = null;
+    // XP drops in a row in the same production skill, each a few ticks apart
+    private int productionDrops = 0;
     private boolean batchRunning = false;
     private static final Set<Skill> PRODUCTION_SKILLS = EnumSet.of(Skill.COOKING, Skill.SMITHING, Skill.CRAFTING,
         Skill.FLETCHING, Skill.HERBLORE);
     // A batch is done once there's been no XP for this many ticks and you've stopped animating
     private static final int BATCH_DONE_TICKS = 5;
+    // A batch is several XP drops in the same skill on separate ticks, so one-off XP (a quest reward,
+    // a lamp, a single made item) doesn't count
+    private static final int BATCH_MIN_DROPS = 3;
+    // Most gap between drops of one batch (anvil smithing is 5 ticks an item)
+    private static final int BATCH_GAP_TICKS = 8;
 
     @Inject
     ExtraAlerts(Client client, BradsMultiToolConfig config, BradsMultiToolPlugin plugin) {
@@ -226,6 +234,7 @@ class ExtraAlerts {
             resourceObjectId = -1;
             resourceNpc = null;
             productionXp.clear();
+            productionDrops = 0;
             batchRunning = false;
         }
     }
@@ -305,8 +314,15 @@ class ExtraAlerts {
         Skill skill = event.getSkill();
         Integer before = productionXp.put(skill, event.getXp());
         if (PRODUCTION_SKILLS.contains(skill) && before != null && event.getXp() > before && plugin.alertsReady()) {
-            lastProductionXpTick = client.getTickCount();
-            batchRunning = true;
+            int tick = client.getTickCount();
+            if (tick == lastProductionXpTick && skill == lastProductionSkill) {
+                return;
+            }
+            boolean continues = skill == lastProductionSkill && tick - lastProductionXpTick <= BATCH_GAP_TICKS;
+            productionDrops = continues ? productionDrops + 1 : 1;
+            lastProductionSkill = skill;
+            lastProductionXpTick = tick;
+            batchRunning = productionDrops >= BATCH_MIN_DROPS;
         }
     }
 
@@ -317,6 +333,7 @@ class ExtraAlerts {
             return;
         }
         batchRunning = false;
+        productionDrops = 0;
         if (config.batchCompleteAlert()) {
             alert(VoiceAlertService.VoiceLine.BATCH_COMPLETE, null);
         }

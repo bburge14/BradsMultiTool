@@ -201,7 +201,7 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 | Inventory full | Your inventory fills while skilling | Skilling > Inventory Full |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
-| Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes | Skilling > Batch Complete Alert |
+| Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling > Batch Complete Alert |
 
 ---
 
