@@ -74,6 +74,11 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 
 ## Open questions before publishing
 
+- **Voice clip licences.** Ryan's clips are CC BY-NC-SA 4.0 and L2 Arctic's CC BY-NC 4.0 (their recordings'
+  licences; VOICE_CREDITS.md). The plugin is free, so non-commercial use holds, but the Plugin Hub asks for
+  BSD-2 and says nothing about bundled sounds under other licences. Ask the Plugin Hub reviewers, or drop
+  those two voices from the published build.
+
 - Plugin size: the jar is about 17.5 MB, nearly all voice clips (9 voices: 4 standard, 5 RuneScape-inspired characters; 11 kHz mu-law, level-up
   numbers built from parts; was 35 MB with 11 voices at 16 kHz). Still large for the Plugin Hub: if a
   reviewer objects, ship fewer voices (e.g. the four standard ones) or move the character voices to their

@@ -122,8 +122,8 @@ work a resource.
   announced.
 - Every alert has its own **Voice:** and **Chat:** switch in its section; **General** has the master
   switches, the voice and the volume.
-- 7 voices (pre-recorded, so they work on any OS): Amy (US female), Cori (UK female), Alan (UK male),
-  John (a calm soldier on a helmet radio), Wise Old Man, TzHaar and Ghost, or **Random** for a different
+- 10 voices (pre-recorded, so they work on any OS): Amy (US female), Cori (UK female), Alan (UK male),
+  Ryan (US male), Arctic (Scottish male), L2 Arctic (Mandarin-accented male), John (a calm soldier on a helmet radio), Wise Old Man, TzHaar and Ghost, or **Random** for a different
   one each alert. Changing the voice plays a sample.
 - Chat messages use the same words as the voice line, with details in brackets.
 

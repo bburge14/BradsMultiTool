@@ -11,6 +11,7 @@ Usage:
 Voice models are downloaded from Hugging Face (rhasspy/piper-voices) into scripts/.piper-models/.
 Personas and lines must match VoiceAlertService.VoicePersona / VoiceLine.
 """
+import json
 import math
 import os
 import sys
@@ -27,10 +28,14 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), ".piper-models")
 HF = "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
 
 # persona folder -> Piper voice (language/name/quality); licences are in VOICE_CREDITS.md
-# Standard voices (US female, UK female and male); John and the rest are characters below
+# Standard voices (their own accents, no effects); John and the rest are characters below
 PERSONAS = {
     # US voices must use espeak "en-us" in their .onnx.json; several en_US models use British "en"
     "amy": "en/en_US/amy/medium",
+    "ryan": "en/en_US/ryan/high",
+    # Multi-speaker models: (model, speaker); the demo page's first speaker of each
+    "arctic": ("en/en_US/arctic/medium", "awb"),      # Scottish man
+    "l2arctic": ("en/en_US/l2arctic/medium", "TXHC"),  # Mandarin Chinese-accented man
     "cori": "en/en_GB/cori/high",
     "alan": "en/en_GB/alan/medium",
 }
@@ -326,9 +331,14 @@ def main():
         missing = {k: t for k, t in LINES.items() if force or not os.path.exists(clip_path(folder, k))}
         if not missing:
             continue
-        piper_voice = PiperVoice.load(model_path(voice))
+        model, speaker = voice if isinstance(voice, tuple) else (voice, None)
+        piper_voice = PiperVoice.load(model_path(model))
+        config = SynthesisConfig()
+        if speaker:
+            with open(model_path(model) + ".json") as f:
+                config = SynthesisConfig(speaker_id=json.load(f)["speaker_id_map"][speaker])
         for key, text in missing.items():
-            chunks = list(piper_voice.synthesize(text))
+            chunks = list(piper_voice.synthesize(text, config))
             samples = np.concatenate([c.audio_int16_array for c in chunks])
             os.makedirs(os.path.dirname(clip_path(folder, key)), exist_ok=True)
             write_compact_wav(clip_path(folder, key), samples, chunks[0].sample_rate)
