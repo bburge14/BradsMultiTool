@@ -138,6 +138,10 @@ class StatusEffects {
         // Stats above or below your level that the potion buffs don't already show (Hitpoints from an anglerfish,
         // a drained Defence...). Prayer and Hitpoints going down are just being used, not debuffs
         for (Skill skill : Skill.values()) {
+            // OVERALL isn't a skill: the game has no level for it
+            if ("OVERALL".equals(skill.name())) {
+                continue;
+            }
             int change = client.getBoostedSkillLevel(skill) - client.getRealSkillLevel(skill);
             if (change > 0 && !PotionBuffs.BOOSTABLE_COMBAT_SKILLS.contains(skill)) {
                 buffs.add(new Effect(skill.getName() + " boosted", 0, skill, "+" + change, 0, true, false));
