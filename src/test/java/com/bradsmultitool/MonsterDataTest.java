@@ -70,4 +70,15 @@ public class MonsterDataTest {
         assertEquals("Hellhounds", hellhound.slayerCategory);
         assertTrue(!hellhound.needsSlayerLevel());
     }
+
+    // The Slayer card's Pray line, from the wiki attack styles of the task's monsters
+    @Test
+    public void protectionPrayerForTasks() {
+        assertEquals(java.util.Collections.singletonList("Melee"), DATA.protectionPrayers(c -> c.equalsIgnoreCase("Fire giants")));
+        assertEquals(java.util.Collections.singletonList("Magic"), DATA.protectionPrayers(c -> c.equalsIgnoreCase("Cave kraken")));
+        assertEquals(java.util.Collections.singletonList("Missiles"), DATA.protectionPrayers(c -> c.equalsIgnoreCase("Smoke devils")));
+        // Mixed with no style used by most of them: nothing rather than a guess
+        assertTrue(DATA.protectionPrayers(c -> c.equalsIgnoreCase("Spiritual creatures")).isEmpty());
+        assertEquals(null, MonsterData.protectionFor("Crush (100% prayer penetration)"));
+    }
 }

@@ -730,6 +730,17 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     }
 
     @ConfigItem(
+        keyName = "slayerPrayer",
+        name = "Protection Prayer",
+        description = "The protection prayer for the task, from how its monsters attack (wiki attack styles): shown when most of them use the same kind",
+        section = slayerSection,
+        position = 4
+    )
+    default boolean slayerPrayer() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "slayerRequiredItem",
         name = "Required Item",
         description = "The item the task needs (red when you don't have it)",

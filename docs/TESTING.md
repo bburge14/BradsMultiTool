@@ -50,6 +50,11 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Below the Slayer level: "(can't damage)" in red. PvM HUD shows the same while fighting.
 - [ ] Task monsters outlined; non-task monsters not. Konar task: same monster elsewhere isn't outlined and its hover says Wrong place.
 - [ ] On task: Where To Go lists places (Multi/Cannon/Safespot) and how to reach the first one.
+- [ ] A place whose tags don't fit beside it (Fire giants: Charred Dungeon) has them on the next line,
+      right-aligned and grey.
+- [ ] Right-click the card > Show all / fewer places lists every place, and back.
+- [ ] Pray: line (Fire giants: Protect from Melee; Cave kraken: Magic; Smoke devils: Missiles); none for
+      mixed tasks (Spiritual creatures); Protection Prayer off hides it.
 
 ## Skilling cards (hover)
 - [ ] Trees, rocks, stalls, pickpocket NPCs, fishing spots (Bait at a sea spot shows sardine/herring, not pike).

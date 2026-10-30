@@ -107,9 +107,11 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 ## Slayer card
 
 **What it does:**
-- **On a task:** kills left, kill rate, time to finish, the item the task needs (red if you don't have it)
-  and **Where To Go**: the wiki's places to kill it, each marked Multi / Cannon / Safespot (Wilderness
-  places last), and the fastest ways to get to the first one.
+- **On a task:** kills left, kill rate, time to finish, the **protection prayer** to use (from how the task's
+  monsters attack, per the wiki: e.g. Fire giants, Protect from Melee; shown when most of them attack the same
+  way), the item the task needs (red if you don't have it) and **Where To Go**: the wiki's places to kill it,
+  each marked Multi / Cannon / Safespot (Wilderness places last), and the fastest ways to get to the first
+  one. Right-click the card > **Show all / fewer places** to list every place instead of Places Shown.
 - **No task:** the best Slayer master for your combat and Slayer level, any quest they need, where they
   are and the fastest ways there, and the next master you'll unlock (and what it needs).
 
@@ -127,8 +129,8 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 **How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which); it stays that
 way after a restart.
 
-**Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Required
-Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
+**Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
+Prayer; Required Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
 Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned and Task Complete alerts with Voice/Chat switches.
 
 ---

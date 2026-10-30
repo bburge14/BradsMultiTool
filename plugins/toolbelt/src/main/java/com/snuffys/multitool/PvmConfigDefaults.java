@@ -67,6 +67,7 @@ final class PvmConfigDefaults {
         defaults.store("showSlayerMasterCard", config.showSlayerMasterCard());
         defaults.store("slayerPictures", config.slayerPictures());
         defaults.store("slayerKillRate", config.slayerKillRate());
+        defaults.store("slayerPrayer", config.slayerPrayer());
         defaults.store("slayerRequiredItem", config.slayerRequiredItem());
         defaults.store("slayerTravelRoutes", config.slayerTravelRoutes());
         defaults.store("slayerNextMaster", config.slayerNextMaster());

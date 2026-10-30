@@ -12,8 +12,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -150,6 +154,67 @@ public class MonsterData {
         } catch (Exception e) {
             log.warn("Failed to load {}", RESOURCE, e);
         }
+    }
+
+    /** The protection prayers a style is stopped by ("Melee", "Missiles", "Magic"), or null when it can't be. */
+    static String protectionFor(String attackStyle) {
+        String style = attackStyle.toLowerCase();
+        // Can't be prayed against, or unclear which ("ranged magic"...)
+        if (style.contains("penetration") || style.contains("typeless") || style.contains("ranged magic")
+            || style.contains("ranged melee") || style.contains("special")) {
+            return null;
+        }
+        // The wiki's magic-based melee and ranged (dust devils, smoke devils): their own protection prayer
+        if (style.startsWith("magical melee")) {
+            return "Melee";
+        }
+        if (style.startsWith("magical ranged")) {
+            return "Missiles";
+        }
+        if (style.startsWith("crush") || style.startsWith("slash") || style.startsWith("stab") || style.startsWith("melee")) {
+            return "Melee";
+        }
+        if (style.startsWith("ranged")) {
+            return "Missiles";
+        }
+        if (style.startsWith("magic")) {
+            return "Magic";
+        }
+        return null;
+    }
+
+    /**
+     * The protection prayers for a Slayer task: each prayer that at least half its monsters (every variant in
+     * the task's category, bosses included) attack with, most used first. Empty when nothing's known.
+     */
+    List<String> protectionPrayers(Predicate<String> isTaskCategory) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        int monsters = 0;
+        for (Stats stats : byId.values()) {
+            if (stats.slayerCategory == null || !isTaskCategory.test(stats.slayerCategory)) {
+                continue;
+            }
+            Set<String> prayers = new HashSet<>();
+            for (String style : stats.attackStyles) {
+                String prayer = protectionFor(style);
+                if (prayer != null) {
+                    prayers.add(prayer);
+                }
+            }
+            if (!prayers.isEmpty()) {
+                monsters++;
+                for (String prayer : prayers) {
+                    counts.merge(prayer, 1, Integer::sum);
+                }
+            }
+        }
+        List<String> out = new ArrayList<>();
+        int total = monsters;
+        counts.entrySet().stream()
+            .filter(e -> e.getValue() * 2 >= total)
+            .sorted((x, y) -> y.getValue() - x.getValue())
+            .forEach(e -> out.add(e.getKey()));
+        return out;
     }
 
     public Stats get(int npcId) {
