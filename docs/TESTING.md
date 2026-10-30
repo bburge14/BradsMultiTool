@@ -24,6 +24,9 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 ## Gemstone Crab
 - [ ] When the crab moves, its stats stay up 12s marked (moved) with a "Radar in" countdown, then the radar.
 - [ ] No AFK alert while attacking the crab.
+- [ ] GemCrab Tracker on its own (`runBrad "-Pload=gemcrab"`): potion buffs on the crab card with time left
+      (divine exact, regular "~" until the first stat drop), red in the last minute; Show Potion Buffs off hides them.
+- [ ] PvM buff timers and buff alerts still work as before (PvM on its own and in the Toolbelt).
 - [x] Radar and outlines only near the crab's mines (not in Draynor or other caves).
 - [x] Outlines draw under the minimap and inventory, not over them.
 - [x] Shell green when you can mine it, red when you can't.

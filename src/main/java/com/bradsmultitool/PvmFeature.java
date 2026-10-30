@@ -15,6 +15,7 @@ class PvmFeature {
     @Inject private SlayerData slayerData;
     @Inject private CombatStyle combatStyle;
     @Inject private CombatAlerts combatAlerts;
+    @Inject private PotionBuffs potionBuffs;
     @Inject private BradsMultiToolOverlay hudOverlay;
     @Inject private BradsMultiToolPrayerOverlay prayerOverlay;
     @Inject private BradsMultiToolHoverOverlay hoverOverlay;
@@ -42,7 +43,7 @@ class PvmFeature {
         configDefaults.add(() -> PvmConfigDefaults.store(configDefaults, config));
         lifecycle.load(monsterData, monsterData::load);
         lifecycle.load(slayerData, slayerData::load);
-        lifecycle.subscribe(pvm, combatStyle, combatAlerts);
+        lifecycle.subscribe(pvm, potionBuffs, combatStyle, combatAlerts);
         lifecycle.overlay(hudOverlay, prayerOverlay, hoverOverlay, orbOverlay, slayerOverlay, slayerHighlightOverlay);
         pvm.startUp();
         lifecycle.onStop(pvm::shutDown);

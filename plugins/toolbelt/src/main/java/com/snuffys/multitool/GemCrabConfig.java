@@ -71,6 +71,17 @@ public interface GemCrabConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "showCrabBuffs",
+        name = "Show Potion Buffs",
+        description = "Your potion buffs on the crab card, each with its time left (red in its last minute)",
+        section = crabSection,
+        position = 53
+    )
+    default boolean showCrabBuffs() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "showCrabLastHit",
         name = "Show Last Hit",
         description = "Display continuous most recent hit dealt to Gemstone Crabs",

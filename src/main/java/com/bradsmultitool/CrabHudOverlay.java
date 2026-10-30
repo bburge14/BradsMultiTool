@@ -14,6 +14,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.Skill;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
@@ -34,10 +35,14 @@ public class CrabHudOverlay extends Overlay {
     // After the crab moves its stats stay up this long before the radar takes over
     private static final long CRAB_STATS_LINGER_MILLIS = 12_000;
 
+    private static final long RUNNING_OUT_MILLIS = 60_000;
+
     private final Client client;
     private final GemCrabTracker gemCrab;
     private final GemCrabConfig config;
     private final SkillIconManager skillIconManager;
+    private final PotionBuffs potionBuffs;
+    private final ItemManager itemManager;
     private final PanelComponent panelComponent = new PanelComponent();
     private long lastCrabActiveMillis;
     private CrabFight lastFight;
@@ -64,7 +69,10 @@ public class CrabHudOverlay extends Overlay {
     }
 
     @Inject
-    CrabHudOverlay(Client client, GemCrabTracker gemCrab, GemCrabConfig config, SkillIconManager skillIconManager) {
+    CrabHudOverlay(Client client, GemCrabTracker gemCrab, GemCrabConfig config, SkillIconManager skillIconManager,
+                   PotionBuffs potionBuffs, ItemManager itemManager) {
+        this.potionBuffs = potionBuffs;
+        this.itemManager = itemManager;
         this.client = client;
         this.gemCrab = gemCrab;
         this.config = config;
@@ -163,10 +171,13 @@ public class CrabHudOverlay extends Overlay {
                     .build());
             }
 
-            // Buff timers and LOW prayer/health, when PvM runs alongside (the all-in-one)
+            // Buff timers and LOW prayer/health from PvM when it runs alongside (the all-in-one), else our own
+            // reading of your potion buffs
             Consumer<PanelComponent> rows = extraRows;
             if (rows != null) {
                 rows.accept(panelComponent);
+            } else if (config.showCrabBuffs()) {
+                addBuffRows();
             }
 
             // Crab damage reflects only the current (or just-moved) crab
@@ -197,6 +208,18 @@ public class CrabHudOverlay extends Overlay {
         }
 
         return panelComponent.render(graphics);
+    }
+
+    // Each potion buff with its time left ("~" until the boost timer has been seen), red in its last minute
+    private void addBuffRows() {
+        long now = System.currentTimeMillis();
+        for (ActiveBuffs.Buff buff : potionBuffs.buffs()) {
+            long left = buff.millisLeft(now);
+            String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(left);
+            boolean runningOut = buff.exact ? left <= RUNNING_OUT_MILLIS : buff.boost == 1;
+            panelComponent.getChildren().add(new IconLineComponent(buff.name + ":", itemManager.getImage(buff.iconItemId),
+                "+" + buff.boost + " " + time, runningOut ? HudColors.BAD : HudColors.GOOD));
+        }
     }
 
     /**

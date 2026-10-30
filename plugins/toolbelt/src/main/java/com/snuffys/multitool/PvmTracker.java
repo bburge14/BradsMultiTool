@@ -11,13 +11,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -38,7 +35,6 @@ import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
 import net.runelite.api.Player;
-import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldPoint;
@@ -56,8 +52,6 @@ import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
-import net.runelite.api.events.StatChanged;
-import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.client.Notifier;
@@ -93,11 +87,6 @@ public class PvmTracker {
     // Repeat counter value meaning "already handled, don't sound or repeat"
     private static final int SILENCED = Integer.MAX_VALUE / 2;
 
-    private static final Set<Skill> BOOSTABLE_COMBAT_SKILLS =
-        EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC);
-    // Divine potion time left in game ticks (VarbitID.DIVINEATTACK/STRENGTH/DEFENCE/RANGE/MAGIC_POTION_TIME)
-    private static final int[] DIVINE_POTION_TIME_VARBITS = {8429, 8430, 8431, 8432, 8433};
-    private static final Skill[] DIVINE_POTION_SKILLS = {Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE, Skill.RANGED, Skill.MAGIC};
 
     public enum BuffState {
         UNPOTTED,
@@ -189,16 +178,12 @@ public class PvmTracker {
     /** Buffs active as of the last game tick, each with its own end time (see ActiveBuffs). */
     @Getter
     private List<ActiveBuffs.Buff> activeBuffs = Collections.emptyList();
-    private final Map<Skill, Long> divineEndMillis = new EnumMap<>(Skill.class);
     // Buff name -> boost when its running-out warning played; a bigger boost (re-pot) re-arms it
     private final Map<String, Integer> buffWarnedAtBoost = new HashMap<>();
     private ActiveBuffs.Category lastEndedCategory = null;
     private String lastEndedBuffName = null;
-    private long lastTickMillis = 0;
 
     private int previousMaxBoost = 0;
-    private final BuffTimer buffTimer = new BuffTimer();
-    private final Map<Skill, Integer> lastBoostedLevels = new EnumMap<>(Skill.class);
     private int timesBuffExpiredSounded = 0;
     private Instant lastBuffExpiredSoundTime = Instant.EPOCH;
 
@@ -213,9 +198,11 @@ public class PvmTracker {
     private Instant lastHealthAlertTime = Instant.EPOCH;
     private int timesPrayerAlertSounded = 0;
     private Instant lastPrayerAlertTime = Instant.EPOCH;
+    private final PotionBuffs potionBuffs;
     @Inject
     PvmTracker(Client client, PvmConfig config, ConfigManager configManager, ClientThread clientThread, PluginIdentity identity,
-               Alerts alerts, KeyManager keyManager, MonsterData monsterData, CombatStyle combatStyle, SlayerTracker slayerTracker) {
+               Alerts alerts, KeyManager keyManager, MonsterData monsterData, CombatStyle combatStyle, SlayerTracker slayerTracker,
+               PotionBuffs potionBuffs) {
         this.client = client;
         this.config = config;
         this.configManager = configManager;
@@ -226,6 +213,7 @@ public class PvmTracker {
         this.monsterData = monsterData;
         this.combatStyle = combatStyle;
         this.slayerTracker = slayerTracker;
+        this.potionBuffs = potionBuffs;
         slayerToggleListener = new HotkeyListener(config::slayerToggleKey) {
             @Override
             public void hotkeyPressed() {
@@ -263,12 +251,6 @@ public class PvmTracker {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
-        // The boost decay timer keeps running across area loads; only a new session resets it
-        if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
-            buffTimer.reset();
-            lastBoostedLevels.clear();
-            divineEndMillis.clear();
-        }
         if (event.getGameState() == GameState.LOGIN_SCREEN) {
             slayerTracker.reset();
         }
@@ -324,7 +306,6 @@ public class PvmTracker {
 
     @Subscribe
     public void onGameTick(GameTick tick) {
-        lastTickMillis = System.currentTimeMillis();
         if (client.getGameState() != GameState.LOGGED_IN) {
             return;
         }
@@ -383,17 +364,11 @@ public class PvmTracker {
             return;
         }
 
-        Map<Skill, Integer> boosts = new EnumMap<>(Skill.class);
-        for (Skill skill : BOOSTABLE_COMBAT_SKILLS) {
-            boosts.put(skill, Math.max(0, client.getBoostedSkillLevel(skill) - client.getRealSkillLevel(skill)));
-        }
-        int currentMax = Collections.max(boosts.values());
+        int currentMax = potionBuffs.maxBoost();
 
         if (currentMax >= 4 || (currentMax > 0 && buffState == BuffState.ACTIVE)) {
             buffState = BuffState.ACTIVE;
-            syncDivineTimers();
-            boolean preserve = client.getVarbitValue(Prayer.PRESERVE.getVarbit()) == 1;
-            List<ActiveBuffs.Buff> buffs = ActiveBuffs.detect(boosts, divineEndMillis, buffTimer, client.getTickCount(), lastTickMillis, preserve);
+            List<ActiveBuffs.Buff> buffs = potionBuffs.buffs();
             announceEndedBuffs(buffs);
             activeBuffs = buffs;
             buffStatusText = "ACTIVE";
@@ -420,37 +395,6 @@ public class PvmTracker {
             }
         }
         previousMaxBoost = currentMax;
-    }
-
-    /**
-     * Time left on the boost: exact for divine potions (the game counts it down), exact for regular
-     * potions once a stat drop has been seen, and "~" plus an upper bound before that.
-     */
-    // Catch divine potions already running when the plugin starts; changes arrive via onVarbitChanged
-    private void syncDivineTimers() {
-        Skill[] skills = DIVINE_POTION_SKILLS;
-        for (int i = 0; i < skills.length; i++) {
-            int ticks = client.getVarbitValue(DIVINE_POTION_TIME_VARBITS[i]);
-            if (ticks <= 0) {
-                divineEndMillis.remove(skills[i]);
-            } else {
-                divineEndMillis.putIfAbsent(skills[i], System.currentTimeMillis() + ticks * 600L);
-            }
-        }
-    }
-
-    // Like RuneLite's Timers plugin: start the countdown when the game sets the divine timer
-    @Subscribe
-    public void onVarbitChanged(VarbitChanged event) {
-        for (int i = 0; i < DIVINE_POTION_TIME_VARBITS.length; i++) {
-            if (event.getVarbitId() == DIVINE_POTION_TIME_VARBITS[i]) {
-                if (event.getValue() > 0) {
-                    divineEndMillis.put(DIVINE_POTION_SKILLS[i], System.currentTimeMillis() + event.getValue() * 600L);
-                } else {
-                    divineEndMillis.remove(DIVINE_POTION_SKILLS[i]);
-                }
-            }
-        }
     }
 
     /**
@@ -788,20 +732,6 @@ public class PvmTracker {
                 pvmEncounterDamage += dmg;
                 sessionPvmDamage += dmg;
                 lastPvmCombatActivity = Instant.now();
-            }
-        }
-    }
-
-    @Subscribe
-    public void onStatChanged(StatChanged event) {
-        Skill skill = event.getSkill();
-        int currentXp = event.getXp();
-
-        // A boosted combat stat ticking down by 1 marks the boost decay timer's phase
-        if (BOOSTABLE_COMBAT_SKILLS.contains(skill)) {
-            Integer previous = lastBoostedLevels.put(skill, event.getBoostedLevel());
-            if (previous != null && event.getBoostedLevel() == previous - 1 && previous > event.getLevel()) {
-                buffTimer.onDecay(client.getTickCount());
             }
         }
     }

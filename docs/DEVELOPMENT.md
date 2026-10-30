@@ -72,7 +72,7 @@ Every plugin but the Tick Counter also starts `CommonFeature` (`Alerts`, `IdleWa
 uses `CommonConfig` (voice, chat, idle); the Tick Counter has no voice or idle warnings, and only shares `InGame`
 (past the welcome screen) and `CombatStyle` (for Follow Attack Speed). `Lifecycle` subscribes, shows and loads each shared piece only once and undoes it all on
 stop. `PluginIdentity` says which build is running (settings group, chat tag, family id). Shared pieces used
-by more than one plugin: `CombatStyle`, `MonsterData`, `SlayerData`, `GemstoneCrabs`, `HudColors`, the
+by more than one plugin: `CombatStyle`, `PotionBuffs` (boosts and potion timers, for PvM and the crab card), `MonsterData`, `SlayerData`, `GemstoneCrabs`, `HudColors`, the
 overlay components.
 
 Rules that keep the split working:
