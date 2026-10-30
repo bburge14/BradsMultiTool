@@ -82,6 +82,35 @@ tasks.withType(JavaCompile).configureEach {
 """
 
 
+README = """# %(title)s
+
+%(description)s.
+
+## Installing
+
+In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
+**%(title)s** and click **Install**. Its settings are under its name in the configuration panel.
+
+It's one of Snuffy's plugins: **Snuffy's Multi-Tool** has all of them in one, or install just the ones you want
+(Skilling Helper, PvM & Slayer, Gemstone Crab, and the optional Voices for one voice across them). Don't install
+the Multi-Tool together with the separate ones.
+
+Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).
+
+## About this repository
+
+This repository is generated from [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool),
+where the plugins are developed; changes made here directly are overwritten. Issues and ideas:
+[open an issue there](https://github.com/bburge14/bradsmultitool/issues).
+"""
+
+
+def hub_entry(plugin_id, commit):
+    """The plugin's file for the Plugin Hub (runelite/plugin-hub, plugins/<name>): its repository and the
+    commit to build."""
+    return "repository=https://github.com/%s/%s.git\ncommit=%s\n" % (AUTHOR, PLUGINS[plugin_id]["repo"], commit)
+
+
 def strip_comments_and_strings(text):
     text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
     text = re.sub(r"//[^\n]*", " ", text)
@@ -180,9 +209,7 @@ def build(plugin_id):
     with open(os.path.join(out, ".gitignore"), "w", encoding="utf-8") as f:
         f.write(".gradle/\nbuild/\n.idea/\n*.iml\nout/\n")
     with open(os.path.join(out, "README.md"), "w", encoding="utf-8") as f:
-        f.write("# %s\n\n%s.\n\nPart of Snuffy's plugins for RuneLite. This repository is generated from "
-                "[bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool), where the plugins are "
-                "developed; changes made here directly are overwritten.\n" % (title, description))
+        f.write(README % {"title": title, "description": description})
     print("%-12s %3d classes, %s, voices: %s" % (plugin_id, len(names), ", ".join(sorted(data_files(names))) or "no data",
                                               "+".join(spec["voices"]) if "VoiceAlertService" in names else "none"))
     return out
@@ -198,6 +225,11 @@ def verify(out):
 
 
 def main():
+    # --hub-entry <plugin> <commit>: print that plugin's Plugin Hub file (the Action uses this after pushing)
+    if "--hub-entry" in sys.argv:
+        i = sys.argv.index("--hub-entry")
+        sys.stdout.write(hub_entry(sys.argv[i + 1], sys.argv[i + 2]))
+        return
     wanted = [a for a in sys.argv[1:] if not a.startswith("--")] or list(PLUGINS)
     for plugin_id in wanted:
         out = build(plugin_id)

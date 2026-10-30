@@ -54,5 +54,16 @@ jobs:
               git push -q origin HEAD
               echo "$repo: pushed"
             fi
+            commit=$(git rev-parse HEAD)
             cd - > /dev/null
+            # Its Plugin Hub file, naming the commit just pushed (plugins/<repo> in runelite/plugin-hub)
+            mkdir -p build/plugin-hub
+            python3 scripts/split_plugins.py --hub-entry "$(basename "$dir")" "$commit" > "build/plugin-hub/$repo"
           done
+
+      - name: Keep the Plugin Hub files
+        if: ${{ hashFiles('build/plugin-hub/*') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-hub-entries
+          path: build/plugin-hub/

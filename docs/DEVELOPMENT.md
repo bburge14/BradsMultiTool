@@ -115,5 +115,11 @@ tokens; then this repository > Settings > Secrets and variables > Actions). With
 builds and checks every plugin but pushes nothing. Don't edit the plugin repositories directly; changes there
 are overwritten.
 
-Submitting to the Plugin Hub (not done yet): one file per plugin in `runelite/plugin-hub`'s `plugins/`
-folder, naming the repository and the commit to build; each release means updating that commit there.
+### Submitting to the Plugin Hub (not done yet)
+
+The Plugin Hub builds a plugin from a file in `runelite/plugin-hub`'s `plugins/` folder that names its
+repository and the commit to build. After pushing, the Action writes those files (`plugins/<repository name>`,
+e.g. `snuffys-skilling-helper`) and keeps them as the **plugin-hub-entries** download on the run's page.
+To submit: fork `runelite/plugin-hub`, add the files under `plugins/`, and open a pull request; for an update,
+change the `commit=` line to the new one. `python3 scripts/split_plugins.py --hub-entry <plugin> <commit>`
+prints one by hand. Settle the open questions in docs/PLUGIN_HUB_COMPLIANCE.md first.
