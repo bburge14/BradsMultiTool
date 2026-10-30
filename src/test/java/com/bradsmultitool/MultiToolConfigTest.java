@@ -42,6 +42,7 @@ public class MultiToolConfigTest {
         assertSectionsDeclared(SkillTrackerConfig.class);
         assertSectionsDeclared(PvmConfig.class);
         assertSectionsDeclared(GemCrabConfig.class);
+        assertSectionsDeclared(TickConfig.class);
         assertSectionsDeclared(VoicesConfig.class);
         assertSectionsDeclared(BradsMultiToolConfig.class);
     }

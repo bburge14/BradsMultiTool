@@ -53,8 +53,13 @@ public class SettingsPanelTest {
             SkillTrackerConfig config = (SkillTrackerConfig) defaults.config;
             CommonConfigDefaults.store(defaults.store, config);
             SkillTrackerConfigDefaults.store(defaults.store, config);
-            TickConfigDefaults.store(defaults.store, config);
         });
+    }
+
+    @Test
+    public void tickCounter() throws Exception {
+        open(TickConfig.class, PluginIdentity.TICK_COUNTER,
+            (defaults) -> TickConfigDefaults.store(defaults.store, (TickConfig) defaults.config));
     }
 
     @Test
@@ -63,7 +68,6 @@ public class SettingsPanelTest {
             PvmConfig config = (PvmConfig) defaults.config;
             CommonConfigDefaults.store(defaults.store, config);
             PvmConfigDefaults.store(defaults.store, config);
-            TickConfigDefaults.store(defaults.store, config);
         });
     }
 

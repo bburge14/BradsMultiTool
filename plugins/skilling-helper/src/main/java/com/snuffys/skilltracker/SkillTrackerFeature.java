@@ -42,19 +42,12 @@ class SkillTrackerFeature {
         return skillTracker;
     }
 
-    @Inject private TickCounter tickCounter;
-    @Inject private BradsMultiToolTickHeadOverlay tickHeadOverlay;
-    @Inject private BradsMultiToolTickBoxOverlay tickBoxOverlay;
-    @Inject private BradsMultiToolTickBarOverlay tickBarOverlay;
 
     @Inject private ConfigDefaults configDefaults;
     @Inject private SkillTrackerConfig config;
 
     void start(Lifecycle lifecycle) {
-        configDefaults.add(() -> {
-            SkillTrackerConfigDefaults.store(configDefaults, config);
-            TickConfigDefaults.store(configDefaults, config);
-        });
+        configDefaults.add(() -> SkillTrackerConfigDefaults.store(configDefaults, config));
         // Kill counts use monster hitpoints; Slayer goals suggest a Slayer master
         lifecycle.load(monsterData, monsterData::load);
         lifecycle.load(skillingData, skillingData::load);
@@ -68,9 +61,6 @@ class SkillTrackerFeature {
             resourceTimers, farmingData, birdhouseTracker, otherTimerPlugins, skillingOverlay, trainingOverlay);
         otherTimerPlugins.refresh();
         lifecycle.overlay(skillingOverlay, resourceTimerOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
-        // The tick counter, shared with the other plugin in the all-in-one
-        lifecycle.subscribe(tickCounter);
-        lifecycle.overlay(tickHeadOverlay, tickBoxOverlay, tickBarOverlay);
         skillTracker.startUp();
         lifecycle.onStop(skillTracker::shutDown);
     }

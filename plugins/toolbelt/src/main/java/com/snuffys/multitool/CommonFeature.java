@@ -18,10 +18,12 @@ class CommonFeature {
     @Inject
     private ConfigDefaults configDefaults;
     @Inject
+    private InGame inGame;
+    @Inject
     private CommonConfig config;
 
     void start(Lifecycle lifecycle) {
-        lifecycle.subscribe(alerts, idleWarnings, configDefaults);
+        lifecycle.subscribe(inGame, alerts, idleWarnings, configDefaults);
         configDefaults.add(() -> CommonConfigDefaults.store(configDefaults, config));
         lifecycle.overlay(idleWarningOverlay);
         pluginFamily.start();

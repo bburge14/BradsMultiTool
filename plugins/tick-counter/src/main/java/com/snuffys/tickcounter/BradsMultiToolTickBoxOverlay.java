@@ -1,4 +1,4 @@
-package com.snuffys.pvm;
+package com.snuffys.tickcounter;
 
 import java.awt.Color;
 import java.awt.Dimension;

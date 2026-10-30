@@ -14,7 +14,7 @@ Last checked: 2026-10-28.
 ## Planned split
 
 The Toolbelt will also be published as separate plugins (Snuffy's Skilling Helper, PvM/Slayer, GemCrab
-Tracker and an optional Alerts plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
+Tracker, Tick Counter and an optional Alerts plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
 its own data files, overlay(s) and config section, talking to the rest only through small shared helpers
 (voice alerts, chat messages, cursor tooltip).
 
@@ -79,7 +79,7 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 
 - **Click timing.** A training aid for tick manipulation (1-ticking): it times your own clicks against the tick
   and gives feedback after them. Nothing on the Plugin Hub does quite this; ask the reviewers before submitting,
-  and drop it if they object (the tick counter and metronome don't depend on it).
+  and drop it if they object (it's only in the Tick Counter, and the tick count and metronome don't depend on it).
 
 - **Voice clip licences.** Ryan's clips are CC BY-NC-SA 4.0 and L2 Arctic's CC BY-NC 4.0 (their recordings'
   licences; VOICE_CREDITS.md). The plugin is free, so non-commercial use holds, but the Plugin Hub asks for

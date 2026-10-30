@@ -1,4 +1,4 @@
-package com.snuffys.skilltracker;
+package com.snuffys.tickcounter;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -40,7 +40,7 @@ class TickCounter {
     private final TickConfig config;
     private final ItemManager itemManager;
     private final CombatStyle combatStyle;
-    private final Alerts alerts;
+    private final InGame inGame;
 
     /** Where in the cycle this tick is (1 is the first tick), 0 before the first tick. */
     @Getter
@@ -63,12 +63,12 @@ class TickCounter {
     private int weaponSpeed = UNARMED_SPEED;
 
     @Inject
-    TickCounter(Client client, TickConfig config, ItemManager itemManager, CombatStyle combatStyle, Alerts alerts) {
+    TickCounter(Client client, TickConfig config, ItemManager itemManager, CombatStyle combatStyle, InGame inGame) {
         this.client = client;
         this.config = config;
         this.itemManager = itemManager;
         this.combatStyle = combatStyle;
-        this.alerts = alerts;
+        this.inGame = inGame;
     }
 
     /** Whether the count is shown or sounded at all. */
@@ -84,6 +84,16 @@ class TickCounter {
     /** Whether a click this long after the tick is late. */
     boolean isLate(int offset) {
         return offset >= config.clickLateMs();
+    }
+
+    /** Whether a click this long after the tick is in the ideal zone. */
+    boolean isIdeal(int offset) {
+        return offset >= config.clickIdealFrom() && offset < config.clickIdealTo() && !isLate(offset);
+    }
+
+    /** The colour for a click this long after the tick: green in the ideal zone, red late, else white. */
+    java.awt.Color clickColor(int offset) {
+        return isLate(offset) ? HudColors.BAD : isIdeal(offset) ? HudColors.GOOD : java.awt.Color.WHITE;
     }
 
     /** The last clicks (ms after the tick) and missed ticks (-1), oldest first. */
@@ -134,8 +144,8 @@ class TickCounter {
 
     @Subscribe
     public void onGameTick(GameTick event) {
-        // Not until you're in the game: past loading and the welcome screen, like the alerts (Alerts.ready)
-        if (client.getGameState() != GameState.LOGGED_IN || !active() || !alerts.ready()) {
+        // Not until you're in the game: past loading and the welcome screen
+        if (client.getGameState() != GameState.LOGGED_IN || !active() || !inGame.ready()) {
             count = 0;
             attacked = false;
             lastTickMillis = 0;

@@ -18,7 +18,7 @@ import net.runelite.client.config.Units;
  * repeated here (MultiToolConfigTest checks none is missing).
  */
 @ConfigGroup("bradsmultitool")
-public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, GemCrabConfig {
+public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, GemCrabConfig, TickConfig {
 
 
     @ConfigSection(

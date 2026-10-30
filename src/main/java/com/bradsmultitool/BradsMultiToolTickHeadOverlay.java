@@ -17,7 +17,7 @@ import net.runelite.client.ui.overlay.OverlayUtil;
 
 /**
  * Over your character's head: the tick count, and with Click Timing on, how long after the tick each click
- * landed, rising and fading like an XP drop (green on time, red late).
+ * landed, rising and fading like an XP drop (green in the ideal zone, red late).
  */
 @Singleton
 public class BradsMultiToolTickHeadOverlay extends Overlay {
@@ -61,7 +61,7 @@ public class BradsMultiToolTickHeadOverlay extends Overlay {
             Point location = player.getCanvasTextLocation(graphics, text, height);
             if (location != null) {
                 int rise = (int) (CLICK_RISE * since / CLICK_SHOW_MILLIS) + (config.tickOverHead() ? config.tickTextSize() : 0);
-                Color color = ticks.isLate(ticks.getLastClickOffset()) ? HudColors.BAD : HudColors.GOOD;
+                Color color = ticks.clickColor(ticks.getLastClickOffset());
                 int alpha = (int) (255 * (1 - since / (double) CLICK_SHOW_MILLIS));
                 OverlayUtil.renderTextLocation(graphics, new Point(location.getX(), location.getY() - rise), text,
                     new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.max(0, alpha)));

@@ -14,18 +14,10 @@ import net.runelite.client.config.Units;
 
 /** Snuffy's Skilling Helper: the tracker, goals and suggestions, and the skilling helpers. */
 @ConfigGroup("snuffysskillinghelper")
-public interface SkillTrackerConfig extends CommonConfig, TickConfig {
+public interface SkillTrackerConfig extends CommonConfig {
 
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
 
-
-    @ConfigSection(
-        name = "Tick Counter",
-        description = "Counts game ticks over your head or in a box you can move, with an optional metronome",
-        position = 85,
-        closedByDefault = true
-    )
-    String tickSection = "tickSection";
 
     @ConfigSection(
         name = "General",

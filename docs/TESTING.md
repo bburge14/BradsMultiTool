@@ -110,6 +110,9 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3); 1 lands on each attack.
 - [ ] Click Timing: "NNNms" rises over your head on each click (green, red past Late After); the bar marks the
       click; the summary counts on time / late / missed. Right-click "Track for goal" isn't counted.
+- [ ] Ideal zone: green on the tick bar from Ideal From to Ideal To; clicks in it show green, others white
+      (red late); the summary counts "ideal".
+- [ ] Snuffy's Tick Counter on its own: its settings open (Tick Counter section open), everything works.
 - [ ] Click Sounds: ding on time, Late Sound (each of the four) when late; Click Every Tick: Late Sound on a
       tick with no click while 1-ticking.
 - [ ] Loading and the welcome screen after login: no count, boxes, bar or sounds.

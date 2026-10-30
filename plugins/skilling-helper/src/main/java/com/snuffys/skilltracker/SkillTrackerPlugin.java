@@ -40,11 +40,6 @@ public class SkillTrackerPlugin extends Plugin {
     }
 
     @Provides
-    TickConfig provideTickConfig(SkillTrackerConfig config) {
-        return config;
-    }
-
-    @Provides
     CommonConfig provideCommonConfig(SkillTrackerConfig config) {
         return config;
     }

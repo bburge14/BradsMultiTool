@@ -49,6 +49,7 @@ below).
 | **Snuffy's Skilling Helper** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
 | **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (buffs, potions, health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `shared` |
 | **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts | `gemcrab` (crab moved, about to burrow) + `shared` |
+| **Snuffy's Tick Counter** | Tick count over head, tick boxes, tick bar, metronome, click timing (its own plugin so neither the skilling nor the PvM side carries a second copy) | none (game sounds only) |
 | **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
 
 PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card and buff alerts.
@@ -57,14 +58,16 @@ PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card an
 
 | Plugin | Plugin class | Feature (what it starts) | Settings (group) | Its state |
 |---|---|---|---|---|
-| Toolbelt (all-in-one) | `BradsMultiToolPlugin` | all four below, joined up | `BradsMultiToolConfig` (`bradsmultitool`, extends the three below) | |
+| Toolbelt (all-in-one) | `BradsMultiToolPlugin` | all five below, joined up | `BradsMultiToolConfig` (`bradsmultitool`, extends the four below) | |
 | Skilling Helper | `SkillTrackerPlugin` | `SkillTrackerFeature` | `SkillTrackerConfig` (`snuffysskillinghelper`) | `SkillTracker` |
 | PvM/Slayer | `PvmPlugin` | `PvmFeature` | `PvmConfig` (`snuffyspvm`) | `PvmTracker`, `SlayerTracker` |
 | GemCrab Tracker | `GemCrabPlugin` | `GemCrabFeature` | `GemCrabConfig` (`snuffysgemcrab`) | `GemCrabTracker` |
+| Tick Counter | `TickCounterPlugin` | `TickCounterFeature` | `TickConfig` (`snuffystickcounter`) | `TickCounter` |
 | Voices | `VoicesPlugin` | `VoicesFeature` | `VoicesConfig` (`snuffysalerts`) | |
 
-Every plugin also starts `CommonFeature` (`Alerts`, `IdleWarnings`, `PluginFamily`) and uses `CommonConfig`
-(voice, chat, idle). `Lifecycle` subscribes, shows and loads each shared piece only once and undoes it all on
+Every plugin but the Tick Counter also starts `CommonFeature` (`Alerts`, `IdleWarnings`, `PluginFamily`) and
+uses `CommonConfig` (voice, chat, idle); the Tick Counter has no voice or idle warnings, and only shares `InGame`
+(past the welcome screen) and `CombatStyle` (for Follow Attack Speed). `Lifecycle` subscribes, shows and loads each shared piece only once and undoes it all on
 stop. `PluginIdentity` says which build is running (settings group, chat tag, family id). Shared pieces used
 by more than one plugin: `CombatStyle`, `MonsterData`, `SlayerData`, `GemstoneCrabs`, `HudColors`, the
 overlay components.
@@ -108,6 +111,7 @@ them along:
 | Snuffy's Skilling Helper | `plugins/skilling-helper/` | `snuffys-skilling-helper-<version>.jar` |
 | Snuffy's PvM/Slayer | `plugins/pvm-slayer/` | `snuffys-pvm-slayer-<version>.jar` |
 | Snuffy's GemCrab Tracker | `plugins/gemcrab-tracker/` | `snuffys-gemcrab-tracker-<version>.jar` |
+| Snuffy's Tick Counter | `plugins/tick-counter/` | `snuffys-tick-counter-<version>.jar` |
 | Snuffy's Alerts | `plugins/alerts/` | `snuffys-alerts-<version>.jar` |
 
 Each folder has only what its plugin uses: starting from its plugin class, every class it refers to (and so

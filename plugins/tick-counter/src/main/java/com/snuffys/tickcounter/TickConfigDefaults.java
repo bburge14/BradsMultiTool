@@ -1,4 +1,4 @@
-package com.snuffys.pvm;
+package com.snuffys.tickcounter;
 
 /**
  * Saves the default of every setting TickConfig declares, where nothing is saved yet (see ConfigDefaults).
@@ -29,6 +29,8 @@ final class TickConfigDefaults {
         defaults.store("clickSounds", config.clickSounds());
         defaults.store("clickLateSound", config.clickLateSound());
         defaults.store("clickLateMs", config.clickLateMs());
+        defaults.store("clickIdealFrom", config.clickIdealFrom());
+        defaults.store("clickIdealTo", config.clickIdealTo());
         defaults.store("clickEveryTick", config.clickEveryTick());
     }
 }

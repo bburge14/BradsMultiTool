@@ -1,22 +1,23 @@
-package com.snuffys.skilltracker;
+package com.snuffys.tickcounter;
 
 import java.awt.Color;
 import net.runelite.api.SoundEffectID;
 import net.runelite.client.config.Alpha;
 import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
-/** The tick counter and metronome, in both Snuffy's Skilling Helper and PvM/Slayer. */
+/** Snuffy's Tick Counter: the tick count, boxes and bar, the metronome and click timing. */
+@ConfigGroup("snuffystickcounter")
 public interface TickConfig extends Config {
 
     @ConfigSection(
         name = "Tick Counter",
         description = "Counts game ticks over your head or in a box you can move, with an optional metronome",
-        position = 85,
-        closedByDefault = true
+        position = 85
     )
     String tickSection = "tickSection";
 
@@ -329,12 +330,42 @@ public interface TickConfig extends Config {
         return 450;
     }
 
+    @Range(max
+    =
+    590)
+    @ConfigItem(
+        keyName = "clickIdealFrom",
+        name = "Ideal From",
+        description = "Start of the ideal click zone, shaded green on the tick bar: clicks in it show green, other clicks before Late After white",
+        section = tickSection,
+        position = 19
+    )
+    @Units(Units.MILLISECONDS)
+    default int clickIdealFrom() {
+        return 100;
+    }
+
+    @Range(max
+    =
+    590)
+    @ConfigItem(
+        keyName = "clickIdealTo",
+        name = "Ideal To",
+        description = "End of the ideal click zone (0 for no zone)",
+        section = tickSection,
+        position = 20
+    )
+    @Units(Units.MILLISECONDS)
+    default int clickIdealTo() {
+        return 350;
+    }
+
     @ConfigItem(
         keyName = "clickEveryTick",
         name = "Click Every Tick",
         description = "For 1-ticking, where you click once every tick: once you've started clicking, a tick that passes without a click counts as missed and plays the Late Sound. Leave off for methods that don't click every tick",
         section = tickSection,
-        position = 19
+        position = 21
     )
     default boolean clickEveryTick() {
         return false;

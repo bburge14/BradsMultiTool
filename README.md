@@ -22,6 +22,7 @@ Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just 
 | **Snuffy's Skilling Helper** | The sidebar tracker with goals and suggested training, the pinned skill, skilling hover cards, timer pies and skilling alerts |
 | **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
 | **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
+| **Snuffy's Tick Counter** | Tick count over your head, tick boxes and a smooth tick bar, metronome, click timing for tick skilling |
 | **Snuffy's Alerts** | Optional: one voice and volume for all of the separate plugins |
 
 **From the Plugin Hub** (once they're published there): in RuneLite open the **Plugin Hub** (the plug icon
@@ -152,10 +153,11 @@ work a resource.
   coming. The first tick of each cycle is in its own colour.
 - **Metronome** with a choice of game sounds (Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, Tinderbox): a
   different sound on the first tick of the cycle.
-- **Click timing** for 1-ticking: how many ms after the tick each click landed, a ding when on time and a
-  different sound when late or when you miss a tick, and a summary of your last 50 clicks.
+- **Click timing** for 1-ticking: how many ms after the tick each click landed, an ideal click zone on the tick
+  bar, a ding when on time and a different sound when late or when you miss a tick, and a summary of your last
+  50 clicks.
 - **Follow Attack Speed**: the cycle follows your weapon and starts again each time you attack.
-- In Skilling Helper and PvM/Slayer; settings under **Tick Counter**.
+- **Snuffy's Tick Counter** (also in the Toolbelt); settings under **Tick Counter**.
 
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key

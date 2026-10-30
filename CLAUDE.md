@@ -10,7 +10,7 @@
   rather than hand-editing.
 - The features will be split into separate plugins (docs/DEVELOPMENT.md "Planned: separate plugins"): keep each one
   self-contained: Snuffy's Skilling Helper (tracker, goals, suggestions and the skilling helpers), Snuffy's
-  PvM/Slayer, Snuffy's GemCrab Tracker, and an optional Snuffy's Alerts. Each plugin ships its own voice
+  PvM/Slayer, Snuffy's GemCrab Tracker, Snuffy's Tick Counter, and an optional Snuffy's Alerts. Each plugin ships its own voice
   lines (voices/<voice>/<plugin>/, VoiceAlertService.VoicePlugin) and their settings sit with its feature.
 - docs/DEVELOPMENT.md "How the code is split" has the rules that keep each plugin standalone. The plugins/
   folders are generated from src/ and committed: after changes, run `python3 scripts/split_plugins.py --verify`

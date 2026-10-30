@@ -1,4 +1,4 @@
-package com.snuffys.skilltracker;
+package com.snuffys.tickcounter;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -15,7 +15,8 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 
 /**
  * The tick bar: fills smoothly from left to right over each tick (drawn every frame, so it moves rather than
- * flashes) and snaps back when the next tick comes, with your last click marked on it. Under it, with Click
+ * flashes) and snaps back when the next tick comes, with the ideal click zone (green), the late part (orange)
+ * and your last click marked on it. Under it, with Click
  * Timing on, a summary of your last clicks. Moved like any overlay (Alt + drag).
  */
 @Singleton
@@ -23,7 +24,8 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
 
     private static final int HEIGHT = 14;
     private static final Color BACKGROUND = new Color(20, 20, 20, 170);
-    private static final Color LATE_ZONE = new Color(255, 140, 0, 60);
+    private static final Color LATE_ZONE = new Color(255, 140, 0, 90);
+    private static final Color IDEAL_ZONE = new Color(50, 220, 50, 70);
 
     private final Client client;
     private final TickConfig config;
@@ -52,17 +54,27 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
             double progress = Math.min(1, since / (double) BradsMultiToolTickBoxOverlay.TICK_MILLIS);
             graphics.setColor(BACKGROUND);
             graphics.fillRect(0, 0, width, HEIGHT);
+            Color fill = BradsMultiToolTickBoxOverlay.tickColor(config, ticks.getCount());
+            graphics.setColor(new Color(fill.getRed(), fill.getGreen(), fill.getBlue(), Math.min(fill.getAlpha(), 150)));
+            graphics.fillRect(0, 0, (int) (width * progress), HEIGHT);
             if (ticks.timingClicks()) {
-                // Clicks from here on count as late
-                int lateX = (int) (width * config.clickLateMs() / (double) BradsMultiToolTickBoxOverlay.TICK_MILLIS);
+                // On top of the fill so they always show: the ideal zone (green, edged), and from Late After on,
+                // clicks count as late (orange)
+                int idealFrom = x(width, config.clickIdealFrom());
+                int idealTo = x(width, Math.min(config.clickIdealTo(), config.clickLateMs()));
+                if (idealTo > idealFrom) {
+                    graphics.setColor(IDEAL_ZONE);
+                    graphics.fillRect(idealFrom, 0, idealTo - idealFrom, HEIGHT);
+                    graphics.setColor(HudColors.GOOD);
+                    graphics.drawRect(idealFrom, 0, idealTo - idealFrom - 1, HEIGHT - 1);
+                }
+                int lateX = x(width, config.clickLateMs());
                 graphics.setColor(LATE_ZONE);
                 graphics.fillRect(lateX, 0, width - lateX, HEIGHT);
             }
-            graphics.setColor(BradsMultiToolTickBoxOverlay.tickColor(config, ticks.getCount()));
-            graphics.fillRect(0, 0, (int) (width * progress), HEIGHT);
             if (ticks.timingClicks() && ticks.getLastClickMillis() >= ticks.getLastTickMillis()) {
-                int clickX = (int) (width * Math.min(1, ticks.getLastClickOffset() / (double) BradsMultiToolTickBoxOverlay.TICK_MILLIS));
-                graphics.setColor(ticks.isLate(ticks.getLastClickOffset()) ? HudColors.BAD : HudColors.GOOD);
+                int clickX = x(width, ticks.getLastClickOffset());
+                graphics.setColor(ticks.clickColor(ticks.getLastClickOffset()));
                 graphics.fillRect(Math.min(width - 2, clickX), 0, 2, HEIGHT);
             }
             graphics.setColor(Color.BLACK);
@@ -83,9 +95,15 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
         return new Dimension(width, y);
     }
 
-    /** "Last 50: 44 on time, 4 late, 2 missed, avg 310ms" */
+    /** Where this many ms into the tick is on a bar this wide. */
+    private static int x(int width, int millis) {
+        return (int) (width * Math.min(1, millis / (double) BradsMultiToolTickBoxOverlay.TICK_MILLIS));
+    }
+
+    /** "Last 50: 44 on time (30 ideal), 4 late, 2 missed, avg 310ms" */
     private String summary() {
         int onTime = 0;
+        int ideal = 0;
         int late = 0;
         int missed = 0;
         long total = 0;
@@ -99,6 +117,9 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
                 } else {
                     onTime++;
                 }
+                if (ticks.isIdeal(offset)) {
+                    ideal++;
+                }
             }
         }
         int clicks = onTime + late;
@@ -106,7 +127,7 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
             return "Click timing: waiting for a click";
         }
         StringBuilder text = new StringBuilder("Last ").append(clicks + missed).append(": ")
-            .append(onTime).append(" on time, ").append(late).append(" late");
+            .append(onTime).append(" on time (").append(ideal).append(" ideal), ").append(late).append(" late");
         if (config.clickEveryTick()) {
             text.append(", ").append(missed).append(" missed");
         }

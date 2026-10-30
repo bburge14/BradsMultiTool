@@ -326,7 +326,7 @@ killed it twice. Potions and better gear show up here as faster kills; they don'
 
 ## Tick counter and metronome
 
-In Snuffy's Skilling Helper and Snuffy's PvM/Slayer (one shared set of settings in the Toolbelt).
+In **Snuffy's Tick Counter** and the Toolbelt.
 
 **What it does:** counts game ticks in a cycle (1, 2, 3, 1, 2, 3...) for tick-based skilling and for timing
 your attacks, and can time your clicks against the tick. It only shows and sounds the ticks and reads your
@@ -341,9 +341,11 @@ clicks; it never clicks, changes a menu or does anything for you.
   is Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, or Tinderbox. It can play on the first tick only.
 - **Follow Attack Speed:** the cycle becomes your weapon's attack speed (one tick faster on Rapid), and the
   count starts again at 1 each time you attack, so 1 is your attack tick.
-- **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head, green on
-  time and red when late. The tick bar marks your last click and shades the late part of the tick, and a
-  summary of your last 50 clicks shows with the bar: "Last 50: 44 on time, 4 late, 2 missed, avg 310ms".
+- **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head: green
+  in the ideal zone, white elsewhere before Late After, red when late. The tick bar shades the **ideal zone**
+  green (**Ideal From** to **Ideal To**, 100-350ms by default) and the late part orange, and marks your last
+  click. A summary of your last 50 clicks shows with the bar: "Last 50: 44 on time (30 ideal), 4 late, 2
+  missed, avg 310ms".
 - **Click Sounds:** a ding for each click on time and the **Late Sound** (Vwoop, Boing, Thud or Door) for a
   late one. **Late After** (450ms by default) sets when a click counts as late: with your ping it may land on
   the next tick.
@@ -359,10 +361,7 @@ turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 **Settings (Tick Counter):** Count Over Head; Tick Boxes and Box Layout (Horizontal or Vertical); Tick Bar;
 Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
-volume); Click Timing; Click Sounds; Late Sound; Late After; Click Every Tick.
-
-If you have both Skilling Helper and PvM/Slayer installed separately, each has its own tick counter; turn it
-on in just one.
+volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.
 
 ---
 
