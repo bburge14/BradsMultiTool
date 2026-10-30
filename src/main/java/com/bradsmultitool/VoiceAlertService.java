@@ -56,7 +56,7 @@ public class VoiceAlertService {
         TASK_NEARLY_DONE("task_nearly_done", "Slayer task nearly done."),
         SLAYER_ITEM_MISSING("slayer_item_missing", "You are missing your slayer item."),
         INVENTORY_FULL("inventory_full", "Inventory is full."),
-        TREE_GONE("tree_gone", "The tree is gone."),
+        TREE_GONE("tree_gone", "The tree has fallen."),
         ROCK_DEPLETED("rock_depleted", "The rock is depleted."),
         FISHING_SPOT_MOVED("fishing_spot_moved", "The fishing spot has moved."),
         COIN_POUCH_FULL("coin_pouch_full", "Your coin pouches are full."),

@@ -30,6 +30,7 @@ import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.PlayerSpawned;
@@ -59,7 +60,8 @@ import net.runelite.client.util.Text;
  * is exact.</li>
  * <li>Sailing shipwrecks (Salvaging AFK Timer): each type lasts a set time from when it surfaces.</li>
  * <li>Hunter traps you lay (RuneLite's Hunter plugin): collapse a minute after being laid.</li>
- * <li>Fires: burn out 100-200 ticks after being lit (Fire Timer).</li>
+ * <li>Fires: burn out 100-200 ticks after being lit (Fire Timer). Shown only on a fire you cook on, counting
+ * down to the earliest it can go out (100 ticks), then "any moment" like a tree.</li>
  * </ul>
  * Apart from stars, the game doesn't send these timers to the client, so they're estimates from what's
  * visible.
@@ -95,6 +97,8 @@ class ResourceTimers {
         double health = -1;
         // Hunter traps
         TrapState trapState = TrapState.SET;
+        // Fires: you've cooked on it
+        boolean cookedOn;
 
         Timer(Kind kind, TileObject object, NPC npc, int minTicks, int maxTicks) {
             this.kind = kind;
@@ -113,6 +117,9 @@ class ResourceTimers {
                     return Math.max(0, (double) ticksLeft / maxTicks);
                 case STAR:
                     return Math.max(0, health);
+                case FIRE:
+                    // To the earliest it can go out; after that it can any moment (due)
+                    return Math.max(0, 1 - (double) elapsed / minTicks);
                 default:
                     return Math.max(0, 1 - (double) elapsed / maxTicks);
             }
@@ -145,6 +152,8 @@ class ResourceTimers {
                     return started;
                 case STAR:
                     return health >= 0;
+                case FIRE:
+                    return cookedOn;
                 default:
                     return true;
             }
@@ -798,6 +807,24 @@ class ResourceTimers {
             return timerAt(step(at, Direction.NORTH), kind);
         }
         return null;
+    }
+
+    // Cooking on a fire (using food on it, or its Cook option): only then does it get a pie
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (event.getId() != FIRE) {
+            return;
+        }
+        String option = Text.removeTags(event.getMenuOption()).toLowerCase();
+        if (!option.equals("use") && !option.startsWith("cook")) {
+            return;
+        }
+        WorldPoint at = WorldPoint.fromScene(client.getTopLevelWorldView(), event.getParam0(), event.getParam1(),
+            client.getTopLevelWorldView().getPlane());
+        Timer fire = timerAt(at, Kind.FIRE);
+        if (fire != null) {
+            fire.cookedOn = true;
+        }
     }
 
     private Timer timerAt(WorldPoint point, Kind kind) {

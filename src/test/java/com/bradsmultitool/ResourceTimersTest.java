@@ -68,4 +68,19 @@ public class ResourceTimersTest {
         assertEquals(102, ResourceTimers.campfireLog(40)[1], 0);
         assertTrue(ResourceTimers.campfireLog(12) == null);
     }
+
+    // A fire's pie runs to the earliest it can go out (100 ticks), then it's due (could go any moment); only
+    // a fire you've cooked on shows one
+    @Test
+    public void fireCountsToItsEarliestEnd() {
+        ResourceTimers.Timer fire = new ResourceTimers.Timer(ResourceTimers.Kind.FIRE, null, null, 100, 200);
+        fire.elapsed = 50;
+        org.junit.Assert.assertEquals(0.5, fire.progress(), 0.001);
+        org.junit.Assert.assertFalse(fire.due());
+        fire.elapsed = 100;
+        org.junit.Assert.assertTrue(fire.due());
+        org.junit.Assert.assertFalse(fire.visible());
+        fire.cookedOn = true;
+        org.junit.Assert.assertTrue(fire.visible());
+    }
 }

@@ -40,6 +40,9 @@ class SkillingAlerts {
     @Inject
     private Alerts alerts;
 
+    @Inject
+    private SkillingData skillingData;
+
     // Game variables (net.runelite.api.gameval)
     // Warn when about this much protection is left (about 36 seconds)
     // Spec changes in the first ticks after login are the energy loading in; real spends cost 10%+
@@ -267,6 +270,11 @@ class SkillingAlerts {
             return;
         }
         resourceObjectId = -1;
+        // Not for level 1 trees and rocks: they go after a log or an ore anyway (regular trees, copper, tin...)
+        SkillingData.Resource resource = skillingData.object(object.getId(), client.getObjectDefinition(object.getId()).getName());
+        if (resource != null && (resource.level <= 1 || resource.oneLog)) {
+            return;
+        }
         if (config.resourceGoneAlert()) {
             if (resourceIsTree) {
                 alert(VoiceAlertService.VoiceLine.TREE_GONE, null);

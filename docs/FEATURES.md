@@ -221,7 +221,7 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 | Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timer Pies |
 | Fishing spots that moved while you were there | How soon they may move again | Fishing > Fishing Spot Pies |
 | Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timer Pies |
-| Fires lit nearby | How long it may burn | Firemaking > Fire Timer Pies |
+| Fires you cook on (lit while you were nearby) | Time to the earliest it can go out (60 s), then a pulsing red pie: it can go any moment (fires last 60-119 s) | Firemaking > Fire Timer Pies |
 | Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Fire Timer Pies |
 | Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Pies |
 
@@ -241,7 +241,7 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 
 | Alert | When | Setting |
 |---|---|---|
-| Tree fallen / rock depleted / fishing spot moved | Your resource is gone | Skilling > Resource Gone |
+| Tree fallen / rock depleted / fishing spot moved | Your resource is gone ("The tree has fallen."); not for level 1 trees and rocks, which go after one log or ore | Skilling > Resource Gone |
 | Inventory full | Your inventory fills while skilling | Skilling > Inventory Full |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |

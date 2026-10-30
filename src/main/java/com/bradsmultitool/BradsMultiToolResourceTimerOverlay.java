@@ -119,6 +119,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
     }
 
+    private static final int FIRE_HEIGHT = 60;
+
     // Trees: the middle of the canopy. Rocks: the middle of the model as drawn. Fishing spots: on the water.
     private Point position(ResourceTimers.Timer timer) {
         int plane = client.getTopLevelWorldView().getPlane();
@@ -127,6 +129,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             return local == null ? null : Perspective.localToCanvas(client, local, plane, 0);
         }
         LocalPoint local = timer.object.getLocalLocation();
+        // Fires: a fixed point just above the logs, not the flames' shape, which moves every frame
+        if (timer.kind == ResourceTimers.Kind.FIRE || timer.kind == ResourceTimers.Kind.CAMPFIRE) {
+            return local == null ? null : Perspective.localToCanvas(client, local, plane, FIRE_HEIGHT);
+        }
         if (timer.object instanceof GameObject) {
             GameObject object = (GameObject) timer.object;
             // A tree's leaves sit in the top part of its model, so aim about two-thirds of the way up

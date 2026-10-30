@@ -99,7 +99,7 @@ pies (only while you train that skill, unless **Pies When Not Training** is on),
 | Thieving | Stall and pickpocket cards (level, XP, never-fail level with the Ardougne cloak, stun damage); coin pouches full alert |
 | Farming | Patch card: crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's protection payment, and what you can plant |
 | Hunter | Creature card (level, XP, trap); trap spot card (young tree, boulder, pit: what you can catch there, with levels); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
-| Firemaking | Pies on fires lit nearby and on Forester's Campfires showing how long they may burn |
+| Firemaking | Pies on fires you cook on and on Forester's Campfires showing how long they may burn |
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
 | Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |

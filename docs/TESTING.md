@@ -92,7 +92,9 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Mining: Motherlode veins, calcified rocks, Daeyalt essence, shooting stars.
 - [ ] Fishing spots: pies on spots that moved while you were there.
 - [ ] Hunter: pie on traps you lay, green when caught.
-- [ ] Firemaking: pie on fires you light.
+- [ ] Fires: a pie only on a fire you cook on (Use food on it), none on fires you just light or walk past; it
+      runs out at about 60 s, then pulses red until the fire goes; it sits still, not bouncing with the flames.
+- [ ] "The tree has fallen." (new wording) on oaks and up; no tree/rock alert on regular trees, copper or tin.
 - [ ] Sailing: shipwreck pies.
 - [x] Pies don't draw over the bank or other interfaces.
 
