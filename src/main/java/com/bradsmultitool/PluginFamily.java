@@ -75,9 +75,10 @@ class PluginFamily {
         return others.contains(plugin);
     }
 
-    // Who runs the warnings every plugin has (idle, logout) when several are installed, so they're said once:
-    // the first of these that's running
-    private static final List<String> SHARED_ORDER = Arrays.asList(VOICES, "multitool", "skilltracker", "pvm", "gemcrab");
+    // Who runs the warnings every plugin has (idle, logout) when several are installed, so they're said once
+    // (and tagged with its name in chat): the first of these that's running. The all-in-one comes first, so
+    // with it installed every message says Snuffy's Multi-Tool (in the Voices plugin's voice, if that runs)
+    private static final List<String> SHARED_ORDER = Arrays.asList("multitool", VOICES, "skilltracker", "pvm", "gemcrab");
 
     /** Whether this plugin should run the shared idle and logout warnings (no other of ours ahead of it is running). */
     boolean handlesShared() {

@@ -49,4 +49,25 @@ public class PluginFamilyTest {
         assertNull(PluginFamily.parseVoiceSettings(new HashMap<>()));
         family.stop();
     }
+
+    @Test
+    public void sharedWarningsAreSaidOnceByTheFirstInOrder() {
+        EventBus bus = new EventBus();
+        PluginFamily multiTool = new PluginFamily(bus, PluginIdentity.MULTI_TOOL);
+        PluginFamily voices = new PluginFamily(bus, PluginIdentity.VOICES);
+        PluginFamily pvm = new PluginFamily(bus, PluginIdentity.PVM);
+        pvm.start();
+        assertTrue(pvm.handlesShared());
+        voices.start();
+        assertFalse(pvm.handlesShared());
+        assertTrue(voices.handlesShared());
+        // With the all-in-one installed it says them, tagged Snuffy's Multi-Tool
+        multiTool.start();
+        assertTrue(multiTool.handlesShared());
+        assertFalse(voices.handlesShared());
+        multiTool.stop();
+        assertTrue(voices.handlesShared());
+        voices.stop();
+        pvm.stop();
+    }
 }
