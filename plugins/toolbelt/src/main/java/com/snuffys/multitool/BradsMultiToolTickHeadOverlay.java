@@ -44,7 +44,8 @@ public class BradsMultiToolTickHeadOverlay extends Overlay {
         if (player == null || ticks.getCount() <= 0) {
             return null;
         }
-        int height = player.getLogicalHeight() + 40;
+        // Just above the head, where the game puts overhead text
+        int height = player.getLogicalHeight();
         if (config.tickOverHead()) {
             String text = String.valueOf(ticks.getCount());
             graphics.setFont(FontManager.getRunescapeBoldFont().deriveFont(Font.BOLD, (float) config.tickTextSize()));

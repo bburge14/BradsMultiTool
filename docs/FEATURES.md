@@ -344,10 +344,13 @@ clicks; it never clicks, changes a menu or does anything for you.
 - **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head, green on
   time and red when late. The tick bar marks your last click and shades the late part of the tick, and a
   summary of your last 50 clicks shows with the bar: "Last 50: 44 on time, 4 late, 2 missed, avg 310ms".
-- **Click Sounds:** a ding for each click on time and a dun for a late one. **Late After** (450ms by default)
-  sets when a click counts as late: with your ping it may land on the next tick.
-- **Click Every Tick** (for 1-ticking): a tick with no click, straight after one with a click, counts as missed
-  and plays a dun.
+- **Click Sounds:** a ding for each click on time and the **Late Sound** (Vwoop, Boing, Thud or Door) for a
+  late one. **Late After** (450ms by default) sets when a click counts as late: with your ping it may land on
+  the next tick.
+- **Click Every Tick** (for 1-ticking, where you click once every tick): once you've started clicking, a tick
+  that passes without a click counts as missed and plays the Late Sound. Leave it off for methods that don't
+  click every tick.
+- Nothing shows or plays on the welcome screen after logging in.
 
 **How to use it:** open **Tick Counter**, turn on what you want to see, and set **Ticks Per Cycle** (e.g. 3 for
 3-tick skilling), or turn on **Follow Attack Speed** for combat. For 1-ticking, set Ticks Per Cycle to 1 and
@@ -356,7 +359,7 @@ turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 **Settings (Tick Counter):** Count Over Head; Tick Boxes and Box Layout (Horizontal or Vertical); Tick Bar;
 Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome Sound; Sound On First Tick Only; Metronome Volume (also the click sounds; 0 uses the game's
-sound effect volume); Click Timing; Click Sounds; Late After; Click Every Tick.
+sound effect volume); Click Timing; Click Sounds; Late Sound; Late After; Click Every Tick.
 
 If you have both Skilling Helper and PvM/Slayer installed separately, each has its own tick counter; turn it
 on in just one.

@@ -26,6 +26,7 @@ final class TickConfigDefaults {
         defaults.store("metronomeVolume", config.metronomeVolume());
         defaults.store("clickTiming", config.clickTiming());
         defaults.store("clickSounds", config.clickSounds());
+        defaults.store("clickLateSound", config.clickLateSound());
         defaults.store("clickLateMs", config.clickLateMs());
         defaults.store("clickEveryTick", config.clickEveryTick());
     }

@@ -152,8 +152,8 @@ work a resource.
   coming. The first tick of each cycle is in its own colour.
 - **Metronome** with a choice of game sounds (Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, Tinderbox): a
   different sound on the first tick of the cycle.
-- **Click timing** for 1-ticking: how many ms after the tick each click landed, a ding when on time and a dun
-  when late or when you miss a tick, and a summary of your last 50 clicks.
+- **Click timing** for 1-ticking: how many ms after the tick each click landed, a ding when on time and a
+  different sound when late or when you miss a tick, and a summary of your last 50 clicks.
 - **Follow Attack Speed**: the cycle follows your weapon and starts again each time you attack.
 - In Skilling Helper and PvM/Slayer; settings under **Tick Counter**.
 

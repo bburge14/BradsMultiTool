@@ -32,7 +32,8 @@ class TickCounter {
     /** How many recent clicks (and missed ticks) the summary covers. */
     static final int RECENT = 50;
     private static final int DING = SoundEffectID.TOWN_CRIER_BELL_DING;
-    private static final int DUN = SoundEffectID.TOWN_CRIER_BELL_DONG;
+    // The welcome screen after logging in ("Click here to play")
+    private static final int WELCOME_SCREEN_GROUP = 378;
 
     /** A click (how long after the tick, in ms) or a missed tick (-1), for the summary. */
     private final Deque<Integer> recent = new ArrayDeque<>();
@@ -120,7 +121,7 @@ class TickCounter {
         clicksThisTick++;
         remember(lastClickOffset);
         if (config.clickSounds()) {
-            play(isLate(lastClickOffset) ? DUN : DING);
+            play(isLate(lastClickOffset) ? config.clickLateSound().id : DING);
         }
     }
 
@@ -133,7 +134,7 @@ class TickCounter {
 
     @Subscribe
     public void onGameTick(GameTick event) {
-        if (client.getGameState() != GameState.LOGGED_IN || !active()) {
+        if (client.getGameState() != GameState.LOGGED_IN || !active() || client.getWidget(WELCOME_SCREEN_GROUP, 0) != null) {
             count = 0;
             attacked = false;
             lastTickMillis = 0;
@@ -149,7 +150,7 @@ class TickCounter {
         if (missed) {
             remember(-1);
             if (config.clickSounds()) {
-                play(DUN);
+                play(config.clickLateSound().id);
             }
         }
 

@@ -63,6 +63,27 @@ public interface TickConfig extends Config {
         }
     }
 
+    /** The "dun" for a late click or a missed tick: low sounds, nothing like the ding of a click on time. */
+    enum LateSound {
+        VWOOP("Vwoop (prayer off)", SoundEffectID.PRAYER_DEACTIVE_VWOOP),
+        BOING("Boing (splash)", SoundEffectID.MAGIC_SPLASH_BOING),
+        THUD("Thud (zero hit)", SoundEffectID.ZERO_DAMAGE_SPLAT),
+        DOOR("Door", SoundEffectID.CLOSE_DOOR);
+
+        private final String label;
+        final int id;
+
+        LateSound(String label, int id) {
+            this.label = label;
+            this.id = id;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     @ConfigItem(
         keyName = "tickOverHead",
         name = "Count Over Head",
@@ -260,12 +281,23 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "clickSounds",
         name = "Click Sounds",
-        description = "A ding for each click on time, a dun for a late one (after Late After)",
+        description = "A ding for each click on time, the Late Sound for a late one (after Late After) or a missed tick",
         section = tickSection,
         position = 15
     )
     default boolean clickSounds() {
         return false;
+    }
+
+    @ConfigItem(
+        keyName = "clickLateSound",
+        name = "Late Sound",
+        description = "The sound for a late click or a missed tick",
+        section = tickSection,
+        position = 16
+    )
+    default LateSound clickLateSound() {
+        return LateSound.VWOOP;
     }
 
     @Range(min
@@ -279,7 +311,7 @@ public interface TickConfig extends Config {
         name = "Late After",
         description = "A click this long after the tick or later counts as late: with your ping it may land on the next tick",
         section = tickSection,
-        position = 16
+        position = 17
     )
     @Units(Units.MILLISECONDS)
     default int clickLateMs() {
@@ -289,9 +321,9 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "clickEveryTick",
         name = "Click Every Tick",
-        description = "For 1-ticking: a tick without a click, after one with a click, counts as missed (and plays a dun)",
+        description = "For 1-ticking, where you click once every tick: once you've started clicking, a tick that passes without a click counts as missed and plays the Late Sound. Leave off for methods that don't click every tick",
         section = tickSection,
-        position = 17
+        position = 18
     )
     default boolean clickEveryTick() {
         return false;
