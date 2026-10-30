@@ -8,6 +8,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Logging in with low prayer or health doesn't announce it.
 - [x] Turning a Voice: switch on plays a preview; turning it off silences only that alert.
 - [x] Chat messages match the voice line, with details in brackets.
+- [x] The Toolbelt's settings open, with older settings kept; no voice previews when the client starts.
 
 ## PvM
 - [x] PvM HUD appears on attacking a monster: HP bar, aggro line, weakness, style, DPS, last/max hit.
@@ -92,34 +93,36 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Hunter goal: the suggested creatures are outlined.
 - [ ] Hunter goal: right-click a different creature > Track for goal; it's outlined instead and the card says Tracking: ... (your pick). Untrack / Use suggested method restores the suggestion.
 - [x] No Track for goal option on things whose skill has no goal.
-- [ ] Prayer goal: right-click bones in the inventory > Track for goal > Gilded altar; the card says Tracking: Dragon bones (Gilded altar), Offer: ..., and the actions left drop to about a third. Green marks the current pick; Untrack for goal is at the bottom (check the list's order).
-- [ ] Prayer goal: right-click blessed bone shards > Track for goal > Sunfire wine; tools list the sunfire wine and XP each is 6.
-- [ ] Cooking goal: right-click raw fish in the bank > Track for goal; the card says Cook: that fish.
-- [ ] Card > Pin to screen shows the skill overlay; pinning another skill replaces it; overlay right-click > Unpin removes it; stays pinned after a restart.
+- [x] Prayer goal: right-click bones in the inventory > Track for goal > Gilded altar; the card says Tracking: Dragon bones (Gilded altar), Offer: ..., and the actions left drop to about a third. Green marks the current pick; Untrack for goal is at the bottom (check the list's order).
+- [x] Prayer goal: right-click blessed bone shards > Track for goal > Sunfire wine; tools list the sunfire wine and XP each is 6.
+- [x] Cooking goal: right-click raw fish in the bank > Track for goal; the card says Cook: that fish.
+- [x] Card > Pin to screen shows the skill overlay; pinning another skill replaces it; overlay right-click > Unpin removes it; stays pinned after a restart.
 - [ ] Training Focus: Money maker shows Money: <guide> (~X/hr); Cheapest shows Cheapest: <recipe> (gp/xp) for making skills and the fastest method for gathering; Other methods changes the guide method.
 - [x] Clear goal moves the card back under THIS SESSION (or removes it if untrained).
 - [x] Auto-pause after the set minutes without XP; resumes on XP.
 - [x] Level-up voice says skill and level.
 
 ## Tick counter
-- [ ] Count Over Head: the count shows above your character, 1 to Ticks Per Cycle, first tick in its colour.
-- [ ] Tick Boxes: one box per tick of the cycle, the current one lit; Horizontal and Vertical; drawn once in the
+- [x] Count Over Head: the count shows above your character, 1 to Ticks Per Cycle, first tick in its colour.
+- [x] Tick Boxes: one box per tick of the cycle, the current one lit; Horizontal and Vertical; drawn once in the
       Toolbelt (not two stacked boxes); moves with Alt + drag and keeps its place.
-- [ ] Tick Bar: fills smoothly over each tick and snaps back on the tick; Bar Width.
-- [ ] Metronome on/off; each Tone plays, with the second sound on the first tick; First Tick Only; Volume.
+- [x] Tick Bar: fills smoothly over each tick and snaps back on the tick; Bar Width.
+- [x] Metronome on/off; each Tone plays, with the second sound on the first tick; First Tick Only; Volume.
 - [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3); 1 lands on each attack.
-- [ ] Click Timing: "NNNms" rises over your head on each click (green, red past Late After); the bar marks the
+- [x] Click Timing: "NNNms" rises over your head on each click (green, red past Late After); the bar marks the
       click; the summary counts on time / late / missed. Right-click "Track for goal" isn't counted.
-- [ ] Ideal zone: green on the tick bar from Ideal From to Ideal To; clicks in it show green, others white
+- [x] Ideal zone: green on the tick bar from Ideal From to Ideal To; clicks in it show green, others white
       (red late); the summary counts "ideal".
 - [ ] Snuffy's Tick Counter on its own: its settings open (Tick Counter section open), everything works.
-- [ ] Click Sounds: ding on time, Late Sound (each of the four) when late; Click Every Tick: Late Sound on a
-      tick with no click while 1-ticking.
-- [ ] Loading and the welcome screen after login: no count, boxes, bar or sounds.
-- [ ] Count Over Head sits just above the head.
-- [ ] All off: nothing shows and no sound.
+- [x] Click Sounds: ding on time, Late Sound (each of the four) when late.
+- [ ] Click Every Tick: Late Sound on a tick with no click while 1-ticking.
+- [ ] Actually tick skilling with it (e.g. 3-tick or 1-tick): the bar, ideal zone and sounds help, and the
+      ms and summary match how it felt.
+- [x] Loading and the welcome screen after login: no count, boxes, bar or sounds.
+- [x] Count Over Head sits just above the head.
+- [x] All off: nothing shows and no sound.
 
 ## Idle
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
-- [ ] No AFK alert after logging in without doing anything (login's XP report isn't training).
+- [x] No AFK alert after logging in without doing anything (login's XP report isn't training).
 - [x] Idle logout warning before the logout.
