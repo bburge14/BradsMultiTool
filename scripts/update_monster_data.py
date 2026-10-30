@@ -111,6 +111,8 @@ def main():
     # Lower-case name (page name without "(variant)") -> the first NPC id with that name, for NPCs whose id
     # the wiki doesn't list (new variants, transformed NPCs)
     names = {}
+    # Lower-case name -> stats, for monsters the wiki has no NPC id for yet (brand-new ones), matched by name
+    unlisted = {}
     for row in rows:
         aggressive = row.get("is_aggressive")
         attributes = row.get("attribute") or []
@@ -130,6 +132,11 @@ def main():
         ids = row.get("id") or []
         if isinstance(ids, str):
             ids = [ids]
+        if not any(part.strip().isdigit() for npc_id in ids for part in str(npc_id).split(",")):
+            name = re.sub(r"\s*\([^)]*\)\s*$", "", row.get("page_name") or "").strip().lower()
+            if name:
+                unlisted.setdefault(name, entry)
+            continue
         for npc_id in ids:
             for part in str(npc_id).split(","):
                 part = part.strip()
@@ -141,9 +148,13 @@ def main():
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as f:
-        json.dump({"source": "oldschool.runescape.wiki", "fields": FIELDS, "monsters": monsters, "names": names},
+        # Names that also have an NPC id are matched through that
+        unlisted = {name: entry for name, entry in unlisted.items() if name not in names}
+        json.dump({"source": "oldschool.runescape.wiki", "fields": FIELDS, "monsters": monsters, "names": names,
+                   "unlisted": unlisted},
                   f, separators=(",", ":"), sort_keys=True)
-    print("Wrote %d NPC ids from %d wiki rows to %s" % (len(monsters), len(rows), os.path.normpath(OUT)))
+    print("Wrote %d NPC ids (and %d monsters without one, by name) from %d wiki rows to %s"
+          % (len(monsters), len(unlisted), len(rows), os.path.normpath(OUT)))
 
 
 if __name__ == "__main__":

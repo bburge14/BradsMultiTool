@@ -15,6 +15,11 @@ class PvmFeature {
     @Inject private SlayerData slayerData;
     @Inject private CombatStyle combatStyle;
     @Inject private CombatAlerts combatAlerts;
+    @Inject private PotionBuffs potionBuffs;
+    @Inject private PotionAlerts potionAlerts;
+    @Inject private StatusEffects statusEffects;
+    @Inject private MonsterEffects monsterEffects;
+    @Inject private BradsMultiToolBuffBarOverlay buffBarOverlay;
     @Inject private BradsMultiToolOverlay hudOverlay;
     @Inject private BradsMultiToolPrayerOverlay prayerOverlay;
     @Inject private BradsMultiToolHoverOverlay hoverOverlay;
@@ -30,20 +35,19 @@ class PvmFeature {
         return hoverOverlay;
     }
 
-    BradsMultiToolOverlay hud() {
-        return hudOverlay;
-    }
-
 
     @Inject private ConfigDefaults configDefaults;
     @Inject private PvmConfig config;
 
     void start(Lifecycle lifecycle) {
-        configDefaults.add(() -> PvmConfigDefaults.store(configDefaults, config));
+        configDefaults.add(() -> {
+            PvmConfigDefaults.store(configDefaults, config);
+            BuffConfigDefaults.store(configDefaults, config);
+        });
         lifecycle.load(monsterData, monsterData::load);
         lifecycle.load(slayerData, slayerData::load);
-        lifecycle.subscribe(pvm, combatStyle, combatAlerts);
-        lifecycle.overlay(hudOverlay, prayerOverlay, hoverOverlay, orbOverlay, slayerOverlay, slayerHighlightOverlay);
+        lifecycle.subscribe(pvm, potionBuffs, potionAlerts, statusEffects, monsterEffects, combatStyle, combatAlerts);
+        lifecycle.overlay(hudOverlay, prayerOverlay, hoverOverlay, orbOverlay, slayerOverlay, slayerHighlightOverlay, buffBarOverlay);
         pvm.startUp();
         lifecycle.onStop(pvm::shutDown);
     }

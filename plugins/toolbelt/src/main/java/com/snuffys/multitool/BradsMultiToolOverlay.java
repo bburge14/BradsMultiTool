@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -45,6 +46,9 @@ public class BradsMultiToolOverlay extends Overlay {
     private SlayerMonsterInfo slayerInfo;
 
     @Inject
+    private MonsterEffects monsterEffects;
+
+    @Inject
     public BradsMultiToolOverlay(Client client, PvmTracker plugin, PvmConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
         this.client = client;
         this.plugin = plugin;
@@ -55,6 +59,8 @@ public class BradsMultiToolOverlay extends Overlay {
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
+        // Its own reset, in its right-click menu
+        addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "PvM session", e -> plugin.resetSession());
     }
 
     @Override
@@ -125,6 +131,19 @@ public class BradsMultiToolOverlay extends Overlay {
                         .left("Bane:")
                         .right(weakness.note)
                         .build());
+                }
+            }
+
+            if (config.showMonsterEffects() && target != null) {
+                List<String> statuses = monsterEffects.statuses(target);
+                if (!statuses.isEmpty()) {
+                    panelComponent.getChildren().add(LineComponent.builder()
+                        .left("Status:").right(String.join(", ", statuses)).rightColor(GOOD).build());
+                }
+                String defence = monsterEffects.defence(target);
+                if (defence != null) {
+                    panelComponent.getChildren().add(LineComponent.builder()
+                        .left("Defence:").right(defence).rightColor(GOOD).build());
                 }
             }
 
@@ -210,12 +229,10 @@ public class BradsMultiToolOverlay extends Overlay {
      * One row per active buff with its potion icon, boost and time left (counting down smoothly
      * between game ticks); otherwise a single Buff Status line, flashing when expired.
      */
-    /**
-     * Buff timers (or Buff Status), and LOW prayer and health warnings: on this HUD, and on the Gemstone
-     * Crab's when both run in the all-in-one.
-     */
-    void addStatusRows(PanelComponent panel) {
-        if (config.enableBuffStatus()) {
+    /** Buff timers (or Buff Status), and LOW prayer and health warnings, on this HUD. */
+    private void addStatusRows(PanelComponent panel) {
+        // The buff bar shows the potion buffs when it's on
+        if (config.enableBuffStatus() && !config.showBuffBar()) {
             addBuffRows(panel);
         }
         if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {
@@ -227,7 +244,7 @@ public class BradsMultiToolOverlay extends Overlay {
     }
 
     private void addBuffRows(PanelComponent panelComponent) {
-        if (plugin.getBuffState() == PvmTracker.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
+        if (plugin.getBuffState() == PotionAlerts.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
             long now = System.currentTimeMillis();
             for (ActiveBuffs.Buff buff : plugin.getActiveBuffs()) {
                 String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(buff.millisLeft(now));
@@ -240,7 +257,7 @@ public class BradsMultiToolOverlay extends Overlay {
         }
 
         Color color = getBuffColor(plugin.getBuffState());
-        boolean flashing = plugin.getBuffState() == PvmTracker.BuffState.EXPIRED;
+        boolean flashing = plugin.getBuffState() == PotionAlerts.BuffState.EXPIRED;
         if (config.flashExpiredBuff() && flashing && (System.currentTimeMillis() / 350) % 2 == 0) {
             color = Color.WHITE;
         }
@@ -257,7 +274,7 @@ public class BradsMultiToolOverlay extends Overlay {
         return style != null ? CombatStyle.weaknessMatchColor(style, weakness) : Color.WHITE;
     }
 
-    private Color getBuffColor(PvmTracker.BuffState state) {
+    private Color getBuffColor(PotionAlerts.BuffState state) {
         switch (state) {
             case EXPIRED: return BAD;
             case ACTIVE: return GOOD;

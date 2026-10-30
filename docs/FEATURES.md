@@ -8,6 +8,7 @@ section to open. All sections except General start collapsed.
 - [PvM HUD](#pvm-hud)
 - [Monster hover card](#monster-hover-card)
 - [Potion buffs](#potion-buffs)
+- [Buff bar](#buff-bar)
 - [Health and prayer](#health-and-prayer)
 - [Combat alerts](#combat-alerts)
 - [Slayer card](#slayer-card)
@@ -34,6 +35,9 @@ message uses the same words as the voice line, with details in brackets.
   Old Man, TzHaar, Ghost) or **Random** (a different one each alert). Changing it plays a sample.
 - Each alert also has its own **Voice: ...** and **Chat: ...** switch in its section. Turning a Voice
   switch on plays that line as a preview.
+- **General > Same Voice For All** (on by default): with several of Snuffy's plugins installed, changing the
+  voice or volume in one changes it in the others too, and one you install later picks it up. Turn it off in a
+  plugin to give that plugin its own voice.
 
 **Good to know:** No alert fires before you click "Click here to play", and anything already true when
 you log in (low prayer, poisoned...) isn't announced.
@@ -45,10 +49,15 @@ you log in (low prayer, poisoned...) isn't announced.
 **What it does:** When you attack a monster, a HUD shows its HP bar, whether it's aggressive *to you* (with
 a tolerance timer), its weakness (style icon, or the element's Strike spell icon for magic), your combat
 style, DPS, and your last and max hit. It stays up for a few seconds after the fight.
+- **Monster effects:** what's on the monster: Poisoned, Venomed, Burning (from their hitsplats) and Frozen with
+  time left (a freeze spell's impact), and its Defence after your special attacks lower it (Dragon warhammer
+  30%, Elder maul 35%, Bandos godsword by the damage, Arclight/Emberlight), e.g. "Defence: 112 (-48)",
+  estimated from the wiki's Defence level.
 
 **How to use:** Attack anything. The HUD can be moved like any RuneLite overlay (hold Alt and drag).
+Right-click the HUD > **Reset** clears this session's damage and DPS.
 
-**Settings (PvM HUD):** Enable PvM HUD; DPS Mode (Per Monster, Per Type, or the whole
+**Settings (PvM HUD):** Enable PvM HUD; Show Monster Effects; DPS Mode (Per Monster, Per Type, or the whole
 session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status.
 
 ---
@@ -70,11 +79,27 @@ and auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 
 ## Potion buffs
 
-**What it does:** Each combat potion boost shows on the HUD with its icon and time left (divine potions to
-the second). Alerts fire shortly before a boost runs out and when it has.
+**What it does:** Each combat potion boost shows on the PvM HUD and the Gemstone Crab card with its icon and
+time left (divine potions to the second). Alerts fire shortly before a boost runs out and when it has. In both
+PvM/Slayer and the GemCrab Tracker (the same settings section in each); with both installed separately, only
+one of them says the alerts.
 
 **Settings (Potion Buffs):** Show Buffs on HUD; Flash When Expired; Warn Before Ending (seconds);
 Repeat Expired Alert, Repeat Every, Max Repeats; Voice/Chat switches.
+
+---
+
+## Buff bar
+
+**What it does:** Your buffs and debuffs as a row of icons, like RS3's: each potion boost (super combat,
+divine, ranging...) with its boost and time left, antifire / super antifire, stamina, antipoison / antivenom,
+and any other stat boosted above your level (Hitpoints from an anglerfish) in green; poisoned, venomed and stats
+drained below your level in red. Hover an icon for its name. With it on, the PvM HUD leaves the potion rows to
+it (the running-out and expired alerts carry on).
+
+**How to use:** It sits above the chat box on the right; move it with Alt + drag.
+
+**Settings (Buff Bar):** Show Buff Bar; Show Debuffs; Layout (Horizontal or Vertical); Icon Size.
 
 ---
 
@@ -101,9 +126,11 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 ## Slayer card
 
 **What it does:**
-- **On a task:** kills left, kill rate, time to finish, the item the task needs (red if you don't have it)
-  and **Where To Go**: the wiki's places to kill it, each marked Multi / Cannon / Safespot (Wilderness
-  places last), and the fastest ways to get to the first one.
+- **On a task:** kills left, kill rate, time to finish, the **protection prayer** to use (from how the task's
+  monsters attack, per the wiki: e.g. Fire giants, Protect from Melee; shown when most of them attack the same
+  way), the item the task needs (red if you don't have it) and **Where To Go**: the wiki's places to kill it,
+  each marked Multi / Cannon / Safespot (Wilderness places last), and the fastest ways to get to the first
+  one. Right-click the card > **Show all / fewer places** to list every place instead of Places Shown.
 - **No task:** the best Slayer master for your combat and Slayer level, any quest they need, where they
   are and the fastest ways there, and the next master you'll unlock (and what it needs).
 
@@ -121,20 +148,29 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 **How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which); it stays that
 way after a restart.
 
-**Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Required
-Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
-Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned and Task Complete alerts with Voice/Chat switches.
+**Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
+Prayer; Required Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
+Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned,
+Task Complete, Task Halfway and Task Nearly Done (at 10 left by default, 0 off) alerts with Voice/Chat switches.
 
 ---
 
 ## Gemstone Crab
 
 **What it does:** Near the crab's three mines in the Tlati Rainforest only: a HUD with the crab's health,
-burrow countdown, whether you're attacking, the XP type you're getting, damage, DPS and last/max hit;
-outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
-tunnels; a radar to find it. Alerts when it's about to burrow and when it has moved.
+burrow countdown, whether you're attacking, the XP type you're getting, damage, DPS and last/max hit, and your
+potion buffs with their time left (red in the last minute) and Prayer/Health LOW rows, the same in the Toolbelt
+and on its own; outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
+tunnels; a radar to find it. Alerts when it's about to burrow and when it has moved, and the potion alerts
+(see Potion buffs). Right-click the crab card > **Reset** clears its damage and DPS.
 
-**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Show Last/Max Hit; the four
+**Gear Check:** the crab can't block and only hits for 1, so only *damage* matters there (XP is 3.5 per
+damage, whatever skill you train). The card shows your gear's damage bonus for the style you're fighting with
+(Str +72, Ranged str +45 or Magic dmg +15%; red at none), and **Off-style:** any worn item whose damage bonus is
+for another style (a Necklace of anguish while meleeing), since that slot could be adding damage. Armour's
+defence doesn't matter, so lower-tier gear with more damage beats better armour without it.
+
+**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Gear Check; Low Prayer/HP (%); Show Last/Max Hit; the four
 outline colours; Voice/Chat switches.
 
 ---
@@ -223,7 +259,7 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 
 **How to use:**
 - Right-click a card to pause/resume it, reset its rate, reset or hide it, set or clear a goal, or reset
-  every skill.
+  every skill (just the tracker's skills: PvM's HUD and the crab card have their own Reset).
 - **Pin to screen**: right-click a card > Pin to screen puts that skill on the game screen as a movable
   overlay (level bar, XP/hr, gained, time to level, actions left, goal bar, suggested method and what to
   make or burn from your items). Only one at a time:

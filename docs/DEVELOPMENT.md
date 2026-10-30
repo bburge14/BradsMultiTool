@@ -28,7 +28,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 
 | File | Script | Source |
 |---|---|---|
-| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions |
+| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions, Slayer level, XP and task; monsters the wiki has no NPC id for yet are kept by name ("unlisted") |
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
@@ -50,8 +50,8 @@ below).
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
 | **Snuffy's Skilling Helper** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
-| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (buffs, potions, health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `shared` |
-| **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts | `gemcrab` (crab moved, about to burrow) + `shared` |
+| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
+| **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts, potion buffs and their alerts | `gemcrab` (crab moved, about to burrow) + `potions` + `shared` |
 | **Snuffy's Tick Counter** | Tick count over head, tick boxes, tick bar, metronome, click timing (its own plugin so neither the skilling nor the PvM side carries a second copy) | none (game sounds only) |
 | **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
 
@@ -72,16 +72,28 @@ Every plugin but the Tick Counter also starts `CommonFeature` (`Alerts`, `IdleWa
 uses `CommonConfig` (voice, chat, idle); the Tick Counter has no voice or idle warnings, and only shares `InGame`
 (past the welcome screen) and `CombatStyle` (for Follow Attack Speed). `Lifecycle` subscribes, shows and loads each shared piece only once and undoes it all on
 stop. `PluginIdentity` says which build is running (settings group, chat tag, family id). Shared pieces used
-by more than one plugin: `CombatStyle`, `MonsterData`, `SlayerData`, `GemstoneCrabs`, `HudColors`, the
+by more than one plugin: `CombatStyle`, `PotionBuffs` (boosts and potion timers, for PvM and the crab card), `MonsterData`, `SlayerData`, `GemstoneCrabs`, `HudColors`, the
 overlay components.
 
 Rules that keep the split working:
+- A separate plugin has every feature its part has in the Toolbelt: nothing it shows may depend on another
+  plugin running. When two parts have the same thing (potion buffs and their alerts on the PvM HUD and the crab
+  card), each has it itself through shared classes (`PotionBuffs`, `PotionAlerts`, `BuffConfig`); with both
+  installed separately only one speaks (`PluginFamily.isFirstOf`). Each part's numbers have their own reset.
+- Working together is only for things that need both parts: PvM's monster card steps aside when the Skilling
+  Helper's card shows the NPC. The Toolbelt joins them directly; separate plugins do it with a `PluginFamily`
+  message ("skilling-card", sent before each frame).
 - A feature's classes take their own settings interface (`SkillTrackerConfig`, ...), never
-  `BradsMultiToolConfig`, and never another feature's tracker. Where two features work together only in
-  the all-in-one (Reset all, the crab card's buff rows, the PvM card stepping aside for skilling cards), the
-  all-in-one plugin joins them with a hook.
+  `BradsMultiToolConfig`, and never another feature's tracker; the Toolbelt joins features with a hook only
+  where they work together (above).
 - RuneLite only shows settings sections an interface declares itself, so the common sections are repeated in
   each plugin's settings and every section in `BradsMultiToolConfig` (`MultiToolConfigTest` checks).
+- RuneLite caches settings by their Java method, not by plugin (`ConfigInvocationHandler`), so separate plugins
+  inheriting a setting from a shared interface (`CommonConfig`, `BuffConfig`) would all read whichever plugin's
+  value was read first. Each plugin's settings interface re-declares the shared settings in a generated block
+  (`scripts/generate_config_defaults.py`, its `SHARED` list); `VoiceSyncTest` checks each plugin reads its own.
+- Same Voice For All (`VoiceSync`): changing the voice or volume in one plugin sends a "voice-sync" message, and
+  the others change their own settings to match; one that starts later takes it on "hello".
 - RuneLite also only saves the defaults of settings an interface declares itself, and the settings panel can't
   open with a choice (enum) setting that has nothing saved. So each feature saves its settings' defaults at
   start through `ConfigDefaults` and the generated `*ConfigDefaults` classes: after adding or renaming a setting,

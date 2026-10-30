@@ -25,16 +25,19 @@ class Alerts {
     private final PluginFamily family;
     private final PluginIdentity identity;
     private final InGame inGame;
+    private final VoiceSync voiceSync;
     private final VoiceAlertService voice = new VoiceAlertService();
 
     @Inject
-    Alerts(Client client, CommonConfig config, ConfigManager configManager, PluginFamily family, PluginIdentity identity, InGame inGame) {
+    Alerts(Client client, CommonConfig config, ConfigManager configManager, PluginFamily family, PluginIdentity identity, InGame inGame,
+           VoiceSync voiceSync) {
         this.client = client;
         this.config = config;
         this.configManager = configManager;
         this.family = family;
         this.identity = identity;
         this.inGame = inGame;
+        this.voiceSync = voiceSync;
     }
 
     void shutDown() {
@@ -88,8 +91,9 @@ class Alerts {
         if (!identity.configGroup.equals(event.getGroup())) {
             return;
         }
-        if (event.getOldValue() == null) {
-            // A default being saved (ConfigDefaults), not the player changing it
+        if (event.getOldValue() == null || voiceSync.isApplying()) {
+            // A default being saved (ConfigDefaults), or the voice matching another of our plugins (Same Voice
+            // For All): not the player changing it here, so no sample
             return;
         }
         String key = event.getKey();

@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.MenuAction;
 import net.runelite.api.Skill;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.client.game.ItemManager;
@@ -30,24 +31,30 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
     private static final Color TITLE_COLOR = new Color(255, 185, 0);
     private static final Color PLACE_COLOR = Color.WHITE;
     private static final Color SOFT = new Color(180, 180, 180);
+    private static final Color PRAYER_COLOR = new Color(120, 200, 255);
 
     private final Client client;
     private final PvmTracker plugin;
     private final PvmConfig config;
     private final SlayerData slayerData;
     private final ItemManager itemManager;
+    private final MonsterData monsterData;
     private final PanelComponent panel = new PanelComponent();
+    // Every place the wiki lists instead of Places Shown (the card's right-click menu)
+    private boolean allPlaces;
     private FontMetrics metrics;
 
     @Inject
     public BradsMultiToolSlayerOverlay(Client client, PvmTracker plugin, PvmConfig config,
-                                       SlayerData slayerData, ItemManager itemManager) {
+                                       SlayerData slayerData, ItemManager itemManager, MonsterData monsterData) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.slayerData = slayerData;
         this.itemManager = itemManager;
+        this.monsterData = monsterData;
         setPosition(OverlayPosition.TOP_LEFT);
+        addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Show all / fewer places", "Slayer card", e -> allPlaces = !allPlaces);
         panel.setPreferredSize(new Dimension(210, 0));
         panel.setGap(new java.awt.Point(0, 3));
     }
@@ -86,6 +93,14 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
                 line("Done In:", minutes >= 60 ? (minutes / 60) + "h " + (minutes % 60) + "m" : minutes + "m", Color.WHITE);
             }
         }
+        if (config.slayerPrayer()) {
+            List<String> prayers = monsterData.protectionPrayers(tracker::isTask);
+            if (!prayers.isEmpty()) {
+                // One prayer, or the ones its monsters use between them
+                line("Pray:", prayers.size() == 1 ? "Protect from " + prayers.get(0) : String.join(" or ", prayers),
+                    PRAYER_COLOR);
+            }
+        }
         SlayerTracker.Requirement requirement = tracker.getRequirement();
         if (config.slayerRequiredItem() && requirement != null) {
             boolean has = tracker.isHasRequiredItem();
@@ -102,12 +117,13 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         places.sort(Comparator.comparing((SlayerData.Place p) -> !(konar != null && p.name.toLowerCase().contains(konar.toLowerCase())))
             .thenComparing(SlayerData.Place::inWilderness));
         heading("Where To Go");
-        int shown = Math.min(config.slayerPlacesShown(), places.size());
+        int shown = allPlaces ? places.size() : Math.min(config.slayerPlacesShown(), places.size());
         for (SlayerData.Place place : places.subList(0, shown)) {
-            line(place.name, place.tags(), PLACE_COLOR, SOFT);
+            placeLine(place.name, place.tags());
         }
         if (places.size() > shown) {
-            panel.getChildren().add(new TextBlockComponent("+" + (places.size() - shown) + " more on the wiki", SOFT, false));
+            panel.getChildren().add(new TextBlockComponent("+" + (places.size() - shown) + " more (right-click: Show all places)",
+                SOFT, false));
         }
         if (!config.slayerTravelRoutes()) {
             return;
@@ -163,6 +179,18 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         for (String item : items.subList(0, Math.min(config.slayerRoutesShown(), items.size()))) {
             panel.getChildren().add(new TextBlockComponent(item, Color.WHITE, true));
         }
+    }
+
+    // A place with its tags in the right-hand column: beside the name when they fit, else on the next line,
+    // still right-aligned and grey, so they don't read as another place
+    private void placeLine(String name, String tags) {
+        int width = panel.getPreferredSize().width - 10;
+        if (tags.isEmpty() || metrics == null || metrics.stringWidth(name) + metrics.stringWidth(tags) + 8 <= width) {
+            panel.getChildren().add(LineComponent.builder().left(name).leftColor(PLACE_COLOR).right(tags).rightColor(SOFT).build());
+            return;
+        }
+        panel.getChildren().add(new TextBlockComponent(name, PLACE_COLOR, false));
+        panel.getChildren().add(LineComponent.builder().left("").right(tags).rightColor(SOFT).build());
     }
 
     private void line(String left, String right, Color rightColor) {

@@ -7,13 +7,14 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.Skill;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
@@ -38,12 +39,13 @@ public class CrabHudOverlay extends Overlay {
     private final GemCrabTracker gemCrab;
     private final GemCrabConfig config;
     private final SkillIconManager skillIconManager;
+    private final PotionAlerts potionAlerts;
+    private final ItemManager itemManager;
+    private final GearCheck gearCheck;
+    private final CombatStyle combatStyle;
     private final PanelComponent panelComponent = new PanelComponent();
     private long lastCrabActiveMillis;
     private CrabFight lastFight;
-    // Rows another feature adds to the fight card (PvM's buff timers in the all-in-one), or null
-    private volatile Consumer<PanelComponent> extraRows;
-
     /** The crab fight's numbers, as of the last frame the crab was up. */
     private static final class CrabFight {
         final long damage;
@@ -64,7 +66,12 @@ public class CrabHudOverlay extends Overlay {
     }
 
     @Inject
-    CrabHudOverlay(Client client, GemCrabTracker gemCrab, GemCrabConfig config, SkillIconManager skillIconManager) {
+    CrabHudOverlay(Client client, GemCrabTracker gemCrab, GemCrabConfig config, SkillIconManager skillIconManager,
+                   PotionAlerts potionAlerts, ItemManager itemManager, GearCheck gearCheck, CombatStyle combatStyle) {
+        this.potionAlerts = potionAlerts;
+        this.itemManager = itemManager;
+        this.gearCheck = gearCheck;
+        this.combatStyle = combatStyle;
         this.client = client;
         this.gemCrab = gemCrab;
         this.config = config;
@@ -72,10 +79,8 @@ public class CrabHudOverlay extends Overlay {
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
-    }
-
-    void setExtraRows(Consumer<PanelComponent> rows) {
-        extraRows = rows;
+        // Its own reset, in its right-click menu
+        addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "Gemstone Crab session", e -> gemCrab.resetSession());
     }
 
     @Override
@@ -163,11 +168,15 @@ public class CrabHudOverlay extends Overlay {
                     .build());
             }
 
-            // Buff timers and LOW prayer/health, when PvM runs alongside (the all-in-one)
-            Consumer<PanelComponent> rows = extraRows;
-            if (rows != null) {
-                rows.accept(panelComponent);
+            if (config.crabGearCheck()) {
+                addGearRows();
             }
+
+            // Your potion buffs (PotionAlerts) and LOW prayer/health: the same in the Toolbelt and on its own
+            if (config.enableBuffStatus()) {
+                addBuffRows();
+            }
+            addLowRows();
 
             // Crab damage reflects only the current (or just-moved) crab
             panelComponent.getChildren().add(LineComponent.builder()
@@ -197,6 +206,51 @@ public class CrabHudOverlay extends Overlay {
         }
 
         return panelComponent.render(graphics);
+    }
+
+    // Your gear's damage bonus for the style you're using (green, red with none), and items whose damage bonus
+    // is for another style ("Off-style: Archer helm")
+    private void addGearRows() {
+        GearCheck.Style style = GearCheck.of(combatStyle.getCombatDiscipline());
+        panelComponent.getChildren().add(LineComponent.builder()
+            .left("Gear:")
+            .right(gearCheck.total(style))
+            .rightColor(gearCheck.hasDamage(style) ? HudColors.GOOD : HudColors.BAD)
+            .build());
+        java.util.List<String> off = gearCheck.offStyle(style);
+        if (!off.isEmpty()) {
+            panelComponent.getChildren().add(new TextBlockComponent("Off-style: " + String.join(", ", off), HudColors.BAD, false));
+        }
+    }
+
+    // "LOW" while prayer or health is at or below the set share of its level (0: off)
+    private void addLowRows() {
+        int percent = config.crabLowStatsPercent();
+        if (percent <= 0) {
+            return;
+        }
+        if (isLow(Skill.PRAYER, percent)) {
+            panelComponent.getChildren().add(LineComponent.builder().left("Prayer:").right("LOW").rightColor(HudColors.BAD).build());
+        }
+        if (isLow(Skill.HITPOINTS, percent)) {
+            panelComponent.getChildren().add(LineComponent.builder().left("Health:").right("LOW").rightColor(HudColors.BAD).build());
+        }
+    }
+
+    private boolean isLow(Skill skill, int percent) {
+        int points = client.getBoostedSkillLevel(skill);
+        return points > 0 && points <= Math.max(1, (int) Math.ceil(client.getRealSkillLevel(skill) * percent / 100.0));
+    }
+
+    // Each potion buff with its time left ("~" until the boost timer has been seen), red while it's running out
+    // (Warn Before Ending), as on the PvM HUD
+    private void addBuffRows() {
+        long now = System.currentTimeMillis();
+        for (ActiveBuffs.Buff buff : potionAlerts.getActiveBuffs()) {
+            String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(buff.millisLeft(now));
+            panelComponent.getChildren().add(new IconLineComponent(buff.name + ":", itemManager.getImage(buff.iconItemId),
+                "+" + buff.boost + " " + time, potionAlerts.isBuffRunningOut(buff) ? HudColors.BAD : HudColors.GOOD));
+        }
     }
 
     /**

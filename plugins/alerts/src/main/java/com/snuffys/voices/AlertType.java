@@ -19,6 +19,8 @@ enum AlertType {
     SLAYER_ITEM("SlayerItem", VoiceAlertService.VoiceLine.SLAYER_ITEM_MISSING),
     SUPERIOR("Superior", VoiceAlertService.VoiceLine.SUPERIOR_SPAWNED),
     TASK_COMPLETE("TaskComplete", VoiceAlertService.VoiceLine.TASK_COMPLETE),
+    TASK_HALFWAY("TaskHalfway", VoiceAlertService.VoiceLine.TASK_HALFWAY),
+    TASK_NEARLY_DONE("TaskNearlyDone", VoiceAlertService.VoiceLine.TASK_NEARLY_DONE),
     CHARACTER_IDLE("CharacterIdle", VoiceAlertService.VoiceLine.CHARACTER_IDLE),
     IDLE_LOGOUT("IdleLogout", VoiceAlertService.VoiceLine.IDLE_LOGOUT),
     CRAB_MOVED("CrabMoved", VoiceAlertService.VoiceLine.CRAB_MOVED),
@@ -67,6 +69,8 @@ enum AlertType {
             case SLAYER_ITEM_MISSING: return SLAYER_ITEM;
             case SUPERIOR_SPAWNED: return SUPERIOR;
             case TASK_COMPLETE: return TASK_COMPLETE;
+            case TASK_HALFWAY: return TASK_HALFWAY;
+            case TASK_NEARLY_DONE: return TASK_NEARLY_DONE;
             case CHARACTER_IDLE: return CHARACTER_IDLE;
             case IDLE_LOGOUT: return IDLE_LOGOUT;
             case CRAB_MOVED: return CRAB_MOVED;

@@ -20,12 +20,15 @@ class CommonFeature {
     @Inject
     private InGame inGame;
     @Inject
+    private VoiceSync voiceSync;
+    @Inject
     private CommonConfig config;
 
     void start(Lifecycle lifecycle) {
-        lifecycle.subscribe(inGame, alerts, idleWarnings, configDefaults);
+        lifecycle.subscribe(inGame, alerts, idleWarnings, configDefaults, voiceSync);
         configDefaults.add(() -> CommonConfigDefaults.store(configDefaults, config));
         lifecycle.overlay(idleWarningOverlay);
+        voiceSync.start();
         pluginFamily.start();
         lifecycle.onStop(() -> {
             pluginFamily.stop();

@@ -134,6 +134,7 @@ public class PluginWiringTest {
                 binder.bind(VoicesConfig.class).toInstance(stub(VoicesConfig.class));
                 binder.bind(CommonConfig.class).toInstance(stub(CommonConfig.class));
                 binder.bind(TickConfig.class).toInstance(stub(TickConfig.class));
+                binder.bind(BuffConfig.class).toInstance(stub(BuffConfig.class));
             });
             Guice.createInjector(services).createChildInjector(settings).injectMembers(plugin);
         }

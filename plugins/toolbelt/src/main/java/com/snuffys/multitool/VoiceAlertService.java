@@ -52,6 +52,8 @@ public class VoiceAlertService {
         CANNON_LOW("cannon_low", "Your cannon is running low."),
         SUPERIOR_SPAWNED("superior_spawned", "A superior has spawned!"),
         TASK_COMPLETE("task_complete", "Slayer task complete."),
+        TASK_HALFWAY("task_halfway", "Slayer task halfway done."),
+        TASK_NEARLY_DONE("task_nearly_done", "Slayer task nearly done."),
         SLAYER_ITEM_MISSING("slayer_item_missing", "You are missing your slayer item."),
         INVENTORY_FULL("inventory_full", "Inventory is full."),
         TREE_GONE("tree_gone", "The tree is gone."),
@@ -123,8 +125,10 @@ public class VoiceAlertService {
     enum VoicePlugin {
         /** Skill Tracker (with the skilling helpers): skilling alerts and level-ups. */
         SKILLING("skilling"),
-        /** PvM/Slayer: buffs, potions, health, prayer, combat and Slayer alerts. */
+        /** PvM/Slayer: health, prayer, combat and Slayer alerts. */
         PVM("pvm"),
+        /** Potion buffs running out and run out: PvM/Slayer and the GemCrab Tracker both carry these. */
+        POTIONS("potions"),
         GEM_CRAB("gemcrab"),
         /** Idle and logout warnings: every plugin carries these. */
         SHARED("shared");
@@ -138,6 +142,9 @@ public class VoiceAlertService {
         static VoicePlugin of(String clip) {
             if (clip.startsWith("skill_") || clip.startsWith("num_") || clip.startsWith("tens_")) {
                 return SKILLING;
+            }
+            if (clip.startsWith("potion_") || clip.startsWith("buff_") || clip.endsWith("_buff_low") || clip.endsWith("_buff_expired")) {
+                return POTIONS;
             }
             switch (clip) {
                 case "inventory_full":

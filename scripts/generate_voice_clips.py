@@ -81,6 +81,8 @@ LINES = {
     "cannon_low": "Your cannon is running low.",
     "superior_spawned": "A superior has spawned!",
     "task_complete": "Slayer task complete.",
+    "task_halfway": "Slayer task halfway done.",
+    "task_nearly_done": "Slayer task nearly done.",
     "slayer_item_missing": "You are missing your slayer item.",
     "inventory_full": "Inventory is full.",
     "tree_gone": "The tree is gone.",
@@ -305,6 +307,8 @@ SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_
 def plugin_of(key):
     if key.startswith(("skill_", "num_", "tens_")) or key in SKILLING_LINES:
         return "skilling"
+    if key.startswith(("potion_", "buff_")) or key.endswith(("_buff_low", "_buff_expired")):
+        return "potions"
     if key in ("crab_moved", "crab_low_health"):
         return "gemcrab"
     if key in ("character_idle", "idle_logout"):

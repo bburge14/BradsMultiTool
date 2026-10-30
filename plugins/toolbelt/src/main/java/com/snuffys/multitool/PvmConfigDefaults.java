@@ -10,16 +10,6 @@ final class PvmConfigDefaults {
     }
 
     static void store(ConfigDefaults defaults, PvmConfig config) {
-        defaults.store("enableBuffStatus", config.enableBuffStatus());
-        defaults.store("flashExpiredBuff", config.flashExpiredBuff());
-        defaults.store("buffWarningSeconds", config.buffWarningSeconds());
-        defaults.store("repeatBuffAlert", config.repeatBuffAlert());
-        defaults.store("repeatBuffInterval", config.repeatBuffInterval());
-        defaults.store("maxBuffRepeats", config.maxBuffRepeats());
-        defaults.store("voiceBuffLow", config.voiceBuffLow());
-        defaults.store("chatBuffLow", config.chatBuffLow());
-        defaults.store("voiceBuffExpired", config.voiceBuffExpired());
-        defaults.store("chatBuffExpired", config.chatBuffExpired());
         defaults.store("enableLowHealthAlert", config.enableLowHealthAlert());
         defaults.store("lowHealthPercent", config.lowHealthPercent());
         defaults.store("flashHealthOrb", config.flashHealthOrb());
@@ -77,6 +67,7 @@ final class PvmConfigDefaults {
         defaults.store("showSlayerMasterCard", config.showSlayerMasterCard());
         defaults.store("slayerPictures", config.slayerPictures());
         defaults.store("slayerKillRate", config.slayerKillRate());
+        defaults.store("slayerPrayer", config.slayerPrayer());
         defaults.store("slayerRequiredItem", config.slayerRequiredItem());
         defaults.store("slayerTravelRoutes", config.slayerTravelRoutes());
         defaults.store("slayerNextMaster", config.slayerNextMaster());
@@ -94,5 +85,16 @@ final class PvmConfigDefaults {
         defaults.store("chatSuperior", config.chatSuperior());
         defaults.store("voiceTaskComplete", config.voiceTaskComplete());
         defaults.store("chatTaskComplete", config.chatTaskComplete());
+        defaults.store("taskHalfwayAlert", config.taskHalfwayAlert());
+        defaults.store("taskNearlyDoneAt", config.taskNearlyDoneAt());
+        defaults.store("voiceTaskHalfway", config.voiceTaskHalfway());
+        defaults.store("chatTaskHalfway", config.chatTaskHalfway());
+        defaults.store("voiceTaskNearlyDone", config.voiceTaskNearlyDone());
+        defaults.store("chatTaskNearlyDone", config.chatTaskNearlyDone());
+        defaults.store("showBuffBar", config.showBuffBar());
+        defaults.store("buffBarDebuffs", config.buffBarDebuffs());
+        defaults.store("buffBarLayout", config.buffBarLayout());
+        defaults.store("buffBarIconSize", config.buffBarIconSize());
+        defaults.store("showMonsterEffects", config.showMonsterEffects());
     }
 }

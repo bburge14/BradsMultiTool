@@ -59,6 +59,17 @@ public interface CommonConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "syncVoice",
+        name = "Same Voice For All",
+        description = "Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
+        section = generalSection,
+        position = 4
+    )
+    default boolean syncVoice() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "sendChatMessages",
         name = "Chat Messages",
         description = "Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",

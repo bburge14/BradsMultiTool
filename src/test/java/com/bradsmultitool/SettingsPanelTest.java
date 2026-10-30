@@ -16,7 +16,6 @@ import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigItemDescriptor;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 /**
@@ -28,12 +27,12 @@ import org.junit.Test;
  */
 public class SettingsPanelTest {
 
-    private static final ScheduledExecutorService EXECUTOR = Executors.newSingleThreadScheduledExecutor();
-
-    @AfterClass
-    public static void stop() {
-        EXECUTOR.shutdownNow();
-    }
+    // Shared by every test that makes a ConfigManager (here and VoiceSyncTest); a daemon, so it never holds the JVM
+    private static final ScheduledExecutorService EXECUTOR = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "settings-test");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     @Test
     public void toolbelt() throws Exception {
@@ -43,6 +42,7 @@ public class SettingsPanelTest {
             SkillTrackerConfigDefaults.store(defaults.store, config);
             TickConfigDefaults.store(defaults.store, config);
             PvmConfigDefaults.store(defaults.store, config);
+            BuffConfigDefaults.store(defaults.store, config);
             GemCrabConfigDefaults.store(defaults.store, config);
         });
     }
@@ -68,6 +68,7 @@ public class SettingsPanelTest {
             PvmConfig config = (PvmConfig) defaults.config;
             CommonConfigDefaults.store(defaults.store, config);
             PvmConfigDefaults.store(defaults.store, config);
+            BuffConfigDefaults.store(defaults.store, config);
         });
     }
 
@@ -77,6 +78,7 @@ public class SettingsPanelTest {
             GemCrabConfig config = (GemCrabConfig) defaults.config;
             CommonConfigDefaults.store(defaults.store, config);
             GemCrabConfigDefaults.store(defaults.store, config);
+            BuffConfigDefaults.store(defaults.store, config);
         });
     }
 
@@ -140,6 +142,10 @@ public class SettingsPanelTest {
 
     // RuneLite's ConfigManager with an empty settings file instead of a profile
     private static ConfigManager freshConfigManager() throws Exception {
+        return freshConfigManager(new EventBus());
+    }
+
+    static ConfigManager freshConfigManager(EventBus eventBus) throws Exception {
         Constructor<?> constructor = ConfigManager.class.getDeclaredConstructors()[0];
         constructor.setAccessible(true);
         Class<?>[] params = constructor.getParameterTypes();
@@ -152,7 +158,7 @@ public class SettingsPanelTest {
             } else if (params[i] == Gson.class) {
                 args[i] = new Gson();
             } else if (params[i] == EventBus.class) {
-                args[i] = new EventBus();
+                args[i] = eventBus;
             }
         }
         ConfigManager configManager = (ConfigManager) constructor.newInstance(args);

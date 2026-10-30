@@ -59,9 +59,15 @@ developer mode.
 - **Combat alerts**: special attack ready (only after you've used it), antifire and poison protection
   running out, poisoned or venomed, stamina worn off, low ammo, out of runes, cannon low.
 
+### Buff bar
+- Your buffs and debuffs as icons with timers, like RS3's: potion boosts, antifire, stamina, poison protection,
+  boosted stats; poison, venom, drained stats. Movable; hover for names. The PvM HUD shows the **monster's**
+  effects instead: poisoned, venomed, burning, frozen, and Defence lowered by your special attacks.
+
 ### Gemstone Crab
 - HUD with the crab's health bar, burrow countdown, whether you're attacking, the XP type you're getting,
-  damage, DPS and last/max hit. When the crab moves, its stats stay up for 12 seconds, then the radar
+  damage, DPS, last/max hit, your potion buffs with their time left, and a gear check (your damage bonus for
+  the style you're using, and worn items whose damage is for another style). When the crab moves, its stats stay up for 12 seconds, then the radar
   takes over.
 - Outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
   tunnels, plus a radar to find it. All of it only near the crab's three mines in the Tlati Rainforest.
@@ -78,7 +84,7 @@ developer mode.
   the PvM HUD show the Slayer level needed, the gear it needs (green if you have it), whether it's your task,
   Slayer XP, and "wrong place" when Konar wants them elsewhere.
 - Warns when you fight a task monster without its required item (rock hammer, nose peg, mirror shield...).
-- Superior spawned and task complete alerts.
+- Superior spawned, task halfway, task nearly done (10 left by default) and task complete alerts.
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), timer
@@ -170,6 +176,8 @@ work a resource.
   announced.
 - Every alert has its own **Voice:** and **Chat:** switch in its section; **General** has the master
   switches, the voice and the volume.
+- With several of the separate plugins, **Same Voice For All** keeps them on one voice and volume: change it
+  in any of them (turn it off in one to give it its own).
 - 10 voices (pre-recorded, so they work on any OS): Amy and Cori (US and UK women), Alan,
   Ryan and John (UK and US men), Arctic (a Scottish man), L2 Arctic (a man with a Mandarin Chinese accent), Wise Old Man, TzHaar and Ghost, or **Random** for a different
   one each alert. Changing the voice plays a sample.

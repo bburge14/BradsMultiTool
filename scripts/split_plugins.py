@@ -32,7 +32,7 @@ OLD_PACKAGE = "com.bradsmultitool"
 PLUGINS = {
     "multitool": {
         "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "name": "snuffys-toolbelt", "folder": "toolbelt",
-        "voices": ["skilling", "pvm", "gemcrab", "shared"],
+        "voices": ["skilling", "pvm", "potions", "gemcrab", "shared"],
     },
     "skilltracker": {
         "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "name": "snuffys-skilling-helper", "folder": "skilling-helper",
@@ -40,11 +40,11 @@ PLUGINS = {
     },
     "pvm": {
         "class": "PvmPlugin", "package": "com.snuffys.pvm", "name": "snuffys-pvm-slayer", "folder": "pvm-slayer",
-        "voices": ["pvm", "shared"],
+        "voices": ["pvm", "potions", "shared"],
     },
     "gemcrab": {
         "class": "GemCrabPlugin", "package": "com.snuffys.gemcrab", "name": "snuffys-gemcrab-tracker", "folder": "gemcrab-tracker",
-        "voices": ["gemcrab", "shared"],
+        "voices": ["gemcrab", "potions", "shared"],
     },
     "tickcounter": {
         "class": "TickCounterPlugin", "package": "com.snuffys.tickcounter", "name": "snuffys-tick-counter", "folder": "tick-counter",

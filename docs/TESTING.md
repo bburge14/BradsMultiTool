@@ -21,9 +21,31 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] A buff's line on the HUD is red while within the running-out window and green whenever it's above it (e.g. after re-dosing).
 - [ ] Running out still fires right after logging in or hopping (says "under 1:00 left" when the timer isn't synced yet).
 
+## Buff bar and monster effects
+- [ ] Buff bar: a potion shows its icon, +boost and time left (divine exact, regular "~" until synced); antifire,
+      super antifire, stamina and antipoison/antivenom show with timers; anglerfish shows Hitpoints +N.
+- [ ] Debuffs in red: poisoned, venomed, a drained stat (e.g. Defence drained by a monster); Show Debuffs off hides them.
+- [ ] Hover an icon: its name. Alt + drag moves it; Layout and Icon Size work; nothing active: no bar.
+- [ ] With the bar on, the PvM HUD has no potion rows; running out / expired alerts still play.
+- [ ] HUD Status: Poisoned/Venomed after poison or venom hits the monster; Frozen 0:xx after Ice barrage (etc.);
+      Burning from burn hitsplats.
+- [ ] HUD Defence: Dragon warhammer hit lowers it 30% ("Defence: 140 (-60)"), Elder maul 35%, BGS by the damage.
+
 ## Gemstone Crab
 - [ ] When the crab moves, its stats stay up 12s marked (moved) with a "Radar in" countdown, then the radar.
 - [ ] No AFK alert while attacking the crab.
+- [ ] Crab card, on its own (`runBrad "-Pload=gemcrab"`) and in the Toolbelt alike: potion buffs with time left
+      (divine exact, regular "~" until the first stat drop), red while running out (Warn Before Ending);
+      Potion Buffs > Show Buffs on HUD off hides them; Prayer: LOW / Health: LOW at or below Low Prayer/HP.
+- [ ] GemCrab on its own: potion running out / run out alerts (voice and chat), with its Potion Buffs settings.
+- [ ] Gear Check on the crab card: Str +N while meleeing, Ranged str +N while ranging, Magic dmg +N% while
+      casting (follows a style switch); a Necklace of anguish or berserker ring worn for the other style shows
+      under Off-style; red Str +0 with no strength gear.
+- [ ] `-Pload=separate` (PvM and GemCrab both): each potion alert is said once, not twice.
+- [ ] Right-click the crab card > Reset clears its damage/DPS; right-click the PvM HUD > Reset clears PvM's;
+      the tracker's Reset all no longer touches either.
+- [ ] `-Pload=separate`: hover a pickpocket NPC (Attack not left-click): only the Thieving card, no PvM card.
+- [ ] PvM buff timers and buff alerts still work as before (PvM on its own and in the Toolbelt).
 - [x] Radar and outlines only near the crab's mines (not in Draynor or other caves).
 - [x] Outlines draw under the minimap and inventory, not over them.
 - [x] Shell green when you can mine it, red when you can't.
@@ -33,6 +55,8 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Kill rate survives walking between areas.
 - [ ] Hide the Slayer card with Ctrl+Shift+S, restart the client: it stays hidden (and shown stays shown).
 - [ ] Finishing a task says "Slayer task complete" (chat adds the task name).
+- [ ] Half the task done says "Slayer task halfway done" (chat: N left), once; 10 left says "Slayer task nearly
+      done" (Task Nearly Done At; 0 turns it off). Neither on login part-way through a task.
 - [ ] No task: card shows the best master for your levels, where they are, routes and the next master.
 - [ ] Pictures: master chathead with no task, monster icon on a task (Slayer gem if none); nothing overlaps.
 - [ ] Each Slayer switch hides its part; Places Shown / Routes Shown change the counts.
@@ -41,6 +65,11 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Below the Slayer level: "(can't damage)" in red. PvM HUD shows the same while fighting.
 - [ ] Task monsters outlined; non-task monsters not. Konar task: same monster elsewhere isn't outlined and its hover says Wrong place.
 - [ ] On task: Where To Go lists places (Multi/Cannon/Safespot) and how to reach the first one.
+- [ ] A place whose tags don't fit beside it (Fire giants: Charred Dungeon) has them on the next line,
+      right-aligned and grey.
+- [ ] Right-click the card > Show all / fewer places lists every place, and back.
+- [ ] Pray: line (Fire giants: Protect from Melee; Cave kraken: Magic; Smoke devils: Missiles); none for
+      mixed tasks (Spiritual creatures); Protection Prayer off hides it.
 
 ## Skilling cards (hover)
 - [ ] Trees, rocks, stalls, pickpocket NPCs, fishing spots (Bait at a sea spot shows sardine/herring, not pike).
@@ -121,6 +150,12 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Loading and the welcome screen after login: no count, boxes, bar or sounds.
 - [x] Count Over Head sits just above the head.
 - [x] All off: nothing shows and no sound.
+
+## Same Voice For All (`runBrad "-Pload=separate"`)
+- [ ] Change the Voice Persona in one plugin: the others' settings show the same voice, and only one sample plays.
+- [ ] Voice Volume follows the same way.
+- [ ] Turn Same Voice For All off in one plugin: changing its voice leaves the others alone, and theirs leave it alone.
+- [ ] Each plugin keeps its own other General/Idle settings (e.g. AFK Alert off in one, on in another).
 
 ## Idle
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
