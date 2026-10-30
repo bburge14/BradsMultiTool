@@ -117,6 +117,8 @@ def data_files(names):
         files.update(re.findall(r'RESOURCE = "([^"]+)"', text))
         if 'loadImageResource(SlayerData.class, "slayer/"' in text:
             files.add("slayer/")
+        if 'loadImageResource(SkillTracker.class, "icons/"' in text:
+            files.add("icons/")
     return files
 
 
@@ -150,7 +152,11 @@ def build(plugin_id):
             f.write(text)
     for data in sorted(data_files(names)):
         source = os.path.join(RES, data)
-        if data.endswith("/"):
+        if data == "icons/":
+            # Only this plugin's own sidebar icon
+            os.makedirs(os.path.join(res_out, "icons"))
+            shutil.copy2(os.path.join(source, plugin_id + ".png"), os.path.join(res_out, "icons", plugin_id + ".png"))
+        elif data.endswith("/"):
             shutil.copytree(source, os.path.join(res_out, data))
         else:
             shutil.copy2(source, os.path.join(res_out, data))
@@ -170,6 +176,8 @@ def build(plugin_id):
         f.write(BUILD_GRADLE % spec)
     with open(os.path.join(out, "settings.gradle"), "w", encoding="utf-8") as f:
         f.write("rootProject.name = '%s'\n" % spec["repo"])
+    # The Plugin Hub shows icon.png from the repository's root (made by update_icons.py)
+    shutil.copy2(os.path.join(ROOT, "assets", "hub", plugin_id + ".png"), os.path.join(out, "icon.png"))
     for keep in ("LICENSE", "VOICE_CREDITS.md", "gradlew", "gradlew.bat"):
         shutil.copy2(os.path.join(ROOT, keep), os.path.join(out, keep))
     shutil.copytree(os.path.join(ROOT, "gradle"), os.path.join(out, "gradle"))

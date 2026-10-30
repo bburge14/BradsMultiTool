@@ -1,9 +1,5 @@
 package com.bradsmultitool;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -34,6 +30,7 @@ import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
 
 /**
  * Snuffy's Skill Tracker: XP gained and rates per skill this session (auto-pausing idle skills), goals and
@@ -94,7 +91,8 @@ class SkillTracker {
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
         navButton = NavigationButton.builder()
             .tooltip("Snuffy's Skill Tracker")
-            .icon(createCrabToolIcon())
+            // This plugin's logo (the all-in-one's or the Skill Tracker's), made from assets/ by update_icons.py
+            .icon(ImageUtil.loadImageResource(SkillTracker.class, "icons/" + identity.familyId + ".png"))
             .priority(5)
             .panel(panel)
             .build();
@@ -194,28 +192,6 @@ class SkillTracker {
         if (key.startsWith("showTracker") || key.startsWith("tracker") || key.startsWith("goal") || "showXpPerMinute".equals(key) || key.startsWith("autoPause")) {
             updatePanelUI();
         }
-    }
-
-    private BufferedImage createCrabToolIcon() {
-        BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = icon.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        g.setColor(new Color(24, 32, 45));
-        g.fillRoundRect(0, 0, 16, 16, 4, 4);
-
-        g.setColor(new Color(0, 230, 230));
-        g.fillOval(3, 4, 10, 8);
-
-        g.setColor(new Color(255, 170, 0));
-        g.fillOval(1, 2, 4, 4);
-        g.fillOval(11, 2, 4, 4);
-
-        g.setColor(new Color(255, 255, 255, 210));
-        g.fillOval(6, 6, 4, 4);
-
-        g.dispose();
-        return icon;
     }
 
     public boolean isSkillIgnored(Skill skill) {
