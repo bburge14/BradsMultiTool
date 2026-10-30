@@ -28,7 +28,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 
 | File | Script | Source |
 |---|---|---|
-| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions |
+| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions, Slayer level, XP and task; monsters the wiki has no NPC id for yet are kept by name ("unlisted") |
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |

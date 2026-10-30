@@ -54,4 +54,20 @@ public class MonsterDataTest {
     public void unknownNpcIsMissing() {
         assertEquals(null, DATA.get(-1));
     }
+
+    // Every monster that needs a Slayer level has it (from the wiki's infobox), so the HUD and hover card show
+    // the Slayer section for it; also brand-new ones the wiki has no NPC id for yet, matched by name
+    @Test
+    public void slayerLevelMonstersHaveTheirLevel() {
+        assertEquals(15, DATA.statsFor("Banshee").slayerLevel);
+        assertEquals(85, DATA.statsFor("Abyssal demon").slayerLevel);
+        assertEquals(91, DATA.statsFor("Cerberus").slayerLevel);
+        assertEquals(95, DATA.statsFor("Alchemical Hydra").slayerLevel);
+        assertEquals(79, DATA.statsFor("Abyssal arbalest").slayerLevel);
+        assertTrue(DATA.statsFor("Abyssal arbalest").needsSlayerLevel());
+        // A task monster with no Slayer level: assigned, but anyone can kill it
+        MonsterData.Stats hellhound = DATA.statsFor("Hellhound");
+        assertEquals("Hellhounds", hellhound.slayerCategory);
+        assertTrue(!hellhound.needsSlayerLevel());
+    }
 }

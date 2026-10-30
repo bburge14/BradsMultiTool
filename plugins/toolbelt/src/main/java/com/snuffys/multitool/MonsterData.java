@@ -139,6 +139,12 @@ public class MonsterData {
                         }
                     }
                 }
+                // Monsters the wiki has no NPC id for yet (brand-new ones): by name only
+                if (root.has("unlisted")) {
+                    for (Map.Entry<String, JsonElement> entry : root.getAsJsonObject("unlisted").entrySet()) {
+                        byName.putIfAbsent(entry.getKey(), new Stats(entry.getValue().getAsJsonArray()));
+                    }
+                }
             }
             log.debug("Loaded {} monsters from {}", byId.size(), RESOURCE);
         } catch (Exception e) {
