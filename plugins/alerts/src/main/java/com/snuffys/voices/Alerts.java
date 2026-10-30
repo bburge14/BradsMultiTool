@@ -114,6 +114,10 @@ class Alerts {
         if (!identity.configGroup.equals(event.getGroup())) {
             return;
         }
+        if (event.getOldValue() == null) {
+            // A default being saved (ConfigDefaults), not the player changing it
+            return;
+        }
         String key = event.getKey();
         if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
             // The voice just picked here, even while the Alerts plugin sets the one alerts use; a line this

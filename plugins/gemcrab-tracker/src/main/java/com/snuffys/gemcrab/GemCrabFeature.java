@@ -20,7 +20,11 @@ class GemCrabFeature {
         return crabHudOverlay;
     }
 
+    @Inject private ConfigDefaults configDefaults;
+    @Inject private GemCrabConfig config;
+
     void start(Lifecycle lifecycle) {
+        configDefaults.add(() -> GemCrabConfigDefaults.store(configDefaults, config));
         lifecycle.subscribe(gemCrab);
         lifecycle.overlay(crabHudOverlay, crabOutlineOverlay);
         // Hitting the crab counts as busy for the idle alert (its hits come slowly)

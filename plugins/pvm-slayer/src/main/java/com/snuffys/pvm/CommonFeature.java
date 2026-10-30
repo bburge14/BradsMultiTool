@@ -15,14 +15,20 @@ class CommonFeature {
     private IdleWarnings idleWarnings;
     @Inject
     private BradsMultiToolIdleWarningOverlay idleWarningOverlay;
+    @Inject
+    private ConfigDefaults configDefaults;
+    @Inject
+    private CommonConfig config;
 
     void start(Lifecycle lifecycle) {
-        lifecycle.subscribe(alerts, idleWarnings);
+        lifecycle.subscribe(alerts, idleWarnings, configDefaults);
+        configDefaults.add(() -> CommonConfigDefaults.store(configDefaults, config));
         lifecycle.overlay(idleWarningOverlay);
         pluginFamily.start();
         lifecycle.onStop(() -> {
             pluginFamily.stop();
             alerts.shutDown();
+            configDefaults.clear();
         });
     }
 }

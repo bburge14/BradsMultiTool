@@ -76,6 +76,12 @@ Rules that keep the split working:
   all-in-one plugin joins them with a hook.
 - RuneLite only shows settings sections an interface declares itself, so the common sections are repeated in
   each plugin's settings and every section in `BradsMultiToolConfig` (`MultiToolConfigTest` checks).
+- RuneLite also only saves the defaults of settings an interface declares itself, and the settings panel can't
+  open with a choice (enum) setting that has nothing saved. So each feature saves its settings' defaults at
+  start through `ConfigDefaults` and the generated `*ConfigDefaults` classes: after adding or renaming a setting,
+  run `python3 scripts/generate_config_defaults.py` (`SettingsPanelTest` opens every plugin's real settings panel
+  on a fresh install and fails on any setting left unsaved). A setting's type must be public: an enum inside a
+  settings interface is (`MultiToolConfigTest` checks).
 - `PluginWiringTest` checks every plugin can be built (a missing settings binding fails there, not in the
   client), and `split_plugins.py --verify` that each compiles with only its own classes.
 
