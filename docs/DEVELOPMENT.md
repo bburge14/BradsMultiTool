@@ -40,8 +40,8 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 ## Planned: separate plugins
 
 Besides the all-in-one **Snuffy's Toolbelt**, each feature is published as its own plugin. This
-repository is where everything is worked on; `scripts/split_plugins.py` builds each plugin's own repository
-from it (see "Publishing the separate plugins" below).
+repository hosts them all: `main` is where everything is worked on, and `scripts/split_plugins.py` builds each
+plugin onto its own branch here (see "Publishing the separate plugins" below).
 
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
@@ -99,27 +99,25 @@ the Plugin Hub build files, `runelite-plugin.properties` (from the plugin's `@Pl
 icon (`icon.png`, from `assets/hub/`), the BSD-2 licence and a README.
 
 The **Split plugins** GitHub Action (`.github/workflows/split-plugins.yml`) does that on every push to `main`
-and pushes each plugin to its repository:
+(or run it by hand from the Actions tab) and pushes each plugin to its own branch in this repository, which
+holds just that plugin at its root, the way the Plugin Hub builds it:
 
-| Plugin | Repository |
-|---|---|
-| Snuffy's Toolbelt | `bburge14/snuffys-toolbelt` |
-| Snuffy's Skilling Helper | `bburge14/snuffys-skilling-helper` |
-| Snuffy's PvM/Slayer | `bburge14/snuffys-pvm-slayer` |
-| Snuffy's GemCrab Tracker | `bburge14/snuffys-gemcrab-tracker` |
-| Snuffy's Alerts | `bburge14/snuffys-alerts` |
+| Plugin | Branch | Plugin Hub name |
+|---|---|---|
+| Snuffy's Toolbelt | `plugin/toolbelt` | `snuffys-toolbelt` |
+| Snuffy's Skilling Helper | `plugin/skilling-helper` | `snuffys-skilling-helper` |
+| Snuffy's PvM/Slayer | `plugin/pvm-slayer` | `snuffys-pvm-slayer` |
+| Snuffy's GemCrab Tracker | `plugin/gemcrab-tracker` | `snuffys-gemcrab-tracker` |
+| Snuffy's Alerts | `plugin/alerts` | `snuffys-alerts` |
 
-It needs a repository secret **SNUFFYS_PUSH_TOKEN**: a fine-grained personal access token with
-*Contents: Read and write* on those five repositories (GitHub > Settings > Developer settings > Fine-grained
-tokens; then this repository > Settings > Secrets and variables > Actions). Without it the Action still
-builds and checks every plugin but pushes nothing. Don't edit the plugin repositories directly; changes there
-are overwritten.
+It pushes with the Action's own token (no secret to set up). Don't edit the `plugin/` branches directly;
+changes there are overwritten.
 
 ### Submitting to the Plugin Hub (not done yet)
 
-The Plugin Hub builds a plugin from a file in `runelite/plugin-hub`'s `plugins/` folder that names its
-repository and the commit to build. After pushing, the Action writes those files (`plugins/<repository name>`,
-e.g. `snuffys-skilling-helper`) and keeps them as the **plugin-hub-entries** download on the run's page.
+The Plugin Hub builds a plugin from a file in `runelite/plugin-hub`'s `plugins/` folder that names a
+repository and the commit to build: for each of ours, this repository and the commit on its `plugin/` branch.
+After pushing, the Action writes those files (`plugins/<Plugin Hub name>`, e.g. `snuffys-skilling-helper`) and keeps them as the **plugin-hub-entries** download on the run's page.
 To submit: fork `runelite/plugin-hub`, add the files under `plugins/`, and open a pull request; for an update,
 change the `commit=` line to the new one. `python3 scripts/split_plugins.py --hub-entry <plugin> <commit>`
 prints one by hand. Settle the open questions in docs/PLUGIN_HUB_COMPLIANCE.md first.

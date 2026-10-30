@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Build each of Snuffy's plugins as its own Plugin Hub repository, from this one.
+"""Build each of Snuffy's plugins the way the Plugin Hub builds it, from this repository.
 
 Usage:
     python3 scripts/split_plugins.py                 # write build/split/<plugin>/ for every plugin
     python3 scripts/split_plugins.py --verify        # ...and compile each one on its own
     python3 scripts/split_plugins.py skilltracker    # just one
 
-This repository stays where everything is worked on. Each plugin's repository gets only what that plugin
+main stays where everything is worked on. Each plugin's branch gets only what that plugin
 uses: starting from its plugin class, every class it refers to (and so on), the data files those classes
 load, and its voice clip folders (docs/DEVELOPMENT.md "Planned: separate plugins"). Its package is renamed
 (com.bradsmultitool -> com.snuffys.<plugin>) and it gets the Plugin Hub's build files, a
 runelite-plugin.properties, the licence and a short README. The GitHub Action in .github/workflows pushes the
-results to the plugin repositories.
+results to each plugin's branch here (plugin/<name>), which the Plugin Hub builds from.
 """
 import os
 import re
@@ -25,30 +25,32 @@ RES = os.path.join(ROOT, "src", "main", "resources", "com", "bradsmultitool")
 OUT = os.path.join(ROOT, "build", "split")
 OLD_PACKAGE = "com.bradsmultitool"
 
-# Each plugin: its plugin class, its package and repository, and which voice clip folders it ships
+# Each plugin: its plugin class, package, Plugin Hub name, branch here, and which voice clip folders it ships
 PLUGINS = {
     "multitool": {
-        "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "repo": "snuffys-toolbelt",
+        "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "name": "snuffys-toolbelt", "branch": "plugin/toolbelt",
         "voices": ["skilling", "pvm", "gemcrab", "shared"],
     },
     "skilltracker": {
-        "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "repo": "snuffys-skilling-helper",
+        "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "name": "snuffys-skilling-helper", "branch": "plugin/skilling-helper",
         "voices": ["skilling", "shared"],
     },
     "pvm": {
-        "class": "PvmPlugin", "package": "com.snuffys.pvm", "repo": "snuffys-pvm-slayer",
+        "class": "PvmPlugin", "package": "com.snuffys.pvm", "name": "snuffys-pvm-slayer", "branch": "plugin/pvm-slayer",
         "voices": ["pvm", "shared"],
     },
     "gemcrab": {
-        "class": "GemCrabPlugin", "package": "com.snuffys.gemcrab", "repo": "snuffys-gemcrab-tracker",
+        "class": "GemCrabPlugin", "package": "com.snuffys.gemcrab", "name": "snuffys-gemcrab-tracker", "branch": "plugin/gemcrab-tracker",
         "voices": ["gemcrab", "shared"],
     },
     "voices": {
-        "class": "VoicesPlugin", "package": "com.snuffys.voices", "repo": "snuffys-alerts",
+        "class": "VoicesPlugin", "package": "com.snuffys.voices", "name": "snuffys-alerts", "branch": "plugin/alerts",
         "voices": ["shared"],
     },
 }
 AUTHOR = "bburge14"
+# Everything is hosted here: each plugin on its own branch, which the Plugin Hub builds from
+REPOSITORY = "https://github.com/bburge14/bradsmultitool.git"
 # Voices whose recordings are licensed non-commercially (VOICE_CREDITS.md); see docs/PLUGIN_HUB_COMPLIANCE.md
 VOICE_PERSONAS = None  # every persona folder
 
@@ -97,18 +99,19 @@ the Toolbelt together with the separate ones.
 
 Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).
 
-## About this repository
+## About this branch
 
-This repository is generated from [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool),
-where the plugins are developed; changes made here directly are overwritten. Issues and ideas:
-[open an issue there](https://github.com/bburge14/bradsmultitool/issues).
+This branch holds just this plugin, the way the Plugin Hub builds it. It's generated from the `main` branch of
+[bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool), where all of Snuffy's plugins are
+developed; changes made here directly are overwritten. Issues and ideas:
+[open an issue](https://github.com/bburge14/bradsmultitool/issues).
 """
 
 
 def hub_entry(plugin_id, commit):
-    """The plugin's file for the Plugin Hub (runelite/plugin-hub, plugins/<name>): its repository and the
-    commit to build."""
-    return "repository=https://github.com/%s/%s.git\ncommit=%s\n" % (AUTHOR, PLUGINS[plugin_id]["repo"], commit)
+    """The plugin's file for the Plugin Hub (runelite/plugin-hub, plugins/<name>): this repository and the
+    commit (on the plugin's branch) to build."""
+    return "repository=%s\ncommit=%s\n" % (REPOSITORY, commit)
 
 
 def strip_comments_and_strings(text):
@@ -200,8 +203,8 @@ def build(plugin_id):
     with open(os.path.join(out, "build.gradle"), "w", encoding="utf-8") as f:
         f.write(BUILD_GRADLE % spec)
     with open(os.path.join(out, "settings.gradle"), "w", encoding="utf-8") as f:
-        f.write("rootProject.name = '%s'\n" % spec["repo"])
-    # The Plugin Hub shows icon.png from the repository's root (made by update_icons.py)
+        f.write("rootProject.name = '%s'\n" % spec["name"])
+    # The Plugin Hub shows icon.png from the root of what it builds (made by update_icons.py)
     shutil.copy2(os.path.join(ROOT, "assets", "hub", plugin_id + ".png"), os.path.join(out, "icon.png"))
     for keep in ("LICENSE", "VOICE_CREDITS.md", "gradlew", "gradlew.bat"):
         shutil.copy2(os.path.join(ROOT, keep), os.path.join(out, keep))
@@ -225,6 +228,11 @@ def verify(out):
 
 
 def main():
+    # --info <plugin>: its branch and Plugin Hub name, for the Action
+    if "--info" in sys.argv:
+        spec = PLUGINS[sys.argv[sys.argv.index("--info") + 1]]
+        print(spec["branch"], spec["name"])
+        return
     # --hub-entry <plugin> <commit>: print that plugin's Plugin Hub file (the Action uses this after pushing)
     if "--hub-entry" in sys.argv:
         i = sys.argv.index("--hub-entry")

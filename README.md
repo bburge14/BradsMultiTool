@@ -30,9 +30,9 @@ or the separate plugins you want. Don't install the Toolbelt together with the s
 everything twice. Every plugin has the idle and logout warnings; with several installed they're said once.
 
 **Before they're on the Plugin Hub**, run the Toolbelt from this repository with the steps under
-[First-time setup](#first-time-setup-windows-powershell). Each separate plugin also has its own repository
-(`bburge14/snuffys-skilling-helper`, `-pvm-slayer`, `-gemcrab-tracker`, `-alerts`, and `snuffys-toolbelt`); to
-try one on its own, clone it and run `.\gradlew.bat build` (it builds the same way the Plugin Hub does).
+[First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own branch here
+(`plugin/toolbelt`, `plugin/skilling-helper`, `plugin/pvm-slayer`, `plugin/gemcrab-tracker`, `plugin/alerts`)
+holding just that plugin, the way the Plugin Hub builds it.
 
 ## Features
 

@@ -1,7 +1,7 @@
-# Builds each of Snuffy's plugins from this repository (scripts/split_plugins.py), checks each compiles on
-# its own, and pushes it to its own repository, which the Plugin Hub builds from. Runs on every push to main
-# and on demand. Needs a SNUFFYS_PUSH_TOKEN secret: a fine-grained token with Contents read/write on the
-# five plugin repositories (docs/DEVELOPMENT.md "Publishing the separate plugins").
+# Builds each of Snuffy's plugins from main (scripts/split_plugins.py), checks each compiles on its own, and
+# pushes each to its own branch in this repository (plugin/toolbelt, plugin/skilling-helper, ...), which the
+# Plugin Hub builds from. Then writes each plugin's Plugin Hub file, naming the commit just pushed. Runs on
+# every push to main and on demand (docs/DEVELOPMENT.md "Publishing the separate plugins").
 name: Split plugins
 
 on:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   split:
@@ -26,43 +26,43 @@ jobs:
       - name: Build and check each plugin
         run: python3 scripts/split_plugins.py --verify
 
-      - name: Push to the plugin repositories
+      - name: Push each plugin to its branch
         env:
-          TOKEN: ${{ secrets.SNUFFYS_PUSH_TOKEN }}
-          OWNER: ${{ github.repository_owner }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
           SOURCE_SHA: ${{ github.sha }}
         run: |
-          if [ -z "$TOKEN" ]; then
-            echo "No SNUFFYS_PUSH_TOKEN secret yet; built and checked the plugins but pushed nothing."
-            exit 0
-          fi
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p build/plugin-hub
           for dir in build/split/*/; do
-            repo=$(grep -o "rootProject.name = '[^']*'" "$dir/settings.gradle" | cut -d"'" -f2)
-            rm -rf "/tmp/$repo"
-            git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${OWNER}/${repo}.git" "/tmp/$repo"
-            # Replace everything but the repository's own history
-            find "/tmp/$repo" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-            cp -a "$dir". "/tmp/$repo/"
-            cd "/tmp/$repo"
-            git add -A
-            if git diff --cached --quiet; then
-              echo "$repo: no changes"
+            plugin=$(basename "$dir")
+            read -r branch name < <(python3 scripts/split_plugins.py --info "$plugin")
+            work="/tmp/plugin-$plugin"
+            rm -rf "$work" && mkdir -p "$work"
+            git -C "$work" init -q
+            git -C "$work" config user.name "github-actions[bot]"
+            git -C "$work" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git -C "$work" remote add origin "https://x-access-token:${TOKEN}@github.com/${REPO}.git"
+            # Build on the branch's history if it exists, else start it
+            if git -C "$work" fetch -q --depth 1 origin "$branch" 2>/dev/null; then
+              git -C "$work" checkout -q -b "$branch" FETCH_HEAD
             else
-              git commit -q -m "Update from bradsmultitool@${SOURCE_SHA}"
-              git push -q origin HEAD
-              echo "$repo: pushed"
+              git -C "$work" checkout -q --orphan "$branch"
             fi
-            commit=$(git rev-parse HEAD)
-            cd - > /dev/null
-            # Its Plugin Hub file, naming the commit just pushed (plugins/<repo> in runelite/plugin-hub)
-            mkdir -p build/plugin-hub
-            python3 scripts/split_plugins.py --hub-entry "$(basename "$dir")" "$commit" > "build/plugin-hub/$repo"
+            find "$work" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+            cp -a "$dir". "$work/"
+            git -C "$work" add -A
+            if git -C "$work" diff --cached --quiet; then
+              echo "$branch: no changes"
+            else
+              git -C "$work" commit -q -m "Update from main@${SOURCE_SHA}"
+              git -C "$work" push -q origin "HEAD:refs/heads/$branch"
+              echo "$branch: pushed"
+            fi
+            # Its Plugin Hub file (plugins/<name> in runelite/plugin-hub), naming the commit just pushed
+            python3 scripts/split_plugins.py --hub-entry "$plugin" "$(git -C "$work" rev-parse HEAD)" > "build/plugin-hub/$name"
           done
 
       - name: Keep the Plugin Hub files
-        if: ${{ hashFiles('build/plugin-hub/*') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: plugin-hub-entries
