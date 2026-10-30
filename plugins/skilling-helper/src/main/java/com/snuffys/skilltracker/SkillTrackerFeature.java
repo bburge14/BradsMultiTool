@@ -45,6 +45,7 @@ class SkillTrackerFeature {
     @Inject private TickCounter tickCounter;
     @Inject private BradsMultiToolTickHeadOverlay tickHeadOverlay;
     @Inject private BradsMultiToolTickBoxOverlay tickBoxOverlay;
+    @Inject private BradsMultiToolTickBarOverlay tickBarOverlay;
 
     @Inject private ConfigDefaults configDefaults;
     @Inject private SkillTrackerConfig config;
@@ -69,7 +70,7 @@ class SkillTrackerFeature {
         lifecycle.overlay(skillingOverlay, resourceTimerOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
         // The tick counter, shared with the other plugin in the all-in-one
         lifecycle.subscribe(tickCounter);
-        lifecycle.overlay(tickHeadOverlay, tickBoxOverlay);
+        lifecycle.overlay(tickHeadOverlay, tickBoxOverlay, tickBarOverlay);
         skillTracker.startUp();
         lifecycle.onStop(skillTracker::shutDown);
     }

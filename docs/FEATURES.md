@@ -328,24 +328,35 @@ killed it twice. Potions and better gear show up here as faster kills; they don'
 
 In Snuffy's Skilling Helper and Snuffy's PvM/Slayer (one shared set of settings in the Toolbelt).
 
-**What it does:** counts game ticks in a cycle (1, 2, 3, 1, 2, 3...), for tick-based skilling and for timing
-your attacks. It only shows and sounds the ticks; it never clicks or does anything for you.
-- **Over head:** the count above your character.
-- **Box:** a square that flashes on every tick, with the count in it. Move it with Alt + drag like any
-  overlay.
+**What it does:** counts game ticks in a cycle (1, 2, 3, 1, 2, 3...) for tick-based skilling and for timing
+your attacks, and can time your clicks against the tick. It only shows and sounds the ticks and reads your
+clicks; it never clicks, changes a menu or does anything for you.
+- **Count Over Head:** the count above your character.
+- **Tick Boxes:** a box for each tick of the cycle (3 boxes for a 3-tick cycle), in a row or a column, the
+  current one lit. Move them with Alt + drag.
+- **Tick Bar:** fills smoothly from left to right over each tick and snaps back on the next, so you can see the
+  tick coming instead of reacting to a flash. Move it with Alt + drag.
 - The first tick of each cycle is in its own colour (green by default).
 - **Metronome:** a game sound on every tick, and a different one on the first tick of the cycle. The sounds
   are Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, and Tinderbox. It can play on the first tick only.
 - **Follow Attack Speed:** the cycle becomes your weapon's attack speed (one tick faster on Rapid), and the
   count starts again at 1 each time you attack, so 1 is your attack tick.
+- **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head, green on
+  time and red when late. The tick bar marks your last click and shades the late part of the tick, and a
+  summary of your last 50 clicks shows with the bar: "Last 50: 44 on time, 4 late, 2 missed, avg 310ms".
+- **Click Sounds:** a ding for each click on time and a dun for a late one. **Late After** (450ms by default)
+  sets when a click counts as late: with your ping it may land on the next tick.
+- **Click Every Tick** (for 1-ticking): a tick with no click, straight after one with a click, counts as missed
+  and plays a dun.
 
-**How to use it:** open **Tick Counter**, set **Show Ticks** (Over head, Box or Both) and **Ticks Per Cycle**
-(e.g. 3 for 3-tick skilling), or turn on **Follow Attack Speed** for combat. Pick a **Metronome Sound** to
-hear it.
+**How to use it:** open **Tick Counter**, turn on what you want to see, and set **Ticks Per Cycle** (e.g. 3 for
+3-tick skilling), or turn on **Follow Attack Speed** for combat. For 1-ticking, set Ticks Per Cycle to 1 and
+turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 
-**Settings (Tick Counter):** Show Ticks; Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First
-Tick Colour; Over Head Text Size; Box Size; Metronome Sound; Sound On First Tick Only; Metronome Volume (0
-uses the game's sound effect volume).
+**Settings (Tick Counter):** Count Over Head; Tick Boxes and Box Layout (Horizontal or Vertical); Tick Bar;
+Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
+Bar Width; Metronome Sound; Sound On First Tick Only; Metronome Volume (also the click sounds; 0 uses the game's
+sound effect volume); Click Timing; Click Sounds; Late After; Click Every Tick.
 
 If you have both Skilling Helper and PvM/Slayer installed separately, each has its own tick counter; turn it
 on in just one.

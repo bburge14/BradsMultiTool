@@ -67,7 +67,8 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Suggested training method on goal cards, outline of that method's trees/rocks/stalls/NPCs | OK. Wiki guide text plus object/NPC outlines (like core Object Markers / NPC Indicators); never clicks or moves the player |
 | Voice alerts (bundled clips) | OK. Character voices are named after RuneScape characters but are our own synthesized clips, not Jagex audio |
 | Skill tracker panel, level-up alerts | OK |
-| Tick counter (over head or a movable box) and metronome, incl. Follow Attack Speed | OK. Core Metronome plugin does the tick sounds (and sets the sound effect volume for one sound and restores it, as we do); Plugin Hub has visual metronome / tick counter plugins. Counts ticks only: it never highlights what to click or when, and never acts for the player |
+| Tick counter (over head, tick boxes, smooth tick bar) and metronome, incl. Follow Attack Speed | OK. Core Metronome plugin does the tick sounds (and sets the sound effect volume for one sound and restores it, as we do); Plugin Hub has visual metronome / tick counter plugins. Counts ticks only: it never highlights what to click or when, and never acts for the player |
+| Click timing (ms after the tick for each click, ding/dun sounds, on time / late / missed summary) | Likely OK, but ask the reviewers (see Open questions). Reads `MenuOptionClicked` only (never consumes or changes it) and the time of the last `GameTick`; shows and sounds feedback after the click, never what or when to click |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
 
 Never add: anything that clicks, types or acts for the player; menu entry removal based on conditions;
@@ -75,6 +76,10 @@ boss attack/prayer prediction for high-end PvM; hidden-information reveals; "AFK
 level/skull indicators; anything that modifies or hides core RuneLite UI or other plugins.
 
 ## Open questions before publishing
+
+- **Click timing.** A training aid for tick manipulation (1-ticking): it times your own clicks against the tick
+  and gives feedback after them. Nothing on the Plugin Hub does quite this; ask the reviewers before submitting,
+  and drop it if they object (the tick counter and metronome don't depend on it).
 
 - **Voice clip licences.** Ryan's clips are CC BY-NC-SA 4.0 and L2 Arctic's CC BY-NC 4.0 (their recordings'
   licences; VOICE_CREDITS.md). The plugin is free, so non-commercial use holds, but the Plugin Hub asks for

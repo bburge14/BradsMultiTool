@@ -37,6 +37,7 @@ class PvmFeature {
     @Inject private TickCounter tickCounter;
     @Inject private BradsMultiToolTickHeadOverlay tickHeadOverlay;
     @Inject private BradsMultiToolTickBoxOverlay tickBoxOverlay;
+    @Inject private BradsMultiToolTickBarOverlay tickBarOverlay;
 
     @Inject private ConfigDefaults configDefaults;
     @Inject private PvmConfig config;
@@ -52,7 +53,7 @@ class PvmFeature {
         lifecycle.overlay(hudOverlay, prayerOverlay, hoverOverlay, orbOverlay, slayerOverlay, slayerHighlightOverlay);
         // The tick counter, shared with the other plugin in the all-in-one
         lifecycle.subscribe(tickCounter);
-        lifecycle.overlay(tickHeadOverlay, tickBoxOverlay);
+        lifecycle.overlay(tickHeadOverlay, tickBoxOverlay, tickBarOverlay);
         pvm.startUp();
         lifecycle.onStop(pvm::shutDown);
     }

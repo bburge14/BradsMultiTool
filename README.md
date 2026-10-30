@@ -147,10 +147,13 @@ work a resource.
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.
 
 ### Tick counter and metronome
-- Counts game ticks in a cycle you set (1-10), **over your head**, in a **box you can move**, or both. The first
-  tick of each cycle is in its own colour.
+- Counts game ticks in a cycle you set (1-10): **over your head**, as a **row of boxes** (one per tick, the
+  current one lit; or a column), and/or a **tick bar** that fills smoothly over each tick so you can see it
+  coming. The first tick of each cycle is in its own colour.
 - **Metronome** with a choice of game sounds (Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, Tinderbox): a
   different sound on the first tick of the cycle.
+- **Click timing** for 1-ticking: how many ms after the tick each click landed, a ding when on time and a dun
+  when late or when you miss a tick, and a summary of your last 50 clicks.
 - **Follow Attack Speed**: the cycle follows your weapon and starts again each time you attack.
 - In Skilling Helper and PvM/Slayer; settings under **Tick Counter**.
 

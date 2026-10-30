@@ -102,11 +102,16 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Level-up voice says skill and level.
 
 ## Tick counter
-- [ ] Show Ticks Over head: the count shows above your character, 1 to Ticks Per Cycle, first tick in its colour.
-- [ ] Show Ticks Box: the box flashes every tick, moves with Alt + drag and keeps its place.
+- [ ] Count Over Head: the count shows above your character, 1 to Ticks Per Cycle, first tick in its colour.
+- [ ] Tick Boxes: one box per tick of the cycle, the current one lit; Horizontal and Vertical; drawn once in the
+      Toolbelt (not two stacked boxes); moves with Alt + drag and keeps its place.
+- [ ] Tick Bar: fills smoothly over each tick and snaps back on the tick; Bar Width.
 - [ ] Each Metronome Sound plays, with the second sound on the first tick; Sound On First Tick Only; Volume.
 - [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3); 1 lands on each attack.
-- [ ] Off: nothing shows and no sound.
+- [ ] Click Timing: "NNNms" rises over your head on each click (green, red past Late After); the bar marks the
+      click; the summary counts on time / late / missed. Right-click "Track for goal" isn't counted.
+- [ ] Click Sounds: ding on time, dun late; Click Every Tick: dun on a tick with no click while 1-ticking.
+- [ ] All off: nothing shows and no sound.
 
 ## Idle
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.

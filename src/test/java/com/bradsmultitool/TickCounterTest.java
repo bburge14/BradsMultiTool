@@ -1,7 +1,9 @@
 package com.bradsmultitool;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import javax.inject.Singleton;
 import org.junit.Test;
 
 public class TickCounterTest {
@@ -22,5 +24,15 @@ public class TickCounterTest {
         assertEquals(1, TickCounter.next(2, 5, true));
         // A shorter cycle (new weapon) wraps straight away
         assertEquals(1, TickCounter.next(5, 4, false));
+    }
+
+    // Skilling Helper and PvM/Slayer both show the tick overlays: in the Toolbelt they must be one instance each,
+    // or each is drawn twice
+    @Test
+    public void tickOverlaysAreShared() {
+        for (Class<?> overlay : new Class<?>[]{BradsMultiToolTickBoxOverlay.class, BradsMultiToolTickBarOverlay.class,
+            BradsMultiToolTickHeadOverlay.class, TickCounter.class}) {
+            assertTrue(overlay.getSimpleName() + " must be @Singleton", overlay.isAnnotationPresent(Singleton.class));
+        }
     }
 }

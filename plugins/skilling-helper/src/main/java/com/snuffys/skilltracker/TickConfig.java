@@ -7,6 +7,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Range;
+import net.runelite.client.config.Units;
 
 /** The tick counter and metronome, in both Snuffy's Skilling Helper and PvM/Slayer. */
 public interface TickConfig extends Config {
@@ -19,24 +20,14 @@ public interface TickConfig extends Config {
     )
     String tickSection = "tickSection";
 
-    enum Display {
-        OFF("Off"),
-        OVER_HEAD("Over head"),
-        BOX("Box"),
-        BOTH("Both");
+    enum Layout {
+        HORIZONTAL("Horizontal"),
+        VERTICAL("Vertical");
 
         private final String label;
 
-        Display(String label) {
+        Layout(String label) {
             this.label = label;
-        }
-
-        boolean overHead() {
-            return this == OVER_HEAD || this == BOTH;
-        }
-
-        boolean box() {
-            return this == BOX || this == BOTH;
         }
 
         @Override
@@ -73,14 +64,47 @@ public interface TickConfig extends Config {
     }
 
     @ConfigItem(
-        keyName = "tickDisplay",
-        name = "Show Ticks",
-        description = "Count the ticks over your character's head, in a box you can move (Alt + drag), or both",
+        keyName = "tickOverHead",
+        name = "Count Over Head",
+        description = "Show the tick count over your character's head",
         section = tickSection,
         position = 0
     )
-    default Display tickDisplay() {
-        return Display.OFF;
+    default boolean tickOverHead() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "tickBoxes",
+        name = "Tick Boxes",
+        description = "A box for each tick of the cycle, lighting up in turn. Move them with Alt + drag",
+        section = tickSection,
+        position = 1
+    )
+    default boolean tickBoxes() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "tickBoxLayout",
+        name = "Box Layout",
+        description = "Tick boxes in a row or a column",
+        section = tickSection,
+        position = 2
+    )
+    default Layout tickBoxLayout() {
+        return Layout.HORIZONTAL;
+    }
+
+    @ConfigItem(
+        keyName = "tickBar",
+        name = "Tick Bar",
+        description = "A bar that fills smoothly over each tick and snaps back on the next, so you can see the tick coming instead of reacting to it. Move it with Alt + drag",
+        section = tickSection,
+        position = 3
+    )
+    default boolean tickBar() {
+        return false;
     }
 
     @Range(min
@@ -94,7 +118,7 @@ public interface TickConfig extends Config {
         name = "Ticks Per Cycle",
         description = "The count goes 1 to this and starts over: 3 for 3-tick skilling, your weapon's attack speed for combat",
         section = tickSection,
-        position = 1
+        position = 4
     )
     default int tickCycle() {
         return 4;
@@ -105,7 +129,7 @@ public interface TickConfig extends Config {
         name = "Follow Attack Speed",
         description = "Use your weapon's attack speed for the cycle (one faster on Rapid) and start the count again each time you attack, so 1 is your attack tick",
         section = tickSection,
-        position = 2
+        position = 5
     )
     default boolean tickFollowWeapon() {
         return false;
@@ -117,7 +141,7 @@ public interface TickConfig extends Config {
         name = "Tick Colour",
         description = "Colour of the count on most ticks",
         section = tickSection,
-        position = 3
+        position = 6
     )
     default Color tickColor() {
         return new Color(255, 255, 255, 230);
@@ -129,7 +153,7 @@ public interface TickConfig extends Config {
         name = "First Tick Colour",
         description = "Colour of the count on the first tick of each cycle",
         section = tickSection,
-        position = 4
+        position = 7
     )
     default Color tickFirstColor() {
         return new Color(0, 230, 120, 230);
@@ -146,7 +170,7 @@ public interface TickConfig extends Config {
         name = "Over Head Text Size",
         description = "Size of the count over your head",
         section = tickSection,
-        position = 5
+        position = 8
     )
     default int tickTextSize() {
         return 22;
@@ -161,12 +185,29 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "tickBoxSize",
         name = "Box Size",
-        description = "Width and height of the tick box",
+        description = "Width and height of each tick box",
         section = tickSection,
-        position = 6
+        position = 9
     )
     default int tickBoxSize() {
         return 40;
+    }
+
+    @Range(min
+    =
+    60,
+    max
+    =
+    400)
+    @ConfigItem(
+        keyName = "tickBarWidth",
+        name = "Bar Width",
+        description = "Width of the tick bar",
+        section = tickSection,
+        position = 10
+    )
+    default int tickBarWidth() {
+        return 150;
     }
 
     @ConfigItem(
@@ -174,7 +215,7 @@ public interface TickConfig extends Config {
         name = "Metronome Sound",
         description = "A game sound each tick; the first tick of each cycle plays the second sound of the pair",
         section = tickSection,
-        position = 7
+        position = 11
     )
     default Sound metronomeSound() {
         return Sound.OFF;
@@ -185,7 +226,7 @@ public interface TickConfig extends Config {
         name = "Sound On First Tick Only",
         description = "Only play the metronome on the first tick of each cycle",
         section = tickSection,
-        position = 8
+        position = 12
     )
     default boolean metronomeFirstOnly() {
         return false;
@@ -197,11 +238,62 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "metronomeVolume",
         name = "Metronome Volume",
-        description = "Volume of the metronome (0-100); 0 uses the game's sound effect volume",
+        description = "Volume of the metronome and the click sounds (0-100); 0 uses the game's sound effect volume",
         section = tickSection,
-        position = 9
+        position = 13
     )
     default int metronomeVolume() {
         return 50;
+    }
+
+    @ConfigItem(
+        keyName = "clickTiming",
+        name = "Click Timing",
+        description = "Show how long after the tick each click landed (in ms) over your head, and a summary of your last clicks with the tick bar (Alt + drag to move it)",
+        section = tickSection,
+        position = 14
+    )
+    default boolean clickTiming() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "clickSounds",
+        name = "Click Sounds",
+        description = "A ding for each click on time, a dun for a late one (after Late After)",
+        section = tickSection,
+        position = 15
+    )
+    default boolean clickSounds() {
+        return false;
+    }
+
+    @Range(min
+    =
+    100,
+    max
+    =
+    590)
+    @ConfigItem(
+        keyName = "clickLateMs",
+        name = "Late After",
+        description = "A click this long after the tick or later counts as late: with your ping it may land on the next tick",
+        section = tickSection,
+        position = 16
+    )
+    @Units(Units.MILLISECONDS)
+    default int clickLateMs() {
+        return 450;
+    }
+
+    @ConfigItem(
+        keyName = "clickEveryTick",
+        name = "Click Every Tick",
+        description = "For 1-ticking: a tick without a click, after one with a click, counts as missed (and plays a dun)",
+        section = tickSection,
+        position = 17
+    )
+    default boolean clickEveryTick() {
+        return false;
     }
 }
