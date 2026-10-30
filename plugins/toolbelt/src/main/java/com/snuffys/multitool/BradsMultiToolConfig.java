@@ -20,6 +20,15 @@ import net.runelite.client.config.Units;
 @ConfigGroup("bradsmultitool")
 public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, GemCrabConfig {
 
+
+    @ConfigSection(
+        name = "Tick Counter",
+        description = "Counts game ticks over your head or in a box you can move, with an optional metronome",
+        position = 85,
+        closedByDefault = true
+    )
+    String tickSection = "tickSection";
+
     @ConfigSection(
         name = "General",
         description = "Voice and chat settings shared by all alerts",

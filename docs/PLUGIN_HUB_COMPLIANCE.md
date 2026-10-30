@@ -67,6 +67,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Suggested training method on goal cards, outline of that method's trees/rocks/stalls/NPCs | OK. Wiki guide text plus object/NPC outlines (like core Object Markers / NPC Indicators); never clicks or moves the player |
 | Voice alerts (bundled clips) | OK. Character voices are named after RuneScape characters but are our own synthesized clips, not Jagex audio |
 | Skill tracker panel, level-up alerts | OK |
+| Tick counter (over head or a movable box) and metronome, incl. Follow Attack Speed | OK. Core Metronome plugin does the tick sounds (and sets the sound effect volume for one sound and restores it, as we do); Plugin Hub has visual metronome / tick counter plugins. Counts ticks only: it never highlights what to click or when, and never acts for the player |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
 
 Never add: anything that clicks, types or acts for the player; menu entry removal based on conditions;

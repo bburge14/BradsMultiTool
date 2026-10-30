@@ -34,11 +34,18 @@ class PvmFeature {
         return hudOverlay;
     }
 
+    @Inject private TickCounter tickCounter;
+    @Inject private BradsMultiToolTickHeadOverlay tickHeadOverlay;
+    @Inject private BradsMultiToolTickBoxOverlay tickBoxOverlay;
+
     void start(Lifecycle lifecycle) {
         lifecycle.load(monsterData, monsterData::load);
         lifecycle.load(slayerData, slayerData::load);
         lifecycle.subscribe(pvm, combatStyle, combatAlerts);
         lifecycle.overlay(hudOverlay, prayerOverlay, hoverOverlay, orbOverlay, slayerOverlay, slayerHighlightOverlay);
+        // The tick counter, shared with the other plugin in the all-in-one
+        lifecycle.subscribe(tickCounter);
+        lifecycle.overlay(tickHeadOverlay, tickBoxOverlay);
         pvm.startUp();
         lifecycle.onStop(pvm::shutDown);
     }

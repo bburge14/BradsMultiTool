@@ -59,6 +59,11 @@ public class BradsMultiToolPlugin extends Plugin {
 
     // The all-in-one's settings stand in for each plugin's own (same keys, one group)
     @Provides
+    TickConfig provideTickConfig(BradsMultiToolConfig config) {
+        return config;
+    }
+
+    @Provides
     CommonConfig provideCommonConfig(BradsMultiToolConfig config) {
         return config;
     }

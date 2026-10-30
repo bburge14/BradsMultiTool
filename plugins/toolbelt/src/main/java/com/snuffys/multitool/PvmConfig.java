@@ -14,9 +14,18 @@ import net.runelite.client.config.Units;
 
 /** Snuffy's PvM/Slayer: buffs, health, prayer, combat alerts, the PvM HUD and Slayer. */
 @ConfigGroup("snuffyspvm")
-public interface PvmConfig extends CommonConfig {
+public interface PvmConfig extends CommonConfig, TickConfig {
 
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
+
+
+    @ConfigSection(
+        name = "Tick Counter",
+        description = "Counts game ticks over your head or in a box you can move, with an optional metronome",
+        position = 85,
+        closedByDefault = true
+    )
+    String tickSection = "tickSection";
 
     @ConfigSection(
         name = "General",

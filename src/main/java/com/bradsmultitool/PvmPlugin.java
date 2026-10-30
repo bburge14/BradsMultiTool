@@ -40,6 +40,11 @@ public class PvmPlugin extends Plugin {
     }
 
     @Provides
+    TickConfig provideTickConfig(PvmConfig config) {
+        return config;
+    }
+
+    @Provides
     CommonConfig provideCommonConfig(PvmConfig config) {
         return config;
     }

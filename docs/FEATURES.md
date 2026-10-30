@@ -17,6 +17,7 @@ section to open. All sections except General start collapsed.
 - [Skilling alerts](#skilling-alerts)
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
+- [Tick counter and metronome](#tick-counter-and-metronome)
 - [Idle alerts](#idle-alerts)
 - [Issues? button](#issues-button)
 
@@ -320,6 +321,34 @@ Combat goal cards (and the pinned overlay) also show your **Kill rate** on your 
 you killed last), e.g. "Kill rate: Sand Crab: 52/hr (1:09 each)", over your kills in the last hour once you've
 killed it twice. Potions and better gear show up here as faster kills; they don't change the kills a goal needs
 (combat XP comes from damage, and a kill can only take its hitpoints).
+
+---
+
+## Tick counter and metronome
+
+In Snuffy's Skilling Helper and Snuffy's PvM/Slayer (one shared set of settings in the Toolbelt).
+
+**What it does:** counts game ticks in a cycle (1, 2, 3, 1, 2, 3...), for tick-based skilling and for timing
+your attacks. It only shows and sounds the ticks; it never clicks or does anything for you.
+- **Over head:** the count above your character.
+- **Box:** a square that flashes on every tick, with the count in it. Move it with Alt + drag like any
+  overlay.
+- The first tick of each cycle is in its own colour (green by default).
+- **Metronome:** a game sound on every tick, and a different one on the first tick of the cycle. The sounds
+  are Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, and Tinderbox. It can play on the first tick only.
+- **Follow Attack Speed:** the cycle becomes your weapon's attack speed (one tick faster on Rapid), and the
+  count starts again at 1 each time you attack, so 1 is your attack tick.
+
+**How to use it:** open **Tick Counter**, set **Show Ticks** (Over head, Box or Both) and **Ticks Per Cycle**
+(e.g. 3 for 3-tick skilling), or turn on **Follow Attack Speed** for combat. Pick a **Metronome Sound** to
+hear it.
+
+**Settings (Tick Counter):** Show Ticks; Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First
+Tick Colour; Over Head Text Size; Box Size; Metronome Sound; Sound On First Tick Only; Metronome Volume (0
+uses the game's sound effect volume).
+
+If you have both Skilling Helper and PvM/Slayer installed separately, each has its own tick counter; turn it
+on in just one.
 
 ---
 

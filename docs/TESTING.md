@@ -101,6 +101,13 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Auto-pause after the set minutes without XP; resumes on XP.
 - [x] Level-up voice says skill and level.
 
+## Tick counter
+- [ ] Show Ticks Over head: the count shows above your character, 1 to Ticks Per Cycle, first tick in its colour.
+- [ ] Show Ticks Box: the box flashes every tick, moves with Alt + drag and keeps its place.
+- [ ] Each Metronome Sound plays, with the second sound on the first tick; Sound On First Tick Only; Volume.
+- [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3); 1 lands on each attack.
+- [ ] Off: nothing shows and no sound.
+
 ## Idle
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
 - [x] Idle logout warning before the logout.

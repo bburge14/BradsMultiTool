@@ -146,6 +146,14 @@ work a resource.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.
 
+### Tick counter and metronome
+- Counts game ticks in a cycle you set (1-10), **over your head**, in a **box you can move**, or both. The first
+  tick of each cycle is in its own colour.
+- **Metronome** with a choice of game sounds (Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, Tinderbox): a
+  different sound on the first tick of the cycle.
+- **Follow Attack Speed**: the cycle follows your weapon and starts again each time you attack.
+- In Skilling Helper and PvM/Slayer; settings under **Tick Counter**.
+
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key
   presses since. Banking, shops, the GE and menus never set it off.
