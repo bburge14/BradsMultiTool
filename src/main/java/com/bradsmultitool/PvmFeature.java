@@ -4,7 +4,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
- * Snuffy's PvM & Slayer: the PvM HUD and monster hover card, buffs and boosts, health and prayer, combat
+ * Snuffy's PvM/Slayer: the PvM HUD and monster hover card, buffs and boosts, health and prayer, combat
  * alerts, and the Slayer card and task outlines.
  */
 @Singleton

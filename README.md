@@ -1,8 +1,9 @@
-# Snuffy's Multi-Tool
+# Snuffy's Toolbelt
 
 A RuneLite plugin that bundles PvM, Gemstone Crab, Slayer and skilling helpers, alerts with voice lines,
 and a skill tracker into one place. Everything can be switched on or off in the plugin's settings.
 
+- [Installing](#installing): the all-in-one, or just the parts you want
 - [Features](#features) (full guide with how-tos: [docs/FEATURES.md](docs/FEATURES.md))
 - [Setup (Windows)](#first-time-setup-windows-powershell)
 - [Logging in with a Jagex Account](#logging-in-with-a-jagex-account)
@@ -10,6 +11,33 @@ and a skill tracker into one place. Everything can be switched on or off in the 
 - [Credits](#credits)
 
 Working on the plugin itself? See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
+## Installing
+
+Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just the parts you want:
+
+| Plugin | What it has |
+|---|---|
+| **Snuffy's Toolbelt** | Everything below, in one plugin |
+| **Snuffy's Skilling Helper** | The sidebar tracker with goals and suggested training, the pinned skill, skilling hover cards, timer pies and skilling alerts |
+| **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
+| **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
+| **Snuffy's Alerts** | Optional: one voice and volume for all of the separate plugins |
+
+**From the Plugin Hub** (once they're published there): in RuneLite open the **Plugin Hub** (the plug icon
+at the bottom of the configuration panel), search **Snuffy's**, and install either **Snuffy's Toolbelt**
+or the separate plugins you want. Don't install the Toolbelt together with the separate ones: you'd get
+everything twice. Every plugin has the idle and logout warnings; with several installed they're said once.
+
+**Before they're on the Plugin Hub**, run the Toolbelt from this repository with the steps under
+[First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own folder under
+[`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `alerts`) that builds on
+its own. `python3 scripts/split_plugins.py --build` makes all five jars in `releases/`.
+
+**Trying the jars with friends:** put the jar(s) in `.runelite/sideloaded-plugins` (create it next to
+`.runelite/settings.properties`) and start RuneLite in developer mode: in **RuneLite (configure)** add
+`--developer-mode` to the client arguments and `-ea` to the JVM options. RuneLite only loads sideloaded jars in
+developer mode.
 
 ## Features
 
@@ -77,7 +105,7 @@ RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't st
 Timer Plugins). XP rates on the cards only show while you're training that skill. Inventory full is announced while you
 work a resource.
 
-### Snuffy's Skill Tracker (sidebar)
+### Snuffy's Skilling Helper (sidebar)
 - A card per skill you train: XP gained, XP to next level, actions left (from your last XP drop; not for
   combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar. Each field has its
   own switch.
@@ -93,9 +121,9 @@ work a resource.
   suggests the best Slayer master. Methods whose quests or other levels you don't have yet are skipped, and at
   low levels the card lists quests worth doing for that skill's XP. A **Needs:** line lists the tools it takes
   (green if you have them). Each skill's **Suggest** choice (right-click it, or when setting its
-  goal; otherwise the **Default Training Focus** setting) chooses what it
-  aims for: **Fastest XP**, the guide's **Other methods** (often AFK), **Cheapest** (fewest GP per XP when
-  making things; gathering is free) or **Money maker** (the most profitable wiki money making guide you
+  goal; otherwise the **Training Focus** setting) chooses what it
+  aims for: **Fastest**, the guide's other methods (**AFK / Other**), **Cheapest** (fewest GP per XP when
+  making things; gathering is free) or **Money Maker** (the most profitable wiki money making guide you
   can do). Where the method is a tree,
   rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
 - **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill (or any monster for a
@@ -124,8 +152,8 @@ work a resource.
   announced.
 - Every alert has its own **Voice:** and **Chat:** switch in its section; **General** has the master
   switches, the voice and the volume.
-- 10 voices (pre-recorded, so they work on any OS): Amy (US female), Cori (UK female), Alan (UK male),
-  Ryan (US male), Arctic (Scottish male), L2 Arctic (Mandarin-accented male), John (US male), Wise Old Man, TzHaar and Ghost, or **Random** for a different
+- 10 voices (pre-recorded, so they work on any OS): Amy and Cori (US and UK women), Alan,
+  Ryan and John (UK and US men), Arctic (a Scottish man), L2 Arctic (a man with a Mandarin Chinese accent), Wise Old Man, TzHaar and Ghost, or **Random** for a different
   one each alert. Changing the voice plays a sample.
 - Chat messages use the same words as the voice line, with details in brackets.
 
@@ -157,7 +185,7 @@ a browser window to sign in to GitHub.
 **3. (Optional) Desktop shortcut:** run this once to put a launch button on your desktop:
 
 ```powershell
-$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Multi-Tool.lnk")
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Toolbelt.lnk")
 $s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
 $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()

@@ -1,7 +1,7 @@
-# Snuffy's Multi-Tool: feature guide
+# Snuffy's Toolbelt: feature guide
 
 Every feature, what it does, how to use it and where its settings are. Settings are in RuneLite's
-configuration panel (the wrench icon) under **Snuffy's Multi-Tool**; each section below names the settings
+configuration panel (the wrench icon) under **Snuffy's Toolbelt**; each section below names the settings
 section to open. All sections except General start collapsed.
 
 - [Alerts (all of them)](#alerts-all-of-them)
@@ -47,7 +47,7 @@ style, DPS, and your last and max hit. It stays up for a few seconds after the f
 
 **How to use:** Attack anything. The HUD can be moved like any RuneLite overlay (hold Alt and drag).
 
-**Settings (PvM HUD):** Enable PvM HUD; DPS Tracking Mode (per monster, per monster type, or the whole
+**Settings (PvM HUD):** Enable PvM HUD; DPS Mode (Per Monster, Per Type, or the whole
 session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status.
 
 ---
@@ -214,7 +214,7 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 
 ## Skill tracker
 
-*Snuffy's Skill Tracker: the sidebar panel (its own plugin once the multi-tool is split).*
+*Snuffy's Skilling Helper: the sidebar panel (its own plugin once the Toolbelt is split).*
 
 **What it does:** A sidebar panel (the plugin's icon on RuneLite's sidebar) with a card per skill you
 train, laid out like RuneLite's XP tracker: XP gained, XP left, actions left (from your last XP drop; not
@@ -234,7 +234,7 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
 
 **Settings (Skill Tracker):** a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
-Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
+Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
 (minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up.
 
 ---
@@ -251,7 +251,7 @@ Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Id
   log) and other skills' levels (Sulphur Naguas need 48 Slayer). At low levels the card also lists
   **Quest XP:** quests the guide recommends for that skill's XP that you haven't done (hover for all).
 - Each skill can aim for something different: right-click it in the tracker > **Suggest** (or pick
-  **Suggest** when setting its goal) and choose Fastest XP, Other methods, Cheapest or Money maker, or
+  **Suggest** when setting its goal) and choose Fastest, AFK / Other, Cheapest or Money Maker, or
   Default to follow the setting. Saved with your goals, per account.
 - A goal card shows the wiki training guide's method for your level and, when it changes before the
   goal, the level it lasts to (**Train: Teak trees to 62**). Hover it for every step on the way:
@@ -285,10 +285,10 @@ Default Training Focus, Highlight Suggested Method and its colour; Auto-Pause Id
 Goals are saved with your RuneScape profile, so they stay after a relaunch. To have them on another PC,
 log in to a RuneLite account on both and turn on **Sync** for your profile (Profiles panel).
 
-**Settings (Skill Tracker):** Suggested Method; **Default Training Focus** (for skills without their
-own): Fastest XP (the guide's fastest
-method), Other methods (the guide's others, often more AFK), Cheapest (for making things: the recipe with
-the fewest GP per XP at GE prices; gathering skills are free so they get the fastest), or Money maker (the
+**Settings (Skill Tracker):** Suggested Method; **Training Focus** (for skills without their
+own): Fastest (the guide's fastest
+method), AFK / Other (the guide's other methods, often more AFK), Cheapest (for making things: the recipe with
+the fewest GP per XP at GE prices; gathering skills are free so they get the fastest), or Money Maker (the
 most profitable wiki money making guide you meet the requirements for, e.g. "Money: Cutting yew logs
 (~335K/hr)"). The Make: line follows it too; Highlight Suggested Method; Highlight Goal
 Items; Highlight Colour;

@@ -130,14 +130,19 @@ public class BradsMultiToolPanel extends PluginPanel {
             BorderFactory.createMatteBorder(2, 0, 0, 0, ACCENT_COLOR),
             new EmptyBorder(8, 8, 8, 8)));
 
-        JPanel titles = new JPanel(new GridLayout(2, 1));
+        // "Snuffy's" on its own small line, so the plugin's name fits beside the Issues? button
+        JPanel titles = new JPanel(new GridLayout(3, 1));
         titles.setOpaque(false);
-        JLabel title = new JLabel("Snuffy's Skill Tracker");
+        JLabel brand = new JLabel("Snuffy's");
+        brand.setFont(FontManager.getRunescapeSmallFont());
+        brand.setForeground(Color.LIGHT_GRAY);
+        JLabel title = new JLabel("Skilling Helper");
         title.setFont(FontManager.getRunescapeBoldFont());
         title.setForeground(ACCENT_COLOR);
         JLabel subtitle = new JLabel("XP, goals and training");
         subtitle.setFont(FontManager.getRunescapeSmallFont());
         subtitle.setForeground(Color.GRAY);
+        titles.add(brand);
         titles.add(title);
         titles.add(subtitle);
 

@@ -20,8 +20,8 @@ import net.runelite.client.events.PluginMessage;
  * <ul>
  * <li>"hello": a plugin started; everyone else answers "here".</li>
  * <li>"bye": a plugin stopped.</li>
- * <li>"voice-settings" (from the Voices plugin): "persona" (a VoicePersona name), "volume" (0-100) and
- * "enabled". While the Voices plugin is installed, every plugin speaks with its voice and volume; each
+ * <li>"voice-settings" (from the Alerts plugin): "persona" (a VoicePersona name), "volume" (0-100) and
+ * "enabled". While the Alerts plugin is installed, every plugin speaks with its voice and volume; each
  * plugin's own switches for its lines still apply.</li>
  * </ul>
  */
@@ -31,7 +31,7 @@ class PluginFamily {
     static final String NAMESPACE = "snuffys";
     static final String VOICES = "voices";
 
-    /** The voice the Voices plugin asked everyone to use. */
+    /** The voice the Alerts plugin asked everyone to use. */
     static final class VoiceSettings {
         final VoiceAlertService.VoicePersona persona;
         final int volume;
@@ -75,9 +75,10 @@ class PluginFamily {
         return others.contains(plugin);
     }
 
-    // Who runs the warnings every plugin has (idle, logout) when several are installed, so they're said once:
-    // the first of these that's running
-    private static final List<String> SHARED_ORDER = Arrays.asList(VOICES, "multitool", "skilltracker", "pvm", "gemcrab");
+    // Who runs the warnings every plugin has (idle, logout) when several are installed, so they're said once
+    // (and tagged with its name in chat): the first of these that's running. The all-in-one comes first, so
+    // with it installed every message says Snuffy's Toolbelt (in the Alerts plugin's voice, if that runs)
+    private static final List<String> SHARED_ORDER = Arrays.asList("multitool", VOICES, "skilltracker", "pvm", "gemcrab");
 
     /** Whether this plugin should run the shared idle and logout warnings (no other of ours ahead of it is running). */
     boolean handlesShared() {
@@ -91,7 +92,7 @@ class PluginFamily {
         return true;
     }
 
-    /** Sends this plugin's voice settings to the others (the Voices plugin does, on start and when asked). */
+    /** Sends this plugin's voice settings to the others (the Alerts plugin does, on start and when asked). */
     void sendVoiceSettings(VoiceAlertService.VoicePersona persona, int volume, boolean enabled) {
         Map<String, Object> data = new HashMap<>();
         data.put("plugin", self);
@@ -101,12 +102,12 @@ class PluginFamily {
         eventBus.post(new PluginMessage(NAMESPACE, "voice-settings", data));
     }
 
-    /** Called when another of ours says hello (the Voices plugin answers with its voice settings). */
+    /** Called when another of ours says hello (the Alerts plugin answers with its voice settings). */
     void onHello(Runnable action) {
         helloListeners.add(action);
     }
 
-    /** The Voices plugin's voice settings, or null when it isn't running (use this plugin's own). */
+    /** The Alerts plugin's voice settings, or null when it isn't running (use this plugin's own). */
     VoiceSettings voiceSettings() {
         return others.contains(VOICES) ? voiceSettings : null;
     }

@@ -13,7 +13,7 @@ import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
 /**
- * The all-in-one Snuffy's Multi-Tool: every plugin's settings in one group ("bradsmultitool", kept so saved
+ * The all-in-one Snuffy's Toolbelt: every plugin's settings in one group ("bradsmultitool", kept so saved
  * settings and goals carry over). RuneLite only shows sections an interface declares itself, so they are all
  * repeated here (MultiToolConfigTest checks none is missing).
  */

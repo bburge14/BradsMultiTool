@@ -6,9 +6,9 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-/** Snuffy's PvM & Slayer on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
+/** Snuffy's PvM/Slayer on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
 @PluginDescriptor(
-    name = "Snuffy's PvM & Slayer",
+    name = "Snuffy's PvM/Slayer",
     description = "PvM HUD and monster hover card, buff timers and voice alerts, health and prayer warnings, Slayer task card and outlines",
     tags = {"snuffy", "pvm", "slayer", "buffs", "potions", "voice", "combat"}
 )

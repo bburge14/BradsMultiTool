@@ -78,7 +78,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.Text;
 
 /**
- * Snuffy's PvM & Slayer: the monster you're fighting (health, damage, DPS, weakness, aggression and its
+ * Snuffy's PvM/Slayer: the monster you're fighting (health, damage, DPS, weakness, aggression and its
  * timer), your potion buffs and boosts with their running-out and expired alerts, low health and prayer, and
  * the Slayer card's show/hide hotkey.
  */

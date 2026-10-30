@@ -6,9 +6,9 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-/** Snuffy's Gemstone Crab on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
+/** Snuffy's GemCrab Tracker on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
 @PluginDescriptor(
-    name = "Snuffy's Gemstone Crab",
+    name = "Snuffy's GemCrab Tracker",
     description = "Gemstone Crab HUD, burrow countdown, radar between coves, outlines and alerts",
     tags = {"snuffy", "gemstone", "crab", "shell", "tunnel"}
 )

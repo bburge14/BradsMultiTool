@@ -46,7 +46,7 @@ tasks.withType(JavaCompile).configureEach {
 // Launches a RuneLite developer client with this plugin side-loaded.
 tasks.register('runBrad', JavaExec) {
     group = 'application'
-    description = "Run RuneLite with Snuffy's Multi-Tool loaded"
+    description = "Run RuneLite with Snuffy's Toolbelt loaded"
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.bradsmultitool.BradsMultiToolPluginTest'
     args = ['--developer-mode', '--debug']

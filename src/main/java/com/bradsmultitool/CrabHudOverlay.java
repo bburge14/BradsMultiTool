@@ -23,7 +23,7 @@ import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 
 /**
- * Snuffy's Gemstone Crab HUD, near the crab's coves: the fight (health, burrow countdown, whether you're
+ * Snuffy's GemCrab Tracker HUD, near the crab's coves: the fight (health, burrow countdown, whether you're
  * attacking, XP type, hits and damage, kept up a few seconds after it moves), else the radar pointing you to
  * the next cove.
  */

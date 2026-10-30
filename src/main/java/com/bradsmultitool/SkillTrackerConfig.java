@@ -12,8 +12,8 @@ import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
-/** Snuffy's Skill Tracker: the tracker, goals and suggestions, and the skilling helpers. */
-@ConfigGroup("snuffysskilltracker")
+/** Snuffy's Skilling Helper: the tracker, goals and suggestions, and the skilling helpers. */
+@ConfigGroup("snuffysskillinghelper")
 public interface SkillTrackerConfig extends CommonConfig {
 
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
@@ -34,10 +34,10 @@ public interface SkillTrackerConfig extends CommonConfig {
     String idleSection = "idleSection";
 
     enum TrainingFocus {
-        FASTEST("Fastest XP"),
-        OTHER("Other methods (often AFK)"),
-        CHEAPEST("Cheapest (fewest GP per XP)"),
-        MONEY("Money maker");
+        FASTEST("Fastest"),
+        OTHER("AFK / Other"),
+        CHEAPEST("Cheapest"),
+        MONEY("Money Maker");
 
         private final String name;
         TrainingFocus(String name) { this.name = name; }
@@ -46,7 +46,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     enum BestChoice {
         XP("Most XP"),
-        PROFIT("Most profit (GE prices)");
+        PROFIT("Most Profit");
 
         private final String name;
         BestChoice(String name) { this.name = name; }
@@ -108,7 +108,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "bestChoice",
         name = "Best Choice By",
-        description = "How cards pick the \"best\" thing to make from what you carry (e.g. the anvil card): most XP, or most profit at Grand Exchange prices",
+        description = "How cards pick the \"best\" thing to make from what you carry (e.g. the anvil card): Most XP, or Most Profit at Grand Exchange prices",
         section = skillingSection,
         position = 4
     )
@@ -706,8 +706,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "trainingFocus",
-        name = "Default Training Focus",
-        description = "What goal suggestions aim for unless a skill has its own (right-click a skill in the tracker > Suggest, or pick it when setting a goal): the wiki guide's fastest XP, its other methods (often more AFK), the cheapest way (fewest GP per XP when making things; gathering is free), or the best money maker you can do. Slayer always suggests the best Slayer master",
+        name = "Training Focus",
+        description = "What goal suggestions aim for, unless a skill has its own (right-click a skill in the tracker > Suggest, or pick it when setting a goal): the wiki guide's fastest XP, its other methods (often more AFK), the cheapest way (fewest GP per XP when making things; gathering is free), or the best money maker you can do. Slayer always suggests the best Slayer master",
         section = trackerSection,
         position = 70
     )

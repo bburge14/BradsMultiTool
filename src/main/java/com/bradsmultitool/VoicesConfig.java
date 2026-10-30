@@ -12,8 +12,8 @@ import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
-/** Snuffy's Voices: the voice, volume and chat settings every one of Snuffy's plugins then uses, and the idle warnings. */
-@ConfigGroup("snuffysvoices")
+/** Snuffy's Alerts: the voice, volume and chat settings every one of Snuffy's plugins then uses, and the idle warnings. */
+@ConfigGroup("snuffysalerts")
 public interface VoicesConfig extends CommonConfig {
 
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself

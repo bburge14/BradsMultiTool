@@ -6,9 +6,9 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-/** Snuffy's Skill Tracker on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
+/** Snuffy's Skilling Helper on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
 @PluginDescriptor(
-    name = "Snuffy's Skill Tracker",
+    name = "Snuffy's Skilling Helper",
     description = "XP tracker with goals and suggested training, a pinned skill overlay, skilling hover cards, timer pies and skilling alerts",
     tags = {"snuffy", "xp", "skills", "tracker", "goals", "skilling", "timers"}
 )

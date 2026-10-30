@@ -40,7 +40,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.util.Text;
 
 /**
- * The Gemstone Crab (Snuffy's Gemstone Crab): the crab or its shell nearby, its health and when it will
+ * The Gemstone Crab (Snuffy's GemCrab Tracker): the crab or its shell nearby, its health and when it will
  * burrow, your damage and DPS on it, which XP you're getting, the tunnels and shells around its three coves,
  * whether you can mine the shell, and the crab-moved and about-to-burrow alerts.
  */

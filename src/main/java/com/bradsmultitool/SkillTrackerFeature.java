@@ -4,7 +4,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
- * Snuffy's Skill Tracker: the sidebar tracker with goals and suggested training, the pinned skill, goal
+ * Snuffy's Skilling Helper: the sidebar tracker with goals and suggested training, the pinned skill, goal
  * outlines and items, and the skilling helpers (hover cards, timer pies, skilling alerts).
  */
 @Singleton

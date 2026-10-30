@@ -3,7 +3,7 @@ package com.bradsmultitool;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-/** Snuffy's Gemstone Crab: the crab HUD and radar, outlines and the crab alerts. */
+/** Snuffy's GemCrab Tracker: the crab HUD and radar, outlines and the crab alerts. */
 @Singleton
 class GemCrabFeature {
 

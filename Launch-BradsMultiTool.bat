@@ -1,6 +1,6 @@
 @echo off
-title Snuffy's Multi-Tool - RuneLite
-rem Double-click to build and launch RuneLite with Snuffy's Multi-Tool loaded.
+title Snuffy's Toolbelt - RuneLite
+rem Double-click to build and launch RuneLite with Snuffy's Toolbelt loaded.
 cd /d "%~dp0"
 
 set "CREDS=%USERPROFILE%\.runelite\credentials.properties"
