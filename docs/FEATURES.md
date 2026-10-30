@@ -8,6 +8,7 @@ section to open. All sections except General start collapsed.
 - [PvM HUD](#pvm-hud)
 - [Monster hover card](#monster-hover-card)
 - [Potion buffs](#potion-buffs)
+- [Buff bar](#buff-bar)
 - [Health and prayer](#health-and-prayer)
 - [Combat alerts](#combat-alerts)
 - [Slayer card](#slayer-card)
@@ -48,11 +49,15 @@ you log in (low prayer, poisoned...) isn't announced.
 **What it does:** When you attack a monster, a HUD shows its HP bar, whether it's aggressive *to you* (with
 a tolerance timer), its weakness (style icon, or the element's Strike spell icon for magic), your combat
 style, DPS, and your last and max hit. It stays up for a few seconds after the fight.
+- **Monster effects:** what's on the monster: Poisoned, Venomed, Burning (from their hitsplats) and Frozen with
+  time left (a freeze spell's impact), and its Defence after your special attacks lower it (Dragon warhammer
+  30%, Elder maul 35%, Bandos godsword by the damage, Arclight/Emberlight), e.g. "Defence: 112 (-48)",
+  estimated from the wiki's Defence level.
 
 **How to use:** Attack anything. The HUD can be moved like any RuneLite overlay (hold Alt and drag).
 Right-click the HUD > **Reset** clears this session's damage and DPS.
 
-**Settings (PvM HUD):** Enable PvM HUD; DPS Mode (Per Monster, Per Type, or the whole
+**Settings (PvM HUD):** Enable PvM HUD; Show Monster Effects; DPS Mode (Per Monster, Per Type, or the whole
 session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status.
 
 ---
@@ -81,6 +86,20 @@ one of them says the alerts.
 
 **Settings (Potion Buffs):** Show Buffs on HUD; Flash When Expired; Warn Before Ending (seconds);
 Repeat Expired Alert, Repeat Every, Max Repeats; Voice/Chat switches.
+
+---
+
+## Buff bar
+
+**What it does:** Your buffs and debuffs as a row of icons, like RS3's: each potion boost (super combat,
+divine, ranging...) with its boost and time left, antifire / super antifire, stamina, antipoison / antivenom,
+and any other stat boosted above your level (Hitpoints from an anglerfish) in green; poisoned, venomed and stats
+drained below your level in red. Hover an icon for its name. With it on, the PvM HUD leaves the potion rows to
+it (the running-out and expired alerts carry on).
+
+**How to use:** It sits above the chat box on the right; move it with Alt + drag.
+
+**Settings (Buff Bar):** Show Buff Bar; Show Debuffs; Layout (Horizontal or Vertical); Icon Size.
 
 ---
 

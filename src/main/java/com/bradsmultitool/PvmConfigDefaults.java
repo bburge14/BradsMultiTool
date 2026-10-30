@@ -91,5 +91,10 @@ final class PvmConfigDefaults {
         defaults.store("chatTaskHalfway", config.chatTaskHalfway());
         defaults.store("voiceTaskNearlyDone", config.voiceTaskNearlyDone());
         defaults.store("chatTaskNearlyDone", config.chatTaskNearlyDone());
+        defaults.store("showBuffBar", config.showBuffBar());
+        defaults.store("buffBarDebuffs", config.buffBarDebuffs());
+        defaults.store("buffBarLayout", config.buffBarLayout());
+        defaults.store("buffBarIconSize", config.buffBarIconSize());
+        defaults.store("showMonsterEffects", config.showMonsterEffects());
     }
 }

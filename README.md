@@ -59,6 +59,11 @@ developer mode.
 - **Combat alerts**: special attack ready (only after you've used it), antifire and poison protection
   running out, poisoned or venomed, stamina worn off, low ammo, out of runes, cannon low.
 
+### Buff bar
+- Your buffs and debuffs as icons with timers, like RS3's: potion boosts, antifire, stamina, poison protection,
+  boosted stats; poison, venom, drained stats. Movable; hover for names. The PvM HUD shows the **monster's**
+  effects instead: poisoned, venomed, burning, frozen, and Defence lowered by your special attacks.
+
 ### Gemstone Crab
 - HUD with the crab's health bar, burrow countdown, whether you're attacking, the XP type you're getting,
   damage, DPS, last/max hit, your potion buffs with their time left, and a gear check (your damage bonus for

@@ -46,6 +46,9 @@ public class BradsMultiToolOverlay extends Overlay {
     private SlayerMonsterInfo slayerInfo;
 
     @Inject
+    private MonsterEffects monsterEffects;
+
+    @Inject
     public BradsMultiToolOverlay(Client client, PvmTracker plugin, PvmConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
         this.client = client;
         this.plugin = plugin;
@@ -128,6 +131,19 @@ public class BradsMultiToolOverlay extends Overlay {
                         .left("Bane:")
                         .right(weakness.note)
                         .build());
+                }
+            }
+
+            if (config.showMonsterEffects() && target != null) {
+                List<String> statuses = monsterEffects.statuses(target);
+                if (!statuses.isEmpty()) {
+                    panelComponent.getChildren().add(LineComponent.builder()
+                        .left("Status:").right(String.join(", ", statuses)).rightColor(GOOD).build());
+                }
+                String defence = monsterEffects.defence(target);
+                if (defence != null) {
+                    panelComponent.getChildren().add(LineComponent.builder()
+                        .left("Defence:").right(defence).rightColor(GOOD).build());
                 }
             }
 
@@ -215,7 +231,8 @@ public class BradsMultiToolOverlay extends Overlay {
      */
     /** Buff timers (or Buff Status), and LOW prayer and health warnings, on this HUD. */
     private void addStatusRows(PanelComponent panel) {
-        if (config.enableBuffStatus()) {
+        // The buff bar shows the potion buffs when it's on
+        if (config.enableBuffStatus() && !config.showBuffBar()) {
             addBuffRows(panel);
         }
         if (config.enableLowPrayerAlert() && plugin.isLowPrayerAlert()) {

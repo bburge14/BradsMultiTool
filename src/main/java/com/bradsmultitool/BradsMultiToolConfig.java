@@ -77,6 +77,14 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String idleSection = "idleSection";
 
     @ConfigSection(
+        name = "Buff Bar",
+        description = "Your buffs and debuffs as a row of icons with timers, like RS3's",
+        position = 40,
+        closedByDefault = true
+    )
+    String buffBarSection = "buffBarSection";
+
+    @ConfigSection(
         name = "PvM HUD",
         description = "Combat HUD and monster hover info for non-crab monsters",
         position = 39,

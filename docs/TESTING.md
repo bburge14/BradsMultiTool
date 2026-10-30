@@ -21,6 +21,16 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] A buff's line on the HUD is red while within the running-out window and green whenever it's above it (e.g. after re-dosing).
 - [ ] Running out still fires right after logging in or hopping (says "under 1:00 left" when the timer isn't synced yet).
 
+## Buff bar and monster effects
+- [ ] Buff bar: a potion shows its icon, +boost and time left (divine exact, regular "~" until synced); antifire,
+      super antifire, stamina and antipoison/antivenom show with timers; anglerfish shows Hitpoints +N.
+- [ ] Debuffs in red: poisoned, venomed, a drained stat (e.g. Defence drained by a monster); Show Debuffs off hides them.
+- [ ] Hover an icon: its name. Alt + drag moves it; Layout and Icon Size work; nothing active: no bar.
+- [ ] With the bar on, the PvM HUD has no potion rows; running out / expired alerts still play.
+- [ ] HUD Status: Poisoned/Venomed after poison or venom hits the monster; Frozen 0:xx after Ice barrage (etc.);
+      Burning from burn hitsplats.
+- [ ] HUD Defence: Dragon warhammer hit lowers it 30% ("Defence: 140 (-60)"), Elder maul 35%, BGS by the damage.
+
 ## Gemstone Crab
 - [ ] When the crab moves, its stats stay up 12s marked (moved) with a "Radar in" countdown, then the radar.
 - [ ] No AFK alert while attacking the crab.

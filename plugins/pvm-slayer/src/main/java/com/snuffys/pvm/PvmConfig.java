@@ -34,6 +34,22 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     )
     String idleSection = "idleSection";
 
+    enum BarLayout {
+        HORIZONTAL("Horizontal"),
+        VERTICAL("Vertical");
+
+        private final String label;
+
+        BarLayout(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     enum DpsTrackingMode {
         PER_ENCOUNTER("Per Monster"),
         PER_TARGET_TYPE("Per Type"),
@@ -548,6 +564,14 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     }
 
     @ConfigSection(
+        name = "Buff Bar",
+        description = "Your buffs and debuffs as a row of icons with timers, like RS3's",
+        position = 40,
+        closedByDefault = true
+    )
+    String buffBarSection = "buffBarSection";
+
+    @ConfigSection(
         name = "PvM HUD",
         description = "Combat HUD and monster hover info for non-crab monsters",
         position = 39,
@@ -996,6 +1020,67 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         position = 25
     )
     default boolean chatTaskNearlyDone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showBuffBar",
+        name = "Show Buff Bar",
+        description = "Your buffs (potion boosts, antifire, stamina, poison protection, boosted stats) and debuffs (poison, venom, drained stats) as icons with timers; hover one for its name. Move it with Alt + drag. With it on, the PvM HUD leaves the potion rows to it",
+        section = buffBarSection,
+        position = 0
+    )
+    default boolean showBuffBar() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "buffBarDebuffs",
+        name = "Show Debuffs",
+        description = "Also show poison, venom and drained stats (red border)",
+        section = buffBarSection,
+        position = 1
+    )
+    default boolean buffBarDebuffs() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "buffBarLayout",
+        name = "Layout",
+        description = "Icons in a row or a column",
+        section = buffBarSection,
+        position = 2
+    )
+    default BarLayout buffBarLayout() {
+        return BarLayout.HORIZONTAL;
+    }
+
+    @Range(min
+    =
+    20,
+    max
+    =
+    48)
+    @ConfigItem(
+        keyName = "buffBarIconSize",
+        name = "Icon Size",
+        description = "Size of each icon",
+        section = buffBarSection,
+        position = 3
+    )
+    default int buffBarIconSize() {
+        return 32;
+    }
+
+    @ConfigItem(
+        keyName = "showMonsterEffects",
+        name = "Show Monster Effects",
+        description = "On the HUD: what's on the monster you fight (poisoned, venomed, burning, frozen with time left) and its Defence after your special attacks lower it (Dragon warhammer, Elder maul, Bandos godsword, Arclight)",
+        section = pvmSection,
+        position = 49
+    )
+    default boolean showMonsterEffects() {
         return true;
     }
 
