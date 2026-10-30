@@ -226,6 +226,19 @@ git pull
 Linux use `./gradlew runBrad`). If something seems stale, `.\gradlew.bat clean runBrad --info` rebuilds
 from scratch.
 
+To try the separate plugins instead of the Toolbelt (as friends installing just some of them would have),
+name them with `-Pload=` (in quotes in PowerShell):
+
+```powershell
+.\gradlew.bat runBrad "-Pload=skilling"          # just Snuffy's Skilling Helper
+.\gradlew.bat runBrad "-Pload=pvm,tick"          # PvM/Slayer and the Tick Counter together
+.\gradlew.bat runBrad "-Pload=separate"          # all the separate plugins at once
+```
+
+The names are `toolbelt` (the default), `skilling`, `pvm`, `gemcrab`, `tick` and `alerts`. Each separate
+plugin has its own settings, so settings you change in the Toolbelt don't carry over to them (and the other
+way round). Don't load the Toolbelt together with separate ones: everything would show twice.
+
 ## Logging in with a Jagex Account
 
 The dev client can't log in through the Jagex Launcher directly, but it reuses a session the official

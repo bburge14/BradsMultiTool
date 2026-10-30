@@ -113,7 +113,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       click; the summary counts on time / late / missed. Right-click "Track for goal" isn't counted.
 - [x] Ideal zone: green on the tick bar from Ideal From to Ideal To; clicks in it show green, others white
       (red late); the summary counts "ideal".
-- [ ] Snuffy's Tick Counter on its own: its settings open (Tick Counter section open), everything works.
+- [ ] Snuffy's Tick Counter on its own (`runBrad "-Pload=tick"`): its settings open (Tick Counter section open), everything works.
 - [x] Click Sounds: ding on time, Late Sound (each of the four) when late.
 - [ ] Click Every Tick: Late Sound on a tick with no click while 1-ticking.
 - [ ] Actually tick skilling with it (e.g. 3-tick or 1-tick): the bar, ideal zone and sounds help, and the

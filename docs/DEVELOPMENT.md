@@ -10,7 +10,10 @@ For people working on the plugin. Players only need the [README](../README.md).
 ## Running a development client
 
 `.\gradlew.bat runBrad` (Windows) or `./gradlew runBrad` launches RuneLite in developer mode with the plugin
-loaded; see the README for the first-time setup and logging in with a Jagex Account. `./gradlew test` runs
+loaded; see the README for the first-time setup and logging in with a Jagex Account. `-Pload=` picks the
+separate plugins instead (`skilling`, `pvm`, `gemcrab`, `tick`, `alerts`, or `separate` for all of them;
+`BradsMultiToolPluginTest`). They run from `src/` like the Toolbelt, which is the same code the `plugins/`
+folders are made from; `split_plugins.py --verify` checks each of those builds on its own. `./gradlew test` runs
 the unit tests.
 
 Two Gradle tasks render parts of the UI offline (no client needed) to check layouts:
