@@ -201,13 +201,18 @@ public class BradsMultiToolPanel extends PluginPanel {
         totalRateLabel.setText(NUMBER_FORMAT.format(totalRate));
         skillCountLabel.setText(String.valueOf(tracked.size()));
 
-        // Skills with a goal are pinned under Goals (even if not trained this session); the rest follow
+        // Skills with a goal are pinned under Goals (even if not trained this session); the rest follow,
+        // with the skill pinned to the game screen always among them (its card is where you unpin it)
         List<Skill> goals = plugin.getGoalSkills();
         List<Skill> session = new ArrayList<>();
         for (Skill skill : tracked) {
             if (!goals.contains(skill)) {
                 session.add(skill);
             }
+        }
+        Skill pinnedSkill = plugin.getPinnedSkill();
+        if (pinnedSkill != null && !goals.contains(pinnedSkill) && !session.contains(pinnedSkill)) {
+            session.add(0, pinnedSkill);
         }
         Set<Skill> shown = new HashSet<>(goals);
         shown.addAll(session);

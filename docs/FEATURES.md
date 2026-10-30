@@ -228,7 +228,8 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
   make or burn from your items). Only one at a time:
   pinning another replaces it. The pinned skill's card shows a red pin in its top-right corner; click the pin,
   right-click the overlay > Unpin, or the card > Unpin from screen to remove it. It stays pinned after a
-  restart.
+  restart, and its card stays in the sidebar the whole time, even before you've trained it this session or
+  after a Reset.
 - A skill's rate clock **auto-pauses** after a while without XP (**Auto-Pause After**: 10 seconds to an hour, 5 minutes by default) and
   resumes on your next XP.
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
