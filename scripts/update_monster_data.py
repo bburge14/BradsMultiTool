@@ -108,6 +108,9 @@ def main():
         time.sleep(1)
 
     monsters = {}
+    # Lower-case name (page name without "(variant)") -> the first NPC id with that name, for NPCs whose id
+    # the wiki doesn't list (new variants, transformed NPCs)
+    names = {}
     for row in rows:
         aggressive = row.get("is_aggressive")
         attributes = row.get("attribute") or []
@@ -132,10 +135,13 @@ def main():
                 part = part.strip()
                 if part.isdigit() and part not in monsters:
                     monsters[part] = entry
+                    name = re.sub(r"\s*\([^)]*\)\s*$", "", row.get("page_name") or "").strip().lower()
+                    if name:
+                        names.setdefault(name, part)
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as f:
-        json.dump({"source": "oldschool.runescape.wiki", "fields": FIELDS, "monsters": monsters},
+        json.dump({"source": "oldschool.runescape.wiki", "fields": FIELDS, "monsters": monsters, "names": names},
                   f, separators=(",", ":"), sort_keys=True)
     print("Wrote %d NPC ids from %d wiki rows to %s" % (len(monsters), len(rows), os.path.normpath(OUT)))
 

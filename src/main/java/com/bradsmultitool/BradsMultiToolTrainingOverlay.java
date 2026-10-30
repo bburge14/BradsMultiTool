@@ -36,25 +36,28 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
     private static final int OUTLINE_FEATHER = 4;
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final TrainingData training;
     private final ModelOutlineRenderer outlines;
     private final SkillingData skilling;
+    private final TrainingAdvisor advisor;
     // Spawned objects any method trains on (or any skilling resource you could pick instead), by place (looked up against the current suggestions each frame)
     private final Map<WorldPoint, GameObject> objects = new HashMap<>();
     // Each tracked object's resource ("Tree", "Teak tree"): many objects share a resource under other ids
     private final Map<GameObject, String> resourceOf = new HashMap<>();
 
     @Inject
-    BradsMultiToolTrainingOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
-                                  TrainingData training, ModelOutlineRenderer outlines, SkillingData skilling) {
+    BradsMultiToolTrainingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
+                                  TrainingData training, ModelOutlineRenderer outlines, SkillingData skilling,
+                                  TrainingAdvisor advisor) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.training = training;
         this.outlines = outlines;
         this.skilling = skilling;
+        this.advisor = advisor;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ABOVE_SCENE);
     }
@@ -120,7 +123,8 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
                 }
                 continue;
             }
-            TrainingData.Method method = training.suggest(skill, client.getRealSkillLevel(skill), config.trainingAlternatives());
+            TrainingAdvisor.Suggestion suggestion = advisor.suggest(skill, client.getRealSkillLevel(skill));
+            TrainingData.Method method = suggestion != null ? suggestion.method : null;
             if (method != null) {
                 ids.addAll(method.objects);
                 // and every other object of the same resource ("Regular trees" -> every Tree)

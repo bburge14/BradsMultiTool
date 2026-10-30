@@ -35,6 +35,8 @@ class RecipeData {
         final String facility;
         /** Material name -> how many one needs. */
         final Map<String, Integer> materials = new LinkedHashMap<>();
+        /** Tools it needs ("Knife", "Hammer", "Tinderbox"), not used up. */
+        final List<String> tools = new ArrayList<>();
 
         Recipe(JsonObject o) {
             name = o.get("name").getAsString();
@@ -43,6 +45,11 @@ class RecipeData {
             facility = o.has("facility") ? o.get("facility").getAsString() : null;
             for (Map.Entry<String, JsonElement> m : o.getAsJsonObject("materials").entrySet()) {
                 materials.put(m.getKey(), m.getValue().getAsInt());
+            }
+            if (o.has("tools")) {
+                for (JsonElement t : o.getAsJsonArray("tools")) {
+                    tools.add(t.getAsString());
+                }
             }
         }
 
@@ -89,10 +96,20 @@ class RecipeData {
      * {@code score} (XP or profit per action); null if you can't make anything.
      */
     Recipe best(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> score) {
+        return best(skill, level, have, score, r -> true);
+    }
+
+    /** As above, considering only recipes that pass {@code allowed}. */
+    Recipe best(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> score,
+                java.util.function.Predicate<Recipe> allowed) {
         Recipe best = null;
         double bestScore = 0;
         for (Recipe recipe : recipes.getOrDefault(skill.name(), Collections.emptyList())) {
-            if (recipe.level > level || recipe.makeable(have) == 0) {
+            // With no inventory given, anything at your level counts (for the "Cheapest" suggestion)
+            if (recipe.level > level || (have != null && recipe.makeable(have) == 0)) {
+                continue;
+            }
+            if (!allowed.test(recipe)) {
                 continue;
             }
             double s = score.applyAsDouble(recipe);

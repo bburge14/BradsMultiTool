@@ -1,27 +1,35 @@
 package com.bradsmultitool;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -29,12 +37,15 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.api.Experience;
 import net.runelite.api.Skill;
@@ -50,19 +61,19 @@ public class BradsMultiToolPanel extends PluginPanel {
     private static final String NEW_ISSUE_URL = "https://github.com/bburge14/bradsmultitool/issues/new?body="
         + encode("**What happened?**\n\n\n**What did you expect?**\n\n\n**What were you doing / where in game?**\n\n");
 
-    private static final Set<Skill> COMBAT_SKILLS = EnumSet.of(Skill.ATTACK, Skill.STRENGTH, Skill.DEFENCE,
-        Skill.HITPOINTS, Skill.RANGED);
+    private static final Set<Skill> COMBAT_SKILLS = GoalLines.KILL_SKILLS;
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Color ACCENT_COLOR = new Color(0, 220, 220);
     // Level progress bar: red under a third of the way, orange under two thirds, then green
-    private static final Color BAR_LOW = new Color(190, 45, 40);
-    private static final Color BAR_MID = new Color(225, 135, 25);
-    private static final Color BAR_HIGH = new Color(15, 165, 105);
-    private static final Color BAR_BACKGROUND = new Color(60, 60, 60);
+    static final Color BAR_LOW = new Color(190, 45, 40);
+    static final Color BAR_MID = new Color(225, 135, 25);
+    static final Color BAR_HIGH = new Color(15, 165, 105);
+    static final Color BAR_BACKGROUND = new Color(60, 60, 60);
+    static final Color GOAL_FILL = new Color(200, 160, 40);
 
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final SkillIconManager skillIconManager;
 
     private final JLabel totalXpLabel = new JLabel();
@@ -76,7 +87,7 @@ public class BradsMultiToolPanel extends PluginPanel {
     private String cardOrder = "";
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
 
-    public BradsMultiToolPanel(BradsMultiToolPlugin plugin, BradsMultiToolConfig config, SkillIconManager skillIconManager) {
+    public BradsMultiToolPanel(SkillTracker plugin, SkillTrackerConfig config, SkillIconManager skillIconManager) {
         super();
         this.plugin = plugin;
         this.config = config;
@@ -86,36 +97,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         setBorder(new EmptyBorder(10, 10, 10, 10));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JPanel header = new JPanel(new BorderLayout(0, 8));
-        header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        header.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(2, 0, 0, 0, ACCENT_COLOR),
-            new EmptyBorder(8, 8, 8, 8)));
-
-        JPanel titles = new JPanel(new GridLayout(2, 1));
-        titles.setOpaque(false);
-        JLabel title = new JLabel("Brad's Multi-Tool");
-        title.setFont(FontManager.getRunescapeBoldFont());
-        title.setForeground(ACCENT_COLOR);
-        JLabel subtitle = new JLabel("Skill Tracker");
-        subtitle.setFont(FontManager.getRunescapeSmallFont());
-        subtitle.setForeground(Color.GRAY);
-        titles.add(title);
-        titles.add(subtitle);
-        header.add(titles, BorderLayout.NORTH);
-
-        JPanel stats = new JPanel(new GridLayout(1, 3, 6, 0));
-        stats.setOpaque(false);
-        stats.add(statBlock("TOTAL XP", totalXpLabel));
-        stats.add(statBlock("XP / HR", totalRateLabel));
-        stats.add(statBlock("SKILLS", skillCountLabel));
-        header.add(stats, BorderLayout.CENTER);
-
-        JButton goalButton = new JButton("Set Goal");
-        goalButton.setToolTipText("Pick a skill and a target level or XP; it's pinned under Goals");
-        goalButton.setFocusPainted(false);
-        goalButton.addActionListener(e -> askForGoal(null));
-        header.add(goalButton, BorderLayout.SOUTH);
+        JPanel header = buildHeader(totalXpLabel, totalRateLabel, skillCountLabel,
+            () -> askForGoal(null), () -> LinkBrowser.browse(NEW_ISSUE_URL));
 
         cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
         cardsContainer.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -130,20 +113,64 @@ public class BradsMultiToolPanel extends PluginPanel {
         cardsWrapper.setBackground(ColorScheme.DARK_GRAY_COLOR);
         cardsWrapper.add(cardsContainer, BorderLayout.NORTH);
 
-        JButton reportButton = new JButton("Report an Issue");
-        reportButton.setToolTipText("Open a new issue on the plugin's GitHub page");
-        reportButton.setFocusPainted(false);
-        reportButton.addActionListener(e -> LinkBrowser.browse(NEW_ISSUE_URL));
-        JPanel footer = new JPanel(new BorderLayout());
-        footer.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        footer.setBorder(new EmptyBorder(10, 0, 0, 0));
-        footer.add(reportButton, BorderLayout.CENTER);
-
         add(header, BorderLayout.NORTH);
         add(cardsWrapper, BorderLayout.CENTER);
-        add(footer, BorderLayout.SOUTH);
 
         updatePanel();
+    }
+
+    /**
+     * The header box: title and subtitle on the left with a small "Issues?" button centred beside them,
+     * three equal stat columns (caption centred over value), and the Set Goal button across the bottom.
+     */
+    static JPanel buildHeader(JLabel totalXp, JLabel rate, JLabel skills, Runnable onSetGoal, Runnable onIssues) {
+        JPanel header = new JPanel(new BorderLayout(0, 8));
+        header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, ACCENT_COLOR),
+            new EmptyBorder(8, 8, 8, 8)));
+
+        JPanel titles = new JPanel(new GridLayout(2, 1));
+        titles.setOpaque(false);
+        JLabel title = new JLabel("Snuffy's Skill Tracker");
+        title.setFont(FontManager.getRunescapeBoldFont());
+        title.setForeground(ACCENT_COLOR);
+        JLabel subtitle = new JLabel("XP, goals and training");
+        subtitle.setFont(FontManager.getRunescapeSmallFont());
+        subtitle.setForeground(Color.GRAY);
+        titles.add(title);
+        titles.add(subtitle);
+
+        JButton issues = new JButton("Issues?");
+        issues.setToolTipText("Report a problem or idea: opens a new issue on the plugin's GitHub page");
+        issues.setFont(FontManager.getRunescapeSmallFont());
+        issues.setFocusPainted(false);
+        issues.setMargin(new java.awt.Insets(2, 6, 2, 6));
+        issues.addActionListener(e -> onIssues.run());
+        // Centred vertically against the two title lines
+        JPanel corner = new JPanel(new java.awt.GridBagLayout());
+        corner.setOpaque(false);
+        corner.add(issues);
+
+        JPanel top = new JPanel(new BorderLayout(6, 0));
+        top.setOpaque(false);
+        top.add(titles, BorderLayout.CENTER);
+        top.add(corner, BorderLayout.EAST);
+        header.add(top, BorderLayout.NORTH);
+
+        JPanel stats = new JPanel(new GridLayout(1, 3, 4, 0));
+        stats.setOpaque(false);
+        stats.add(statBlock("TOTAL XP", totalXp));
+        stats.add(statBlock("XP / HR", rate));
+        stats.add(statBlock("SKILLS", skills));
+        header.add(stats, BorderLayout.CENTER);
+
+        JButton goalButton = new JButton("Set Goal");
+        goalButton.setToolTipText("Pick a skill and a target level or XP; it's pinned under Goals");
+        goalButton.setFocusPainted(false);
+        goalButton.addActionListener(e -> onSetGoal.run());
+        header.add(goalButton, BorderLayout.SOUTH);
+        return header;
     }
 
     private static String encode(String text) {
@@ -205,16 +232,40 @@ public class BradsMultiToolPanel extends PluginPanel {
     }
 
     private static JLabel sectionHeading(String text) {
-        JLabel label = new JLabel(text);
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
         label.setFont(FontManager.getRunescapeSmallFont());
         label.setForeground(Color.GRAY);
-        label.setBorder(new EmptyBorder(2, 2, 4, 0));
+        label.setBorder(new EmptyBorder(2, 0, 4, 0));
+        // Full width and aligned like the cards, so the text sits in the middle of the panel
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setMaximumSize(new Dimension(Integer.MAX_VALUE, label.getPreferredSize().height));
         return label;
     }
 
     /**
      * Set a goal: a level (2-99) or an XP amount. With no skill given, asks which skill too.
      */
+    // A small red push pin (drawn here rather than shipped as an image)
+    private static final BufferedImage PIN_IMAGE = drawPin();
+
+    private static BufferedImage drawPin() {
+        BufferedImage image = new BufferedImage(12, 12, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(new Color(200, 200, 200));
+        g.setStroke(new BasicStroke(1.5f));
+        g.drawLine(5, 7, 1, 11);
+        g.setColor(new Color(220, 50, 50));
+        g.fillOval(4, 0, 8, 8);
+        g.setColor(new Color(255, 140, 140));
+        g.fillOval(6, 2, 3, 3);
+        g.dispose();
+        return image;
+    }
+
+    // The "follow the settings" choice in the Suggest pickers
+    private static final String DEFAULT_FOCUS = "Default (from settings)";
+
     private void askForGoal(Skill skill) {
         JComboBox<Skill> skills = new JComboBox<>();
         for (Skill s : Skill.values()) {
@@ -248,6 +299,22 @@ public class BradsMultiToolPanel extends PluginPanel {
         form.add(current);
         form.add(new JLabel("Goal (a level like 70, or XP like 1,000,000):"));
         form.add(target);
+        // What its suggestions aim for: the skill's own focus, or the default from the settings
+        JComboBox<Object> focus = new JComboBox<>();
+        Runnable fillFocus = () -> {
+            Skill chosen = (Skill) skills.getSelectedItem();
+            focus.removeAllItems();
+            focus.addItem(DEFAULT_FOCUS);
+            for (SkillTrackerConfig.TrainingFocus f : SkillTrackerConfig.TrainingFocus.values()) {
+                focus.addItem(f);
+            }
+            SkillTrackerConfig.TrainingFocus own = chosen != null ? plugin.getOwnTrainingFocus(chosen) : null;
+            focus.setSelectedItem(own != null ? own : DEFAULT_FOCUS);
+        };
+        skills.addActionListener(e -> fillFocus.run());
+        fillFocus.run();
+        form.add(new JLabel("Suggest:"));
+        form.add(focus);
         int result = JOptionPane.showConfirmDialog(this, form, skill == null ? "Set goal" : "Goal for " + skill.getName(),
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result != JOptionPane.OK_OPTION || target.getText().trim().isEmpty()) {
@@ -256,6 +323,9 @@ public class BradsMultiToolPanel extends PluginPanel {
         try {
             int value = Integer.parseInt(target.getText().trim().replace(",", ""));
             int goalXp = value <= Experience.MAX_REAL_LEVEL ? Experience.getXpForLevel(Math.max(2, value)) : value;
+            Object picked = focus.getSelectedItem();
+            plugin.setTrainingFocus((Skill) skills.getSelectedItem(),
+                picked instanceof SkillTrackerConfig.TrainingFocus ? (SkillTrackerConfig.TrainingFocus) picked : null);
             plugin.setSkillGoal((Skill) skills.getSelectedItem(), Math.min(goalXp, Experience.MAX_SKILL_XP));
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Enter a level like 70 or an XP amount like 1,000,000.");
@@ -279,9 +349,11 @@ public class BradsMultiToolPanel extends PluginPanel {
     }
 
     private static JPanel statBlock(String caption, JLabel value) {
+        // Caption centred over its value, so the three columns line up evenly
         JPanel block = new JPanel(new GridLayout(2, 1));
         block.setOpaque(false);
-        JLabel captionLabel = new JLabel(caption);
+        JLabel captionLabel = new JLabel(caption, SwingConstants.CENTER);
+        value.setHorizontalAlignment(SwingConstants.CENTER);
         captionLabel.setFont(FontManager.getRunescapeSmallFont());
         captionLabel.setForeground(Color.GRAY);
         value.setFont(FontManager.getRunescapeBoldFont());
@@ -291,7 +363,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         return block;
     }
 
-    private static String formatDuration(long seconds) {
+    static String formatDuration(long seconds) {
         long hours = seconds / 3600;
         long minutes = (seconds % 3600) / 60;
         if (hours > 0) {
@@ -327,15 +399,24 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
         private final JLabel suggestion = stat();
+        private boolean pinned;
+        // Where the step of the goal's plan you're on ends (the method changes there), or 0
+        private int stepEndLevel;
         // Which fields are currently laid out, so they're only rebuilt when the settings change
         private String layout = "";
         private final JMenuItem pauseItem = new JMenuItem();
         // Back to the suggested method after picking something with "Track for goal"
         private final JMenuItem suggestedItem = new JMenuItem("Use suggested method");
+        // Pin this skill to the game screen (only one at a time), or unpin it
+        private final JMenuItem pinItem = new JMenuItem();
+        // What this skill's goal suggestions aim for (its own choice, or the default)
+        private final JMenu focusMenu = new JMenu("Suggest");
+        private final Map<SkillTrackerConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(SkillTrackerConfig.TrainingFocus.class);
+        private final JRadioButtonMenuItem defaultFocusItem = new JRadioButtonMenuItem();
 
         SkillCard(Skill skill) {
             this.skill = skill;
-            setLayout(new BorderLayout(8, 5));
+            setLayout(new BorderLayout(6, 5));
             setBackground(ColorScheme.DARKER_GRAY_COLOR);
             setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 6, 0, ColorScheme.DARK_GRAY_COLOR),
@@ -348,7 +429,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             }
             icon.setToolTipText(skill.getName());
             icon.setVerticalAlignment(SwingConstants.CENTER);
-            icon.setPreferredSize(new Dimension(32, 0));
+            icon.setPreferredSize(new Dimension(26, 0));
 
             stats.setOpaque(false);
             // Stacked at their own heights (the suggestion can be two lines)
@@ -363,6 +444,25 @@ public class BradsMultiToolPanel extends PluginPanel {
             }
             goalBar.setGoalStyle();
 
+            // While this skill is pinned to the game screen, a pin is drawn over the card's top-right
+            // corner (see paintChildren), so nothing else moves; clicking it unpins
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (SwingUtilities.isLeftMouseButton(e) && pinned && pinBounds().contains(e.getPoint())) {
+                        plugin.setPinnedSkill(null);
+                    }
+                }
+            });
+            addMouseMotionListener(new MouseAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    boolean over = pinned && pinBounds().contains(e.getPoint());
+                    setCursor(over ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+                    setToolTipText(over ? "Pinned to the game screen - click to unpin" : skill.getName() + " - right-click for options");
+                }
+            });
+
             add(icon, BorderLayout.WEST);
             add(stats, BorderLayout.CENTER);
             add(bars, BorderLayout.SOUTH);
@@ -371,11 +471,26 @@ public class BradsMultiToolPanel extends PluginPanel {
             JPopupMenu menu = new JPopupMenu();
             pauseItem.addActionListener(e -> plugin.toggleSkillPause(skill));
             suggestedItem.addActionListener(e -> plugin.setGoalTarget(skill, null));
+            pinItem.addActionListener(e -> plugin.setPinnedSkill(skill == plugin.getPinnedSkill() ? null : skill));
             menu.add(pauseItem);
             menu.add(menuItem("Reset rate", () -> plugin.resetSkillRate(skill)));
             menu.add(menuItem("Set goal...", () -> askForGoal(skill)));
             menu.add(menuItem("Clear goal", () -> plugin.setSkillGoal(skill, 0)));
+            ButtonGroup focusGroup = new ButtonGroup();
+            defaultFocusItem.addActionListener(e -> plugin.setTrainingFocus(skill, null));
+            focusGroup.add(defaultFocusItem);
+            focusMenu.add(defaultFocusItem);
+            focusMenu.addSeparator();
+            for (SkillTrackerConfig.TrainingFocus f : SkillTrackerConfig.TrainingFocus.values()) {
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem(f.toString());
+                item.addActionListener(e -> plugin.setTrainingFocus(skill, f));
+                focusGroup.add(item);
+                focusMenu.add(item);
+                focusItems.put(f, item);
+            }
+            menu.add(focusMenu);
             menu.add(suggestedItem);
+            menu.add(pinItem);
             menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
             menu.add(menuItem("Hide " + skill.getName(), () -> plugin.addIgnoredSkill(skill)));
             menu.addSeparator();
@@ -385,9 +500,24 @@ public class BradsMultiToolPanel extends PluginPanel {
             inheritPopupMenu(this);
         }
 
+        // The pin's spot: the card's top-right corner, inside its padding
+        private Rectangle pinBounds() {
+            return new Rectangle(getWidth() - PIN_IMAGE.getWidth() - 2, 1, PIN_IMAGE.getWidth(), PIN_IMAGE.getHeight());
+        }
+
+        @Override
+        protected void paintChildren(Graphics g) {
+            super.paintChildren(g);
+            if (pinned) {
+                Rectangle at = pinBounds();
+                g.drawImage(PIN_IMAGE, at.x, at.y, null);
+            }
+        }
+
         // Only the fields switched on under Skill Tracker, two to a row
         private void layoutStats() {
-            boolean showActions = config.showTrackerActions() && !COMBAT_SKILLS.contains(skill);
+            // Combat skills count kills instead, once they have a goal (an action is a hit otherwise)
+            boolean showActions = config.showTrackerActions() && (!COMBAT_SKILLS.contains(skill) || plugin.getSkillGoal(skill) > 0);
             boolean goal = config.showTrackerGoal() && plugin.getSkillGoal(skill) > 0;
             String wanted = "" + config.showTrackerProgressBar() + config.showTrackerXpGained() + config.showTrackerXpToLevel()
                 + showActions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel() + goal;
@@ -422,27 +552,29 @@ public class BradsMultiToolPanel extends PluginPanel {
             int xpPerHour = plugin.getSkillXpPerHour(skill);
             boolean paused = plugin.isSkillPaused(skill);
 
-            setStat(gained, "XP Gained", shortNumber(plugin.getSkillGained(skill)));
+            setStat(gained, "Gained", shortNumber(plugin.getSkillGained(skill)));
             setStat(perHour, "XP/hr", plugin.isSkillAutoPaused(skill) ? "Idle" : paused ? "Paused" : shortNumber(xpPerHour));
             setStat(perMinute, "XP/min", shortNumber(plugin.getSkillXpPerMinute(skill)));
+            int goalXp = plugin.getSkillGoal(skill);
+            // First, as it finds where the current step ends (for the actions count)
+            updateSuggestion(level, goalXp, xp);
 
             if (level >= Experience.MAX_REAL_LEVEL) {
-                setStat(left, "XP Left", "--");
-                setActions(xp, 0);
+                setStat(left, "Left", "--");
+                setActions(xp);
                 setStat(timeToLevel, "TTL", "--");
                 levelBar.set(1.0, "Lvl " + level, "Max", "");
             } else {
                 int levelStart = Experience.getXpForLevel(level);
                 int levelEnd = Experience.getXpForLevel(level + 1);
                 int remaining = levelEnd - xp;
-                setStat(left, "XP Left", shortNumber(remaining));
-                setActions(xp, remaining);
+                setStat(left, "Left", shortNumber(remaining));
+                setActions(xp);
                 setStat(timeToLevel, "TTL", xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : "--");
                 double progress = (double) (xp - levelStart) / (levelEnd - levelStart);
                 levelBar.set(progress, "Lvl " + level, String.format("%.2f%%", progress * 100), "Lvl " + (level + 1));
             }
 
-            int goalXp = plugin.getSkillGoal(skill);
             if (goalXp > 0) {
                 int start = Math.min(plugin.getSkillGoalStart(skill), xp);
                 int remaining = Math.max(0, goalXp - xp);
@@ -452,51 +584,91 @@ public class BradsMultiToolPanel extends PluginPanel {
                 String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " left";
                 goalBar.set(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta);
             }
-            updateSuggestion(level, goalXp, xp);
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
+            boolean nowPinned = skill == plugin.getPinnedSkill();
+            pinItem.setText(nowPinned ? "Unpin from screen" : "Pin to screen");
+            if (pinned != nowPinned) {
+                pinned = nowPinned;
+                repaint();
+            }
+            SkillTrackerConfig.TrainingFocus own = plugin.getOwnTrainingFocus(skill);
+            defaultFocusItem.setText("Default (" + config.trainingFocus() + ")");
+            (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);
+            focusMenu.setVisible(skill != Skill.SLAYER);
         }
 
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to
-        private void setActions(int xp, int toNextLevel) {
-            int goalXp = plugin.getSkillGoal(skill);
-            boolean toGoal = config.trackerActionsToGoal() && goalXp > xp;
-            int remaining = toGoal ? goalXp - xp : toNextLevel;
-            int perAction = plugin.getLastXpDrop(skill);
-            String name = toGoal ? "Goal Actions" : "Actions";
-            setStat(actions, name, perAction > 0 && remaining > 0 ? shortNumber((remaining + perAction - 1) / perAction) : "--");
+        private void setActions(int xp) {
+            GoalLines.Actions count = GoalLines.actions(plugin, config, skill, xp, stepEndLevel);
+            if (!Objects.equals(actions.getToolTipText(), count.tip)) {
+                actions.setToolTipText(count.tip);
+            }
+            setStat(actions, count.name, count.value);
         }
 
         // The wiki guide's method for this level, and what to switch to before the goal
         private void updateSuggestion(int level, int goalXp, int xp) {
             List<String> lines = new ArrayList<>();
+            String tooltip = null;
+            stepEndLevel = 0;
             if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
                 String target = plugin.getGoalTarget(skill);
                 if (target != null) {
-                    lines.add(label("Tracking:") + BradsMultiToolPlugin.goalTargetName(target) + " " + label("(your pick)"));
+                    lines.add(label("Tracking:") + SkillTracker.goalTargetName(target) + " " + label("(your pick)"));
                 } else if (skill == Skill.SLAYER) {
                     slayerSuggestion(lines);
                 } else {
-                    TrainingData training = plugin.getTrainingData();
-                    TrainingData.Method method = training.suggest(skill, level, config.trainingAlternatives());
-                    TrainingData.Method next = training.next(skill, level, Experience.getLevelForXp(goalXp), config.trainingAlternatives());
-                    if (method != null) {
-                        lines.add(label("Train:") + method.name);
+                    // By the Training Focus setting: fastest, other methods, cheapest or money maker
+                    // The leg you're on ("Train: Willow trees to 60"); hover it for the whole way to the goal
+                    List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level, Experience.getLevelForXp(goalXp));
+                    if (!plan.isEmpty()) {
+                        TrainingAdvisor.Stage first = plan.get(0);
+                        lines.add(label(first.suggestion.label) + first.suggestion.text
+                            + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
                     }
-                    if (next != null) {
-                        lines.add(label("At " + next.from + ":") + next.name);
+                    if (plan.size() > 1) {
+                        stepEndLevel = plan.get(0).to;
+                        StringBuilder steps = new StringBuilder("<html><b>On the way to your goal</b>");
+                        for (TrainingAdvisor.Stage stage : plan) {
+                            steps.append("<br>").append(stage.from).append("-").append(stage.to).append(": ")
+                                .append(stage.suggestion.text);
+                        }
+                        tooltip = steps.append("</html>").toString();
                     }
                 }
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank
-                RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
-                if (make != null) {
-                    boolean uses = skill == Skill.PRAYER || skill == Skill.FIREMAKING;
-                    lines.add(label(uses ? "Use:" : "Make:") + make.name + " " + label("(you have the items)"));
+                // Low levels: quests worth doing for their XP instead ("Quest XP: The Tourist Trap, +3 more")
+                if (target == null && skill != Skill.SLAYER) {
+                    List<String> xpQuests = plugin.getTrainingAdvisor().xpQuests(skill, level);
+                    if (!xpQuests.isEmpty()) {
+                        lines.add(label("Quest XP:") + xpQuests.get(0)
+                            + (xpQuests.size() > 1 ? " " + label("+" + (xpQuests.size() - 1) + " more") : ""));
+                        String quests = "<b>Quests worth doing for " + skill.getName() + " XP</b><br>" + String.join("<br>", xpQuests);
+                        tooltip = tooltip == null ? "<html>" + quests + "</html>"
+                            : tooltip.replace("</html>", "<br><br>" + quests + "</html>");
+                    }
+                }
+                GoalLines.ItemLine item = GoalLines.itemLine(plugin, skill);
+                if (item != null) {
+                    lines.add(label(item.label) + item.item + " " + label(item.have));
+                }
+                // The tools it needs: green if you have them (carried, worn or banked), red if not
+                Map<String, Boolean> tools = GoalLines.tools(plugin, skill, level);
+                if (!tools.isEmpty()) {
+                    List<String> parts = new ArrayList<>();
+                    tools.forEach((name, have) -> parts.add("<font color='" + (have ? "#64dc64" : "#ff6464") + "'>" + name + "</font>"));
+                    lines.add(label("Needs:") + String.join(", ", parts));
                 }
             }
-            suggestion.setVisible(!lines.isEmpty());
-            suggestion.setText("<html>" + String.join("<br>", lines) + "</html>");
+            if (suggestion.isVisible() != !lines.isEmpty()) {
+                suggestion.setVisible(!lines.isEmpty());
+            }
+            setText(suggestion, "<html>" + String.join("<br>", lines) + "</html>");
+            if (!Objects.equals(suggestion.getToolTipText(), tooltip)) {
+                suggestion.setToolTipText(tooltip);
+            }
         }
 
         // Slayer: the best master for your combat and Slayer level, and the next one up
@@ -518,7 +690,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         }
 
         private void setStat(JLabel label, String name, String value) {
-            label.setText("<html><font color='#bebebe'>" + name + ":</font> " + value + "</html>");
+            // One line, never wrapped: a wrapped cell makes every row of the grid taller
+            setText(label, "<html><nobr><font color='#bebebe'>" + name + ":</font> " + value + "</nobr></html>");
         }
 
         private boolean pausedByUser() {
@@ -542,6 +715,13 @@ public class BradsMultiToolPanel extends PluginPanel {
             }
         }
 
+        // Only touch the label when its text changes, so the card isn't laid out again on every update
+        private void setText(JLabel label, String text) {
+            if (!text.equals(label.getText())) {
+                label.setText(text);
+            }
+        }
+
         private JLabel stat() {
             JLabel label = new JLabel();
             label.setFont(FontManager.getRunescapeSmallFont());
@@ -552,7 +732,6 @@ public class BradsMultiToolPanel extends PluginPanel {
 
     /** A bar with text on the left, centre and right: "Lvl 73 | 31.90% | Lvl 74". */
     private static class LevelProgressBar extends JComponent {
-        private static final Color GOAL_FILL = new Color(200, 160, 40);
         private double progress;
         private String leftText = "";
         private String centreText = "";

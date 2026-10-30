@@ -46,7 +46,7 @@ tasks.withType(JavaCompile).configureEach {
 // Launches a RuneLite developer client with this plugin side-loaded.
 tasks.register('runBrad', JavaExec) {
     group = 'application'
-    description = "Run RuneLite with Brad's Multi-Tool loaded"
+    description = "Run RuneLite with Snuffy's Multi-Tool loaded"
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.bradsmultitool.BradsMultiToolPluginTest'
     args = ['--developer-mode', '--debug']
@@ -57,5 +57,12 @@ tasks.register('slayerPreview', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.bradsmultitool.SlayerCardPreview'
     args = [System.getProperty('out', 'build/slayer-preview.png')]
+    jvmArgs = ['-Djava.awt.headless=true']
+}
+
+tasks.register('headerPreview', JavaExec) {
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.bradsmultitool.HeaderPreview'
+    args = [System.getProperty('out', 'build/header-preview.png')]
     jvmArgs = ['-Djava.awt.headless=true']
 }

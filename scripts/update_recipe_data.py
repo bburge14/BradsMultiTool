@@ -20,6 +20,16 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", 
 SKILLS = ["Cooking", "Crafting", "Construction", "Fletching", "Herblore", "Magic", "Runecraft", "Smithing"]
 
 
+def tool_names(text):
+    """'[[File:Knife.png|...]][[Knife|Knife]], [[Chisel]]' -> ['Knife', 'Chisel']; of 'A OR B', the first."""
+    text = re.sub(r"\[\[File:[^\]]*\]\]", "", text or "")
+    text = re.split(r"<br\s*/?>\s*OR\s*<br\s*/?>", text)[0]
+    names = [re.sub(r"<[^>]+>|\{\{[^}]*\}\}", "", n).strip() for n in re.findall(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", text)]
+    if not names:
+        names = [re.sub(r"<[^>]+>", "", n).strip() for n in text.split(",")]
+    return [n for n in dict.fromkeys(names) if n and n.lower() not in ("none", "n/a")]
+
+
 def skill_recipes(skill):
     out, seen = [], set()
     for recipe in recipes(skill):
@@ -38,6 +48,9 @@ def skill_recipes(skill):
         facility = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", recipe.get("facilities") or "").strip()
         if facility:
             entry["facility"] = facility
+        tools = tool_names(recipe.get("tools"))
+        if tools:
+            entry["tools"] = tools
         out.append(entry)
     return sorted(out, key=lambda r: (r["level"], r["name"]))
 
@@ -51,7 +64,7 @@ def firemaking():
         logs = re.search(r"plinkt\|([^|}]+)", cells[1]) if len(cells) > 2 else None
         if logs and number(cells[0]) is not None and number(cells[2]) is not None:
             out.append({"name": "Burn " + logs.group(1).strip().lower(), "level": int(number(cells[0])),
-                        "xp": number(cells[2]), "materials": {logs.group(1).strip(): 1}})
+                        "xp": number(cells[2]), "materials": {logs.group(1).strip(): 1}, "tools": ["Tinderbox"]})
     return out
 
 
@@ -70,6 +83,12 @@ def prayer():
                 name = fields.get("name", page["title"]).strip()
                 xp = number(fields.get("xp", ""))
                 kind = fields.get("type", "bone").strip().lower()
+                # Blessed bone shards, offered at the libation bowl: one jug of blessed wine per 400 shards
+                if xp and "libation bowl" in fields.get("facility", "").lower() and page["title"] == "Blessed bone shards":
+                    out.append({"name": "Offer blessed bone shards", "level": int(number(fields.get("level", "1")) or 1),
+                                "xp": xp, "materials": {"Blessed bone shards": 1}, "tools": ["Jug of blessed wine"],
+                                "facility": "Libation bowl"})
+                    continue
                 # Only what you bury or scatter (ensouled heads and the like are reanimated with Magic)
                 if xp and kind in ("bone", "bones", "ash", "ashes", ""):
                     verb = "Scatter" if "ashes" in name.lower() else "Bury"

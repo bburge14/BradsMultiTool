@@ -32,15 +32,15 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
     private static final Color SOFT = new Color(180, 180, 180);
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final PvmTracker plugin;
+    private final PvmConfig config;
     private final SlayerData slayerData;
     private final ItemManager itemManager;
     private final PanelComponent panel = new PanelComponent();
     private FontMetrics metrics;
 
     @Inject
-    public BradsMultiToolSlayerOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
+    public BradsMultiToolSlayerOverlay(Client client, PvmTracker plugin, PvmConfig config,
                                        SlayerData slayerData, ItemManager itemManager) {
         this.client = client;
         this.plugin = plugin;
@@ -89,7 +89,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         SlayerTracker.Requirement requirement = tracker.getRequirement();
         if (config.slayerRequiredItem() && requirement != null) {
             boolean has = tracker.isHasRequiredItem();
-            line("Needs:", requirement.display + (has ? "" : " (missing)"), has ? BradsMultiToolOverlay.GOOD : BradsMultiToolOverlay.BAD);
+            line("Needs:", requirement.display + (has ? "" : " (missing)"), has ? HudColors.GOOD : HudColors.BAD);
         }
         if (config.showSlayerDirections() && task != null && !task.places.isEmpty()) {
             addPlaces(task, area);
@@ -130,7 +130,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         if (master == null) {
             return;
         }
-        panel.getChildren().add(new PortraitHeaderComponent(picture(master.icon), master.name, BradsMultiToolOverlay.GOOD,
+        panel.getChildren().add(new PortraitHeaderComponent(picture(master.icon), master.name, HudColors.GOOD,
             "No task: get one here" + (master.area != null ? "\n" + master.area : "")));
         if (master.quest != null) {
             line("Quest:", master.quest, SOFT);

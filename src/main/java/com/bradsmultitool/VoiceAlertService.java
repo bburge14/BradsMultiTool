@@ -115,20 +115,72 @@ public class VoiceAlertService {
         }
     }
 
+    /**
+     * Which of the separate plugins a clip ships with (see docs/DEVELOPMENT.md "Planned: separate plugins");
+     * each persona's clips are in one folder per plugin, so a plugin's build takes just its folder.
+     * Keep in step with plugin_of() in scripts/generate_voice_clips.py.
+     */
+    enum VoicePlugin {
+        /** Skill Tracker (with the skilling helpers): skilling alerts and level-ups. */
+        SKILLING("skilling"),
+        /** PvM & Slayer: buffs, potions, health, prayer, combat and Slayer alerts. */
+        PVM("pvm"),
+        GEM_CRAB("gemcrab"),
+        /** Idle and logout warnings: every plugin carries these. */
+        SHARED("shared");
+
+        final String folder;
+
+        VoicePlugin(String folder) {
+            this.folder = folder;
+        }
+
+        static VoicePlugin of(String clip) {
+            if (clip.startsWith("skill_") || clip.startsWith("num_") || clip.startsWith("tens_")) {
+                return SKILLING;
+            }
+            switch (clip) {
+                case "inventory_full":
+                case "tree_gone":
+                case "rock_depleted":
+                case "fishing_spot_moved":
+                case "coin_pouch_full":
+                case "birdhouses_ready":
+                case "batch_complete":
+                    return SKILLING;
+                case "crab_moved":
+                case "crab_low_health":
+                    return GEM_CRAB;
+                case "character_idle":
+                case "idle_logout":
+                    return SHARED;
+                default:
+                    return PVM;
+            }
+        }
+    }
+
     /** Voice personas; each folder under resources/voices holds one clip per VoiceLine. */
     public enum VoicePersona {
-        AMY("Amy"),
-        JOE("Joe"),
-        MIKE("Mike"),
-        CORI("Cori"),
-        ALBA("Alba"),
-        ALAN("Alan"),
-        NORTHERN("Northern"),
-        // Character voices: the voices above pitch-shifted with effects (see generate_voice_clips.py)
-        GNOME("Gnome"),
-        OGRE("Ogre"),
-        WIZARD("Old Wizard"),
-        ROBOT("Robot");
+        AMY("Amy (US female)"),
+        CORI("Cori (UK female)"),
+        ALAN("Alan (UK male)"),
+        RYAN("Ryan (US male)"),
+        ARCTIC("Arctic (Scottish male)"),
+        L2ARCTIC("L2 Arctic (Mandarin-accented male)"),
+        // Character voices: Piper voices pitch-shifted with effects (see generate_voice_clips.py)
+        JOHN("John (US male)"),
+        WISE_OLD_MAN("Wise Old Man"),
+        TZHAAR("TzHaar"),
+        GHOST("Ghost"),
+        /** A different one of the voices above for each alert (no clips of its own). */
+        RANDOM("Random");
+
+        /** The voices with clips, for Random to pick from. */
+        static VoicePersona[] voices() {
+            VoicePersona[] all = values();
+            return java.util.Arrays.copyOf(all, all.length - 1);
+        }
 
         private final String displayName;
 
@@ -160,11 +212,16 @@ public class VoiceAlertService {
         speakClipsAsync(persona, volumePercent, line.fileName);
     }
 
+    /** Where a clip is bundled: voices/amy/skilling/inventory_full.wav. */
+    static String clipResource(VoicePersona persona, String clip) {
+        return "voices/" + persona.folder() + "/" + VoicePlugin.of(clip).folder + "/" + clip + ".wav";
+    }
+
     /** Plays several clips back to back as one alert (nothing else can cut in between). */
     public void speakClipsAsync(VoicePersona persona, int volumePercent, String... fileNames) {
         synchronized (queue) {
             for (String fileName : fileNames) {
-                queue.add(new String[]{"voices/" + persona.folder() + "/" + fileName + ".wav", String.valueOf(volumePercent)});
+                queue.add(new String[]{clipResource(persona, fileName), String.valueOf(volumePercent)});
             }
             if (playing) {
                 return;
@@ -175,8 +232,16 @@ public class VoiceAlertService {
     }
 
     /** "Woodcutting level", then "45". */
+    /**
+     * "Woodcutting level" then the number, built from parts to keep the plugin small: 2-19 and round tens
+     * are one clip ("Forty!"), the rest a tens prefix and a unit ("forty" + "five!").
+     */
     static String[] levelUpClips(Skill skill, int level) {
-        return new String[]{"skill_" + skill.getName().toLowerCase(), "level_" + level};
+        String skillClip = "skill_" + skill.getName().toLowerCase();
+        if (level < 20 || level % 10 == 0) {
+            return new String[]{skillClip, "num_" + level};
+        }
+        return new String[]{skillClip, "tens_" + (level / 10 * 10), "num_" + (level % 10)};
     }
 
     private void playNext() {

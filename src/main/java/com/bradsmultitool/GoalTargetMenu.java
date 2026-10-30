@@ -1,5 +1,7 @@
 package com.bradsmultitool;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
@@ -14,7 +16,7 @@ import net.runelite.client.util.Text;
 
 /**
  * Adds "Track for goal" to the right-click menu of a Hunter creature, pickpocket NPC, fishing spot, tree,
- * rock or stall when its skill has a goal, so you can outline what you'd rather train on than the
+ * rock or stall when its skill has a goal, or of a monster when a combat skill has one, so you can outline what you'd rather train on than the
  * suggestion. Choosing it again ("Untrack") goes back to the suggestion. It only changes what we outline.
  */
 @Singleton
@@ -24,13 +26,13 @@ class GoalTargetMenu {
     private static final String UNTRACK = "Untrack for goal";
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final SkillTracker plugin;
+    private final SkillTrackerConfig config;
     private final SkillingData skilling;
     private final SkillHelperData helpers;
 
     @Inject
-    GoalTargetMenu(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config, SkillingData skilling,
+    GoalTargetMenu(Client client, SkillTracker plugin, SkillTrackerConfig config, SkillingData skilling,
                    SkillHelperData helpers) {
         this.client = client;
         this.plugin = plugin;
@@ -46,31 +48,51 @@ class GoalTargetMenu {
             return;
         }
         MenuEntry entry = event.getMenuEntry();
-        Skill skill = null;
+        List<Skill> skills = new ArrayList<>();
         String key = null;
         if (entry.getType() == MenuAction.EXAMINE_NPC && entry.getNpc() != null && entry.getNpc().getName() != null) {
             NPC npc = entry.getNpc();
-            String name = npc.getName().toLowerCase();
-            skill = npcSkill(npc);
-            key = "npc:" + name;
+            key = "npc:" + npc.getName().toLowerCase();
+            Skill skill = npcSkill(npc);
+            if (skill != null) {
+                skills.add(skill);
+            } else if (isMonster(npc)) {
+                // A monster: every combat skill with a goal (fighting it trains several at once)
+                skills.addAll(GoalLines.KILL_SKILLS);
+                skills.add(Skill.MAGIC);
+            }
         } else if (entry.getType() == MenuAction.EXAMINE_OBJECT) {
             SkillingData.Resource resource = skilling.object(entry.getIdentifier(), Text.removeTags(entry.getTarget()));
-            if (resource != null) {
-                skill = skill(resource.skill);
+            if (resource != null && skill(resource.skill) != null) {
+                skills.add(skill(resource.skill));
                 key = "object:" + resource.name;
             }
         }
-        if (skill == null || plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
+        skills.removeIf(s -> plugin.getSkillGoal(s) <= client.getSkillExperience(s));
+        if (skills.isEmpty()) {
             return;
         }
-        final Skill goalSkill = skill;
         final String target = key;
-        boolean tracked = target.equals(plugin.getGoalTarget(goalSkill));
+        boolean tracked = skills.stream().anyMatch(s -> target.equals(plugin.getGoalTarget(s)));
         client.getMenu().createMenuEntry(-1)
             .setOption(tracked ? UNTRACK : TRACK)
             .setTarget(event.getTarget())
             .setType(MenuAction.RUNELITE)
-            .onClick(e -> plugin.setGoalTarget(goalSkill, tracked ? null : target));
+            .onClick(e -> skills.forEach(s -> plugin.setGoalTarget(s, tracked ? null : target)));
+    }
+
+    // Something you can attack (not the Gemstone Crab, which has its own tracker)
+    private static boolean isMonster(NPC npc) {
+        NPCComposition comp = npc.getTransformedComposition() != null ? npc.getTransformedComposition() : npc.getComposition();
+        if (comp == null || GemstoneCrabs.isGemstoneCrab(npc)) {
+            return false;
+        }
+        for (String action : comp.getActions()) {
+            if ("Attack".equalsIgnoreCase(action)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Hunter creature, pickpocket target or fishing spot

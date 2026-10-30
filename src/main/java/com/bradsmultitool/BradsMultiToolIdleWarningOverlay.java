@@ -16,13 +16,13 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
 public class BradsMultiToolIdleWarningOverlay extends Overlay {
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
+    private final IdleWarnings idleWarnings;
     private final PanelComponent panelComponent = new PanelComponent();
 
     @Inject
-    public BradsMultiToolIdleWarningOverlay(Client client, BradsMultiToolPlugin plugin) {
+    public BradsMultiToolIdleWarningOverlay(Client client, IdleWarnings idleWarnings) {
         this.client = client;
-        this.plugin = plugin;
+        this.idleWarnings = idleWarnings;
         setPosition(OverlayPosition.TOP_CENTER);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGH);
@@ -31,7 +31,7 @@ public class BradsMultiToolIdleWarningOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (client.getGameState() != GameState.LOGGED_IN || !plugin.isLogoutImminent()) {
+        if (client.getGameState() != GameState.LOGGED_IN || !idleWarnings.isLogoutImminent()) {
             return null;
         }
 
@@ -44,7 +44,7 @@ public class BradsMultiToolIdleWarningOverlay extends Overlay {
             .color(Color.WHITE)
             .build());
 
-        int remaining = plugin.getSecondsUntilIdleLogout();
+        int remaining = idleWarnings.getSecondsUntilIdleLogout();
         panelComponent.getChildren().add(LineComponent.builder()
             .left("Logout in:")
             .right(String.format("%d:%02d", remaining / 60, remaining % 60))

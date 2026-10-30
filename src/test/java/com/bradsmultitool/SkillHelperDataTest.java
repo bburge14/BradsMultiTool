@@ -25,6 +25,14 @@ public class SkillHelperDataTest {
     }
 
     @Test
+    public void trapSpots() {
+        java.util.List<SkillHelperData.Creature> net = DATA.creaturesFor("Net trap");
+        assertEquals("Swamp lizard", net.get(0).name); // lowest level first
+        assertEquals(29, net.get(0).level);
+        assertNotNull(DATA.creaturesFor("Deadfall").isEmpty() ? null : "deadfall");
+    }
+
+    @Test
     public void runecraftAltarsAndMultiples() {
         SkillHelperData.Rune air = DATA.altar(34760);
         assertEquals("Air", air.name);
@@ -102,5 +110,26 @@ public class SkillHelperDataTest {
         SkillHelperData.ChartTask glider = DATA.chartTaskNear(2988, 3011, 5);
         assertEquals("Generic", glider.type);
         assertEquals(35, glider.xp, 0.01);
+    }
+
+    @Test
+    public void seaMonsters() {
+        SkillHelperData.SeaMonster shark = DATA.seaMonster("Bull shark");
+        assertEquals(65, shark.combat);
+        assertEquals(81, shark.hp);
+        assertEquals("Adamant keel", shark.safeKeel());
+        assertEquals(Integer.valueOf(30), shark.bounties.get("Bull shark jaw"));
+        assertNull(DATA.seaMonster("Current duck"));
+    }
+
+    @Test
+    public void fishingSpots() {
+        SkillHelperData.FishingSpot karambwan = DATA.fishingSpot(4712);
+        assertEquals("Raw karambwan", karambwan.options.get("Fish").get(0).name);
+        assertEquals(65, karambwan.options.get("Fish").get(0).level);
+        assertEquals("Karambwan vessel", karambwan.options.get("Fish").get(0).tool);
+        java.util.List<String> owned = java.util.Arrays.asList("dragon harpoon", "fly fishing rod", "lantern");
+        org.junit.Assert.assertTrue(BradsMultiToolSkillingOverlay.hasTool("Harpoon + Lantern", owned));
+        org.junit.Assert.assertFalse(BradsMultiToolSkillingOverlay.hasTool("Fishing rod", owned));
     }
 }

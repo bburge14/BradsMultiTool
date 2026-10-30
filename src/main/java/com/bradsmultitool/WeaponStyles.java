@@ -1,7 +1,11 @@
 package com.bradsmultitool;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import net.runelite.api.gameval.DBTableID.CombatInterfaceWeaponCategory.Row;
 
 /**
  * Maps the equipped weapon category (varbit 357) and selected combat tab button (varp 43)
@@ -79,52 +83,64 @@ public final class WeaponStyles {
     // Combat tab button index 4 means a spell is being autocast
     private static final int AUTOCAST_INDEX = 4;
 
+    // Keyed by the game's weapon category rows (DB table 78, looked up from varbit 357), not the raw
+    // category numbers, which the game renumbers when it adds weapon types
     private static final Map<Integer, Style[]> CATEGORIES = new HashMap<>();
 
     static {
-        melee(0, "Punch", "Crush", "Kick", "Crush", null, null, "Block", "Crush");           // Unarmed
-        melee(1, "Chop", "Slash", "Hack", "Slash", "Smash", "Crush", "Block", "Slash");       // Axe
-        melee(2, "Pound", "Crush", "Pummel", "Crush", null, null, "Block", "Crush");          // Blunt
-        ranged(3, "Standard", "Bow");                                                         // Bow (arrows)
-        melee(4, "Chop", "Slash", "Slash", "Slash", "Lunge", "Stab", "Block", "Slash");       // Claws
-        ranged(5, "Heavy", "Crossbow");                                                       // Crossbow (bolts)
-        CATEGORIES.put(6, new Style[]{                                                        // Salamander
+        melee(Row.COMBAT_INTERFACE_UNARMED, "Punch", "Crush", "Kick", "Crush", null, null, "Block", "Crush");
+        melee(Row.COMBAT_INTERFACE_AXE, "Chop", "Slash", "Hack", "Slash", "Smash", "Crush", "Block", "Slash");
+        melee(Row.COMBAT_INTERFACE_BLUNT, "Pound", "Crush", "Pummel", "Crush", null, null, "Block", "Crush");
+        melee(Row.COMBAT_INTERFACE_BLUNT_BLUDGEON, "Pound", "Crush", "Pummel", "Crush", "Smash", "Crush", null, null);
+        ranged(Row.COMBAT_INTERFACE_BOW, "Standard", "Bow");
+        melee(Row.COMBAT_INTERFACE_CLAW, "Chop", "Slash", "Slash", "Slash", "Lunge", "Stab", "Block", "Slash");
+        ranged(Row.COMBAT_INTERFACE_CROSSBOW, "Heavy", "Crossbow");
+        CATEGORIES.put(Row.COMBAT_INTERFACE_FLAMER, new Style[]{                                 // Salamander
             new Style(MELEE, "Scorch", "Slash"),
             new Style(RANGED, "Flare", "Standard", "Salamander", null, null),
             new Style(MAGIC, "Blaze", null),
             null
         });
-        CATEGORIES.put(7, new Style[]{                                                        // Chinchompa
+        CATEGORIES.put(Row.COMBAT_INTERFACE_GRENADE, new Style[]{                                // Chinchompa
             new Style(RANGED, "Short fuse", "Heavy", "Chinchompa", null, null),
             new Style(RANGED, "Medium fuse", "Heavy", "Chinchompa", null, null),
             null,
             new Style(RANGED, "Long fuse", "Heavy", "Chinchompa", null, null)
         });
-        melee(9, "Chop", "Slash", "Slash", "Slash", "Lunge", "Stab", "Block", "Slash");       // Slash sword
-        melee(10, "Chop", "Slash", "Slash", "Slash", "Smash", "Crush", "Block", "Slash");     // 2h sword
-        melee(11, "Spike", "Stab", "Impale", "Stab", "Smash", "Crush", "Block", "Stab");      // Pickaxe
-        melee(12, "Jab", "Stab", "Swipe", "Slash", null, null, "Fend", "Stab");               // Polearm
-        melee(13, "Bash", "Crush", "Pound", "Crush", null, null, "Block", "Crush");           // Polestaff
-        melee(14, "Reap", "Slash", "Chop", "Slash", "Jab", "Crush", "Block", "Slash");        // Scythe
-        melee(15, "Lunge", "Stab", "Swipe", "Slash", "Pound", "Crush", "Block", "Stab");      // Spear
-        melee(16, "Pound", "Crush", "Pummel", "Crush", "Spike", "Stab", "Block", "Crush");    // Spiked
-        melee(17, "Stab", "Stab", "Lunge", "Stab", "Slash", "Slash", "Block", "Stab");        // Stab sword
-        melee(18, "Bash", "Crush", "Pound", "Crush", null, null, "Focus", "Crush");           // Staff
-        ranged(19, "Light", THROWN);                                                        // Darts, knives, thrownaxes, blowpipe
-        melee(20, "Flick", "Slash", "Lash", "Slash", null, null, "Deflect", "Slash");         // Whip
-        melee(21, "Jab", "Stab", "Swipe", "Slash", null, null, "Fend", "Crush");              // Bladed staff
-        CATEGORIES.put(23, new Style[]{                                                       // Powered staff
+        melee(Row.COMBAT_INTERFACE_GUN, "Aim and Fire", "Crush", "Kick", "Crush", null, null, null, null);
+        melee(Row.COMBAT_INTERFACE_HACKSWORD, "Chop", "Slash", "Slash", "Slash", "Lunge", "Stab", "Block", "Slash");
+        melee(Row.COMBAT_INTERFACE_HEAVYSWORD, "Chop", "Slash", "Slash", "Slash", "Smash", "Crush", "Block", "Slash");
+        melee(Row.COMBAT_INTERFACE_HEAVYSWORD_LARGE, "Chop", "Slash", "Slash", "Slash", "Smash", "Crush", "Block", "Slash");
+        melee(Row.COMBAT_INTERFACE_PICKAXE, "Spike", "Stab", "Impale", "Stab", "Smash", "Crush", "Block", "Stab");
+        melee(Row.COMBAT_INTERFACE_POLEARM, "Jab", "Stab", "Swipe", "Slash", null, null, "Fend", "Stab");
+        melee(Row.COMBAT_INTERFACE_CHARGESPEAR, "Lunge", "Stab", "Swipe", "Slash", "Pound", "Crush", "Block", "Stab");
+        melee(Row.COMBAT_INTERFACE_POLESTAFF, "Bash", "Crush", "Pound", "Crush", null, null, "Block", "Crush");
+        melee(Row.COMBAT_INTERFACE_SCYTHE, "Reap", "Slash", "Chop", "Slash", "Jab", "Crush", "Block", "Slash");
+        melee(Row.COMBAT_INTERFACE_SPEAR, "Lunge", "Stab", "Swipe", "Slash", "Pound", "Crush", "Block", "Stab");
+        melee(Row.COMBAT_INTERFACE_BANNER, "Lunge", "Stab", "Swipe", "Slash", "Pound", "Crush", "Block", "Stab");
+        melee(Row.COMBAT_INTERFACE_SPIKED, "Pound", "Crush", "Pummel", "Crush", "Spike", "Stab", "Block", "Crush");
+        melee(Row.COMBAT_INTERFACE_STABSWORD, "Stab", "Stab", "Lunge", "Stab", "Slash", "Slash", "Block", "Stab");
+        melee(Row.COMBAT_INTERFACE_STAFF, "Bash", "Crush", "Pound", "Crush", null, null, "Focus", "Crush");
+        melee(Row.COMBAT_INTERFACE_STAFF_BLADED, "Jab", "Stab", "Swipe", "Slash", null, null, "Fend", "Crush");
+        melee(Row.COMBAT_INTERFACE_STAFF_SPELLBLADE, "Jab", "Stab", "Swipe", "Slash", null, null, "Fend", "Crush");
+        ranged(Row.COMBAT_INTERFACE_THROWN, "Light", THROWN);                                 // Darts, knives, thrownaxes, blowpipe
+        melee(Row.COMBAT_INTERFACE_WHIP, "Flick", "Slash", "Lash", "Slash", null, null, "Deflect", "Slash");
+        Style[] powered = {
             new Style(MAGIC, "Accurate", null),
             new Style(MAGIC, "Accurate", null),
             null,
             new Style(MAGIC, "Longrange", null)
-        });
-        melee(24, "Lunge", "Stab", "Swipe", "Slash", "Pound", "Crush", "Block", "Stab");      // Banner
-        melee(26, "Pound", "Crush", "Pummel", "Crush", "Smash", "Crush", null, null);         // Bludgeon
-        melee(27, "Pummel", "Crush", null, null, null, null, "Block", "Crush");               // Bulwark
-        CATEGORIES.put(28, CATEGORIES.get(23));                                               // Powered wand
-        melee(29, "Stab", "Stab", "Lunge", "Stab", "Pound", "Crush", "Block", "Stab");        // Partisan
+        };
+        CATEGORIES.put(Row.COMBAT_INTERFACE_STAFF_SELFPOWERING, powered);
+        CATEGORIES.put(Row.COMBAT_INTERFACE_WAND_SELFPOWERING, powered);
+        CATEGORIES.put(Row.COMBAT_INTERFACE_BOOK_SELFPOWERING, powered);
+        melee(Row.COMBAT_INTERFACE_BULWARK, "Pummel", "Crush", null, null, null, null, "Block", "Crush");
+        melee(Row.COMBAT_INTERFACE_PARTISAN, "Stab", "Stab", "Lunge", "Stab", "Pound", "Crush", "Block", "Stab");
     }
+
+    // Weapon types that only ever attack with melee: unknown buttons on them are still melee
+    private static final Set<Integer> MELEE_ONLY = new HashSet<>(Arrays.asList(
+        Row.COMBAT_INTERFACE_MULTI_MELEE, Row.COMBAT_INTERFACE_SLASHFLAIL, Row.COMBAT_INTERFACE_EXTENDING_CHAINMACE));
 
     private WeaponStyles() {
     }
@@ -268,16 +284,37 @@ public final class WeaponStyles {
         }
     }
 
-    public static Style resolve(int category, int styleIndex, boolean defensiveCasting, int autocastSpellId) {
+    /**
+     * The style for the combat tab button {@code styleIndex} (varp 43) of the weapon category row
+     * {@code categoryRow} (DB table 78, -1 if the game has none). {@code gameStyleName} is the game's own
+     * name for that button's XP style ("Accurate", "Rapid", "Casting"...), or null; it's used for weapon
+     * types this table doesn't know yet.
+     */
+    public static Style resolve(int categoryRow, int styleIndex, boolean defensiveCasting, int autocastSpellId,
+                                String gameStyleName) {
         if (styleIndex == AUTOCAST_INDEX) {
             return new Style(MAGIC, defensiveCasting ? "Defensive Cast" : "Spell Cast", null, null,
                 autocastElement(autocastSpellId), autocastTier(autocastSpellId));
         }
 
-        Style[] styles = CATEGORIES.get(category);
+        Style[] styles = CATEGORIES.get(categoryRow);
         if (styles != null && styleIndex >= 0 && styleIndex < styles.length && styles[styleIndex] != null) {
             return styles[styleIndex];
         }
-        return new Style(MELEE, "Unknown", null);
+        if (gameStyleName == null || gameStyleName.isEmpty()) {
+            return new Style(MELEE, "Unknown", null);
+        }
+        String name = Character.toUpperCase(gameStyleName.charAt(0)) + gameStyleName.substring(1).toLowerCase();
+        if (MELEE_ONLY.contains(categoryRow)) {
+            return new Style(MELEE, name, null);
+        }
+        String n = name.toLowerCase();
+        if (n.contains("cast")) {
+            return new Style(MAGIC, name, null);
+        }
+        if (n.equals("rapid") || n.equals("longrange") || n.equals("ranging")) {
+            return new Style(RANGED, name, null);
+        }
+        return new Style(MELEE, name, null);
     }
 }

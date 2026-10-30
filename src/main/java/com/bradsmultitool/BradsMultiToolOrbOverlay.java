@@ -37,13 +37,13 @@ public class BradsMultiToolOrbOverlay extends Overlay {
     private static final long PULSE_MILLIS = 900;
 
     private final Client client;
-    private final BradsMultiToolPlugin plugin;
-    private final BradsMultiToolConfig config;
+    private final PvmTracker plugin;
+    private final PvmConfig config;
     private final SpriteManager spriteManager;
     private final Map<Integer, BufferedImage> masks = new HashMap<>();
 
     @Inject
-    public BradsMultiToolOrbOverlay(Client client, BradsMultiToolPlugin plugin, BradsMultiToolConfig config,
+    public BradsMultiToolOrbOverlay(Client client, PvmTracker plugin, PvmConfig config,
                                     SpriteManager spriteManager) {
         this.client = client;
         this.plugin = plugin;

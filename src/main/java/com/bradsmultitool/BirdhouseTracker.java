@@ -17,6 +17,9 @@ import net.runelite.client.eventbus.Subscribe;
 @Singleton
 class BirdhouseTracker {
 
+    @Inject
+    private Alerts alerts;
+
     static final int[] SPOTS = {VarPlayerID.BIRDHOUSE_TRANSMIT_A, VarPlayerID.BIRDHOUSE_TRANSMIT_B,
         VarPlayerID.BIRDHOUSE_TRANSMIT_C, VarPlayerID.BIRDHOUSE_TRANSMIT_D};
     static final String[] SPOT_NAMES = {"Mushroom Meadow (North)", "Mushroom Meadow (South)",
@@ -28,15 +31,13 @@ class BirdhouseTracker {
 
     private final Client client;
     private final ConfigManager configManager;
-    private final BradsMultiToolConfig config;
-    private final BradsMultiToolPlugin plugin;
+    private final SkillTrackerConfig config;
 
     @Inject
-    BirdhouseTracker(Client client, ConfigManager configManager, BradsMultiToolConfig config, BradsMultiToolPlugin plugin) {
+    BirdhouseTracker(Client client, ConfigManager configManager, SkillTrackerConfig config) {
         this.client = client;
         this.configManager = configManager;
         this.config = config;
-        this.plugin = plugin;
     }
 
     /** Index into {@link #SPOTS} for a player variable, or -1. */
@@ -85,7 +86,7 @@ class BirdhouseTracker {
         boolean seeded = isSeeded(event.getValue());
         if (!seeded) {
             configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "birdhouse." + spot);
-        } else if (seededAt(spot) == 0 && plugin.alertsReady()) {
+        } else if (seededAt(spot) == 0 && alerts.ready()) {
             // Just seeded now (at login the value arrives too, but then we don't know when it was seeded)
             configManager.setRSProfileConfiguration(CONFIG_GROUP, "birdhouse." + spot, System.currentTimeMillis() / 1000);
             configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "birdhousesAlerted");
@@ -95,7 +96,7 @@ class BirdhouseTracker {
     // Once every seeded bird house with a known time is full, say so once
     @Subscribe
     public void onGameTick(GameTick event) {
-        if (!config.birdhouseAlert() || !plugin.alertsReady()
+        if (!config.birdhouseAlert() || !alerts.ready()
             || configManager.getRSProfileConfiguration(CONFIG_GROUP, "birdhousesAlerted") != null) {
             return;
         }
@@ -113,7 +114,7 @@ class BirdhouseTracker {
         }
         if (any) {
             configManager.setRSProfileConfiguration(CONFIG_GROUP, "birdhousesAlerted", "true");
-            plugin.alert(VoiceAlertService.VoiceLine.BIRDHOUSES_READY, null);
+            alerts.alert(VoiceAlertService.VoiceLine.BIRDHOUSES_READY, null);
         }
     }
 }

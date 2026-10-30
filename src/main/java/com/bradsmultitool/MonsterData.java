@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * (regenerate with scripts/update_monster_data.py).
  */
 @Slf4j
+@javax.inject.Singleton
 public class MonsterData {
 
     private static final String RESOURCE = "monsters.json";
@@ -114,18 +115,29 @@ public class MonsterData {
     }
 
     private final Map<Integer, Stats> byId = new HashMap<>();
+    // Lower-case name -> stats, for NPCs whose id the wiki doesn't list
+    private final Map<String, Stats> byName = new HashMap<>();
 
     public void load(Gson gson) {
         byId.clear();
+        byName.clear();
         try (InputStream in = MonsterData.class.getResourceAsStream(RESOURCE)) {
             if (in == null) {
                 log.warn("{} not found; monster weaknesses will fall back to name matching", RESOURCE);
                 return;
             }
             try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-                JsonObject monsters = gson.fromJson(reader, JsonObject.class).getAsJsonObject("monsters");
-                for (Map.Entry<String, JsonElement> entry : monsters.entrySet()) {
+                JsonObject root = gson.fromJson(reader, JsonObject.class);
+                for (Map.Entry<String, JsonElement> entry : root.getAsJsonObject("monsters").entrySet()) {
                     byId.put(Integer.parseInt(entry.getKey()), new Stats(entry.getValue().getAsJsonArray()));
+                }
+                if (root.has("names")) {
+                    for (Map.Entry<String, JsonElement> entry : root.getAsJsonObject("names").entrySet()) {
+                        Stats stats = byId.get(entry.getValue().getAsInt());
+                        if (stats != null) {
+                            byName.put(entry.getKey(), stats);
+                        }
+                    }
                 }
             }
             log.debug("Loaded {} monsters from {}", byId.size(), RESOURCE);
@@ -136,6 +148,15 @@ public class MonsterData {
 
     public Stats get(int npcId) {
         return byId.get(npcId);
+    }
+
+    /** By id, else by name ("Sulphur Nagua"), for variants the wiki doesn't list by id; null if unknown. */
+    public Stats get(int npcId, String name) {
+        Stats stats = byId.get(npcId);
+        if (stats == null && name != null) {
+            stats = byName.get(name.toLowerCase());
+        }
+        return stats;
     }
 
     Collection<Stats> allStats() {
@@ -207,5 +228,19 @@ public class MonsterData {
             }
         }
         return null;
+    }
+
+    /** Wiki stats for an NPC, by its id, its transformed id (NPCs that change form), then its name; or null. */
+    public Stats statsFor(net.runelite.api.NPC npc) {
+        Stats stats = get(npc.getId());
+        if (stats == null && npc.getTransformedComposition() != null) {
+            stats = get(npc.getTransformedComposition().getId());
+        }
+        return stats != null ? stats : get(npc.getId(), npc.getName());
+    }
+
+    /** Wiki stats for a monster by name ("Sulphur Nagua"), or null. */
+    public Stats statsFor(String name) {
+        return name == null || name.isEmpty() ? null : get(-1, name);
     }
 }

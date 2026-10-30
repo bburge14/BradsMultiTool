@@ -1,16 +1,15 @@
-# Brad's Multi-Tool
+# Snuffy's Multi-Tool
 
 A RuneLite plugin that bundles PvM, Gemstone Crab, Slayer and skilling helpers, alerts with voice lines,
-and a skill tracker into one place. Everything can be switched on or off in the plugin's settings, and
-it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.md](docs/PLUGIN_HUB_COMPLIANCE.md)).
+and a skill tracker into one place. Everything can be switched on or off in the plugin's settings.
 
 - [Features](#features) (full guide with how-tos: [docs/FEATURES.md](docs/FEATURES.md))
 - [Setup (Windows)](#first-time-setup-windows-powershell)
 - [Logging in with a Jagex Account](#logging-in-with-a-jagex-account)
 - [Settings guide](#settings-guide)
-- [Testing checklist](docs/TESTING.md)
-- [Data files](#data-files)
 - [Credits](#credits)
+
+Working on the plugin itself? See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Features
 
@@ -19,13 +18,13 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
   (style icon, plus the element's Strike spell icon for magic), your current combat style, DPS (per
   monster, per monster type or for the session), and last/max hit. It stays up for a few seconds after
   combat.
-- **Monster hover card**: hover any attackable monster (with auto retaliate off, NPCs you can pickpocket show the Thieving card instead; Skilling > Skill Cards With Auto Retaliate Off) for its HP, weakness (green when your style hits
+- **Monster hover card**: hover any attackable monster for its HP, weakness (green when your style hits
   it, red when it doesn't), what it attacks with, and aggression. Aggression follows the game's rules:
   monsters ignore players over twice their level (except in the Wilderness), God Wars followers go by
   your god items, vyre noble clothing and greegrees protect you, and any other wiki condition is shown
-  as written.
+  as written. With auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 - **Buff timers**: each combat potion boost with its icon and time left, divine potions to the second;
-  "running out" and "expired" alerts with optional repeats. Each potion has its own voice line.
+  "running out" and "expired" alerts with optional repeats; a buff's line is red while it's running out. Each potion has its own voice line.
 - **Health and prayer**: low health / low prayer / out of prayer alerts (by percent), flashing orbs, and an
   "OUT OF PRAYER" overhead warning.
 - **Combat alerts**: special attack ready (only after you've used it), antifire and poison protection
@@ -33,7 +32,8 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
 
 ### Gemstone Crab
 - HUD with the crab's health bar, burrow countdown, whether you're attacking, the XP type you're getting,
-  damage, DPS and last/max hit.
+  damage, DPS and last/max hit. When the crab moves, its stats stay up for 12 seconds, then the radar
+  takes over.
 - Outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
   tunnels, plus a radar to find it. All of it only near the crab's three mines in the Tlati Rainforest.
 - Alerts when the crab is about to burrow and when it has moved.
@@ -53,22 +53,23 @@ it's built to pass the RuneLite Plugin Hub review ([docs/PLUGIN_HUB_COMPLIANCE.m
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), timer
-pies, and alerts that only fire for the resource you're working:
+pies (only while you train that skill, unless **Pies When Not Training** is on), and alerts that only fire for the resource you're working:
 
 | Skill | What you get |
 |---|---|
 | Woodcutting | Tree card (level, XP, your axe in its metal colour, best axe for you); a pie on every tree being chopped (Forestry timer, counting every player chopping, pulsing once it can fall on the next log); tree fallen alert |
 | Mining | Rock card; pies on Motherlode Mine veins, calcified rocks, Daeyalt essence and shooting stars (exact, from the star's layer health); rock depleted alert |
-| Fishing | Spot card (what each option catches at that kind of spot, tool needed); pies on spots showing how soon they may move (per spot type); fishing spot moved alert |
+| Prayer | Libation bowl card: your blessed bone shards, the XP they give, wine and prayer points needed, the level they reach; shards count as a Prayer goal item |
+| Fishing | Spot card for every kind of spot (net, bait, lure, cage, harpoon, karambwan, anglerfish, dark crab, eels, minnows, aerial, boat spots...): what each way of fishing it catches, level, XP, tool needed; pies on spots showing how soon they may move (per spot type); fishing spot moved alert |
 | Thieving | Stall and pickpocket cards (level, XP, never-fail level with the Ardougne cloak, stun damage); coin pouches full alert |
 | Farming | Patch card: crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's protection payment, and what you can plant |
-| Hunter | Creature card (level, XP, trap); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
-| Firemaking | Pies on fires lit nearby showing how long they may burn |
+| Hunter | Creature card (level, XP, trap); trap spot card (young tree, boulder, pit: what you can catch there, with levels); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
+| Firemaking | Pies on fires lit nearby and on Forester's Campfires showing how long they may burn |
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
 | Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |
 | Smithing | Anvil card: for each bar you carry, the best item you can make (most XP or most profit: Skilling > Best Choice By), how many, the XP (and profit at GE prices), and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
-| Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish); pies on shipwrecks showing how long until they sink |
+| Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish), sea monster card (HP, safe keel, bounty parts), current duck card (despawn timer); pies on shipwrecks showing how long until they sink |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 
 If you also run a dedicated timer plugin (Tree Despawn Timer, MLM Despawn Timer, Fishing Spot Tracker,
@@ -76,27 +77,41 @@ RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't st
 Timer Plugins). XP rates on the cards only show while you're training that skill. Inventory full is announced while you
 work a resource.
 
-### Skill tracker (sidebar)
+### Snuffy's Skill Tracker (sidebar)
 - A card per skill you train: XP gained, XP to next level, actions left (from your last XP drop; not for
   combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar. Each field has its
   own switch.
 - **Goals**: the **Set Goal** button at the top (or right-click a card > Set goal...) takes a skill and a
   level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
-  Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level.
-- **Suggested method** (every skill; Slayer suggests the best master): a goal card shows the wiki training guide's method for your level ("Train: Oak
-  trees") and what to switch to before the goal ("At 35: Teak trees"). **Suggest Alternatives** picks the
-  guide's other methods (often more AFK or cheaper) instead of the fastest. Where the method is a tree,
+  Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level (or to
+  the end of the current step when the suggested method changes before the goal).
+  Before your first XP drop it estimates from the suggested method's XP per action ("~1,240"). Combat
+  goals count kills of the monster you're fighting, from its hitpoints ("Kills: ~240").
+- **Suggested method** (every skill): a goal card shows the wiki training guide's method for your level
+  and the level it lasts to ("Train: Teak trees to 62"; hover it for every step to the goal); Slayer
+  suggests the best Slayer master. Methods whose quests or other levels you don't have yet are skipped, and at
+  low levels the card lists quests worth doing for that skill's XP. A **Needs:** line lists the tools it takes
+  (green if you have them). Each skill's **Suggest** choice (right-click it, or when setting its
+  goal; otherwise the **Default Training Focus** setting) chooses what it
+  aims for: **Fastest XP**, the guide's **Other methods** (often AFK), **Cheapest** (fewest GP per XP when
+  making things; gathering is free) or **Money maker** (the most profitable wiki money making guide you
+  can do). Where the method is a tree,
   rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
-- **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill to outline that
+- **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill (or any monster for a
+  combat goal, which also sets what kills are counted on) to outline that
   instead of the suggestion ("Tracking: ... (your pick)"); **Use suggested method** on the card goes back.
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
   **Highlight Goal Items**).
-- **Auto-pause**: a skill's rate clock stops after a few minutes without XP and resumes on your next XP.
+- **Pin to screen**: right-click a card > **Pin to screen** to show that skill on the game screen (level
+  bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
+  time; its card shows a red pin (click it to unpin), or right-click the overlay > **Unpin**.
+- **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 5 minutes by default) and resumes on your
+  next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
-- **Report an Issue** button opens a new GitHub issue.
+- **Issues?** button (top-right of the tracker) opens a new GitHub issue.
 
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key
@@ -109,8 +124,9 @@ work a resource.
   announced.
 - Every alert has its own **Voice:** and **Chat:** switch in its section; **General** has the master
   switches, the voice and the volume.
-- 11 voices (pre-recorded, so they work on any OS): Amy, Joe, Mike, Cori, Alba, Alan, Northern, and four
-  characters: Gnome, Ogre, Old Wizard and Robot. Changing the voice plays a sample.
+- 10 voices (pre-recorded, so they work on any OS): Amy (US female), Cori (UK female), Alan (UK male),
+  Ryan (US male), Arctic (Scottish male), L2 Arctic (Mandarin-accented male), John (US male), Wise Old Man, TzHaar and Ghost, or **Random** for a different
+  one each alert. Changing the voice plays a sample.
 - Chat messages use the same words as the voice line, with details in brackets.
 
 ## First-time setup (Windows, PowerShell)
@@ -141,7 +157,7 @@ a browser window to sign in to GitHub.
 **3. (Optional) Desktop shortcut:** run this once to put a launch button on your desktop:
 
 ```powershell
-$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Brad's Multi-Tool.lnk")
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Multi-Tool.lnk")
 $s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
 $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()
@@ -190,34 +206,11 @@ All sections except General start collapsed.
 | Combat Alerts | Spec, antifire, poison, stamina, ammo, runes, cannon |
 | Idle | AFK alert and idle logout warning |
 | PvM HUD | HUD on/off, monster hover, DPS mode, which lines to show |
-| Slayer | Task card, hotkey, item warning, superior and task complete |
+| Slayer | Task card and each of its parts, hotkey, Slayer info on monsters, task monster outlines, item warning, superior and task complete |
 | Gemstone Crab | HUD, outlines and their colours, crab alerts |
 | Skilling | Hover cards, XP rates on cards, inventory full, resource gone, batch complete |
 | Woodcutting ... Sailing | One section per skill with its pies, cards and alerts |
-| Skill Tracker | Which fields to show, goals, auto-pause, ignored skills, level-up alerts |
-
-## Data files
-
-Game data is generated from the OSRS Wiki and RuneLite's source by the scripts in `scripts/` (needs
-Python 3). Re-run them after a game update rather than editing the JSON by hand.
-
-| File | Script | Source |
-|---|---|---|
-| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions |
-| `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
-| `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
-| `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
-| `recipes.json` | `update_recipe_data.py` | Wiki: recipes for the production skills, Firemaking logs, Prayer bones and ashes |
-| `training.json` | `update_training_data.py` | Wiki: training guides' methods by level |
-| `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
-| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing |
-| `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](VOICE_CREDITS.md)) |
-
-## Planned: separate plugins
-
-The multi-tool will also be split into stand-alone plugins (Gemstone Crab, skilling helpers, skill
-tracker, PvM, Slayer, alerts...) alongside the all-in-one version. New features are kept self-contained
-with that in mind.
+| Skill Tracker | Which fields to show, goals, suggested methods and highlights, goal items, auto-pause, ignored skills, level-up alerts |
 
 ## Credits
 

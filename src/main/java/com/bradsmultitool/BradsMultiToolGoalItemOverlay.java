@@ -21,13 +21,13 @@ import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 public class BradsMultiToolGoalItemOverlay extends WidgetItemOverlay {
 
     private final Client client;
-    private final BradsMultiToolConfig config;
+    private final SkillTrackerConfig config;
     private final GoalItems goalItems;
     private final ItemManager itemManager;
     private final TooltipManager tooltipManager;
 
     @Inject
-    BradsMultiToolGoalItemOverlay(Client client, BradsMultiToolConfig config, GoalItems goalItems,
+    BradsMultiToolGoalItemOverlay(Client client, SkillTrackerConfig config, GoalItems goalItems,
                                   ItemManager itemManager, TooltipManager tooltipManager) {
         this.client = client;
         this.config = config;

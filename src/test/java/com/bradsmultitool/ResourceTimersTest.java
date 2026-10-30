@@ -60,4 +60,12 @@ public class ResourceTimersTest {
         assertTrue(ResourceTimers.CHOP_ANIMATIONS.contains(10071)); // dragon felling axe
         assertTrue(ResourceTimers.MINE_ANIMATIONS.contains(624)); // rune pickaxe
     }
+
+    @Test
+    public void campfireLogsByXp() {
+        assertEquals(31, ResourceTimers.campfireLog(202.5)[2], 0); // yew logs add 31 ticks
+        assertEquals(31, ResourceTimers.campfireLog(207.5)[2], 0); // with a pyromancer piece
+        assertEquals(102, ResourceTimers.campfireLog(40)[1], 0);
+        assertTrue(ResourceTimers.campfireLog(12) == null);
+    }
 }

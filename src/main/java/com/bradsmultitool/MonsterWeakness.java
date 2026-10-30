@@ -75,7 +75,7 @@ public final class MonsterWeakness {
             case RANGED:
                 return subType != null ? subType + " (" + rangedWeaponFor(subType) + ")" : "Ranged";
             case MAGIC:
-                return element != null ? element.toString() : "Magic (any element)";
+                return element != null ? element.toString() : "Magic";
             default:
                 return "Unknown";
         }

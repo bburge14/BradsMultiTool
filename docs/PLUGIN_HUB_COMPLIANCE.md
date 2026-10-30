@@ -1,6 +1,6 @@
 # Plugin Hub & Jagex compliance
 
-Brad's Multi-Tool is meant to be published on the RuneLite Plugin Hub, so every feature and every line of
+Snuffy's Multi-Tool is meant to be published on the RuneLite Plugin Hub, so every feature and every line of
 code has to pass the Plugin Hub review. This file tracks the rules and where the plugin stands. Check it
 before adding a feature, and update it when something changes.
 
@@ -13,8 +13,8 @@ Last checked: 2026-10-28.
 
 ## Planned split
 
-The multi-tool will also be published as separate plugins (Gemstone Crab, skilling helpers, skill tracker,
-PvM HUD, Slayer, alerts...). Each part should stay self-contained so it can be lifted into its own plugin:
+The multi-tool will also be published as separate plugins (Snuffy's Skill Tracker, PvM & Slayer, Gemstone
+Crab and an optional Voices plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
 its own data files, overlay(s) and config section, talking to the rest only through small shared helpers
 (voice alerts, chat messages, cursor tooltip).
 
@@ -26,13 +26,16 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | No reflection | OK. Farming data is generated from RuneLite's source into `farming_patches.json` instead of reading Time Tracking's internal classes; axe/pickaxe animation lists are written out instead of scanned |
 | No JNI/JNA, no running external programs, no downloading code | OK |
 | No `Thread.sleep` / `Thread.interrupt` | OK. Voice clips chain on the clip's STOP event |
-| No `Desktop.browse` / `LinkBrowser.open` (`LinkBrowser.browse` is allowed) | OK. Report an Issue uses `LinkBrowser.browse` |
+| No `Desktop.browse` / `LinkBrowser.open` (`LinkBrowser.browse` is allowed) | OK. The Issues? button uses `LinkBrowser.browse` |
 | No `java.io` file APIs (resources via `getResourceAsStream` are fine) | OK |
 | No `Runtime`, `KeyboardFocusManager`, non-OkHttp network clients | OK (no network use at all) |
 | Don't create your own `Gson` / `OkHttpClient` (inject them) | OK. Plugin code uses the injected `Gson` (tests create their own, which isn't shipped) |
-| No `Client.menuAction`, `runScript`, `hopToWorld` | OK |
+| No `Client.menuAction`, `hopToWorld` | OK |
+| `Client.runScript` is a "sensitive API": allowed, with extra review when code around it changes | Only through RuneLite's own `Quest.getState` (a read-only quest-status script), on the client thread, after login, after a quest completes and every 5 minutes (`QuestProgress`), to leave out training methods whose quests you haven't done. Nothing that sends anything to the server |
 | Don't modify other plugins' configs | OK. Reads the client's idle timeout, and reads (never changes) which plugins are enabled via `PluginManager.getPlugins()` / `isPluginEnabled()` so our timer pies can step aside for a dedicated timer plugin. Matched by class name, no reflection/annotations |
 | Third-party dependencies need hash verification | OK, none |
+| Repository licence: BSD 2-Clause | OK. `LICENSE` here and in every generated plugin repository |
+| Plugins talking to each other | OK. Only through RuneLite's `PluginMessage` events (`PluginFamily`): no shared code, no reflection, and no reading or changing another plugin's config. Each plugin works alone |
 
 ## Feature rules (Jagex guidelines + rejected features)
 
@@ -57,10 +60,12 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Skilling card instead of monster card when auto retaliate is off | OK. Only chooses which of our own overlays to draw; reads the auto retaliate setting, changes nothing |
 | Coin pouch full, batch complete alerts | OK. Notifications only |
 | Skill tracker goals and auto-pause | OK. Same as the core XP Tracker |
+| Pinned skill overlay (one skill on screen, Unpin via the overlay's own menu) | OK. Like the core XP Tracker's on-screen skill boxes; overlay menu entry only |
 | "Track for goal" right-click option on skilling NPCs/objects | OK. Adds a RUNELITE-type menu entry that only changes what we outline (like core NPC Indicators' Tag); never acts in game, never removes or reorders game options |
 | Goal items: outline in inventory/bank the materials of the best thing to make for a goal, with a tooltip | OK. Same as core Inventory Tags / Bank Tags style highlighting; reads containers only, never moves or uses items |
+| Training Focus (fastest / other / cheapest / money maker) | OK. Wiki guide data and GE prices via ItemManager; suggestions only |
 | Suggested training method on goal cards, outline of that method's trees/rocks/stalls/NPCs | OK. Wiki guide text plus object/NPC outlines (like core Object Markers / NPC Indicators); never clicks or moves the player |
-| Voice alerts (bundled clips) | OK |
+| Voice alerts (bundled clips) | OK. Character voices are named after RuneScape characters but are our own synthesized clips, not Jagex audio |
 | Skill tracker panel, level-up alerts | OK |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
 
@@ -70,9 +75,15 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 
 ## Open questions before publishing
 
-- Plugin size: the bundled voice clips make the jar about 35 MB. The Plugin Hub may reject or question
-  a jar this large. Options: fewer personas, shorter level-up clips, or lower bitrate. Check before
-  submitting.
+- **Voice clip licences.** Ryan's clips are CC BY-NC-SA 4.0 and L2 Arctic's CC BY-NC 4.0 (their recordings'
+  licences; VOICE_CREDITS.md). The plugin is free, so non-commercial use holds, but the Plugin Hub asks for
+  BSD-2 and says nothing about bundled sounds under other licences. Ask the Plugin Hub reviewers, or drop
+  those two voices from the published build.
+
+- Plugin size: the jar is about 17.5 MB, nearly all voice clips (9 voices: 4 standard, 5 RuneScape-inspired characters; 11 kHz mu-law, level-up
+  numbers built from parts; was 35 MB with 11 voices at 16 kHz). Still large for the Plugin Hub: if a
+  reviewer objects, ship fewer voices (e.g. the four standard ones) or move the character voices to their
+  own plugin. Check before submitting.
 - `Executors.newSingleThreadExecutor()` for audio is not forbidden, but reviewers may prefer the
   injected `ScheduledExecutorService`.
 - The skilling/farming data files are generated from the OSRS Wiki (CC BY-NC-SA) and RuneLite
