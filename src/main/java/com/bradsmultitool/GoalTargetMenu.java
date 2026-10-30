@@ -27,26 +27,22 @@ class GoalTargetMenu {
 
     private final Client client;
     private final SkillTracker plugin;
-    private final SkillTrackerConfig config;
     private final SkillingData skilling;
     private final SkillHelperData helpers;
 
     @Inject
-    GoalTargetMenu(Client client, SkillTracker plugin, SkillTrackerConfig config, SkillingData skilling,
+    GoalTargetMenu(Client client, SkillTracker plugin, SkillingData skilling,
                    SkillHelperData helpers) {
         this.client = client;
         this.plugin = plugin;
-        this.config = config;
         this.skilling = skilling;
         this.helpers = helpers;
     }
 
-    // Next to Examine, like RuneLite's own NPC and object tagging
+    // Next to Examine, like RuneLite's own NPC and object tagging. Offered whenever the skill has a goal (your
+    // pick also sets the goal card's suggestion and kill count, not only the outline)
     @Subscribe
     public void onMenuEntryAdded(MenuEntryAdded event) {
-        if (!config.highlightSuggestedTraining()) {
-            return;
-        }
         MenuEntry entry = event.getMenuEntry();
         List<Skill> skills = new ArrayList<>();
         String key = null;
@@ -81,10 +77,10 @@ class GoalTargetMenu {
             .onClick(e -> skills.forEach(s -> plugin.setGoalTarget(s, tracked ? null : target)));
     }
 
-    // Something you can attack (not the Gemstone Crab, which has its own tracker)
+    // Something you can attack (the Gemstone Crab too: it has no kill count, as it burrows rather than dies)
     private static boolean isMonster(NPC npc) {
         NPCComposition comp = npc.getTransformedComposition() != null ? npc.getTransformedComposition() : npc.getComposition();
-        if (comp == null || GemstoneCrabs.isGemstoneCrab(npc)) {
+        if (comp == null) {
             return false;
         }
         for (String action : comp.getActions()) {
