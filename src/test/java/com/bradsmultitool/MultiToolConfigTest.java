@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 import net.runelite.client.config.ConfigItem;
@@ -43,6 +44,23 @@ public class MultiToolConfigTest {
         assertSectionsDeclared(GemCrabConfig.class);
         assertSectionsDeclared(VoicesConfig.class);
         assertSectionsDeclared(BradsMultiToolConfig.class);
+    }
+
+    /**
+     * RuneLite reads settings through a proxy in another module, so a setting's enum type must be public (and so
+     * must the class holding it), or the client crashes the first time the setting is read.
+     */
+    @Test
+    public void settingTypesArePublic() {
+        for (Method method : BradsMultiToolConfig.class.getMethods()) {
+            if (method.getAnnotation(ConfigItem.class) == null) {
+                continue;
+            }
+            for (Class<?> type = method.getReturnType(); type != null; type = type.getEnclosingClass()) {
+                assertTrue(method.getName() + "'s type " + type.getName() + " must be public",
+                    type.isPrimitive() || Modifier.isPublic(type.getModifiers()));
+            }
+        }
     }
 
     @Test

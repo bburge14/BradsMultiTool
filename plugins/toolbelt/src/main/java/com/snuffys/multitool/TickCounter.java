@@ -9,7 +9,6 @@ import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.Preferences;
-import net.runelite.api.SoundEffectID;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.Subscribe;
@@ -22,59 +21,6 @@ import net.runelite.client.game.ItemStats;
  */
 @Singleton
 class TickCounter {
-
-    enum Display {
-        OFF("Off"),
-        OVER_HEAD("Over head"),
-        BOX("Box"),
-        BOTH("Both");
-
-        private final String label;
-
-        Display(String label) {
-            this.label = label;
-        }
-
-        boolean overHead() {
-            return this == OVER_HEAD || this == BOTH;
-        }
-
-        boolean box() {
-            return this == BOX || this == BOTH;
-        }
-
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
-
-    /** Pairs of game sounds: one for most ticks, the other for the first tick of each cycle. */
-    enum Sound {
-        OFF("Off", -1, -1),
-        PLOP("Plop", SoundEffectID.GE_INCREMENT_PLOP, SoundEffectID.GE_DECREMENT_PLOP),
-        BELL("Bell", SoundEffectID.TOWN_CRIER_BELL_DING, SoundEffectID.TOWN_CRIER_BELL_DONG),
-        ANVIL("Anvil", SoundEffectID.SMITH_ANVIL_TINK, SoundEffectID.SMITH_ANVIL_TONK),
-        BOOP("Boop", SoundEffectID.UI_BOOP, SoundEffectID.GE_COLLECT_BLOOP),
-        COINS("Coins", SoundEffectID.GE_COIN_TINKLE, SoundEffectID.GE_ADD_OFFER_DINGALING),
-        PICKAXE("Pickaxe and axe", SoundEffectID.MINING_TINK, SoundEffectID.TREE_CHOP),
-        TINDERBOX("Tinderbox", SoundEffectID.TINDER_STRIKE, SoundEffectID.FIRE_WOOSH);
-
-        private final String label;
-        final int tick;
-        final int first;
-
-        Sound(String label, int tick, int first) {
-            this.label = label;
-            this.tick = tick;
-            this.first = first;
-        }
-
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
 
     private static final int UNARMED_SPEED = 4;
 
@@ -106,7 +52,7 @@ class TickCounter {
 
     /** Whether the count is shown or sounded at all. */
     boolean active() {
-        return config.tickDisplay() != Display.OFF || config.metronomeSound() != Sound.OFF;
+        return config.tickDisplay() != TickConfig.Display.OFF || config.metronomeSound() != TickConfig.Sound.OFF;
     }
 
     /** The next tick's place in the cycle: 1 after an attack (or once the cycle is done), else one more. */
@@ -140,8 +86,8 @@ class TickCounter {
         attacked = false;
         lastTickMillis = System.currentTimeMillis();
 
-        Sound sound = config.metronomeSound();
-        if (sound != Sound.OFF && (count == 1 || !config.metronomeFirstOnly())) {
+        TickConfig.Sound sound = config.metronomeSound();
+        if (sound != TickConfig.Sound.OFF && (count == 1 || !config.metronomeFirstOnly())) {
             play(count == 1 ? sound.first : sound.tick);
         }
     }
