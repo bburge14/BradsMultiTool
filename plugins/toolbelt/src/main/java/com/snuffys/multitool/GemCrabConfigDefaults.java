@@ -13,6 +13,7 @@ final class GemCrabConfigDefaults {
         defaults.store("enableCrabFeatures", config.enableCrabFeatures());
         defaults.store("crabLowHealthPercent", config.crabLowHealthPercent());
         defaults.store("crabLowStatsPercent", config.crabLowStatsPercent());
+        defaults.store("crabGearCheck", config.crabGearCheck());
         defaults.store("showCrabLastHit", config.showCrabLastHit());
         defaults.store("showCrabMaxHit", config.showCrabMaxHit());
         defaults.store("activeCrabColor", config.activeCrabColor());

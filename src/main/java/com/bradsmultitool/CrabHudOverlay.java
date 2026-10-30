@@ -41,6 +41,8 @@ public class CrabHudOverlay extends Overlay {
     private final SkillIconManager skillIconManager;
     private final PotionAlerts potionAlerts;
     private final ItemManager itemManager;
+    private final GearCheck gearCheck;
+    private final CombatStyle combatStyle;
     private final PanelComponent panelComponent = new PanelComponent();
     private long lastCrabActiveMillis;
     private CrabFight lastFight;
@@ -65,9 +67,11 @@ public class CrabHudOverlay extends Overlay {
 
     @Inject
     CrabHudOverlay(Client client, GemCrabTracker gemCrab, GemCrabConfig config, SkillIconManager skillIconManager,
-                   PotionAlerts potionAlerts, ItemManager itemManager) {
+                   PotionAlerts potionAlerts, ItemManager itemManager, GearCheck gearCheck, CombatStyle combatStyle) {
         this.potionAlerts = potionAlerts;
         this.itemManager = itemManager;
+        this.gearCheck = gearCheck;
+        this.combatStyle = combatStyle;
         this.client = client;
         this.gemCrab = gemCrab;
         this.config = config;
@@ -164,6 +168,10 @@ public class CrabHudOverlay extends Overlay {
                     .build());
             }
 
+            if (config.crabGearCheck()) {
+                addGearRows();
+            }
+
             // Your potion buffs (PotionAlerts) and LOW prayer/health: the same in the Toolbelt and on its own
             if (config.enableBuffStatus()) {
                 addBuffRows();
@@ -198,6 +206,21 @@ public class CrabHudOverlay extends Overlay {
         }
 
         return panelComponent.render(graphics);
+    }
+
+    // Your gear's damage bonus for the style you're using (green, red with none), and items whose damage bonus
+    // is for another style ("Off-style: Archer helm")
+    private void addGearRows() {
+        GearCheck.Style style = GearCheck.of(combatStyle.getCombatDiscipline());
+        panelComponent.getChildren().add(LineComponent.builder()
+            .left("Gear:")
+            .right(gearCheck.total(style))
+            .rightColor(gearCheck.hasDamage(style) ? HudColors.GOOD : HudColors.BAD)
+            .build());
+        java.util.List<String> off = gearCheck.offStyle(style);
+        if (!off.isEmpty()) {
+            panelComponent.getChildren().add(new TextBlockComponent("Off-style: " + String.join(", ", off), HudColors.BAD, false));
+        }
     }
 
     // "LOW" while prayer or health is at or below the set share of its level (0: off)

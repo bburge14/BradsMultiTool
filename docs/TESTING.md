@@ -28,6 +28,9 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       (divine exact, regular "~" until the first stat drop), red while running out (Warn Before Ending);
       Potion Buffs > Show Buffs on HUD off hides them; Prayer: LOW / Health: LOW at or below Low Prayer/HP.
 - [ ] GemCrab on its own: potion running out / run out alerts (voice and chat), with its Potion Buffs settings.
+- [ ] Gear Check on the crab card: Str +N while meleeing, Ranged str +N while ranging, Magic dmg +N% while
+      casting (follows a style switch); a Necklace of anguish or berserker ring worn for the other style shows
+      under Off-style; red Str +0 with no strength gear.
 - [ ] `-Pload=separate` (PvM and GemCrab both): each potion alert is said once, not twice.
 - [ ] Right-click the crab card > Reset clears its damage/DPS; right-click the PvM HUD > Reset clears PvM's;
       the tracker's Reset all no longer touches either.

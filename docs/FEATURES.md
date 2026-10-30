@@ -145,7 +145,13 @@ and on its own; outlines on the crab, its shell (green when you can still mine i
 tunnels; a radar to find it. Alerts when it's about to burrow and when it has moved, and the potion alerts
 (see Potion buffs). Right-click the crab card > **Reset** clears its damage and DPS.
 
-**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Low Prayer/HP (%); Show Last/Max Hit; the four
+**Gear Check:** the crab can't block and only hits for 1, so only *damage* matters there (XP is 3.5 per
+damage, whatever skill you train). The card shows your gear's damage bonus for the style you're fighting with
+(Str +72, Ranged str +45 or Magic dmg +15%; red at none), and **Off-style:** any worn item whose damage bonus is
+for another style (a Necklace of anguish while meleeing), since that slot could be adding damage. Armour's
+defence doesn't matter, so lower-tier gear with more damage beats better armour without it.
+
+**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Gear Check; Low Prayer/HP (%); Show Last/Max Hit; the four
 outline colours; Voice/Chat switches.
 
 ---

@@ -11,6 +11,8 @@ class GemCrabFeature {
     @Inject private IdleWarnings idleWarnings;
     @Inject private PotionBuffs potionBuffs;
     @Inject private PotionAlerts potionAlerts;
+    @Inject private GearCheck gearCheck;
+    @Inject private CombatStyle combatStyle;
     @Inject private CrabHudOverlay crabHudOverlay;
     @Inject private BradsMultiToolCrabOutlineOverlay crabOutlineOverlay;
 
@@ -26,7 +28,7 @@ class GemCrabFeature {
             GemCrabConfigDefaults.store(configDefaults, config);
             BuffConfigDefaults.store(configDefaults, config);
         });
-        lifecycle.subscribe(gemCrab, potionBuffs, potionAlerts);
+        lifecycle.subscribe(gemCrab, potionBuffs, potionAlerts, gearCheck, combatStyle);
         lifecycle.overlay(crabHudOverlay, crabOutlineOverlay);
         // Hitting the crab counts as busy for the idle alert (its hits come slowly)
         java.util.function.BooleanSupplier attacking = gemCrab::isPlayerAttackingCrab;

@@ -61,7 +61,8 @@ developer mode.
 
 ### Gemstone Crab
 - HUD with the crab's health bar, burrow countdown, whether you're attacking, the XP type you're getting,
-  damage, DPS, last/max hit and your potion buffs with their time left. When the crab moves, its stats stay up for 12 seconds, then the radar
+  damage, DPS, last/max hit, your potion buffs with their time left, and a gear check (your damage bonus for
+  the style you're using, and worn items whose damage is for another style). When the crab moves, its stats stay up for 12 seconds, then the radar
   takes over.
 - Outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
   tunnels, plus a radar to find it. All of it only near the crab's three mines in the Tlati Rainforest.

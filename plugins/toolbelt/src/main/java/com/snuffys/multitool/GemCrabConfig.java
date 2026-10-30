@@ -94,6 +94,17 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     }
 
     @ConfigItem(
+        keyName = "crabGearCheck",
+        name = "Gear Check",
+        description = "Your gear's damage bonus for the style you're fighting with, and any worn item whose damage bonus is for another style (only damage counts against the crab)",
+        section = crabSection,
+        position = 52
+    )
+    default boolean crabGearCheck() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "showCrabLastHit",
         name = "Show Last Hit",
         description = "Display continuous most recent hit dealt to Gemstone Crabs",
