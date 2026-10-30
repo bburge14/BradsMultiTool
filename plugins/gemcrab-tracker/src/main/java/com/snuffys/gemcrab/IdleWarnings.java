@@ -2,7 +2,9 @@ package com.snuffys.gemcrab;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 import javax.inject.Inject;
@@ -11,6 +13,7 @@ import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
+import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -66,6 +69,8 @@ class IdleWarnings {
     private int lastActiveTick = 0;
     private int actionTicks = 0;
     private int lastXpTick = -1000;
+    // Each skill's XP as last reported: logging in reports every skill's, which isn't training
+    private final Map<Skill, Integer> knownXp = new EnumMap<>(Skill.class);
     private Instant lastIdleAlertTime = Instant.EPOCH;
 
     @Inject
@@ -117,11 +122,19 @@ class IdleWarnings {
             lastPlayerLocation = null;
             logoutImminent = false;
         }
+        if (event.getGameState() == GameState.LOGIN_SCREEN) {
+            // Maybe another account next
+            knownXp.clear();
+        }
     }
 
     @Subscribe
     public void onStatChanged(StatChanged event) {
-        lastXpTick = client.getTickCount();
+        // Only XP going up is training: not the XP the game reports at login, nor a boost or drain (same XP)
+        Integer before = knownXp.put(event.getSkill(), event.getXp());
+        if (before != null && event.getXp() > before) {
+            lastXpTick = client.getTickCount();
+        }
     }
 
     @Subscribe

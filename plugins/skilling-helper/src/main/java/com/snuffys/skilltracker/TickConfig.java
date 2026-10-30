@@ -38,7 +38,6 @@ public interface TickConfig extends Config {
 
     /** Pairs of game sounds: one for most ticks, the other for the first tick of each cycle. */
     enum Sound {
-        OFF("Off", -1, -1),
         PLOP("Plop", SoundEffectID.GE_INCREMENT_PLOP, SoundEffectID.GE_DECREMENT_PLOP),
         BELL("Bell", SoundEffectID.TOWN_CRIER_BELL_DING, SoundEffectID.TOWN_CRIER_BELL_DONG),
         ANVIL("Anvil", SoundEffectID.SMITH_ANVIL_TINK, SoundEffectID.SMITH_ANVIL_TONK),
@@ -232,22 +231,34 @@ public interface TickConfig extends Config {
     }
 
     @ConfigItem(
-        keyName = "metronomeSound",
-        name = "Metronome Sound",
-        description = "A game sound each tick; the first tick of each cycle plays the second sound of the pair",
+        keyName = "metronome",
+        name = "Metronome",
+        description = "A game sound on every tick",
         section = tickSection,
         position = 11
     )
+    default boolean metronome() {
+        return false;
+    }
+
+    // A new key: the old metronomeSound could be saved as Off, which isn't a tone any more
+    @ConfigItem(
+        keyName = "metronomeTone",
+        name = "Tone",
+        description = "The metronome's sounds: a pair of game sounds, the second on the first tick of each cycle",
+        section = tickSection,
+        position = 12
+    )
     default Sound metronomeSound() {
-        return Sound.OFF;
+        return Sound.PLOP;
     }
 
     @ConfigItem(
         keyName = "metronomeFirstOnly",
-        name = "Sound On First Tick Only",
+        name = "First Tick Only",
         description = "Only play the metronome on the first tick of each cycle",
         section = tickSection,
-        position = 12
+        position = 13
     )
     default boolean metronomeFirstOnly() {
         return false;
@@ -258,10 +269,10 @@ public interface TickConfig extends Config {
     100)
     @ConfigItem(
         keyName = "metronomeVolume",
-        name = "Metronome Volume",
+        name = "Volume",
         description = "Volume of the metronome and the click sounds (0-100); 0 uses the game's sound effect volume",
         section = tickSection,
-        position = 13
+        position = 14
     )
     default int metronomeVolume() {
         return 50;
@@ -272,7 +283,7 @@ public interface TickConfig extends Config {
         name = "Click Timing",
         description = "Show how long after the tick each click landed (in ms) over your head, and a summary of your last clicks with the tick bar (Alt + drag to move it)",
         section = tickSection,
-        position = 14
+        position = 15
     )
     default boolean clickTiming() {
         return false;
@@ -283,7 +294,7 @@ public interface TickConfig extends Config {
         name = "Click Sounds",
         description = "A ding for each click on time, the Late Sound for a late one (after Late After) or a missed tick",
         section = tickSection,
-        position = 15
+        position = 16
     )
     default boolean clickSounds() {
         return false;
@@ -294,7 +305,7 @@ public interface TickConfig extends Config {
         name = "Late Sound",
         description = "The sound for a late click or a missed tick",
         section = tickSection,
-        position = 16
+        position = 17
     )
     default LateSound clickLateSound() {
         return LateSound.VWOOP;
@@ -311,7 +322,7 @@ public interface TickConfig extends Config {
         name = "Late After",
         description = "A click this long after the tick or later counts as late: with your ping it may land on the next tick",
         section = tickSection,
-        position = 17
+        position = 18
     )
     @Units(Units.MILLISECONDS)
     default int clickLateMs() {
@@ -323,7 +334,7 @@ public interface TickConfig extends Config {
         name = "Click Every Tick",
         description = "For 1-ticking, where you click once every tick: once you've started clicking, a tick that passes without a click counts as missed and plays the Late Sound. Leave off for methods that don't click every tick",
         section = tickSection,
-        position = 18
+        position = 19
     )
     default boolean clickEveryTick() {
         return false;

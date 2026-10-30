@@ -21,7 +21,8 @@ final class TickConfigDefaults {
         defaults.store("tickTextSize", config.tickTextSize());
         defaults.store("tickBoxSize", config.tickBoxSize());
         defaults.store("tickBarWidth", config.tickBarWidth());
-        defaults.store("metronomeSound", config.metronomeSound());
+        defaults.store("metronome", config.metronome());
+        defaults.store("metronomeTone", config.metronomeSound());
         defaults.store("metronomeFirstOnly", config.metronomeFirstOnly());
         defaults.store("metronomeVolume", config.metronomeVolume());
         defaults.store("clickTiming", config.clickTiming());

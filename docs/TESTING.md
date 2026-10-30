@@ -106,16 +106,17 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tick Boxes: one box per tick of the cycle, the current one lit; Horizontal and Vertical; drawn once in the
       Toolbelt (not two stacked boxes); moves with Alt + drag and keeps its place.
 - [ ] Tick Bar: fills smoothly over each tick and snaps back on the tick; Bar Width.
-- [ ] Each Metronome Sound plays, with the second sound on the first tick; Sound On First Tick Only; Volume.
+- [ ] Metronome on/off; each Tone plays, with the second sound on the first tick; First Tick Only; Volume.
 - [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3); 1 lands on each attack.
 - [ ] Click Timing: "NNNms" rises over your head on each click (green, red past Late After); the bar marks the
       click; the summary counts on time / late / missed. Right-click "Track for goal" isn't counted.
 - [ ] Click Sounds: ding on time, Late Sound (each of the four) when late; Click Every Tick: Late Sound on a
       tick with no click while 1-ticking.
-- [ ] Welcome screen after login: no count, boxes, bar or sounds.
+- [ ] Loading and the welcome screen after login: no count, boxes, bar or sounds.
 - [ ] Count Over Head sits just above the head.
 - [ ] All off: nothing shows and no sound.
 
 ## Idle
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
+- [ ] No AFK alert after logging in without doing anything (login's XP report isn't training).
 - [x] Idle logout warning before the logout.

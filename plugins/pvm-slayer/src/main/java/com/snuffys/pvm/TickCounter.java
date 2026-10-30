@@ -32,8 +32,6 @@ class TickCounter {
     /** How many recent clicks (and missed ticks) the summary covers. */
     static final int RECENT = 50;
     private static final int DING = SoundEffectID.TOWN_CRIER_BELL_DING;
-    // The welcome screen after logging in ("Click here to play")
-    private static final int WELCOME_SCREEN_GROUP = 378;
 
     /** A click (how long after the tick, in ms) or a missed tick (-1), for the summary. */
     private final Deque<Integer> recent = new ArrayDeque<>();
@@ -42,6 +40,7 @@ class TickCounter {
     private final TickConfig config;
     private final ItemManager itemManager;
     private final CombatStyle combatStyle;
+    private final Alerts alerts;
 
     /** Where in the cycle this tick is (1 is the first tick), 0 before the first tick. */
     @Getter
@@ -64,16 +63,17 @@ class TickCounter {
     private int weaponSpeed = UNARMED_SPEED;
 
     @Inject
-    TickCounter(Client client, TickConfig config, ItemManager itemManager, CombatStyle combatStyle) {
+    TickCounter(Client client, TickConfig config, ItemManager itemManager, CombatStyle combatStyle, Alerts alerts) {
         this.client = client;
         this.config = config;
         this.itemManager = itemManager;
         this.combatStyle = combatStyle;
+        this.alerts = alerts;
     }
 
     /** Whether the count is shown or sounded at all. */
     boolean active() {
-        return config.tickOverHead() || config.tickBoxes() || config.tickBar() || config.metronomeSound() != TickConfig.Sound.OFF
+        return config.tickOverHead() || config.tickBoxes() || config.tickBar() || config.metronome()
             || timingClicks();
     }
 
@@ -134,7 +134,8 @@ class TickCounter {
 
     @Subscribe
     public void onGameTick(GameTick event) {
-        if (client.getGameState() != GameState.LOGGED_IN || !active() || client.getWidget(WELCOME_SCREEN_GROUP, 0) != null) {
+        // Not until you're in the game: past loading and the welcome screen, like the alerts (Alerts.ready)
+        if (client.getGameState() != GameState.LOGGED_IN || !active() || !alerts.ready()) {
             count = 0;
             attacked = false;
             lastTickMillis = 0;
@@ -161,7 +162,7 @@ class TickCounter {
         lastTickMillis = System.currentTimeMillis();
 
         TickConfig.Sound sound = config.metronomeSound();
-        if (sound != TickConfig.Sound.OFF && !missed && (count == 1 || !config.metronomeFirstOnly())) {
+        if (config.metronome() && !missed && (count == 1 || !config.metronomeFirstOnly())) {
             play(count == 1 ? sound.first : sound.tick);
         }
     }
