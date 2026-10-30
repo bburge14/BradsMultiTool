@@ -38,8 +38,9 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 
 ## Planned: separate plugins
 
-The multi-tool will also be split into stand-alone plugins alongside the all-in-one version. New features
-are kept self-contained with that in mind.
+Besides the all-in-one **Snuffy's Multi-Tool**, each feature is published as its own plugin. This
+repository is where everything is worked on; `scripts/split_plugins.py` builds each plugin's own repository
+from it (see "Publishing the separate plugins" below).
 
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
@@ -49,6 +50,32 @@ are kept self-contained with that in mind.
 | **Snuffy's Voices** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
 
 PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card and buff alerts.
+
+### How the code is split
+
+| Plugin | Plugin class | Feature (what it starts) | Settings (group) | Its state |
+|---|---|---|---|---|
+| Multi-Tool (all-in-one) | `BradsMultiToolPlugin` | all four below, joined up | `BradsMultiToolConfig` (`bradsmultitool`, extends the three below) | |
+| Skill Tracker | `SkillTrackerPlugin` | `SkillTrackerFeature` | `SkillTrackerConfig` (`snuffysskilltracker`) | `SkillTracker` |
+| PvM & Slayer | `PvmPlugin` | `PvmFeature` | `PvmConfig` (`snuffyspvm`) | `PvmTracker`, `SlayerTracker` |
+| Gemstone Crab | `GemCrabPlugin` | `GemCrabFeature` | `GemCrabConfig` (`snuffysgemcrab`) | `GemCrabTracker` |
+| Voices | `VoicesPlugin` | `VoicesFeature` | `VoicesConfig` (`snuffysvoices`) | |
+
+Every plugin also starts `CommonFeature` (`Alerts`, `IdleWarnings`, `PluginFamily`) and uses `CommonConfig`
+(voice, chat, idle). `Lifecycle` subscribes, shows and loads each shared piece only once and undoes it all on
+stop. `PluginIdentity` says which build is running (settings group, chat tag, family id). Shared pieces used
+by more than one plugin: `CombatStyle`, `MonsterData`, `SlayerData`, `GemstoneCrabs`, `HudColors`, the
+overlay components.
+
+Rules that keep the split working:
+- A feature's classes take their own settings interface (`SkillTrackerConfig`, ...), never
+  `BradsMultiToolConfig`, and never another feature's tracker. Where two features work together only in
+  the all-in-one (Reset all, the crab card's buff rows, the PvM card stepping aside for skilling cards), the
+  all-in-one plugin joins them with a hook.
+- RuneLite only shows settings sections an interface declares itself, so the common sections are repeated in
+  each plugin's settings and every section in `BradsMultiToolConfig` (`MultiToolConfigTest` checks).
+- `PluginWiringTest` checks every plugin can be built (a missing settings binding fails there, not in the
+  client), and `split_plugins.py --verify` that each compiles with only its own classes.
 
 ### Voice lines
 
@@ -61,3 +88,31 @@ The plugins find each other with RuneLite's `PluginMessage` events (`PluginFamil
 each says "hello" on start and "bye" on stop, and the others answer "here". The Voices plugin also sends
 "voice-settings" (persona, volume, on/off); while it runs, every plugin speaks with that voice and volume
 instead of its own (each plugin's own per-line switches still apply).
+
+## Publishing the separate plugins
+
+`python3 scripts/split_plugins.py --verify` writes each plugin to `build/split/<plugin>/` and compiles it on
+its own. For each plugin it takes, starting from its plugin class, every class it refers to (and so on), the
+data files those classes load, and its voice folders; renames the package (`com.snuffys.<plugin>`); and adds
+the Plugin Hub build files, `runelite-plugin.properties` (from the plugin's `@PluginDescriptor`), the BSD-2
+licence and a README.
+
+The **Split plugins** GitHub Action (`.github/workflows/split-plugins.yml`) does that on every push to `main`
+and pushes each plugin to its repository:
+
+| Plugin | Repository |
+|---|---|
+| Snuffy's Multi-Tool | `bburge14/snuffys-multi-tool` |
+| Snuffy's Skill Tracker | `bburge14/snuffys-skill-tracker` |
+| Snuffy's PvM & Slayer | `bburge14/snuffys-pvm-slayer` |
+| Snuffy's Gemstone Crab | `bburge14/snuffys-gemstone-crab` |
+| Snuffy's Voices | `bburge14/snuffys-voices` |
+
+It needs a repository secret **SNUFFYS_PUSH_TOKEN**: a fine-grained personal access token with
+*Contents: Read and write* on those five repositories (GitHub > Settings > Developer settings > Fine-grained
+tokens; then this repository > Settings > Secrets and variables > Actions). Without it the Action still
+builds and checks every plugin but pushes nothing. Don't edit the plugin repositories directly; changes there
+are overwritten.
+
+Submitting to the Plugin Hub (not done yet): one file per plugin in `runelite/plugin-hub`'s `plugins/`
+folder, naming the repository and the commit to build; each release means updating that commit there.

@@ -1,5 +1,7 @@
 package com.bradsmultitool;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -114,9 +116,18 @@ class Alerts {
         }
         String key = event.getKey();
         if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
-            // The voice just picked here, even while the Voices plugin sets the one alerts use
-            VoiceAlertService.VoiceLine[] lines = VoiceAlertService.VoiceLine.values();
-            voice.speakAsync(lines[ThreadLocalRandom.current().nextInt(lines.length)], pick(config.voicePersona()), config.voiceVolume());
+            // The voice just picked here, even while the Voices plugin sets the one alerts use; a line this
+            // plugin ships (each plugin carries only its own clips)
+            VoiceAlertService.VoicePersona persona = pick(config.voicePersona());
+            List<VoiceAlertService.VoiceLine> lines = new ArrayList<>();
+            for (VoiceAlertService.VoiceLine line : VoiceAlertService.VoiceLine.values()) {
+                if (VoiceAlertService.class.getResource(VoiceAlertService.clipResource(persona, line.fileName)) != null) {
+                    lines.add(line);
+                }
+            }
+            if (!lines.isEmpty()) {
+                voice.speakAsync(lines.get(ThreadLocalRandom.current().nextInt(lines.size())), persona, config.voiceVolume());
+            }
         } else if (Boolean.parseBoolean(event.getNewValue())) {
             for (AlertType type : AlertType.values()) {
                 if (type.voiceKey.equals(key)) {
