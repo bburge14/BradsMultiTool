@@ -81,6 +81,10 @@ class IdleWarnings {
         busy.add(check);
     }
 
+    void removeBusy(BooleanSupplier check) {
+        busy.remove(check);
+    }
+
     private boolean busyElsewhere() {
         for (BooleanSupplier check : busy) {
             if (check.getAsBoolean()) {
