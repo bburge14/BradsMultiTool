@@ -659,6 +659,11 @@ public class BradsMultiToolPanel extends PluginPanel {
                 if (item != null) {
                     lines.add(label(item.label) + item.item + " " + label(item.have));
                 }
+                // Combat goals: how fast you're killing (faster with potions and better gear)
+                String killRate = GoalLines.killRate(plugin, skill);
+                if (killRate != null) {
+                    lines.add(label("Kill rate:") + killRate);
+                }
                 // The tools it needs: green if you have them (carried, worn or banked), red if not
                 Map<String, Boolean> tools = GoalLines.tools(plugin, skill, level);
                 if (!tools.isEmpty()) {

@@ -303,6 +303,10 @@ damage of your combat style: 4 in the skill it trains, 4/3 each to Attack, Stren
 Controlled, 2 each to Ranged and Defence in Longrange, 1 to Defence by defensive casting, 4/3 to Hitpoints
 (a style that doesn't train the skill counts as 4, as if you switched to one); hover the count to see which
 monster. A Gemstone Crab has no kill count.
+Combat goal cards (and the pinned overlay) also show your **Kill rate** on your Track for goal pick (else what
+you killed last), e.g. "Kill rate: Sand Crab: 52/hr (1:09 each)", over your kills in the last hour once you've
+killed it twice. Potions and better gear show up here as faster kills; they don't change the kills a goal needs
+(combat XP comes from damage, and a kill can only take its hitpoints).
 
 ---
 

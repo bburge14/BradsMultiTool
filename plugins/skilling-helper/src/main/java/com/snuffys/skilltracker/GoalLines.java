@@ -135,4 +135,27 @@ final class GoalLines {
         }
         return out;
     }
+
+    /**
+     * For a combat goal: how fast you're killing your Track for goal pick (else what you killed last), e.g.
+     * "Sand Crab: 52/hr (1:09 each)"; null until you've killed it twice in the last hour.
+     */
+    static String killRate(SkillTracker plugin, Skill skill) {
+        if (!KILL_SKILLS.contains(skill) || plugin.getSkillGoal(skill) <= plugin.getCurrentSkillXp(skill)) {
+            return null;
+        }
+        KillTracker kills = plugin.getKillTracker();
+        String target = plugin.getGoalTarget(skill);
+        String monster = target != null && target.startsWith("npc:") ? SkillTracker.goalTargetName(target) : null;
+        KillTracker.Pace pace = kills.pace(monster);
+        if (pace == null) {
+            monster = kills.lastKilled();
+            pace = kills.pace(monster);
+        }
+        if (pace == null) {
+            return null;
+        }
+        long seconds = Math.round(pace.millisEach / 1000.0);
+        return monster + ": " + pace.perHour + "/hr (" + seconds / 60 + ":" + String.format("%02d", seconds % 60) + " each)";
+    }
 }
