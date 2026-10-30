@@ -81,6 +81,8 @@ LINES = {
     "cannon_low": "Your cannon is running low.",
     "superior_spawned": "A superior has spawned!",
     "task_complete": "Slayer task complete.",
+    "task_halfway": "Slayer task halfway done.",
+    "task_nearly_done": "Slayer task nearly done.",
     "slayer_item_missing": "You are missing your slayer item.",
     "inventory_full": "Inventory is full.",
     "tree_gone": "The tree is gone.",

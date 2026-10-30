@@ -52,6 +52,8 @@ public class VoiceAlertService {
         CANNON_LOW("cannon_low", "Your cannon is running low."),
         SUPERIOR_SPAWNED("superior_spawned", "A superior has spawned!"),
         TASK_COMPLETE("task_complete", "Slayer task complete."),
+        TASK_HALFWAY("task_halfway", "Slayer task halfway done."),
+        TASK_NEARLY_DONE("task_nearly_done", "Slayer task nearly done."),
         SLAYER_ITEM_MISSING("slayer_item_missing", "You are missing your slayer item."),
         INVENTORY_FULL("inventory_full", "Inventory is full."),
         TREE_GONE("tree_gone", "The tree is gone."),

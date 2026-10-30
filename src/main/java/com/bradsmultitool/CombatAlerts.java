@@ -37,6 +37,9 @@ import net.runelite.client.util.Text;
 @Singleton
 class CombatAlerts {
 
+    // Kills left at the last change, for the halfway and nearly done alerts (0: none known yet)
+    private int slayerCountBefore = 0;
+
     @Inject
     private CombatStyle combatStyle;
 
@@ -48,6 +51,7 @@ class CombatAlerts {
     private static final int VARP_POISON = 102;            // VarPlayerID.POISON
     private static final int VARP_CANNONBALLS = 3;         // cannonballs loaded
     private static final int VARP_SLAYER_COUNT = 394;      // VarPlayerID.SLAYER_COUNT
+    private static final int VARP_SLAYER_COUNT_ORIGINAL = 4258; // VarPlayerID.SLAYER_COUNT_ORIGINAL: the task's size
     private static final int VARBIT_ANTIFIRE = 3981;       // counts down in 30-tick steps
     private static final int VARBIT_SUPER_ANTIFIRE = 6101; // counts down in 20-tick steps
     private static final int VARBIT_STAMINA_ACTIVE = 25;
@@ -94,6 +98,29 @@ class CombatAlerts {
         this.plugin = plugin;
     }
 
+    // Halfway and nearly done: once each, when a kill takes the count past the mark (not on login, a new task or
+    // a task that started below it)
+    private void checkTaskProgress(int left) {
+        int before = slayerCountBefore;
+        slayerCountBefore = left;
+        if (before <= 0 || left <= 0 || left >= before) {
+            return;
+        }
+        int original = client.getVarpValue(VARP_SLAYER_COUNT_ORIGINAL);
+        if (crossed(before, left, original / 2) && config.taskHalfwayAlert()) {
+            alert(VoiceAlertService.VoiceLine.TASK_HALFWAY, left + " left");
+        }
+        int nearly = config.taskNearlyDoneAt();
+        if (nearly > 0 && nearly < original / 2 && crossed(before, left, nearly)) {
+            alert(VoiceAlertService.VoiceLine.TASK_NEARLY_DONE, left + " left");
+        }
+    }
+
+    /** Whether going from {@code before} to {@code left} kills left reached {@code mark} (from above it). */
+    static boolean crossed(int before, int left, int mark) {
+        return mark > 0 && before > mark && left <= mark;
+    }
+
     private void alert(VoiceAlertService.VoiceLine line, String detail) {
         alerts.alert(line, detail);
     }
@@ -115,6 +142,7 @@ class CombatAlerts {
                 if (value == 0 && config.taskCompleteAlert() && plugin.getSlayerTracker().hadTask()) {
                     alert(VoiceAlertService.VoiceLine.TASK_COMPLETE, plugin.getSlayerTracker().getTaskName());
                 }
+                checkTaskProgress(value);
                 return;
             default:
                 break;

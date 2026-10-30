@@ -42,6 +42,8 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Kill rate survives walking between areas.
 - [ ] Hide the Slayer card with Ctrl+Shift+S, restart the client: it stays hidden (and shown stays shown).
 - [ ] Finishing a task says "Slayer task complete" (chat adds the task name).
+- [ ] Half the task done says "Slayer task halfway done" (chat: N left), once; 10 left says "Slayer task nearly
+      done" (Task Nearly Done At; 0 turns it off). Neither on login part-way through a task.
 - [ ] No task: card shows the best master for your levels, where they are, routes and the next master.
 - [ ] Pictures: master chathead with no task, monster icon on a task (Slayer gem if none); nothing overlaps.
 - [ ] Each Slayer switch hides its part; Places Shown / Routes Shown change the counts.

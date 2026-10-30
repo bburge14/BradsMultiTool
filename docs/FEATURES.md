@@ -131,7 +131,8 @@ way after a restart.
 
 **Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
 Prayer; Required Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
-Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned and Task Complete alerts with Voice/Chat switches.
+Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned,
+Task Complete, Task Halfway and Task Nearly Done (at 10 left by default, 0 off) alerts with Voice/Chat switches.
 
 ---
 

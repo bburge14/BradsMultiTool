@@ -85,5 +85,11 @@ final class PvmConfigDefaults {
         defaults.store("chatSuperior", config.chatSuperior());
         defaults.store("voiceTaskComplete", config.voiceTaskComplete());
         defaults.store("chatTaskComplete", config.chatTaskComplete());
+        defaults.store("taskHalfwayAlert", config.taskHalfwayAlert());
+        defaults.store("taskNearlyDoneAt", config.taskNearlyDoneAt());
+        defaults.store("voiceTaskHalfway", config.voiceTaskHalfway());
+        defaults.store("chatTaskHalfway", config.chatTaskHalfway());
+        defaults.store("voiceTaskNearlyDone", config.voiceTaskNearlyDone());
+        defaults.store("chatTaskNearlyDone", config.chatTaskNearlyDone());
     }
 }

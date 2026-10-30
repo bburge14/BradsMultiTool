@@ -78,7 +78,7 @@ developer mode.
   the PvM HUD show the Slayer level needed, the gear it needs (green if you have it), whether it's your task,
   Slayer XP, and "wrong place" when Konar wants them elsewhere.
 - Warns when you fight a task monster without its required item (rock hammer, nose peg, mirror shield...).
-- Superior spawned and task complete alerts.
+- Superior spawned, task halfway, task nearly done (10 left by default) and task complete alerts.
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), timer
