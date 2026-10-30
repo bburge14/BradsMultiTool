@@ -10,11 +10,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -87,12 +84,6 @@ public class PvmTracker {
     // Repeat counter value meaning "already handled, don't sound or repeat"
     private static final int SILENCED = Integer.MAX_VALUE / 2;
 
-
-    public enum BuffState {
-        UNPOTTED,
-        ACTIVE,
-        EXPIRED
-    }
 
     private final Client client;
     private final PvmConfig config;
@@ -170,23 +161,6 @@ public class PvmTracker {
     private Instant sessionCombatSecondMarker = null;
 
 
-    // Buff state
-    @Getter
-    private BuffState buffState = BuffState.UNPOTTED;
-
-    private String buffStatusText = "No Buffs";
-    /** Buffs active as of the last game tick, each with its own end time (see ActiveBuffs). */
-    @Getter
-    private List<ActiveBuffs.Buff> activeBuffs = Collections.emptyList();
-    // Buff name -> boost when its running-out warning played; a bigger boost (re-pot) re-arms it
-    private final Map<String, Integer> buffWarnedAtBoost = new HashMap<>();
-    private ActiveBuffs.Category lastEndedCategory = null;
-    private String lastEndedBuffName = null;
-
-    private int previousMaxBoost = 0;
-    private int timesBuffExpiredSounded = 0;
-    private Instant lastBuffExpiredSoundTime = Instant.EPOCH;
-
     @Getter
     private boolean lowPrayerAlert = false;
     @Getter
@@ -198,11 +172,11 @@ public class PvmTracker {
     private Instant lastHealthAlertTime = Instant.EPOCH;
     private int timesPrayerAlertSounded = 0;
     private Instant lastPrayerAlertTime = Instant.EPOCH;
-    private final PotionBuffs potionBuffs;
+    private final PotionAlerts potionAlerts;
     @Inject
     PvmTracker(Client client, PvmConfig config, ConfigManager configManager, ClientThread clientThread, PluginIdentity identity,
                Alerts alerts, KeyManager keyManager, MonsterData monsterData, CombatStyle combatStyle, SlayerTracker slayerTracker,
-               PotionBuffs potionBuffs) {
+               PotionAlerts potionAlerts) {
         this.client = client;
         this.config = config;
         this.configManager = configManager;
@@ -213,7 +187,7 @@ public class PvmTracker {
         this.monsterData = monsterData;
         this.combatStyle = combatStyle;
         this.slayerTracker = slayerTracker;
-        this.potionBuffs = potionBuffs;
+        this.potionAlerts = potionAlerts;
         slayerToggleListener = new HotkeyListener(config::slayerToggleKey) {
             @Override
             public void hotkeyPressed() {
@@ -236,15 +210,13 @@ public class PvmTracker {
         keyManager.unregisterKeyListener(slayerToggleListener);
         currentPvmTarget = null;
         pvmOverlayActive = false;
-        buffState = BuffState.UNPOTTED;
     }
 
-    /** The tracker's Reset all: PvM's session numbers. */
+    /** The PvM HUD's Reset (its right-click menu): this session's damage and DPS. */
     void resetSession() {
         sessionPvmDamage = 0;
         sessionPvmActiveSeconds = 0;
         sessionCombatSecondMarker = null;
-        buffState = BuffState.UNPOTTED;
         pvmLiveDps = 0.0;
         pvmOverlayActive = false;
     }
@@ -256,7 +228,6 @@ public class PvmTracker {
         }
         if (event.getGameState() != GameState.LOGGED_IN) {
             currentPvmTarget = null;
-            buffState = BuffState.UNPOTTED;
             pvmOverlayActive = false;
             aggroTimerStart = null;
             lastAggroAnchor = null;
@@ -318,7 +289,6 @@ public class PvmTracker {
             updateAggroCountdown(wp);
         }
 
-        processSimpleBuffStatus();
         monitorPrayer();
         monitorHealth();
     }
@@ -357,138 +327,21 @@ public class PvmTracker {
         }
     }
 
-    private void processSimpleBuffStatus() {
-        if (!config.enableBuffStatus()) {
-            buffStatusText = "Disabled";
-            buffState = BuffState.UNPOTTED;
-            return;
-        }
-
-        int currentMax = potionBuffs.maxBoost();
-
-        if (currentMax >= 4 || (currentMax > 0 && buffState == BuffState.ACTIVE)) {
-            buffState = BuffState.ACTIVE;
-            List<ActiveBuffs.Buff> buffs = potionBuffs.buffs();
-            announceEndedBuffs(buffs);
-            activeBuffs = buffs;
-            buffStatusText = "ACTIVE";
-            timesBuffExpiredSounded = 0;
-            checkBuffRunningOut();
-        } else if (currentMax == 0) {
-            announceEndedBuffs(Collections.emptyList());
-            activeBuffs = Collections.emptyList();
-            buffWarnedAtBoost.clear();
-            if (buffState == BuffState.ACTIVE) {
-                buffState = BuffState.EXPIRED;
-                buffStatusText = "EXPIRED";
-                timesBuffExpiredSounded = 1;
-                lastBuffExpiredSoundTime = Instant.now();
-                alerts.alert(lastExpiredLine(), null);
-            } else if (buffState == BuffState.EXPIRED && config.repeatBuffAlert()
-                && Duration.between(lastBuffExpiredSoundTime, Instant.now()).getSeconds() >= config.repeatBuffInterval()
-                && timesBuffExpiredSounded <= config.maxBuffRepeats()) {
-                timesBuffExpiredSounded++;
-                lastBuffExpiredSoundTime = Instant.now();
-                alerts.alert(lastExpiredLine(), "still out");
-            } else if (buffState == BuffState.UNPOTTED) {
-                buffStatusText = "No Buffs";
-            }
-        }
-        previousMaxBoost = currentMax;
+    // The potion buff state the PvM HUD shows (PotionAlerts, shared with the GemCrab Tracker)
+    PotionAlerts.BuffState getBuffState() {
+        return potionAlerts.getBuffState();
     }
 
-    /**
-     * True while the buff is inside the "running out" window (the same test the alert uses), so its HUD
-     * line is red only then and green again as soon as it's above the threshold.
-     */
+    List<ActiveBuffs.Buff> getActiveBuffs() {
+        return potionAlerts.getActiveBuffs();
+    }
+
+    String getBuffStatusText() {
+        return potionAlerts.getBuffStatusText();
+    }
+
     boolean isBuffRunningOut(ActiveBuffs.Buff buff) {
-        int warnSeconds = config.buffWarningSeconds();
-        if (warnSeconds <= 0) {
-            return false;
-        }
-        if (!buff.exact) {
-            return buff.boost == 1;
-        }
-        return buff.millisLeft(System.currentTimeMillis()) <= warnSeconds * 1000L;
-    }
-
-    // Warn once each time a buff runs low
-    private void checkBuffRunningOut() {
-        long now = System.currentTimeMillis();
-        for (ActiveBuffs.Buff buff : activeBuffs) {
-            // Warn once each time a buff enters the "running out" window; leaving it (a new dose, a divine
-            // refresh at the same boost) arms it again
-            if (!isBuffRunningOut(buff)) {
-                buffWarnedAtBoost.remove(buff.name);
-                continue;
-            }
-            if (buffWarnedAtBoost.containsKey(buff.name)) {
-                continue;
-            }
-            buffWarnedAtBoost.put(buff.name, buff.boost);
-            // Before the decay timer is synced (no stat drop seen since login or a hop) the time left isn't
-            // exact, but a buff down to +1 has at most one decay period left
-            String left = (buff.exact ? "" : "under ") + BuffTimer.formatMillis(buff.millisLeft(now)) + " left";
-            alerts.alert(potionLine(buff.name, true, runningOutLine(buff.category)), left);
-        }
-    }
-
-    // A buff that ends while others are still active gets its own "has run out"; when the last one ends,
-    // the expired alert above speaks for it (using lastEndedCategory)
-    private void announceEndedBuffs(List<ActiveBuffs.Buff> current) {
-        for (ActiveBuffs.Buff before : activeBuffs) {
-            boolean stillActive = current.stream().anyMatch(b -> b.name.equals(before.name));
-            if (stillActive) {
-                continue;
-            }
-            lastEndedCategory = before.category;
-            lastEndedBuffName = before.name;
-            if (!current.isEmpty()) {
-                alerts.alert(potionLine(before.name, false, expiredLine(before.category)), null);
-            }
-        }
-    }
-
-    // What to say for the buff that ran out last
-    private VoiceAlertService.VoiceLine lastExpiredLine() {
-        return lastEndedBuffName != null
-            ? potionLine(lastEndedBuffName, false, expiredLine(lastEndedCategory))
-            : expiredLine(lastEndedCategory);
-    }
-
-    // The potion's own line ("Divine super combat is running out"), else the boost-type line
-    private static VoiceAlertService.VoiceLine potionLine(String buffName, boolean runningOut,
-                                                          VoiceAlertService.VoiceLine fallback) {
-        VoiceAlertService.VoiceLine line = VoiceAlertService.VoiceLine.forPotion(buffName, runningOut);
-        return line != null ? line : fallback;
-    }
-
-    private static VoiceAlertService.VoiceLine runningOutLine(ActiveBuffs.Category category) {
-        switch (category) {
-            case MELEE: return VoiceAlertService.VoiceLine.MELEE_BUFF_LOW;
-            case RANGED: return VoiceAlertService.VoiceLine.RANGED_BUFF_LOW;
-            case MAGIC: return VoiceAlertService.VoiceLine.MAGIC_BUFF_LOW;
-            case DEFENCE: return VoiceAlertService.VoiceLine.DEFENCE_BUFF_LOW;
-            default: return VoiceAlertService.VoiceLine.BUFF_LOW;
-        }
-    }
-
-    private static VoiceAlertService.VoiceLine expiredLine(ActiveBuffs.Category category) {
-        if (category == null) {
-            return VoiceAlertService.VoiceLine.BUFF_EXPIRED;
-        }
-        switch (category) {
-            case MELEE: return VoiceAlertService.VoiceLine.MELEE_BUFF_EXPIRED;
-            case RANGED: return VoiceAlertService.VoiceLine.RANGED_BUFF_EXPIRED;
-            case MAGIC: return VoiceAlertService.VoiceLine.MAGIC_BUFF_EXPIRED;
-            case DEFENCE: return VoiceAlertService.VoiceLine.DEFENCE_BUFF_EXPIRED;
-            default: return VoiceAlertService.VoiceLine.BUFF_EXPIRED;
-        }
-    }
-
-    /** Text for the Buff Status line when no buff rows are shown ("No Buffs", "EXPIRED", ...). */
-    public String getBuffStatusText() {
-        return buffStatusText;
+        return potionAlerts.isBuffRunningOut(buff);
     }
 
     /** Points equal to {@code percent}% of the skill's real level (at least 1). */

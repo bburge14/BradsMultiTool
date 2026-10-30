@@ -40,6 +40,11 @@ public class GemCrabPlugin extends Plugin {
     }
 
     @Provides
+    BuffConfig provideBuffConfig(GemCrabConfig config) {
+        return config;
+    }
+
+    @Provides
     CommonConfig provideCommonConfig(GemCrabConfig config) {
         return config;
     }

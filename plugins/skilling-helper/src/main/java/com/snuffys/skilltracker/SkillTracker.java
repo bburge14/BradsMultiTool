@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -68,8 +67,6 @@ class SkillTracker {
     private final Map<Skill, Long> skillActiveTicks = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> lastXpDrops = new EnumMap<>(Skill.class);
     private final Set<Skill> pausedSkills = EnumSet.noneOf(Skill.class);
-    // Others to clear when the panel's Reset all is used (the all-in-one adds the crab's and PvM's numbers)
-    private final List<Runnable> resetListeners = new CopyOnWriteArrayList<>();
     private volatile int combatLevel = 3;
     private NavigationButton navButton;
     private BradsMultiToolPanel panel;
@@ -106,11 +103,6 @@ class SkillTracker {
             clientToolbar.removeNavigation(navButton);
         }
         pausedSkills.clear();
-        resetListeners.clear();
-    }
-
-    void addResetListener(Runnable listener) {
-        resetListeners.add(listener);
     }
 
     /** The panel's Reset all skills. */
@@ -121,7 +113,6 @@ class SkillTracker {
         skillActiveTicks.clear();
         lastXpDrops.clear();
         pausedSkills.clear();
-        resetListeners.forEach(Runnable::run);
         updatePanelUI();
     }
 

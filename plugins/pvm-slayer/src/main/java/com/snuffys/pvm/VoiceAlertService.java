@@ -123,8 +123,10 @@ public class VoiceAlertService {
     enum VoicePlugin {
         /** Skill Tracker (with the skilling helpers): skilling alerts and level-ups. */
         SKILLING("skilling"),
-        /** PvM/Slayer: buffs, potions, health, prayer, combat and Slayer alerts. */
+        /** PvM/Slayer: health, prayer, combat and Slayer alerts. */
         PVM("pvm"),
+        /** Potion buffs running out and run out: PvM/Slayer and the GemCrab Tracker both carry these. */
+        POTIONS("potions"),
         GEM_CRAB("gemcrab"),
         /** Idle and logout warnings: every plugin carries these. */
         SHARED("shared");
@@ -138,6 +140,9 @@ public class VoiceAlertService {
         static VoicePlugin of(String clip) {
             if (clip.startsWith("skill_") || clip.startsWith("num_") || clip.startsWith("tens_")) {
                 return SKILLING;
+            }
+            if (clip.startsWith("potion_") || clip.startsWith("buff_") || clip.endsWith("_buff_low") || clip.endsWith("_buff_expired")) {
+                return POTIONS;
             }
             switch (clip) {
                 case "inventory_full":

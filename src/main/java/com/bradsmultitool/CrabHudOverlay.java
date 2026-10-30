@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -34,13 +35,11 @@ public class CrabHudOverlay extends Overlay {
     // After the crab moves its stats stay up this long before the radar takes over
     private static final long CRAB_STATS_LINGER_MILLIS = 12_000;
 
-    private static final long RUNNING_OUT_MILLIS = 60_000;
-
     private final Client client;
     private final GemCrabTracker gemCrab;
     private final GemCrabConfig config;
     private final SkillIconManager skillIconManager;
-    private final PotionBuffs potionBuffs;
+    private final PotionAlerts potionAlerts;
     private final ItemManager itemManager;
     private final PanelComponent panelComponent = new PanelComponent();
     private long lastCrabActiveMillis;
@@ -66,8 +65,8 @@ public class CrabHudOverlay extends Overlay {
 
     @Inject
     CrabHudOverlay(Client client, GemCrabTracker gemCrab, GemCrabConfig config, SkillIconManager skillIconManager,
-                   PotionBuffs potionBuffs, ItemManager itemManager) {
-        this.potionBuffs = potionBuffs;
+                   PotionAlerts potionAlerts, ItemManager itemManager) {
+        this.potionAlerts = potionAlerts;
         this.itemManager = itemManager;
         this.client = client;
         this.gemCrab = gemCrab;
@@ -76,6 +75,8 @@ public class CrabHudOverlay extends Overlay {
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
+        // Its own reset, in its right-click menu
+        addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "Gemstone Crab session", e -> gemCrab.resetSession());
     }
 
     @Override
@@ -163,8 +164,8 @@ public class CrabHudOverlay extends Overlay {
                     .build());
             }
 
-            // Your potion buffs and LOW prayer/health: read here, the same in the Toolbelt and on its own
-            if (config.showCrabBuffs()) {
+            // Your potion buffs (PotionAlerts) and LOW prayer/health: the same in the Toolbelt and on its own
+            if (config.enableBuffStatus()) {
                 addBuffRows();
             }
             addLowRows();
@@ -218,15 +219,14 @@ public class CrabHudOverlay extends Overlay {
         return points > 0 && points <= Math.max(1, (int) Math.ceil(client.getRealSkillLevel(skill) * percent / 100.0));
     }
 
-    // Each potion buff with its time left ("~" until the boost timer has been seen), red in its last minute
+    // Each potion buff with its time left ("~" until the boost timer has been seen), red while it's running out
+    // (Warn Before Ending), as on the PvM HUD
     private void addBuffRows() {
         long now = System.currentTimeMillis();
-        for (ActiveBuffs.Buff buff : potionBuffs.buffs()) {
-            long left = buff.millisLeft(now);
-            String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(left);
-            boolean runningOut = buff.exact ? left <= RUNNING_OUT_MILLIS : buff.boost == 1;
+        for (ActiveBuffs.Buff buff : potionAlerts.getActiveBuffs()) {
+            String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(buff.millisLeft(now));
             panelComponent.getChildren().add(new IconLineComponent(buff.name + ":", itemManager.getImage(buff.iconItemId),
-                "+" + buff.boost + " " + time, runningOut ? HudColors.BAD : HudColors.GOOD));
+                "+" + buff.boost + " " + time, potionAlerts.isBuffRunningOut(buff) ? HudColors.BAD : HudColors.GOOD));
         }
     }
 

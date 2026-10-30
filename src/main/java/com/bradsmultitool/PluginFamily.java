@@ -20,6 +20,8 @@ import net.runelite.client.events.PluginMessage;
  * <ul>
  * <li>"hello": a plugin started; everyone else answers "here".</li>
  * <li>"bye": a plugin stopped.</li>
+ * <li>"skilling-card" (from the Skilling Helper): "npc", the index of the NPC its skilling card shows (-1 for none),
+ * so PvM's monster card steps aside for it, as in the Toolbelt.</li>
  * <li>"voice-settings" (from the Alerts plugin): "persona" (a VoicePersona name), "volume" (0-100) and
  * "enabled". While the Alerts plugin is installed, every plugin speaks with its voice and volume; each
  * plugin's own switches for its lines still apply.</li>
@@ -49,6 +51,7 @@ class PluginFamily {
     private final String self;
     private final Set<String> others = ConcurrentHashMap.newKeySet();
     private volatile VoiceSettings voiceSettings;
+    private volatile int skillingCardNpc = -1;
     private final List<Runnable> helloListeners = new CopyOnWriteArrayList<>();
 
     @Inject
@@ -68,6 +71,7 @@ class PluginFamily {
         others.clear();
         helloListeners.clear();
         voiceSettings = null;
+        skillingCardNpc = -1;
     }
 
     /** Whether another of Snuffy's plugins ("voices", "pvm"...) is running. */
@@ -82,9 +86,14 @@ class PluginFamily {
 
     /** Whether this plugin should run the shared idle and logout warnings (no other of ours ahead of it is running). */
     boolean handlesShared() {
-        int mine = SHARED_ORDER.indexOf(self);
+        return isFirstOf(SHARED_ORDER);
+    }
+
+    /** Whether no other of ours ahead of this plugin in {@code order} is running (so this one does the job). */
+    boolean isFirstOf(List<String> order) {
+        int mine = order.indexOf(self);
         for (String other : others) {
-            int theirs = SHARED_ORDER.indexOf(other);
+            int theirs = order.indexOf(other);
             if (theirs >= 0 && (mine < 0 || theirs < mine)) {
                 return false;
             }
@@ -100,6 +109,19 @@ class PluginFamily {
         data.put("volume", volume);
         data.put("enabled", enabled);
         eventBus.post(new PluginMessage(NAMESPACE, "voice-settings", data));
+    }
+
+    /** Tells the others which NPC this plugin's skilling card shows (its index, -1 for none). */
+    void sendSkillingCard(int npcIndex) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("plugin", self);
+        data.put("npc", npcIndex);
+        eventBus.post(new PluginMessage(NAMESPACE, "skilling-card", data));
+    }
+
+    /** Whether the Skilling Helper, running alongside, shows its skilling card for this NPC. */
+    boolean skillingCardShows(int npcIndex) {
+        return npcIndex >= 0 && npcIndex == skillingCardNpc && others.contains("skilltracker");
     }
 
     /** Called when another of ours says hello (the Alerts plugin answers with its voice settings). */
@@ -134,6 +156,10 @@ class PluginFamily {
                 break;
             case "bye":
                 others.remove(plugin);
+                break;
+            case "skilling-card":
+                others.add(plugin);
+                skillingCardNpc = data.get("npc") instanceof Number ? ((Number) data.get("npc")).intValue() : -1;
                 break;
             case "voice-settings":
                 others.add(plugin);

@@ -12,7 +12,6 @@ final class GemCrabConfigDefaults {
     static void store(ConfigDefaults defaults, GemCrabConfig config) {
         defaults.store("enableCrabFeatures", config.enableCrabFeatures());
         defaults.store("crabLowHealthPercent", config.crabLowHealthPercent());
-        defaults.store("showCrabBuffs", config.showCrabBuffs());
         defaults.store("crabLowStatsPercent", config.crabLowStatsPercent());
         defaults.store("showCrabLastHit", config.showCrabLastHit());
         defaults.store("showCrabMaxHit", config.showCrabMaxHit());

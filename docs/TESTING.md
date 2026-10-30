@@ -25,8 +25,13 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] When the crab moves, its stats stay up 12s marked (moved) with a "Radar in" countdown, then the radar.
 - [ ] No AFK alert while attacking the crab.
 - [ ] Crab card, on its own (`runBrad "-Pload=gemcrab"`) and in the Toolbelt alike: potion buffs with time left
-      (divine exact, regular "~" until the first stat drop), red in the last minute; Show Potion Buffs off hides
-      them; Prayer: LOW / Health: LOW at or below Low Prayer/HP.
+      (divine exact, regular "~" until the first stat drop), red while running out (Warn Before Ending);
+      Potion Buffs > Show Buffs on HUD off hides them; Prayer: LOW / Health: LOW at or below Low Prayer/HP.
+- [ ] GemCrab on its own: potion running out / run out alerts (voice and chat), with its Potion Buffs settings.
+- [ ] `-Pload=separate` (PvM and GemCrab both): each potion alert is said once, not twice.
+- [ ] Right-click the crab card > Reset clears its damage/DPS; right-click the PvM HUD > Reset clears PvM's;
+      the tracker's Reset all no longer touches either.
+- [ ] `-Pload=separate`: hover a pickpocket NPC (Attack not left-click): only the Thieving card, no PvM card.
 - [ ] PvM buff timers and buff alerts still work as before (PvM on its own and in the Toolbelt).
 - [x] Radar and outlines only near the crab's mines (not in Draynor or other caves).
 - [x] Outlines draw under the minimap and inventory, not over them.

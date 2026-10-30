@@ -43,6 +43,7 @@ public class SettingsPanelTest {
             SkillTrackerConfigDefaults.store(defaults.store, config);
             TickConfigDefaults.store(defaults.store, config);
             PvmConfigDefaults.store(defaults.store, config);
+            BuffConfigDefaults.store(defaults.store, config);
             GemCrabConfigDefaults.store(defaults.store, config);
         });
     }
@@ -68,6 +69,7 @@ public class SettingsPanelTest {
             PvmConfig config = (PvmConfig) defaults.config;
             CommonConfigDefaults.store(defaults.store, config);
             PvmConfigDefaults.store(defaults.store, config);
+            BuffConfigDefaults.store(defaults.store, config);
         });
     }
 
@@ -77,6 +79,7 @@ public class SettingsPanelTest {
             GemCrabConfig config = (GemCrabConfig) defaults.config;
             CommonConfigDefaults.store(defaults.store, config);
             GemCrabConfigDefaults.store(defaults.store, config);
+            BuffConfigDefaults.store(defaults.store, config);
         });
     }
 

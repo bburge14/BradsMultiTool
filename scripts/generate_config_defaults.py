@@ -17,7 +17,7 @@ import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "src", "main", "java", "com", "bradsmultitool")
-CONFIGS = ["CommonConfig", "TickConfig", "SkillTrackerConfig", "PvmConfig", "GemCrabConfig"]
+CONFIGS = ["CommonConfig", "TickConfig", "SkillTrackerConfig", "PvmConfig", "BuffConfig", "GemCrabConfig"]
 
 TEMPLATE = """package com.bradsmultitool;
 

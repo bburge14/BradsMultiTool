@@ -35,7 +35,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Don't modify other plugins' configs | OK. Reads the client's idle timeout, and reads (never changes) which plugins are enabled via `PluginManager.getPlugins()` / `isPluginEnabled()` so our timer pies can step aside for a dedicated timer plugin. Matched by class name, no reflection/annotations. Each plugin saves the defaults of its own settings (its own config group only) where nothing is saved yet (`ConfigDefaults`), through generated plain calls rather than reflection |
 | Third-party dependencies need hash verification | OK, none |
 | Repository licence: BSD 2-Clause | OK. `LICENSE` here and in every generated plugin repository |
-| Plugins talking to each other | OK. Only through RuneLite's `PluginMessage` events (`PluginFamily`): no shared code, no reflection, and no reading or changing another plugin's config. Each plugin works alone |
+| Plugins talking to each other | OK. Only through RuneLite's `PluginMessage` events (`PluginFamily`): hello/here/bye, the Alerts plugin's voice settings, and which NPC the Skilling Helper's card shows (so PvM's card steps aside). No shared code, no reflection, and no reading or changing another plugin's config. Each plugin works alone with all its features |
 
 ## Feature rules (Jagex guidelines + rejected features)
 
@@ -69,6 +69,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Skill tracker panel, level-up alerts | OK |
 | Tick counter (over head, tick boxes, smooth tick bar) and metronome, incl. Follow Attack Speed | OK. Core Metronome plugin does the tick sounds (and sets the sound effect volume for one sound and restores it, as we do); Plugin Hub has visual metronome / tick counter plugins. Counts ticks only: it never highlights what to click or when, and never acts for the player |
 | Click timing (ms after the tick for each click, ding/dun sounds, on time / late / missed summary) | Likely OK, but ask the reviewers (see Open questions). Reads `MenuOptionClicked` only (never consumes or changes it) and the time of the last `GameTick`; shows and sounds feedback after the click, never what or when to click |
+| Reset in the PvM HUD's and crab card's right-click menus | OK. RUNELITE_OVERLAY menu entries on our own overlays (like the pinned skill's Unpin); only clear our numbers |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
 
 Never add: anything that clicks, types or acts for the player; menu entry removal based on conditions;

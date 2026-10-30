@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -55,6 +56,8 @@ public class BradsMultiToolOverlay extends Overlay {
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
+        // Its own reset, in its right-click menu
+        addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "PvM session", e -> plugin.resetSession());
     }
 
     @Override
@@ -224,7 +227,7 @@ public class BradsMultiToolOverlay extends Overlay {
     }
 
     private void addBuffRows(PanelComponent panelComponent) {
-        if (plugin.getBuffState() == PvmTracker.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
+        if (plugin.getBuffState() == PotionAlerts.BuffState.ACTIVE && !plugin.getActiveBuffs().isEmpty()) {
             long now = System.currentTimeMillis();
             for (ActiveBuffs.Buff buff : plugin.getActiveBuffs()) {
                 String time = (buff.exact ? "" : "~") + BuffTimer.formatMillis(buff.millisLeft(now));
@@ -237,7 +240,7 @@ public class BradsMultiToolOverlay extends Overlay {
         }
 
         Color color = getBuffColor(plugin.getBuffState());
-        boolean flashing = plugin.getBuffState() == PvmTracker.BuffState.EXPIRED;
+        boolean flashing = plugin.getBuffState() == PotionAlerts.BuffState.EXPIRED;
         if (config.flashExpiredBuff() && flashing && (System.currentTimeMillis() / 350) % 2 == 0) {
             color = Color.WHITE;
         }
@@ -254,7 +257,7 @@ public class BradsMultiToolOverlay extends Overlay {
         return style != null ? CombatStyle.weaknessMatchColor(style, weakness) : Color.WHITE;
     }
 
-    private Color getBuffColor(PvmTracker.BuffState state) {
+    private Color getBuffColor(PotionAlerts.BuffState state) {
         switch (state) {
             case EXPIRED: return BAD;
             case ACTIVE: return GOOD;

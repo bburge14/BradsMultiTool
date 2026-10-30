@@ -70,4 +70,39 @@ public class PluginFamilyTest {
         voices.stop();
         pvm.stop();
     }
+
+    @Test
+    public void pvmKnowsWhichNpcTheSeparateSkillingHelpersCardShows() {
+        EventBus bus = new EventBus();
+        PluginFamily skilling = new PluginFamily(bus, PluginIdentity.SKILL_TRACKER);
+        PluginFamily pvm = new PluginFamily(bus, PluginIdentity.PVM);
+        pvm.start();
+        skilling.start();
+        skilling.sendSkillingCard(42);
+        assertTrue(pvm.skillingCardShows(42));
+        assertFalse(pvm.skillingCardShows(7));
+        skilling.sendSkillingCard(-1);
+        assertFalse(pvm.skillingCardShows(42));
+        skilling.sendSkillingCard(42);
+        skilling.stop();
+        // Once the Skilling Helper stops, its last card no longer counts
+        assertFalse(pvm.skillingCardShows(42));
+        pvm.stop();
+    }
+
+    @Test
+    public void potionAlertsAreSaidOnceWithPvmAndGemCrabSeparately() {
+        EventBus bus = new EventBus();
+        java.util.List<String> order = java.util.Arrays.asList("multitool", "pvm", "gemcrab");
+        PluginFamily pvm = new PluginFamily(bus, PluginIdentity.PVM);
+        PluginFamily gemCrab = new PluginFamily(bus, PluginIdentity.GEM_CRAB);
+        gemCrab.start();
+        assertTrue(gemCrab.isFirstOf(order));
+        pvm.start();
+        assertTrue(pvm.isFirstOf(order));
+        assertFalse(gemCrab.isFirstOf(order));
+        pvm.stop();
+        assertTrue(gemCrab.isFirstOf(order));
+        gemCrab.stop();
+    }
 }

@@ -305,6 +305,8 @@ SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_
 def plugin_of(key):
     if key.startswith(("skill_", "num_", "tens_")) or key in SKILLING_LINES:
         return "skilling"
+    if key.startswith(("potion_", "buff_")) or key.endswith(("_buff_low", "_buff_expired")):
+        return "potions"
     if key in ("crab_moved", "crab_low_health"):
         return "gemcrab"
     if key in ("character_idle", "idle_logout"):

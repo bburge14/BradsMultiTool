@@ -47,6 +47,7 @@ a tolerance timer), its weakness (style icon, or the element's Strike spell icon
 style, DPS, and your last and max hit. It stays up for a few seconds after the fight.
 
 **How to use:** Attack anything. The HUD can be moved like any RuneLite overlay (hold Alt and drag).
+Right-click the HUD > **Reset** clears this session's damage and DPS.
 
 **Settings (PvM HUD):** Enable PvM HUD; DPS Mode (Per Monster, Per Type, or the whole
 session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status.
@@ -70,8 +71,10 @@ and auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 
 ## Potion buffs
 
-**What it does:** Each combat potion boost shows on the HUD with its icon and time left (divine potions to
-the second). Alerts fire shortly before a boost runs out and when it has.
+**What it does:** Each combat potion boost shows on the PvM HUD and the Gemstone Crab card with its icon and
+time left (divine potions to the second). Alerts fire shortly before a boost runs out and when it has. In both
+PvM/Slayer and the GemCrab Tracker (the same settings section in each); with both installed separately, only
+one of them says the alerts.
 
 **Settings (Potion Buffs):** Show Buffs on HUD; Flash When Expired; Warn Before Ending (seconds);
 Repeat Expired Alert, Repeat Every, Max Repeats; Voice/Chat switches.
@@ -133,9 +136,10 @@ Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing
 burrow countdown, whether you're attacking, the XP type you're getting, damage, DPS and last/max hit, and your
 potion buffs with their time left (red in the last minute) and Prayer/Health LOW rows, the same in the Toolbelt
 and on its own; outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
-tunnels; a radar to find it. Alerts when it's about to burrow and when it has moved.
+tunnels; a radar to find it. Alerts when it's about to burrow and when it has moved, and the potion alerts
+(see Potion buffs). Right-click the crab card > **Reset** clears its damage and DPS.
 
-**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Show Potion Buffs; Low Prayer/HP (%); Show Last/Max Hit; the four
+**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Low Prayer/HP (%); Show Last/Max Hit; the four
 outline colours; Voice/Chat switches.
 
 ---
@@ -224,7 +228,7 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 
 **How to use:**
 - Right-click a card to pause/resume it, reset its rate, reset or hide it, set or clear a goal, or reset
-  every skill.
+  every skill (just the tracker's skills: PvM's HUD and the crab card have their own Reset).
 - **Pin to screen**: right-click a card > Pin to screen puts that skill on the game screen as a movable
   overlay (level bar, XP/hr, gained, time to level, actions left, goal bar, suggested method and what to
   make or burn from your items). Only one at a time:

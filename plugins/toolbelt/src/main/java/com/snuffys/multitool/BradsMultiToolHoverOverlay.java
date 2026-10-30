@@ -42,6 +42,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     private volatile BiPredicate<NPC, Boolean> skillingCards;
     @Inject
     private SlayerMonsterInfo slayerInfo;
+    @Inject
+    private PluginFamily family;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
@@ -84,8 +86,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
 
     /**
      * The NPC of the left-click option (what the game's top-left tooltip names), or null if that option
-     * isn't on an NPC, or when the Skill Tracker's skilling card shows it instead (a pickpocket target,
-     * a sea monster; only when both run, in the all-in-one).
+     * isn't on an NPC, or when the Skilling Helper's skilling card shows it instead (a pickpocket target,
+     * a sea monster): joined directly in the Toolbelt, or told through PluginFamily when both run separately.
      */
     private NPC hoveredNpc() {
         MenuEntry[] entries = client.getMenu().getMenuEntries();
@@ -99,7 +101,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
         }
         boolean attack = "attack".equalsIgnoreCase(Text.removeTags(top.getOption()));
         BiPredicate<NPC, Boolean> skilling = skillingCards;
-        return skilling != null && skilling.test(npc, attack) ? null : npc;
+        boolean skillingCard = skilling != null ? skilling.test(npc, attack) : family.skillingCardShows(npc.getIndex());
+        return skillingCard ? null : npc;
     }
 
     // The PvM HUD already covers the monster being fought, and others of the same kind

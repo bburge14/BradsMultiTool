@@ -38,10 +38,8 @@ public class BradsMultiToolPlugin extends Plugin {
         pvm.start(lifecycle);
         gemCrab.start(lifecycle);
         tickCounter.start(lifecycle);
-        // Together: the tracker's Reset all also clears the crab's and PvM's session numbers
-        skillTracker.tracker().addResetListener(gemCrab.tracker()::resetSession);
-        skillTracker.tracker().addResetListener(pvm.tracker()::resetSession);
-        // ...and PvM's monster card steps aside for the skilling and Sailing cards
+        // Together: PvM's monster card steps aside for the skilling and Sailing cards (separate plugins do the
+        // same through PluginFamily)
         pvm.hoverCard().setSkillingCards(skillTracker.skillingCards()::coversNpc);
         lifecycle.onStop(() -> {
             pvm.hoverCard().setSkillingCards(null);
@@ -61,6 +59,11 @@ public class BradsMultiToolPlugin extends Plugin {
     // The all-in-one's settings stand in for each plugin's own (same keys, one group)
     @Provides
     TickConfig provideTickConfig(BradsMultiToolConfig config) {
+        return config;
+    }
+
+    @Provides
+    BuffConfig provideBuffConfig(BradsMultiToolConfig config) {
         return config;
     }
 

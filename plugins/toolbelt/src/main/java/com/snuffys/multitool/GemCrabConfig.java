@@ -14,9 +14,17 @@ import net.runelite.client.config.Units;
 
 /** Snuffy's GemCrab Tracker: the crab HUD, outlines and alerts. */
 @ConfigGroup("snuffysgemcrab")
-public interface GemCrabConfig extends CommonConfig {
+public interface GemCrabConfig extends CommonConfig, BuffConfig {
 
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
+
+    @ConfigSection(
+        name = "Potion Buffs",
+        description = "Buff timers on the HUD and running-out / expired alerts",
+        position = 6,
+        closedByDefault = true
+    )
+    String buffSection = "buffSection";
 
     @ConfigSection(
         name = "General",
@@ -68,17 +76,6 @@ public interface GemCrabConfig extends CommonConfig {
     @Units(Units.PERCENT)
     default int crabLowHealthPercent() {
         return 5;
-    }
-
-    @ConfigItem(
-        keyName = "showCrabBuffs",
-        name = "Show Potion Buffs",
-        description = "Your potion buffs on the crab card, each with its time left (red in its last minute)",
-        section = crabSection,
-        position = 52
-    )
-    default boolean showCrabBuffs() {
-        return true;
     }
 
     @Range(max

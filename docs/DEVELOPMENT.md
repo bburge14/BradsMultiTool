@@ -50,8 +50,8 @@ below).
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
 | **Snuffy's Skilling Helper** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
-| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (buffs, potions, health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `shared` |
-| **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts | `gemcrab` (crab moved, about to burrow) + `shared` |
+| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
+| **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts, potion buffs and their alerts | `gemcrab` (crab moved, about to burrow) + `potions` + `shared` |
 | **Snuffy's Tick Counter** | Tick count over head, tick boxes, tick bar, metronome, click timing (its own plugin so neither the skilling nor the PvM side carries a second copy) | none (game sounds only) |
 | **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
 
@@ -77,13 +77,15 @@ overlay components.
 
 Rules that keep the split working:
 - A separate plugin has every feature its part has in the Toolbelt: nothing it shows may depend on another
-  plugin running. When two parts show the same thing (potion buffs on the PvM HUD and the crab card), each
-  reads it itself through a shared class (`PotionBuffs`). Joins in the Toolbelt are only for working together
-  (Reset all clearing the others' numbers, PvM's monster card stepping aside for a skilling card).
+  plugin running. When two parts have the same thing (potion buffs and their alerts on the PvM HUD and the crab
+  card), each has it itself through shared classes (`PotionBuffs`, `PotionAlerts`, `BuffConfig`); with both
+  installed separately only one speaks (`PluginFamily.isFirstOf`). Each part's numbers have their own reset.
+- Working together is only for things that need both parts: PvM's monster card steps aside when the Skilling
+  Helper's card shows the NPC. The Toolbelt joins them directly; separate plugins do it with a `PluginFamily`
+  message ("skilling-card", sent before each frame).
 - A feature's classes take their own settings interface (`SkillTrackerConfig`, ...), never
-  `BradsMultiToolConfig`, and never another feature's tracker. Where two features work together only in
-  the all-in-one (Reset all, the PvM card stepping aside for skilling cards), the
-  all-in-one plugin joins them with a hook.
+  `BradsMultiToolConfig`, and never another feature's tracker; the Toolbelt joins features with a hook only
+  where they work together (above).
 - RuneLite only shows settings sections an interface declares itself, so the common sections are repeated in
   each plugin's settings and every section in `BradsMultiToolConfig` (`MultiToolConfigTest` checks).
 - RuneLite also only saves the defaults of settings an interface declares itself, and the settings panel can't

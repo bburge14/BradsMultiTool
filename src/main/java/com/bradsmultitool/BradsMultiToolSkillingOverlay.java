@@ -24,6 +24,7 @@ import net.runelite.api.NPCComposition;
 import net.runelite.api.ObjectComposition;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.BeforeRender;
 import net.runelite.api.events.NpcChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
@@ -60,6 +61,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final BirdhouseTracker birdhouses;
     private final SkillIconManager skillIcons;
     private final ItemManager itemManager;
+    private final PluginFamily family;
+    // The NPC whose card we last told the others we show (PluginFamily "skilling-card")
+    private int sentCardNpc = -1;
     private final PanelComponent panel = new PanelComponent();
     private final Map<NPC, Integer> duckStopped = new HashMap<>();
     // A current duck despawns two minutes after it stops
@@ -70,7 +74,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
                                          SkillingData data, FarmingData farming, SkillHelperData helpers,
-                                         BirdhouseTracker birdhouses, SkillIconManager skillIcons, ItemManager itemManager) {
+                                         BirdhouseTracker birdhouses, SkillIconManager skillIcons, ItemManager itemManager,
+                                         PluginFamily family) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -80,6 +85,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         this.birdhouses = birdhouses;
         this.skillIcons = skillIcons;
         this.itemManager = itemManager;
+        this.family = family;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGHEST);
@@ -667,6 +673,25 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             line("", "where it stops", Color.WHITE);
         }
         return true;
+    }
+
+    // Separate PvM/Slayer steps its monster card aside for ours (the Toolbelt joins them directly): before each
+    // frame, tell it which NPC under the cursor our card shows, when that changes
+    @Subscribe
+    public void onBeforeRender(BeforeRender event) {
+        int covered = -1;
+        MenuEntry[] entries = client.getGameState() == GameState.LOGGED_IN ? client.getMenu().getMenuEntries() : new MenuEntry[0];
+        if (entries.length > 0) {
+            MenuEntry top = entries[entries.length - 1];
+            NPC npc = top.getNpc();
+            if (npc != null && coversNpc(npc, "attack".equalsIgnoreCase(Text.removeTags(top.getOption())))) {
+                covered = npc.getIndex();
+            }
+        }
+        if (covered != sentCardNpc) {
+            sentCardNpc = covered;
+            family.sendSkillingCard(covered);
+        }
     }
 
     // When each current duck came to a stop (it despawns two minutes later)
