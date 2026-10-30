@@ -31,10 +31,6 @@ class PvmFeature {
         return hoverOverlay;
     }
 
-    BradsMultiToolOverlay hud() {
-        return hudOverlay;
-    }
-
 
     @Inject private ConfigDefaults configDefaults;
     @Inject private PvmConfig config;

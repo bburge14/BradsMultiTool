@@ -75,10 +75,25 @@ public interface GemCrabConfig extends CommonConfig {
         name = "Show Potion Buffs",
         description = "Your potion buffs on the crab card, each with its time left (red in its last minute)",
         section = crabSection,
-        position = 53
+        position = 52
     )
     default boolean showCrabBuffs() {
         return true;
+    }
+
+    @Range(max
+    =
+    99)
+    @ConfigItem(
+        keyName = "crabLowStatsPercent",
+        name = "Low Prayer/HP",
+        description = "Show Prayer: LOW / Health: LOW on the crab card at or below this share of your level (0: off)",
+        section = crabSection,
+        position = 53
+    )
+    @Units(Units.PERCENT)
+    default int crabLowStatsPercent() {
+        return 25;
     }
 
     @ConfigItem(

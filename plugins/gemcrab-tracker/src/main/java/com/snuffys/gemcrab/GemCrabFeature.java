@@ -17,10 +17,6 @@ class GemCrabFeature {
         return gemCrab;
     }
 
-    CrabHudOverlay hud() {
-        return crabHudOverlay;
-    }
-
     @Inject private ConfigDefaults configDefaults;
     @Inject private GemCrabConfig config;
 

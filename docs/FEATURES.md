@@ -131,11 +131,11 @@ Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing
 
 **What it does:** Near the crab's three mines in the Tlati Rainforest only: a HUD with the crab's health,
 burrow countdown, whether you're attacking, the XP type you're getting, damage, DPS and last/max hit, and your
-potion buffs with their time left (red in the last minute; in the Toolbelt, PvM's buff rows with LOW prayer and
-health instead); outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
+potion buffs with their time left (red in the last minute) and Prayer/Health LOW rows, the same in the Toolbelt
+and on its own; outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
 tunnels; a radar to find it. Alerts when it's about to burrow and when it has moved.
 
-**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Show Potion Buffs; Show Last/Max Hit; the four
+**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Show Potion Buffs; Low Prayer/HP (%); Show Last/Max Hit; the four
 outline colours; Voice/Chat switches.
 
 ---

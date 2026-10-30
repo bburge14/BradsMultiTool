@@ -210,11 +210,8 @@ public class BradsMultiToolOverlay extends Overlay {
      * One row per active buff with its potion icon, boost and time left (counting down smoothly
      * between game ticks); otherwise a single Buff Status line, flashing when expired.
      */
-    /**
-     * Buff timers (or Buff Status), and LOW prayer and health warnings: on this HUD, and on the Gemstone
-     * Crab's when both run in the all-in-one.
-     */
-    void addStatusRows(PanelComponent panel) {
+    /** Buff timers (or Buff Status), and LOW prayer and health warnings, on this HUD. */
+    private void addStatusRows(PanelComponent panel) {
         if (config.enableBuffStatus()) {
             addBuffRows(panel);
         }

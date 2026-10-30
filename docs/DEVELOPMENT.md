@@ -76,9 +76,13 @@ by more than one plugin: `CombatStyle`, `PotionBuffs` (boosts and potion timers,
 overlay components.
 
 Rules that keep the split working:
+- A separate plugin has every feature its part has in the Toolbelt: nothing it shows may depend on another
+  plugin running. When two parts show the same thing (potion buffs on the PvM HUD and the crab card), each
+  reads it itself through a shared class (`PotionBuffs`). Joins in the Toolbelt are only for working together
+  (Reset all clearing the others' numbers, PvM's monster card stepping aside for a skilling card).
 - A feature's classes take their own settings interface (`SkillTrackerConfig`, ...), never
   `BradsMultiToolConfig`, and never another feature's tracker. Where two features work together only in
-  the all-in-one (Reset all, the crab card's buff rows, the PvM card stepping aside for skilling cards), the
+  the all-in-one (Reset all, the PvM card stepping aside for skilling cards), the
   all-in-one plugin joins them with a hook.
 - RuneLite only shows settings sections an interface declares itself, so the common sections are repeated in
   each plugin's settings and every section in `BradsMultiToolConfig` (`MultiToolConfigTest` checks).
