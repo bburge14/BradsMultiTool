@@ -24,12 +24,12 @@ public class BradsMultiToolSlayerHighlightOverlay extends Overlay {
 
     private final Client client;
     private final PvmTracker plugin;
-    private final BradsMultiToolConfig config;
+    private final PvmConfig config;
     private final SlayerMonsterInfo slayerInfo;
     private final ModelOutlineRenderer outlines;
 
     @Inject
-    BradsMultiToolSlayerHighlightOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config,
+    BradsMultiToolSlayerHighlightOverlay(Client client, PvmTracker plugin, PvmConfig config,
                                          SlayerMonsterInfo slayerInfo, ModelOutlineRenderer outlines) {
         this.client = client;
         this.plugin = plugin;

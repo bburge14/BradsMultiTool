@@ -38,12 +38,12 @@ public class BradsMultiToolOrbOverlay extends Overlay {
 
     private final Client client;
     private final PvmTracker plugin;
-    private final BradsMultiToolConfig config;
+    private final PvmConfig config;
     private final SpriteManager spriteManager;
     private final Map<Integer, BufferedImage> masks = new HashMap<>();
 
     @Inject
-    public BradsMultiToolOrbOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config,
+    public BradsMultiToolOrbOverlay(Client client, PvmTracker plugin, PvmConfig config,
                                     SpriteManager spriteManager) {
         this.client = client;
         this.plugin = plugin;

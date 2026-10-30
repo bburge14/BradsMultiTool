@@ -23,10 +23,10 @@ public class BradsMultiToolPrayerOverlay extends Overlay {
 
     private final Client client;
     private final PvmTracker plugin;
-    private final BradsMultiToolConfig config;
+    private final PvmConfig config;
 
     @Inject
-    public BradsMultiToolPrayerOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config) {
+    public BradsMultiToolPrayerOverlay(Client client, PvmTracker plugin, PvmConfig config) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;

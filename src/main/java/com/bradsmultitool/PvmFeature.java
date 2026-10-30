@@ -26,6 +26,10 @@ class PvmFeature {
         return pvm;
     }
 
+    BradsMultiToolHoverOverlay hoverCard() {
+        return hoverOverlay;
+    }
+
     BradsMultiToolOverlay hud() {
         return hudOverlay;
     }

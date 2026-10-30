@@ -671,10 +671,10 @@ public class PvmTracker {
                 }
                 pvmMaxHp = baseHp;
 
-                if (config.dpsMode() == BradsMultiToolConfig.DpsTrackingMode.PER_ENCOUNTER) {
+                if (config.dpsMode() == PvmConfig.DpsTrackingMode.PER_ENCOUNTER) {
                     pvmFightStart = Instant.now();
                     pvmEncounterDamage = 0;
-                } else if (config.dpsMode() == BradsMultiToolConfig.DpsTrackingMode.PER_TARGET_TYPE && isNewType) {
+                } else if (config.dpsMode() == PvmConfig.DpsTrackingMode.PER_TARGET_TYPE && isNewType) {
                     currentTargetType = name;
                     pvmFightStart = Instant.now();
                     pvmEncounterDamage = 0;
@@ -709,7 +709,7 @@ public class PvmTracker {
             }
 
             if (!pvmFightEnded) {
-                if (config.dpsMode() == BradsMultiToolConfig.DpsTrackingMode.CONTINUOUS_SESSION) {
+                if (config.dpsMode() == PvmConfig.DpsTrackingMode.CONTINUOUS_SESSION) {
                     long totalSec = Math.max(1, sessionPvmActiveSeconds);
                     pvmLiveDps = (double) sessionPvmDamage / totalSec;
                 } else {

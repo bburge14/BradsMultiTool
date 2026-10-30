@@ -952,6 +952,18 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         return true;
     }
 
+    /**
+     * Whether this card shows the NPC rather than PvM's monster card: a sea monster (Sailing card), or a
+     * pickpocket target when Attack isn't the left-click option or you're not out to fight.
+     */
+    boolean coversNpc(NPC npc, boolean attackIsLeftClick) {
+        if (config.showSailingHover() && helpers.seaMonster(npc.getName()) != null) {
+            return true;
+        }
+        boolean skillingFirst = !attackIsLeftClick || preferSkilling(client, config);
+        return skillingFirst && config.showSkillingHover() && isPickpocketTarget(data, npc);
+    }
+
     /** Auto retaliate is off and the player wants skilling cards then (they're not out to fight). */
     static boolean preferSkilling(Client client, SkillTrackerConfig config) {
         return config.skillingWhenNotRetaliating() && client.getVarpValue(VarPlayerID.OPTION_NODEF) == 1;

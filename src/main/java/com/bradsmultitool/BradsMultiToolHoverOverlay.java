@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.util.function.BiPredicate;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -35,21 +36,18 @@ public class BradsMultiToolHoverOverlay extends Overlay {
 
     private final Client client;
     private final PvmTracker plugin;
-    private final BradsMultiToolConfig config;
+    private final PvmConfig config;
     private final ItemManager itemManager;
     private final SpriteManager spriteManager;
-    private final SkillingData skillingData;
-    @Inject
-    private SkillHelperData skillHelpers;
+    private volatile BiPredicate<NPC, Boolean> skillingCards;
     @Inject
     private SlayerMonsterInfo slayerInfo;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
-    public BradsMultiToolHoverOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config,
-                                      ItemManager itemManager, SpriteManager spriteManager, SkillingData skillingData) {
+    public BradsMultiToolHoverOverlay(Client client, PvmTracker plugin, PvmConfig config,
+                                      ItemManager itemManager, SpriteManager spriteManager) {
         this.client = client;
-        this.skillingData = skillingData;
         this.plugin = plugin;
         this.config = config;
         this.itemManager = itemManager;
@@ -60,6 +58,11 @@ public class BradsMultiToolHoverOverlay extends Overlay {
         panel.setPreferredSize(new Dimension(WIDTH, 0));
     }
 
+    /** Which NPCs the skilling card shows instead (given whether Attack is the left-click option), or null. */
+    void setSkillingCards(BiPredicate<NPC, Boolean> covers) {
+        skillingCards = covers;
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
         if (!config.showHoverInfo() || client.getGameState() != GameState.LOGGED_IN || client.isMenuOpen()) {
@@ -67,9 +70,7 @@ public class BradsMultiToolHoverOverlay extends Overlay {
         }
 
         NPC npc = hoveredNpc();
-        if (npc == null || !plugin.isAttackable(npc) || GemstoneCrabs.isGemstoneCrab(npc) || isAlreadyShownByPvmHud(npc)
-            // Sea monsters get the Sailing card instead
-            || (config.showSailingHover() && skillHelpers.seaMonster(npc.getName()) != null)) {
+        if (npc == null || !plugin.isAttackable(npc) || GemstoneCrabs.isGemstoneCrab(npc) || isAlreadyShownByPvmHud(npc)) {
             return null;
         }
 
@@ -83,8 +84,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
 
     /**
      * The NPC of the left-click option (what the game's top-left tooltip names), or null if that option
-     * isn't on an NPC. Skipped when it can be pickpocketed and Attack isn't the left-click option (or auto
-     * retaliate is off), since the skilling card covers it instead.
+     * isn't on an NPC, or when the Skill Tracker's skilling card shows it instead (a pickpocket target,
+     * a sea monster; only when both run, in the all-in-one).
      */
     private NPC hoveredNpc() {
         MenuEntry[] entries = client.getMenu().getMenuEntries();
@@ -97,8 +98,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
             return null;
         }
         boolean attack = "attack".equalsIgnoreCase(Text.removeTags(top.getOption()));
-        boolean skillingFirst = !attack || BradsMultiToolSkillingOverlay.preferSkilling(client, config);
-        return skillingFirst && config.showSkillingHover() && BradsMultiToolSkillingOverlay.isPickpocketTarget(skillingData, npc) ? null : npc;
+        BiPredicate<NPC, Boolean> skilling = skillingCards;
+        return skilling != null && skilling.test(npc, attack) ? null : npc;
     }
 
     // The PvM HUD already covers the monster being fought, and others of the same kind

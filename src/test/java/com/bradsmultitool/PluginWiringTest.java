@@ -64,4 +64,12 @@ public class PluginWiringTest {
     public void multiToolIsWired() throws ReflectiveOperationException {
         assertWired(BradsMultiToolPlugin.class);
     }
+
+    @Test
+    public void separatePluginsAreWired() throws ReflectiveOperationException {
+        assertWired(SkillTrackerPlugin.class);
+        assertWired(PvmPlugin.class);
+        assertWired(GemCrabPlugin.class);
+        assertWired(VoicesPlugin.class);
+    }
 }

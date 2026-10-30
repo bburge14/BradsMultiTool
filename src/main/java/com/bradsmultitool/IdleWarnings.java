@@ -50,6 +50,7 @@ class IdleWarnings {
     private final Alerts alerts;
     private final Notifier notifier;
     private final PluginIdentity identity;
+    private final PluginFamily family;
     private final List<BooleanSupplier> busy = new CopyOnWriteArrayList<>();
 
     @Getter
@@ -68,12 +69,13 @@ class IdleWarnings {
     private Instant lastIdleAlertTime = Instant.EPOCH;
 
     @Inject
-    IdleWarnings(Client client, CommonConfig config, Alerts alerts, Notifier notifier, PluginIdentity identity) {
+    IdleWarnings(Client client, CommonConfig config, Alerts alerts, Notifier notifier, PluginIdentity identity, PluginFamily family) {
         this.client = client;
         this.config = config;
         this.alerts = alerts;
         this.notifier = notifier;
         this.identity = identity;
+        this.family = family;
     }
 
     /** Something a feature counts as being busy (not idle) while it's true. */
@@ -96,7 +98,8 @@ class IdleWarnings {
 
     @Subscribe
     public void onGameTick(GameTick event) {
-        if (client.getGameState() != GameState.LOGGED_IN) {
+        // With several of ours installed, only one says these
+        if (client.getGameState() != GameState.LOGGED_IN || !family.handlesShared()) {
             return;
         }
         Player player = client.getLocalPlayer();

@@ -1,9 +1,12 @@
 package com.bradsmultitool;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.client.eventbus.EventBus;
@@ -46,6 +49,7 @@ class PluginFamily {
     private final String self;
     private final Set<String> others = ConcurrentHashMap.newKeySet();
     private volatile VoiceSettings voiceSettings;
+    private final List<Runnable> helloListeners = new CopyOnWriteArrayList<>();
 
     @Inject
     PluginFamily(EventBus eventBus, PluginIdentity identity) {
@@ -62,12 +66,44 @@ class PluginFamily {
         post("bye");
         eventBus.unregister(this);
         others.clear();
+        helloListeners.clear();
         voiceSettings = null;
     }
 
     /** Whether another of Snuffy's plugins ("voices", "pvm"...) is running. */
     boolean isRunning(String plugin) {
         return others.contains(plugin);
+    }
+
+    // Who runs the warnings every plugin has (idle, logout) when several are installed, so they're said once:
+    // the first of these that's running
+    private static final List<String> SHARED_ORDER = Arrays.asList(VOICES, "multitool", "skilltracker", "pvm", "gemcrab");
+
+    /** Whether this plugin should run the shared idle and logout warnings (no other of ours ahead of it is running). */
+    boolean handlesShared() {
+        int mine = SHARED_ORDER.indexOf(self);
+        for (String other : others) {
+            int theirs = SHARED_ORDER.indexOf(other);
+            if (theirs >= 0 && (mine < 0 || theirs < mine)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Sends this plugin's voice settings to the others (the Voices plugin does, on start and when asked). */
+    void sendVoiceSettings(VoiceAlertService.VoicePersona persona, int volume, boolean enabled) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("plugin", self);
+        data.put("persona", persona.name());
+        data.put("volume", volume);
+        data.put("enabled", enabled);
+        eventBus.post(new PluginMessage(NAMESPACE, "voice-settings", data));
+    }
+
+    /** Called when another of ours says hello (the Voices plugin answers with its voice settings). */
+    void onHello(Runnable action) {
+        helloListeners.add(action);
     }
 
     /** The Voices plugin's voice settings, or null when it isn't running (use this plugin's own). */
@@ -90,6 +126,7 @@ class PluginFamily {
             case "hello":
                 others.add(plugin);
                 post("here");
+                helloListeners.forEach(Runnable::run);
                 break;
             case "here":
                 others.add(plugin);

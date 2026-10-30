@@ -33,14 +33,14 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
 
     private final Client client;
     private final PvmTracker plugin;
-    private final BradsMultiToolConfig config;
+    private final PvmConfig config;
     private final SlayerData slayerData;
     private final ItemManager itemManager;
     private final PanelComponent panel = new PanelComponent();
     private FontMetrics metrics;
 
     @Inject
-    public BradsMultiToolSlayerOverlay(Client client, PvmTracker plugin, BradsMultiToolConfig config,
+    public BradsMultiToolSlayerOverlay(Client client, PvmTracker plugin, PvmConfig config,
                                        SlayerData slayerData, ItemManager itemManager) {
         this.client = client;
         this.plugin = plugin;

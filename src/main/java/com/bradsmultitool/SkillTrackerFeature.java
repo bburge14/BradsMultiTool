@@ -33,6 +33,10 @@ class SkillTrackerFeature {
     @Inject private BradsMultiToolGoalItemOverlay goalItemOverlay;
     @Inject private BradsMultiToolPinnedSkillOverlay pinnedSkillOverlay;
 
+    BradsMultiToolSkillingOverlay skillingCards() {
+        return skillingOverlay;
+    }
+
     SkillTracker tracker() {
         return skillTracker;
     }
