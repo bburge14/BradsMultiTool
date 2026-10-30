@@ -51,14 +51,16 @@ tasks.withType(JavaCompile).configureEach {
     options.release.set(11)
 }
 
-// Launches a RuneLite developer client with this plugin side-loaded.
+// Launches a RuneLite developer client with Snuffy's plugins side-loaded: the Toolbelt, or the separate ones
+// with -Pload=skilling,pvm,gemcrab,tick,alerts (any of them) or -Pload=separate (all of them)
 tasks.register('runBrad', JavaExec) {
     group = 'application'
-    description = "Run RuneLite with Snuffy's Toolbelt loaded"
+    description = "Run RuneLite with Snuffy's Toolbelt (or -Pload=...) loaded"
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.bradsmultitool.BradsMultiToolPluginTest'
     args = ['--developer-mode', '--debug']
     jvmArgs = ['-ea']
+    systemProperty 'snuffys.plugins', project.findProperty('load') ?: 'toolbelt'
 }
 
 tasks.register('slayerPreview', JavaExec) {
