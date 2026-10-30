@@ -239,7 +239,12 @@ class CombatStyle {
         }
     }
 
-    private int equippedWeaponId() {
+    /** Whether the current style is Rapid (attacks a tick faster). */
+    boolean isRapid() {
+        return xpStyle.contains("rapid");
+    }
+
+    int equippedWeaponId() {
         ItemContainer equipment = client.getItemContainer(CONTAINER_EQUIPMENT);
         if (equipment == null) {
             return -1;

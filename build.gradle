@@ -38,6 +38,14 @@ java {
     }
 }
 
+// The run tasks too: without this a Java 8 on PATH / JAVA_HOME can launch them ("compiled by a more recent
+// version of the Java Runtime")
+tasks.withType(JavaExec).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release.set(11)

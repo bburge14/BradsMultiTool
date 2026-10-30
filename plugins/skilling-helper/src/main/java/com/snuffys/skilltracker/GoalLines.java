@@ -89,7 +89,7 @@ final class GoalLines {
 
     /**
      * For production skills and Prayer: the best thing to make or use from your inventory and bank, or null.
-     * Cooking, Firemaking and Prayer name the item you use ("Cook: Raw karambwan", "Burn: Yew logs").
+     * Cooking, Firemaking and Prayer name the item you use ("Cook: Raw karambwan", "Burn: Yew logs", "Offer: Dragon bones").
      */
     static ItemLine itemLine(SkillTracker plugin, Skill skill) {
         RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
@@ -97,7 +97,7 @@ final class GoalLines {
             return null;
         }
         int count = plugin.getGoalItems().count(skill);
-        String have = "(you have " + (count > 0 ? String.format("%,d", count) : "the items") + ")";
+        String have = "(you have " + (count > 0 ? String.format("%,d", count) : "none") + ")";
         String material = make.materials.size() == 1 ? make.materials.keySet().iterator().next() : null;
         if (material != null) {
             switch (skill) {
@@ -106,7 +106,12 @@ final class GoalLines {
                 case FIREMAKING:
                     return new ItemLine("Burn:", material, have);
                 case PRAYER:
-                    return new ItemLine("Use:", material, have);
+                    // By how you train it: "Bury:", "Offer: Dragon bones (Gilded altar)", "Scatter:" for ashes
+                    PrayerMethod method = plugin.getGoalItems().prayerMethod(make);
+                    if (method == null) {
+                        return new ItemLine(make.name.startsWith("Scatter ") ? "Scatter:" : "Use:", material, have);
+                    }
+                    return new ItemLine(method.verb, method == PrayerMethod.BURY ? material : material + " (" + method.label + ")", have);
                 default:
                     break;
             }
@@ -120,9 +125,8 @@ final class GoalLines {
      */
     static Map<String, Boolean> tools(SkillTracker plugin, Skill skill, int level) {
         List<String> names = new ArrayList<>();
-        RecipeData.Recipe make = plugin.getGoalItems().suggestion(skill);
-        if (make != null) {
-            names.addAll(make.tools);
+        if (plugin.getGoalItems().suggestion(skill) != null) {
+            names.addAll(plugin.getGoalItems().tools(skill));
         } else if (plugin.getGoalTarget(skill) == null) {
             TrainingAdvisor.Suggestion suggestion = plugin.getTrainingAdvisor().suggest(skill, level);
             if (suggestion != null) {

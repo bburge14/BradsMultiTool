@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Make the plugins' icons from the logos in assets/ (Alerts, GemCrab, MultiTool, PvM, Skilling).
+"""Make the plugins' icons from the logos in assets/ (Alerts, GemCrab, MultiTool, PvM, Skilling, TickCounter).
 
 Usage: python3 scripts/update_icons.py   (needs Pillow: pip install pillow)
 
@@ -16,7 +16,8 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 ASSETS = os.path.join(ROOT, "assets")
 TAB_DIR = os.path.join(ROOT, "src", "main", "resources", "com", "bradsmultitool", "icons")
 # plugin id -> logo in assets/
-LOGOS = {"multitool": "MultiTool", "skilltracker": "Skilling", "pvm": "PvM", "gemcrab": "GemCrab", "voices": "Alerts"}
+LOGOS = {"multitool": "MultiTool", "skilltracker": "Skilling", "pvm": "PvM", "gemcrab": "GemCrab", "voices": "Alerts",
+         "tickcounter": "TickCounter"}
 HUB_WIDTH, HUB_HEIGHT = 48, 72
 TAB_SIZE = 16
 # RuneLite's own tab icons leave a pixel or so of space around them

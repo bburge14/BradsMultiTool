@@ -17,6 +17,7 @@ section to open. All sections except General start collapsed.
 - [Skilling alerts](#skilling-alerts)
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
+- [Tick counter and metronome](#tick-counter-and-metronome)
 - [Idle alerts](#idle-alerts)
 - [Issues? button](#issues-button)
 
@@ -228,7 +229,8 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
   make or burn from your items). Only one at a time:
   pinning another replaces it. The pinned skill's card shows a red pin in its top-right corner; click the pin,
   right-click the overlay > Unpin, or the card > Unpin from screen to remove it. It stays pinned after a
-  restart.
+  restart, and its card stays in the sidebar the whole time, even before you've trained it this session or
+  after a Reset.
 - A skill's rate clock **auto-pauses** after a while without XP (**Auto-Pause After**: 10 seconds to an hour, 5 minutes by default) and
   resumes on your next XP.
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
@@ -270,9 +272,21 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   suggestion and the card says "Tracking: Ruby harvest (your pick)". **Untrack for goal** on it, or
   **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
   a goal are ever outlined.
+- **Track an item:** right-click an item in your inventory or bank that a goal skill uses (logs for
+  Firemaking or Fletching, raw fish for Cooking, bones for Prayer) and choose **Track for goal**: the card
+  then works out what to make, the XP and the actions left from that item only, even once you've run out
+  ("(you have none)"). For Prayer it opens a list of how you train it, and your pick is kept:
+  - bones: **Bury** (100%), **Gilded altar** (350%, both burners lit), **Chaos altar** (the Wilderness
+    one: 350%, and half your bones are kept, so it's worth 7x per bone) or **Ectofuntus** (400%; you'll
+    need a pot and a bucket of slime per bone, listed as tools);
+  - blessed bone shards: **Blessed wine** (5 XP each) or **Sunfire wine** (6). Until you pick, it goes by
+    the wine you carry.
+  The card shows "Tracking: Dragon bones (Gilded altar)" and "Offer: Dragon bones (Gilded altar)". The
+  current pick is green in the list, and **Untrack for goal** at its bottom goes back to the suggestion
+  (the bones' method stays for next time).
 - For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
   Magic, Runecraft) and Prayer the card also says what to **Make** (or, by the item you use, **Cook**:
-  Raw karambwan, **Burn**: logs, **Use**: bones, ashes) and how many you have: the best thing you can make at your
+  Raw karambwan, **Burn**: logs, **Bury**/**Offer**: bones, **Scatter**: ashes) and how many you have: the best thing you can make at your
   level from what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
   materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
   Lobster". The bank counts once you've opened it this session.
@@ -307,6 +321,47 @@ Combat goal cards (and the pinned overlay) also show your **Kill rate** on your 
 you killed last), e.g. "Kill rate: Sand Crab: 52/hr (1:09 each)", over your kills in the last hour once you've
 killed it twice. Potions and better gear show up here as faster kills; they don't change the kills a goal needs
 (combat XP comes from damage, and a kill can only take its hitpoints).
+
+---
+
+## Tick counter and metronome
+
+In **Snuffy's Tick Counter** and the Toolbelt.
+
+**What it does:** counts game ticks in a cycle (1, 2, 3, 1, 2, 3...) for tick-based skilling and for timing
+your attacks, and can time your clicks against the tick. It only shows and sounds the ticks and reads your
+clicks; it never clicks, changes a menu or does anything for you.
+- **Count Over Head:** the count above your character.
+- **Tick Boxes:** a box for each tick of the cycle (3 boxes for a 3-tick cycle), in a row or a column, the
+  current one lit. Move them with Alt + drag.
+- **Tick Bar:** fills smoothly from left to right over each tick and snaps back on the next, so you can see the
+  tick coming instead of reacting to a flash. Move it with Alt + drag.
+- The first tick of each cycle is in its own colour (green by default).
+- **Metronome:** a game sound on every tick, and a different one on the first tick of the cycle. The **Tone**
+  is Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, or Tinderbox. It can play on the first tick only.
+- **Follow Attack Speed:** the cycle becomes your weapon's attack speed (one tick faster on Rapid), and the
+  count starts again at 1 each time you attack, so 1 is your attack tick.
+- **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head: green
+  in the ideal zone, white elsewhere before Late After, red when late. The tick bar shades the **ideal zone**
+  green (**Ideal From** to **Ideal To**, 100-350ms by default) and the late part orange, and marks your last
+  click. A summary of your last 50 clicks shows with the bar: "Last 50: 44 on time (30 ideal), 4 late, 2
+  missed, avg 310ms".
+- **Click Sounds:** a ding for each click on time and the **Late Sound** (Vwoop, Boing, Thud or Door) for a
+  late one. **Late After** (450ms by default) sets when a click counts as late: with your ping it may land on
+  the next tick.
+- **Click Every Tick** (for 1-ticking, where you click once every tick): once you've started clicking, a tick
+  that passes without a click counts as missed and plays the Late Sound. Leave it off for methods that don't
+  click every tick.
+- Nothing shows or plays until you're in the game (past loading and the welcome screen).
+
+**How to use it:** open **Tick Counter**, turn on what you want to see, and set **Ticks Per Cycle** (e.g. 3 for
+3-tick skilling), or turn on **Follow Attack Speed** for combat. Turn on **Metronome** to hear it. For 1-ticking, set Ticks Per Cycle to 1 and
+turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
+
+**Settings (Tick Counter):** Count Over Head; Tick Boxes and Box Layout (Horizontal or Vertical); Tick Bar;
+Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
+Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
+volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.
 
 ---
 

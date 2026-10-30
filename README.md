@@ -22,6 +22,7 @@ Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just 
 | **Snuffy's Skilling Helper** | The sidebar tracker with goals and suggested training, the pinned skill, skilling hover cards, timer pies and skilling alerts |
 | **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
 | **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
+| **Snuffy's Tick Counter** | Tick count over your head, tick boxes and a smooth tick bar, metronome, click timing for tick skilling |
 | **Snuffy's Alerts** | Optional: one voice and volume for all of the separate plugins |
 
 **From the Plugin Hub** (once they're published there): in RuneLite open the **Plugin Hub** (the plug icon
@@ -130,6 +131,10 @@ work a resource.
 - **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill (or any monster, the Gemstone Crab too, for a
   combat goal, which also sets what kills are counted on) to outline that
   instead of the suggestion ("Tracking: ... (your pick)"); **Use suggested method** on the card goes back.
+  Items work too: right-click logs, bones, raw fish... in your inventory or bank and the goal card works it
+  out from that item. For Prayer, bones open a list of **Bury**, **Gilded altar**, **Chaos altar** or
+  **Ectofuntus**, and blessed bone shards one of **Blessed wine** or **Sunfire wine**; the XP, actions left and
+  tools follow your pick ("Offer: Dragon bones (Gilded altar)").
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
   **Highlight Goal Items**).
@@ -141,6 +146,18 @@ work a resource.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.
+
+### Tick counter and metronome
+- Counts game ticks in a cycle you set (1-10): **over your head**, as a **row of boxes** (one per tick, the
+  current one lit; or a column), and/or a **tick bar** that fills smoothly over each tick so you can see it
+  coming. The first tick of each cycle is in its own colour.
+- **Metronome** with a choice of game sounds (Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, Tinderbox): a
+  different sound on the first tick of the cycle.
+- **Click timing** for 1-ticking: how many ms after the tick each click landed, an ideal click zone on the tick
+  bar, a ding when on time and a different sound when late or when you miss a tick, and a summary of your last
+  50 clicks.
+- **Follow Attack Speed**: the cycle follows your weapon and starts again each time you attack.
+- **Snuffy's Tick Counter** (also in the Toolbelt); settings under **Tick Counter**.
 
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key

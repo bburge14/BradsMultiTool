@@ -8,7 +8,7 @@ In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configu
 **Snuffy's Skilling Helper** and click **Install**. Its settings are under its name in the configuration panel.
 
 It's one of Snuffy's plugins: **Snuffy's Toolbelt** has all of them in one, or install just the ones you want
-(Skilling Helper, PvM/Slayer, GemCrab Tracker, and the optional Alerts for one voice across them). Don't install
+(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them). Don't install
 the Toolbelt together with the separate ones.
 
 Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).

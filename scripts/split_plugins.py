@@ -6,7 +6,7 @@ Usage:
     python3 scripts/split_plugins.py --verify     # ...and check each compiles on its own
     python3 scripts/split_plugins.py --build      # ...and build each one's jar into releases/
     python3 scripts/split_plugins.py --check      # are the plugins/ folders up to date? (changes nothing)
-    python3 scripts/split_plugins.py pvm          # just one (multitool, skilltracker, pvm, gemcrab, voices)
+    python3 scripts/split_plugins.py pvm          # just one (multitool, skilltracker, pvm, gemcrab, tickcounter, voices)
 
 The code is written once, in src/ (which is also Snuffy's Toolbelt, the all-in-one). Each plugin's folder gets
 only what that plugin uses: starting from its plugin class, every class it refers to (and so on), the data
@@ -45,6 +45,10 @@ PLUGINS = {
     "gemcrab": {
         "class": "GemCrabPlugin", "package": "com.snuffys.gemcrab", "name": "snuffys-gemcrab-tracker", "folder": "gemcrab-tracker",
         "voices": ["gemcrab", "shared"],
+    },
+    "tickcounter": {
+        "class": "TickCounterPlugin", "package": "com.snuffys.tickcounter", "name": "snuffys-tick-counter", "folder": "tick-counter",
+        "voices": [],
     },
     "voices": {
         "class": "VoicesPlugin", "package": "com.snuffys.voices", "name": "snuffys-alerts", "folder": "alerts",
@@ -93,7 +97,7 @@ In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configu
 **%(title)s** and click **Install**. Its settings are under its name in the configuration panel.
 
 It's one of Snuffy's plugins: **Snuffy's Toolbelt** has all of them in one, or install just the ones you want
-(Skilling Helper, PvM/Slayer, GemCrab Tracker, and the optional Alerts for one voice across them). Don't install
+(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them). Don't install
 the Toolbelt together with the separate ones.
 
 Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).

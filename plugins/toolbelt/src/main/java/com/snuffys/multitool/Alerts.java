@@ -7,11 +7,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
-import net.runelite.api.Player;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -24,25 +19,22 @@ import net.runelite.client.events.ConfigChanged;
 @Singleton
 class Alerts {
 
-    // Login: alerts wait until the welcome screen's "Click here to play" is gone, then a few ticks more
-    private static final int WELCOME_SCREEN_GROUP = 378;
-    private static final int IN_GAME_SETTLE_TICKS = 3;
-
     private final Client client;
     private final CommonConfig config;
     private final ConfigManager configManager;
     private final PluginFamily family;
     private final PluginIdentity identity;
+    private final InGame inGame;
     private final VoiceAlertService voice = new VoiceAlertService();
-    private int inGameTicks = 0;
 
     @Inject
-    Alerts(Client client, CommonConfig config, ConfigManager configManager, PluginFamily family, PluginIdentity identity) {
+    Alerts(Client client, CommonConfig config, ConfigManager configManager, PluginFamily family, PluginIdentity identity, InGame inGame) {
         this.client = client;
         this.config = config;
         this.configManager = configManager;
         this.family = family;
         this.identity = identity;
+        this.inGame = inGame;
     }
 
     void shutDown() {
@@ -54,25 +46,7 @@ class Alerts {
      * stay silent and anything already true at login (low prayer, say) counts as already announced.
      */
     boolean ready() {
-        return inGameTicks > IN_GAME_SETTLE_TICKS;
-    }
-
-    @Subscribe
-    public void onGameStateChanged(GameStateChanged event) {
-        if (event.getGameState() != GameState.LOGGED_IN) {
-            inGameTicks = 0;
-        }
-    }
-
-    @Subscribe
-    public void onGameTick(GameTick event) {
-        Player player = client.getLocalPlayer();
-        Widget welcome = client.getWidget(WELCOME_SCREEN_GROUP, 0);
-        if (player == null || (welcome != null && !welcome.isHidden())) {
-            inGameTicks = 0;
-        } else {
-            inGameTicks++;
-        }
+        return inGame.ready();
     }
 
     /** Speaks an alert, if you're in game and its voice is turned on. */
@@ -112,6 +86,10 @@ class Alerts {
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
         if (!identity.configGroup.equals(event.getGroup())) {
+            return;
+        }
+        if (event.getOldValue() == null) {
+            // A default being saved (ConfigDefaults), not the player changing it
             return;
         }
         String key = event.getKey();

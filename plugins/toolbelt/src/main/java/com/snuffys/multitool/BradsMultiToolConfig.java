@@ -18,7 +18,16 @@ import net.runelite.client.config.Units;
  * repeated here (MultiToolConfigTest checks none is missing).
  */
 @ConfigGroup("bradsmultitool")
-public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, GemCrabConfig {
+public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, GemCrabConfig, TickConfig {
+
+
+    @ConfigSection(
+        name = "Tick Counter",
+        description = "Counts game ticks over your head or in a box you can move, with an optional metronome",
+        position = 85,
+        closedByDefault = true
+    )
+    String tickSection = "tickSection";
 
     @ConfigSection(
         name = "General",

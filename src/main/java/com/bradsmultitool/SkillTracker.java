@@ -329,6 +329,40 @@ class SkillTracker {
         updatePanelUI();
     }
 
+    /**
+     * How you train Prayer with bones (bury, or which altar) or with blessed bone shards (which wine), as
+     * picked from an item's "Track for goal" menu; null if not picked (bury; shards by the wine you carry).
+     */
+    public PrayerMethod getPrayerMethod(boolean shards) {
+        return configManager.getRSProfileKey() == null ? null
+            : PrayerMethod.parse(configManager.getRSProfileConfiguration(identity.configGroup, prayerMethodKey(shards)));
+    }
+
+    public void setPrayerMethod(PrayerMethod method) {
+        configManager.setRSProfileConfiguration(identity.configGroup, prayerMethodKey(method.shards), method.name());
+        updatePanelUI();
+    }
+
+    private static String prayerMethodKey(boolean shards) {
+        return "prayerMethod." + (shards ? "shards" : "bones");
+    }
+
+    /** Your "Track for goal" pick as shown on the cards ("Dragon bones (Gilded altar)"), or null. */
+    public String describeGoalTarget(Skill skill) {
+        String target = getGoalTarget(skill);
+        if (target == null) {
+            return null;
+        }
+        String name = goalTargetName(target);
+        if (skill == Skill.PRAYER && target.startsWith("item:")) {
+            PrayerMethod method = getGoalItems().prayerMethod(getGoalItems().suggestion(skill));
+            if (method != null) {
+                name += " (" + method.label + ")";
+            }
+        }
+        return name;
+    }
+
     /** What this skill's goal suggestions aim for: its own choice, else the Training Focus setting. */
     public SkillTrackerConfig.TrainingFocus getTrainingFocus(Skill skill) {
         SkillTrackerConfig.TrainingFocus own = getOwnTrainingFocus(skill);

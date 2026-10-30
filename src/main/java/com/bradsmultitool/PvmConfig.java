@@ -18,6 +18,7 @@ public interface PvmConfig extends CommonConfig {
 
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
 
+
     @ConfigSection(
         name = "General",
         description = "Voice and chat settings shared by all alerts",

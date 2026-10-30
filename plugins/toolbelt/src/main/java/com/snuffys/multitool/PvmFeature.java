@@ -34,7 +34,12 @@ class PvmFeature {
         return hudOverlay;
     }
 
+
+    @Inject private ConfigDefaults configDefaults;
+    @Inject private PvmConfig config;
+
     void start(Lifecycle lifecycle) {
+        configDefaults.add(() -> PvmConfigDefaults.store(configDefaults, config));
         lifecycle.load(monsterData, monsterData::load);
         lifecycle.load(slayerData, slayerData::load);
         lifecycle.subscribe(pvm, combatStyle, combatAlerts);

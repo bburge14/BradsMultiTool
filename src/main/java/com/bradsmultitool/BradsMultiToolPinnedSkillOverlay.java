@@ -128,7 +128,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         }
         String target = plugin.getGoalTarget(skill);
         if (target != null) {
-            return "Tracking: " + SkillTracker.goalTargetName(target);
+            return "Tracking: " + plugin.describeGoalTarget(skill);
         }
         // The current leg of the plan, and the level it lasts to when the method changes before the goal
         List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level,

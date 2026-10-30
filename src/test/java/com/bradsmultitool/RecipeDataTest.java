@@ -47,4 +47,18 @@ public class RecipeDataTest {
         assertEquals("Burn oak logs", DATA.best(Skill.FIREMAKING, 20, have, r -> r.xp).name);
         assertEquals(3, DATA.best(Skill.FIREMAKING, 20, have, r -> r.xp).makeable(have));
     }
+
+    @Test
+    public void prayerMethodsByWhatYouUse() {
+        RecipeData.Recipe bones = DATA.using(Skill.PRAYER, "Dragon bones").get(0);
+        RecipeData.Recipe shards = DATA.using(Skill.PRAYER, "blessed bone shards").get(0);
+        assertEquals(true, PrayerMethod.isBones(bones));
+        assertEquals(false, PrayerMethod.isShards(bones));
+        assertEquals(true, PrayerMethod.isShards(shards));
+        // The altars only take bones, the wines only shards
+        assertEquals(4, PrayerMethod.forShards(false).size());
+        assertEquals(6.0, PrayerMethod.SUNFIRE_WINE.shardXp, 0);
+        assertEquals(0.5, PrayerMethod.CHAOS_ALTAR.bonesUsedEach(), 0);
+        assertEquals(true, DATA.using(Skill.PRAYER, "Raw shrimps").isEmpty());
+    }
 }

@@ -42,7 +42,12 @@ class SkillTrackerFeature {
         return skillTracker;
     }
 
+
+    @Inject private ConfigDefaults configDefaults;
+    @Inject private SkillTrackerConfig config;
+
     void start(Lifecycle lifecycle) {
+        configDefaults.add(() -> SkillTrackerConfigDefaults.store(configDefaults, config));
         // Kill counts use monster hitpoints; Slayer goals suggest a Slayer master
         lifecycle.load(monsterData, monsterData::load);
         lifecycle.load(skillingData, skillingData::load);
