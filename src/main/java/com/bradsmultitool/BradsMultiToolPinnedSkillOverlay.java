@@ -93,6 +93,10 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             if (item != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(item.label + " " + item.item + " " + item.have, SOFT, false));
             }
+            String killRate = GoalLines.killRate(plugin, skill);
+            if (killRate != null) {
+                panelComponent.getChildren().add(new TextBlockComponent("Kill rate: " + killRate, SOFT, false));
+            }
             Map<String, Boolean> tools = config.showTrainingSuggestion()
                 ? GoalLines.tools(plugin, skill, level) : Collections.emptyMap();
             if (!tools.isEmpty()) {

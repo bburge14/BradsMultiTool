@@ -58,6 +58,8 @@ class SkillTracker {
     private Provider<TrainingAdvisor> trainingAdvisor;
     @Inject
     private Provider<GoalItems> goalItems;
+    @Inject
+    private KillTracker killTracker;
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
@@ -113,6 +115,7 @@ class SkillTracker {
 
     /** The panel's Reset all skills. */
     public void resetSession() {
+        killTracker.reset();
         baseSkillXp.clear();
         gainedSkillXp.clear();
         skillActiveTicks.clear();
@@ -299,6 +302,11 @@ class SkillTracker {
     }
 
     /** What to make for production-skill goals, from your inventory and bank. */
+    /** Your recent kills, for combat goals' kill rate. */
+    public KillTracker getKillTracker() {
+        return killTracker;
+    }
+
     public GoalItems getGoalItems() {
         return goalItems.get();
     }

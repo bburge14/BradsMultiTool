@@ -115,7 +115,8 @@ work a resource.
   Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level (or to
   the end of the current step when the suggested method changes before the goal).
   Before your first XP drop it estimates from the suggested method's XP per action ("~1,240"). Combat
-  goals count kills of the monster you're fighting, from its hitpoints ("Kills: ~240").
+  goals count kills of the monster you're fighting, from its hitpoints ("Kills: ~240"), and show your kill
+  rate ("Kill rate: Sand Crab: 52/hr (1:09 each)"), where potions show up as faster kills.
 - **Suggested method** (every skill): a goal card shows the wiki training guide's method for your level
   and the level it lasts to ("Train: Teak trees to 62"; hover it for every step to the goal); Slayer
   suggests the best Slayer master. Methods whose quests or other levels you don't have yet are skipped, and at
@@ -126,7 +127,7 @@ work a resource.
   making things; gathering is free) or **Money Maker** (the most profitable wiki money making guide you
   can do). Where the method is a tree,
   rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
-- **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill (or any monster for a
+- **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill (or any monster, the Gemstone Crab too, for a
   combat goal, which also sets what kills are counted on) to outline that
   instead of the suggestion ("Tracking: ... (your pick)"); **Use suggested method** on the card goes back.
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and

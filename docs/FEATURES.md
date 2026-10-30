@@ -265,7 +265,8 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   world.
 - **Train something else:** right-click a Hunter creature, pickpocket NPC, fishing spot, tree, rock or
   stall for a skill you have a goal in, or any monster while a combat skill has a goal, and choose
-  **Track for goal** (a monster counts for every combat skill with a goal, and its kills are counted). That's outlined instead of the
+  **Track for goal** (offered whenever that skill has a goal; a monster, the Gemstone Crab included, counts for
+  every combat skill with a goal, and its kills are counted, except the crab's, which burrows rather than dies). That's outlined instead of the
   suggestion and the card says "Tracking: Ruby harvest (your pick)". **Untrack for goal** on it, or
   **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
   a goal are ever outlined.
@@ -297,11 +298,15 @@ method changes before the goal it counts to the end of the step you're on; hover
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
 picked with Track for goal, or can make from your items), shown with a "~". Attack, Strength, Defence,
 Ranged and Hitpoints goals count **kills** instead ("Kills: ~240"): XP per kill from the hitpoints of
-the monster you last fought (else your Track for goal pick, else the suggested monster), at the XP per
+your Track for goal pick (else the monster you last fought, else the suggested one), at the XP per
 damage of your combat style: 4 in the skill it trains, 4/3 each to Attack, Strength and Defence in
 Controlled, 2 each to Ranged and Defence in Longrange, 1 to Defence by defensive casting, 4/3 to Hitpoints
 (a style that doesn't train the skill counts as 4, as if you switched to one); hover the count to see which
 monster. A Gemstone Crab has no kill count.
+Combat goal cards (and the pinned overlay) also show your **Kill rate** on your Track for goal pick (else what
+you killed last), e.g. "Kill rate: Sand Crab: 52/hr (1:09 each)", over your kills in the last hour once you've
+killed it twice. Potions and better gear show up here as faster kills; they don't change the kills a goal needs
+(combat XP comes from damage, and a kill can only take its hitpoints).
 
 ---
 
