@@ -91,6 +91,17 @@ class RecipeData {
         return recipes.containsKey(skill.name());
     }
 
+    /** This skill's recipes that use an item (any case) as a material. */
+    List<Recipe> using(Skill skill, String item) {
+        List<Recipe> out = new ArrayList<>();
+        for (Recipe recipe : recipes.getOrDefault(skill.name(), Collections.emptyList())) {
+            if (GoalItems.uses(recipe, item)) {
+                out.add(recipe);
+            }
+        }
+        return out;
+    }
+
     /**
      * The best thing to make at this level from what you have (lower-case item name -> count), scored by
      * {@code score} (XP or profit per action); null if you can't make anything.

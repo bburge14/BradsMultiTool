@@ -258,7 +258,7 @@ class TrainingAdvisor {
      */
     double estimatedXpEach(Skill skill, int level) {
         String target = plugin.getGoalTarget(skill);
-        if (target != null) {
+        if (target != null && !target.startsWith("item:")) {
             String name = SkillTracker.goalTargetName(target);
             if (target.startsWith("object:")) {
                 SkillingData.Resource resource = skilling.object(-1, name);

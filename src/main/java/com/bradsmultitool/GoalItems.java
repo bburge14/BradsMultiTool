@@ -3,8 +3,11 @@ package com.bradsmultitool;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
@@ -28,15 +31,13 @@ import net.runelite.client.game.ItemManager;
 @Singleton
 class GoalItems {
 
-    private static final String SHARDS = "Blessed bone shards";
-    private static final double SUNFIRE_SHARD_XP = 6;
-
     private final Client client;
     private final SkillTracker plugin;
     private final SkillTrackerConfig config;
     private final RecipeData recipes;
     private final ItemManager itemManager;
     private final ItemPrices prices;
+    private final PluginIdentity identity;
 
     private final Map<String, Integer> bank = new HashMap<>();
     // Replaced whole after each update, so readers (the panel, the item overlay) never see a half-built map
@@ -53,13 +54,14 @@ class GoalItems {
 
     @Inject
     GoalItems(Client client, SkillTracker plugin, SkillTrackerConfig config, RecipeData recipes,
-              ItemManager itemManager, ItemPrices prices) {
+              ItemManager itemManager, ItemPrices prices, PluginIdentity identity) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
         this.recipes = recipes;
         this.itemManager = itemManager;
         this.prices = prices;
+        this.identity = identity;
     }
 
     /** What to make for this skill's goal, or null. */
@@ -117,16 +119,54 @@ class GoalItems {
         return at == words.length;
     }
 
-    /** XP per action of this skill's suggestion: blessed bone shards give 6 with sunfire wine on you, not 5. */
+    /** XP per action of this skill's suggestion, by your Prayer method (an altar, sunfire wine). */
     double xpEach(Skill skill) {
         RecipeData.Recipe make = suggestion(skill);
+        return make == null ? 0 : xp(make);
+    }
+
+    /**
+     * XP for one of a recipe: for Prayer by how you train it (bones at an altar give several times their
+     * burying XP; blessed bone shards 5 with blessed wine, 6 with sunfire wine).
+     */
+    double xp(RecipeData.Recipe recipe) {
+        PrayerMethod method = prayerMethod(recipe);
+        if (method == null) {
+            return recipe.xp;
+        }
+        return method.shards ? method.shardXp : recipe.xp * method.multiplier;
+    }
+
+    /**
+     * How you train this Prayer recipe: what you picked with "Track for goal", else burying for bones and, for
+     * shards, the wine you carry. Null for anything else (ashes, other skills).
+     */
+    PrayerMethod prayerMethod(RecipeData.Recipe recipe) {
+        if (recipe == null) {
+            return null;
+        }
+        boolean shards = PrayerMethod.isShards(recipe);
+        if (!shards && !PrayerMethod.isBones(recipe)) {
+            return null;
+        }
+        PrayerMethod picked = plugin.getPrayerMethod(shards);
+        if (picked != null) {
+            return picked;
+        }
+        if (shards) {
+            return carried("Jug of blessed sunfire wine") > 0 ? PrayerMethod.SUNFIRE_WINE : PrayerMethod.BLESSED_WINE;
+        }
+        return PrayerMethod.BURY;
+    }
+
+    /** The tools this skill's suggestion needs: its recipe's, or for Prayer its method's (a pot at the Ectofuntus). */
+    List<String> tools(Skill skill) {
+        RecipeData.Recipe make = suggestion(skill);
         if (make == null) {
-            return 0;
+            return Collections.emptyList();
         }
-        if (make.materials.containsKey(SHARDS) && carried("Jug of blessed sunfire wine") > 0) {
-            return SUNFIRE_SHARD_XP;
-        }
-        return make.xp;
+        PrayerMethod method = prayerMethod(make);
+        return method != null ? method.tools : make.tools;
     }
 
     /** The tooltip for an item that's a material for a goal suggestion, or null. */
@@ -157,7 +197,7 @@ class GoalItems {
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
-        if ("bradsmultitool".equals(event.getGroup())) {
+        if (identity.configGroup.equals(event.getGroup())) {
             dirty = true;
         }
     }
@@ -194,9 +234,20 @@ class GoalItems {
             // Prayer: whatever's worth the most XP in all (4,000 bone shards beat ten dragon bones); you offer
             // everything you have, so XP per item isn't the point there
             boolean total = skill == Skill.PRAYER && !perXp && !byProfit;
-            RecipeData.Recipe best = recipes.best(skill, client.getRealSkillLevel(skill), have,
-                recipe -> total ? recipe.xp * recipe.makeable(have)
-                    : perXp ? prices.profit(recipe) / recipe.xp : byProfit ? prices.profit(recipe) : recipe.xp);
+            ToDoubleFunction<RecipeData.Recipe> score = recipe -> {
+                double xp = xp(recipe);
+                PrayerMethod method = prayerMethod(recipe);
+                return total ? xp * recipe.makeable(have) / (method != null ? method.bonesUsedEach() : 1)
+                    : perXp ? prices.profit(recipe) / xp : byProfit ? prices.profit(recipe) : xp;
+            };
+            // Your "Track for goal" item: only what uses it, shown even when you've run out
+            String item = itemTarget(skill);
+            Predicate<RecipeData.Recipe> allowed = item == null ? r -> true : r -> uses(r, item);
+            int level = client.getRealSkillLevel(skill);
+            RecipeData.Recipe best = recipes.best(skill, level, have, score, allowed);
+            if (best == null && item != null) {
+                best = recipes.best(skill, level, null, score, allowed);
+            }
             if (best == null) {
                 continue;
             }
@@ -209,6 +260,22 @@ class GoalItems {
         this.suggestions = suggestions;
         this.counts = counts;
         this.highlighted = highlighted;
+    }
+
+    // The item you picked with "Track for goal" (lower-case), or null
+    private String itemTarget(Skill skill) {
+        String target = plugin.getGoalTarget(skill);
+        return target != null && target.startsWith("item:") ? target.substring(5) : null;
+    }
+
+    /** Whether a recipe uses this item (lower-case name) as a material. */
+    static boolean uses(RecipeData.Recipe recipe, String item) {
+        for (String material : recipe.materials.keySet()) {
+            if (material.equalsIgnoreCase(item)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void count(ItemContainer container, Map<String, Integer> into) {

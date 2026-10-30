@@ -61,7 +61,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Coin pouch full, batch complete alerts | OK. Notifications only |
 | Skill tracker goals and auto-pause | OK. Same as the core XP Tracker |
 | Pinned skill overlay (one skill on screen, Unpin via the overlay's own menu) | OK. Like the core XP Tracker's on-screen skill boxes; overlay menu entry only |
-| "Track for goal" right-click option on skilling NPCs/objects | OK. Adds a RUNELITE-type menu entry that only changes what we outline (like core NPC Indicators' Tag); never acts in game, never removes or reorders game options |
+| "Track for goal" right-click option on skilling NPCs/objects, and on inventory/bank items (with a submenu of Prayer methods) | OK. Adds a RUNELITE-type menu entry that only changes what we outline (like core NPC Indicators' Tag); never acts in game, never removes or reorders game options |
 | Goal items: outline in inventory/bank the materials of the best thing to make for a goal, with a tooltip | OK. Same as core Inventory Tags / Bank Tags style highlighting; reads containers only, never moves or uses items |
 | Training Focus (fastest / other / cheapest / money maker) | OK. Wiki guide data and GE prices via ItemManager; suggestions only |
 | Suggested training method on goal cards, outline of that method's trees/rocks/stalls/NPCs | OK. Wiki guide text plus object/NPC outlines (like core Object Markers / NPC Indicators); never clicks or moves the player |

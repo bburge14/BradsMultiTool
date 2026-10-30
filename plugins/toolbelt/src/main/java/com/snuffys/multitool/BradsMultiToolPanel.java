@@ -621,7 +621,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
                 String target = plugin.getGoalTarget(skill);
                 if (target != null) {
-                    lines.add(label("Tracking:") + SkillTracker.goalTargetName(target) + " " + label("(your pick)"));
+                    lines.add(label("Tracking:") + plugin.describeGoalTarget(skill) + " " + label("(your pick)"));
                 } else if (skill == Skill.SLAYER) {
                     slayerSuggestion(lines);
                 } else {

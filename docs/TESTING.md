@@ -92,6 +92,9 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Hunter goal: the suggested creatures are outlined.
 - [ ] Hunter goal: right-click a different creature > Track for goal; it's outlined instead and the card says Tracking: ... (your pick). Untrack / Use suggested method restores the suggestion.
 - [x] No Track for goal option on things whose skill has no goal.
+- [ ] Prayer goal: right-click bones in the inventory > Track for goal > Gilded altar; the card says Tracking: Dragon bones (Gilded altar), Offer: ..., and the actions left drop to about a third. Green marks the current pick; Untrack for goal is at the bottom (check the list's order).
+- [ ] Prayer goal: right-click blessed bone shards > Track for goal > Sunfire wine; tools list the sunfire wine and XP each is 6.
+- [ ] Cooking goal: right-click raw fish in the bank > Track for goal; the card says Cook: that fish.
 - [ ] Card > Pin to screen shows the skill overlay; pinning another skill replaces it; overlay right-click > Unpin removes it; stays pinned after a restart.
 - [ ] Training Focus: Money maker shows Money: <guide> (~X/hr); Cheapest shows Cheapest: <recipe> (gp/xp) for making skills and the fastest method for gathering; Other methods changes the guide method.
 - [x] Clear goal moves the card back under THIS SESSION (or removes it if untrained).

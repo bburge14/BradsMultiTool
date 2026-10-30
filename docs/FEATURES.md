@@ -270,9 +270,21 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   suggestion and the card says "Tracking: Ruby harvest (your pick)". **Untrack for goal** on it, or
   **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
   a goal are ever outlined.
+- **Track an item:** right-click an item in your inventory or bank that a goal skill uses (logs for
+  Firemaking or Fletching, raw fish for Cooking, bones for Prayer) and choose **Track for goal**: the card
+  then works out what to make, the XP and the actions left from that item only, even once you've run out
+  ("(you have none)"). For Prayer it opens a list of how you train it, and your pick is kept:
+  - bones: **Bury** (100%), **Gilded altar** (350%, both burners lit), **Chaos altar** (the Wilderness
+    one: 350%, and half your bones are kept, so it's worth 7x per bone) or **Ectofuntus** (400%; you'll
+    need a pot and a bucket of slime per bone, listed as tools);
+  - blessed bone shards: **Blessed wine** (5 XP each) or **Sunfire wine** (6). Until you pick, it goes by
+    the wine you carry.
+  The card shows "Tracking: Dragon bones (Gilded altar)" and "Offer: Dragon bones (Gilded altar)". The
+  current pick is green in the list, and **Untrack for goal** at its bottom goes back to the suggestion
+  (the bones' method stays for next time).
 - For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
   Magic, Runecraft) and Prayer the card also says what to **Make** (or, by the item you use, **Cook**:
-  Raw karambwan, **Burn**: logs, **Use**: bones, ashes) and how many you have: the best thing you can make at your
+  Raw karambwan, **Burn**: logs, **Bury**/**Offer**: bones, **Scatter**: ashes) and how many you have: the best thing you can make at your
   level from what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
   materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
   Lobster". The bank counts once you've opened it this session.

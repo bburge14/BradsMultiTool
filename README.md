@@ -130,6 +130,10 @@ work a resource.
 - **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill (or any monster, the Gemstone Crab too, for a
   combat goal, which also sets what kills are counted on) to outline that
   instead of the suggestion ("Tracking: ... (your pick)"); **Use suggested method** on the card goes back.
+  Items work too: right-click logs, bones, raw fish... in your inventory or bank and the goal card works it
+  out from that item. For Prayer, bones open a list of **Bury**, **Gilded altar**, **Chaos altar** or
+  **Ectofuntus**, and blessed bone shards one of **Blessed wine** or **Sunfire wine**; the XP, actions left and
+  tools follow your pick ("Offer: Dragon bones (Gilded altar)").
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
   **Highlight Goal Items**).
