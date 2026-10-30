@@ -35,7 +35,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Don't modify other plugins' configs | OK. Reads the client's idle timeout, and reads (never changes) which plugins are enabled via `PluginManager.getPlugins()` / `isPluginEnabled()` so our timer pies can step aside for a dedicated timer plugin. Matched by class name, no reflection/annotations. Each plugin saves the defaults of its own settings (its own config group only) where nothing is saved yet (`ConfigDefaults`), through generated plain calls rather than reflection |
 | Third-party dependencies need hash verification | OK, none |
 | Repository licence: BSD 2-Clause | OK. `LICENSE` here and in every generated plugin repository |
-| Plugins talking to each other | OK. Only through RuneLite's `PluginMessage` events (`PluginFamily`): hello/here/bye, the Alerts plugin's voice settings, and which NPC the Skilling Helper's card shows (so PvM's card steps aside). No shared code, no reflection, and no reading or changing another plugin's config. Each plugin works alone with all its features |
+| Plugins talking to each other | OK. Only through RuneLite's `PluginMessage` events (`PluginFamily`): hello/here/bye, the Alerts plugin's voice settings, the voice and volume for Same Voice For All (each plugin then changes only its own settings), and which NPC the Skilling Helper's card shows (so PvM's card steps aside). No shared code, no reflection, and no reading or changing another plugin's config. Each plugin works alone with all its features |
 
 ## Feature rules (Jagex guidelines + rejected features)
 

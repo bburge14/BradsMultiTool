@@ -170,6 +170,8 @@ work a resource.
   announced.
 - Every alert has its own **Voice:** and **Chat:** switch in its section; **General** has the master
   switches, the voice and the volume.
+- With several of the separate plugins, **Same Voice For All** keeps them on one voice and volume: change it
+  in any of them (turn it off in one to give it its own).
 - 10 voices (pre-recorded, so they work on any OS): Amy and Cori (US and UK women), Alan,
   Ryan and John (UK and US men), Arctic (a Scottish man), L2 Arctic (a man with a Mandarin Chinese accent), Wise Old Man, TzHaar and Ghost, or **Random** for a different
   one each alert. Changing the voice plays a sample.

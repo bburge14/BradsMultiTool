@@ -34,6 +34,9 @@ message uses the same words as the voice line, with details in brackets.
   Old Man, TzHaar, Ghost) or **Random** (a different one each alert). Changing it plays a sample.
 - Each alert also has its own **Voice: ...** and **Chat: ...** switch in its section. Turning a Voice
   switch on plays that line as a preview.
+- **General > Same Voice For All** (on by default): with several of Snuffy's plugins installed, changing the
+  voice or volume in one changes it in the others too, and one you install later picks it up. Turn it off in a
+  plugin to give that plugin its own voice.
 
 **Good to know:** No alert fires before you click "Click here to play", and anything already true when
 you log in (low prayer, poisoned...) isn't announced.

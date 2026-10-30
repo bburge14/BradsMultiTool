@@ -88,6 +88,12 @@ Rules that keep the split working:
   where they work together (above).
 - RuneLite only shows settings sections an interface declares itself, so the common sections are repeated in
   each plugin's settings and every section in `BradsMultiToolConfig` (`MultiToolConfigTest` checks).
+- RuneLite caches settings by their Java method, not by plugin (`ConfigInvocationHandler`), so separate plugins
+  inheriting a setting from a shared interface (`CommonConfig`, `BuffConfig`) would all read whichever plugin's
+  value was read first. Each plugin's settings interface re-declares the shared settings in a generated block
+  (`scripts/generate_config_defaults.py`, its `SHARED` list); `VoiceSyncTest` checks each plugin reads its own.
+- Same Voice For All (`VoiceSync`): changing the voice or volume in one plugin sends a "voice-sync" message, and
+  the others change their own settings to match; one that starts later takes it on "hello".
 - RuneLite also only saves the defaults of settings an interface declares itself, and the settings panel can't
   open with a choice (enum) setting that has nothing saved. So each feature saves its settings' defaults at
   start through `ConfigDefaults` and the generated `*ConfigDefaults` classes: after adding or renaming a setting,

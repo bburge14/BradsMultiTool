@@ -13,6 +13,7 @@ final class CommonConfigDefaults {
         defaults.store("voicePersona", config.voicePersona());
         defaults.store("voiceVolume", config.voiceVolume());
         defaults.store("voiceEnabled", config.voiceEnabled());
+        defaults.store("syncVoice", config.syncVoice());
         defaults.store("sendChatMessages", config.sendChatMessages());
         defaults.store("characterIdleAlert", config.characterIdleAlert());
         defaults.store("characterIdleSeconds", config.characterIdleSeconds());

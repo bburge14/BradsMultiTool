@@ -131,6 +131,12 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Count Over Head sits just above the head.
 - [x] All off: nothing shows and no sound.
 
+## Same Voice For All (`runBrad "-Pload=separate"`)
+- [ ] Change the Voice Persona in one plugin: the others' settings show the same voice, and only one sample plays.
+- [ ] Voice Volume follows the same way.
+- [ ] Turn Same Voice For All off in one plugin: changing its voice leaves the others alone, and theirs leave it alone.
+- [ ] Each plugin keeps its own other General/Idle settings (e.g. AFK Alert off in one, on in another).
+
 ## Idle
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
 - [x] No AFK alert after logging in without doing anything (login's XP report isn't training).
