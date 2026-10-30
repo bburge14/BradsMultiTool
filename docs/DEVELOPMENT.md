@@ -35,7 +35,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
 | `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing, fishing spots (every spot type by NPC id) |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](../VOICE_CREDITS.md)) |
-| `icons/` (sidebar tab), `assets/hub/` and `icon.png` (Plugin Hub icons) | `update_icons.py` (needs Pillow) | The logos in `assets/` (MultiTool, Skilling, PvM, GemCrab, Alerts for Voices) |
+| `icons/skilltracker.png` (the tracker's sidebar tab: the Skilling logo, in the all-in-one too), `assets/hub/` and `icon.png` (Plugin Hub icons) | `update_icons.py` (needs Pillow) | The logos in `assets/` (MultiTool, Skilling, PvM, GemCrab, Alerts for Voices) |
 
 ## Planned: separate plugins
 
@@ -45,7 +45,7 @@ from it (see "Publishing the separate plugins" below).
 
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
-| **Snuffy's Skill Tracker** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
+| **Snuffy's Skilling Helper** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
 | **Snuffy's PvM & Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (buffs, potions, health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `shared` |
 | **Snuffy's Gemstone Crab** | Crab HUD, outlines, radar and alerts | `gemcrab` (crab moved, about to burrow) + `shared` |
 | **Snuffy's Voices** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
@@ -57,7 +57,7 @@ PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card an
 | Plugin | Plugin class | Feature (what it starts) | Settings (group) | Its state |
 |---|---|---|---|---|
 | Multi-Tool (all-in-one) | `BradsMultiToolPlugin` | all four below, joined up | `BradsMultiToolConfig` (`bradsmultitool`, extends the three below) | |
-| Skill Tracker | `SkillTrackerPlugin` | `SkillTrackerFeature` | `SkillTrackerConfig` (`snuffysskilltracker`) | `SkillTracker` |
+| Skilling Helper | `SkillTrackerPlugin` | `SkillTrackerFeature` | `SkillTrackerConfig` (`snuffysskillinghelper`) | `SkillTracker` |
 | PvM & Slayer | `PvmPlugin` | `PvmFeature` | `PvmConfig` (`snuffyspvm`) | `PvmTracker`, `SlayerTracker` |
 | Gemstone Crab | `GemCrabPlugin` | `GemCrabFeature` | `GemCrabConfig` (`snuffysgemcrab`) | `GemCrabTracker` |
 | Voices | `VoicesPlugin` | `VoicesFeature` | `VoicesConfig` (`snuffysvoices`) | |
@@ -104,7 +104,7 @@ and pushes each plugin to its repository:
 | Plugin | Repository |
 |---|---|
 | Snuffy's Multi-Tool | `bburge14/snuffys-multi-tool` |
-| Snuffy's Skill Tracker | `bburge14/snuffys-skill-tracker` |
+| Snuffy's Skilling Helper | `bburge14/snuffys-skilling-helper` |
 | Snuffy's PvM & Slayer | `bburge14/snuffys-pvm-slayer` |
 | Snuffy's Gemstone Crab | `bburge14/snuffys-gemstone-crab` |
 | Snuffy's Voices | `bburge14/snuffys-voices` |

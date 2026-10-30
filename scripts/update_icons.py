@@ -5,7 +5,8 @@ Usage: python3 scripts/update_icons.py   (needs Pillow: pip install pillow)
 
 - assets/hub/<plugin>.png: each plugin's Plugin Hub icon (within the Hub's 48x72 limit); split_plugins.py puts
   it at the root of the plugin's repository as icon.png. The all-in-one's is also icon.png here.
-- src/main/resources/com/bradsmultitool/icons/<plugin>.png: the sidebar tab icon (16x16).
+- src/main/resources/com/bradsmultitool/icons/skilltracker.png: the Skill Tracker's sidebar tab icon (16x16),
+  the Skilling logo, in the all-in-one too.
 """
 import os
 
@@ -47,7 +48,8 @@ def main():
     for plugin, name in LOGOS.items():
         logo = badge(name)
         hub_icon(logo).save(os.path.join(ASSETS, "hub", plugin + ".png"), optimize=True)
-        fit(logo, TAB_SIZE, TAB_SIZE).save(os.path.join(TAB_DIR, plugin + ".png"), optimize=True)
+    # The only sidebar tab is the Skill Tracker's
+    fit(badge(LOGOS["skilltracker"]), TAB_SIZE, TAB_SIZE).save(os.path.join(TAB_DIR, "skilltracker.png"), optimize=True)
     hub_icon(badge(LOGOS["multitool"])).save(os.path.join(ROOT, "icon.png"), optimize=True)
     print("Wrote Hub icons to assets/hub/, icon.png, and tab icons to %s" % os.path.relpath(TAB_DIR, ROOT))
 

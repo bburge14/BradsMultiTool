@@ -77,7 +77,7 @@ RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't st
 Timer Plugins). XP rates on the cards only show while you're training that skill. Inventory full is announced while you
 work a resource.
 
-### Snuffy's Skill Tracker (sidebar)
+### Snuffy's Skilling Helper (sidebar)
 - A card per skill you train: XP gained, XP to next level, actions left (from your last XP drop; not for
   combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar. Each field has its
   own switch.

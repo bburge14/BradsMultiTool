@@ -32,7 +32,7 @@ PLUGINS = {
         "voices": ["skilling", "pvm", "gemcrab", "shared"],
     },
     "skilltracker": {
-        "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "repo": "snuffys-skill-tracker",
+        "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "repo": "snuffys-skilling-helper",
         "voices": ["skilling", "shared"],
     },
     "pvm": {
@@ -117,7 +117,7 @@ def data_files(names):
         files.update(re.findall(r'RESOURCE = "([^"]+)"', text))
         if 'loadImageResource(SlayerData.class, "slayer/"' in text:
             files.add("slayer/")
-        if 'loadImageResource(SkillTracker.class, "icons/"' in text:
+        if 'loadImageResource(SkillTracker.class, "icons/' in text:
             files.add("icons/")
     return files
 
@@ -152,11 +152,7 @@ def build(plugin_id):
             f.write(text)
     for data in sorted(data_files(names)):
         source = os.path.join(RES, data)
-        if data == "icons/":
-            # Only this plugin's own sidebar icon
-            os.makedirs(os.path.join(res_out, "icons"))
-            shutil.copy2(os.path.join(source, plugin_id + ".png"), os.path.join(res_out, "icons", plugin_id + ".png"))
-        elif data.endswith("/"):
+        if data.endswith("/"):
             shutil.copytree(source, os.path.join(res_out, data))
         else:
             shutil.copy2(source, os.path.join(res_out, data))

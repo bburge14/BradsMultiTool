@@ -12,8 +12,8 @@ import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
-/** Snuffy's Skill Tracker: the tracker, goals and suggestions, and the skilling helpers. */
-@ConfigGroup("snuffysskilltracker")
+/** Snuffy's Skilling Helper: the tracker, goals and suggestions, and the skilling helpers. */
+@ConfigGroup("snuffysskillinghelper")
 public interface SkillTrackerConfig extends CommonConfig {
 
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself

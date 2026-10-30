@@ -132,7 +132,7 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         JPanel titles = new JPanel(new GridLayout(2, 1));
         titles.setOpaque(false);
-        JLabel title = new JLabel("Snuffy's Skill Tracker");
+        JLabel title = new JLabel("Snuffy's Skilling Helper");
         title.setFont(FontManager.getRunescapeBoldFont());
         title.setForeground(ACCENT_COLOR);
         JLabel subtitle = new JLabel("XP, goals and training");

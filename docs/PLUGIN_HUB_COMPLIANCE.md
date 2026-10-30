@@ -13,7 +13,7 @@ Last checked: 2026-10-28.
 
 ## Planned split
 
-The multi-tool will also be published as separate plugins (Snuffy's Skill Tracker, PvM & Slayer, Gemstone
+The multi-tool will also be published as separate plugins (Snuffy's Skilling Helper, PvM & Slayer, Gemstone
 Crab and an optional Voices plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
 its own data files, overlay(s) and config section, talking to the rest only through small shared helpers
 (voice alerts, chat messages, cursor tooltip).

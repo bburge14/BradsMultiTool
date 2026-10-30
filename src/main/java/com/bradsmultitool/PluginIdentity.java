@@ -8,7 +8,7 @@ final class PluginIdentity {
 
     /** The all-in-one Snuffy's Multi-Tool; its group is the original one, so saved settings carry over. */
     static final PluginIdentity MULTI_TOOL = new PluginIdentity("bradsmultitool", "Snuffy's Multi-Tool", "multitool");
-    static final PluginIdentity SKILL_TRACKER = new PluginIdentity("snuffysskilltracker", "Snuffy's Skill Tracker", "skilltracker");
+    static final PluginIdentity SKILL_TRACKER = new PluginIdentity("snuffysskillinghelper", "Snuffy's Skilling Helper", "skilltracker");
     static final PluginIdentity PVM = new PluginIdentity("snuffyspvm", "Snuffy's PvM & Slayer", "pvm");
     static final PluginIdentity GEM_CRAB = new PluginIdentity("snuffysgemcrab", "Snuffy's Gemstone Crab", "gemcrab");
     static final PluginIdentity VOICES = new PluginIdentity("snuffysvoices", "Snuffy's Voices", PluginFamily.VOICES);

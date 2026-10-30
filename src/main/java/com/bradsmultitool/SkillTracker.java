@@ -33,7 +33,7 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 
 /**
- * Snuffy's Skill Tracker: XP gained and rates per skill this session (auto-pausing idle skills), goals and
+ * Snuffy's Skilling Helper: XP gained and rates per skill this session (auto-pausing idle skills), goals and
  * their suggested training, the pinned skill, level-up alerts, and the sidebar panel that shows it all.
  * Goals, pins, training targets and focus are saved per account (RuneScape profile settings).
  */
@@ -90,9 +90,9 @@ class SkillTracker {
     void startUp() {
         panel = new BradsMultiToolPanel(this, config, skillIconManager);
         navButton = NavigationButton.builder()
-            .tooltip("Snuffy's Skill Tracker")
-            // This plugin's logo (the all-in-one's or the Skill Tracker's), made from assets/ by update_icons.py
-            .icon(ImageUtil.loadImageResource(SkillTracker.class, "icons/" + identity.familyId + ".png"))
+            .tooltip("Snuffy's Skilling Helper")
+            // The Skill Tracker's logo (also in the all-in-one: the tab is the tracker), made by update_icons.py
+            .icon(ImageUtil.loadImageResource(SkillTracker.class, "icons/skilltracker.png"))
             .priority(5)
             .panel(panel)
             .build();
