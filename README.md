@@ -93,9 +93,9 @@ work a resource.
   suggests the best Slayer master. Methods whose quests or other levels you don't have yet are skipped, and at
   low levels the card lists quests worth doing for that skill's XP. A **Needs:** line lists the tools it takes
   (green if you have them). Each skill's **Suggest** choice (right-click it, or when setting its
-  goal; otherwise the **Default Training Focus** setting) chooses what it
-  aims for: **Fastest XP**, the guide's **Other methods** (often AFK), **Cheapest** (fewest GP per XP when
-  making things; gathering is free) or **Money maker** (the most profitable wiki money making guide you
+  goal; otherwise the **Training Focus** setting) chooses what it
+  aims for: **Fastest**, the guide's other methods (**AFK / Other**), **Cheapest** (fewest GP per XP when
+  making things; gathering is free) or **Money Maker** (the most profitable wiki money making guide you
   can do). Where the method is a tree,
   rock, stall or pickpocket NPC, those are outlined in the world (**Highlight Suggested Method**).
 - **Track for goal**: right-click a creature, NPC, tree, rock or stall for a goal skill (or any monster for a
@@ -124,8 +124,8 @@ work a resource.
   announced.
 - Every alert has its own **Voice:** and **Chat:** switch in its section; **General** has the master
   switches, the voice and the volume.
-- 10 voices (pre-recorded, so they work on any OS): Amy (US female), Cori (UK female), Alan (UK male),
-  Ryan (US male), Arctic (Scottish male), L2 Arctic (Mandarin-accented male), John (US male), Wise Old Man, TzHaar and Ghost, or **Random** for a different
+- 10 voices (pre-recorded, so they work on any OS): Amy and Cori (US and UK women), Alan,
+  Ryan and John (UK and US men), Arctic (a Scottish man), L2 Arctic (a man with a Mandarin Chinese accent), Wise Old Man, TzHaar and Ghost, or **Random** for a different
   one each alert. Changing the voice plays a sample.
 - Chat messages use the same words as the voice line, with details in brackets.
 

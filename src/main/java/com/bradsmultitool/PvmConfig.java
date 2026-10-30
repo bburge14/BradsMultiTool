@@ -34,9 +34,9 @@ public interface PvmConfig extends CommonConfig {
     String idleSection = "idleSection";
 
     enum DpsTrackingMode {
-        PER_ENCOUNTER("Per Individual Monster"),
-        PER_TARGET_TYPE("Per Monster Type (Resets on different mob)"),
-        CONTINUOUS_SESSION("Continuous Session (Rolling average)");
+        PER_ENCOUNTER("Per Monster"),
+        PER_TARGET_TYPE("Per Type"),
+        CONTINUOUS_SESSION("Session");
 
         private final String name;
         DpsTrackingMode(String name) { this.name = name; }
@@ -322,7 +322,7 @@ public interface PvmConfig extends CommonConfig {
     @Range(min = 10, max = 48)
     @ConfigItem(
         keyName = "outOfPrayerTextSize",
-        name = "Out of Prayer Text Size",
+        name = "Out of Prayer Size",
         description = "How big the flashing OUT OF PRAYER message over your head is (16 is the game's bold text size)",
         section = prayerSection,
         position = 26
@@ -693,8 +693,8 @@ public interface PvmConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "dpsMode",
-        name = "DPS Tracking Mode",
-        description = "Per Individual Target vs Per Monster Type vs Continuous Session",
+        name = "DPS Mode",
+        description = "Per Monster: each monster you fight from scratch. Per Type: keeps going while you fight the same kind of monster, resets on a different one. Session: a rolling average over the whole session",
         section = pvmSection,
         position = 42
     )

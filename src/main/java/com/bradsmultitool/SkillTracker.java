@@ -321,7 +321,7 @@ class SkillTracker {
         updatePanelUI();
     }
 
-    /** What this skill's goal suggestions aim for: its own choice, else the Default Training Focus setting. */
+    /** What this skill's goal suggestions aim for: its own choice, else the Training Focus setting. */
     public SkillTrackerConfig.TrainingFocus getTrainingFocus(Skill skill) {
         SkillTrackerConfig.TrainingFocus own = getOwnTrainingFocus(skill);
         return own != null ? own : config.trainingFocus();

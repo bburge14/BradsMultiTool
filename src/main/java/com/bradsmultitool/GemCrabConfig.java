@@ -95,7 +95,7 @@ public interface GemCrabConfig extends CommonConfig {
     @Alpha
     @ConfigItem(
         keyName = "activeCrabColor",
-        name = "Active Crab Color",
+        name = "Crab Colour",
         description = "Soft translucent outline for active fighting crab",
         section = crabSection,
         position = 56
@@ -107,7 +107,7 @@ public interface GemCrabConfig extends CommonConfig {
     @Alpha
     @ConfigItem(
         keyName = "mineableShellColor",
-        name = "Mineable Shell Color",
+        name = "Shell (Mineable)",
         description = "Outline for a crab shell you can mine (you were in the top 16 damage dealers and have gems left)",
         section = crabSection,
         position = 57
@@ -119,7 +119,7 @@ public interface GemCrabConfig extends CommonConfig {
     @Alpha
     @ConfigItem(
         keyName = "depletedShellColor",
-        name = "Unmineable Shell Color",
+        name = "Shell (Can't Mine)",
         description = "Outline for a crab shell you can't mine (not in the top 16 damage dealers, or already mined)",
         section = crabSection,
         position = 58
@@ -131,7 +131,7 @@ public interface GemCrabConfig extends CommonConfig {
     @Alpha
     @ConfigItem(
         keyName = "tunnelColor",
-        name = "Tunnel Color",
+        name = "Tunnel Colour",
         description = "Soft translucent outline for cave tunnels when crab is burrowed",
         section = crabSection,
         position = 59

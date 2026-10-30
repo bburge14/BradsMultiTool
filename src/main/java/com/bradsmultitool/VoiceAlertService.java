@@ -162,14 +162,14 @@ public class VoiceAlertService {
 
     /** Voice personas; each folder under resources/voices holds one clip per VoiceLine. */
     public enum VoicePersona {
-        AMY("Amy (US female)"),
-        CORI("Cori (UK female)"),
-        ALAN("Alan (UK male)"),
-        RYAN("Ryan (US male)"),
-        ARCTIC("Arctic (Scottish male)"),
-        L2ARCTIC("L2 Arctic (Mandarin-accented male)"),
+        AMY("Amy (US)"),
+        CORI("Cori (UK)"),
+        ALAN("Alan (UK)"),
+        RYAN("Ryan (US)"),
+        ARCTIC("Arctic (Scot)"),
+        L2ARCTIC("L2 Arctic"),
         // Character voices: Piper voices pitch-shifted with effects (see generate_voice_clips.py)
-        JOHN("John (US male)"),
+        JOHN("John (US)"),
         WISE_OLD_MAN("Wise Old Man"),
         TZHAAR("TzHaar"),
         GHOST("Ghost"),
