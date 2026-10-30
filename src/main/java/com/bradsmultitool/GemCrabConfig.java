@@ -12,7 +12,7 @@ import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
-/** Snuffy's Gemstone Crab: the crab HUD, outlines and alerts. */
+/** Snuffy's GemCrab Tracker: the crab HUD, outlines and alerts. */
 @ConfigGroup("snuffysgemcrab")
 public interface GemCrabConfig extends CommonConfig {
 

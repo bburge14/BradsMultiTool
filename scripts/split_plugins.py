@@ -28,7 +28,7 @@ OLD_PACKAGE = "com.bradsmultitool"
 # Each plugin: its plugin class, its package and repository, and which voice clip folders it ships
 PLUGINS = {
     "multitool": {
-        "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "repo": "snuffys-multi-tool",
+        "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "repo": "snuffys-toolbelt",
         "voices": ["skilling", "pvm", "gemcrab", "shared"],
     },
     "skilltracker": {
@@ -40,11 +40,11 @@ PLUGINS = {
         "voices": ["pvm", "shared"],
     },
     "gemcrab": {
-        "class": "GemCrabPlugin", "package": "com.snuffys.gemcrab", "repo": "snuffys-gemstone-crab",
+        "class": "GemCrabPlugin", "package": "com.snuffys.gemcrab", "repo": "snuffys-gemcrab-tracker",
         "voices": ["gemcrab", "shared"],
     },
     "voices": {
-        "class": "VoicesPlugin", "package": "com.snuffys.voices", "repo": "snuffys-voices",
+        "class": "VoicesPlugin", "package": "com.snuffys.voices", "repo": "snuffys-alerts",
         "voices": ["shared"],
     },
 }
@@ -91,9 +91,9 @@ README = """# %(title)s
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
 **%(title)s** and click **Install**. Its settings are under its name in the configuration panel.
 
-It's one of Snuffy's plugins: **Snuffy's Multi-Tool** has all of them in one, or install just the ones you want
-(Skilling Helper, PvM & Slayer, Gemstone Crab, and the optional Voices for one voice across them). Don't install
-the Multi-Tool together with the separate ones.
+It's one of Snuffy's plugins: **Snuffy's Toolbelt** has all of them in one, or install just the ones you want
+(Skilling Helper, PvM/Slayer, GemCrab Tracker, and the optional Alerts for one voice across them). Don't install
+the Toolbelt together with the separate ones.
 
 Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).
 

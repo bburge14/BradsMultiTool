@@ -6,9 +6,9 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-/** Snuffy's Voices on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
+/** Snuffy's Alerts on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
 @PluginDescriptor(
-    name = "Snuffy's Voices",
+    name = "Snuffy's Alerts",
     description = "One voice and volume for all of Snuffy's plugins, plus the idle and logout warnings",
     tags = {"snuffy", "voice", "alerts", "idle", "logout"}
 )

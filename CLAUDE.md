@@ -1,4 +1,4 @@
-# Snuffy's Multi-Tool — notes for Claude
+# Snuffy's Toolbelt — notes for Claude
 
 - This plugin will be published on the RuneLite Plugin Hub. Every change must pass its review:
   check docs/PLUGIN_HUB_COMPLIANCE.md before adding features or code, and update it when something
@@ -10,7 +10,7 @@
   rather than hand-editing.
 - The features will be split into separate plugins (docs/DEVELOPMENT.md "Planned: separate plugins"): keep each one
   self-contained: Snuffy's Skilling Helper (tracker, goals, suggestions and the skilling helpers), Snuffy's
-  PvM & Slayer, Snuffy's Gemstone Crab, and an optional Snuffy's Voices. Each plugin ships its own voice
+  PvM/Slayer, Snuffy's GemCrab Tracker, and an optional Snuffy's Alerts. Each plugin ships its own voice
   lines (voices/<voice>/<plugin>/, VoiceAlertService.VoicePlugin) and their settings sit with its feature.
 - docs/DEVELOPMENT.md "How the code is split" has the rules that keep each plugin standalone; after changes,
   run `python3 scripts/split_plugins.py --verify` (each plugin must compile on its own) as well as the tests.

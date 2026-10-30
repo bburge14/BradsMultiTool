@@ -12,7 +12,7 @@ import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
-/** Snuffy's PvM & Slayer: buffs, health, prayer, combat alerts, the PvM HUD and Slayer. */
+/** Snuffy's PvM/Slayer: buffs, health, prayer, combat alerts, the PvM HUD and Slayer. */
 @ConfigGroup("snuffyspvm")
 public interface PvmConfig extends CommonConfig {
 

@@ -6,7 +6,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 
 /**
- * Snuffy's Voices: sends its voice, volume and on/off to the other plugins of ours that are running (when it
+ * Snuffy's Alerts: sends its voice, volume and on/off to the other plugins of ours that are running (when it
  * starts, when one of them starts, and when you change them), so they all speak the same way.
  */
 @Singleton

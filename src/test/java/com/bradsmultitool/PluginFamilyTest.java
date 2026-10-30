@@ -61,7 +61,7 @@ public class PluginFamilyTest {
         voices.start();
         assertFalse(pvm.handlesShared());
         assertTrue(voices.handlesShared());
-        // With the all-in-one installed it says them, tagged Snuffy's Multi-Tool
+        // With the all-in-one installed it says them, tagged Snuffy's Toolbelt
         multiTool.start();
         assertTrue(multiTool.handlesShared());
         assertFalse(voices.handlesShared());

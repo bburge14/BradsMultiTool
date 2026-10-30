@@ -31,7 +31,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.util.Text;
 
 /**
- * PvM & Slayer's one-shot alerts: special attack, antifire, poison and venom, stamina, ammo, runes, cannon,
+ * PvM/Slayer's one-shot alerts: special attack, antifire, poison and venom, stamina, ammo, runes, cannon,
  * superior and Slayer task complete. Timer units follow RuneLite's Timers plugin.
  */
 @Singleton

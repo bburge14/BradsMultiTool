@@ -1,7 +1,7 @@
-# Snuffy's Multi-Tool: feature guide
+# Snuffy's Toolbelt: feature guide
 
 Every feature, what it does, how to use it and where its settings are. Settings are in RuneLite's
-configuration panel (the wrench icon) under **Snuffy's Multi-Tool**; each section below names the settings
+configuration panel (the wrench icon) under **Snuffy's Toolbelt**; each section below names the settings
 section to open. All sections except General start collapsed.
 
 - [Alerts (all of them)](#alerts-all-of-them)
@@ -214,7 +214,7 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 
 ## Skill tracker
 
-*Snuffy's Skilling Helper: the sidebar panel (its own plugin once the multi-tool is split).*
+*Snuffy's Skilling Helper: the sidebar panel (its own plugin once the Toolbelt is split).*
 
 **What it does:** A sidebar panel (the plugin's icon on RuneLite's sidebar) with a card per skill you
 train, laid out like RuneLite's XP tracker: XP gained, XP left, actions left (from your last XP drop; not

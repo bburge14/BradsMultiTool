@@ -123,7 +123,7 @@ public class VoiceAlertService {
     enum VoicePlugin {
         /** Skill Tracker (with the skilling helpers): skilling alerts and level-ups. */
         SKILLING("skilling"),
-        /** PvM & Slayer: buffs, potions, health, prayer, combat and Slayer alerts. */
+        /** PvM/Slayer: buffs, potions, health, prayer, combat and Slayer alerts. */
         PVM("pvm"),
         GEM_CRAB("gemcrab"),
         /** Idle and logout warnings: every plugin carries these. */

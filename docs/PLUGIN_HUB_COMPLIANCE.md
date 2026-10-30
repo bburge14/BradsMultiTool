@@ -1,6 +1,6 @@
 # Plugin Hub & Jagex compliance
 
-Snuffy's Multi-Tool is meant to be published on the RuneLite Plugin Hub, so every feature and every line of
+Snuffy's Toolbelt is meant to be published on the RuneLite Plugin Hub, so every feature and every line of
 code has to pass the Plugin Hub review. This file tracks the rules and where the plugin stands. Check it
 before adding a feature, and update it when something changes.
 
@@ -13,8 +13,8 @@ Last checked: 2026-10-28.
 
 ## Planned split
 
-The multi-tool will also be published as separate plugins (Snuffy's Skilling Helper, PvM & Slayer, Gemstone
-Crab and an optional Voices plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
+The Toolbelt will also be published as separate plugins (Snuffy's Skilling Helper, PvM/Slayer, GemCrab
+Tracker and an optional Alerts plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
 its own data files, overlay(s) and config section, talking to the rest only through small shared helpers
 (voice alerts, chat messages, cursor tooltip).
 

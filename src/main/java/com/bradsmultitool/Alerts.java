@@ -18,7 +18,7 @@ import net.runelite.client.events.ConfigChanged;
 
 /**
  * Spoken and chat alerts, shared by every feature: each alert's voice and chat switches, the voice and volume
- * (the Voices plugin's while it runs, see PluginFamily), and holding everything back until you're really in
+ * (the Alerts plugin's while it runs, see PluginFamily), and holding everything back until you're really in
  * the game.
  */
 @Singleton
@@ -116,7 +116,7 @@ class Alerts {
         }
         String key = event.getKey();
         if ("voicePersona".equals(key) || "voiceVolume".equals(key)) {
-            // The voice just picked here, even while the Voices plugin sets the one alerts use; a line this
+            // The voice just picked here, even while the Alerts plugin sets the one alerts use; a line this
             // plugin ships (each plugin carries only its own clips)
             VoiceAlertService.VoicePersona persona = pick(config.voicePersona());
             List<VoiceAlertService.VoiceLine> lines = new ArrayList<>();
@@ -137,7 +137,7 @@ class Alerts {
         }
     }
 
-    // The Voices plugin's voice and volume while it's running (PluginFamily), else this plugin's settings
+    // The Alerts plugin's voice and volume while it's running (PluginFamily), else this plugin's settings
     private boolean voiceEnabled() {
         PluginFamily.VoiceSettings shared = family.voiceSettings();
         return shared != null ? shared.enabled : config.voiceEnabled();

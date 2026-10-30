@@ -1,4 +1,4 @@
-# Snuffy's Multi-Tool
+# Snuffy's Toolbelt
 
 A RuneLite plugin that bundles PvM, Gemstone Crab, Slayer and skilling helpers, alerts with voice lines,
 and a skill tracker into one place. Everything can be switched on or off in the plugin's settings.
@@ -18,20 +18,20 @@ Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just 
 
 | Plugin | What it has |
 |---|---|
-| **Snuffy's Multi-Tool** | Everything below, in one plugin |
+| **Snuffy's Toolbelt** | Everything below, in one plugin |
 | **Snuffy's Skilling Helper** | The sidebar tracker with goals and suggested training, the pinned skill, skilling hover cards, timer pies and skilling alerts |
-| **Snuffy's PvM & Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
-| **Snuffy's Gemstone Crab** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
-| **Snuffy's Voices** | Optional: one voice and volume for all of the separate plugins |
+| **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
+| **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
+| **Snuffy's Alerts** | Optional: one voice and volume for all of the separate plugins |
 
 **From the Plugin Hub** (once they're published there): in RuneLite open the **Plugin Hub** (the plug icon
-at the bottom of the configuration panel), search **Snuffy's**, and install either **Snuffy's Multi-Tool**
-or the separate plugins you want. Don't install the Multi-Tool together with the separate ones: you'd get
+at the bottom of the configuration panel), search **Snuffy's**, and install either **Snuffy's Toolbelt**
+or the separate plugins you want. Don't install the Toolbelt together with the separate ones: you'd get
 everything twice. Every plugin has the idle and logout warnings; with several installed they're said once.
 
-**Before they're on the Plugin Hub**, run the Multi-Tool from this repository with the steps under
+**Before they're on the Plugin Hub**, run the Toolbelt from this repository with the steps under
 [First-time setup](#first-time-setup-windows-powershell). Each separate plugin also has its own repository
-(`bburge14/snuffys-skilling-helper`, `-pvm-slayer`, `-gemstone-crab`, `-voices`, and `snuffys-multi-tool`); to
+(`bburge14/snuffys-skilling-helper`, `-pvm-slayer`, `-gemcrab-tracker`, `-alerts`, and `snuffys-toolbelt`); to
 try one on its own, clone it and run `.\gradlew.bat build` (it builds the same way the Plugin Hub does).
 
 ## Features
@@ -180,7 +180,7 @@ a browser window to sign in to GitHub.
 **3. (Optional) Desktop shortcut:** run this once to put a launch button on your desktop:
 
 ```powershell
-$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Multi-Tool.lnk")
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Toolbelt.lnk")
 $s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
 $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()

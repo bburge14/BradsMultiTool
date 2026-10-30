@@ -35,20 +35,20 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
 | `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing, fishing spots (every spot type by NPC id) |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](../VOICE_CREDITS.md)) |
-| `icons/skilltracker.png` (the tracker's sidebar tab: the Skilling logo, in the all-in-one too), `assets/hub/` and `icon.png` (Plugin Hub icons) | `update_icons.py` (needs Pillow) | The logos in `assets/` (MultiTool, Skilling, PvM, GemCrab, Alerts for Voices) |
+| `icons/skilltracker.png` (the tracker's sidebar tab: the Skilling logo, in the all-in-one too), `assets/hub/` and `icon.png` (Plugin Hub icons) | `update_icons.py` (needs Pillow) | The logos in `assets/` (MultiTool, Skilling, PvM, GemCrab, Alerts) |
 
 ## Planned: separate plugins
 
-Besides the all-in-one **Snuffy's Multi-Tool**, each feature is published as its own plugin. This
+Besides the all-in-one **Snuffy's Toolbelt**, each feature is published as its own plugin. This
 repository is where everything is worked on; `scripts/split_plugins.py` builds each plugin's own repository
 from it (see "Publishing the separate plugins" below).
 
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
 | **Snuffy's Skilling Helper** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
-| **Snuffy's PvM & Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (buffs, potions, health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `shared` |
-| **Snuffy's Gemstone Crab** | Crab HUD, outlines, radar and alerts | `gemcrab` (crab moved, about to burrow) + `shared` |
-| **Snuffy's Voices** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
+| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (buffs, potions, health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `shared` |
+| **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts | `gemcrab` (crab moved, about to burrow) + `shared` |
+| **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
 
 PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card and buff alerts.
 
@@ -56,11 +56,11 @@ PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card an
 
 | Plugin | Plugin class | Feature (what it starts) | Settings (group) | Its state |
 |---|---|---|---|---|
-| Multi-Tool (all-in-one) | `BradsMultiToolPlugin` | all four below, joined up | `BradsMultiToolConfig` (`bradsmultitool`, extends the three below) | |
+| Toolbelt (all-in-one) | `BradsMultiToolPlugin` | all four below, joined up | `BradsMultiToolConfig` (`bradsmultitool`, extends the three below) | |
 | Skilling Helper | `SkillTrackerPlugin` | `SkillTrackerFeature` | `SkillTrackerConfig` (`snuffysskillinghelper`) | `SkillTracker` |
-| PvM & Slayer | `PvmPlugin` | `PvmFeature` | `PvmConfig` (`snuffyspvm`) | `PvmTracker`, `SlayerTracker` |
-| Gemstone Crab | `GemCrabPlugin` | `GemCrabFeature` | `GemCrabConfig` (`snuffysgemcrab`) | `GemCrabTracker` |
-| Voices | `VoicesPlugin` | `VoicesFeature` | `VoicesConfig` (`snuffysvoices`) | |
+| PvM/Slayer | `PvmPlugin` | `PvmFeature` | `PvmConfig` (`snuffyspvm`) | `PvmTracker`, `SlayerTracker` |
+| GemCrab Tracker | `GemCrabPlugin` | `GemCrabFeature` | `GemCrabConfig` (`snuffysgemcrab`) | `GemCrabTracker` |
+| Voices | `VoicesPlugin` | `VoicesFeature` | `VoicesConfig` (`snuffysalerts`) | |
 
 Every plugin also starts `CommonFeature` (`Alerts`, `IdleWarnings`, `PluginFamily`) and uses `CommonConfig`
 (voice, chat, idle). `Lifecycle` subscribes, shows and loads each shared piece only once and undoes it all on
@@ -86,7 +86,7 @@ logout warnings) and keeps the switches for its lines in its own settings sectio
 belongs to; add new lines there too.
 
 The plugins find each other with RuneLite's `PluginMessage` events (`PluginFamily`, namespace `snuffys`):
-each says "hello" on start and "bye" on stop, and the others answer "here". The Voices plugin also sends
+each says "hello" on start and "bye" on stop, and the others answer "here". The Alerts plugin also sends
 "voice-settings" (persona, volume, on/off); while it runs, every plugin speaks with that voice and volume
 instead of its own (each plugin's own per-line switches still apply).
 
@@ -103,11 +103,11 @@ and pushes each plugin to its repository:
 
 | Plugin | Repository |
 |---|---|
-| Snuffy's Multi-Tool | `bburge14/snuffys-multi-tool` |
+| Snuffy's Toolbelt | `bburge14/snuffys-toolbelt` |
 | Snuffy's Skilling Helper | `bburge14/snuffys-skilling-helper` |
-| Snuffy's PvM & Slayer | `bburge14/snuffys-pvm-slayer` |
-| Snuffy's Gemstone Crab | `bburge14/snuffys-gemstone-crab` |
-| Snuffy's Voices | `bburge14/snuffys-voices` |
+| Snuffy's PvM/Slayer | `bburge14/snuffys-pvm-slayer` |
+| Snuffy's GemCrab Tracker | `bburge14/snuffys-gemcrab-tracker` |
+| Snuffy's Alerts | `bburge14/snuffys-alerts` |
 
 It needs a repository secret **SNUFFYS_PUSH_TOKEN**: a fine-grained personal access token with
 *Contents: Read and write* on those five repositories (GitHub > Settings > Developer settings > Fine-grained
