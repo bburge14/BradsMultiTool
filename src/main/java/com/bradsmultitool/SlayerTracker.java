@@ -73,8 +73,10 @@ class SlayerTracker {
 
     private final Client client;
     private final PvmConfig config;
-    // PvM holds this tracker too, so it's fetched when first needed
-    private final Provider<PvmTracker> pvm;
+    // PvM holds this tracker too, so it's filled in after this is made (a constructor cycle hangs RuneLite's
+    // Guice instead of failing) and fetched when first needed
+    @Inject
+    private Provider<PvmTracker> pvm;
 
     @Getter
     private String taskName = null;
@@ -87,10 +89,9 @@ class SlayerTracker {
     private boolean missingItemAlerted = false;
 
     @Inject
-    SlayerTracker(Client client, PvmConfig config, Provider<PvmTracker> pvm) {
+    SlayerTracker(Client client, PvmConfig config) {
         this.client = client;
         this.config = config;
-        this.pvm = pvm;
     }
 
     boolean hadTask() {

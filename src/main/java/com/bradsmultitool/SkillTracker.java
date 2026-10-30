@@ -52,9 +52,12 @@ class SkillTracker {
     private final SkillIconManager skillIconManager;
     private final TrainingData trainingData;
     private final SlayerData slayerData;
-    // These two look the tracker up in turn, so they're fetched when first needed
-    private final Provider<TrainingAdvisor> trainingAdvisor;
-    private final Provider<GoalItems> goalItems;
+    // These two look the tracker up in turn, so they're filled in after it's made (a constructor cycle hangs
+    // RuneLite's Guice instead of failing) and fetched when first needed
+    @Inject
+    private Provider<TrainingAdvisor> trainingAdvisor;
+    @Inject
+    private Provider<GoalItems> goalItems;
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
@@ -71,8 +74,7 @@ class SkillTracker {
 
     @Inject
     SkillTracker(Client client, SkillTrackerConfig config, ConfigManager configManager, PluginIdentity identity, Alerts alerts,
-                 ClientToolbar clientToolbar, SkillIconManager skillIconManager, TrainingData trainingData, SlayerData slayerData,
-                 Provider<TrainingAdvisor> trainingAdvisor, Provider<GoalItems> goalItems) {
+                 ClientToolbar clientToolbar, SkillIconManager skillIconManager, TrainingData trainingData, SlayerData slayerData) {
         this.client = client;
         this.config = config;
         this.configManager = configManager;
@@ -82,8 +84,6 @@ class SkillTracker {
         this.skillIconManager = skillIconManager;
         this.trainingData = trainingData;
         this.slayerData = slayerData;
-        this.trainingAdvisor = trainingAdvisor;
-        this.goalItems = goalItems;
     }
 
     /** Adds the tracker to the sidebar. */
