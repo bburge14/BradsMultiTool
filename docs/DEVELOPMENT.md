@@ -35,6 +35,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
 | `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing, fishing spots (every spot type by NPC id) |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](../VOICE_CREDITS.md)) |
+| `icons/` (sidebar tab), `assets/hub/` and `icon.png` (Plugin Hub icons) | `update_icons.py` (needs Pillow) | The logos in `assets/` (MultiTool, Skilling, PvM, GemCrab, Alerts for Voices) |
 
 ## Planned: separate plugins
 
@@ -94,8 +95,8 @@ instead of its own (each plugin's own per-line switches still apply).
 `python3 scripts/split_plugins.py --verify` writes each plugin to `build/split/<plugin>/` and compiles it on
 its own. For each plugin it takes, starting from its plugin class, every class it refers to (and so on), the
 data files those classes load, and its voice folders; renames the package (`com.snuffys.<plugin>`); and adds
-the Plugin Hub build files, `runelite-plugin.properties` (from the plugin's `@PluginDescriptor`), the BSD-2
-licence and a README.
+the Plugin Hub build files, `runelite-plugin.properties` (from the plugin's `@PluginDescriptor`), its Hub
+icon (`icon.png`, from `assets/hub/`), the BSD-2 licence and a README.
 
 The **Split plugins** GitHub Action (`.github/workflows/split-plugins.yml`) does that on every push to `main`
 and pushes each plugin to its repository:
