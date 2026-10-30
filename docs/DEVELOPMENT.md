@@ -40,8 +40,9 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 ## Planned: separate plugins
 
 Besides the all-in-one **Snuffy's Toolbelt**, each feature is published as its own plugin. This
-repository hosts them all: `main` is where everything is worked on, and `scripts/split_plugins.py` builds each
-plugin onto its own branch here (see "Publishing the separate plugins" below).
+repository holds them all: the code is written once in `src/` (which is also the Toolbelt), and
+`scripts/split_plugins.py` makes each plugin its own folder under `plugins/` (see "Building the separate plugins"
+below).
 
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
@@ -90,34 +91,33 @@ each says "hello" on start and "bye" on stop, and the others answer "here". The 
 "voice-settings" (persona, volume, on/off); while it runs, every plugin speaks with that voice and volume
 instead of its own (each plugin's own per-line switches still apply).
 
-## Publishing the separate plugins
+## Building the separate plugins
 
-`python3 scripts/split_plugins.py --verify` writes each plugin to `build/split/<plugin>/` and compiles it on
-its own. For each plugin it takes, starting from its plugin class, every class it refers to (and so on), the
-data files those classes load, and its voice folders; renames the package (`com.snuffys.<plugin>`); and adds
-the Plugin Hub build files, `runelite-plugin.properties` (from the plugin's `@PluginDescriptor`), its Hub
-icon (`icon.png`, from `assets/hub/`), the BSD-2 licence and a README.
+Each plugin has a folder under `plugins/`, generated from `src/` and committed, so merging into `main` brings
+them along:
 
-The **Split plugins** GitHub Action (`.github/workflows/split-plugins.yml`) does that on every push to `main`
-(or run it by hand from the Actions tab) and pushes each plugin to its own branch in this repository, which
-holds just that plugin at its root, the way the Plugin Hub builds it:
-
-| Plugin | Branch | Plugin Hub name |
+| Plugin | Folder | Jar |
 |---|---|---|
-| Snuffy's Toolbelt | `plugin/toolbelt` | `snuffys-toolbelt` |
-| Snuffy's Skilling Helper | `plugin/skilling-helper` | `snuffys-skilling-helper` |
-| Snuffy's PvM/Slayer | `plugin/pvm-slayer` | `snuffys-pvm-slayer` |
-| Snuffy's GemCrab Tracker | `plugin/gemcrab-tracker` | `snuffys-gemcrab-tracker` |
-| Snuffy's Alerts | `plugin/alerts` | `snuffys-alerts` |
+| Snuffy's Toolbelt | `plugins/toolbelt/` | `snuffys-toolbelt-<version>.jar` |
+| Snuffy's Skilling Helper | `plugins/skilling-helper/` | `snuffys-skilling-helper-<version>.jar` |
+| Snuffy's PvM/Slayer | `plugins/pvm-slayer/` | `snuffys-pvm-slayer-<version>.jar` |
+| Snuffy's GemCrab Tracker | `plugins/gemcrab-tracker/` | `snuffys-gemcrab-tracker-<version>.jar` |
+| Snuffy's Alerts | `plugins/alerts/` | `snuffys-alerts-<version>.jar` |
 
-It pushes with the Action's own token (no secret to set up). Don't edit the `plugin/` branches directly;
-changes there are overwritten.
+Each folder has only what its plugin uses: starting from its plugin class, every class it refers to (and so
+on), the data files those classes load, and its voice folders; the package renamed (`com.snuffys.<plugin>`);
+and its own build files in the Plugin Hub's layout, `runelite-plugin.properties` (from the plugin's
+`@PluginDescriptor`), icon (`icon.png`, from `assets/hub/`), the BSD-2 licence and a README. So each builds on
+its own (`gradlew build` in the folder).
 
-### Submitting to the Plugin Hub (not done yet)
+- `python3 scripts/split_plugins.py` rewrites the folders after a change in `src/` (never edit them by hand).
+- `--verify` also compiles each on its own; `--check` only says whether any folder is out of date.
+- `--build` also builds each jar into `releases/` (not committed), named with the version in `build.gradle`.
+  Bump that version for a new release.
 
-The Plugin Hub builds a plugin from a file in `runelite/plugin-hub`'s `plugins/` folder that names a
-repository and the commit to build: for each of ours, this repository and the commit on its `plugin/` branch.
-After pushing, the Action writes those files (`plugins/<Plugin Hub name>`, e.g. `snuffys-skilling-helper`) and keeps them as the **plugin-hub-entries** download on the run's page.
-To submit: fork `runelite/plugin-hub`, add the files under `plugins/`, and open a pull request; for an update,
-change the `commit=` line to the new one. `python3 scripts/split_plugins.py --hub-entry <plugin> <commit>`
-prints one by hand. Settle the open questions in docs/PLUGIN_HUB_COMPLIANCE.md first.
+### For the Plugin Hub later
+
+The Plugin Hub builds a plugin from the root of a repository, at a commit named in a file in
+`runelite/plugin-hub`'s `plugins/` folder (`repository=...` and `commit=...`). A `plugins/<folder>` here is
+already laid out that way, so publishing one means making that folder the root of a repository (its own, or a
+copy of it) and submitting that file. Settle the open questions in docs/PLUGIN_HUB_COMPLIANCE.md first.

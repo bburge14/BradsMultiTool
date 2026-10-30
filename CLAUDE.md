@@ -12,8 +12,9 @@
   self-contained: Snuffy's Skilling Helper (tracker, goals, suggestions and the skilling helpers), Snuffy's
   PvM/Slayer, Snuffy's GemCrab Tracker, and an optional Snuffy's Alerts. Each plugin ships its own voice
   lines (voices/<voice>/<plugin>/, VoiceAlertService.VoicePlugin) and their settings sit with its feature.
-- docs/DEVELOPMENT.md "How the code is split" has the rules that keep each plugin standalone; after changes,
-  run `python3 scripts/split_plugins.py --verify` (each plugin must compile on its own) as well as the tests.
+- docs/DEVELOPMENT.md "How the code is split" has the rules that keep each plugin standalone. The plugins/
+  folders are generated from src/ and committed: after changes, run `python3 scripts/split_plugins.py --verify`
+  (rewrites them; each must compile on its own) as well as the tests, and commit plugins/ too.
 - The brand players see is "Snuffy's". The code keeps its old names (package com.bradsmultitool, config
   group "bradsmultitool": renaming the group would wipe players' saved settings and goals).
 - README.md is for players: features and how to run it. Developer notes (data files, the plugin split,

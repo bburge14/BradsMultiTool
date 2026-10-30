@@ -4,7 +4,7 @@
 Usage: python3 scripts/update_icons.py   (needs Pillow: pip install pillow)
 
 - assets/hub/<plugin>.png: each plugin's Plugin Hub icon (within the Hub's 48x72 limit); split_plugins.py puts
-  it at the root of the plugin's plugin/ branch as icon.png. The Toolbelt's is also icon.png here.
+  it at the root of the plugin's folder under plugins/ as icon.png. The Toolbelt's is also icon.png here.
 - src/main/resources/com/bradsmultitool/icons/skilltracker.png: the Skill Tracker's sidebar tab icon (16x16),
   the Skilling logo, in the all-in-one too.
 """

@@ -10,3 +10,6 @@ out/
 *.log
 scripts/.piper-models/
 __pycache__/
+releases/
+plugins/*/build/
+plugins/*/.gradle/

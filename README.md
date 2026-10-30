@@ -30,9 +30,14 @@ or the separate plugins you want. Don't install the Toolbelt together with the s
 everything twice. Every plugin has the idle and logout warnings; with several installed they're said once.
 
 **Before they're on the Plugin Hub**, run the Toolbelt from this repository with the steps under
-[First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own branch here
-(`plugin/toolbelt`, `plugin/skilling-helper`, `plugin/pvm-slayer`, `plugin/gemcrab-tracker`, `plugin/alerts`)
-holding just that plugin, the way the Plugin Hub builds it.
+[First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own folder under
+[`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `alerts`) that builds on
+its own. `python3 scripts/split_plugins.py --build` makes all five jars in `releases/`.
+
+**Trying the jars with friends:** put the jar(s) in `.runelite/sideloaded-plugins` (create it next to
+`.runelite/settings.properties`) and start RuneLite in developer mode: in **RuneLite (configure)** add
+`--developer-mode` to the client arguments and `-ea` to the JVM options. RuneLite only loads sideloaded jars in
+developer mode.
 
 ## Features
 

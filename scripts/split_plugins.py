@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Build each of Snuffy's plugins the way the Plugin Hub builds it, from this repository.
+"""Make each of Snuffy's plugins its own folder under plugins/, and build their release jars.
 
 Usage:
-    python3 scripts/split_plugins.py                 # write build/split/<plugin>/ for every plugin
-    python3 scripts/split_plugins.py --verify        # ...and compile each one on its own
-    python3 scripts/split_plugins.py skilltracker    # just one
+    python3 scripts/split_plugins.py              # (re)write plugins/<folder>/ for every plugin
+    python3 scripts/split_plugins.py --verify     # ...and check each compiles on its own
+    python3 scripts/split_plugins.py --build      # ...and build each one's jar into releases/
+    python3 scripts/split_plugins.py --check      # are the plugins/ folders up to date? (changes nothing)
+    python3 scripts/split_plugins.py pvm          # just one (multitool, skilltracker, pvm, gemcrab, voices)
 
-main stays where everything is worked on. Each plugin's branch gets only what that plugin
-uses: starting from its plugin class, every class it refers to (and so on), the data files those classes
-load, and its voice clip folders (docs/DEVELOPMENT.md "Planned: separate plugins"). Its package is renamed
-(com.bradsmultitool -> com.snuffys.<plugin>) and it gets the Plugin Hub's build files, a
-runelite-plugin.properties, the licence and a short README. The GitHub Action in .github/workflows pushes the
-results to each plugin's branch here (plugin/<name>), which the Plugin Hub builds from.
+The code is written once, in src/ (which is also Snuffy's Toolbelt, the all-in-one). Each plugin's folder gets
+only what that plugin uses: starting from its plugin class, every class it refers to (and so on), the data
+files those classes load, and its voice clip folders (docs/DEVELOPMENT.md "Planned: separate plugins"). Its
+package is renamed (com.bradsmultitool -> com.snuffys.<plugin>) and it gets its own build files (the Plugin
+Hub's layout), runelite-plugin.properties, icon, licence and README, so each folder builds on its own. The
+folders are committed: regenerate them after changing src/, and don't edit them by hand.
 """
 import os
 import re
@@ -22,37 +24,34 @@ import sys
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "src", "main", "java", "com", "bradsmultitool")
 RES = os.path.join(ROOT, "src", "main", "resources", "com", "bradsmultitool")
-OUT = os.path.join(ROOT, "build", "split")
+OUT = os.path.join(ROOT, "plugins")
+RELEASES = os.path.join(ROOT, "releases")
 OLD_PACKAGE = "com.bradsmultitool"
 
-# Each plugin: its plugin class, package, Plugin Hub name, branch here, and which voice clip folders it ships
+# Each plugin: its plugin class, package, project name, folder under plugins/, and which voice clip folders it ships
 PLUGINS = {
     "multitool": {
-        "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "name": "snuffys-toolbelt", "branch": "plugin/toolbelt",
+        "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "name": "snuffys-toolbelt", "folder": "toolbelt",
         "voices": ["skilling", "pvm", "gemcrab", "shared"],
     },
     "skilltracker": {
-        "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "name": "snuffys-skilling-helper", "branch": "plugin/skilling-helper",
+        "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "name": "snuffys-skilling-helper", "folder": "skilling-helper",
         "voices": ["skilling", "shared"],
     },
     "pvm": {
-        "class": "PvmPlugin", "package": "com.snuffys.pvm", "name": "snuffys-pvm-slayer", "branch": "plugin/pvm-slayer",
+        "class": "PvmPlugin", "package": "com.snuffys.pvm", "name": "snuffys-pvm-slayer", "folder": "pvm-slayer",
         "voices": ["pvm", "shared"],
     },
     "gemcrab": {
-        "class": "GemCrabPlugin", "package": "com.snuffys.gemcrab", "name": "snuffys-gemcrab-tracker", "branch": "plugin/gemcrab-tracker",
+        "class": "GemCrabPlugin", "package": "com.snuffys.gemcrab", "name": "snuffys-gemcrab-tracker", "folder": "gemcrab-tracker",
         "voices": ["gemcrab", "shared"],
     },
     "voices": {
-        "class": "VoicesPlugin", "package": "com.snuffys.voices", "name": "snuffys-alerts", "branch": "plugin/alerts",
+        "class": "VoicesPlugin", "package": "com.snuffys.voices", "name": "snuffys-alerts", "folder": "alerts",
         "voices": ["shared"],
     },
 }
 AUTHOR = "bburge14"
-# Everything is hosted here: each plugin on its own branch, which the Plugin Hub builds from
-REPOSITORY = "https://github.com/bburge14/bradsmultitool.git"
-# Voices whose recordings are licensed non-commercially (VOICE_CREDITS.md); see docs/PLUGIN_HUB_COMPLIANCE.md
-VOICE_PERSONAS = None  # every persona folder
 
 BUILD_GRADLE = """plugins {
     id 'java'
@@ -75,7 +74,7 @@ dependencies {
 }
 
 group = '%(package)s'
-version = '1.0.0'
+version = '%(version)s'
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
@@ -99,19 +98,19 @@ the Toolbelt together with the separate ones.
 
 Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).
 
-## About this branch
+## About this folder
 
-This branch holds just this plugin, the way the Plugin Hub builds it. It's generated from the `main` branch of
-[bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool), where all of Snuffy's plugins are
-developed; changes made here directly are overwritten. Issues and ideas:
+This folder holds just this plugin, the way the Plugin Hub builds it (`gradlew build` here makes its jar). It's
+generated from the code in [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool) by
+`scripts/split_plugins.py`; changes made here directly are overwritten. Issues and ideas:
 [open an issue](https://github.com/bburge14/bradsmultitool/issues).
 """
 
 
-def hub_entry(plugin_id, commit):
-    """The plugin's file for the Plugin Hub (runelite/plugin-hub, plugins/<name>): this repository and the
-    commit (on the plugin's branch) to build."""
-    return "repository=%s\ncommit=%s\n" % (REPOSITORY, commit)
+def version():
+    """The release version, from this repository's build.gradle."""
+    with open(os.path.join(ROOT, "build.gradle"), encoding="utf-8") as f:
+        return re.search(r"version = '([^']+)'", f.read()).group(1)
 
 
 def strip_comments_and_strings(text):
@@ -164,11 +163,11 @@ def descriptor(name):
     return title, description, tags
 
 
-def build(plugin_id):
+def build(plugin_id, out_root=OUT, quiet=False):
     spec = PLUGINS[plugin_id]
     known = classes()
     names = closure(spec["class"], known)
-    out = os.path.join(OUT, plugin_id)
+    out = os.path.join(out_root, spec["folder"])
     shutil.rmtree(out, ignore_errors=True)
     package_dir = spec["package"].replace(".", "/")
     java_out = os.path.join(out, "src", "main", "java", package_dir)
@@ -201,7 +200,7 @@ def build(plugin_id):
         f.write("displayName=%s\nauthor=%s\ndescription=%s\ntags=%s\nplugins=%s.%s\n" % (
             title, AUTHOR, description, ",".join(tags), spec["package"], spec["class"]))
     with open(os.path.join(out, "build.gradle"), "w", encoding="utf-8") as f:
-        f.write(BUILD_GRADLE % spec)
+        f.write(BUILD_GRADLE % dict(spec, version=version()))
     with open(os.path.join(out, "settings.gradle"), "w", encoding="utf-8") as f:
         f.write("rootProject.name = '%s'\n" % spec["name"])
     # The Plugin Hub shows icon.png from the root of what it builds (made by update_icons.py)
@@ -213,37 +212,72 @@ def build(plugin_id):
         f.write(".gradle/\nbuild/\n.idea/\n*.iml\nout/\n")
     with open(os.path.join(out, "README.md"), "w", encoding="utf-8") as f:
         f.write(README % {"title": title, "description": description})
-    print("%-12s %3d classes, %s, voices: %s" % (plugin_id, len(names), ", ".join(sorted(data_files(names))) or "no data",
-                                              "+".join(spec["voices"]) if "VoiceAlertService" in names else "none"))
+    if not quiet:
+        print("%-12s %3d classes, %s, voices: %s" % (plugin_id, len(names), ", ".join(sorted(data_files(names))) or "no data",
+                                                  "+".join(spec["voices"]) if "VoiceAlertService" in names else "none"))
     return out
 
 
-def verify(out):
-    """Compiles a generated plugin on its own, with this repository's Gradle."""
-    result = subprocess.run([os.path.join(ROOT, "gradlew"), "-q", "-p", out, "compileJava"],
-                            capture_output=True, text=True)
+def gradle(out, *tasks):
+    """Runs Gradle tasks in a plugin's folder, with this repository's Gradle."""
+    result = subprocess.run([os.path.join(ROOT, "gradlew"), "-q", "-p", out] + list(tasks), capture_output=True, text=True)
     if result.returncode != 0:
         sys.stderr.write(result.stdout + result.stderr)
-        raise SystemExit("%s doesn't compile on its own" % os.path.basename(out))
+        raise SystemExit("%s: %s failed" % (os.path.basename(out), " ".join(tasks)))
+
+
+def release(plugin_id, out):
+    """Builds the plugin's jar and copies it to releases/<name>-<version>.jar."""
+    gradle(out, "clean", "jar")
+    spec = PLUGINS[plugin_id]
+    libs = os.path.join(out, "build", "libs")
+    jar = [f for f in os.listdir(libs) if f.endswith(".jar")][0]
+    os.makedirs(RELEASES, exist_ok=True)
+    target = os.path.join(RELEASES, "%s-%s.jar" % (spec["name"], version()))
+    shutil.copy2(os.path.join(libs, jar), target)
+    print("%-12s %s" % (plugin_id, os.path.relpath(target, ROOT)))
+
+
+def same_tree(a, b):
+    """Whether two folders hold the same files (ignoring build output)."""
+    def files(root):
+        out = {}
+        for d, dirs, names in os.walk(root):
+            dirs[:] = [x for x in dirs if x not in ("build", ".gradle")]
+            for n in names:
+                path = os.path.join(d, n)
+                with open(path, "rb") as f:
+                    out[os.path.relpath(path, root)] = f.read()
+        return out
+    return files(a) == files(b)
+
+
+def check(wanted):
+    """Regenerates into a scratch folder and compares with plugins/; lists any that are out of date."""
+    import tempfile
+    stale = []
+    with tempfile.TemporaryDirectory() as scratch:
+        for plugin_id in wanted:
+            fresh = build(plugin_id, scratch, quiet=True)
+            if not same_tree(fresh, os.path.join(OUT, PLUGINS[plugin_id]["folder"])):
+                stale.append(PLUGINS[plugin_id]["folder"])
+    if stale:
+        raise SystemExit("Out of date: plugins/%s (run python3 scripts/split_plugins.py)" % ", plugins/".join(stale))
+    print("plugins/ is up to date")
 
 
 def main():
-    # --info <plugin>: its branch and Plugin Hub name, for the Action
-    if "--info" in sys.argv:
-        spec = PLUGINS[sys.argv[sys.argv.index("--info") + 1]]
-        print(spec["branch"], spec["name"])
-        return
-    # --hub-entry <plugin> <commit>: print that plugin's Plugin Hub file (the Action uses this after pushing)
-    if "--hub-entry" in sys.argv:
-        i = sys.argv.index("--hub-entry")
-        sys.stdout.write(hub_entry(sys.argv[i + 1], sys.argv[i + 2]))
-        return
     wanted = [a for a in sys.argv[1:] if not a.startswith("--")] or list(PLUGINS)
+    if "--check" in sys.argv:
+        check(wanted)
+        return
     for plugin_id in wanted:
         out = build(plugin_id)
-        if "--verify" in sys.argv:
-            verify(out)
+        if "--verify" in sys.argv or "--build" in sys.argv:
+            gradle(out, "compileJava")
             print("%-12s compiles on its own" % plugin_id)
+        if "--build" in sys.argv:
+            release(plugin_id, out)
 
 
 if __name__ == "__main__":
