@@ -219,13 +219,14 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 |---|---|---|
 | Trees being chopped (anyone's) | The Forestry timer: it drops while anyone chops and recovers when nobody does | Woodcutting > Tree Timers |
 | Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timers |
-| Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | How soon they may move again | Fishing > Fishing Spot Timers |
+| Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | Spots move at a random time 2.5-5 minutes after they appear, so this shows the window: green until the earliest it can move, then a red ring filling up to the latest; hover for the times. Off by default | Fishing > Fishing Spot Timers |
 | Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timers |
-| Fires you cook on (lit while you were nearby) | Time to the earliest it can go out (60 s), then a pulsing red pie: it can go any moment (fires last 60-119 s) | Firemaking > Fire Timers |
-| Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Fire Timers |
+| Fires you cook on (lit while you were nearby) | Fires go out at a random time 60-119 s after lighting: green until the earliest, then a red ring filling up to the latest; hover for the times. Off by default | Firemaking > Fire Timers |
+| Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Campfire Timers |
 | Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Timers |
 
-**Good to know:** Each pie only shows while you're training its skill (an XP drop in it in the last two
+**Good to know:** Fishing spots and fires go at a random time the game picks (Jagex: fishing spots 250-530
+ticks), so no plugin can count down to the moment; their timers show the window and are off by default. Each timer only shows while you're training its skill (an XP drop in it in the last two
 minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
 Turn on **Skilling > Timers When Not Training** to see them all the time. **Skilling > Timer Style** picks the look:
 *Tile, icon and timer* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore,

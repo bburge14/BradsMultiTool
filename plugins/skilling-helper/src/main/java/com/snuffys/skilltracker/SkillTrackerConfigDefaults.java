@@ -45,6 +45,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("voiceBirdhouses", config.voiceBirdhouses());
         defaults.store("chatBirdhouses", config.chatBirdhouses());
         defaults.store("showFireTimer", config.showFireTimer());
+        defaults.store("showCampfireTimer", config.showCampfireTimer());
         defaults.store("showRunecraftHover", config.showRunecraftHover());
         defaults.store("showAgilityHover", config.showAgilityHover());
         defaults.store("showCookingHover", config.showCookingHover());

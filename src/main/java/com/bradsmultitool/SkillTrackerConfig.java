@@ -330,12 +330,12 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showFishingSpotTimer",
         name = "Fishing Spot Timers",
-        description = "A timer on each fishing spot that's moved since you arrived, showing how soon it may move again (2.5-5 minutes)",
+        description = "A timer on each fishing spot that's moved since you arrived. Spots move at a random time 2.5-5 minutes after they appear, so it shows that window: green until the earliest it can move, then a red ring filling up to the latest (hover it for the times)",
         section = fishingSection,
         position = 1
     )
     default boolean showFishingSpotTimer() {
-        return true;
+        return false;
     }
 
     @ConfigItem(
@@ -505,11 +505,22 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showFireTimer",
         name = "Fire Timers",
-        description = "A timer on each fire lit nearby, showing how long it may burn (1-2 minutes)",
+        description = "A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times)",
         section = firemakingSection,
         position = 1
     )
     default boolean showFireTimer() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "showCampfireTimer",
+        name = "Campfire Timers",
+        description = "A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it",
+        section = firemakingSection,
+        position = 2
+    )
+    default boolean showCampfireTimer() {
         return true;
     }
 

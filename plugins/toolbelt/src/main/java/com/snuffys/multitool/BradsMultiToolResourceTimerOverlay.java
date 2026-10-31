@@ -21,11 +21,14 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.ProgressPieComponent;
+import net.runelite.client.ui.overlay.tooltip.Tooltip;
+import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
 /**
  * Countdown pies over trees, Motherlode veins, calcified rocks, Daeyalt essence, shooting stars, fishing
  * spots, shipwrecks, traps, fires and Forester's Campfires (see {@link ResourceTimers}), each only while
- * you train its skill unless Pies When Not Training is on: green, then yellow, then red as each runs out, pulsing once it's due.
+ * you train its skill unless Timers When Not Training is on: green, then yellow, then red as each runs out, pulsing once it's due.
+ * Fishing spots and fires go at a random time in a window, so theirs show the window instead (see {@link #drawWindow}).
  * With Pie Style on Tile, icon and pie (the default), each one's tile is outlined in the Zone Colour with a picture of
  * what it gives (logs, ore, the best fish you can catch there) in the middle and the pie over the picture, except where
  * another plugin already draws the icon or the outline (see {@link OtherTimerPlugins}).
@@ -42,11 +45,13 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private final SkillHelperData helpers;
     private final ItemIcons itemIcons;
     private final ProgressPieComponent pie = new ProgressPieComponent();
+    private final TooltipManager tooltips;
 
     @Inject
     public BradsMultiToolResourceTimerOverlay(Client client, SkillTrackerConfig config, ResourceTimers timers,
                                               OtherTimerPlugins otherPlugins, SkillTracker plugin,
-                                              SkillHelperData helpers, ItemIcons itemIcons) {
+                                              SkillHelperData helpers, ItemIcons itemIcons, TooltipManager tooltips) {
+        this.tooltips = tooltips;
         this.helpers = helpers;
         this.itemIcons = itemIcons;
         this.otherPlugins = otherPlugins;
@@ -74,6 +79,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             if (at == null) {
                 continue;
             }
+            if (timer.windowed()) {
+                drawWindow(graphics, timer, at);
+                continue;
+            }
             double left = timer.progress();
             Color color = left > 0.5 ? HudColors.GOOD : left > 0.2 ? HudColors.WARN : HudColors.BAD;
             // A trap goes green once something's caught, red if it sprang empty
@@ -93,6 +102,38 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             pie.render(graphics);
         }
         return null;
+    }
+
+    // A fishing spot or fire, which goes at a random time in a window: a green pie running down to the earliest it
+    // can go ("won't go yet"), then a red ring filling up to the latest (how likely it's gone by now). Hover for times.
+    private void drawWindow(Graphics2D graphics, ResourceTimers.Timer timer, Point at) {
+        boolean safe = timer.ticksToEarliest() > 0;
+        Color color = safe ? HudColors.GOOD : HudColors.BAD;
+        pie.setPosition(at);
+        pie.setProgress(safe ? (double) timer.ticksToEarliest() / timer.minTicks : timer.windowPassed());
+        pie.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 150));
+        pie.setBorderColor(safe ? color : HudColors.WARN);
+        pie.render(graphics);
+        net.runelite.api.Point mouse = client.getMouseCanvasPosition();
+        if (mouse != null && Math.hypot(mouse.getX() - at.getX(), mouse.getY() - at.getY()) <= DIAMETER / 2.0 + 2) {
+            tooltips.add(new Tooltip(windowText(timer)));
+        }
+    }
+
+    /** "Won't move for 1:20 (gone by 4:00 at the latest)", "Can move any time (gone by 2:40 at the latest)". */
+    static String windowText(ResourceTimers.Timer timer) {
+        String verb = timer.kind == ResourceTimers.Kind.FIRE ? "go out" : "move";
+        String latest = " (" + (timer.kind == ResourceTimers.Kind.FIRE ? "out" : "gone") + " by "
+            + clock(timer.ticksToLatest()) + " at the latest)";
+        return timer.ticksToEarliest() > 0
+            ? "Won't " + verb + " for " + clock(timer.ticksToEarliest()) + latest
+            : "Can " + verb + " any time" + latest;
+    }
+
+    /** Ticks as m:ss. */
+    static String clock(int ticks) {
+        int seconds = (int) Math.round(ticks * 0.6);
+        return seconds / 60 + ":" + String.format("%02d", seconds % 60);
     }
 
     // Whether you're training the skill the resource is for (an XP drop in it lately)
@@ -125,8 +166,9 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             case TRAP:
                 return config.showTrapTimer();
             case FIRE:
-            case CAMPFIRE:
                 return config.showFireTimer();
+            case CAMPFIRE:
+                return config.showCampfireTimer();
             default:
                 return config.showMiningTimer();
         }

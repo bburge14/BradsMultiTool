@@ -127,6 +127,33 @@ class ResourceTimers {
             }
         }
 
+        /**
+         * Fishing spots and fires: the game picks a random time between minTicks and maxTicks (fishing spots
+         * 250-530 ticks, per Mod Ash), so all that can be shown is that window, not a countdown.
+         */
+        boolean windowed() {
+            return (kind == Kind.FISHING_SPOT || kind == Kind.FIRE) && minTicks < maxTicks;
+        }
+
+        /** Ticks until it can first go (0 once it can). */
+        int ticksToEarliest() {
+            return Math.max(0, minTicks - elapsed);
+        }
+
+        /** Ticks until it's gone at the latest. */
+        int ticksToLatest() {
+            return Math.max(0, maxTicks - elapsed);
+        }
+
+        /** How far through its window it is: 0 at the earliest time, 1 at the latest (its chance of being gone). */
+        double windowPassed() {
+            return windowPassed(elapsed, minTicks, maxTicks);
+        }
+
+        static double windowPassed(int elapsed, int min, int max) {
+            return max <= min ? (elapsed >= max ? 1 : 0) : Math.max(0, Math.min(1, (double) (elapsed - min) / (max - min)));
+        }
+
         /** Past its earliest time: it can go any moment (or, for a tree, with the next log). */
         boolean due() {
             switch (kind) {

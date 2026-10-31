@@ -16,4 +16,15 @@ public class ResourceTimerOverlayTest {
         assertEquals("Arctic pine logs", BradsMultiToolResourceTimerOverlay.logsOf("Arctic pine"));
         assertNull(BradsMultiToolResourceTimerOverlay.logsOf(null));
     }
+
+    @Test
+    public void randomTimersShowTheirWindow() {
+        // Fishing spots: 250-530 ticks
+        assertEquals(0, ResourceTimers.Timer.windowPassed(100, 250, 530), 0.001);
+        assertEquals(0, ResourceTimers.Timer.windowPassed(250, 250, 530), 0.001);
+        assertEquals(0.5, ResourceTimers.Timer.windowPassed(390, 250, 530), 0.001);
+        assertEquals(1, ResourceTimers.Timer.windowPassed(600, 250, 530), 0.001);
+        assertEquals("2:30", BradsMultiToolResourceTimerOverlay.clock(250));
+        assertEquals("0:06", BradsMultiToolResourceTimerOverlay.clock(10));
+    }
 }
