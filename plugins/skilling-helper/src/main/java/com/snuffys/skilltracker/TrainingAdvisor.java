@@ -119,7 +119,20 @@ class TrainingAdvisor {
                 break;
         }
         TrainingData.Method method = training.suggest(skill, level, focus == SkillTrackerConfig.TrainingFocus.OTHER, this::canDo);
-        return method == null ? null : new Suggestion("Train:", method.name, method, xpEach(method), toolsFor(skill, method));
+        if (method == null) {
+            return null;
+        }
+        // The guide's pick at your level from its table ("Strength potion (Tarromin potion (unf) + Limpwurt
+        // root)", "Cutting gems: Ruby"), else what it trains on ("Fly fishing: Trout, Salmon")
+        TrainingData.Option option = method.bestOption(level);
+        if (option != null) {
+            String text = option.with.isEmpty() ? method.name + ": " + option.name
+                : option.name + " (" + String.join(" + ", option.with) + ")";
+            double each = option.xpEach() > 0 ? option.xpEach() : xpEach(method);
+            return new Suggestion("Train:", text, method, each, toolsFor(skill, method));
+        }
+        String text = method.targets.isEmpty() ? method.name : method.name + ": " + String.join(", ", method.targets);
+        return new Suggestion("Train:", text, method, xpEach(method), toolsFor(skill, method));
     }
 
     // What a guide method needs to hand: an axe or pickaxe for its trees or rocks, the trap for its creature,

@@ -61,4 +61,19 @@ public class TrainingDataTest {
         TrainingData.Method men = DATA.suggest(Skill.THIEVING, 2, true);
         assertTrue(men.npcs.contains("man"));
     }
+
+    // The guide's methods by level: the latest-starting one that covers it, a skill's own before one shared with
+    // another skill (Drift net fishing trains Hunter too), and the specific thing from its table or Main links
+    @Test
+    public void specificMethodsByLevel() {
+        assertEquals("Fly fishing", DATA.suggest(Skill.FISHING, 50, false).name);
+        assertEquals("[Trout, Salmon]", DATA.suggest(Skill.FISHING, 25, false).targets.toString());
+        assertEquals("Barbarian Fishing", DATA.suggest(Skill.FISHING, 60, false).name);
+        assertEquals("Strength potion", DATA.suggest(Skill.HERBLORE, 12, false).bestOption(12).name);
+        assertEquals("[Tarromin potion (unf), Limpwurt root]", DATA.suggest(Skill.HERBLORE, 12, false).bestOption(12).with.toString());
+        assertEquals("Iron warhammer", DATA.suggest(Skill.SMITHING, 30, false).bestOption(30).name);
+        assertEquals("Maple logs", DATA.suggest(Skill.FIREMAKING, 45, false).bestOption(45).name);
+        // Magic's "Starting off" groups methods; it isn't one
+        org.junit.Assert.assertNotEquals("Starting off", DATA.suggest(Skill.MAGIC, 25, false).name);
+    }
 }

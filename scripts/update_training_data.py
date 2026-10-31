@@ -147,6 +147,109 @@ def plain_name(text):
     return re.sub(r"\{\{[^}]*\}\}", "", text).strip()
 
 
+def strip_templates(text):
+    """Templates removed, nested ones included."""
+    for _ in range(4):
+        text = re.sub(r"\{\{[^{}]*\}\}", "", text)
+    return text
+
+
+def targets_of(body):
+    """What the method trains on, from its section's {{Main|Raw trout|Raw salmon}}: ["Trout", "Salmon"]."""
+    found = re.search(r"\{\{\s*Main\s*\|([^}]+)\}\}", body)
+    out = []
+    for part in (found.group(1).split("|") if found else []):
+        part = re.sub(r"#.*", "", part).strip()
+        if part and "=" not in part and "/" not in part and "_" not in part:
+            part = re.sub(r"^Raw ", "", part)
+            out.append(part[0].upper() + part[1:])
+    return out
+
+
+def new_targets(name, found, skill=""):
+    """The targets that say something the method's name doesn't ("Fly fishing": trout, salmon; not "Leechfin
+    Fishing": leechfin, nor "Trimming sails": sails)."""
+    words = set(re.findall(r"[a-z']+", (name + " " + skill).lower()))
+    out = []
+    for target in found:
+        own = [w for w in re.findall(r"[a-z']+", target.lower()) if len(w) > 2]
+        if own and not all(w in words or w.rstrip("s") in words or w + "s" in words for w in own):
+            out.append(target)
+    return out
+
+
+def summary(body):
+    """The section's first sentences as plain text, for the suggestion's hover."""
+    text = re.sub(r"\{\|.*?\n\|\}", "", body, flags=re.S)
+    text = re.sub(r"<ref[^>]*/>|<ref[^>]*>.*?</ref>", "", text, flags=re.S)
+    text = re.sub(r"\[\[File:[^\]]*\]\]", "", text)
+    text = strip_templates(text)
+    text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", text)
+    text = re.sub(r"<[^>]+>|'{2,}", "", text)
+    for para in text.split("\n"):
+        para = para.strip()
+        if len(para) < 40 or para[0] in "*#{|!:;=" or re.match(r"(For more|See |For in.depth)", para) \
+                or "calculator" in para.lower():
+            continue
+        out = ""
+        for sentence in re.split(r"(?<=[.!?])\s+", para):
+            if out and len(out) + len(sentence) > 260:
+                break
+            out = (out + " " + sentence).strip()
+        return out
+    return ""
+
+
+def plink(cell):
+    found = re.search(r"\{\{[pi]link[tp]?\|([^|}]+)", cell)
+    return found.group(1).strip() if found else None
+
+
+def plinks(cell):
+    return [m.strip() for m in re.findall(r"\{\{[pi]link[tp]?\|([^|}]+)", cell)]
+
+
+def number(cell):
+    cell = strip_templates(cell).replace(",", "").strip()
+    return float(cell) if re.fullmatch(r"\d+(\.\d+)?", cell) else None
+
+
+def options(body):
+    """A method's table of what to make or use by level (Herblore's potions): the level, the item, what goes into
+    it and its XP, from rows whose first cell is a level and whose second links the item."""
+    out = []
+    for table in re.findall(r"\{\|.*?\n\|\}", body, re.S):
+        header = table.split("\n|-", 1)[0]
+        if "level" not in header.lower():
+            continue
+        for row in table.split("\n|-")[1:]:
+            cells = [c.strip() for c in re.split(r"\n\||\|\|", "\n" + row.strip()) if c.strip()]
+            if len(cells) < 3:
+                continue
+            # The level ("3", or a range "1–4"), then the first linked item is what's made
+            level = re.match(r"\s*(\d+)", strip_templates(cells[0]))
+            at = next((i for i in range(1, len(cells)) if plink(cells[i])), None)
+            if not level or at is None:
+                continue
+            level, name = int(level.group(1)), plink(cells[at])
+            materials, xp = [], None
+            for cell in cells[at + 1:]:
+                items = plinks(cell)
+                if items:
+                    materials.extend(i for i in items if i not in materials)
+                    continue
+                xp = number(cell)
+                if xp is not None:
+                    break
+            if xp:
+                base = re.sub(r"\s*\([^)]*\)", "", name).lower()
+                # Not the item itself in another form (the strung bow beside the unstrung one)
+                materials = [i for i in materials if re.sub(r"\s*\([^)]*\)", "", i).lower() != base]
+                out.append({"level": int(level), "name": re.sub(r"\s*\(\d\)$", "", name), "xp": xp, "with": materials})
+    # A by-level list: at least two rows, not all at one level (the cannonball moulds)
+    return out if len(out) >= 2 and len({o["level"] for o in out}) > 1 else []
+
+
 def entry(name, start, end, fastest, objects, npcs, body="", skill=""):
     ids, names = targets(name, objects, npcs)
     out = {"name": name, "from": start, "to": end, "fastest": fastest}
@@ -163,6 +266,15 @@ def entry(name, start, end, fastest, objects, npcs, body="", skill=""):
         out["quests"] = quests
     if skills:
         out["skills"] = skills
+    trains_on = new_targets(name, targets_of(body), skill)
+    if trains_on:
+        out["targets"] = trains_on
+    about = summary(body)
+    if about:
+        out["about"] = about
+    rows = options(body)
+    if rows:
+        out["options"] = rows
     if ids:
         out["objects"] = ids
     if names:
@@ -201,8 +313,10 @@ def by_level(text, objects, npcs, skill):
         found = METHOD.match(heading)
         if depth == 2:
             section = heading.lower()
-            # A top-level "Levels 15–99: Tree runs" section is a method of its own (Farming's guide)
-            if not found:
+            # A top-level "Levels 15–99: Tree runs" section is a method of its own (Farming's guide), unless it
+            # groups methods under it (Magic's "Levels 1–55: Starting off")
+            following = re.search(r"\n(==+)\s*([^=\n]+?)\s*\1", text[m.end():])
+            if not found or (following and len(following.group(1)) == 3 and METHOD.match(following.group(2))):
                 continue
         elif depth != 3 or not found:
             continue

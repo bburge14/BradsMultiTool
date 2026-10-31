@@ -117,6 +117,9 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Hover Actions on a goal skill's card: "Next level: N actions" and "Your goal: N actions", the shown one marked (shown);
       with Actions Until Goal on and a method change before the goal, a "Shown: until level X..." line.
 - [ ] Goal card shows "Train: ..." and "At N: ..."; Training Focus changes it.
+- [ ] Train: names the specific thing: Herblore 19 "Serum 207 (Tarromin potion (unf) + Ashes)", Fishing 25 "Fly
+      fishing: Trout, Salmon", Fishing 60 "Barbarian Fishing", Firemaking 45 "Burning logs: Maple logs"; hovering
+      it shows the guide's description.
 - [x] With a Woodcutting/Mining/Thieving goal, the suggested trees/rocks/stalls/NPCs are outlined.
 - [ ] Cooking goal with raw food in inventory/bank: card says Make: ..., the raw food is outlined in inventory and bank, hover shows the goal tooltip.
 - [ ] Highlight Goal Items off removes the outlines.

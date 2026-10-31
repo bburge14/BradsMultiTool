@@ -42,6 +42,14 @@ class TrainingData {
         final Map<String, Integer> skills = new HashMap<>();
         /** For "Questing": the quests the guide recommends for their XP. */
         final List<String> rewards = new ArrayList<>();
+        /** What it trains on, when the name doesn't say ("Fly fishing": Trout, Salmon). */
+        final List<String> targets = new ArrayList<>();
+        /** The guide's first sentences about it, or null. */
+        final String about;
+        /** Another non-combat skill's guide lists it too (it trains both). */
+        boolean shared;
+        /** The guide's table of what to make or use by level (Herblore's potions), or empty. */
+        final List<Option> options = new ArrayList<>();
 
         Method(JsonObject o) {
             name = o.get("name").getAsString();
@@ -73,6 +81,32 @@ class TrainingData {
                     skills.put(e.getKey(), e.getValue().getAsInt());
                 }
             }
+            if (o.has("targets")) {
+                for (JsonElement e : o.getAsJsonArray("targets")) {
+                    targets.add(e.getAsString());
+                }
+            }
+            about = o.has("about") ? o.get("about").getAsString() : null;
+            if (o.has("options")) {
+                for (JsonElement e : o.getAsJsonArray("options")) {
+                    options.add(new Option(e.getAsJsonObject()));
+                }
+            }
+        }
+
+        /**
+         * The guide's pick at this level from its table, or null: the highest-level row you can do (the tables are
+         * the guide's progression), the most XP among rows at that level.
+         */
+        Option bestOption(int level) {
+            Option best = null;
+            for (Option option : options) {
+                if (option.level <= level && (best == null || option.level > best.level
+                    || option.level == best.level && option.xp > best.xp)) {
+                    best = option;
+                }
+            }
+            return best;
         }
 
         boolean covers(int level) {
@@ -88,8 +122,52 @@ class TrainingData {
         }
     }
 
+    /** One row of a method's table: from this level, make this ("Strength potion") from these, for this XP. */
+    static final class Option {
+        final int level;
+        final String name;
+        /** XP each, or the table's XP per hour where it lists that instead (then only for ranking). */
+        final double xp;
+        final List<String> with = new ArrayList<>();
+
+        Option(JsonObject o) {
+            level = o.get("level").getAsInt();
+            name = o.get("name").getAsString();
+            xp = o.get("xp").getAsDouble();
+            if (o.has("with")) {
+                for (JsonElement e : o.getAsJsonArray("with")) {
+                    with.add(e.getAsString());
+                }
+            }
+        }
+
+        /**
+         * XP for one action, when the table gives that: tables that list ingredients (Herblore's potions,
+         * Construction's furniture) give XP each; others' numbers can be bars or XP per hour.
+         */
+        double xpEach() {
+            return !with.isEmpty() && xp < 2000 ? xp : 0;
+        }
+    }
+
     private final Map<String, List<Method>> methods = new HashMap<>();
     private final Set<Integer> allObjects = new HashSet<>();
+
+    private static final Set<String> COMBAT = new HashSet<>(java.util.Arrays.asList(
+        "ATTACK", "STRENGTH", "DEFENCE", "HITPOINTS", "RANGED", "MAGIC", "PRAYER"));
+
+    // A method another non-combat skill's guide also lists trains both (Drift net fishing: Fishing and Hunter);
+    // it's only the fastest for one of them if you're training both, so the skill's own methods go first
+    private void markShared() {
+        Map<String, Set<String>> skillsOf = new HashMap<>();
+        methods.forEach((skill, list) -> {
+            if (!COMBAT.contains(skill)) {
+                list.forEach(m -> skillsOf.computeIfAbsent(m.name.toLowerCase(), k -> new HashSet<>()).add(skill));
+            }
+        });
+        methods.forEach((skill, list) -> list.forEach(m ->
+            m.shared = !COMBAT.contains(skill) && skillsOf.getOrDefault(m.name.toLowerCase(), Collections.emptySet()).size() > 1));
+    }
 
     void load(Gson gson) {
         methods.clear();
@@ -110,6 +188,7 @@ class TrainingData {
                     }
                     methods.put(e.getKey(), list);
                 }
+                markShared();
             }
         } catch (Exception e) {
             log.warn("Failed to load {}", RESOURCE, e);
@@ -125,8 +204,17 @@ class TrainingData {
     }
 
     /** As above, only among methods you can do ({@code canDo}: quests and other skills' levels). */
+    // The skill's own methods before shared ones, then the latest-starting
+    private static boolean better(Method method, Method than) {
+        if (method.shared != than.shared) {
+            return !method.shared;
+        }
+        return method.from > than.from;
+    }
+
     Method suggest(Skill skill, int level, boolean alternatives, java.util.function.Predicate<Method> canDo) {
         List<Method> list = methods.getOrDefault(skill.name(), Collections.emptyList());
+        Method chosen = null;
         Method fallback = null;
         Method questing = null;
         for (Method method : list) {
@@ -138,14 +226,17 @@ class TrainingData {
                 questing = questing == null ? method : questing;
                 continue;
             }
+            // The guides list methods by the level they start at, each taking over from the one before: the
+            // latest-starting one that covers your level ("Barbarian Fishing" from 58 over "Drift net" from 47)
             if (method.fastest != alternatives) {
-                return method;
-            }
-            if (fallback == null) {
+                if (chosen == null || better(method, chosen)) {
+                    chosen = method;
+                }
+            } else if (fallback == null || method.from > fallback.from) {
                 fallback = method;
             }
         }
-        return fallback != null ? fallback : questing;
+        return chosen != null ? chosen : fallback != null ? fallback : questing;
     }
 
     /** The guide's questing method for this level (quests worth doing for their XP), or null. */

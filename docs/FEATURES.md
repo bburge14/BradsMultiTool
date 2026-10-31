@@ -298,6 +298,12 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   use the melee or ranged guide, Prayer, Herblore and Sailing list their guide's methods, and **Slayer**
   suggests the best Slayer master for your levels (and the next one: "At Combat 100, Slayer 50:
   Duradel"). Questing is only suggested when the guide has nothing else for your level.
+- It names the actual thing to do: where the guide has a table by level it picks the row for your level
+  (**Train: Strength potion (Tarromin potion (unf) + Limpwurt root)**, "Cutting gems: Ruby", "Burning logs:
+  Maple logs", "Anvil smithing: Iron warhammer"), and otherwise what the method trains on ("Fly fishing: Trout,
+  Salmon"). Hover the line for what the guide says about the method. Where the guide's methods overlap, the one
+  that takes over at your level wins, and a method that trains two skills at once (Drift net fishing: Fishing
+  and Hunter) only when nothing else fits.
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
 - Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
   world.

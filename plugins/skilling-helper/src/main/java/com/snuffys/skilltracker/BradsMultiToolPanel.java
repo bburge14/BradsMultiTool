@@ -638,6 +638,11 @@ public class BradsMultiToolPanel extends PluginPanel {
                         lines.add(label(first.suggestion.label) + first.suggestion.text
                             + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
                     }
+                    // Hover: what the guide says about the method you're on
+                    String about = !plan.isEmpty() && plan.get(0).suggestion.method != null ? plan.get(0).suggestion.method.about : null;
+                    if (about != null) {
+                        tooltip = "<html><div width='260'>" + about + "</div></html>";
+                    }
                     if (plan.size() > 1) {
                         stepEndLevel = plan.get(0).to;
                         StringBuilder steps = new StringBuilder("<html><b>On the way to your goal</b>");
@@ -645,7 +650,8 @@ public class BradsMultiToolPanel extends PluginPanel {
                             steps.append("<br>").append(stage.from).append("-").append(stage.to).append(": ")
                                 .append(stage.suggestion.text);
                         }
-                        tooltip = steps.append("</html>").toString();
+                        tooltip = tooltip == null ? steps.append("</html>").toString()
+                            : tooltip.replace("</html>", "<br>" + steps.substring("<html>".length()) + "</html>");
                     }
                 }
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank
