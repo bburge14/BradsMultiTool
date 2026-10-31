@@ -27,7 +27,8 @@ import net.runelite.client.ui.overlay.components.ProgressPieComponent;
  * spots, shipwrecks, traps, fires and Forester's Campfires (see {@link ResourceTimers}), each only while
  * you train its skill unless Pies When Not Training is on: green, then yellow, then red as each runs out, pulsing once it's due.
  * With Pie Style on Tile, icon and pie (the default), each one's tile is outlined in the Zone Colour with a picture of
- * what it gives (logs, ore, the best fish you can catch there) in the middle and the pie over the picture.
+ * what it gives (logs, ore, the best fish you can catch there) in the middle and the pie over the picture, except where
+ * another plugin already draws the icon or the outline (see {@link OtherTimerPlugins}).
  */
 public class BradsMultiToolResourceTimerOverlay extends Overlay {
 
@@ -141,7 +142,11 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         if (local == null) {
             return null;
         }
-        Polygon poly = timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
+        // Another plugin's own icon or tile outline on it (RuneLite's Fishing or Motherlode Mine plugin): leave ours out
+        net.runelite.api.Player you = client.getLocalPlayer();
+        boolean yours = timer.npc != null && you != null && you.getInteracting() == timer.npc;
+        Polygon poly = otherPlugins.drawsTile(timer.kind, yours) ? null
+            : timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
         if (poly != null) {
             Color zone = config.zoneColor();
             graphics.setColor(new Color(0, 0, 0, 50));
@@ -154,7 +159,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         if (middle == null) {
             return null;
         }
-        BufferedImage icon = itemIcons.get(product(timer));
+        BufferedImage icon = otherPlugins.drawsIcon(timer.kind, yours) ? null : itemIcons.get(product(timer));
         if (icon == null) {
             return middle;
         }

@@ -229,7 +229,8 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
 Turn on **Skilling > Timers When Not Training** to see them all the time. **Skilling > Timer Style** picks the look:
 *Tile, icon and timer* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore,
-the best fish your level can catch there) and the pie over the picture; *Timer only* is the floating timer. Pies draw under the bank and other interfaces. A tree already being chopped when you
+the best fish your level can catch there) and the pie over the picture; *Timer only* is the floating timer. Where RuneLite's Fishing plugin already draws its spot icons or tiles, or its
+Motherlode Mine plugin its vein icons, ours leave the icon or outline out and only add the timer. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
 Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin...), our pie for that timer hides
