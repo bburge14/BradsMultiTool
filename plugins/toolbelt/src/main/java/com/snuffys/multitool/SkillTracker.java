@@ -274,8 +274,13 @@ class SkillTracker {
             configManager.unsetRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name());
             configManager.unsetRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name());
         } else {
+            // Modifying a goal still underway keeps where it started (the goal bar's progress)
+            int xp = client.getSkillExperience(skill);
+            boolean underway = getSkillGoal(skill) > xp && getSkillGoalStart(skill) > 0;
             configManager.setRSProfileConfiguration(identity.configGroup, "goal." + skill.name(), goalXp);
-            configManager.setRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name(), client.getSkillExperience(skill));
+            if (!underway) {
+                configManager.setRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name(), xp);
+            }
         }
         updatePanelUI();
     }

@@ -117,8 +117,8 @@ work a resource.
 - A card per skill you train: XP gained, XP to next level, actions left (from your last XP drop; not for
   combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar. Each field has its
   own switch.
-- **Goals**: the **Set Goal** button at the top (or right-click a card > Set goal...) takes a skill and a
-  level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
+- **Goals**: the **Set Goal** button at the top (or right-click a card > Set goal..., or Modify goal... once it
+  has one) takes a skill and a level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
   Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level (or to
   the end of the current step when the suggested method changes before the goal). Hover the count to see both:
@@ -146,9 +146,10 @@ work a resource.
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
   **Highlight Goal Items**).
-- **Pin to screen**: right-click a card > **Pin to screen** to show that skill on the game screen (level
+- **Pin to screen**: click the pin in a card's top-right corner (or right-click > **Pin to screen**) to show that skill on the game screen (level
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
-  time; its card shows a red pin (click it to unpin), or right-click the overlay > **Unpin**.
+  time: the pinned card's pin is solid, the others faint, and clicking a faint one moves the pin there. Click the
+  solid pin to unpin, or right-click the overlay > **Unpin**.
 - **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 5 minutes by default) and resumes on your
   next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.

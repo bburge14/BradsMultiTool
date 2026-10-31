@@ -264,10 +264,11 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 **How to use:**
 - Right-click a card to pause/resume it, reset its rate, reset or hide it, set or clear a goal, or reset
   every skill (just the tracker's skills: PvM's HUD and the crab card have their own Reset).
-- **Pin to screen**: right-click a card > Pin to screen puts that skill on the game screen as a movable
+- **Pin to screen**: click the pin in a card's top-right corner (or right-click > Pin to screen) puts that skill on the game screen as a movable
   overlay (level bar, XP/hr, gained, time to level, actions left, goal bar, suggested method and what to
   make or burn from your items). Only one at a time:
-  pinning another replaces it. The pinned skill's card shows a red pin in its top-right corner; click the pin,
+  every card has a pin, solid on the pinned skill and faint on the others; clicking a faint one moves the pin
+  there (its tooltip says which skill it takes over from). Click the solid pin,
   right-click the overlay > Unpin, or the card > Unpin from screen to remove it. It stays pinned after a
   restart, and its card stays in the sidebar the whole time, even before you've trained it this session or
   after a Reset.
@@ -357,10 +358,11 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   Lobster". The bank counts once you've opened it this session.
 
 **How to use:**
-1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...).
+1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...; a skill with a goal has Modify goal... instead, which starts from
+   its goal and keeps the goal bar's progress).
 2. Pick the skill (the list shows your level in each; below it, your level, XP and any current goal) and
    type a target: a number up to 99 is a level, anything bigger is an XP amount.
-3. Clear it from the card's right-click menu.
+3. Clear it from the card's right-click menu (Clear goal only shows while the skill has a goal).
 
 Goals are saved with your RuneScape profile, so they stay after a relaunch. To have them on another PC,
 log in to a RuneLite account on both and turn on **Sync** for your profile (Profiles panel).
