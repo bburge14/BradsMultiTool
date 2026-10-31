@@ -16,7 +16,7 @@ public interface TickConfig extends Config {
 
     @ConfigSection(
         name = "Tick Counter",
-        description = "Counts game ticks over your head or in a box you can move, with an optional metronome",
+        description = "<div width='300'>Counts game ticks over your head or in a box you can move, with an optional metronome",
         position = 85
     )
     String tickSection = "tickSection";
@@ -98,7 +98,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "tickBoxes",
         name = "Tick Boxes",
-        description = "A box for each tick of the cycle, lighting up in turn. Move them with Alt + drag",
+        description = "<div width='300'>A box for each tick of the cycle, lighting up in turn. Move them with Alt + drag",
         section = tickSection,
         position = 1
     )
@@ -120,7 +120,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "tickBar",
         name = "Tick Bar",
-        description = "A bar that fills smoothly over each tick and snaps back on the next, so you can see the tick coming instead of reacting to it. Move it with Alt + drag",
+        description = "<div width='300'>A bar that fills smoothly over each tick and snaps back on the next, so you can see the tick coming instead of reacting to it. Move it with Alt + drag",
         section = tickSection,
         position = 3
     )
@@ -137,7 +137,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "tickCycle",
         name = "Ticks Per Cycle",
-        description = "The count goes 1 to this and starts over: 3 for 3-tick skilling, your weapon's attack speed for combat",
+        description = "<div width='300'>The count goes 1 to this and starts over: 3 for 3-tick skilling, your weapon's attack speed for combat",
         section = tickSection,
         position = 4
     )
@@ -148,7 +148,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "tickFollowWeapon",
         name = "Follow Attack Speed",
-        description = "Use your weapon's attack speed for the cycle (one faster on Rapid) and start the count again each time you attack, so 1 is your attack tick",
+        description = "<div width='300'>Use your weapon's attack speed for the cycle (one faster on Rapid) and start the count again each time you attack, so 1 is your attack tick",
         section = tickSection,
         position = 5
     )
@@ -246,7 +246,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "metronomeTone",
         name = "Tone",
-        description = "The metronome's sounds: a pair of game sounds, the second on the first tick of each cycle",
+        description = "<div width='300'>The metronome's sounds: a pair of game sounds, the second on the first tick of each cycle",
         section = tickSection,
         position = 12
     )
@@ -271,7 +271,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "metronomeVolume",
         name = "Volume",
-        description = "Volume of the metronome and the click sounds (0-100); 0 uses the game's sound effect volume",
+        description = "<div width='300'>Volume of the metronome and the click sounds (0-100); 0 uses the game's sound effect volume",
         section = tickSection,
         position = 14
     )
@@ -282,7 +282,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "clickTiming",
         name = "Click Timing",
-        description = "Show how long after the tick each click landed (in ms) over your head, and a summary of your last clicks with the tick bar (Alt + drag to move it)",
+        description = "<div width='300'>Show how long after the tick each click landed (in ms) over your head, and a summary of your last clicks with the tick bar (Alt + drag to move it)",
         section = tickSection,
         position = 15
     )
@@ -293,7 +293,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "clickSounds",
         name = "Click Sounds",
-        description = "A ding for each click on time, the Late Sound for a late one (after Late After) or a missed tick",
+        description = "<div width='300'>A ding for each click on time, the Late Sound for a late one (after Late After) or a missed tick",
         section = tickSection,
         position = 16
     )
@@ -321,7 +321,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "clickLateMs",
         name = "Late After",
-        description = "A click this long after the tick or later counts as late: with your ping it may land on the next tick",
+        description = "<div width='300'>A click this long after the tick or later counts as late: with your ping it may land on the next tick",
         section = tickSection,
         position = 18
     )
@@ -336,7 +336,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "clickIdealFrom",
         name = "Ideal From",
-        description = "Start of the ideal click zone, shaded green on the tick bar: clicks in it show green, other clicks before Late After white",
+        description = "<div width='300'>Start of the ideal click zone, shaded green on the tick bar: clicks in it show green, other clicks before Late After white",
         section = tickSection,
         position = 19
     )
@@ -363,7 +363,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "clickEveryTick",
         name = "Click Every Tick",
-        description = "For 1-ticking, where you click once every tick: once you've started clicking, a tick that passes without a click counts as missed and plays the Late Sound. Leave off for methods that don't click every tick",
+        description = "<div width='300'>For 1-ticking, where you click once every tick: once you've started clicking, a tick that passes without a click counts as missed and plays the Late Sound. Leave off for methods that don't click every tick",
         section = tickSection,
         position = 21
     )

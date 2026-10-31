@@ -74,7 +74,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showSkillingHover",
         name = "Skilling Hover Info",
-        description = "When hovering a tree, rock, fishing spot, stall or pickpocket target, show level, XP, tools and more",
+        description = "<div width='300'>When hovering a tree, rock, fishing spot, stall or pickpocket target, show level, XP, tools and more",
         section = skillingSection,
         position = 1
     )
@@ -85,7 +85,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showSkillingRates",
         name = "XP Rates on Hover",
-        description = "Show the wiki's XP/hr and your own rate on the hover card while you're training that skill",
+        description = "<div width='300'>Show the wiki's XP/hr and your own rate on the hover card while you're training that skill",
         section = skillingSection,
         position = 2
     )
@@ -96,7 +96,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "deferToOtherTimerPlugins",
         name = "Use Other Timer Plugins",
-        description = "When you have another plugin on that draws the same timer (Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer/Tracker, Barbarian or Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, or RuneLite's Hunter plugin for traps), hide our timer for it so they don't stack",
+        description = "<div width='300'>When you have another plugin on that draws the same timer (Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer/Tracker, Barbarian or Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, or RuneLite's Hunter plugin for traps), hide our timer for it so they don't stack",
         section = skillingSection,
         position = 3
     )
@@ -107,7 +107,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "piesAlwaysShown",
         name = "Timers When Not Training",
-        description = "Show resource timers all the time. Off: a resource's timers only show while you train its skill (trees while you chop, rocks while you mine, fires while you cook or burn logs...)",
+        description = "<div width='300'>Show resource timers all the time. Off: a resource's timers only show while you train its skill (trees while you chop, rocks while you mine, fires while you cook or burn logs...)",
         section = skillingSection,
         position = 3
     )
@@ -118,7 +118,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "pieStyle",
         name = "Timer Style",
-        description = "Tile, icon and timer: outline the tile of each timed tree, rock or fishing spot, with a picture of what it gives and the timer over it. Timer only: just the floating timer",
+        description = "<div width='300'>Tile, icon and timer: outline the tile of each timed tree, rock or fishing spot, with a picture of what it gives and the timer over it. Timer only: just the floating timer",
         section = skillingSection,
         position = 3
     )
@@ -136,7 +136,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "timerOpacity",
         name = "Timer Opacity",
-        description = "How solid the resource timers are drawn: lower to see the tree, rock or fishing spot through them",
+        description = "<div width='300'>How solid the resource timers are drawn: lower to see the tree, rock or fishing spot through them",
         section = skillingSection,
         position = 3
     )
@@ -148,7 +148,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "zoneColor",
         name = "Zone Colour",
-        description = "Colour of the tile outline for timed trees, rocks and fishing spots (filled in a fainter shade)",
+        description = "<div width='300'>Colour of the tile outline for timed trees, rocks and fishing spots (filled in a fainter shade)",
         section = skillingSection,
         position = 3
     )
@@ -159,7 +159,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "bestChoice",
         name = "Best Choice By",
-        description = "How cards pick the \"best\" thing to make from what you carry (e.g. the anvil card): Most XP, or Most Profit at Grand Exchange prices",
+        description = "<div width='300'>How cards pick the \"best\" thing to make from what you carry (e.g. the anvil card): Most XP, or Most Profit at Grand Exchange prices",
         section = skillingSection,
         position = 4
     )
@@ -170,7 +170,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "skillingWhenNotRetaliating",
         name = "Skill Cards With Auto Retaliate Off",
-        description = "With auto retaliate off, hovering an NPC you can also skill on (e.g. pickpocket) shows the skilling card instead of the monster card, even when Attack is the left-click option",
+        description = "<div width='300'>With auto retaliate off, hovering an NPC you can also skill on (e.g. pickpocket) shows the skilling card instead of the monster card, even when Attack is the left-click option",
         section = skillingSection,
         position = 5
     )
@@ -192,7 +192,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceInventoryFull",
         name = "Voice: Inventory Full",
-        description = "When your inventory fills while skilling (turning it on plays a preview)",
+        description = "<div width='300'>When your inventory fills while skilling (turning it on plays a preview)",
         section = skillingSection,
         position = 7
     )
@@ -214,7 +214,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "resourceGoneAlert",
         name = "Resource Gone",
-        description = "Alert when your tree falls, rock depletes or fishing spot moves",
+        description = "<div width='300'>Alert when your tree falls, rock depletes or fishing spot moves",
         section = skillingSection,
         position = 9
     )
@@ -225,7 +225,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "batchCompleteAlert",
         name = "Batch Complete Alert",
-        description = "Alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (you stop gaining XP and your character stops)",
+        description = "<div width='300'>Alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (you stop gaining XP and your character stops)",
         section = skillingSection,
         position = 10
     )
@@ -236,7 +236,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceBatchComplete",
         name = "Voice: Batch Complete",
-        description = "When your production batch finishes (turning it on plays a preview)",
+        description = "<div width='300'>When your production batch finishes (turning it on plays a preview)",
         section = skillingSection,
         position = 11
     )
@@ -266,7 +266,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showTreeTimer",
         name = "Tree Timers",
-        description = "A timer on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping)",
+        description = "<div width='300'>A timer on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping)",
         section = woodcuttingSection,
         position = 1
     )
@@ -277,7 +277,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceTreeGone",
         name = "Voice: Tree Fallen",
-        description = "When the tree you are chopping falls (turning it on plays a preview)",
+        description = "<div width='300'>When the tree you are chopping falls (turning it on plays a preview)",
         section = woodcuttingSection,
         position = 2
     )
@@ -307,7 +307,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showMiningTimer",
         name = "Mining Timers",
-        description = "Timers on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left",
+        description = "<div width='300'>Timers on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left",
         section = miningSection,
         position = 1
     )
@@ -318,7 +318,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceRockDepleted",
         name = "Voice: Rock Depleted",
-        description = "When the rock you are mining is depleted (turning it on plays a preview)",
+        description = "<div width='300'>When the rock you are mining is depleted (turning it on plays a preview)",
         section = miningSection,
         position = 2
     )
@@ -348,7 +348,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showFishingSpotTimer",
         name = "Fishing Spot Timers",
-        description = "A timer on each fishing spot that's moved since you arrived. Spots move at a random time 2.5-5 minutes after they appear, so it shows that window: green until the earliest it can move, then a red ring filling up to the latest (hover it for the times)",
+        description = "<div width='300'>A timer on each fishing spot that's moved since you arrived. Spots move at a random time 2.5-5 minutes after they appear, so it shows that window: green until the earliest it can move, then a red ring filling up to the latest (hover it for the times)",
         section = fishingSection,
         position = 1
     )
@@ -389,7 +389,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "coinPouchAlert",
         name = "Coin Pouch Alert",
-        description = "Alert when your coin pouches reach the most you can hold (28, more with the Ardougne Diary)",
+        description = "<div width='300'>Alert when your coin pouches reach the most you can hold (28, more with the Ardougne Diary)",
         section = thievingSection,
         position = 1
     )
@@ -400,7 +400,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceCoinPouch",
         name = "Voice: Coin Pouches Full",
-        description = "When your coin pouches are full (turning it on plays a preview)",
+        description = "<div width='300'>When your coin pouches are full (turning it on plays a preview)",
         section = thievingSection,
         position = 2
     )
@@ -430,7 +430,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showFarmingHover",
         name = "Farming Patch Hover",
-        description = "Hovering a farming patch shows what's growing, its stage, roughly when it's grown, compost, watering, protection and what you can plant",
+        description = "<div width='300'>Hovering a farming patch shows what's growing, its stage, roughly when it's grown, compost, watering, protection and what you can plant",
         section = farmingSection,
         position = 1
     )
@@ -449,7 +449,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showHunterHover",
         name = "Creature Hover",
-        description = "Hovering a Hunter creature shows its level, XP and the trap it needs",
+        description = "<div width='300'>Hovering a Hunter creature shows its level, XP and the trap it needs",
         section = hunterSection,
         position = 1
     )
@@ -460,7 +460,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showTrapTimer",
         name = "Trap Timers",
-        description = "A timer on each trap you lay, showing how long until it collapses (green once something is caught)",
+        description = "<div width='300'>A timer on each trap you lay, showing how long until it collapses (green once something is caught)",
         section = hunterSection,
         position = 2
     )
@@ -493,7 +493,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceBirdhouses",
         name = "Voice: Bird Houses Ready",
-        description = "When your bird houses are ready (turning it on plays a preview)",
+        description = "<div width='300'>When your bird houses are ready (turning it on plays a preview)",
         section = hunterSection,
         position = 5
     )
@@ -523,7 +523,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showFireTimer",
         name = "Fire Timers",
-        description = "A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times)",
+        description = "<div width='300'>A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times)",
         section = firemakingSection,
         position = 1
     )
@@ -534,7 +534,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showCampfireTimer",
         name = "Campfire Timers",
-        description = "A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it",
+        description = "<div width='300'>A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it",
         section = firemakingSection,
         position = 2
     )
@@ -553,7 +553,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showRunecraftHover",
         name = "Altar Hover",
-        description = "Hovering an altar shows the rune, level, XP and how many runes you make per essence",
+        description = "<div width='300'>Hovering an altar shows the rune, level, XP and how many runes you make per essence",
         section = runecraftSection,
         position = 1
     )
@@ -572,7 +572,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showAgilityHover",
         name = "Obstacle Hover",
-        description = "Hovering a course obstacle or shortcut shows its Agility level, the course XP per lap and laps to your next level",
+        description = "<div width='300'>Hovering a course obstacle or shortcut shows its Agility level, the course XP per lap and laps to your next level",
         section = agilitySection,
         position = 1
     )
@@ -591,7 +591,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showCookingHover",
         name = "Range / Fire Hover",
-        description = "Hovering a range or fire shows each raw food you are carrying: its level, XP and burn level",
+        description = "<div width='300'>Hovering a range or fire shows each raw food you are carrying: its level, XP and burn level",
         section = cookingSection,
         position = 1
     )
@@ -610,7 +610,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showShipwreckTimer",
         name = "Shipwreck Timers",
-        description = "A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks",
+        description = "<div width='300'>A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks",
         section = sailingSection,
         position = 1
     )
@@ -621,7 +621,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showSailingHover",
         name = "Sailing Hover",
-        description = "Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you), trawling shoals (Fishing level, fish, depth, bait), sea monsters (HP, safe keel, bounty parts) and your current duck",
+        description = "<div width='300'>Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you), trawling shoals (Fishing level, fish, depth, bait), sea monsters (HP, safe keel, bounty parts) and your current duck",
         section = sailingSection,
         position = 2
     )
@@ -640,7 +640,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showSmithingHover",
         name = "Anvil / Furnace Hover",
-        description = "Hovering an anvil or furnace shows what you can make from the bars or ores you are carrying",
+        description = "<div width='300'>Hovering an anvil or furnace shows what you can make from the bars or ores you are carrying",
         section = smithingSection,
         position = 1
     )
@@ -692,7 +692,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showTrackerActions",
         name = "Show Actions Left",
-        description = "How many more of your last action until the next level (not shown for combat skills)",
+        description = "<div width='300'>How many more of your last action until the next level (not shown for combat skills)",
         section = trackerSection,
         position = 63
     )
@@ -703,7 +703,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "trackerActionsToGoal",
         name = "Actions Until Goal",
-        description = "When a skill has a goal, count actions left until the goal instead of until the next level. When the suggested method changes before the goal, it counts to the end of the step you're on (hover the count to see what it counts to)",
+        description = "<div width='300'>When a skill has a goal, count actions left until the goal instead of until the next level. When the suggested method changes before the goal, it counts to the end of the step you're on (hover the count to see what it counts to)",
         section = trackerSection,
         position = 64
     )
@@ -747,7 +747,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showTrackerGoal",
         name = "Show Goal",
-        description = "Your goal for the skill (right-click a skill card to set one): XP left and time to reach it",
+        description = "<div width='300'>Your goal for the skill (right-click a skill card to set one): XP left and time to reach it",
         section = trackerSection,
         position = 68
     )
@@ -758,7 +758,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showTrainingSuggestion",
         name = "Suggested Method",
-        description = "On a skill with a goal, show the wiki training guide's method for your level and what to switch to on the way",
+        description = "<div width='300'>On a skill with a goal, show the wiki training guide's method for your level and what to switch to on the way",
         section = trackerSection,
         position = 69
     )
@@ -769,7 +769,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "trainingFocus",
         name = "Training Focus",
-        description = "What goal suggestions aim for, unless a skill has its own (right-click a skill in the tracker > Suggest, or pick it when setting a goal): the wiki guide's fastest XP, its other methods (often more AFK), the cheapest way (fewest GP per XP when making things; gathering is free), or the best money maker you can do. Slayer always suggests the best Slayer master",
+        description = "<div width='300'>What goal suggestions aim for, unless a skill has its own (right-click a skill in the tracker > Suggest, or pick it when setting a goal): the wiki guide's fastest XP, its other methods (often more AFK), the cheapest way (fewest GP per XP when making things; gathering is free), or the best money maker you can do. Slayer always suggests the best Slayer master",
         section = trackerSection,
         position = 70
     )
@@ -780,7 +780,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "highlightSuggestedTraining",
         name = "Highlight Suggested Method",
-        description = "Outline the trees, rocks, stalls or NPCs of the suggested method for each skill you have a goal in",
+        description = "<div width='300'>Outline the trees, rocks, stalls or NPCs of the suggested method for each skill you have a goal in",
         section = trackerSection,
         position = 71
     )
@@ -791,7 +791,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "highlightGoalItems",
         name = "Highlight Goal Items",
-        description = "For Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking and other goals, outline in your inventory and bank the materials of the best thing you can make from them (hover for which goal)",
+        description = "<div width='300'>For Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking and other goals, outline in your inventory and bank the materials of the best thing you can make from them (hover for which goal)",
         section = trackerSection,
         position = 72
     )
@@ -814,7 +814,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "autoPauseSkills",
         name = "Auto-Pause Idle Skills",
-        description = "Stop a skill's XP/hr clock when you haven't gained XP in it for a while; it resumes on your next XP",
+        description = "<div width='300'>Stop a skill's XP/hr clock when you haven't gained XP in it for a while; it resumes on your next XP",
         section = trackerSection,
         position = 74
     )
@@ -826,7 +826,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "autoPauseSeconds",
         name = "Auto-Pause After",
-        description = "Seconds without XP in a skill before it auto-pauses (10 seconds to an hour)",
+        description = "<div width='300'>Seconds without XP in a skill before it auto-pauses (10 seconds to an hour)",
         section = trackerSection,
         position = 75
     )
@@ -849,7 +849,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceLevelUp",
         name = "Voice: Level Up",
-        description = "Say the skill and your new level when you level up (turning it on plays a preview)",
+        description = "<div width='300'>Say the skill and your new level when you level up (turning it on plays a preview)",
         section = trackerSection,
         position = 77
     )
@@ -860,7 +860,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatLevelUp",
         name = "Chat: Level Up",
-        description = "Chat message when you level up (off by default; the game already congratulates you)",
+        description = "<div width='300'>Chat message when you level up (off by default; the game already congratulates you)",
         section = trackerSection,
         position = 78
     )
@@ -872,7 +872,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voicePersona",
         name = "Voice Persona",
-        description = "Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
+        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
         section = generalSection,
         position = 1
     )
@@ -899,7 +899,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceEnabled",
         name = "Voice Alerts",
-        description = "Speak alerts out loud. Each alert also has its own Voice switch in its section",
+        description = "<div width='300'>Speak alerts out loud. Each alert also has its own Voice switch in its section",
         section = generalSection,
         position = 0
     )
@@ -911,7 +911,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "syncVoice",
         name = "Same Voice For All",
-        description = "Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
+        description = "<div width='300'>Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
         section = generalSection,
         position = 4
     )
@@ -923,7 +923,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "sendChatMessages",
         name = "Chat Messages",
-        description = "Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
+        description = "<div width='300'>Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
         section = generalSection,
         position = 3
     )
@@ -935,7 +935,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "characterIdleAlert",
         name = "AFK Alert",
-        description = "Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
+        description = "<div width='300'>Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
         section = idleSection,
         position = 31
     )
@@ -953,7 +953,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "characterIdleSeconds",
         name = "Idle Alert After",
-        description = "Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
+        description = "<div width='300'>Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
         section = idleSection,
         position = 32
     )
@@ -972,7 +972,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "idleWarningSeconds",
         name = "Warn Before Logout",
-        description = "How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
+        description = "<div width='300'>How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
         section = idleSection,
         position = 34
     )
@@ -1010,7 +1010,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "maxIdleRepeats",
         name = "Max Repeats",
-        description = "How many times to repeat the idle logout alert after the first",
+        description = "<div width='300'>How many times to repeat the idle logout alert after the first",
         section = idleSection,
         position = 38
     )
@@ -1022,7 +1022,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceCharacterIdle",
         name = "Voice: Character Idle",
-        description = "When your character has gone AFK (turning it on plays a preview)",
+        description = "<div width='300'>When your character has gone AFK (turning it on plays a preview)",
         section = idleSection,
         position = 39
     )
@@ -1046,7 +1046,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceIdleLogout",
         name = "Voice: Logout Warning",
-        description = "When you are about to be logged out for inactivity (turning it on plays a preview)",
+        description = "<div width='300'>When you are about to be logged out for inactivity (turning it on plays a preview)",
         section = idleSection,
         position = 41
     )
@@ -1058,7 +1058,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatIdleLogout",
         name = "Chat: Logout Warning",
-        description = "Chat message when you are about to be logged out for inactivity",
+        description = "<div width='300'>Chat message when you are about to be logged out for inactivity",
         section = idleSection,
         position = 42
     )
