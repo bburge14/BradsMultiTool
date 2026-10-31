@@ -38,9 +38,9 @@ $form.MaximizeBox = $false
 $form.StartPosition = 'CenterScreen'
 $form.ClientSize = New-Object System.Drawing.Size(460, 584)
 $form.Font = New-Object System.Drawing.Font('Segoe UI', 9)
-$icon = Join-Path $root 'icon.png'
+$icon = Join-Path $root 'assets\launcher.ico'
 if (Test-Path $icon) {
-    $form.Icon = [System.Drawing.Icon]::FromHandle(([System.Drawing.Bitmap]::FromFile($icon)).GetHicon())
+    $form.Icon = New-Object System.Drawing.Icon($icon)
 }
 
 # ---- Updates ----
@@ -92,9 +92,44 @@ function Update-Plugins {
 $checkAgain.Add_Click({ Update-Plugins })
 
 # ---- Setup checklist: RuneLite, its session setting, the saved session, Java, git ----
-$rlDir = Join-Path $env:LOCALAPPDATA 'RuneLite'
-$rlExe = Join-Path $rlDir 'RuneLite.exe'
-$rlSettings = Join-Path $rlDir 'settings.json'
+$runeLiteChoice = Join-Path $root '.launch-runelite'
+$shell = New-Object -ComObject WScript.Shell
+
+# Where RuneLite is: the one you picked with Find it..., its usual folders, its uninstall entry, its Start menu
+# shortcuts, a running RuneLite, or under the Jagex Launcher's folder. Null if none of them has it.
+function Find-RuneLite {
+    $candidates = New-Object System.Collections.Generic.List[string]
+    if (Test-Path $runeLiteChoice) { $candidates.Add((Get-Content $runeLiteChoice -Raw).Trim()) }
+    foreach ($base in @($env:LOCALAPPDATA, $env:ProgramFiles, ${env:ProgramFiles(x86)})) {
+        if ($base) { $candidates.Add((Join-Path $base 'RuneLite\RuneLite.exe')) }
+    }
+    foreach ($key in @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+                       'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+                       'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*')) {
+        Get-ItemProperty $key -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like 'RuneLite*' } | ForEach-Object {
+            if ($_.InstallLocation) { $candidates.Add((Join-Path $_.InstallLocation 'RuneLite.exe')) }
+            if ($_.DisplayIcon) { $candidates.Add(($_.DisplayIcon -split ',')[0].Trim('"')) }
+        }
+    }
+    foreach ($menu in @((Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'),
+                        (Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs'))) {
+        Get-ChildItem $menu -Recurse -Filter 'RuneLite*.lnk' -ErrorAction SilentlyContinue | ForEach-Object {
+            $candidates.Add($shell.CreateShortcut($_.FullName).TargetPath)
+        }
+    }
+    Get-Process -Name 'RuneLite' -ErrorAction SilentlyContinue | ForEach-Object { if ($_.Path) { $candidates.Add($_.Path) } }
+    foreach ($jagex in @((Join-Path ${env:ProgramFiles(x86)} 'Jagex Launcher'), (Join-Path $env:ProgramFiles 'Jagex Launcher'),
+                         (Join-Path $env:ProgramData 'Jagex'))) {
+        if ($jagex -and (Test-Path $jagex)) {
+            Get-ChildItem $jagex -Recurse -Depth 4 -Filter 'RuneLite.exe' -ErrorAction SilentlyContinue |
+                ForEach-Object { $candidates.Add($_.FullName) }
+        }
+    }
+    return $candidates | Where-Object { $_ -and ($_ -like '*RuneLite.exe') -and (Test-Path $_) } | Select-Object -First 1
+}
+
+$script:rlExe = $null
+$script:rlSettings = $null
 $jagexLauncher = @(
     (Join-Path ${env:ProgramFiles(x86)} 'Jagex Launcher\JagexLauncher.exe'),
     (Join-Path $env:ProgramFiles 'Jagex Launcher\JagexLauncher.exe')
@@ -131,9 +166,9 @@ function Set-Row($key, $ok, $text, $buttonText = $null, $hint = $null) {
 # The client arguments "RuneLite (configure)" saved: Ok is false when its settings can't be read. (Wrapped in a
 # hashtable: PowerShell would turn an empty list returned on its own into $null.)
 function Get-ClientArguments {
-    if (-not (Test-Path $rlSettings)) { return @{ Ok = $true; Args = @() } }
+    if (-not $script:rlSettings -or -not (Test-Path $script:rlSettings)) { return @{ Ok = $true; Args = @() } }
     try {
-        $json = Get-Content $rlSettings -Raw | ConvertFrom-Json
+        $json = Get-Content $script:rlSettings -Raw | ConvertFrom-Json
         return @{ Ok = $true; Args = @($json.clientArguments | Where-Object { $_ }) }
     } catch {
         return @{ Ok = $false; Args = @() }
@@ -142,16 +177,20 @@ function Get-ClientArguments {
 
 # Only reads the character's name and when the file was saved; the session itself is never shown
 function Check-Setup {
-    $hasRuneLite = Test-Path $rlExe
+    $script:rlExe = Find-RuneLite
+    $hasRuneLite = [bool]$script:rlExe
     if ($hasRuneLite) {
-        Set-Row 'runelite' $true 'RuneLite is installed.'
+        # RuneLite keeps its launcher settings (what configure saves) next to RuneLite.exe
+        $script:rlSettings = Join-Path (Split-Path $script:rlExe -Parent) 'settings.json'
+        Set-Row 'runelite' $true 'RuneLite is installed.' $null $script:rlExe
     } else {
-        Set-Row 'runelite' $false "RuneLite isn't installed." 'Get RuneLite' 'The Jagex Launcher needs RuneLite installed to save a session'
+        $script:rlSettings = $null
+        Set-Row 'runelite' $false "Couldn't find RuneLite." 'Find it...' 'Point to RuneLite.exe, or get RuneLite from runelite.net if you need it'
     }
 
     $arguments = Get-ClientArguments
     if (-not $arguments.Ok) {
-        Set-Row 'flag' $false "Couldn't read RuneLite's settings." 'Open configure' $rlSettings
+        Set-Row 'flag' $false "Couldn't read RuneLite's settings." 'Open configure' $script:rlSettings
     } elseif ($arguments.Args -contains $flag) {
         Set-Row 'flag' $true 'Session saving is on in RuneLite (configure).' $null $flag
     } elseif ($hasRuneLite) {
@@ -184,7 +223,18 @@ function Check-Setup {
     $launch.Enabled = [bool](Get-Command java -ErrorAction SilentlyContinue)
 }
 
-$rows['runelite'].Button.Add_Click({ Start-Process 'https://runelite.net/' })
+# Point to RuneLite.exe (remembered), or get RuneLite
+$rows['runelite'].Button.Add_Click({
+    $dialog = New-Object System.Windows.Forms.OpenFileDialog
+    $dialog.Title = 'Where is RuneLite.exe?'
+    $dialog.Filter = 'RuneLite|RuneLite.exe|Programs|*.exe'
+    if ($dialog.ShowDialog() -eq 'OK') {
+        Set-Content -Path $runeLiteChoice -Value $dialog.FileName
+    } elseif ([System.Windows.Forms.MessageBox]::Show("Don't have RuneLite? Open runelite.net to get it?", "Snuffy's", 'YesNo') -eq 'Yes') {
+        Start-Process 'https://runelite.net/'
+    }
+    Check-Setup
+})
 $rows['java'].Button.Add_Click({ Start-Process 'https://adoptium.net/temurin/releases/?version=17' })
 $rows['git'].Button.Add_Click({ Start-Process 'https://git-scm.com/download/win' })
 
@@ -199,9 +249,9 @@ $rows['flag'].Button.Add_Click({
         'Turn on session saving', 'YesNoCancel')
     if ($answer -eq 'Yes') {
         try {
-            if (Test-Path $rlSettings) {
-                Copy-Item $rlSettings "$rlSettings.bak" -Force
-                $json = Get-Content $rlSettings -Raw | ConvertFrom-Json
+            if (Test-Path $script:rlSettings) {
+                Copy-Item $script:rlSettings "$script:rlSettings.bak" -Force
+                $json = Get-Content $script:rlSettings -Raw | ConvertFrom-Json
             } else {
                 $json = [pscustomobject]@{}
             }
@@ -213,13 +263,13 @@ $rows['flag'].Button.Add_Click({
                 $json | Add-Member -NotePropertyName 'clientArguments' -NotePropertyValue $updated
             }
             # Without a byte order mark: RuneLite reads the file as plain UTF-8 and would reset its settings otherwise
-            [System.IO.File]::WriteAllText($rlSettings, ($json | ConvertTo-Json -Depth 5), (New-Object System.Text.UTF8Encoding $false))
+            [System.IO.File]::WriteAllText($script:rlSettings, ($json | ConvertTo-Json -Depth 5), (New-Object System.Text.UTF8Encoding $false))
         } catch {
             [System.Windows.Forms.MessageBox]::Show("Couldn't change RuneLite's settings: $($_.Exception.Message)`n`nAdd it yourself in RuneLite (configure).", "Snuffy's") | Out-Null
-            Start-Process $rlExe -ArgumentList '--configure'
+            Start-Process $script:rlExe -ArgumentList '--configure'
         }
     } elseif ($answer -eq 'No') {
-        Start-Process $rlExe -ArgumentList '--configure'
+        Start-Process $script:rlExe -ArgumentList '--configure'
         [System.Windows.Forms.MessageBox]::Show("In the window that opened, add  $flag  to Client arguments and click Save.", "Snuffy's") | Out-Null
     }
     Check-Setup
@@ -325,7 +375,34 @@ $launch.Add_Click({
     $form.Close()
 })
 
+# Desktop shortcut: make (or fix) one with the Toolbelt's icon; shortcuts already pointing here get the icon too
+$bat = Join-Path $root 'Launch-BradsMultiTool.bat'
+$desktop = [Environment]::GetFolderPath('Desktop')
+function Set-ShortcutIcons {
+    Get-ChildItem $desktop -Filter '*.lnk' -ErrorAction SilentlyContinue | ForEach-Object {
+        $link = $shell.CreateShortcut($_.FullName)
+        if ($link.TargetPath -ieq $bat -and $link.IconLocation -notlike "$icon*") {
+            $link.IconLocation = "$icon,0"
+            $link.Save()
+        }
+    }
+}
+$shortcut = New-Object System.Windows.Forms.LinkLabel
+$shortcut.Text = 'Make a desktop shortcut'
+$shortcut.Location = New-Object System.Drawing.Point(14, 552)
+$shortcut.AutoSize = $true
+$form.Controls.Add($shortcut)
+$shortcut.Add_LinkClicked({
+    $link = $shell.CreateShortcut((Join-Path $desktop "Snuffy's Launcher.lnk"))
+    $link.TargetPath = $bat
+    $link.WorkingDirectory = $root
+    $link.IconLocation = "$icon,0"
+    $link.Save()
+    [System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher is on your desktop.", "Snuffy's") | Out-Null
+})
+
 $form.Add_Shown({
+    Set-ShortcutIcons
     Check-Setup
     Update-Plugins
 })
