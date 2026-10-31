@@ -370,7 +370,9 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
    type a target: a number up to 99 is a level, anything bigger is an XP amount.
 3. Clear it from the card's right-click menu (Clear goal only shows while the skill has a goal).
 
-Goals are saved with your RuneScape profile, so they stay after a relaunch. To have them on another PC,
+Goals are saved with your RuneScape profile, so they stay after a relaunch. The Toolbelt and the Skilling Helper
+share them (and your Track for goal picks, Suggest choices and pinned skill), so switching between them keeps
+your goals. To have them on another PC,
 log in to a RuneLite account on both and turn on **Sync** for your profile (Profiles panel).
 
 **Settings (Skill Tracker):** Suggested Method; **Training Focus** (for skills without their

@@ -230,7 +230,7 @@ class GoalItems {
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
-        if (identity.configGroup.equals(event.getGroup())) {
+        if (identity.configGroup.equals(event.getGroup()) || SkillTracker.SHARED_GROUP.equals(event.getGroup())) {
             dirty = true;
         }
     }

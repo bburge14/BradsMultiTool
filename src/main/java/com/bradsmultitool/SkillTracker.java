@@ -101,6 +101,8 @@ class SkillTracker {
             .panel(panel)
             .build();
         clientToolbar.addNavigation(navButton);
+        // Turned on while logged in: the profile's already known, so no profile change comes to move old goals
+        moveToSharedGroup();
     }
 
     void shutDown() {
@@ -180,16 +182,50 @@ class SkillTracker {
         }
     }
 
+    /**
+     * Where goals, their Track for goal picks, Suggest choices, Prayer methods and the pinned skill are saved: one
+     * place for the Toolbelt and the Skilling Helper alike, so either shows the same goals. (The Toolbelt's old
+     * group, so its goals stay where they were; bird houses and compost are kept there too.)
+     */
+    static final String SHARED_GROUP = "bradsmultitool";
+    private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "trainingFocus.", "prayerMethod."};
+
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
     // which changes when synced settings arrive), so redraw the tracker then
     @Subscribe
     public void onRuneScapeProfileChanged(RuneScapeProfileChanged event) {
+        moveToSharedGroup();
         updatePanelUI();
+    }
+
+    // Goals the Skilling Helper saved under its own group before they were shared: moved to the shared group
+    // (unless that already has one), then removed, so they're never copied back over a goal you change later
+    private void moveToSharedGroup() {
+        String profile = configManager.getRSProfileKey();
+        if (profile == null || SHARED_GROUP.equals(identity.configGroup)) {
+            return;
+        }
+        for (String prefix : SHARED_PREFIXES) {
+            for (String key : configManager.getRSProfileConfigurationKeys(identity.configGroup, profile, prefix)) {
+                String value = configManager.getRSProfileConfiguration(identity.configGroup, key);
+                if (value != null && configManager.getRSProfileConfiguration(SHARED_GROUP, key) == null) {
+                    configManager.setRSProfileConfiguration(SHARED_GROUP, key, value);
+                }
+                configManager.unsetRSProfileConfiguration(identity.configGroup, key);
+            }
+        }
+        String pinned = configManager.getConfiguration(identity.configGroup, "pinnedSkill");
+        if (pinned != null) {
+            if (configManager.getConfiguration(SHARED_GROUP, "pinnedSkill") == null) {
+                configManager.setConfiguration(SHARED_GROUP, "pinnedSkill", pinned);
+            }
+            configManager.unsetConfiguration(identity.configGroup, "pinnedSkill");
+        }
     }
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
-        if (!identity.configGroup.equals(event.getGroup())) {
+        if (!identity.configGroup.equals(event.getGroup()) && !SHARED_GROUP.equals(event.getGroup())) {
             return;
         }
 
@@ -260,7 +296,7 @@ class SkillTracker {
 
     /** The skill's goal in XP, or 0 for none. */
     public int getSkillGoal(Skill skill) {
-        String value = configManager.getRSProfileConfiguration(identity.configGroup, "goal." + skill.name());
+        String value = configManager.getRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name());
         try {
             return value == null ? 0 : Integer.parseInt(value);
         } catch (NumberFormatException e) {
@@ -270,16 +306,16 @@ class SkillTracker {
 
     public void setSkillGoal(Skill skill, int goalXp) {
         if (goalXp <= 0) {
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "goal." + skill.name());
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name());
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
         } else {
             // Modifying a goal still underway keeps where it started (the goal bar's progress)
             int xp = client.getSkillExperience(skill);
             boolean underway = getSkillGoal(skill) > xp && getSkillGoalStart(skill) > 0;
-            configManager.setRSProfileConfiguration(identity.configGroup, "goal." + skill.name(), goalXp);
+            configManager.setRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name(), goalXp);
             if (!underway) {
-                configManager.setRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name(), xp);
+                configManager.setRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name(), xp);
             }
         }
         updatePanelUI();
@@ -328,14 +364,14 @@ class SkillTracker {
      */
     public String getGoalTarget(Skill skill) {
         return configManager.getRSProfileKey() == null ? null
-            : configManager.getRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name());
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
     }
 
     public void setGoalTarget(Skill skill, String target) {
         if (target == null) {
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
         } else {
-            configManager.setRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name(), target);
+            configManager.setRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name(), target);
         }
         updatePanelUI();
     }
@@ -346,11 +382,11 @@ class SkillTracker {
      */
     public PrayerMethod getPrayerMethod(boolean shards) {
         return configManager.getRSProfileKey() == null ? null
-            : PrayerMethod.parse(configManager.getRSProfileConfiguration(identity.configGroup, prayerMethodKey(shards)));
+            : PrayerMethod.parse(configManager.getRSProfileConfiguration(SHARED_GROUP, prayerMethodKey(shards)));
     }
 
     public void setPrayerMethod(PrayerMethod method) {
-        configManager.setRSProfileConfiguration(identity.configGroup, prayerMethodKey(method.shards), method.name());
+        configManager.setRSProfileConfiguration(SHARED_GROUP, prayerMethodKey(method.shards), method.name());
         updatePanelUI();
     }
 
@@ -394,7 +430,7 @@ class SkillTracker {
     /** The focus picked for this skill, or null when it follows the default. */
     public SkillTrackerConfig.TrainingFocus getOwnTrainingFocus(Skill skill) {
         String value = configManager.getRSProfileKey() == null ? null
-            : configManager.getRSProfileConfiguration(identity.configGroup, "trainingFocus." + skill.name());
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, "trainingFocus." + skill.name());
         if (value == null) {
             return null;
         }
@@ -407,9 +443,9 @@ class SkillTracker {
 
     public void setTrainingFocus(Skill skill, SkillTrackerConfig.TrainingFocus focus) {
         if (focus == null) {
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "trainingFocus." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "trainingFocus." + skill.name());
         } else {
-            configManager.setRSProfileConfiguration(identity.configGroup, "trainingFocus." + skill.name(), focus.name());
+            configManager.setRSProfileConfiguration(SHARED_GROUP, "trainingFocus." + skill.name(), focus.name());
         }
         updatePanelUI();
     }
@@ -422,7 +458,7 @@ class SkillTracker {
 
     /** The one skill pinned to the game screen from the tracker, or null. Kept across restarts. */
     public Skill getPinnedSkill() {
-        String name = configManager.getConfiguration(identity.configGroup, "pinnedSkill");
+        String name = configManager.getConfiguration(SHARED_GROUP, "pinnedSkill");
         if (name == null || name.isEmpty()) {
             return null;
         }
@@ -436,16 +472,16 @@ class SkillTracker {
     /** Pin a skill to the screen (replacing any other), or unpin with null. */
     public void setPinnedSkill(Skill skill) {
         if (skill == null) {
-            configManager.unsetConfiguration(identity.configGroup, "pinnedSkill");
+            configManager.unsetConfiguration(SHARED_GROUP, "pinnedSkill");
         } else {
-            configManager.setConfiguration(identity.configGroup, "pinnedSkill", skill.name());
+            configManager.setConfiguration(SHARED_GROUP, "pinnedSkill", skill.name());
         }
         updatePanelUI();
     }
 
     /** Your XP in the skill when you set its goal (for the goal bar), or 0 if unknown. */
     public int getSkillGoalStart(Skill skill) {
-        String value = configManager.getRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name());
+        String value = configManager.getRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name());
         try {
             return value == null ? 0 : Integer.parseInt(value);
         } catch (NumberFormatException e) {
