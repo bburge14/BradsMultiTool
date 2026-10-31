@@ -320,7 +320,7 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   Train line for all of them. Only places the guide names (and only real wiki location pages), so some methods
   have none.
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
-- Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
+- Where that method is a tree, rock, stall, pickpocket NPC, Hunter creature or fishing (every spot that catches its fish), those are outlined in the
   world.
 - **Train something else:** right-click a Hunter creature, pickpocket NPC, fishing spot, tree, rock or
   stall for a skill you have a goal in, or any monster while a combat skill has a goal, and choose

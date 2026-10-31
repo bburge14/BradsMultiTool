@@ -113,6 +113,8 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         Set<String> resources = new HashSet<>();
         // Fishing spots picked with the way you fish them ("lure"): only spots that offer it
         java.util.Map<String, Set<String>> fishOptions = new java.util.HashMap<>();
+        // Fish a suggested fishing method catches ("trout"): spots that catch any of them
+        Set<String> suggestedFish = new HashSet<>();
         for (Skill skill : plugin.getGoalSkills()) {
             int xp = client.getSkillExperience(skill);
             if (plugin.getSkillGoal(skill) <= xp) {
@@ -144,9 +146,15 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
                     }
                 }
                 npcNames.addAll(method.npcs);
+                // A fishing method names the fish, not the spots: every spot that catches one of them
+                if (skill == Skill.FISHING) {
+                    for (String fish : method.targets) {
+                        suggestedFish.add(fish.toLowerCase());
+                    }
+                }
             }
         }
-        if (ids.isEmpty() && npcNames.isEmpty() && resources.isEmpty()) {
+        if (ids.isEmpty() && npcNames.isEmpty() && resources.isEmpty() && suggestedFish.isEmpty()) {
             return null;
         }
         Color color = config.trainingHighlightColor();
@@ -156,15 +164,35 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
                 outlines.drawOutline(object, OUTLINE_WIDTH, color, OUTLINE_FEATHER);
             }
         }
-        if (!npcNames.isEmpty()) {
+        if (!npcNames.isEmpty() || !suggestedFish.isEmpty()) {
             for (NPC npc : client.getTopLevelWorldView().npcs()) {
                 String name = npc.getName() != null ? npc.getName().toLowerCase() : null;
-                if (name != null && npcNames.contains(name) && offers(npc, fishOptions.get(name))) {
+                if (name != null && ((npcNames.contains(name) && offers(npc, fishOptions.get(name))) || catches(npc, suggestedFish))) {
                     outlines.drawOutline(npc, OUTLINE_WIDTH, color, OUTLINE_FEATHER);
                 }
             }
         }
         return null;
+    }
+
+    // Whether a fishing spot catches one of these fish ("trout" or "raw trout")
+    private boolean catches(NPC npc, Set<String> fish) {
+        if (fish.isEmpty()) {
+            return false;
+        }
+        SkillHelperData.FishingSpot spot = helpers.fishingSpot(npc.getId());
+        if (spot == null) {
+            return false;
+        }
+        for (java.util.List<SkillHelperData.Catch> option : spot.options.values()) {
+            for (SkillHelperData.Catch c : option) {
+                String name = c.name.toLowerCase();
+                if (fish.contains(name) || (name.startsWith("raw ") && fish.contains(name.substring(4)))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // Whether a fishing spot offers one of the ways you picked to fish it ("fly fishing"; always true when it

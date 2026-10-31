@@ -198,3 +198,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 
 - [ ] Set a goal in the Toolbelt, launch the Skilling Helper alone: the same goal (and Track for goal pick, Suggest choice, pinned skill) is there, and the other way round.
 - [ ] Fishing spot tiles: fly fishing shows trout and salmon stacked (only those your level catches); after switching to stripy feathers, the next catch switches the picture to rainbow fish; clicking another option clears it until the next catch.
+- [ ] Fishing goal with a fishing suggestion (e.g. Fly fishing: Trout, Salmon): every spot that catches those fish is outlined in the world, before you start fishing.
