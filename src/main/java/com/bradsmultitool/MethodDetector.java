@@ -42,6 +42,17 @@ class MethodDetector {
     private final CombatStyle combatStyle;
     private final PluginIdentity identity;
 
+    // The way you're fishing (a fishing spot option as the spot data names it: "fly fishing", "stripy feathers"),
+    // worked out from the XP of your last catch, and the menu option you'd clicked then
+    private volatile String fishingWay;
+    private String fishingWayOption;
+    private String fishingOption;
+
+    /** The way you're fishing now (lower-case, as fishing spot data names it), or null until a catch shows it. */
+    String fishingWay() {
+        return fishingWay;
+    }
+
     // What you last clicked that trains a skill, and when
     private Skill clickedSkill;
     private String clickedTarget;
@@ -110,6 +121,11 @@ class MethodDetector {
             if (SkillingData.isFishingOption(option) && helpers.fishingSpot(npc.getId()) != null) {
                 skill = Skill.FISHING;
                 spot = npc;
+                // Picking another option ("Bait" after "Lure") means the way you were fishing may have changed
+                if (fishingWayOption != null && !fishingWayOption.equals(option)) {
+                    fishingWay = null;
+                }
+                fishingOption = option;
             } else if (option.equals("pickpocket")) {
                 skill = Skill.THIEVING;
                 target = GoalTarget.NPC + name.toLowerCase();
@@ -135,7 +151,18 @@ class MethodDetector {
         Skill skill = event.getSkill();
         Integer before = lastXp.put(skill, event.getXp());
         int drop = before == null ? 0 : event.getXp() - before;
-        if (drop <= 0 || plugin.getSkillGoal(skill) <= event.getXp()) {
+        if (drop <= 0) {
+            return;
+        }
+        // The way you're fishing, for the fishing spot tiles (whether or not you have a goal)
+        if (skill == Skill.FISHING && skill == clickedSkill && client.getTickCount() - clickTick <= CLICK_MEMORY_TICKS) {
+            String fish = fishingTarget(drop);
+            if (fish != null) {
+                fishingWay = GoalTarget.parts(fish)[1];
+                fishingWayOption = fishingOption;
+            }
+        }
+        if (plugin.getSkillGoal(skill) <= event.getXp()) {
             return;
         }
         String target = null;
@@ -243,6 +270,7 @@ class MethodDetector {
         offers.clear();
         dismissed.clear();
         clickedSkill = null;
+        fishingWay = null;
     }
 
     Map<Skill, String> offers() {

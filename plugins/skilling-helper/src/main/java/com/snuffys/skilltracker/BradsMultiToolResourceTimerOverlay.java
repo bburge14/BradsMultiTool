@@ -8,6 +8,9 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
@@ -47,13 +50,15 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private final ItemIcons itemIcons;
     private final ProgressPieComponent pie = new ProgressPieComponent();
     private final TooltipManager tooltips;
+    private final MethodDetector methods;
     private final net.runelite.client.game.SkillIconManager skillIcons;
 
     @Inject
     public BradsMultiToolResourceTimerOverlay(Client client, SkillTrackerConfig config, ResourceTimers timers,
                                               OtherTimerPlugins otherPlugins, SkillTracker plugin,
                                               SkillHelperData helpers, ItemIcons itemIcons, TooltipManager tooltips,
-                                              net.runelite.client.game.SkillIconManager skillIcons) {
+                                              net.runelite.client.game.SkillIconManager skillIcons, MethodDetector methods) {
+        this.methods = methods;
         this.tooltips = tooltips;
         this.skillIcons = skillIcons;
         this.helpers = helpers;
@@ -319,17 +324,72 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         if (middle == null) {
             return null;
         }
-        BufferedImage icon = otherPlugins.drawsIcon(timer.kind, yours) ? null : itemIcons.get(product(timer));
-        if (icon == null) {
+        List<BufferedImage> icons = new ArrayList<>();
+        if (!otherPlugins.drawsIcon(timer.kind, yours)) {
+            for (String product : products(timer)) {
+                BufferedImage image = itemIcons.get(product);
+                if (image != null) {
+                    icons.add(image);
+                }
+            }
+        }
+        if (icons.isEmpty()) {
             return middle;
         }
-        int x = middle.getX() - icon.getWidth() / 2;
-        int y = middle.getY() - icon.getHeight() / 2;
-        graphics.drawImage(icon, x, y, null);
-        return new Point(x + icon.getWidth() - DIAMETER / 4, y + DIAMETER / 4);
+        // Several (trout and salmon from one way of fishing): stacked, each a little down and right of the last
+        int width = icons.get(0).getWidth() + STACK_STEP * (icons.size() - 1);
+        int height = icons.get(0).getHeight() + STACK_STEP * (icons.size() - 1);
+        int x = middle.getX() - width / 2;
+        int y = middle.getY() - height / 2;
+        for (int i = 0; i < icons.size(); i++) {
+            graphics.drawImage(icons.get(i), x + STACK_STEP * i, y + STACK_STEP * i, null);
+        }
+        return new Point(x + width - DIAMETER / 4, y + DIAMETER / 4);
     }
 
-    // What a timed resource gives, by item name: logs for trees, ore for rocks, the best fish you can catch at a spot
+    private static final int STACK_STEP = 9;
+
+    // What a timed resource gives, by item name: logs for trees, ore for rocks; for a fishing spot, the fish of the
+    // way you're fishing (when the spot has it), else of the best way for your level: every fish it gives you
+    private List<String> products(ResourceTimers.Timer timer) {
+        if (timer.kind == ResourceTimers.Kind.FISHING_SPOT) {
+            return fishOf(timer.npc.getId());
+        }
+        String product = product(timer);
+        return product == null ? Collections.emptyList() : Collections.singletonList(product);
+    }
+
+    private List<String> fishOf(int npcId) {
+        SkillHelperData.FishingSpot spot = helpers.fishingSpot(npcId);
+        if (spot == null) {
+            return Collections.emptyList();
+        }
+        int level = client.getRealSkillLevel(Skill.FISHING);
+        String way = methods.fishingWay();
+        List<SkillHelperData.Catch> catches = way != null ? TrainingAdvisor.catchesFor(spot, way) : Collections.emptyList();
+        if (catches.isEmpty()) {
+            // The way with the highest-level fish you can catch
+            int best = -1;
+            for (List<SkillHelperData.Catch> option : spot.options.values()) {
+                SkillHelperData.Catch top = TrainingAdvisor.bestCatch(option, level);
+                if (top != null && top.level > best) {
+                    best = top.level;
+                    catches = option;
+                }
+            }
+        }
+        List<String> fish = new ArrayList<>();
+        for (SkillHelperData.Catch c : catches) {
+            if (c.level <= level) {
+                fish.add(c.name);
+            }
+        }
+        if (fish.isEmpty() && !catches.isEmpty()) {
+            fish.add(catches.get(0).name);
+        }
+        return fish;
+    }
+
     private String product(ResourceTimers.Timer timer) {
         switch (timer.kind) {
             case VEIN:
@@ -340,8 +400,6 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 return "Daeyalt essence";
             case STAR:
                 return "Stardust";
-            case FISHING_SPOT:
-                return bestCatch(timer.npc.getId());
             case TREE:
                 return logsOf(objectName(timer.object.getId()));
             case TRAP:
@@ -364,28 +422,6 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         return base + " logs";
     }
 
-    // The highest-level fish you can catch at this spot, else its lowest-level one
-    private String bestCatch(int npcId) {
-        SkillHelperData.FishingSpot spot = helpers.fishingSpot(npcId);
-        if (spot == null) {
-            return null;
-        }
-        int level = client.getRealSkillLevel(Skill.FISHING);
-        SkillHelperData.Catch best = null;
-        SkillHelperData.Catch lowest = null;
-        for (java.util.List<SkillHelperData.Catch> catches : spot.options.values()) {
-            for (SkillHelperData.Catch c : catches) {
-                if (c.level <= level && (best == null || c.level > best.level)) {
-                    best = c;
-                }
-                if (lowest == null || c.level < lowest.level) {
-                    lowest = c;
-                }
-            }
-        }
-        SkillHelperData.Catch chosen = best != null ? best : lowest;
-        return chosen == null ? null : chosen.name;
-    }
 
     private String objectName(int id) {
         ObjectComposition composition = client.getObjectDefinition(id);

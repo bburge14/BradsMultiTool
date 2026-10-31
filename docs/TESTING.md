@@ -197,3 +197,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Fishing/Mining/Woodcutting goal: tools and bait outlined in the inventory and bank (fly fishing rod + feathers, any axe/pickaxe), not the fish/ore/logs; the spots/rocks/trees outlined in the world. Fish only outlined with a Cooking goal.
 
 - [ ] Set a goal in the Toolbelt, launch the Skilling Helper alone: the same goal (and Track for goal pick, Suggest choice, pinned skill) is there, and the other way round.
+- [ ] Fishing spot tiles: fly fishing shows trout and salmon stacked (only those your level catches); after switching to stripy feathers, the next catch switches the picture to rainbow fish; clicking another option clears it until the next catch.
