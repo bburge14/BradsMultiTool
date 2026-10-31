@@ -120,6 +120,9 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Train: names the specific thing: Herblore 19 "Serum 207 (Tarromin potion (unf) + Ashes)", Fishing 25 "Fly
       fishing: Trout, Salmon", Fishing 60 "Barbarian Fishing", Firemaking 45 "Burning logs: Maple logs"; hovering
       it shows the guide's description.
+- [ ] Nothing quest-locked: without Shades of Mort'ton started, Herblore 15-21 says Strength potion (not Serum
+      207); without Barbarian Training started, Fishing 58+ isn't Barbarian Fishing; Lunar spells only after Lunar
+      Diplomacy; Bloodwood only after The Blood Moon Rises.
 - [x] With a Woodcutting/Mining/Thieving goal, the suggested trees/rocks/stalls/NPCs are outlined.
 - [ ] Cooking goal with raw food in inventory/bank: card says Make: ..., the raw food is outlined in inventory and bank, hover shows the goal tooltip.
 - [ ] Highlight Goal Items off removes the outlines.

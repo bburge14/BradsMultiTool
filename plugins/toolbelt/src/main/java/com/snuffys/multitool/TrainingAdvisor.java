@@ -124,7 +124,7 @@ class TrainingAdvisor {
         }
         // The guide's pick at your level from its table ("Strength potion (Tarromin potion (unf) + Limpwurt
         // root)", "Cutting gems: Ruby"), else what it trains on ("Fly fishing: Trout, Salmon")
-        TrainingData.Option option = method.bestOption(level);
+        TrainingData.Option option = method.bestOption(level, o -> o.started.stream().allMatch(quests::isStarted));
         if (option != null) {
             String text = option.with.isEmpty() ? method.name + ": " + option.name
                 : option.name + " (" + String.join(" + ", option.with) + ")";
@@ -182,7 +182,8 @@ class TrainingAdvisor {
     /** Whether you meet a method's requirements: its quests finished, other skills at the levels it needs. */
     boolean canDo(TrainingData.Method method) {
         for (String quest : method.quests) {
-            if (!quests.isFinished(quest)) {
+            boolean done = method.started.contains(quest) ? quests.isStarted(quest) : quests.isFinished(quest);
+            if (!done) {
                 return false;
             }
         }

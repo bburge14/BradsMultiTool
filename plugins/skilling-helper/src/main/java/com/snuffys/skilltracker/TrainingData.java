@@ -38,6 +38,8 @@ class TrainingData {
         final Set<String> npcs = new HashSet<>();
         /** Quests (or miniquests) the guide says it requires. */
         final List<String> quests = new ArrayList<>();
+        /** Of those, the ones it only needs started ("partial completion of"). */
+        final List<String> started = new ArrayList<>();
         /** Other skills' levels it requires (skill name -> level). */
         final Map<String, Integer> skills = new HashMap<>();
         /** For "Questing": the quests the guide recommends for their XP. */
@@ -71,6 +73,11 @@ class TrainingData {
                     quests.add(e.getAsString());
                 }
             }
+            if (o.has("started")) {
+                for (JsonElement e : o.getAsJsonArray("started")) {
+                    started.add(e.getAsString());
+                }
+            }
             if (o.has("rewards")) {
                 for (JsonElement e : o.getAsJsonArray("rewards")) {
                     rewards.add(e.getAsString());
@@ -99,9 +106,14 @@ class TrainingData {
          * the guide's progression), the most XP among rows at that level.
          */
         Option bestOption(int level) {
+            return bestOption(level, o -> true);
+        }
+
+        /** As above, among the rows you can do (their quests). */
+        Option bestOption(int level, java.util.function.Predicate<Option> canDo) {
             Option best = null;
             for (Option option : options) {
-                if (option.level <= level && (best == null || option.level > best.level
+                if (option.level <= level && canDo.test(option) && (best == null || option.level > best.level
                     || option.level == best.level && option.xp > best.xp)) {
                     best = option;
                 }
@@ -129,6 +141,8 @@ class TrainingData {
         /** XP each, or the table's XP per hour where it lists that instead (then only for ranking). */
         final double xp;
         final List<String> with = new ArrayList<>();
+        /** Quests it needs started (the item is made during them: Serum 207, Shades of Mort'ton). */
+        final List<String> started = new ArrayList<>();
 
         Option(JsonObject o) {
             level = o.get("level").getAsInt();
@@ -137,6 +151,11 @@ class TrainingData {
             if (o.has("with")) {
                 for (JsonElement e : o.getAsJsonArray("with")) {
                     with.add(e.getAsString());
+                }
+            }
+            if (o.has("started")) {
+                for (JsonElement e : o.getAsJsonArray("started")) {
+                    started.add(e.getAsString());
                 }
             }
         }

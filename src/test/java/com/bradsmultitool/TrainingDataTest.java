@@ -76,4 +76,20 @@ public class TrainingDataTest {
         // Magic's "Starting off" groups methods; it isn't one
         org.junit.Assert.assertNotEquals("Starting off", DATA.suggest(Skill.MAGIC, 25, false).name);
     }
+
+    // A table row tied to a quest isn't suggested until you've started it; a method that needs a quest records
+    // whether starting it is enough
+    @Test
+    public void questLockedRowsAndMethods() {
+        TrainingData.Method potions = DATA.suggest(Skill.HERBLORE, 15, false);
+        assertEquals("Serum 207", potions.bestOption(15).name);
+        assertEquals("Strength potion", potions.bestOption(15, o -> !o.started.contains("Shades of Mort'ton")).name);
+        TrainingData.Method barbarian = DATA.suggest(Skill.FISHING, 60, false);
+        assertEquals("[Barbarian Training]", barbarian.quests.toString());
+        assertEquals("[Barbarian Training]", barbarian.started.toString());
+        // Without the quest, fly fishing until something else is open
+        assertEquals("Fly fishing", DATA.suggest(Skill.FISHING, 50, false, m -> m.quests.isEmpty()).name);
+        assertEquals("Bloodwood trees", DATA.suggest(Skill.WOODCUTTING, 77, true).name);
+        assertEquals("[The Blood Moon Rises]", DATA.suggest(Skill.WOODCUTTING, 77, true).quests.toString());
+    }
 }

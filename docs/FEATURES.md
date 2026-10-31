@@ -304,6 +304,9 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   Salmon"). Hover the line for what the guide says about the method. Where the guide's methods overlap, the one
   that takes over at your level wins, and a method that trains two skills at once (Drift net fishing: Fishing
   and Hunter) only when nothing else fits.
+- Only what you can do: a method (or a row of its table, like Serum 207) that needs a quest is left out until
+  you've done it, or just started it where the guide says partial completion is enough (Barbarian Fishing,
+  chinchompas, Serum 207); quests are read from the game's quest list.
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
 - Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
   world.

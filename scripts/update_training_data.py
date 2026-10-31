@@ -50,13 +50,17 @@ SKILL_NAMES = {"Attack", "Strength", "Defence", "Ranged", "Prayer", "Magic", "Ru
                "Fishing", "Cooking", "Firemaking", "Woodcutting", "Farming", "Sailing"}
 
 
+COMPLETION = re.compile(r"\b(after|with|upon)\s+(the\s+)?complet|must\s+(have\s+(been\s+)?)?complet|"
+                        r"need(s)?\s+to\s+have\s+complet|having\s+(started|completed)", re.I)
+
+
 def requirements(body, skill):
     """Quests and other skill levels a method's section says it requires: quest/miniquest links and {{SCP}}
     levels in its sentences about requirements."""
     global QUESTS
     if QUESTS is None:
         QUESTS = {t for t in category("Category:Quests") + category("Category:Miniquests") if "/" not in t}
-    quests, skills = [], {}
+    quests, skills, started = [], {}, []
     for sentence in re.split(r"(?<=[.!?])\s+|\n", body):
         # Only what the guide says the method requires ("This requires completion of Shades of Mort'ton");
         # sentences about other places or optional unlocks would hide methods you can do
@@ -69,17 +73,46 @@ def requirements(body, skill):
             sentence = sentence.replace(link, "\x00%d\x00" % i, 1)
         sentence = re.sub(r"\([^)]*\)", "", sentence)
         sentence = re.sub(r"\x00(\d+)\x00", lambda m: links[int(m.group(1))], sentence)
-        if sentence.lstrip().startswith(("|", "*")) or not re.search(r"requir", sentence, re.I) \
-                or re.search(r"\barea\b|\bisland\b|teleport", sentence, re.I):
+        # "requires", "After completion of", "With the completion of", "must have completed"...
+        # A sentence about one place among several is skipped, unless it says a quest must be done
+        if sentence.lstrip().startswith(("|", "*")) or not REQUIRES.search(sentence) \
+                or (re.search(r"\barea\b|\bisland\b|teleport", sentence, re.I) and not COMPLETION.search(sentence)):
             continue
+        partial = re.search(r"partial|portion|\bstart(ed|ing)?\b", sentence, re.I) is not None
         for link in re.findall(r"\[\[([^|\]#]+)", sentence):
             link = link.strip()
             if link in QUESTS and link not in quests:
                 quests.append(link)
-        for name, level in re.findall(r"\{\{SCP\|([A-Za-z]+)\|(\d+)", sentence):
+                if partial:
+                    started.append(link)
+        levels = re.findall(r"\{\{SCP\|([A-Za-z]+)\|(\d+)", sentence)
+        # Written out too: "level 79 Sailing", "70 [[Magic]]"
+        levels += [(n, l) for l, n in re.findall(r"\b(\d{1,2})\s+\[?\[?([A-Z][a-z]+)", sentence)]
+        for name, level in levels:
             if name in SKILL_NAMES and name != skill:
                 skills[name.upper()] = max(skills.get(name.upper(), 0), int(level))
-    return quests, skills
+    return quests, skills, started
+
+
+REQUIRES = re.compile(r"requir|" + COMPLETION.pattern, re.I)
+ITEM_QUESTS = {}
+# Spellbooks and the quest that unlocks them, for methods that only say which spellbook they use
+SPELLBOOK_QUESTS = {"lunar spellbook": "Lunar Diplomacy", "lunar spell": "Lunar Diplomacy",
+                    "ancient magicks": "Desert Treasure I", "ancient spellbook": "Desert Treasure I"}
+
+
+def item_quests(name):
+    """The quests the wiki's item infobox ties an item to ("Serum 207": Shades of Mort'ton)."""
+    if name not in ITEM_QUESTS:
+        query = "bucket('infobox_item').select('quest').where('page_name','%s').run()" % name.replace("'", "\\'")
+        rows = api({"action": "bucket", "query": query}).get("bucket", [])
+        found = []
+        for row in rows:
+            for quest in re.findall(r"\[\[([^|\]#]+)", str(row.get("quest") or "")):
+                if quest.strip() in QUESTS and quest.strip() not in found:
+                    found.append(quest.strip())
+        ITEM_QUESTS[name] = found
+    return ITEM_QUESTS[name]
 
 
 def key(name):
@@ -245,7 +278,15 @@ def options(body):
                 base = re.sub(r"\s*\([^)]*\)", "", name).lower()
                 # Not the item itself in another form (the strung bow beside the unstrung one)
                 materials = [i for i in materials if re.sub(r"\s*\([^)]*\)", "", i).lower() != base]
-                out.append({"level": int(level), "name": re.sub(r"\s*\(\d\)$", "", name), "xp": xp, "with": materials})
+                row_quests = [q.strip() for q in re.findall(r"\[\[([^|\]#]+)", row) if q.strip() in QUESTS]
+                for quest in item_quests(name):
+                    if quest not in row_quests:
+                        row_quests.append(quest)
+                option = {"level": int(level), "name": re.sub(r"\s*\(\d\)$", "", name), "xp": xp, "with": materials}
+                if row_quests:
+                    # Making the item is part of its quest, so having started it is enough
+                    option["started"] = list(dict.fromkeys(row_quests))
+                out.append(option)
     # A by-level list: at least two rows, not all at one level (the cannonball moulds)
     return out if len(out) >= 2 and len({o["level"] for o in out}) > 1 else []
 
@@ -255,15 +296,23 @@ def entry(name, start, end, fastest, objects, npcs, body="", skill=""):
     out = {"name": name, "from": start, "to": end, "fastest": fastest}
     # A questing method lists the quests that give XP, not ones it needs: keep those as its XP rewards
     if name.lower().startswith("quest"):
-        quests, skills = [], {}
+        quests, skills, started = [], {}, []
         requirements("", skill)
         rewards = [q for q in re.findall(r"\[\[([^|\]#]+)", body) if q.strip() in QUESTS and "experience" not in q]
         if rewards:
             out["rewards"] = list(dict.fromkeys(q.strip() for q in rewards))
     else:
-        quests, skills = requirements(body, skill)
+        quests, skills, started = requirements(body, skill)
+    # A Magic method that is a spell needs its spellbook's quest (elsewhere a spell is an optional extra)
+    if skill == "Magic" and not name.lower().startswith("quest"):
+        for book, quest in SPELLBOOK_QUESTS.items():
+            if book in body.lower() and quest not in quests:
+                quests.append(quest)
     if quests:
         out["quests"] = quests
+    # Quests the guide only needs started ("partial completion of", "a portion of")
+    if started:
+        out["started"] = started
     if skills:
         out["skills"] = skills
     trains_on = new_targets(name, targets_of(body), skill)

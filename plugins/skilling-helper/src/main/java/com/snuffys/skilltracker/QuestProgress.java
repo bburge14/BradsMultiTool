@@ -27,8 +27,8 @@ class QuestProgress {
     private static final int REFRESH_TICKS = 500;
 
     private final Client client;
-    // Lower-case quest name -> finished; replaced whole on each refresh
-    private volatile Map<String, Boolean> finished = Collections.emptyMap();
+    // Lower-case quest name -> its state; replaced whole on each refresh
+    private volatile Map<String, QuestState> finished = Collections.emptyMap();
     private boolean refreshNeeded = true;
     private int lastRefreshTick = -REFRESH_TICKS;
 
@@ -42,8 +42,14 @@ class QuestProgress {
      * list, or before the first read), so nothing is hidden by mistake.
      */
     boolean isFinished(String quest) {
-        Boolean done = finished.get(quest.toLowerCase());
-        return done == null || done;
+        QuestState state = finished.get(quest.toLowerCase());
+        return state == null || state == QuestState.FINISHED;
+    }
+
+    /** Whether you've at least started this quest (for what only needs part of it done). True when unknown. */
+    boolean isStarted(String quest) {
+        QuestState state = finished.get(quest.toLowerCase());
+        return state == null || state != QuestState.NOT_STARTED;
     }
 
     @Subscribe
@@ -70,9 +76,9 @@ class QuestProgress {
         }
         refreshNeeded = false;
         lastRefreshTick = tick;
-        Map<String, Boolean> states = new HashMap<>();
+        Map<String, QuestState> states = new HashMap<>();
         for (Quest quest : Quest.values()) {
-            states.put(quest.getName().toLowerCase(), quest.getState(client) == QuestState.FINISHED);
+            states.put(quest.getName().toLowerCase(), quest.getState(client));
         }
         finished = states;
     }
