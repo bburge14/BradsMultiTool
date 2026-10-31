@@ -391,16 +391,6 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
 
-    @ConfigItem(
-        keyName = "fishingMinimapDots",
-        name = "Minimap Rings",
-        description = "<div width='300'>A ring round each timed fishing spot's minimap icon: cyan while it can't move yet, yellow to red as it nears the latest it can",
-        section = fishingSection,
-        position = 1
-    )
-    default boolean fishingMinimapDots() {
-        return true;
-    }
 
     @Alpha
     @ConfigItem(

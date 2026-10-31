@@ -35,7 +35,6 @@ final class SkillTrackerConfigDefaults {
         defaults.store("chatRockDepleted", config.chatRockDepleted());
         defaults.store("fishingSpotTimers", config.showFishingSpotTimer());
         defaults.store("fishingMarkNewest", config.fishingNewestSpot());
-        defaults.store("fishingMinimapDots", config.fishingMinimapDots());
         defaults.store("fishingActiveColor", config.fishingActiveColor());
         defaults.store("voiceFishingSpot", config.voiceFishingSpot());
         defaults.store("chatFishingSpot", config.chatFishingSpot());
