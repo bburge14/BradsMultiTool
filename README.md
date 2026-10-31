@@ -88,7 +88,8 @@ developer mode.
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), timer
-pies (only while you train that skill, unless **Pies When Not Training** is on), and alerts that only fire for the resource you're working:
+pies (only while you train that skill, unless **Pies When Not Training** is on; by default each timed tree, rock or
+fishing spot gets its tile outlined with a picture of what it gives and the pie over it), and alerts that only fire for the resource you're working:
 
 | Skill | What you get |
 |---|---|

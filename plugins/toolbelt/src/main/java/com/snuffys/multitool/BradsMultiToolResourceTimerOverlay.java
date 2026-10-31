@@ -2,13 +2,17 @@ package com.snuffys.multitool;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.BasicStroke;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.image.BufferedImage;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
+import net.runelite.api.ObjectComposition;
 import net.runelite.api.Perspective;
 import net.runelite.api.Point;
 import net.runelite.api.Skill;
@@ -22,6 +26,8 @@ import net.runelite.client.ui.overlay.components.ProgressPieComponent;
  * Countdown pies over trees, Motherlode veins, calcified rocks, Daeyalt essence, shooting stars, fishing
  * spots, shipwrecks, traps, fires and Forester's Campfires (see {@link ResourceTimers}), each only while
  * you train its skill unless Pies When Not Training is on: green, then yellow, then red as each runs out, pulsing once it's due.
+ * With Pie Style on Tile, icon and pie (the default), each one's tile is outlined in the Zone Colour with a picture of
+ * what it gives (logs, ore, the best fish you can catch there) in the middle and the pie over the picture.
  */
 public class BradsMultiToolResourceTimerOverlay extends Overlay {
 
@@ -32,11 +38,16 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private final ResourceTimers timers;
     private final OtherTimerPlugins otherPlugins;
     private final SkillTracker plugin;
+    private final SkillHelperData helpers;
+    private final ItemIcons itemIcons;
     private final ProgressPieComponent pie = new ProgressPieComponent();
 
     @Inject
     public BradsMultiToolResourceTimerOverlay(Client client, SkillTrackerConfig config, ResourceTimers timers,
-                                              OtherTimerPlugins otherPlugins, SkillTracker plugin) {
+                                              OtherTimerPlugins otherPlugins, SkillTracker plugin,
+                                              SkillHelperData helpers, ItemIcons itemIcons) {
+        this.helpers = helpers;
+        this.itemIcons = itemIcons;
         this.otherPlugins = otherPlugins;
         this.plugin = plugin;
         this.client = client;
@@ -57,7 +68,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 || (config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind))) {
                 continue;
             }
-            Point at = position(timer);
+            boolean tile = config.pieStyle() == SkillTrackerConfig.PieStyle.TILE;
+            Point at = tile ? zone(graphics, timer) : position(timer);
             if (at == null) {
                 continue;
             }
@@ -120,6 +132,103 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     }
 
     private static final int FIRE_HEIGHT = 60;
+
+    // The tile style: outlines the resource's tiles, draws what it gives in the middle, and returns where the pie
+    // goes (over the picture's top right corner, or the middle of the tile when there's no picture)
+    private Point zone(Graphics2D graphics, ResourceTimers.Timer timer) {
+        int plane = client.getTopLevelWorldView().getPlane();
+        LocalPoint local = timer.npc != null ? timer.npc.getLocalLocation() : timer.object.getLocalLocation();
+        if (local == null) {
+            return null;
+        }
+        Polygon poly = timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
+        if (poly != null) {
+            Color zone = config.zoneColor();
+            graphics.setColor(new Color(0, 0, 0, 50));
+            graphics.fill(poly);
+            graphics.setStroke(new BasicStroke(1.5f));
+            graphics.setColor(zone);
+            graphics.draw(poly);
+        }
+        Point middle = Perspective.localToCanvas(client, local, plane, 0);
+        if (middle == null) {
+            return null;
+        }
+        BufferedImage icon = itemIcons.get(product(timer));
+        if (icon == null) {
+            return middle;
+        }
+        int x = middle.getX() - icon.getWidth() / 2;
+        int y = middle.getY() - icon.getHeight() / 2;
+        graphics.drawImage(icon, x, y, null);
+        return new Point(x + icon.getWidth() - DIAMETER / 4, y + DIAMETER / 4);
+    }
+
+    // What a timed resource gives, by item name: logs for trees, ore for rocks, the best fish you can catch at a spot
+    private String product(ResourceTimers.Timer timer) {
+        switch (timer.kind) {
+            case VEIN:
+                return "Pay-dirt";
+            case CALCIFIED:
+                return "Calcified deposit";
+            case DAEYALT:
+                return "Daeyalt essence";
+            case STAR:
+                return "Stardust";
+            case FISHING_SPOT:
+                return bestCatch(timer.npc.getId());
+            case TREE:
+                return logsOf(objectName(timer.object.getId()));
+            case TRAP:
+                return objectName(timer.object.getId());
+            default:
+                return null;
+        }
+    }
+
+    /** The logs a tree gives, by the tree's name: "Tree" gives Logs, "Oak tree" Oak logs, "Arctic pine" Arctic pine logs. */
+    static String logsOf(String tree) {
+        if (tree == null || tree.isEmpty()) {
+            return null;
+        }
+        if (tree.equalsIgnoreCase("tree") || tree.equalsIgnoreCase("dead tree")) {
+            return "Logs";
+        }
+        String lower = tree.toLowerCase();
+        String base = lower.endsWith(" tree") ? tree.substring(0, tree.length() - 5) : tree;
+        return base + " logs";
+    }
+
+    // The highest-level fish you can catch at this spot, else its lowest-level one
+    private String bestCatch(int npcId) {
+        SkillHelperData.FishingSpot spot = helpers.fishingSpot(npcId);
+        if (spot == null) {
+            return null;
+        }
+        int level = client.getRealSkillLevel(Skill.FISHING);
+        SkillHelperData.Catch best = null;
+        SkillHelperData.Catch lowest = null;
+        for (java.util.List<SkillHelperData.Catch> catches : spot.options.values()) {
+            for (SkillHelperData.Catch c : catches) {
+                if (c.level <= level && (best == null || c.level > best.level)) {
+                    best = c;
+                }
+                if (lowest == null || c.level < lowest.level) {
+                    lowest = c;
+                }
+            }
+        }
+        SkillHelperData.Catch chosen = best != null ? best : lowest;
+        return chosen == null ? null : chosen.name;
+    }
+
+    private String objectName(int id) {
+        ObjectComposition composition = client.getObjectDefinition(id);
+        if (composition != null && composition.getImpostorIds() != null && composition.getImpostor() != null) {
+            composition = composition.getImpostor();
+        }
+        return composition == null ? null : composition.getName();
+    }
 
     // Trees: the middle of the canopy. Rocks: the middle of the model as drawn. Fishing spots: on the water.
     private Point position(ResourceTimers.Timer timer) {

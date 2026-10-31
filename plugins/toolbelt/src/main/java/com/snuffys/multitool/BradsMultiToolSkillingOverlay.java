@@ -71,13 +71,13 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     // Grand Exchange price by item name (0 if unknown), looked up once
     private final Map<String, Integer> prices = new HashMap<>();
     // Item name -> id for pictures, -1 when not found (looked up once)
-    private final Map<String, Integer> itemIds = new HashMap<>();
+    private final ItemIcons itemIcons;
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
                                          SkillingData data, FarmingData farming, SkillHelperData helpers,
                                          BirdhouseTracker birdhouses, SkillIconManager skillIcons, ItemManager itemManager,
-                                         PluginFamily family) {
+                                         PluginFamily family, ItemIcons itemIcons) {
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -88,6 +88,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         this.skillIcons = skillIcons;
         this.itemManager = itemManager;
         this.family = family;
+        this.itemIcons = itemIcons;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPriority(PRIORITY_HIGHEST);
@@ -1020,21 +1021,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private void catchLine(String name, double xp, int level) {
         boolean ok = client.getRealSkillLevel(Skill.FISHING) >= level;
         String shown = name.startsWith("Raw ") ? Character.toUpperCase(name.charAt(4)) + name.substring(5) : name;
-        panel.getChildren().add(IconLineComponent.iconThenLabel(itemIcon(name),
+        panel.getChildren().add(IconLineComponent.iconThenLabel(itemIcons.get(name),
             shown + (xp > 0 ? " (" + trim(xp) + " xp)" : ""), "Lvl " + level, ok ? HudColors.GOOD : HudColors.BAD));
-    }
-
-    // An item's picture by its name (from the GE's item list, looked up once), or null for untradeable ones
-    private java.awt.image.BufferedImage itemIcon(String name) {
-        int id = itemIds.computeIfAbsent(name.toLowerCase(), lower -> {
-            for (ItemPrice price : itemManager.search(lower)) {
-                if (price.getName().equalsIgnoreCase(lower)) {
-                    return price.getId();
-                }
-            }
-            return -1;
-        });
-        return id > 0 ? itemManager.getImage(id) : null;
     }
 
     private void levelLine(String left, Skill skill, int level) {

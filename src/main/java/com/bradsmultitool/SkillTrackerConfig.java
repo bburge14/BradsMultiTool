@@ -54,6 +54,15 @@ public interface SkillTrackerConfig extends CommonConfig {
         @Override public String toString() { return name; }
     }
 
+    enum PieStyle {
+        TILE("Tile, icon and pie"),
+        PIE("Pie only");
+
+        private final String name;
+        PieStyle(String name) { this.name = name; }
+        @Override public String toString() { return name; }
+    }
+
     @ConfigSection(
         name = "Skilling",
         description = "Hover cards and alerts shared by every skill",
@@ -104,6 +113,29 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     default boolean piesAlwaysShown() {
         return false;
+    }
+
+    @ConfigItem(
+        keyName = "pieStyle",
+        name = "Pie Style",
+        description = "Tile, icon and pie: outline the tile of each timed tree, rock or fishing spot, with a picture of what it gives and the pie over it. Pie only: just the floating pie",
+        section = skillingSection,
+        position = 3
+    )
+    default PieStyle pieStyle() {
+        return PieStyle.TILE;
+    }
+
+    @Alpha
+    @ConfigItem(
+        keyName = "zoneColor",
+        name = "Zone Colour",
+        description = "Colour of the tile outline for timed trees, rocks and fishing spots (filled in a fainter shade)",
+        section = skillingSection,
+        position = 3
+    )
+    default Color zoneColor() {
+        return new Color(0, 255, 255, 220);
     }
 
     @ConfigItem(

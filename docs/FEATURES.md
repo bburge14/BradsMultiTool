@@ -227,7 +227,9 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 
 **Good to know:** Each pie only shows while you're training its skill (an XP drop in it in the last two
 minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
-Turn on **Skilling > Pies When Not Training** to see them all the time. Pies draw under the bank and other interfaces. A tree already being chopped when you
+Turn on **Skilling > Pies When Not Training** to see them all the time. **Skilling > Pie Style** picks the look:
+*Tile, icon and pie* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore,
+the best fish your level can catch there) and the pie over the picture; *Pie only* is the floating pie. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
 Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin...), our pie for that timer hides
@@ -382,7 +384,8 @@ In **Snuffy's Tick Counter** and the Toolbelt.
 **What it does:** counts game ticks in a cycle (1, 2, 3, 1, 2, 3...) for tick-based skilling and for timing
 your attacks, and can time your clicks against the tick. It only shows and sounds the ticks and reads your
 clicks; it never clicks, changes a menu or does anything for you.
-- **Count Over Head:** the count above your character.
+- **Count Over Head:** the count just above the top of your character as the game draws it, so it stays clear of
+  your character from any camera angle.
 - **Tick Boxes:** a box for each tick of the cycle (3 boxes for a 3-tick cycle), in a row or a column, the
   current one lit. Move them with Alt + drag.
 - **Tick Bar:** fills smoothly from left to right over each tick and snaps back on the next, so you can see the
