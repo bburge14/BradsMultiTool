@@ -33,6 +33,7 @@ import net.runelite.client.ui.overlay.tooltip.TooltipManager;
  * what it gives (logs, ore, the best fish you can catch there) in the middle and the pie over the picture, except where
  * another plugin already draws the icon or the outline (see {@link OtherTimerPlugins}).
  */
+@javax.inject.Singleton
 public class BradsMultiToolResourceTimerOverlay extends Overlay {
 
     private static final int DIAMETER = 22;
@@ -69,9 +70,9 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         if (client.getGameState() != GameState.LOGGED_IN) {
             return null;
         }
+        updateNewestSpot();
         for (ResourceTimers.Timer timer : timers.all()) {
-            if (!enabled(timer.kind) || !timer.visible() || !(config.piesAlwaysShown() || training(timer.kind))
-                || (config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind))) {
+            if (!shown(timer)) {
                 continue;
             }
             boolean tile = config.pieStyle() == SkillTrackerConfig.PieStyle.TILE;
@@ -80,7 +81,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 continue;
             }
             if (timer.windowed()) {
-                drawWindow(graphics, timer, at);
+                drawWindow(graphics, timer, at, !tile && yours(timer) ? config.fishingActiveColor() : null);
+                if (timer.kind == ResourceTimers.Kind.FISHING_SPOT) {
+                    drawSpotExtras(graphics, timer, at);
+                }
                 continue;
             }
             double left = timer.progress();
@@ -102,11 +106,11 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
 
     // A fishing spot or fire, which goes at a random time in a window: a green pie running down to the earliest it
     // can go ("won't go yet"), then a red ring filling up to the latest (how likely it's gone by now). Hover for times.
-    private void drawWindow(Graphics2D graphics, ResourceTimers.Timer timer, Point at) {
+    private void drawWindow(Graphics2D graphics, ResourceTimers.Timer timer, Point at, Color border) {
         boolean safe = timer.ticksToEarliest() > 0;
         Color color = safe ? HudColors.GOOD : HudColors.BAD;
         drawPie(graphics, at, safe ? (double) timer.ticksToEarliest() / timer.minTicks : timer.windowPassed(),
-            color, safe ? color : HudColors.WARN, 150);
+            color, border != null ? border : safe ? color : HudColors.WARN, 150);
         net.runelite.api.Point mouse = client.getMouseCanvasPosition();
         if (mouse != null && Math.hypot(mouse.getX() - at.getX(), mouse.getY() - at.getY()) <= DIAMETER / 2.0 + 2) {
             tooltips.add(new Tooltip(windowText(timer)));
@@ -127,6 +131,63 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) Math.max(0, Math.min(255, Math.round(alpha))));
     }
 
+    // The newest timed fishing spot (the least likely to move soon); kept until a strictly newer one appears
+    // so it doesn't flick between spots that appeared on the same tick
+    private ResourceTimers.Timer newestSpot;
+
+    private void updateNewestSpot() {
+        ResourceTimers.Timer best = null;
+        boolean kept = false;
+        for (ResourceTimers.Timer timer : timers.all()) {
+            if (timer.kind != ResourceTimers.Kind.FISHING_SPOT || !timer.windowed()) {
+                continue;
+            }
+            kept |= timer == newestSpot;
+            if (best == null || timer.elapsed < best.elapsed) {
+                best = timer;
+            }
+        }
+        if (!kept || (best != null && best.elapsed < newestSpot.elapsed)) {
+            newestSpot = best;
+        }
+    }
+
+    // Over a fishing spot's timer: how long ago it appeared, and a gold star on the newest spot
+    private void drawSpotExtras(Graphics2D graphics, ResourceTimers.Timer timer, Point at) {
+        int top = at.getY() - DIAMETER / 2 - 3;
+        if (config.fishingSpotAge()) {
+            String age = clock(timer.elapsed);
+            graphics.setFont(net.runelite.client.ui.FontManager.getRunescapeSmallFont());
+            int width = graphics.getFontMetrics().stringWidth(age);
+            net.runelite.client.ui.overlay.OverlayUtil.renderTextLocation(graphics,
+                new Point(at.getX() - width / 2, top), age, Color.WHITE);
+            top -= graphics.getFontMetrics().getHeight();
+        }
+        if (config.fishingNewestSpot() && timer == newestSpot) {
+            star(graphics, at.getX(), top - 5, 6);
+        }
+    }
+
+    // A five-pointed gold star centred here
+    private static void star(Graphics2D graphics, int cx, int cy, int radius) {
+        Polygon star = new Polygon();
+        for (int i = 0; i < 10; i++) {
+            double r = i % 2 == 0 ? radius : radius * 0.45;
+            double angle = Math.PI / 5 * i - Math.PI / 2;
+            star.addPoint(cx + (int) Math.round(r * Math.cos(angle)), cy + (int) Math.round(r * Math.sin(angle)));
+        }
+        graphics.setColor(new Color(255, 200, 0));
+        graphics.fill(star);
+        graphics.setColor(Color.BLACK);
+        graphics.setStroke(new BasicStroke(1f));
+        graphics.draw(star);
+    }
+
+    private boolean yours(ResourceTimers.Timer timer) {
+        net.runelite.api.Player you = client.getLocalPlayer();
+        return timer.npc != null && you != null && you.getInteracting() == timer.npc;
+    }
+
     /** "Won't move for 1:20 (gone by 4:00 at the latest)", "Can move any time (gone by 2:40 at the latest)". */
     static String windowText(ResourceTimers.Timer timer) {
         String verb = timer.kind == ResourceTimers.Kind.FIRE ? "go out" : "move";
@@ -141,6 +202,13 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     static String clock(int ticks) {
         int seconds = (int) Math.round(ticks * 0.6);
         return seconds / 60 + ":" + String.format("%02d", seconds % 60);
+    }
+
+    /** Whether a timer is drawn: its setting is on, it has something to show, you train its skill (or Timers When
+     * Not Training is on), and no other timer plugin already draws it. */
+    boolean shown(ResourceTimers.Timer timer) {
+        return enabled(timer.kind) && timer.visible() && (config.piesAlwaysShown() || training(timer.kind))
+            && !(config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind));
     }
 
     // Whether you're training the skill the resource is for (an XP drop in it lately)
@@ -192,12 +260,11 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             return null;
         }
         // Another plugin's own icon or tile outline on it (RuneLite's Fishing or Motherlode Mine plugin): leave ours out
-        net.runelite.api.Player you = client.getLocalPlayer();
-        boolean yours = timer.npc != null && you != null && you.getInteracting() == timer.npc;
+        boolean yours = yours(timer);
         Polygon poly = otherPlugins.drawsTile(timer.kind, yours) ? null
             : timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
         if (poly != null) {
-            Color zone = config.zoneColor();
+            Color zone = yours && timer.kind == ResourceTimers.Kind.FISHING_SPOT ? config.fishingActiveColor() : config.zoneColor();
             graphics.setColor(new Color(0, 0, 0, 50));
             graphics.fill(poly);
             graphics.setStroke(new BasicStroke(1.5f));

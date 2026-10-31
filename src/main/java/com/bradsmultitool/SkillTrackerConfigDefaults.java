@@ -33,6 +33,10 @@ final class SkillTrackerConfigDefaults {
         defaults.store("voiceRockDepleted", config.voiceRockDepleted());
         defaults.store("chatRockDepleted", config.chatRockDepleted());
         defaults.store("showFishingSpotTimer", config.showFishingSpotTimer());
+        defaults.store("fishingNewestSpot", config.fishingNewestSpot());
+        defaults.store("fishingSpotAge", config.fishingSpotAge());
+        defaults.store("fishingMinimapDots", config.fishingMinimapDots());
+        defaults.store("fishingActiveColor", config.fishingActiveColor());
         defaults.store("voiceFishingSpot", config.voiceFishingSpot());
         defaults.store("chatFishingSpot", config.chatFishingSpot());
         defaults.store("coinPouchAlert", config.coinPouchAlert());

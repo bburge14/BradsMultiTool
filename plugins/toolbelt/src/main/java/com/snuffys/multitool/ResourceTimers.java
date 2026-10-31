@@ -609,6 +609,9 @@ class ResourceTimers {
             WorldPoint at = timer.npc.getWorldLocation();
             if (timer.spotAt != null && !timer.spotAt.equals(at)) {
                 startSpot(timer.npc, timing(timer.npc), 0);
+            } else if (timer.elapsed > timer.maxTicks) {
+                // Outlived the longest a spot lasts without us seeing it move: start it over rather than sit full
+                timer.elapsed = 0;
             }
         }
         for (Map.Entry<NPC, WorldPoint> e : new ArrayList<>(watchedSpots.entrySet())) {

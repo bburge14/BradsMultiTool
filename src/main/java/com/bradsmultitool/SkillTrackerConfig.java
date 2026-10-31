@@ -348,12 +348,57 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showFishingSpotTimer",
         name = "Fishing Spot Timers",
-        description = "<div width='300'>A timer on each fishing spot that's moved since you arrived. Spots move at a random time 2.5-5 minutes after they appear, so it shows that window: green until the earliest it can move, then a red ring filling up to the latest (hover it for the times)",
+        description = "<div width='300'>A timer on each fishing spot that's moved since you arrived (one that was already there gets one once it moves: when it appeared can't be known). Spots move at a random time 2.5-5 minutes after they appear, so it shows that window: green until the earliest it can move, then a red ring filling up to the latest (hover it for the times)",
         section = fishingSection,
         position = 1
     )
     default boolean showFishingSpotTimer() {
-        return false;
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "fishingNewestSpot",
+        name = "Newest Spot Star",
+        description = "<div width='300'>A gold star on the fishing spot that appeared most recently: the one least likely to move soon, so the best one to fish",
+        section = fishingSection,
+        position = 1
+    )
+    default boolean fishingNewestSpot() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "fishingSpotAge",
+        name = "Spot Age",
+        description = "<div width='300'>How long ago each timed fishing spot appeared (\"1:42\"), above its timer",
+        section = fishingSection,
+        position = 1
+    )
+    default boolean fishingSpotAge() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "fishingMinimapDots",
+        name = "Minimap Dots",
+        description = "<div width='300'>A dot on the minimap for each timed fishing spot, green while it can't move yet, orange to red as it nears the latest it can",
+        section = fishingSection,
+        position = 1
+    )
+    default boolean fishingMinimapDots() {
+        return true;
+    }
+
+    @Alpha
+    @ConfigItem(
+        keyName = "fishingActiveColor",
+        name = "Your Spot Colour",
+        description = "<div width='300'>The tile outline (or, with Timer only, the timer's border) of the spot you're fishing",
+        section = fishingSection,
+        position = 1
+    )
+    default Color fishingActiveColor() {
+        return new Color(0, 255, 0, 230);
     }
 
     @ConfigItem(
