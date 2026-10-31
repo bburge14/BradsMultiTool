@@ -344,7 +344,9 @@ most profitable wiki money making guide you meet the requirements for, e.g. "Mon
 (~335K/hr)"). The Make: line follows it too; Highlight Suggested Method; Highlight Goal
 Items; Highlight Colour;
 Actions Until Goal (the actions field counts to the goal instead of the next level; when the suggested
-method changes before the goal it counts to the end of the step you're on; hover the count to see what it counts to).
+method changes before the goal it counts to the end of the step you're on). Hover the count: it says what it
+counts to, and with a goal shows both, "Next level: 120 actions" and "Your goal: 4,300 actions", marking the
+one shown.
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
 picked with Track for goal, or can make from your items), shown with a "~". Attack, Strength, Defence,
 Ranged and Hitpoints goals count **kills** instead ("Kills: ~240"): XP per kill from the hitpoints of

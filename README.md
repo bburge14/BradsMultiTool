@@ -120,7 +120,8 @@ work a resource.
   level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
   Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level (or to
-  the end of the current step when the suggested method changes before the goal).
+  the end of the current step when the suggested method changes before the goal). Hover the count to see both:
+  to the next level and to your goal, with the one shown marked.
   Before your first XP drop it estimates from the suggested method's XP per action ("~1,240"). Combat
   goals count kills of the monster you're fighting, from its hitpoints ("Kills: ~240"), and show your kill
   rate ("Kill rate: Sand Crab: 52/hr (1:09 each)"), where potions show up as faster kills.
