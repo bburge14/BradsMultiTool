@@ -14,13 +14,18 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
 /**
- * A dot on the minimap for each timed fishing spot, coloured like its timer: green while it can't move yet,
- * orange to red through the window it can move in. Shown when its timer is.
+ * A ring round each timed fishing spot's minimap icon: cyan while it can't move yet, yellow to red through the
+ * window it can move in (no green or filled dots, which the minimap uses for friends and players). Shown when
+ * its timer is.
  */
 @Singleton
 public class BradsMultiToolFishingMinimapOverlay extends Overlay {
 
-    private static final int DOT = 5;
+    private static final int RING = 12;
+    // Not green: friends are green dots on the minimap
+    private static final Color SAFE = new Color(0, 210, 255);
+    private static final Color SOON = new Color(255, 220, 0);
+    private static final Color LATE = new Color(230, 40, 40);
 
     private final Client client;
     private final SkillTrackerConfig config;
@@ -52,22 +57,25 @@ public class BradsMultiToolFishingMinimapOverlay extends Overlay {
             if (at == null) {
                 continue;
             }
-            graphics.setColor(color(timer));
-            graphics.fillOval(at.getX() - DOT / 2, at.getY() - DOT / 2, DOT, DOT);
+            // A ring round the spot's own minimap icon: filled dots would look like player or item dots
+            graphics.setStroke(new java.awt.BasicStroke(3f));
             graphics.setColor(Color.BLACK);
-            graphics.drawOval(at.getX() - DOT / 2, at.getY() - DOT / 2, DOT, DOT);
+            graphics.drawOval(at.getX() - RING / 2, at.getY() - RING / 2, RING, RING);
+            graphics.setStroke(new java.awt.BasicStroke(2f));
+            graphics.setColor(color(timer));
+            graphics.drawOval(at.getX() - RING / 2, at.getY() - RING / 2, RING, RING);
         }
         return null;
     }
 
-    // Green while it can't move; then from orange to red across its window
+    // Cyan while it can't move; then from yellow to red across its window
     static Color color(ResourceTimers.Timer timer) {
         if (timer.ticksToEarliest() > 0) {
-            return HudColors.GOOD;
+            return SAFE;
         }
         double t = timer.windowPassed();
-        Color from = HudColors.WARN;
-        Color to = HudColors.BAD;
+        Color from = SOON;
+        Color to = LATE;
         return new Color((int) (from.getRed() + (to.getRed() - from.getRed()) * t),
             (int) (from.getGreen() + (to.getGreen() - from.getGreen()) * t),
             (int) (from.getBlue() + (to.getBlue() - from.getBlue()) * t));
