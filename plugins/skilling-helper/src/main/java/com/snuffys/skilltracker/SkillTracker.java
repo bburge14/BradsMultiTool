@@ -59,6 +59,8 @@ class SkillTracker {
     private Provider<GoalItems> goalItems;
     @Inject
     private KillTracker killTracker;
+    @Inject
+    private Provider<MethodDetector> methodDetector;
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
@@ -307,6 +309,10 @@ class SkillTracker {
         return killTracker;
     }
 
+    public MethodDetector getMethodDetector() {
+        return methodDetector.get();
+    }
+
     public GoalItems getGoalItems() {
         return goalItems.get();
     }
@@ -349,7 +355,11 @@ class SkillTracker {
 
     /** Your "Track for goal" pick as shown on the cards ("Dragon bones (Gilded altar)"), or null. */
     public String describeGoalTarget(Skill skill) {
-        String target = getGoalTarget(skill);
+        return describeTarget(skill, getGoalTarget(skill));
+    }
+
+    /** A "Track for goal" pick as the cards show it ("Fly fishing: Trout, Salmon (Fly fishing rod + Feather)"). */
+    public String describeTarget(Skill skill, String target) {
         if (target == null) {
             return null;
         }
@@ -483,7 +493,7 @@ class SkillTracker {
         }
     }
 
-    private void updatePanelUI() {
+    void updatePanelUI() {
         if (panel != null && panelUpdateQueued.compareAndSet(false, true)) {
             SwingUtilities.invokeLater(() -> {
                 panelUpdateQueued.set(false);

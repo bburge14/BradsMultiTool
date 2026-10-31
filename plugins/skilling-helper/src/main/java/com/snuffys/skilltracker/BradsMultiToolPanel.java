@@ -410,6 +410,9 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
         private final JLabel suggestion = stat();
+        // "You're training on ...: track it for your goal?" with Track / Dismiss (see MethodDetector)
+        private final JPanel offerRow = new JPanel(new BorderLayout(4, 2));
+        private final JLabel offerText = stat();
         private boolean pinned;
         // Where the step of the goal's plan you're on ends (the method changes there), or 0
         private int stepEndLevel;
@@ -447,9 +450,18 @@ public class BradsMultiToolPanel extends PluginPanel {
             JPanel bars = new JPanel();
             bars.setLayout(new BoxLayout(bars, BoxLayout.Y_AXIS));
             bars.setOpaque(false);
-            for (JComponent row : new JComponent[]{levelBar, goalBar, suggestion}) {
+            offerRow.setOpaque(false);
+            offerRow.add(offerText, BorderLayout.CENTER);
+            JPanel offerButtons = new JPanel(new GridLayout(1, 2, 4, 0));
+            offerButtons.setOpaque(false);
+            offerButtons.add(offerButton("Track it", () -> plugin.getMethodDetector().accept(skill)));
+            offerButtons.add(offerButton("Dismiss", () -> plugin.getMethodDetector().dismiss(skill)));
+            offerRow.add(offerButtons, BorderLayout.SOUTH);
+            offerRow.setVisible(false);
+            for (JComponent row : new JComponent[]{levelBar, goalBar, suggestion, offerRow}) {
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
-                row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion ? Integer.MAX_VALUE : row.getPreferredSize().height));
+                row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion || row == offerRow
+                    ? Integer.MAX_VALUE : row.getPreferredSize().height));
                 bars.add(row);
                 bars.add(Box.createVerticalStrut(3));
             }
@@ -511,6 +523,24 @@ public class BradsMultiToolPanel extends PluginPanel {
             inheritPopupMenu(this);
         }
 
+        private JButton offerButton(String text, Runnable action) {
+            JButton button = new JButton(text);
+            button.setFocusable(false);
+            button.setMargin(new java.awt.Insets(1, 4, 1, 4));
+            button.addActionListener(e -> action.run());
+            return button;
+        }
+
+        // What you're training on when it isn't the suggestion or your pick, offered to track instead
+        private void updateOffer() {
+            String target = plugin.getMethodDetector().offer(skill);
+            offerRow.setVisible(target != null);
+            if (target != null) {
+                offerText.setText("<html><div width='170'><font color='#ffff00'>You're training on:</font> "
+                    + plugin.describeTarget(skill, target) + ". Track it for your goal?</div></html>");
+            }
+        }
+
         // The pin's spot: the card's top-right corner, inside its padding
         private Rectangle pinBounds() {
             return new Rectangle(getWidth() - PIN_IMAGE.getWidth() - 2, 1, PIN_IMAGE.getWidth(), PIN_IMAGE.getHeight());
@@ -569,6 +599,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             int goalXp = plugin.getSkillGoal(skill);
             // First, as it finds where the current step ends (for the actions count)
             updateSuggestion(level, goalXp, xp);
+            updateOffer();
 
             if (level >= Experience.MAX_REAL_LEVEL) {
                 setStat(left, "Left", "--");

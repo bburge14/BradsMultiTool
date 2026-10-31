@@ -326,15 +326,21 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
   a goal are ever outlined.
   A **fishing spot** opens a list of the ways to fish it, each with what it catches, the levels and what you need
-  ("Fly fishing: Trout 20, Salmon 30 (Fly fishing rod + Feather)"; greyed out until you can catch any of it). The card
+  ("Fly fishing: Trout, Salmon (Fly fishing rod + Feather)": white when your level catches all of it, yellow when only some, red when none yet; your pick green). The card
   then says "Tracking: Fly fishing: Trout, Salmon (Fly fishing rod + Feather)", only spots that offer that way of
   fishing are outlined, and the XP each is the average of the fish you can catch that way.
+- **It notices what you're doing:** train a goal skill on something that isn't the suggestion or your pick (a
+  different fishing spot or way of fishing it, tree, rock, stall, pickpocket NPC, Hunter creature, or monster for
+  a combat goal) and after 5 XP drops from it (15 hits in combat) the skill's tracker card asks "You're training
+  on: Fly fishing: Trout, Salmon (Fly fishing rod + Feather). Track it for your goal?" with **Track it** and
+  **Dismiss**, and a chat message says so. Dismissed ones aren't asked again until you log out. The fishing way is
+  worked out from the XP each catch gives at the spot you clicked.
 - **Track an item:** right-click an item in your inventory or bank that a goal skill uses (logs for
   Firemaking or Fletching, raw fish for Cooking, bones for Prayer) and choose **Track for goal**: the card
   then works out what to make, the XP and the actions left from that item only, even once you've run out
   ("(you have none)"). An item used for several things (logs: arrow shafts and each bow; a bar: everything you
   can smith from it) opens a list instead: **Best I can make** (works it out from your items), or one recipe
-  at your level ("Longbow (u) 40"), and the card says "Tracking: Longbow (u) (from Logs)". For Prayer it opens a list of how you train it, and your pick is kept:
+  at your level ("Longbow (u)"), and the card says "Tracking: Longbow (u) (from Logs)". For Prayer it opens a list of how you train it, and your pick is kept:
   - bones: **Bury** (100%), **Gilded altar** (350%, both burners lit), **Chaos altar** (the Wilderness
     one: 350%, and half your bones are kept, so it's worth 7x per bone) or **Ectofuntus** (400%; you'll
     need a pot and a bucket of slime per bone, listed as tools);

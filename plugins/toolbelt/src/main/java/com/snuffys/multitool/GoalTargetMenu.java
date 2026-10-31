@@ -97,8 +97,8 @@ class GoalTargetMenu {
             .onClick(e -> skills.forEach(s -> plugin.setGoalTarget(s, tracked ? null : target)));
     }
 
-    // Each way of fishing the spot with what it catches and needs ("Lure: Trout 20, Salmon 30 (Fly fishing rod + Feathers)"),
-    // the one you track in green. False when the spot's catches aren't known (a plain entry is added instead).
+    // Each way of fishing the spot with what it catches and needs ("Fly fishing: Trout, Salmon (Fly fishing rod + Feather)"),
+    // the one you track in green, the ones your level can only partly do yellow and can't do yet red. False when the spot's catches aren't known (a plain entry is added instead).
     private boolean addFishingEntry(MenuEntryAdded event, NPC npc) {
         SkillHelperData.FishingSpot spot = helpers.fishingSpot(npc.getId());
         if (spot == null || spot.options.isEmpty()) {
@@ -125,25 +125,18 @@ class GoalTargetMenu {
             String option = options.get(i);
             List<SkillHelperData.Catch> catches = spot.options.get(option);
             String target = GoalTarget.fish(npc.getName(), option, npc.getId());
-            boolean canDo = TrainingAdvisor.bestCatch(catches, level) != null;
-            String label = option + ": " + catchLevels(catches)
+            long canCatch = catches.stream().filter(c -> c.level <= level).count();
+            String label = option + ": " + TrainingAdvisor.catchNames(catches)
                 + (!catches.isEmpty() && catches.get(0).needs() != null ? " (" + catches.get(0).needs() + ")" : "");
-            Color color = target.equals(current) ? Color.GREEN : canDo ? null : Color.GRAY;
+            // Green: your pick; white: your level catches all of it; yellow: some of it; red: none yet
+            Color color = target.equals(current) ? Color.GREEN
+                : canCatch == catches.size() ? null : canCatch > 0 ? Color.YELLOW : Color.RED;
             sub.createMenuEntry(0)
                 .setOption(color != null ? ColorUtil.wrapWithColorTag(label, color) : label)
                 .setType(MenuAction.RUNELITE)
                 .onClick(e -> plugin.setGoalTarget(Skill.FISHING, target));
         }
         return true;
-    }
-
-    // "Trout 20, Salmon 30"
-    private static String catchLevels(List<SkillHelperData.Catch> catches) {
-        List<String> parts = new ArrayList<>();
-        for (SkillHelperData.Catch c : catches) {
-            parts.add(TrainingAdvisor.catchNames(java.util.Collections.singletonList(c)) + " " + c.level);
-        }
-        return String.join(", ", parts);
     }
 
     private void addItemEntry(MenuEntryAdded event, int itemId) {
@@ -235,7 +228,7 @@ class GoalTargetMenu {
         return out.size() > MOST_RECIPES ? out.subList(0, MOST_RECIPES) : out;
     }
 
-    // "Best I can make" (the suggestion from your items), then each recipe ("Fletching: Longbow (u) 40"), your pick
+    // "Best I can make" (the suggestion from your items), then each recipe ("Fletching: Longbow (u)"), your pick
     // in green, and Untrack when something's tracked
     private void addRecipeEntries(MenuEntry parent, List<Skill> skills, String item, List<Choice> choices) {
         Menu sub = parent.createSubMenu();
@@ -256,7 +249,7 @@ class GoalTargetMenu {
             RecipeData.Recipe recipe = choices.get(i).recipe;
             Skill skill = choices.get(i).skill;
             String target = GoalTarget.item(item, recipe.name);
-            String label = (skills.size() > 1 ? skill.getName() + ": " : "") + recipe.name + " " + recipe.level;
+            String label = (skills.size() > 1 ? skill.getName() + ": " : "") + recipe.name;
             sub.createMenuEntry(0)
                 .setOption(target.equals(plugin.getGoalTarget(skill)) ? ColorUtil.wrapWithColorTag(label, Color.GREEN) : label)
                 .setType(MenuAction.RUNELITE)

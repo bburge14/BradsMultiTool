@@ -188,4 +188,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
   levels and bait; picking one shows it on the card, outlines only spots with that option, and greys out ways you can't do yet.
 - [ ] Right-click logs (Fletching goal) or a bar (Smithing goal): a list with Best I can make and each recipe at your level.
 - [ ] Fly fishing trout and salmon: the actions count stays steady (average of recent drops, hover says the XP each).
+- [ ] Track for goal on a fishing spot: ways colour-coded (white all, yellow some, red none at your level, green your pick), no numbers.
+- [ ] Train a goal skill on something other than the suggestion (e.g. fly fish when bait is suggested): after 5 XP
+  drops the card offers it with Track it / Dismiss and a chat line; Track it switches the goal to it; Dismiss hides it for the session.
 
