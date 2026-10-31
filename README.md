@@ -30,7 +30,7 @@ at the bottom of the configuration panel), search **Snuffy's**, and install eith
 or the separate plugins you want. Don't install the Toolbelt together with the separate ones: you'd get
 everything twice. Every plugin has the idle and logout warnings; with several installed they're said once.
 
-**Before they're on the Plugin Hub**, run the Toolbelt from this repository with the steps under
+**Before they're on the Plugin Hub**, run them from this repository with **Snuffy's Launcher**: see
 [First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own folder under
 [`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `alerts`) that builds on
 its own. `python3 scripts/split_plugins.py --build` makes all five jars in `releases/`.
@@ -197,7 +197,7 @@ winget install --id Git.Git -e
 
 Close and reopen PowerShell afterwards so `java` and `git` are on your PATH.
 
-**2. Download the project and launch it:**
+**2. Download the project:**
 
 ```powershell
 New-Item -ItemType Directory -Force C:\dev | Out-Null
@@ -205,41 +205,63 @@ Set-Location C:\dev
 git clone https://github.com/bburge14/bradsmultitool.git BradsMultiTool
 Set-Location C:\dev\BradsMultiTool
 git checkout claude/nifty-feynman-izouon   # skip once this branch is merged into main
-.\gradlew.bat runBrad
 ```
 
-The first run downloads Gradle and RuneLite, so it takes a few minutes. If the repo is private, Git opens
-a browser window to sign in to GitHub.
+If the repo is private, Git opens a browser window to sign in to GitHub.
 
-**3. (Optional) Desktop shortcut:** run this once to put a launch button on your desktop:
+**3. Put the launcher on your desktop** (run once):
 
 ```powershell
-$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Toolbelt.lnk")
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Launcher.lnk")
 $s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
 $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()
 ```
 
-Double-clicking it (or `Launch-BradsMultiTool.bat`) opens **Snuffy's Launcher**, a small window that:
+**4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small window that:
 
-- **updates** the plugins (`git pull`) and lists what's new (**Check again** to retry; when offline or you've
-  changed files here it says so and you launch the version you have);
-- checks your **setup**, with a button to fix each part: RuneLite installed; **session saving** on in RuneLite
-  (configure) (it can add `--insecure-write-credentials` for you, keeping a backup of RuneLite's settings, or open
-  the configure window); a **Jagex session** saved, for which character and when (it only reads the name and
-  the date, never the session itself); **Save one** opens the Jagex Launcher, tells you what to do and ticks
-  the row once the session is saved; Java (needed to build) and git (for updates);
+- **updates** the plugins each time you open it and lists what's new (**Check again** to retry; when you're
+  offline or have changed files here, it says so and you launch the version you have);
+- checks your **setup**, each row with a button to fix it:
+  - **RuneLite** installed (**Get RuneLite**);
+  - **session saving** on in RuneLite (configure): **Turn it on** adds `--insecure-write-credentials` for you
+    (keeping a backup of RuneLite's settings) or opens the configure window to add it yourself;
+  - a **Jagex session** saved, for which character and when: **Save one** opens the Jagex Launcher, tells you
+    what to do (press Play, log in once) and ticks the row as soon as the session is saved. It only reads the
+    character's name and the date, never the session itself;
+  - **Java** (needed to build) and **git** (for updates);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
   plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
-- **Launch RuneLite** builds and starts it, with the build and RuneLite's log in their own window.
+- **Launch RuneLite** builds and starts it, with the build and RuneLite's log in their own window. The first
+  launch downloads Gradle and RuneLite, so it takes a few minutes.
+
+The first time, work down the Setup rows until they're all ticked, then press **Launch RuneLite**. After that
+it's just open and Launch: updates come in on their own.
 
 Why not the Jagex Launcher with the plugin dropped in? RuneLite only loads plugin files of your own in
-developer mode, and it turns developer mode off when started from its launcher, so the dev client (with the
-session file below) is the only way to run Snuffy's before it's on the Plugin Hub.
+developer mode, and it turns developer mode off when started from its launcher, so the developer client
+(logged in with the saved session) is the only way to run Snuffy's before it's on the Plugin Hub.
 
-**4. Log in:** follow [Logging in with a Jagex Account](#logging-in-with-a-jagex-account) (once per PC).
+## Logging in with a Jagex Account
 
-**Getting updates later:**
+The launcher's Setup rows do this for you (see above). The saved session, `credentials.properties` in
+`%USERPROFILE%\.runelite`, is a live login: never share or commit it. To revoke it, delete the file (and
+remove `--insecure-write-credentials` from RuneLite (configure) if you no longer need it); if it may have
+leaked, end your sessions from your Jagex account settings. If RuneLite asks for an email and password instead
+of showing Play, the session has expired: press **Refresh it** in the launcher.
+
+<details>
+<summary>Advanced: running it by hand, without the launcher</summary>
+
+**Saving a session by hand:**
+
+1. Open RuneLite's configure tool: Windows Start menu > **RuneLite (configure)** (or `RuneLite.exe --configure`).
+2. In **Client arguments**, add `--insecure-write-credentials` and click **Save**.
+3. Launch RuneLite **once through the Jagex Launcher** and log in. This writes
+   `%USERPROFILE%\.runelite\credentials.properties`.
+4. Close it and run `.\gradlew.bat runBrad`. The dev client picks up the credentials file automatically.
+
+**Updating and launching from PowerShell:**
 
 ```powershell
 Set-Location C:\dev\BradsMultiTool
@@ -251,8 +273,7 @@ git pull
 Linux use `./gradlew runBrad`). If something seems stale, `.\gradlew.bat clean runBrad --info` rebuilds
 from scratch.
 
-To try the separate plugins instead of the Toolbelt (as friends installing just some of them would have),
-name them with `-Pload=` (in quotes in PowerShell):
+To load the separate plugins instead of the Toolbelt, name them with `-Pload=` (in quotes in PowerShell):
 
 ```powershell
 .\gradlew.bat runBrad "-Pload=skilling"          # just Snuffy's Skilling Helper
@@ -260,24 +281,11 @@ name them with `-Pload=` (in quotes in PowerShell):
 .\gradlew.bat runBrad "-Pload=separate"          # all the separate plugins at once
 ```
 
-The names are `toolbelt` (the default), `skilling`, `pvm`, `gemcrab`, `tick` and `alerts`. Each separate
-plugin has its own settings, so settings you change in the Toolbelt don't carry over to them (and the other
-way round). Don't load the Toolbelt together with separate ones: everything would show twice.
+The names are `toolbelt` (the default), `skilling`, `pvm`, `gemcrab`, `tick` and `alerts`. The Toolbelt always
+loads on its own (it already includes the others). Each separate plugin has its own settings, so settings you
+change in the Toolbelt don't carry over to them (and the other way round).
 
-## Logging in with a Jagex Account
-
-The dev client can't log in through the Jagex Launcher directly, but it reuses a session the official
-client saves for it:
-
-1. Open RuneLite's configure tool: Windows Start menu > **RuneLite (configure)** (or `RuneLite.exe --configure`).
-2. In **Client arguments**, add `--insecure-write-credentials` and click **Save**.
-3. Launch RuneLite **once through the Jagex Launcher** and log in. This writes
-   `%USERPROFILE%\.runelite\credentials.properties`.
-4. Close it and run `.\gradlew.bat runBrad`. The dev client picks up the credentials file automatically.
-
-`credentials.properties` is a live login session. Never share or commit it. To revoke it, delete the file
-(and remove the client argument if you no longer need it); if it may have leaked, end your sessions from
-your Jagex account settings.
+</details>
 
 ## Settings guide
 
