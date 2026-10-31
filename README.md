@@ -220,8 +220,13 @@ $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()
 ```
 
-Double-clicking it (or `Launch-BradsMultiTool.bat`) checks your Jagex session file is present, then builds
-and launches RuneLite with the plugin.
+Double-clicking it (or `Launch-BradsMultiTool.bat`) checks your Jagex session file is present, asks which
+plugins to load (the Toolbelt, one of the separate plugins, all of them, or several you name), then builds and
+launches RuneLite with them. It remembers your pick: press Enter next time to load the same again.
+
+Why not the Jagex Launcher with the plugin dropped in? RuneLite only loads plugin files of your own in
+developer mode, and it turns developer mode off when started from its launcher, so the dev client (with the
+session file below) is the only way to run Snuffy's before it's on the Plugin Hub.
 
 **4. Log in:** follow [Logging in with a Jagex Account](#logging-in-with-a-jagex-account) (once per PC).
 

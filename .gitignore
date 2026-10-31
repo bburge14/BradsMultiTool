@@ -13,3 +13,4 @@ __pycache__/
 releases/
 plugins/*/build/
 plugins/*/.gradle/
+.launch-choice
