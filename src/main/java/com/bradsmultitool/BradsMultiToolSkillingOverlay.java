@@ -945,13 +945,13 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         return true;
     }
 
-    // Each way to fish the spot with the tool it needs (green if you have it), then each catch with its level
+    // Each way to fish the spot with the tool and bait it needs (green if you have them), then each catch with its level
     private void buildFishingSpotCard(NPC npc, SkillHelperData.FishingSpot spot) {
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(npc.getName()).color(TITLE_COLOR).build());
         List<String> owned = ownedItemNames();
         for (Map.Entry<String, List<SkillHelperData.Catch>> option : spot.options.entrySet()) {
-            String tool = option.getValue().isEmpty() ? "" : option.getValue().get(0).tool;
+            String tool = option.getValue().isEmpty() ? "" : option.getValue().get(0).needs();
             boolean hasTool = tool == null || tool.isEmpty() || hasTool(tool, owned);
             header(option.getKey(), tool != null ? tool : "", hasTool ? HudColors.GOOD : HudColors.BAD);
             for (SkillHelperData.Catch fish : option.getValue()) {

@@ -67,10 +67,16 @@ final class GoalLines {
                 until = "until level " + stepEndLevel + ", where the suggested method changes";
             }
         }
-        double perAction = plugin.getLastXpDrop(skill);
+        // The average of your last XP drops: one method can give different XP each time (trout and salmon)
+        double perAction = plugin.getAverageXpDrop(skill);
         String prefix = "";
         String name = "Actions";
         String tip = "Actions " + until;
+        int drops = plugin.getAverageXpDropCount(skill);
+        if (perAction > 0 && drops > 1) {
+            prefix = "~";
+            tip += " (at " + String.format("%,.1f", perAction) + " XP each, the average of your last " + drops + " XP drops)";
+        }
         if (KILL_SKILLS.contains(skill)) {
             TrainingAdvisor.KillEstimate kill = goalXp > xp ? plugin.getTrainingAdvisor().killEstimate(skill) : null;
             perAction = kill != null ? kill.xpEach : 0;

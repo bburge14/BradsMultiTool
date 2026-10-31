@@ -177,3 +177,10 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
 - [x] No AFK alert after logging in without doing anything (login's XP report isn't training).
 - [x] Idle logout warning before the logout.
+
+## Track for goal: specific methods
+- [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,
+  levels and bait; picking one shows it on the card, outlines only spots with that option, and greys out ways you can't do yet.
+- [ ] Right-click logs (Fletching goal) or a bar (Smithing goal): a list with Best I can make and each recipe at your level.
+- [ ] Fly fishing trout and salmon: the actions count stays steady (average of recent drops, hover says the XP each).
+

@@ -296,7 +296,7 @@ def skill_of(recipe, skill):
 
 def fishing_spots():
     """Every fishing spot type (Fishing spots page): its NPC ids, and for each option the fish it catches with
-    their level, XP and the tool needed (each spot page's drops, the 'recipe' bucket's Fishing entries)."""
+    their level, XP, the tool needed and the bait it uses up (each spot page's drops, the 'recipe' bucket's Fishing entries)."""
     fish = {}
     for recipe in recipes("Fishing"):
         stats = skill_of(recipe, "Fishing")
@@ -308,6 +308,10 @@ def fishing_spots():
             tools = re.sub(r"\[\[File:[^\]]*\]\]", "", recipe.get("tools") or "")
             tools = re.split(r"<br\s*/?>\s*OR\s*<br\s*/?>", tools)[0]
             fish[name] = {"level": stats[0], "xp": stats[1], "tool": plain(tools).split(",")[0].strip()}
+            # What it uses up: the bait (Feathers, Fishing bait, Sandworms...)
+            bait = [m.get("name") for m in recipe.get("materials") or [] if isinstance(m, dict) and m.get("name")]
+            if bait:
+                fish[name]["bait"] = bait[0]
     index = wikitext("Fishing spots")
     pages = []
     for page in re.findall(r"^\|\[\[((?:Rod |Boat )?[Ff]ishing spot[^|\]]*)", index, re.M):

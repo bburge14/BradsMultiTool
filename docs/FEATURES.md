@@ -324,10 +324,16 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   suggestion and the card says "Tracking: Ruby harvest (your pick)". **Untrack for goal** on it, or
   **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
   a goal are ever outlined.
+  A **fishing spot** opens a list of the ways to fish it, each with what it catches, the levels and what you need
+  ("Fly fishing: Trout 20, Salmon 30 (Fly fishing rod + Feather)"; greyed out until you can catch any of it). The card
+  then says "Tracking: Fly fishing: Trout, Salmon (Fly fishing rod + Feather)", only spots that offer that way of
+  fishing are outlined, and the XP each is the average of the fish you can catch that way.
 - **Track an item:** right-click an item in your inventory or bank that a goal skill uses (logs for
   Firemaking or Fletching, raw fish for Cooking, bones for Prayer) and choose **Track for goal**: the card
   then works out what to make, the XP and the actions left from that item only, even once you've run out
-  ("(you have none)"). For Prayer it opens a list of how you train it, and your pick is kept:
+  ("(you have none)"). An item used for several things (logs: arrow shafts and each bow; a bar: everything you
+  can smith from it) opens a list instead: **Best I can make** (works it out from your items), or one recipe
+  at your level ("Longbow (u) 40"), and the card says "Tracking: Longbow (u) (from Logs)". For Prayer it opens a list of how you train it, and your pick is kept:
   - bones: **Bury** (100%), **Gilded altar** (350%, both burners lit), **Chaos altar** (the Wilderness
     one: 350%, and half your bones are kept, so it's worth 7x per bone) or **Ectofuntus** (400%; you'll
     need a pot and a bucket of slime per bone, listed as tools);
@@ -363,8 +369,12 @@ Actions Until Goal (the actions field counts to the goal instead of the next lev
 method changes before the goal it counts to the end of the step you're on). Hover the count: it says what it
 counts to, and with a goal shows both, "Next level: 120 actions" and "Your goal: 4,300 actions", marking the
 one shown.
+Once you're getting XP, the count uses the average of your last 30 XP drops in the skill (shown with a "~";
+hover for the XP each), so a method that gives different XP each time (trout and salmon, 17 and 18 XP for a
+17.5 XP action) doesn't make it jump around.
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
-picked with Track for goal, or can make from your items), shown with a "~". Attack, Strength, Defence,
+picked with Track for goal, or can make from your items), shown with a "~" (a method catching several fish, like fly fishing's trout and salmon, counts the average
+XP of those you can catch). Attack, Strength, Defence,
 Ranged and Hitpoints goals count **kills** instead ("Kills: ~240"): XP per kill from the hitpoints of
 your Track for goal pick (else the monster you last fought, else the suggested one), at the XP per
 damage of your combat style: 4 in the skill it trains, 4/3 each to Attack, Strength and Defence in

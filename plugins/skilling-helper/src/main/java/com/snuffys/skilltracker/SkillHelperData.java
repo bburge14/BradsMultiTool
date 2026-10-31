@@ -212,12 +212,23 @@ class SkillHelperData {
         final double xp;
         /** What you need to catch it ("Small fishing net", "Harpoon + Lantern"). */
         final String tool;
+        /** What it uses up ("Feather", "Fishing bait"), or null. */
+        final String bait;
 
         Catch(JsonObject o) {
             name = o.get("name").getAsString();
             level = o.get("level").getAsInt();
             xp = o.get("xp").getAsDouble();
             tool = text(o, "tool");
+            bait = text(o, "bait");
+        }
+
+        /** "Fly fishing rod + Feather", "Small fishing net", or null when neither is known. */
+        String needs() {
+            if (tool == null) {
+                return bait;
+            }
+            return bait == null ? tool : tool + " + " + bait;
         }
     }
 
@@ -304,6 +315,7 @@ class SkillHelperData {
         shoals.clear();
         seaMonsters.clear();
         fishingSpots.clear();
+        catchesByName.clear();
         runes.clear();
         altars.clear();
         foods.clear();
@@ -492,6 +504,27 @@ class SkillHelperData {
     }
 
     /** The kind of fishing spot an NPC id is, or null. */
+    /** A catch by its fish's name ("Trout", "Raw trout"), from any spot; null if no spot gives it. */
+    Catch catchNamed(String fish) {
+        return catchesByName.computeIfAbsent(fish.toLowerCase(), k -> java.util.Optional.ofNullable(findCatch(fish))).orElse(null);
+    }
+
+    private final Map<String, java.util.Optional<Catch>> catchesByName = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private Catch findCatch(String fish) {
+        String raw = fish.toLowerCase().startsWith("raw ") ? fish : "Raw " + fish;
+        for (FishingSpot spot : fishingSpots.values()) {
+            for (List<Catch> catches : spot.options.values()) {
+                for (Catch c : catches) {
+                    if (c.name.equalsIgnoreCase(fish) || c.name.equalsIgnoreCase(raw)) {
+                        return c;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     FishingSpot fishingSpot(int npcId) {
         return fishingSpots.get(npcId);
     }

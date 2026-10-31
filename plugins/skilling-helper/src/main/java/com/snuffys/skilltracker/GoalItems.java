@@ -241,8 +241,11 @@ class GoalItems {
                     : perXp ? prices.profit(recipe) / xp : byProfit ? prices.profit(recipe) : xp;
             };
             // Your "Track for goal" item: only what uses it, shown even when you've run out
-            String item = itemTarget(skill);
-            Predicate<RecipeData.Recipe> allowed = item == null ? r -> true : r -> uses(r, item);
+            String target = plugin.getGoalTarget(skill);
+            String item = GoalTarget.itemName(target);
+            String recipe = GoalTarget.recipeName(target);
+            Predicate<RecipeData.Recipe> allowed = item == null ? r -> true
+                : r -> uses(r, item) && (recipe == null || r.name.equalsIgnoreCase(recipe));
             int level = client.getRealSkillLevel(skill);
             RecipeData.Recipe best = recipes.best(skill, level, have, score, allowed);
             if (best == null && item != null) {
@@ -260,12 +263,6 @@ class GoalItems {
         this.suggestions = suggestions;
         this.counts = counts;
         this.highlighted = highlighted;
-    }
-
-    // The item you picked with "Track for goal" (lower-case), or null
-    private String itemTarget(Skill skill) {
-        String target = plugin.getGoalTarget(skill);
-        return target != null && target.startsWith("item:") ? target.substring(5) : null;
     }
 
     /** Whether a recipe uses this item (lower-case name) as a material. */
