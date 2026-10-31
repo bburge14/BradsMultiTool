@@ -142,6 +142,7 @@ class SkillTracker {
         Player player = client.getLocalPlayer();
         if (player != null) {
             combatLevel = player.getCombatLevel();
+            noteWhatYoureDoing(player);
         }
         for (Skill s : gainedSkillXp.keySet()) {
             if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
@@ -562,9 +563,48 @@ class SkillTracker {
      * An XP drop in the skill in the last two minutes: long enough to cover slow trees and walking between
      * resources, for showing that skill's timer pies only while you train it.
      */
+    /**
+     * Whether you're training this skill lately: an XP drop in it, or you started doing it (fishing a spot,
+     * chopping, mining) in the last two minutes. The second shows a skill's timers as soon as you start, rather
+     * than at your first catch.
+     */
     boolean trainedRecently(Skill skill) {
         Integer last = lastXpTicks.get(skill);
-        return last != null && client.getTickCount() - last <= PIE_TRAINING_TICKS;
+        Integer doing = lastDoingTicks.get(skill);
+        int now = client.getTickCount();
+        return (last != null && now - last <= PIE_TRAINING_TICKS) || (doing != null && now - doing <= PIE_TRAINING_TICKS);
+    }
+
+    // Each skill you were last seen doing, by tick: fishing a spot, or chopping or mining (by animation)
+    private final Map<Skill, Integer> lastDoingTicks = new EnumMap<>(Skill.class);
+
+    private void noteWhatYoureDoing(Player player) {
+        Skill doing = null;
+        int animation = player.getAnimation();
+        if (ResourceTimers.CHOP_ANIMATIONS.contains(animation)) {
+            doing = Skill.WOODCUTTING;
+        } else if (ResourceTimers.MINE_ANIMATIONS.contains(animation)) {
+            doing = Skill.MINING;
+        } else if (player.getInteracting() instanceof net.runelite.api.NPC && isFishingSpot((net.runelite.api.NPC) player.getInteracting())) {
+            doing = Skill.FISHING;
+        }
+        if (doing != null) {
+            lastDoingTicks.put(doing, client.getTickCount());
+        }
+    }
+
+    private static boolean isFishingSpot(net.runelite.api.NPC npc) {
+        net.runelite.api.NPCComposition composition = npc.getTransformedComposition() != null
+            ? npc.getTransformedComposition() : npc.getComposition();
+        if (composition == null) {
+            return false;
+        }
+        for (String action : composition.getActions()) {
+            if (action != null && SkillingData.isFishingOption(action)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     boolean isTraining(Skill skill) {
