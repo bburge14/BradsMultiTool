@@ -1,5 +1,6 @@
-# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins, shows whether a Jagex
-# session is saved, lets you pick which plugins RuneLite loads, and launches it. The Toolbelt has every separate
+# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins, checks the setup (RuneLite
+# installed, session saving on in RuneLite (configure), a Jagex session saved, Java, git) with a button to fix
+# each, and walks through saving a session; lets you pick which plugins RuneLite loads, and launches it. The Toolbelt has every separate
 # plugin in it, so it's either the Toolbelt on its own or any of the separate ones. The build and RuneLite's log
 # open in their own console window.
 Add-Type -AssemblyName System.Windows.Forms
@@ -35,7 +36,7 @@ $form.Text = "Snuffy's Launcher"
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
 $form.StartPosition = 'CenterScreen'
-$form.ClientSize = New-Object System.Drawing.Size(460, 520)
+$form.ClientSize = New-Object System.Drawing.Size(460, 584)
 $form.Font = New-Object System.Drawing.Font('Segoe UI', 9)
 $icon = Join-Path $root 'icon.png'
 if (Test-Path $icon) {
@@ -90,38 +91,165 @@ function Update-Plugins {
 }
 $checkAgain.Add_Click({ Update-Plugins })
 
-# ---- Jagex session ----
-$session = New-Group 'Jagex Account session' 150 92
-$sessionStatus = New-Label '' 12 22 410 36
-$session.Controls.Add($sessionStatus)
-$sessionHelp = New-Object System.Windows.Forms.LinkLabel
-$sessionHelp.Location = New-Object System.Drawing.Point(12, 62)
-$sessionHelp.Size = New-Object System.Drawing.Size(410, 18)
-$session.Controls.Add($sessionHelp)
-$sessionHelp.Add_LinkClicked({
-    [System.Windows.Forms.MessageBox]::Show(
-        "To save a session (once per PC):`n`n1. Start menu > `"RuneLite (configure)`"`n2. Add  --insecure-write-credentials  to Client arguments, click Save`n3. Launch RuneLite once from the Jagex Launcher and log in`n`nLeave the argument on and it refreshes each time you play through the Jagex Launcher.`n`nThe file is a live login: never share it. Delete it to sign the dev client out.",
-        "Jagex Account session") | Out-Null
-})
+# ---- Setup checklist: RuneLite, its session setting, the saved session, Java, git ----
+$rlDir = Join-Path $env:LOCALAPPDATA 'RuneLite'
+$rlExe = Join-Path $rlDir 'RuneLite.exe'
+$rlSettings = Join-Path $rlDir 'settings.json'
+$jagexLauncher = @(
+    (Join-Path ${env:ProgramFiles(x86)} 'Jagex Launcher\JagexLauncher.exe'),
+    (Join-Path $env:ProgramFiles 'Jagex Launcher\JagexLauncher.exe')
+) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+$flag = '--insecure-write-credentials'
+
+$setup = New-Group 'Setup' 150 160
+$rows = @{}
+$rowY = 20
+foreach ($key in 'runelite', 'flag', 'session', 'java', 'git') {
+    $mark = New-Label '' 10 ($rowY + 4) 18
+    $mark.Font = New-Object System.Drawing.Font('Segoe UI Symbol', 9, [System.Drawing.FontStyle]::Bold)
+    $text = New-Label '' 28 ($rowY + 4) 290 18
+    $button = New-Object System.Windows.Forms.Button
+    $button.Location = New-Object System.Drawing.Point(322, $rowY)
+    $button.Size = New-Object System.Drawing.Size(102, 24)
+    $button.Visible = $false
+    $setup.Controls.AddRange(@($mark, $text, $button))
+    $rows[$key] = @{ Mark = $mark; Text = $text; Button = $button }
+    $rowY += 27
+}
+$tip = New-Object System.Windows.Forms.ToolTip
+
+function Set-Row($key, $ok, $text, $buttonText = $null, $hint = $null) {
+    $row = $rows[$key]
+    $row.Mark.Text = if ($ok) { [char]0x2714 } else { [char]0x2716 }
+    $row.Mark.ForeColor = if ($ok) { $green } else { $red }
+    $row.Text.Text = $text
+    $tip.SetToolTip($row.Text, $hint)
+    $row.Button.Visible = [bool]$buttonText
+    if ($buttonText) { $row.Button.Text = $buttonText }
+}
+
+# The client arguments "RuneLite (configure)" saved: Ok is false when its settings can't be read. (Wrapped in a
+# hashtable: PowerShell would turn an empty list returned on its own into $null.)
+function Get-ClientArguments {
+    if (-not (Test-Path $rlSettings)) { return @{ Ok = $true; Args = @() } }
+    try {
+        $json = Get-Content $rlSettings -Raw | ConvertFrom-Json
+        return @{ Ok = $true; Args = @($json.clientArguments | Where-Object { $_ }) }
+    } catch {
+        return @{ Ok = $false; Args = @() }
+    }
+}
 
 # Only reads the character's name and when the file was saved; the session itself is never shown
-function Show-Session {
+function Check-Setup {
+    $hasRuneLite = Test-Path $rlExe
+    if ($hasRuneLite) {
+        Set-Row 'runelite' $true 'RuneLite is installed.'
+    } else {
+        Set-Row 'runelite' $false "RuneLite isn't installed." 'Get RuneLite' 'The Jagex Launcher needs RuneLite installed to save a session'
+    }
+
+    $arguments = Get-ClientArguments
+    if (-not $arguments.Ok) {
+        Set-Row 'flag' $false "Couldn't read RuneLite's settings." 'Open configure' $rlSettings
+    } elseif ($arguments.Args -contains $flag) {
+        Set-Row 'flag' $true 'Session saving is on in RuneLite (configure).' $null $flag
+    } elseif ($hasRuneLite) {
+        Set-Row 'flag' $false "Session saving is off in RuneLite (configure)." 'Turn it on' "Adds $flag to RuneLite's client arguments"
+    } else {
+        Set-Row 'flag' $false 'Session saving: install RuneLite first.'
+    }
+
     if (Test-Path $creds) {
         $who = (Select-String -Path $creds -Pattern '^JX_DISPLAY_NAME=(.*)$' | Select-Object -First 1)
         $name = if ($who) { $who.Matches[0].Groups[1].Value } else { 'your account' }
         $saved = (Get-Item $creds).LastWriteTime.ToString('g')
-        $sessionStatus.Text = "Saved for $name on $saved.`nIf RuneLite asks for an email and password instead of showing Play, it has expired."
-        $sessionStatus.ForeColor = $green
-        $sessionHelp.Text = 'How to save a fresh one'
+        Set-Row 'session' $true "Session saved for $name ($saved)." 'Refresh it' "If RuneLite asks for an email and password instead of showing Play, it has expired: refresh it"
     } else {
-        $sessionStatus.Text = "No session saved: RuneLite will open, but you can't log in to a Jagex Account."
-        $sessionStatus.ForeColor = $red
-        $sessionHelp.Text = 'How to set it up (once per PC)'
+        Set-Row 'session' $false 'No Jagex session saved yet.' 'Save one' 'Log in once through the Jagex Launcher to save it'
     }
+
+    if (Get-Command java -ErrorAction SilentlyContinue) {
+        $version = (cmd /c 'java -version 2>&1' | Select-Object -First 1)
+        Set-Row 'java' $true "Java: $version" $null
+    } else {
+        Set-Row 'java' $false "Java isn't installed (needed to build)." 'Get Java' 'Install a JDK 11 or newer (Temurin 17 recommended)'
+    }
+
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        Set-Row 'git' $true 'git is installed (for updates).'
+    } else {
+        Set-Row 'git' $false "git isn't installed (no updates)." 'Get git'
+    }
+    $launch.Enabled = [bool](Get-Command java -ErrorAction SilentlyContinue)
 }
 
+$rows['runelite'].Button.Add_Click({ Start-Process 'https://runelite.net/' })
+$rows['java'].Button.Add_Click({ Start-Process 'https://adoptium.net/temurin/releases/?version=17' })
+$rows['git'].Button.Add_Click({ Start-Process 'https://git-scm.com/download/win' })
+
+# Turn on session saving: adds the argument to RuneLite's own settings (backed up first), or opens configure
+$rows['flag'].Button.Add_Click({
+    if (Get-Process -Name 'RuneLite' -ErrorAction SilentlyContinue) {
+        [System.Windows.Forms.MessageBox]::Show('Close RuneLite first, then try again.', "Snuffy's") | Out-Null
+        return
+    }
+    $answer = [System.Windows.Forms.MessageBox]::Show(
+        "Add $flag to RuneLite's client arguments?`n`nThat's the setting under Start menu > RuneLite (configure) > Client arguments. It makes RuneLite save your Jagex session when you launch it from the Jagex Launcher, so the dev client can log in. A backup of RuneLite's settings is kept (settings.json.bak).`n`nNo: open RuneLite (configure) to add it yourself.",
+        'Turn on session saving', 'YesNoCancel')
+    if ($answer -eq 'Yes') {
+        try {
+            if (Test-Path $rlSettings) {
+                Copy-Item $rlSettings "$rlSettings.bak" -Force
+                $json = Get-Content $rlSettings -Raw | ConvertFrom-Json
+            } else {
+                $json = [pscustomobject]@{}
+            }
+            $current = @($json.clientArguments | Where-Object { $_ })
+            $updated = @($current + $flag)
+            if ($json.PSObject.Properties.Name -contains 'clientArguments') {
+                $json.clientArguments = $updated
+            } else {
+                $json | Add-Member -NotePropertyName 'clientArguments' -NotePropertyValue $updated
+            }
+            # Without a byte order mark: RuneLite reads the file as plain UTF-8 and would reset its settings otherwise
+            [System.IO.File]::WriteAllText($rlSettings, ($json | ConvertTo-Json -Depth 5), (New-Object System.Text.UTF8Encoding $false))
+        } catch {
+            [System.Windows.Forms.MessageBox]::Show("Couldn't change RuneLite's settings: $($_.Exception.Message)`n`nAdd it yourself in RuneLite (configure).", "Snuffy's") | Out-Null
+            Start-Process $rlExe -ArgumentList '--configure'
+        }
+    } elseif ($answer -eq 'No') {
+        Start-Process $rlExe -ArgumentList '--configure'
+        [System.Windows.Forms.MessageBox]::Show("In the window that opened, add  $flag  to Client arguments and click Save.", "Snuffy's") | Out-Null
+    }
+    Check-Setup
+})
+
+# Save (or refresh) a session: open the Jagex Launcher, then watch for the file
+$rows['session'].Button.Add_Click({
+    if (-not ((Get-ClientArguments).Args -contains $flag)) {
+        [System.Windows.Forms.MessageBox]::Show('Turn on session saving first (the row above).', "Snuffy's") | Out-Null
+        return
+    }
+    if ($jagexLauncher) { Start-Process $jagexLauncher }
+    [System.Windows.Forms.MessageBox]::Show(
+        ($(if ($jagexLauncher) { 'The Jagex Launcher is opening.' } else { "Open the Jagex Launcher (it wasn't found in Program Files)." }) +
+        "`n`nPick RuneLite as the game client, press Play and log in once. When RuneLite is open you can close it: this window ticks the row as soon as the session is saved."),
+        'Save a Jagex session') | Out-Null
+    $script:sessionBefore = if (Test-Path $creds) { (Get-Item $creds).LastWriteTime } else { $null }
+    $watch.Start()
+})
+$watch = New-Object System.Windows.Forms.Timer
+$watch.Interval = 2000
+$watch.Add_Tick({
+    if ((Test-Path $creds) -and ((Get-Item $creds).LastWriteTime -ne $script:sessionBefore)) {
+        $watch.Stop()
+        Check-Setup
+    }
+})
+
 # ---- Plugins ----
-$pick = New-Group 'Plugins to load' 252 210
+$pick = New-Group 'Plugins to load' 320 214
 $plugins = [ordered]@{
     'skilling' = 'Skilling Helper'
     'pvm'      = 'PvM/Slayer'
@@ -171,14 +299,14 @@ if ($lastNames -contains 'toolbelt') { $toolbelt.Checked = $true } else { $separ
 # ---- Launch ----
 $launch = New-Object System.Windows.Forms.Button
 $launch.Text = 'Launch RuneLite'
-$launch.Location = New-Object System.Drawing.Point(232, 476)
+$launch.Location = New-Object System.Drawing.Point(232, 544)
 $launch.Size = New-Object System.Drawing.Size(126, 32)
 $launch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
 $form.Controls.Add($launch)
 $form.AcceptButton = $launch
 $close = New-Object System.Windows.Forms.Button
 $close.Text = 'Close'
-$close.Location = New-Object System.Drawing.Point(366, 476)
+$close.Location = New-Object System.Drawing.Point(366, 544)
 $close.Size = New-Object System.Drawing.Size(82, 32)
 $close.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
 $form.Controls.Add($close)
@@ -198,7 +326,7 @@ $launch.Add_Click({
 })
 
 $form.Add_Shown({
-    Show-Session
+    Check-Setup
     Update-Plugins
 })
 [void]$form.ShowDialog()

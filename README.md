@@ -224,8 +224,11 @@ Double-clicking it (or `Launch-BradsMultiTool.bat`) opens **Snuffy's Launcher**,
 
 - **updates** the plugins (`git pull`) and lists what's new (**Check again** to retry; when offline or you've
   changed files here it says so and you launch the version you have);
-- shows your **Jagex Account session**: saved for which character and when (it only reads the name and the
-  date, never the session itself), or how to set one up;
+- checks your **setup**, with a button to fix each part: RuneLite installed; **session saving** on in RuneLite
+  (configure) (it can add `--insecure-write-credentials` for you, keeping a backup of RuneLite's settings, or open
+  the configure window); a **Jagex session** saved, for which character and when (it only reads the name and
+  the date, never the session itself); **Save one** opens the Jagex Launcher, tells you what to do and ticks
+  the row once the session is saved; Java (needed to build) and git (for updates);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
   plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
 - **Launch RuneLite** builds and starts it, with the build and RuneLite's log in their own window.

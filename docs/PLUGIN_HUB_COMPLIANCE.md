@@ -109,6 +109,7 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 RuneLite's own developer guide says to test plugins before the Plugin Hub. Logging in uses RuneLite's own
 `--insecure-write-credentials` client option (RuneLite's documented way to use a Jagex Account with a dev
 client); the launcher only checks the session file exists and shows the character name and date in it, never
-the session itself, and nothing in the plugins reads or sends it. Updating is a plain `git pull` of this
+the session itself; with your OK it adds that option to RuneLite's own launcher settings (`settings.json`, backed
+up first) or opens RuneLite (configure), and nothing in the plugins reads or sends it. Updating is a plain `git pull` of this
 repository.
 
