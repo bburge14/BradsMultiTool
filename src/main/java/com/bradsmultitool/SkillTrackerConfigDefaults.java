@@ -15,6 +15,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());
         defaults.store("piesAlwaysShown", config.piesAlwaysShown());
         defaults.store("pieStyle", config.pieStyle());
+        defaults.store("timerOpacity", config.timerOpacity());
         defaults.store("zoneColor", config.zoneColor());
         defaults.store("bestChoice", config.bestChoice());
         defaults.store("skillingWhenNotRetaliating", config.skillingWhenNotRetaliating());

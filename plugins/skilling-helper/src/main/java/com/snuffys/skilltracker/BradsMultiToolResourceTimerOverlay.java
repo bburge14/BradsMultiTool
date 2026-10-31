@@ -95,11 +95,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 alpha = (int) (60 + 140 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
                 left = 1;
             }
-            pie.setPosition(at);
-            pie.setProgress(left);
-            pie.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha));
-            pie.setBorderColor(color);
-            pie.render(graphics);
+            drawPie(graphics, at, left, color, color, alpha);
         }
         return null;
     }
@@ -109,15 +105,26 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private void drawWindow(Graphics2D graphics, ResourceTimers.Timer timer, Point at) {
         boolean safe = timer.ticksToEarliest() > 0;
         Color color = safe ? HudColors.GOOD : HudColors.BAD;
-        pie.setPosition(at);
-        pie.setProgress(safe ? (double) timer.ticksToEarliest() / timer.minTicks : timer.windowPassed());
-        pie.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 150));
-        pie.setBorderColor(safe ? color : HudColors.WARN);
-        pie.render(graphics);
+        drawPie(graphics, at, safe ? (double) timer.ticksToEarliest() / timer.minTicks : timer.windowPassed(),
+            color, safe ? color : HudColors.WARN, 150);
         net.runelite.api.Point mouse = client.getMouseCanvasPosition();
         if (mouse != null && Math.hypot(mouse.getX() - at.getX(), mouse.getY() - at.getY()) <= DIAMETER / 2.0 + 2) {
             tooltips.add(new Tooltip(windowText(timer)));
         }
+    }
+
+    // A pie at the Timer Opacity setting: fillAlpha is its look at the default 60%, the border solid there
+    private void drawPie(Graphics2D graphics, Point at, double progress, Color fill, Color border, int fillAlpha) {
+        double scale = config.timerOpacity() / 60.0;
+        pie.setPosition(at);
+        pie.setProgress(progress);
+        pie.setFill(withAlpha(fill, fillAlpha * scale));
+        pie.setBorderColor(withAlpha(border, 255 * scale));
+        pie.render(graphics);
+    }
+
+    static Color withAlpha(Color color, double alpha) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) Math.max(0, Math.min(255, Math.round(alpha))));
     }
 
     /** "Won't move for 1:20 (gone by 4:00 at the latest)", "Can move any time (gone by 2:40 at the latest)". */

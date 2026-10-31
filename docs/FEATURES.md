@@ -228,7 +228,7 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 **Good to know:** Fishing spots and fires go at a random time the game picks (Jagex: fishing spots 250-530
 ticks), so no plugin can count down to the moment; their timers show the window and are off by default. Each timer only shows while you're training its skill (an XP drop in it in the last two
 minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
-Turn on **Skilling > Timers When Not Training** to see them all the time. **Skilling > Timer Style** picks the look:
+Turn on **Skilling > Timers When Not Training** to see them all the time. **Skilling > Timer Opacity** sets how solid they are (60% by default). **Skilling > Timer Style** picks the look:
 *Tile, icon and timer* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore,
 the best fish your level can catch there) and the pie over the picture; *Timer only* is the floating timer. Where RuneLite's Fishing plugin already draws its spot icons or tiles, or its
 Motherlode Mine plugin its vein icons, ours leave the icon or outline out and only add the timer. Pies draw under the bank and other interfaces. A tree already being chopped when you

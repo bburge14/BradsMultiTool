@@ -126,6 +126,24 @@ public interface SkillTrackerConfig extends CommonConfig {
         return PieStyle.TILE;
     }
 
+    @Range(min
+    =
+    10,
+    max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "timerOpacity",
+        name = "Timer Opacity",
+        description = "How solid the resource timers are drawn: lower to see the tree, rock or fishing spot through them",
+        section = skillingSection,
+        position = 3
+    )
+    default int timerOpacity() {
+        return 60;
+    }
+
     @Alpha
     @ConfigItem(
         keyName = "zoneColor",
