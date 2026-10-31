@@ -73,6 +73,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 
 ## Skilling cards (hover)
 - [ ] Trees, rocks, stalls, pickpocket NPCs, fishing spots (Bait at a sea spot shows sardine/herring, not pike).
+- [ ] Fishing spot card: each catch has its fish's picture, "Trout (50 xp)" and "Lvl 20" with room between them (no "Level ..." cut off).
 - [ ] Farming patches: empty patch shows what you can plant; planted patch shows crop, stage, grown-in time, compost after you use it, watered.
 - [ ] Hunter creature card; bird house card on Fossil Island.
 - [ ] Hover a young tree (Set-trap): Net trap card listing the lizards/salamanders nearby with levels.

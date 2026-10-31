@@ -70,6 +70,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private static final int DUCK_DESPAWN_TICKS = 200;
     // Grand Exchange price by item name (0 if unknown), looked up once
     private final Map<String, Integer> prices = new HashMap<>();
+    // Item name -> id for pictures, -1 when not found (looked up once)
+    private final Map<String, Integer> itemIds = new HashMap<>();
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
@@ -935,7 +937,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             boolean hasTool = SkillingData.hasFishingTool(option, owned);
             header(option, tool != null ? tool : "", hasTool ? HudColors.GOOD : HudColors.BAD);
             for (SkillingData.Fish fish : SkillingData.fishFor(option, fishingOptions)) {
-                levelLine("  " + fish.name + " (" + trim(fish.xp) + " xp)", Skill.FISHING, fish.level);
+                catchLine(fish.name, fish.xp, fish.level);
             }
         }
         addYourRate(Skill.FISHING);
@@ -952,7 +954,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             boolean hasTool = tool == null || tool.isEmpty() || hasTool(tool, owned);
             header(option.getKey(), tool != null ? tool : "", hasTool ? HudColors.GOOD : HudColors.BAD);
             for (SkillHelperData.Catch fish : option.getValue()) {
-                levelLine("  " + fish.name + (fish.xp > 0 ? " (" + trim(fish.xp) + " xp)" : ""), Skill.FISHING, fish.level);
+                catchLine(fish.name, fish.xp, fish.level);
             }
         }
         addYourRate(Skill.FISHING);
@@ -1014,7 +1016,27 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             .right(right).rightColor(rightColor).build());
     }
 
-    // "Shrimps (10 xp)        Level 1 [icon]", green if you have the level
+    // A catch: its picture, its name (without "Raw ": the picture shows that) and XP, and the level it needs
+    private void catchLine(String name, double xp, int level) {
+        boolean ok = client.getRealSkillLevel(Skill.FISHING) >= level;
+        String shown = name.startsWith("Raw ") ? Character.toUpperCase(name.charAt(4)) + name.substring(5) : name;
+        panel.getChildren().add(IconLineComponent.iconThenLabel(itemIcon(name),
+            shown + (xp > 0 ? " (" + trim(xp) + " xp)" : ""), "Lvl " + level, ok ? HudColors.GOOD : HudColors.BAD));
+    }
+
+    // An item's picture by its name (from the GE's item list, looked up once), or null for untradeable ones
+    private java.awt.image.BufferedImage itemIcon(String name) {
+        int id = itemIds.computeIfAbsent(name.toLowerCase(), lower -> {
+            for (ItemPrice price : itemManager.search(lower)) {
+                if (price.getName().equalsIgnoreCase(lower)) {
+                    return price.getId();
+                }
+            }
+            return -1;
+        });
+        return id > 0 ? itemManager.getImage(id) : null;
+    }
+
     private void levelLine(String left, Skill skill, int level) {
         boolean ok = client.getRealSkillLevel(skill) >= level;
         panel.getChildren().add(IconLineComponent.textThenIcon(left, skillIcons.getSkillImage(skill, true),
