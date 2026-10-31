@@ -220,8 +220,10 @@ $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()
 ```
 
-Double-clicking it (or `Launch-BradsMultiTool.bat`) checks your Jagex session file is present, asks which
-plugins to load (the Toolbelt, one of the separate plugins, all of them, or several you name), then builds and
+Double-clicking it (or `Launch-BradsMultiTool.bat`) first updates the plugins (`git pull`, listing what's new;
+it carries on with the version you have when offline or you've changed files here), then shows whether a Jagex
+session is saved and for which character, and when (it only reads the name and the date, never the session
+itself). Then it asks which plugins to load (the Toolbelt, one of the separate plugins, all of them, or several you name), then builds and
 launches RuneLite with them. It remembers your pick: press Enter next time to load the same again.
 
 Why not the Jagex Launcher with the plugin dropped in? RuneLite only loads plugin files of your own in

@@ -1,14 +1,51 @@
 @echo off
 setlocal EnableDelayedExpansion
 title Snuffy's - RuneLite
-rem Double-click to pick which of Snuffy's plugins to load, then build and launch RuneLite with them.
+rem Double-click to update Snuffy's plugins, check your Jagex session, pick which plugins to load, then build
+rem and launch RuneLite with them.
 rem Your pick is remembered (in .launch-choice next to this file): press Enter next time to reuse it.
 cd /d "%~dp0"
 
+rem ---- 1. Update: fetch the latest version of the plugins (skipped with no git, local changes or no internet) ----
+echo.
+where git >nul 2>nul
+if errorlevel 1 (
+    echo  Update: git isn't installed, so launching the version you have.
+) else (
+    set "OLD="
+    for /f %%h in ('git rev-parse HEAD 2^>nul') do set "OLD=%%h"
+    git pull --ff-only --quiet
+    if errorlevel 1 (
+        echo  Update: couldn't update ^(offline, or files changed here^). Launching the version you have.
+    ) else (
+        set "NEW="
+        for /f %%h in ('git rev-parse HEAD') do set "NEW=%%h"
+        if "!OLD!"=="!NEW!" (
+            echo  Update: already up to date.
+        ) else (
+            echo  Update: new changes since last time:
+            git --no-pager log --format="    - %%s" !OLD!..!NEW!
+        )
+    )
+)
+
+rem ---- 2. Jagex session: is one saved, and for which character ----
+rem Only reads the character's name and when the file was saved; the session itself is never shown.
 set "CREDS=%USERPROFILE%\.runelite\credentials.properties"
-if not exist "%CREDS%" (
-    echo.
-    echo  No Jagex session found at:
+echo.
+if exist "%CREDS%" (
+    set "WHO="
+    for /f "tokens=1,* delims==" %%a in ('findstr /b "JX_DISPLAY_NAME=" "%CREDS%"') do set "WHO=%%b"
+    for %%F in ("%CREDS%") do set "SAVED=%%~tF"
+    if defined WHO (
+        echo  Session: saved for !WHO! on !SAVED!.
+    ) else (
+        echo  Session: saved on !SAVED! ^(no character name in it^).
+    )
+    echo  If the login screen asks for an email and password instead of showing Play, it has expired:
+    echo  launch RuneLite once from the Jagex Launcher to save a fresh one.
+) else (
+    echo  Session: none found at
     echo    %CREDS%
     echo.
     echo  To create it ^(once per PC^):
@@ -22,6 +59,7 @@ if not exist "%CREDS%" (
     if errorlevel 2 exit /b 1
 )
 
+rem ---- 3. Which plugins ----
 set "LAST=toolbelt"
 if exist ".launch-choice" set /p LAST=<".launch-choice"
 
