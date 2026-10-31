@@ -14,6 +14,11 @@ final class SkillTrackerConfigDefaults {
         defaults.store("showSkillingRates", config.showSkillingRates());
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());
         defaults.store("piesAlwaysShown", config.piesAlwaysShown());
+        defaults.store("pieStyle", config.pieStyle());
+        defaults.store("timerOpacity", config.timerOpacity());
+        defaults.store("timerText", config.timerText());
+        defaults.store("timerSkillIcon", config.timerSkillIcon());
+        defaults.store("zoneColor", config.zoneColor());
         defaults.store("bestChoice", config.bestChoice());
         defaults.store("skillingWhenNotRetaliating", config.skillingWhenNotRetaliating());
         defaults.store("inventoryFullAlert", config.inventoryFullAlert());
@@ -30,6 +35,9 @@ final class SkillTrackerConfigDefaults {
         defaults.store("voiceRockDepleted", config.voiceRockDepleted());
         defaults.store("chatRockDepleted", config.chatRockDepleted());
         defaults.store("showFishingSpotTimer", config.showFishingSpotTimer());
+        defaults.store("fishingNewestSpot", config.fishingNewestSpot());
+        defaults.store("fishingMinimapDots", config.fishingMinimapDots());
+        defaults.store("fishingActiveColor", config.fishingActiveColor());
         defaults.store("voiceFishingSpot", config.voiceFishingSpot());
         defaults.store("chatFishingSpot", config.chatFishingSpot());
         defaults.store("coinPouchAlert", config.coinPouchAlert());
@@ -43,6 +51,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("voiceBirdhouses", config.voiceBirdhouses());
         defaults.store("chatBirdhouses", config.chatBirdhouses());
         defaults.store("showFireTimer", config.showFireTimer());
+        defaults.store("showCampfireTimer", config.showCampfireTimer());
         defaults.store("showRunecraftHover", config.showRunecraftHover());
         defaults.store("showAgilityHover", config.showAgilityHover());
         defaults.store("showCookingHover", config.showCookingHover());

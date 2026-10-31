@@ -37,7 +37,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voicePersona",
         name = "Voice Persona",
-        description = "Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
+        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
         section = generalSection,
         position = 1
     )
@@ -64,7 +64,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceEnabled",
         name = "Voice Alerts",
-        description = "Speak alerts out loud. Each alert also has its own Voice switch in its section",
+        description = "<div width='300'>Speak alerts out loud. Each alert also has its own Voice switch in its section",
         section = generalSection,
         position = 0
     )
@@ -76,7 +76,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "syncVoice",
         name = "Same Voice For All",
-        description = "Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
+        description = "<div width='300'>Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
         section = generalSection,
         position = 4
     )
@@ -88,7 +88,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "sendChatMessages",
         name = "Chat Messages",
-        description = "Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
+        description = "<div width='300'>Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
         section = generalSection,
         position = 3
     )
@@ -100,7 +100,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "characterIdleAlert",
         name = "AFK Alert",
-        description = "Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
+        description = "<div width='300'>Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
         section = idleSection,
         position = 31
     )
@@ -118,7 +118,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "characterIdleSeconds",
         name = "Idle Alert After",
-        description = "Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
+        description = "<div width='300'>Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
         section = idleSection,
         position = 32
     )
@@ -137,7 +137,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "idleWarningSeconds",
         name = "Warn Before Logout",
-        description = "How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
+        description = "<div width='300'>How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
         section = idleSection,
         position = 34
     )
@@ -175,7 +175,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "maxIdleRepeats",
         name = "Max Repeats",
-        description = "How many times to repeat the idle logout alert after the first",
+        description = "<div width='300'>How many times to repeat the idle logout alert after the first",
         section = idleSection,
         position = 38
     )
@@ -187,7 +187,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceCharacterIdle",
         name = "Voice: Character Idle",
-        description = "When your character has gone AFK (turning it on plays a preview)",
+        description = "<div width='300'>When your character has gone AFK (turning it on plays a preview)",
         section = idleSection,
         position = 39
     )
@@ -211,7 +211,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voiceIdleLogout",
         name = "Voice: Logout Warning",
-        description = "When you are about to be logged out for inactivity (turning it on plays a preview)",
+        description = "<div width='300'>When you are about to be logged out for inactivity (turning it on plays a preview)",
         section = idleSection,
         position = 41
     )
@@ -223,7 +223,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatIdleLogout",
         name = "Chat: Logout Warning",
-        description = "Chat message when you are about to be logged out for inactivity",
+        description = "<div width='300'>Chat message when you are about to be logged out for inactivity",
         section = idleSection,
         position = 42
     )

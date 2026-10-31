@@ -47,10 +47,13 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
     // Each tracked object's resource ("Tree", "Teak tree"): many objects share a resource under other ids
     private final Map<GameObject, String> resourceOf = new HashMap<>();
 
+    private final SkillHelperData helpers;
+
     @Inject
     BradsMultiToolTrainingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
                                   TrainingData training, ModelOutlineRenderer outlines, SkillingData skilling,
-                                  TrainingAdvisor advisor) {
+                                  TrainingAdvisor advisor, SkillHelperData helpers) {
+        this.helpers = helpers;
         this.client = client;
         this.plugin = plugin;
         this.config = config;
@@ -108,6 +111,8 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         Set<Integer> ids = new HashSet<>();
         Set<String> npcNames = new HashSet<>();
         Set<String> resources = new HashSet<>();
+        // Fishing spots picked with the way you fish them ("lure"): only spots that offer it
+        java.util.Map<String, Set<String>> fishOptions = new java.util.HashMap<>();
         for (Skill skill : plugin.getGoalSkills()) {
             int xp = client.getSkillExperience(skill);
             if (plugin.getSkillGoal(skill) <= xp) {
@@ -116,8 +121,12 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
             // What you picked with "Track for goal" wins over the suggestion
             String target = plugin.getGoalTarget(skill);
             if (target != null) {
-                if (target.startsWith("npc:")) {
-                    npcNames.add(target.substring(4));
+                if (target.startsWith(GoalTarget.FISH)) {
+                    String[] parts = GoalTarget.parts(target);
+                    npcNames.add(parts[0]);
+                    fishOptions.computeIfAbsent(parts[0], k -> new HashSet<>()).add(parts.length > 1 ? parts[1] : "");
+                } else if (GoalTarget.npcName(target) != null) {
+                    npcNames.add(GoalTarget.npcName(target));
                 } else if (target.startsWith("object:")) {
                     resources.add(target.substring(7));
                 }
@@ -149,11 +158,30 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         }
         if (!npcNames.isEmpty()) {
             for (NPC npc : client.getTopLevelWorldView().npcs()) {
-                if (npc.getName() != null && npcNames.contains(npc.getName().toLowerCase())) {
+                String name = npc.getName() != null ? npc.getName().toLowerCase() : null;
+                if (name != null && npcNames.contains(name) && offers(npc, fishOptions.get(name))) {
                     outlines.drawOutline(npc, OUTLINE_WIDTH, color, OUTLINE_FEATHER);
                 }
             }
         }
         return null;
+    }
+
+    // Whether a fishing spot offers one of the ways you picked to fish it ("fly fishing"; always true when it
+    // isn't a fishing pick)
+    private boolean offers(NPC npc, Set<String> options) {
+        if (options == null) {
+            return true;
+        }
+        SkillHelperData.FishingSpot spot = helpers.fishingSpot(npc.getId());
+        if (spot == null) {
+            return false;
+        }
+        for (String option : options) {
+            if (!TrainingAdvisor.catchesFor(spot, option).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -67,10 +67,16 @@ final class GoalLines {
                 until = "until level " + stepEndLevel + ", where the suggested method changes";
             }
         }
-        double perAction = plugin.getLastXpDrop(skill);
+        // The average of your last XP drops: one method can give different XP each time (trout and salmon)
+        double perAction = plugin.getAverageXpDrop(skill);
         String prefix = "";
         String name = "Actions";
         String tip = "Actions " + until;
+        int drops = plugin.getAverageXpDropCount(skill);
+        if (perAction > 0 && drops > 1) {
+            prefix = "~";
+            tip += " (at " + String.format("%,.1f", perAction) + " XP each, the average of your last " + drops + " XP drops)";
+        }
         if (KILL_SKILLS.contains(skill)) {
             TrainingAdvisor.KillEstimate kill = goalXp > xp ? plugin.getTrainingAdvisor().killEstimate(skill) : null;
             perAction = kill != null ? kill.xpEach : 0;
@@ -84,7 +90,26 @@ final class GoalLines {
             tip += " (estimated from the suggested method until your first XP drop)";
         }
         String value = perAction > 0 && remaining > 0 ? prefix + BradsMultiToolPanel.shortNumber((int) Math.ceil(remaining / perAction)) : "--";
+        // The hover names what the count is to, and with a goal gives the other count too
+        if (perAction > 0 && goalXp > xp && toNextLevel > 0) {
+            String noun = name.toLowerCase();
+            String nextCount = prefix + String.format("%,d", (int) Math.ceil(toNextLevel / perAction));
+            String goalCount = prefix + String.format("%,d", (int) Math.ceil((goalXp - xp) / perAction));
+            String shown = toGoal ? until : "until the next level";
+            tip = "<html>" + tip + "<br>Next level: " + nextCount + " " + noun + (toGoal ? "" : " (shown)")
+                + "<br>Your goal: " + goalCount + " " + noun + (toGoal && remaining == goalXp - xp ? " (shown)" : "")
+                + (toGoal && remaining != goalXp - xp ? "<br>Shown: " + shown : "") + "</html>";
+        }
         return new Actions(name, value, tip);
+    }
+
+    /** Where to do the suggested method: "Prifddinas (+4 more)", or null when the guide doesn't say. */
+    static String where(TrainingAdvisor.Suggestion suggestion) {
+        if (suggestion == null || suggestion.method == null || suggestion.method.places.isEmpty()) {
+            return null;
+        }
+        List<String> places = suggestion.method.places;
+        return places.get(0) + (places.size() > 1 ? " (+" + (places.size() - 1) + " more)" : "");
     }
 
     /**

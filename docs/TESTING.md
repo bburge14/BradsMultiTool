@@ -73,6 +73,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 
 ## Skilling cards (hover)
 - [ ] Trees, rocks, stalls, pickpocket NPCs, fishing spots (Bait at a sea spot shows sardine/herring, not pike).
+- [ ] Fishing spot card: each catch has its fish's picture, "Trout (50 xp)" and "Lvl 20" with room between them (no "Level ..." cut off).
 - [ ] Farming patches: empty patch shows what you can plant; planted patch shows crop, stage, grown-in time, compost after you use it, watered.
 - [ ] Hunter creature card; bird house card on Fossil Island.
 - [ ] Hover a young tree (Set-trap): Net trap card listing the lizards/salamanders nearby with levels.
@@ -87,12 +88,22 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] XP rates on cards only while you're training that skill.
 - [x] An NPC walking past a tree doesn't change the card.
 
-## Timer pies
+## Resource timers
 - [x] Trees: pie on trees being chopped (also others' trees), centred on the canopy; turns into a full pulsing red pie when the tree can fall on the next log; no pie on a tree already being chopped when you arrived.
 - [ ] Mining: Motherlode veins, calcified rocks, Daeyalt essence, shooting stars.
-- [ ] Fishing spots: pies on spots that moved while you were there.
+- [ ] Every resource timer: its time and skill icon above it (Timer Text / Timer Skill Icon). Fishing spots: age
+  ("1:42"), gold ring around the Fishing icon on the newest timed spot (doesn't flick between spots), your spot outlined in Your Spot Colour, minimap dots green then orange to red.
+- [ ] Fire timers are off by default (fishing spot timers on); turned on: green until the earliest time, then a red ring
+  filling to the latest; hovering says "Won't move for 1:20 (gone by 4:00 at the latest)" / "Can move any time (...)".
+- [ ] Campfire Timers (on by default) still show with Fire Timers off.
+- [ ] Fishing spots: a timer only on spots that moved while you were there; none on a spot that was already there
+  or came into view as you walked up, until it moves; a full timer again after each move (minnow spots included).
+- [ ] Fishing spot moved: the voice line plays when the spot you're fishing moves, even after fishing it 3+ minutes.
+- [ ] Timer Style: Tile, icon and timer (outline, picture of logs / ore / best fish, timer over it) and Timer only.
 - [ ] Hunter: pie on traps you lay, green when caught.
-- [ ] Firemaking: pie on fires you light.
+- [ ] Fires: a pie only on a fire you cook on (Use food on it), none on fires you just light or walk past; it
+      runs out at about 60 s, then pulses red until the fire goes; it sits still, not bouncing with the flames.
+- [ ] "The tree has fallen." (new wording) on oaks and up; no tree/rock alert on regular trees, copper or tin.
 - [ ] Sailing: shipwreck pies.
 - [x] Pies don't draw over the bank or other interfaces.
 
@@ -112,7 +123,17 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Set Goal button: pick a skill, enter a level (e.g. 80) or XP (e.g. 2000000); the skill appears under GOALS.
 - [x] A goal skill stays pinned under GOALS after logging out and back in, even before you train it.
 - [x] Actions Until Goal on: a goal skill's card counts actions to the goal (hover: "until your goal"); off (default): to the next level.
+- [ ] Hover Actions on a goal skill's card: "Next level: N actions" and "Your goal: N actions", the shown one marked (shown);
+      with Actions Until Goal on and a method change before the goal, a "Shown: until level X..." line.
 - [ ] Goal card shows "Train: ..." and "At N: ..."; Training Focus changes it.
+- [ ] Train: names the specific thing: Herblore 19 "Serum 207 (Tarromin potion (unf) + Ashes)", Fishing 25 "Fly
+      fishing: Trout, Salmon", Fishing 60 "Barbarian Fishing", Firemaking 45 "Burning logs: Maple logs"; hovering
+      it shows the guide's description.
+- [ ] Nothing quest-locked: without Shades of Mort'ton started, Herblore 15-21 says Strength potion (not Serum
+      207); without Barbarian Training started, Fishing 58+ isn't Barbarian Fishing; Lunar spells only after Lunar
+      Diplomacy; Bloodwood only after The Blood Moon Rises.
+- [ ] Where: line under Train (Fishing 30: "Prifddinas (+4 more)"; Ranged 50 with MM2: "Kruk's Dungeon"), on the
+      pinned overlay too; hover lists all places; none shown for methods the guide gives no place for.
 - [x] With a Woodcutting/Mining/Thieving goal, the suggested trees/rocks/stalls/NPCs are outlined.
 - [ ] Cooking goal with raw food in inventory/bank: card says Make: ..., the raw food is outlined in inventory and bank, hover shows the goal tooltip.
 - [ ] Highlight Goal Items off removes the outlines.
@@ -161,3 +182,15 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
 - [x] No AFK alert after logging in without doing anything (login's XP report isn't training).
 - [x] Idle logout warning before the logout.
+
+## Track for goal: specific methods
+- [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,
+  levels and bait; picking one shows it on the card, outlines only spots with that option, and greys out ways you can't do yet.
+- [ ] Right-click logs (Fletching goal) or a bar (Smithing goal): a list with Best I can make and each recipe at your level.
+- [ ] Fly fishing trout and salmon: the actions count stays steady (average of recent drops, hover says the XP each).
+- [ ] Track for goal on a fishing spot: ways colour-coded (white all, yellow some, red none at your level, green your pick), no numbers.
+- [ ] Train a goal skill on something other than the suggestion (e.g. fly fish when bait is suggested): after 5 XP
+  drops the card offers it with Track it / Dismiss and a chat line; Track it switches the goal to it; Dismiss hides it for the session.
+- [ ] Every tracker card has a pin: solid when pinned, faint otherwise; clicking a faint pin moves the pin there (tooltip names the skill it replaces); clicking the solid one unpins.
+- [ ] Card right-click: Set goal... only with no goal; Modify goal... (prefilled, keeps the goal bar's progress) and Clear goal only with one.
+- [ ] Launcher window: Setup rows (RuneLite, session saving with Turn it on, session with Save one / Refresh it ticking itself once saved, Java, git); update status (Up to date / Updated with the list / Couldn't update), session line with your character and date (or the set-up link), Toolbelt vs Separate plugins checkboxes (greyed while Toolbelt is picked), Launch opens the build in its own console and remembers the pick.

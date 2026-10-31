@@ -24,6 +24,8 @@ class IconLineComponent implements LayoutableRenderableEntity {
     private final String right;
     private final Color rightColor;
     private boolean iconsAfterText;
+    // The icon at the very start of the line, before the label: "[raw trout] Trout (50 xp)"
+    private boolean iconBeforeLabel;
     private final Rectangle bounds = new Rectangle();
 
     IconLineComponent(String left, Image icon, String right, Color rightColor) {
@@ -50,8 +52,18 @@ class IconLineComponent implements LayoutableRenderableEntity {
         return line;
     }
 
+    /** The icon first, then the label; the right text on its own at the end: "[fish] Trout (50 xp)   Lvl 20". */
+    static IconLineComponent iconThenLabel(Image icon, String left, String right, Color rightColor) {
+        IconLineComponent line = new IconLineComponent(left, icon, right, rightColor);
+        line.iconBeforeLabel = true;
+        return line;
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
+        if (iconBeforeLabel) {
+            return renderIconFirst(graphics);
+        }
         FontMetrics fm = graphics.getFontMetrics();
         int width = bounds.width > 0 ? bounds.width : 185;
         int height = Math.max(ICON_SIZE, fm.getHeight());
@@ -73,6 +85,24 @@ class IconLineComponent implements LayoutableRenderableEntity {
             drawFitted(graphics, icons.get(i), iconX, bounds.y);
         }
 
+        return new Dimension(width, height);
+    }
+
+    private Dimension renderIconFirst(Graphics2D graphics) {
+        FontMetrics fm = graphics.getFontMetrics();
+        int width = bounds.width > 0 ? bounds.width : 185;
+        int height = Math.max(ICON_SIZE, fm.getHeight());
+        int baseline = bounds.y + (height - fm.getHeight()) / 2 + fm.getAscent();
+        // The slot is kept even without a picture, so the names line up
+        int labelX = bounds.x + ICON_SIZE + ICON_GAP;
+        if (!icons.isEmpty()) {
+            drawFitted(graphics, icons.get(0), bounds.x, bounds.y);
+        }
+        // The right side first, so the label is what gets trimmed if both don't fit
+        int rightWidth = fm.stringWidth(right);
+        String label = fitText(left, fm, width - (labelX - bounds.x) - rightWidth - LABEL_GAP);
+        drawShadowed(graphics, label, labelX, baseline, Color.WHITE);
+        drawShadowed(graphics, right, bounds.x + width - rightWidth, baseline, rightColor);
         return new Dimension(width, height);
     }
 

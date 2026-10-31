@@ -19,7 +19,7 @@ Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just 
 | Plugin | What it has |
 |---|---|
 | **Snuffy's Toolbelt** | Everything below, in one plugin |
-| **Snuffy's Skilling Helper** | The sidebar tracker with goals and suggested training, the pinned skill, skilling hover cards, timer pies and skilling alerts |
+| **Snuffy's Skilling Helper** | The sidebar tracker with goals and suggested training, the pinned skill, skilling hover cards, resource timers and skilling alerts |
 | **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
 | **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
 | **Snuffy's Tick Counter** | Tick count over your head, tick boxes and a smooth tick bar, metronome, click timing for tick skilling |
@@ -88,18 +88,19 @@ developer mode.
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), timer
-pies (only while you train that skill, unless **Pies When Not Training** is on), and alerts that only fire for the resource you're working:
+pies (only while you train that skill, unless **Timers When Not Training** is on; by default each timed tree, rock or
+fishing spot gets its tile outlined with a picture of what it gives and the pie over it), and alerts that only fire for the resource you're working:
 
 | Skill | What you get |
 |---|---|
 | Woodcutting | Tree card (level, XP, your axe in its metal colour, best axe for you); a pie on every tree being chopped (Forestry timer, counting every player chopping, pulsing once it can fall on the next log); tree fallen alert |
 | Mining | Rock card; pies on Motherlode Mine veins, calcified rocks, Daeyalt essence and shooting stars (exact, from the star's layer health); rock depleted alert |
 | Prayer | Libation bowl card: your blessed bone shards, the XP they give, wine and prayer points needed, the level they reach; shards count as a Prayer goal item |
-| Fishing | Spot card for every kind of spot (net, bait, lure, cage, harpoon, karambwan, anglerfish, dark crab, eels, minnows, aerial, boat spots...): what each way of fishing it catches, level, XP, tool needed; pies on spots showing how soon they may move (per spot type); fishing spot moved alert |
+| Fishing | Spot card for every kind of spot (net, bait, lure, cage, harpoon, karambwan, anglerfish, dark crab, eels, minnows, aerial, boat spots...): what each way of fishing it catches, level, XP, tool needed; timers on spots showing the window they move in (per spot type), how long ago each appeared, a gold ring on the newest spot (the best one to fish), your spot highlighted, and minimap dots; fishing spot moved alert |
 | Thieving | Stall and pickpocket cards (level, XP, never-fail level with the Ardougne cloak, stun damage); coin pouches full alert |
 | Farming | Patch card: crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's protection payment, and what you can plant |
 | Hunter | Creature card (level, XP, trap); trap spot card (young tree, boulder, pit: what you can catch there, with levels); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
-| Firemaking | Pies on fires lit nearby and on Forester's Campfires showing how long they may burn |
+| Firemaking | Timers on Forester's Campfires showing how long they have left, and (off by default) on fires you cook on showing the window they go out in |
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
 | Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |
@@ -116,11 +117,12 @@ work a resource.
 - A card per skill you train: XP gained, XP to next level, actions left (from your last XP drop; not for
   combat skills), XP/hr, XP/min, time to level, and a red/orange/green progress bar. Each field has its
   own switch.
-- **Goals**: the **Set Goal** button at the top (or right-click a card > Set goal...) takes a skill and a
-  level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
+- **Goals**: the **Set Goal** button at the top (or right-click a card > Set goal..., or Modify goal... once it
+  has one) takes a skill and a level or XP amount. Skills with a goal are pinned under **GOALS** at the top, even if you haven't trained
   them this session, with XP left and time to reach it; everything else is under **THIS SESSION**.
   Switch on **Actions Until Goal** to count actions left to the goal instead of to the next level (or to
-  the end of the current step when the suggested method changes before the goal).
+  the end of the current step when the suggested method changes before the goal). Hover the count to see both:
+  to the next level and to your goal, with the one shown marked.
   Before your first XP drop it estimates from the suggested method's XP per action ("~1,240"). Combat
   goals count kills of the monster you're fighting, from its hitpoints ("Kills: ~240"), and show your kill
   rate ("Kill rate: Sand Crab: 52/hr (1:09 each)"), where potions show up as faster kills.
@@ -144,9 +146,10 @@ work a resource.
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
   **Highlight Goal Items**).
-- **Pin to screen**: right-click a card > **Pin to screen** to show that skill on the game screen (level
+- **Pin to screen**: click the pin in a card's top-right corner (or right-click > **Pin to screen**) to show that skill on the game screen (level
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
-  time; its card shows a red pin (click it to unpin), or right-click the overlay > **Unpin**.
+  time: the pinned card's pin is solid, the others faint, and clicking a faint one moves the pin there. Click the
+  solid pin to unpin, or right-click the overlay > **Unpin**.
 - **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 5 minutes by default) and resumes on your
   next XP.
 - Right-click to pause, reset the rate, reset or hide a skill.
@@ -217,8 +220,22 @@ $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()
 ```
 
-Double-clicking it (or `Launch-BradsMultiTool.bat`) checks your Jagex session file is present, then builds
-and launches RuneLite with the plugin.
+Double-clicking it (or `Launch-BradsMultiTool.bat`) opens **Snuffy's Launcher**, a small window that:
+
+- **updates** the plugins (`git pull`) and lists what's new (**Check again** to retry; when offline or you've
+  changed files here it says so and you launch the version you have);
+- checks your **setup**, with a button to fix each part: RuneLite installed; **session saving** on in RuneLite
+  (configure) (it can add `--insecure-write-credentials` for you, keeping a backup of RuneLite's settings, or open
+  the configure window); a **Jagex session** saved, for which character and when (it only reads the name and
+  the date, never the session itself); **Save one** opens the Jagex Launcher, tells you what to do and ticks
+  the row once the session is saved; Java (needed to build) and git (for updates);
+- lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
+  plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
+- **Launch RuneLite** builds and starts it, with the build and RuneLite's log in their own window.
+
+Why not the Jagex Launcher with the plugin dropped in? RuneLite only loads plugin files of your own in
+developer mode, and it turns developer mode off when started from its launcher, so the dev client (with the
+session file below) is the only way to run Snuffy's before it's on the Plugin Hub.
 
 **4. Log in:** follow [Logging in with a Jagex Account](#logging-in-with-a-jagex-account) (once per PC).
 
@@ -281,7 +298,7 @@ All sections except General start collapsed.
 
 ## Credits
 
-- The resource timer pies follow the logic worked out by these Plugin Hub plugins (BSD-2 licensed):
+- The resource timers follow the logic worked out by these Plugin Hub plugins (BSD-2 licensed):
   [Tree Despawn Timer](https://github.com/CreativeTechGuy/tree-despawn-timer) by CreativeTechGuy,
   [MLM Despawn Timer](https://github.com/xetrics/mlm-despawn-timer),
   [Calcified Rock Despawn Timer](https://github.com/NotTeeZee/calcified-rocks-despawn-timer),

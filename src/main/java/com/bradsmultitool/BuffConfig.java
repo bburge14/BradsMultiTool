@@ -23,7 +23,7 @@ public interface BuffConfig extends Config {
     @ConfigItem(
         keyName = "enableBuffStatus",
         name = "Show Buffs on HUD",
-        description = "Show each active potion buff with its boost and time left (on the PvM HUD and the crab card)",
+        description = "<div width='300'>Show each active potion buff with its boost and time left (on the PvM HUD and the crab card)",
         section = buffSection,
         position = 5
     )
@@ -83,7 +83,7 @@ public interface BuffConfig extends Config {
     @ConfigItem(
         keyName = "maxBuffRepeats",
         name = "Max Repeats",
-        description = "How many times to repeat the expired buff alert after the first",
+        description = "<div width='300'>How many times to repeat the expired buff alert after the first",
         section = buffSection,
         position = 12
     )
@@ -94,7 +94,7 @@ public interface BuffConfig extends Config {
     @ConfigItem(
         keyName = "voiceBuffLow",
         name = "Voice: Potion Running Out",
-        description = "Shortly before a potion boost runs out (turning it on plays a preview)",
+        description = "<div width='300'>Shortly before a potion boost runs out (turning it on plays a preview)",
         section = buffSection,
         position = 13
     )
@@ -116,7 +116,7 @@ public interface BuffConfig extends Config {
     @ConfigItem(
         keyName = "voiceBuffExpired",
         name = "Voice: Potion Expired",
-        description = "When a potion boost has run out (turning it on plays a preview)",
+        description = "<div width='300'>When a potion boost has run out (turning it on plays a preview)",
         section = buffSection,
         position = 15
     )

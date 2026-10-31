@@ -23,7 +23,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Tick Counter",
-        description = "Counts game ticks over your head or in a box you can move, with an optional metronome",
+        description = "<div width='300'>Counts game ticks over your head or in a box you can move, with an optional metronome",
         position = 85,
         closedByDefault = true
     )
@@ -62,7 +62,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Combat Alerts",
-        description = "Special attack, antifire, poison, stamina, ammo, runes and cannon alerts",
+        description = "<div width='300'>Special attack, antifire, poison, stamina, ammo, runes and cannon alerts",
         position = 29,
         closedByDefault = true
     )
@@ -78,7 +78,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Buff Bar",
-        description = "Your buffs and debuffs as a row of icons with timers, like RS3's",
+        description = "<div width='300'>Your buffs and debuffs as a row of icons with timers, like RS3's",
         position = 40,
         closedByDefault = true
     )
@@ -94,7 +94,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Slayer",
-        description = "Task tracker, required items, superior and task-complete alerts",
+        description = "<div width='300'>Task tracker, required items, superior and task-complete alerts",
         position = 48,
         closedByDefault = true
     )
@@ -224,7 +224,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "voicePersona",
         name = "Voice Persona",
-        description = "Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
+        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
         section = generalSection,
         position = 1
     )
@@ -251,7 +251,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "voiceEnabled",
         name = "Voice Alerts",
-        description = "Speak alerts out loud. Each alert also has its own Voice switch in its section",
+        description = "<div width='300'>Speak alerts out loud. Each alert also has its own Voice switch in its section",
         section = generalSection,
         position = 0
     )
@@ -263,7 +263,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "syncVoice",
         name = "Same Voice For All",
-        description = "Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
+        description = "<div width='300'>Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
         section = generalSection,
         position = 4
     )
@@ -275,7 +275,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "sendChatMessages",
         name = "Chat Messages",
-        description = "Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
+        description = "<div width='300'>Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
         section = generalSection,
         position = 3
     )
@@ -287,7 +287,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "characterIdleAlert",
         name = "AFK Alert",
-        description = "Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
+        description = "<div width='300'>Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
         section = idleSection,
         position = 31
     )
@@ -305,7 +305,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "characterIdleSeconds",
         name = "Idle Alert After",
-        description = "Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
+        description = "<div width='300'>Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
         section = idleSection,
         position = 32
     )
@@ -324,7 +324,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "idleWarningSeconds",
         name = "Warn Before Logout",
-        description = "How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
+        description = "<div width='300'>How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
         section = idleSection,
         position = 34
     )
@@ -362,7 +362,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "maxIdleRepeats",
         name = "Max Repeats",
-        description = "How many times to repeat the idle logout alert after the first",
+        description = "<div width='300'>How many times to repeat the idle logout alert after the first",
         section = idleSection,
         position = 38
     )
@@ -374,7 +374,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "voiceCharacterIdle",
         name = "Voice: Character Idle",
-        description = "When your character has gone AFK (turning it on plays a preview)",
+        description = "<div width='300'>When your character has gone AFK (turning it on plays a preview)",
         section = idleSection,
         position = 39
     )
@@ -398,7 +398,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "voiceIdleLogout",
         name = "Voice: Logout Warning",
-        description = "When you are about to be logged out for inactivity (turning it on plays a preview)",
+        description = "<div width='300'>When you are about to be logged out for inactivity (turning it on plays a preview)",
         section = idleSection,
         position = 41
     )
@@ -410,7 +410,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "chatIdleLogout",
         name = "Chat: Logout Warning",
-        description = "Chat message when you are about to be logged out for inactivity",
+        description = "<div width='300'>Chat message when you are about to be logged out for inactivity",
         section = idleSection,
         position = 42
     )
@@ -424,7 +424,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "enableBuffStatus",
         name = "Show Buffs on HUD",
-        description = "Show each active potion buff with its boost and time left (on the PvM HUD and the crab card)",
+        description = "<div width='300'>Show each active potion buff with its boost and time left (on the PvM HUD and the crab card)",
         section = buffSection,
         position = 5
     )
@@ -489,7 +489,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "maxBuffRepeats",
         name = "Max Repeats",
-        description = "How many times to repeat the expired buff alert after the first",
+        description = "<div width='300'>How many times to repeat the expired buff alert after the first",
         section = buffSection,
         position = 12
     )
@@ -501,7 +501,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "voiceBuffLow",
         name = "Voice: Potion Running Out",
-        description = "Shortly before a potion boost runs out (turning it on plays a preview)",
+        description = "<div width='300'>Shortly before a potion boost runs out (turning it on plays a preview)",
         section = buffSection,
         position = 13
     )
@@ -525,7 +525,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigItem(
         keyName = "voiceBuffExpired",
         name = "Voice: Potion Expired",
-        description = "When a potion boost has run out (turning it on plays a preview)",
+        description = "<div width='300'>When a potion boost has run out (turning it on plays a preview)",
         section = buffSection,
         position = 15
     )

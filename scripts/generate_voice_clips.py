@@ -85,7 +85,7 @@ LINES = {
     "task_nearly_done": "Slayer task nearly done.",
     "slayer_item_missing": "You are missing your slayer item.",
     "inventory_full": "Inventory is full.",
-    "tree_gone": "The tree is gone.",
+    "tree_gone": "The tree has fallen.",
     "rock_depleted": "The rock is depleted.",
     "fishing_spot_moved": "The fishing spot has moved.",
     "potion_super_combat_low": "Super combat is running out.",

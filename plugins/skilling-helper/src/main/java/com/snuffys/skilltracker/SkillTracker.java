@@ -59,6 +59,8 @@ class SkillTracker {
     private Provider<GoalItems> goalItems;
     @Inject
     private KillTracker killTracker;
+    @Inject
+    private Provider<MethodDetector> methodDetector;
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
@@ -66,6 +68,9 @@ class SkillTracker {
     private final Map<Skill, Integer> lastXpTicks = new EnumMap<>(Skill.class);
     private final Map<Skill, Long> skillActiveTicks = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> lastXpDrops = new EnumMap<>(Skill.class);
+    /** Each skill's last XP drops, newest last, for an average when one method gives different XP (trout and salmon). */
+    private final Map<Skill, java.util.ArrayDeque<Integer>> recentXpDrops = new EnumMap<>(Skill.class);
+    static final int RECENT_DROPS = 30;
     private final Set<Skill> pausedSkills = EnumSet.noneOf(Skill.class);
     private volatile int combatLevel = 3;
     private NavigationButton navButton;
@@ -112,6 +117,7 @@ class SkillTracker {
         gainedSkillXp.clear();
         skillActiveTicks.clear();
         lastXpDrops.clear();
+        recentXpDrops.clear();
         pausedSkills.clear();
         updatePanelUI();
     }
@@ -162,6 +168,11 @@ class SkillTracker {
             int drop = gained - previousGained;
             if (drop > 0) {
                 lastXpDrops.put(skill, drop);
+                java.util.ArrayDeque<Integer> recent = recentXpDrops.computeIfAbsent(skill, k -> new java.util.ArrayDeque<>());
+                recent.addLast(drop);
+                while (recent.size() > RECENT_DROPS) {
+                    recent.removeFirst();
+                }
                 lastXpTicks.put(skill, client.getTickCount());
             }
             gainedSkillXp.put(skill, gained);
@@ -263,8 +274,13 @@ class SkillTracker {
             configManager.unsetRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name());
             configManager.unsetRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name());
         } else {
+            // Modifying a goal still underway keeps where it started (the goal bar's progress)
+            int xp = client.getSkillExperience(skill);
+            boolean underway = getSkillGoal(skill) > xp && getSkillGoalStart(skill) > 0;
             configManager.setRSProfileConfiguration(identity.configGroup, "goal." + skill.name(), goalXp);
-            configManager.setRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name(), client.getSkillExperience(skill));
+            if (!underway) {
+                configManager.setRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name(), xp);
+            }
         }
         updatePanelUI();
     }
@@ -298,13 +314,17 @@ class SkillTracker {
         return killTracker;
     }
 
+    public MethodDetector getMethodDetector() {
+        return methodDetector.get();
+    }
+
     public GoalItems getGoalItems() {
         return goalItems.get();
     }
 
     /**
      * What you chose to train for this skill's goal instead of the suggestion ("npc:ruby harvest",
-     * "object:Teak tree"), or null to follow the suggestion.
+     * "object:Teak tree", see {@link GoalTarget}), or null to follow the suggestion.
      */
     public String getGoalTarget(Skill skill) {
         return configManager.getRSProfileKey() == null ? null
@@ -340,9 +360,20 @@ class SkillTracker {
 
     /** Your "Track for goal" pick as shown on the cards ("Dragon bones (Gilded altar)"), or null. */
     public String describeGoalTarget(Skill skill) {
-        String target = getGoalTarget(skill);
+        return describeTarget(skill, getGoalTarget(skill));
+    }
+
+    /** A "Track for goal" pick as the cards show it ("Fly fishing: Trout, Salmon (Fly fishing rod + Feather)"). */
+    public String describeTarget(Skill skill, String target) {
         if (target == null) {
             return null;
+        }
+        if (target.startsWith(GoalTarget.FISH)) {
+            return getTrainingAdvisor().describeFish(target);
+        }
+        String recipe = GoalTarget.recipeName(target);
+        if (recipe != null) {
+            return recipe + " (from " + goalTargetName(":" + GoalTarget.itemName(target)) + ")";
         }
         String name = goalTargetName(target);
         if (skill == Skill.PRAYER && target.startsWith("item:")) {
@@ -427,6 +458,7 @@ class SkillTracker {
         gainedSkillXp.remove(skill);
         skillActiveTicks.remove(skill);
         lastXpDrops.remove(skill);
+        recentXpDrops.remove(skill);
         pausedSkills.remove(skill);
         updatePanelUI();
     }
@@ -466,7 +498,7 @@ class SkillTracker {
         }
     }
 
-    private void updatePanelUI() {
+    void updatePanelUI() {
         if (panel != null && panelUpdateQueued.compareAndSet(false, true)) {
             SwingUtilities.invokeLater(() -> {
                 panelUpdateQueued.set(false);
@@ -506,6 +538,31 @@ class SkillTracker {
 
     public int getLastXpDrop(Skill skill) {
         return lastXpDrops.getOrDefault(skill, 0);
+    }
+
+    /**
+     * The average of your last XP drops in a skill (up to {@link #RECENT_DROPS}), 0 before the first: steadier
+     * than the last drop when one method gives different XP each time (trout and salmon, 17 and 18 for 17.5 XP).
+     */
+    public double getAverageXpDrop(Skill skill) {
+        java.util.ArrayDeque<Integer> recent = recentXpDrops.get(skill);
+        return recent == null || recent.isEmpty() ? 0 : averageOf(recent);
+    }
+
+    /** How many XP drops {@link #getAverageXpDrop} covers. */
+    public int getAverageXpDropCount(Skill skill) {
+        java.util.ArrayDeque<Integer> recent = recentXpDrops.get(skill);
+        return recent == null ? 0 : recent.size();
+    }
+
+    static double averageOf(Iterable<Integer> drops) {
+        long total = 0;
+        int count = 0;
+        for (int drop : drops) {
+            total += drop;
+            count++;
+        }
+        return count == 0 ? 0 : (double) total / count;
     }
 
     public int getSkillGained(Skill skill) {

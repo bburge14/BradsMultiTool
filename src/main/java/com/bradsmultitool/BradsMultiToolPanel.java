@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -309,6 +310,13 @@ public class BradsMultiToolPanel extends PluginPanel {
         form.add(current);
         form.add(new JLabel("Goal (a level like 70, or XP like 1,000,000):"));
         form.add(target);
+        // Modifying: starts from the goal it has
+        int existing = skill != null ? plugin.getSkillGoal(skill) : 0;
+        if (existing > 0) {
+            int existingLevel = Experience.getLevelForXp(existing);
+            target.setText(existing == Experience.getXpForLevel(existingLevel) ? String.valueOf(existingLevel)
+                : String.format("%,d", existing));
+        }
         // What its suggestions aim for: the skill's own focus, or the default from the settings
         JComboBox<Object> focus = new JComboBox<>();
         Runnable fillFocus = () -> {
@@ -325,7 +333,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         fillFocus.run();
         form.add(new JLabel("Suggest:"));
         form.add(focus);
-        int result = JOptionPane.showConfirmDialog(this, form, skill == null ? "Set goal" : "Goal for " + skill.getName(),
+        int result = JOptionPane.showConfirmDialog(this, form, skill == null ? "Set goal" : (existing > 0 ? "Modify goal for " : "Goal for ") + skill.getName(),
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result != JOptionPane.OK_OPTION || target.getText().trim().isEmpty()) {
             return;
@@ -409,6 +417,9 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
         private final JLabel suggestion = stat();
+        // "You're training on ...: track it for your goal?" with Track / Dismiss (see MethodDetector)
+        private final JPanel offerRow = new JPanel(new BorderLayout(4, 2));
+        private final JLabel offerText = stat();
         private boolean pinned;
         // Where the step of the goal's plan you're on ends (the method changes there), or 0
         private int stepEndLevel;
@@ -419,6 +430,11 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JMenuItem suggestedItem = new JMenuItem("Use suggested method");
         // Pin this skill to the game screen (only one at a time), or unpin it
         private final JMenuItem pinItem = new JMenuItem();
+        // Set goal with none; Modify goal and Clear goal with one
+        private final JMenuItem setGoalItem = new JMenuItem("Set goal...");
+        private final JMenuItem modifyGoalItem = new JMenuItem("Modify goal...");
+        private final JMenuItem clearGoalItem = new JMenuItem("Clear goal");
+        private boolean pinHover;
         // What this skill's goal suggestions aim for (its own choice, or the default)
         private final JMenu focusMenu = new JMenu("Suggest");
         private final Map<SkillTrackerConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(SkillTrackerConfig.TrainingFocus.class);
@@ -430,7 +446,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             setBackground(ColorScheme.DARKER_GRAY_COLOR);
             setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 6, 0, ColorScheme.DARK_GRAY_COLOR),
-                new EmptyBorder(7, 7, 7, 7)));
+                new EmptyBorder(7, 7, 7, 16)));
 
             JLabel icon = new JLabel();
             BufferedImage image = skillIconManager.getSkillImage(skill, false);
@@ -446,9 +462,18 @@ public class BradsMultiToolPanel extends PluginPanel {
             JPanel bars = new JPanel();
             bars.setLayout(new BoxLayout(bars, BoxLayout.Y_AXIS));
             bars.setOpaque(false);
-            for (JComponent row : new JComponent[]{levelBar, goalBar, suggestion}) {
+            offerRow.setOpaque(false);
+            offerRow.add(offerText, BorderLayout.CENTER);
+            JPanel offerButtons = new JPanel(new GridLayout(1, 2, 4, 0));
+            offerButtons.setOpaque(false);
+            offerButtons.add(offerButton("Track it", () -> plugin.getMethodDetector().accept(skill)));
+            offerButtons.add(offerButton("Dismiss", () -> plugin.getMethodDetector().dismiss(skill)));
+            offerRow.add(offerButtons, BorderLayout.SOUTH);
+            offerRow.setVisible(false);
+            for (JComponent row : new JComponent[]{levelBar, goalBar, suggestion, offerRow}) {
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
-                row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion ? Integer.MAX_VALUE : row.getPreferredSize().height));
+                row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion || row == offerRow
+                    ? Integer.MAX_VALUE : row.getPreferredSize().height));
                 bars.add(row);
                 bars.add(Box.createVerticalStrut(3));
             }
@@ -459,17 +484,30 @@ public class BradsMultiToolPanel extends PluginPanel {
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    if (SwingUtilities.isLeftMouseButton(e) && pinned && pinBounds().contains(e.getPoint())) {
-                        plugin.setPinnedSkill(null);
+                    // Only one skill is pinned at a time: pinning this one moves the pin from the other
+                    if (SwingUtilities.isLeftMouseButton(e) && pinBounds().contains(e.getPoint())) {
+                        plugin.setPinnedSkill(pinned ? null : skill);
+                    }
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    if (pinHover) {
+                        pinHover = false;
+                        repaint();
                     }
                 }
             });
             addMouseMotionListener(new MouseAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
-                    boolean over = pinned && pinBounds().contains(e.getPoint());
+                    boolean over = pinBounds().contains(e.getPoint());
+                    if (over != pinHover) {
+                        pinHover = over;
+                        repaint();
+                    }
                     setCursor(over ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
-                    setToolTipText(over ? "Pinned to the game screen - click to unpin" : skill.getName() + " - right-click for options");
+                    setToolTipText(over ? pinTip() : skill.getName() + " - right-click for options");
                 }
             });
 
@@ -484,8 +522,12 @@ public class BradsMultiToolPanel extends PluginPanel {
             pinItem.addActionListener(e -> plugin.setPinnedSkill(skill == plugin.getPinnedSkill() ? null : skill));
             menu.add(pauseItem);
             menu.add(menuItem("Reset rate", () -> plugin.resetSkillRate(skill)));
-            menu.add(menuItem("Set goal...", () -> askForGoal(skill)));
-            menu.add(menuItem("Clear goal", () -> plugin.setSkillGoal(skill, 0)));
+            setGoalItem.addActionListener(e -> askForGoal(skill));
+            modifyGoalItem.addActionListener(e -> askForGoal(skill));
+            clearGoalItem.addActionListener(e -> plugin.setSkillGoal(skill, 0));
+            menu.add(setGoalItem);
+            menu.add(modifyGoalItem);
+            menu.add(clearGoalItem);
             ButtonGroup focusGroup = new ButtonGroup();
             defaultFocusItem.addActionListener(e -> plugin.setTrainingFocus(skill, null));
             focusGroup.add(defaultFocusItem);
@@ -510,18 +552,48 @@ public class BradsMultiToolPanel extends PluginPanel {
             inheritPopupMenu(this);
         }
 
-        // The pin's spot: the card's top-right corner, inside its padding
-        private Rectangle pinBounds() {
-            return new Rectangle(getWidth() - PIN_IMAGE.getWidth() - 2, 1, PIN_IMAGE.getWidth(), PIN_IMAGE.getHeight());
+        private JButton offerButton(String text, Runnable action) {
+            JButton button = new JButton(text);
+            button.setFocusable(false);
+            button.setMargin(new java.awt.Insets(1, 4, 1, 4));
+            button.addActionListener(e -> action.run());
+            return button;
         }
 
+        // What you're training on when it isn't the suggestion or your pick, offered to track instead
+        private void updateOffer() {
+            String target = plugin.getMethodDetector().offer(skill);
+            offerRow.setVisible(target != null);
+            if (target != null) {
+                offerText.setText("<html><div width='170'><font color='#ffff00'>You're training on:</font> "
+                    + plugin.describeTarget(skill, target) + ". Track it for your goal?</div></html>");
+            }
+        }
+
+        // The pin's spot: the card's top-right corner, in the padding kept clear for it
+        private Rectangle pinBounds() {
+            return new Rectangle(getWidth() - PIN_IMAGE.getWidth() - 2, 2, PIN_IMAGE.getWidth(), PIN_IMAGE.getHeight());
+        }
+
+        private String pinTip() {
+            Skill other = plugin.getPinnedSkill();
+            if (pinned) {
+                return "Pinned to the game screen - click to unpin";
+            }
+            return other != null ? "Click to pin to the game screen instead of " + other.getName()
+                : "Click to pin to the game screen";
+        }
+
+        // Always there: solid while pinned, faint otherwise (brighter under the mouse)
         @Override
         protected void paintChildren(Graphics g) {
             super.paintChildren(g);
-            if (pinned) {
-                Rectangle at = pinBounds();
-                g.drawImage(PIN_IMAGE, at.x, at.y, null);
-            }
+            Rectangle at = pinBounds();
+            Graphics2D g2 = (Graphics2D) g.create();
+            float alpha = pinned ? 1f : pinHover ? 0.75f : 0.3f;
+            g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha));
+            g2.drawImage(PIN_IMAGE, at.x, at.y, null);
+            g2.dispose();
         }
 
         // Only the fields switched on under Skill Tracker, two to a row
@@ -568,6 +640,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             int goalXp = plugin.getSkillGoal(skill);
             // First, as it finds where the current step ends (for the actions count)
             updateSuggestion(level, goalXp, xp);
+            updateOffer();
 
             if (level >= Experience.MAX_REAL_LEVEL) {
                 setStat(left, "Left", "--");
@@ -598,7 +671,13 @@ public class BradsMultiToolPanel extends PluginPanel {
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
             boolean nowPinned = skill == plugin.getPinnedSkill();
-            pinItem.setText(nowPinned ? "Unpin from screen" : "Pin to screen");
+            Skill otherPinned = plugin.getPinnedSkill();
+            pinItem.setText(nowPinned ? "Unpin from screen"
+                : otherPinned != null ? "Pin to screen (instead of " + otherPinned.getName() + ")" : "Pin to screen");
+            boolean hasGoal = plugin.getSkillGoal(skill) > 0;
+            setGoalItem.setVisible(!hasGoal);
+            modifyGoalItem.setVisible(hasGoal);
+            clearGoalItem.setVisible(hasGoal);
             if (pinned != nowPinned) {
                 pinned = nowPinned;
                 repaint();
@@ -637,6 +716,19 @@ public class BradsMultiToolPanel extends PluginPanel {
                         TrainingAdvisor.Stage first = plan.get(0);
                         lines.add(label(first.suggestion.label) + first.suggestion.text
                             + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
+                        String where = GoalLines.where(first.suggestion);
+                        if (where != null) {
+                            lines.add(label("Where:") + where);
+                        }
+                    }
+                    // Hover: what the guide says about the method you're on
+                    String about = !plan.isEmpty() && plan.get(0).suggestion.method != null ? plan.get(0).suggestion.method.about : null;
+                    List<String> places = !plan.isEmpty() && plan.get(0).suggestion.method != null
+                        ? plan.get(0).suggestion.method.places : Collections.emptyList();
+                    if (about != null || !places.isEmpty()) {
+                        tooltip = "<html><div width='260'>" + (about != null ? about : "")
+                            + (places.isEmpty() ? "" : (about != null ? "<br><br>" : "") + "<b>Where:</b> " + String.join(", ", places))
+                            + "</div></html>";
                     }
                     if (plan.size() > 1) {
                         stepEndLevel = plan.get(0).to;
@@ -645,7 +737,8 @@ public class BradsMultiToolPanel extends PluginPanel {
                             steps.append("<br>").append(stage.from).append("-").append(stage.to).append(": ")
                                 .append(stage.suggestion.text);
                         }
-                        tooltip = steps.append("</html>").toString();
+                        tooltip = tooltip == null ? steps.append("</html>").toString()
+                            : tooltip.replace("</html>", "<br>" + steps.substring("<html>".length()) + "</html>");
                     }
                 }
                 // For production skills and Prayer: the best thing to make or use from your inventory and bank

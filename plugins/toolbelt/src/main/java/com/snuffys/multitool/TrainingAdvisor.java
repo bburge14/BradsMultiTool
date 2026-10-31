@@ -119,7 +119,20 @@ class TrainingAdvisor {
                 break;
         }
         TrainingData.Method method = training.suggest(skill, level, focus == SkillTrackerConfig.TrainingFocus.OTHER, this::canDo);
-        return method == null ? null : new Suggestion("Train:", method.name, method, xpEach(method), toolsFor(skill, method));
+        if (method == null) {
+            return null;
+        }
+        // The guide's pick at your level from its table ("Strength potion (Tarromin potion (unf) + Limpwurt
+        // root)", "Cutting gems: Ruby"), else what it trains on ("Fly fishing: Trout, Salmon")
+        TrainingData.Option option = method.bestOption(level, o -> o.started.stream().allMatch(quests::isStarted));
+        if (option != null) {
+            String text = option.with.isEmpty() ? method.name + ": " + option.name
+                : option.name + " (" + String.join(" + ", option.with) + ")";
+            double each = option.xpEach() > 0 ? option.xpEach() : xpEach(method, level);
+            return new Suggestion("Train:", text, method, each, toolsFor(skill, method));
+        }
+        String text = method.targets.isEmpty() ? method.name : method.name + ": " + String.join(", ", method.targets);
+        return new Suggestion("Train:", text, method, xpEach(method, level), toolsFor(skill, method));
     }
 
     // What a guide method needs to hand: an axe or pickaxe for its trees or rocks, the trap for its creature,
@@ -169,7 +182,8 @@ class TrainingAdvisor {
     /** Whether you meet a method's requirements: its quests finished, other skills at the levels it needs. */
     boolean canDo(TrainingData.Method method) {
         for (String quest : method.quests) {
-            if (!quests.isFinished(quest)) {
+            boolean done = method.started.contains(quest) ? quests.isStarted(quest) : quests.isFinished(quest);
+            if (!done) {
                 return false;
             }
         }
@@ -185,8 +199,10 @@ class TrainingAdvisor {
         return true;
     }
 
-    // XP per action of a guide method: its tree/rock/stall's XP, else its NPC's (pickpocket or hunter creature)
-    private double xpEach(TrainingData.Method method) {
+    // XP per action of a guide method: its tree/rock/stall's XP, else its NPC's (pickpocket or hunter creature),
+    // else for fish it trains on, the average XP of those you can catch at your level ("Fly fishing: Trout,
+    // Salmon": you catch both, mixed)
+    private double xpEach(TrainingData.Method method, int level) {
         for (int id : method.objects) {
             SkillingData.Resource resource = skilling.object(id, null);
             if (resource != null && resource.xp > 0) {
@@ -199,7 +215,14 @@ class TrainingAdvisor {
                 return xp;
             }
         }
-        return 0;
+        List<SkillHelperData.Catch> fish = new ArrayList<>();
+        for (String target : method.targets) {
+            SkillHelperData.Catch c = helpers.catchNamed(target);
+            if (c != null) {
+                fish.add(c);
+            }
+        }
+        return averageCatchXp(fish, level);
     }
 
     private double npcXp(String npc) {
@@ -258,6 +281,10 @@ class TrainingAdvisor {
      */
     double estimatedXpEach(Skill skill, int level) {
         String target = plugin.getGoalTarget(skill);
+        if (target != null && target.startsWith(GoalTarget.FISH)) {
+            // You catch every fish the method gives at your level, mixed: the average of their XP
+            return averageCatchXp(fishCatches(target), level);
+        }
         if (target != null && !target.startsWith("item:")) {
             String name = SkillTracker.goalTargetName(target);
             if (target.startsWith("object:")) {
@@ -277,6 +304,79 @@ class TrainingAdvisor {
         // A general method ("Making potions"): the most XP thing you can make at your level
         RecipeData.Recipe best = recipes.covers(skill) ? recipes.best(skill, level, null, r -> r.xp) : null;
         return best != null ? best.xp : 0;
+    }
+
+    /** The catches for a fishing pick ("fish:rod fishing spot|lure|1526"), lowest level first; empty if unknown. */
+    List<SkillHelperData.Catch> fishCatches(String target) {
+        String[] parts = GoalTarget.parts(target);
+        if (parts.length < 3) {
+            return java.util.Collections.emptyList();
+        }
+        SkillHelperData.FishingSpot spot;
+        try {
+            spot = helpers.fishingSpot(Integer.parseInt(parts[2]));
+        } catch (NumberFormatException e) {
+            spot = null;
+        }
+        return spot == null ? java.util.Collections.emptyList() : catchesFor(spot, parts[1]);
+    }
+
+    /** A spot's catches for one way of fishing it (any case: "lure", "Small Net"), lowest level first. */
+    static List<SkillHelperData.Catch> catchesFor(SkillHelperData.FishingSpot spot, String option) {
+        for (java.util.Map.Entry<String, List<SkillHelperData.Catch>> e : spot.options.entrySet()) {
+            if (e.getKey().equalsIgnoreCase(option)) {
+                return e.getValue();
+            }
+        }
+        return java.util.Collections.emptyList();
+    }
+
+    /** The average XP of the catches you can get at this level (one method gives several fish), 0 if none. */
+    static double averageCatchXp(List<SkillHelperData.Catch> catches, int level) {
+        double total = 0;
+        int count = 0;
+        for (SkillHelperData.Catch c : catches) {
+            if (c.level <= level) {
+                total += c.xp;
+                count++;
+            }
+        }
+        return count == 0 ? 0 : total / count;
+    }
+
+    /** The highest-level catch you can get at this level, else null. */
+    static SkillHelperData.Catch bestCatch(List<SkillHelperData.Catch> catches, int level) {
+        SkillHelperData.Catch best = null;
+        for (SkillHelperData.Catch c : catches) {
+            if (c.level <= level && (best == null || c.level > best.level)) {
+                best = c;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * How a fishing pick reads on the cards: "Lure: Trout, Salmon (Fly fishing rod + Feathers)", or the spot's
+     * name when its catches aren't known.
+     */
+    String describeFish(String target) {
+        String[] parts = GoalTarget.parts(target);
+        List<SkillHelperData.Catch> catches = fishCatches(target);
+        String option = parts.length > 1 ? SkillTracker.goalTargetName(":" + parts[1]) : "";
+        if (catches.isEmpty()) {
+            return SkillTracker.goalTargetName(":" + parts[0]) + (option.isEmpty() ? "" : " (" + option + ")");
+        }
+        return option + ": " + catchNames(catches) + (catches.get(0).needs() != null ? " (" + catches.get(0).needs() + ")" : "");
+    }
+
+    /** "Trout, Salmon" from Raw trout and Raw salmon. */
+    static String catchNames(List<SkillHelperData.Catch> catches) {
+        List<String> names = new ArrayList<>();
+        for (SkillHelperData.Catch c : catches) {
+            String name = c.name.startsWith("Raw ") ? Character.toUpperCase(c.name.charAt(4)) + c.name.substring(5) : c.name;
+            names.add(name);
+        }
+        return String.join(", ", names);
     }
 
     /** One leg of the way to a goal: train this from one level until another. */

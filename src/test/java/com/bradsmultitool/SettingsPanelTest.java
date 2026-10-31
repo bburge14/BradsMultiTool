@@ -36,7 +36,7 @@ public class SettingsPanelTest {
 
     @Test
     public void toolbelt() throws Exception {
-        open(BradsMultiToolConfig.class, PluginIdentity.MULTI_TOOL, (defaults) -> {
+        ConfigDescriptor toolbelt = open(BradsMultiToolConfig.class, PluginIdentity.MULTI_TOOL, (defaults) -> {
             BradsMultiToolConfig config = (BradsMultiToolConfig) defaults.config;
             CommonConfigDefaults.store(defaults.store, config);
             SkillTrackerConfigDefaults.store(defaults.store, config);
@@ -45,6 +45,20 @@ public class SettingsPanelTest {
             BuffConfigDefaults.store(defaults.store, config);
             GemCrabConfigDefaults.store(defaults.store, config);
         });
+        // Every separate plugin's setting is in the Toolbelt's panel too, in the same section (Timer Opacity...)
+        java.util.Map<String, String> sections = new java.util.HashMap<>();
+        for (ConfigItemDescriptor item : toolbelt.getItems()) {
+            sections.put(item.getItem().keyName(), item.getItem().section());
+        }
+        for (Class<?> part : new Class<?>[]{SkillTrackerConfig.class, PvmConfig.class, GemCrabConfig.class, TickConfig.class, CommonConfig.class}) {
+            for (Method method : part.getDeclaredMethods()) {
+                net.runelite.client.config.ConfigItem item = method.getAnnotation(net.runelite.client.config.ConfigItem.class);
+                if (item != null) {
+                    org.junit.Assert.assertTrue("Toolbelt is missing " + item.keyName(), sections.containsKey(item.keyName()));
+                    org.junit.Assert.assertEquals("Toolbelt section of " + item.keyName(), item.section(), sections.get(item.keyName()));
+                }
+            }
+        }
     }
 
     @Test
@@ -98,7 +112,7 @@ public class SettingsPanelTest {
         }
     }
 
-    private static <T extends Config> void open(Class<T> type, PluginIdentity identity, Consumer<Defaults> pluginDefaults) throws Exception {
+    private static <T extends Config> ConfigDescriptor open(Class<T> type, PluginIdentity identity, Consumer<Defaults> pluginDefaults) throws Exception {
         ConfigManager configManager = freshConfigManager();
         T config = configManager.getConfig(type);
         configManager.setDefaultConfiguration(config, false);
@@ -138,6 +152,13 @@ public class SettingsPanelTest {
         if (failure[0] != null) {
             throw new AssertionError(type.getSimpleName() + "'s settings panel failed to open", failure[0]);
         }
+        // Long descriptions wrap in their tooltip instead of running across the screen
+        for (ConfigItemDescriptor item : descriptor.getItems()) {
+            String text = item.getItem().description();
+            org.junit.Assert.assertTrue(type.getSimpleName() + ": wrap the description of " + item.getItem().keyName()
+                + " in <div width='300'>", text.length() <= 60 || text.startsWith("<div width='300'>"));
+        }
+        return descriptor;
     }
 
     // RuneLite's ConfigManager with an empty settings file instead of a profile

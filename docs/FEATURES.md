@@ -14,7 +14,7 @@ section to open. All sections except General start collapsed.
 - [Slayer card](#slayer-card)
 - [Gemstone Crab](#gemstone-crab)
 - [Skilling hover cards](#skilling-hover-cards)
-- [Timer pies](#timer-pies)
+- [Resource timers](#resource-timers)
 - [Skilling alerts](#skilling-alerts)
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
@@ -210,24 +210,30 @@ profit** at Grand Exchange prices; with profit on, the anvil and furnace cards a
 
 ---
 
-## Timer pies
+## Resource timers
 
 **What it does:** A small pie over a resource that empties as it runs out: green, then yellow, then red.
 When a tree can fall on the next log it turns into a full red pie that pulses.
 
 | Pie on | Shows | Setting |
 |---|---|---|
-| Trees being chopped (anyone's) | The Forestry timer: it drops while anyone chops and recovers when nobody does | Woodcutting > Tree Timer Pies |
-| Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timer Pies |
-| Fishing spots that moved while you were there | How soon they may move again | Fishing > Fishing Spot Pies |
-| Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timer Pies |
-| Fires lit nearby | How long it may burn | Firemaking > Fire Timer Pies |
-| Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Fire Timer Pies |
-| Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Pies |
+| Trees being chopped (anyone's) | The Forestry timer: it drops while anyone chops and recovers when nobody does | Woodcutting > Tree Timers |
+| Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timers |
+| Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | Spots move at a random time 2.5-5 minutes after they appear, so this shows the window: green until the earliest it can move, then a red ring filling up to the latest; hover for the times. Above it, how long ago it appeared ("1:42") and the Fishing icon, ringed in gold on the newest spot (the least likely to move soon); the spot you fish is outlined in **Your Spot Colour**; and each gets a minimap dot (green, then orange to red). A spot that outlives 5 minutes without being seen to move starts over | Fishing > Fishing Spot Timers, Mark Newest Spot, Minimap Dots, Your Spot Colour |
+| Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timers |
+| Fires you cook on (lit while you were nearby) | Fires go out at a random time 60-119 s after lighting: green until the earliest, then a red ring filling up to the latest; hover for the times. Off by default | Firemaking > Fire Timers |
+| Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Campfire Timers |
+| Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Timers |
 
-**Good to know:** Each pie only shows while you're training its skill (an XP drop in it in the last two
+**Good to know:** Fishing spots and fires go at a random time the game picks (Jagex: fishing spots 250-530
+ticks), so no plugin can count down to the moment; their timers show the window (fire timers are off by default). Each timer only shows while you're training its skill (an XP drop in it in the last two
 minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
-Turn on **Skilling > Pies When Not Training** to see them all the time. Pies draw under the bank and other interfaces. A tree already being chopped when you
+Turn on **Skilling > Timers When Not Training** to see them all the time. Above every timer sit its time (time left; a star's layer health; a trap's "Caught"; for fishing spots and fires,
+how long ago they appeared) and the skill's icon (**Skilling > Timer Text**, **Timer Skill Icon**).
+**Skilling > Timer Opacity** sets how solid they are (60% by default). **Skilling > Timer Style** picks the look:
+*Tile, icon and timer* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore,
+the best fish your level can catch there) and the pie over the picture; *Timer only* is the floating timer. Where RuneLite's Fishing plugin already draws its spot icons or tiles, or its
+Motherlode Mine plugin its vein icons, ours leave the icon or outline out and only add the timer. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
 Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin...), our pie for that timer hides
@@ -241,7 +247,7 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 
 | Alert | When | Setting |
 |---|---|---|
-| Tree fallen / rock depleted / fishing spot moved | Your resource is gone | Skilling > Resource Gone |
+| Tree fallen / rock depleted / fishing spot moved | Your resource is gone ("The tree has fallen."); not for level 1 trees and rocks, which go after one log or ore | Skilling > Resource Gone |
 | Inventory full | Your inventory fills while skilling | Skilling > Inventory Full |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
@@ -260,10 +266,11 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 **How to use:**
 - Right-click a card to pause/resume it, reset its rate, reset or hide it, set or clear a goal, or reset
   every skill (just the tracker's skills: PvM's HUD and the crab card have their own Reset).
-- **Pin to screen**: right-click a card > Pin to screen puts that skill on the game screen as a movable
+- **Pin to screen**: click the pin in a card's top-right corner (or right-click > Pin to screen) puts that skill on the game screen as a movable
   overlay (level bar, XP/hr, gained, time to level, actions left, goal bar, suggested method and what to
   make or burn from your items). Only one at a time:
-  pinning another replaces it. The pinned skill's card shows a red pin in its top-right corner; click the pin,
+  every card has a pin, solid on the pinned skill and faint on the others; clicking a faint one moves the pin
+  there (its tooltip says which skill it takes over from). Click the solid pin,
   right-click the overlay > Unpin, or the card > Unpin from screen to remove it. It stays pinned after a
   restart, and its card stays in the sidebar the whole time, even before you've trained it this session or
   after a Reset.
@@ -298,6 +305,19 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   use the melee or ranged guide, Prayer, Herblore and Sailing list their guide's methods, and **Slayer**
   suggests the best Slayer master for your levels (and the next one: "At Combat 100, Slayer 50:
   Duradel"). Questing is only suggested when the guide has nothing else for your level.
+- It names the actual thing to do: where the guide has a table by level it picks the row for your level
+  (**Train: Strength potion (Tarromin potion (unf) + Limpwurt root)**, "Cutting gems: Ruby", "Burning logs:
+  Maple logs", "Anvil smithing: Iron warhammer"), and otherwise what the method trains on ("Fly fishing: Trout,
+  Salmon"). Hover the line for what the guide says about the method. Where the guide's methods overlap, the one
+  that takes over at your level wins, and a method that trains two skills at once (Drift net fishing: Fishing
+  and Hunter) only when nothing else fits.
+- Only what you can do: a method (or a row of its table, like Serum 207) that needs a quest is left out until
+  you've done it, or just started it where the guide says partial completion is enough (Barbarian Fishing,
+  chinchompas, Serum 207); quests are read from the game's quest list.
+- **Where:** under the Train line, where the guide says to do it ("Where: Prifddinas (+4 more)" for fly fishing,
+  "Kruk's Dungeon" for chinning, "Piscatoris Fishing Colony" for monkfish), also on the pinned overlay; hover the
+  Train line for all of them. Only places the guide names (and only real wiki location pages), so some methods
+  have none.
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
 - Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
   world.
@@ -308,10 +328,22 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   suggestion and the card says "Tracking: Ruby harvest (your pick)". **Untrack for goal** on it, or
   **Use suggested method** on the card's right-click menu, goes back to the suggestion. Only skills with
   a goal are ever outlined.
+  A **fishing spot** opens a list of the ways to fish it, each with what it catches, the levels and what you need
+  ("Fly fishing: Trout, Salmon (Fly fishing rod + Feather)": white when your level catches all of it, yellow when only some, red when none yet; your pick green). The card
+  then says "Tracking: Fly fishing: Trout, Salmon (Fly fishing rod + Feather)", only spots that offer that way of
+  fishing are outlined, and the XP each is the average of the fish you can catch that way.
+- **It notices what you're doing:** train a goal skill on something that isn't the suggestion or your pick (a
+  different fishing spot or way of fishing it, tree, rock, stall, pickpocket NPC, Hunter creature, or monster for
+  a combat goal) and after 5 XP drops from it (15 hits in combat) the skill's tracker card asks "You're training
+  on: Fly fishing: Trout, Salmon (Fly fishing rod + Feather). Track it for your goal?" with **Track it** and
+  **Dismiss**, and a chat message says so. Dismissed ones aren't asked again until you log out. The fishing way is
+  worked out from the XP each catch gives at the spot you clicked.
 - **Track an item:** right-click an item in your inventory or bank that a goal skill uses (logs for
   Firemaking or Fletching, raw fish for Cooking, bones for Prayer) and choose **Track for goal**: the card
   then works out what to make, the XP and the actions left from that item only, even once you've run out
-  ("(you have none)"). For Prayer it opens a list of how you train it, and your pick is kept:
+  ("(you have none)"). An item used for several things (logs: arrow shafts and each bow; a bar: everything you
+  can smith from it) opens a list instead: **Best I can make** (works it out from your items), or one recipe
+  at your level ("Longbow (u)"), and the card says "Tracking: Longbow (u) (from Logs)". For Prayer it opens a list of how you train it, and your pick is kept:
   - bones: **Bury** (100%), **Gilded altar** (350%, both burners lit), **Chaos altar** (the Wilderness
     one: 350%, and half your bones are kept, so it's worth 7x per bone) or **Ectofuntus** (400%; you'll
     need a pot and a bucket of slime per bone, listed as tools);
@@ -328,10 +360,11 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   Lobster". The bank counts once you've opened it this session.
 
 **How to use:**
-1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...).
+1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...; a skill with a goal has Modify goal... instead, which starts from
+   its goal and keeps the goal bar's progress).
 2. Pick the skill (the list shows your level in each; below it, your level, XP and any current goal) and
    type a target: a number up to 99 is a level, anything bigger is an XP amount.
-3. Clear it from the card's right-click menu.
+3. Clear it from the card's right-click menu (Clear goal only shows while the skill has a goal).
 
 Goals are saved with your RuneScape profile, so they stay after a relaunch. To have them on another PC,
 log in to a RuneLite account on both and turn on **Sync** for your profile (Profiles panel).
@@ -344,9 +377,15 @@ most profitable wiki money making guide you meet the requirements for, e.g. "Mon
 (~335K/hr)"). The Make: line follows it too; Highlight Suggested Method; Highlight Goal
 Items; Highlight Colour;
 Actions Until Goal (the actions field counts to the goal instead of the next level; when the suggested
-method changes before the goal it counts to the end of the step you're on; hover the count to see what it counts to).
+method changes before the goal it counts to the end of the step you're on). Hover the count: it says what it
+counts to, and with a goal shows both, "Next level: 120 actions" and "Your goal: 4,300 actions", marking the
+one shown.
+Once you're getting XP, the count uses the average of your last 30 XP drops in the skill (shown with a "~";
+hover for the XP each), so a method that gives different XP each time (trout and salmon, 17 and 18 XP for a
+17.5 XP action) doesn't make it jump around.
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
-picked with Track for goal, or can make from your items), shown with a "~". Attack, Strength, Defence,
+picked with Track for goal, or can make from your items), shown with a "~" (a method catching several fish, like fly fishing's trout and salmon, counts the average
+XP of those you can catch). Attack, Strength, Defence,
 Ranged and Hitpoints goals count **kills** instead ("Kills: ~240"): XP per kill from the hitpoints of
 your Track for goal pick (else the monster you last fought, else the suggested one), at the XP per
 damage of your combat style: 4 in the skill it trains, 4/3 each to Attack, Strength and Defence in
@@ -367,7 +406,8 @@ In **Snuffy's Tick Counter** and the Toolbelt.
 **What it does:** counts game ticks in a cycle (1, 2, 3, 1, 2, 3...) for tick-based skilling and for timing
 your attacks, and can time your clicks against the tick. It only shows and sounds the ticks and reads your
 clicks; it never clicks, changes a menu or does anything for you.
-- **Count Over Head:** the count above your character.
+- **Count Over Head:** the count just above the top of your character as the game draws it, so it stays clear of
+  your character from any camera angle.
 - **Tick Boxes:** a box for each tick of the cycle (3 boxes for a 3-tick cycle), in a row or a column, the
   current one lit. Move them with Alt + drag.
 - **Tick Bar:** fills smoothly from left to right over each tick and snaps back on the next, so you can see the

@@ -61,4 +61,42 @@ public class TrainingDataTest {
         TrainingData.Method men = DATA.suggest(Skill.THIEVING, 2, true);
         assertTrue(men.npcs.contains("man"));
     }
+
+    // The guide's methods by level: the latest-starting one that covers it, a skill's own before one shared with
+    // another skill (Drift net fishing trains Hunter too), and the specific thing from its table or Main links
+    @Test
+    public void specificMethodsByLevel() {
+        assertEquals("Fly fishing", DATA.suggest(Skill.FISHING, 50, false).name);
+        assertEquals("[Trout, Salmon]", DATA.suggest(Skill.FISHING, 25, false).targets.toString());
+        assertEquals("Barbarian Fishing", DATA.suggest(Skill.FISHING, 60, false).name);
+        assertEquals("Strength potion", DATA.suggest(Skill.HERBLORE, 12, false).bestOption(12).name);
+        assertEquals("[Tarromin potion (unf), Limpwurt root]", DATA.suggest(Skill.HERBLORE, 12, false).bestOption(12).with.toString());
+        assertEquals("Iron warhammer", DATA.suggest(Skill.SMITHING, 30, false).bestOption(30).name);
+        assertEquals("Maple logs", DATA.suggest(Skill.FIREMAKING, 45, false).bestOption(45).name);
+        // Magic's "Starting off" groups methods; it isn't one
+        org.junit.Assert.assertNotEquals("Starting off", DATA.suggest(Skill.MAGIC, 25, false).name);
+    }
+
+    // A table row tied to a quest isn't suggested until you've started it; a method that needs a quest records
+    // whether starting it is enough
+    @Test
+    public void questLockedRowsAndMethods() {
+        TrainingData.Method potions = DATA.suggest(Skill.HERBLORE, 15, false);
+        assertEquals("Serum 207", potions.bestOption(15).name);
+        assertEquals("Strength potion", potions.bestOption(15, o -> !o.started.contains("Shades of Mort'ton")).name);
+        TrainingData.Method barbarian = DATA.suggest(Skill.FISHING, 60, false);
+        assertEquals("[Barbarian Training]", barbarian.quests.toString());
+        assertEquals("[Barbarian Training]", barbarian.started.toString());
+        // Without the quest, fly fishing until something else is open
+        assertEquals("Fly fishing", DATA.suggest(Skill.FISHING, 50, false, m -> m.quests.isEmpty()).name);
+        assertEquals("Bloodwood trees", DATA.suggest(Skill.WOODCUTTING, 77, true).name);
+        assertEquals("[The Blood Moon Rises]", DATA.suggest(Skill.WOODCUTTING, 77, true).quests.toString());
+    }
+
+    // Where the guide says to do a method, from its section (only the wiki's location pages)
+    @Test
+    public void placesFromTheGuide() {
+        assertEquals("Prifddinas", DATA.suggest(Skill.FISHING, 30, false).places.get(0));
+        assertEquals("[Kruk's Dungeon]", DATA.suggest(Skill.RANGED, 50, false, m -> true).places.toString());
+    }
 }

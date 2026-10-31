@@ -30,6 +30,7 @@ import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.PlayerSpawned;
@@ -59,7 +60,8 @@ import net.runelite.client.util.Text;
  * is exact.</li>
  * <li>Sailing shipwrecks (Salvaging AFK Timer): each type lasts a set time from when it surfaces.</li>
  * <li>Hunter traps you lay (RuneLite's Hunter plugin): collapse a minute after being laid.</li>
- * <li>Fires: burn out 100-200 ticks after being lit (Fire Timer).</li>
+ * <li>Fires: burn out 100-200 ticks after being lit (Fire Timer). Shown only on a fire you cook on, counting
+ * down to the earliest it can go out (100 ticks), then "any moment" like a tree.</li>
  * </ul>
  * Apart from stars, the game doesn't send these timers to the client, so they're estimates from what's
  * visible.
@@ -95,6 +97,10 @@ class ResourceTimers {
         double health = -1;
         // Hunter traps
         TrapState trapState = TrapState.SET;
+        // Fires: you've cooked on it
+        boolean cookedOn;
+        // Fishing spots: where it was last tick, to see it jump to a new tile without despawning
+        WorldPoint spotAt;
 
         Timer(Kind kind, TileObject object, NPC npc, int minTicks, int maxTicks) {
             this.kind = kind;
@@ -113,9 +119,39 @@ class ResourceTimers {
                     return Math.max(0, (double) ticksLeft / maxTicks);
                 case STAR:
                     return Math.max(0, health);
+                case FIRE:
+                    // To the earliest it can go out; after that it can any moment (due)
+                    return Math.max(0, 1 - (double) elapsed / minTicks);
                 default:
                     return Math.max(0, 1 - (double) elapsed / maxTicks);
             }
+        }
+
+        /**
+         * Fishing spots and fires: the game picks a random time between minTicks and maxTicks (fishing spots
+         * 250-530 ticks, per Mod Ash), so all that can be shown is that window, not a countdown.
+         */
+        boolean windowed() {
+            return (kind == Kind.FISHING_SPOT || kind == Kind.FIRE) && minTicks < maxTicks;
+        }
+
+        /** Ticks until it can first go (0 once it can). */
+        int ticksToEarliest() {
+            return Math.max(0, minTicks - elapsed);
+        }
+
+        /** Ticks until it's gone at the latest. */
+        int ticksToLatest() {
+            return Math.max(0, maxTicks - elapsed);
+        }
+
+        /** How far through its window it is: 0 at the earliest time, 1 at the latest (its chance of being gone). */
+        double windowPassed() {
+            return windowPassed(elapsed, minTicks, maxTicks);
+        }
+
+        static double windowPassed(int elapsed, int min, int max) {
+            return max <= min ? (elapsed >= max ? 1 : 0) : Math.max(0, Math.min(1, (double) (elapsed - min) / (max - min)));
         }
 
         /** Past its earliest time: it can go any moment (or, for a tree, with the next log). */
@@ -145,6 +181,8 @@ class ResourceTimers {
                     return started;
                 case STAR:
                     return health >= 0;
+                case FIRE:
+                    return cookedOn;
                 default:
                     return true;
             }
@@ -185,6 +223,8 @@ class ResourceTimers {
     private static final Map<Integer, int[]> FISHING_TIMINGS = new HashMap<>();
     private static final int FISHING_MEMORY_TICKS = 1500;
     private static final int OUT_OF_VIEW_DISTANCE = 14;
+    /** A spot that appears this far away or more has (most likely) just come into view, not moved there. */
+    private static final int INTO_VIEW_DISTANCE = 12;
     private static final int FIRE = ObjectID.FIRE;
     private static final int TRAP_TICKS = 100;
     // Hunter traps as laid (from RuneLite's Hunter plugin; crab traps never expire so aren't timed)
@@ -358,6 +398,8 @@ class ResourceTimers {
     private Integer firemakingXp;
     private final Set<Timer> timers = new HashSet<>();
     private final Map<NPC, Timer> fishingSpots = new HashMap<>();
+    /** Fishing spots seen without a timer (there when we arrived): they get one when they move. */
+    private final Map<NPC, WorldPoint> watchedSpots = new HashMap<>();
     // Spots that went out of view: where they were and when they appeared there (tick) / left view (tick)
     private final Map<WorldPoint, int[]> rememberedSpots = new HashMap<>();
     // Shipwreck sites seen sunk (as a stump), so a wreck surfacing there has a known start
@@ -390,6 +432,7 @@ class ResourceTimers {
         byTile.clear();
         timers.clear();
         fishingSpots.clear();
+        watchedSpots.clear();
         rememberedSpots.clear();
         changingTraps.clear();
         changingTrapTicks.clear();
@@ -522,27 +565,66 @@ class ResourceTimers {
         if (!isFishingSpot(npc)) {
             return;
         }
-        int[] timing = FISHING_TIMINGS.getOrDefault(npc.getId(), new int[]{FISHING_MIN_TICKS, FISHING_MAX_TICKS});
+        int[] timing = timing(npc);
         if (timing[1] == 0) {
             return; // never moves
         }
-        Timer timer = new Timer(Kind.FISHING_SPOT, null, npc, timing[0], timing[1]);
         // Back in view of a spot we were timing: carry on from when it appeared
         int[] remembered = rememberedSpots.remove(npc.getWorldLocation());
         int now = client.getTickCount();
+        Player local = client.getLocalPlayer();
+        int elapsed = 0;
         if (remembered != null && now - remembered[0] <= timing[1]) {
-            timer.elapsed = now - remembered[0];
-        } else if (client.getGameState() != GameState.LOGGED_IN) {
-            // Loaded with the area: we don't know when it got there
+            elapsed = now - remembered[0];
+        } else if (client.getGameState() != GameState.LOGGED_IN || local == null
+            || local.getWorldLocation().distanceTo(npc.getWorldLocation()) >= INTO_VIEW_DISTANCE) {
+            // Loaded with the area, or just come into view as you walked up: we don't know when it got there.
+            // Watched without a pie, so it gets one when it moves.
+            watchedSpots.put(npc, npc.getWorldLocation());
             return;
         }
+        startSpot(npc, timing, elapsed);
+    }
+
+    private static int[] timing(NPC npc) {
+        return FISHING_TIMINGS.getOrDefault(npc.getId(), new int[]{FISHING_MIN_TICKS, FISHING_MAX_TICKS});
+    }
+
+    private void startSpot(NPC npc, int[] timing, int elapsed) {
+        Timer old = fishingSpots.remove(npc);
+        if (old != null) {
+            timers.remove(old);
+        }
+        watchedSpots.remove(npc);
+        Timer timer = new Timer(Kind.FISHING_SPOT, null, npc, timing[0], timing[1]);
+        timer.elapsed = elapsed;
+        timer.spotAt = npc.getWorldLocation();
         fishingSpots.put(npc, timer);
         timers.add(timer);
+    }
+
+    // Some spots (minnows, and others now and then) jump to a new tile without despawning: that's a move too
+    private void checkSpotJumps() {
+        for (Timer timer : new ArrayList<>(fishingSpots.values())) {
+            WorldPoint at = timer.npc.getWorldLocation();
+            if (timer.spotAt != null && !timer.spotAt.equals(at)) {
+                startSpot(timer.npc, timing(timer.npc), 0);
+            } else if (timer.elapsed > timer.maxTicks) {
+                // Outlived the longest a spot lasts without us seeing it move: start it over rather than sit full
+                timer.elapsed = 0;
+            }
+        }
+        for (Map.Entry<NPC, WorldPoint> e : new ArrayList<>(watchedSpots.entrySet())) {
+            if (!e.getValue().equals(e.getKey().getWorldLocation())) {
+                startSpot(e.getKey(), timing(e.getKey()), 0);
+            }
+        }
     }
 
     @Subscribe
     public void onNpcDespawned(NpcDespawned event) {
         NPC npc = event.getNpc();
+        watchedSpots.remove(npc);
         Timer timer = fishingSpots.remove(npc);
         if (timer != null) {
             timers.remove(timer);
@@ -637,6 +719,7 @@ class ResourceTimers {
     @Subscribe
     public void onGameTick(GameTick tick) {
         int now = client.getTickCount();
+        checkSpotJumps();
         Map<Timer, Integer> choppers = new HashMap<>();
         Map<Timer, Boolean> youChop = new HashMap<>();
         Set<Timer> mined = new HashSet<>();
@@ -798,6 +881,24 @@ class ResourceTimers {
             return timerAt(step(at, Direction.NORTH), kind);
         }
         return null;
+    }
+
+    // Cooking on a fire (using food on it, or its Cook option): only then does it get a pie
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (event.getId() != FIRE) {
+            return;
+        }
+        String option = Text.removeTags(event.getMenuOption()).toLowerCase();
+        if (!option.equals("use") && !option.startsWith("cook")) {
+            return;
+        }
+        WorldPoint at = WorldPoint.fromScene(client.getTopLevelWorldView(), event.getParam0(), event.getParam1(),
+            client.getTopLevelWorldView().getPlane());
+        Timer fire = timerAt(at, Kind.FIRE);
+        if (fire != null) {
+            fire.cookedOn = true;
+        }
     }
 
     private Timer timerAt(WorldPoint point, Kind kind) {

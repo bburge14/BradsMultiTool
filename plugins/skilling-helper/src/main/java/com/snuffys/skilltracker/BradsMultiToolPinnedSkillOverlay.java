@@ -87,6 +87,10 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             String suggestion = suggestion(skill, level);
             if (suggestion != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(suggestion, SOFT, false));
+                String where = plugin.getGoalTarget(skill) == null ? GoalLines.where(currentSuggestion(skill, level)) : null;
+                if (where != null) {
+                    panelComponent.getChildren().add(new TextBlockComponent("Where: " + where, SOFT, false));
+                }
             }
             // What to make or use from your items ("Burn: Yew logs (you have 200)")
             GoalLines.ItemLine item = config.showTrainingSuggestion() ? GoalLines.itemLine(plugin, skill) : null;
@@ -119,6 +123,12 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         }
         List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level, Experience.getLevelForXp(goalXp));
         return plan.size() > 1 ? plan.get(0).to : 0;
+    }
+
+    private TrainingAdvisor.Suggestion currentSuggestion(Skill skill, int level) {
+        List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level,
+            Experience.getLevelForXp(plugin.getSkillGoal(skill)));
+        return plan.isEmpty() ? null : plan.get(0).suggestion;
     }
 
     // What to train for the goal: your pick, else the suggestion for your Training Focus
