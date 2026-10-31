@@ -27,4 +27,17 @@ public class ResourceTimerOverlayTest {
         assertEquals("2:30", BradsMultiToolResourceTimerOverlay.clock(250));
         assertEquals("0:06", BradsMultiToolResourceTimerOverlay.clock(10));
     }
+
+    @Test
+    public void timersSayTheirTime() {
+        ResourceTimers.Timer spot = new ResourceTimers.Timer(ResourceTimers.Kind.FISHING_SPOT, null, null, 250, 530);
+        spot.elapsed = 100;
+        assertEquals("1:00", BradsMultiToolResourceTimerOverlay.timerText(spot)); // how long ago it appeared
+        ResourceTimers.Timer vein = new ResourceTimers.Timer(ResourceTimers.Kind.VEIN, null, null, 40, 45);
+        vein.elapsed = 5;
+        assertEquals("0:24", BradsMultiToolResourceTimerOverlay.timerText(vein)); // time left
+        ResourceTimers.Timer trap = new ResourceTimers.Timer(ResourceTimers.Kind.TRAP, null, null, 100, 100);
+        trap.trapState = ResourceTimers.TrapState.CAUGHT;
+        assertEquals("Caught", BradsMultiToolResourceTimerOverlay.timerText(trap));
+    }
 }

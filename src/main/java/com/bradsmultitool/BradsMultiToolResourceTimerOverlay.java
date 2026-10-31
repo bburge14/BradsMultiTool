@@ -47,12 +47,15 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private final ItemIcons itemIcons;
     private final ProgressPieComponent pie = new ProgressPieComponent();
     private final TooltipManager tooltips;
+    private final net.runelite.client.game.SkillIconManager skillIcons;
 
     @Inject
     public BradsMultiToolResourceTimerOverlay(Client client, SkillTrackerConfig config, ResourceTimers timers,
                                               OtherTimerPlugins otherPlugins, SkillTracker plugin,
-                                              SkillHelperData helpers, ItemIcons itemIcons, TooltipManager tooltips) {
+                                              SkillHelperData helpers, ItemIcons itemIcons, TooltipManager tooltips,
+                                              net.runelite.client.game.SkillIconManager skillIcons) {
         this.tooltips = tooltips;
+        this.skillIcons = skillIcons;
         this.helpers = helpers;
         this.itemIcons = itemIcons;
         this.otherPlugins = otherPlugins;
@@ -82,9 +85,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             }
             if (timer.windowed()) {
                 drawWindow(graphics, timer, at, !tile && yours(timer) ? config.fishingActiveColor() : null);
-                if (timer.kind == ResourceTimers.Kind.FISHING_SPOT) {
-                    drawSpotExtras(graphics, timer, at);
-                }
+                drawLabels(graphics, timer, at);
                 continue;
             }
             double left = timer.progress();
@@ -100,6 +101,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 left = 1;
             }
             drawPie(graphics, at, left, color, color, alpha);
+            drawLabels(graphics, timer, at);
         }
         return null;
     }
@@ -152,35 +154,77 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
     }
 
-    // Over a fishing spot's timer: how long ago it appeared, and a gold star on the newest spot
-    private void drawSpotExtras(Graphics2D graphics, ResourceTimers.Timer timer, Point at) {
+    private static final int ICON_SIZE = 16;
+
+    // Above a timer: its time (see timerText) and the skill's icon, with a gold ring on the newest fishing spot
+    private void drawLabels(Graphics2D graphics, ResourceTimers.Timer timer, Point at) {
         int top = at.getY() - DIAMETER / 2 - 3;
-        if (config.fishingSpotAge()) {
-            String age = clock(timer.elapsed);
+        String text = config.timerText() ? timerText(timer) : null;
+        if (text != null) {
             graphics.setFont(net.runelite.client.ui.FontManager.getRunescapeSmallFont());
-            int width = graphics.getFontMetrics().stringWidth(age);
+            int width = graphics.getFontMetrics().stringWidth(text);
             net.runelite.client.ui.overlay.OverlayUtil.renderTextLocation(graphics,
-                new Point(at.getX() - width / 2, top), age, Color.WHITE);
+                new Point(at.getX() - width / 2, top), text, Color.WHITE);
             top -= graphics.getFontMetrics().getHeight();
         }
-        if (config.fishingNewestSpot() && timer == newestSpot) {
-            star(graphics, at.getX(), top - 5, 6);
+        boolean newest = config.fishingNewestSpot() && timer == newestSpot;
+        java.awt.image.BufferedImage icon = config.timerSkillIcon() ? skillIcons.getSkillImage(skillOf(timer.kind), true) : null;
+        if (icon == null && !newest) {
+            return;
+        }
+        int x = at.getX() - ICON_SIZE / 2;
+        int y = top - ICON_SIZE - 1;
+        if (newest) {
+            graphics.setColor(new Color(255, 200, 0));
+            graphics.setStroke(new BasicStroke(2f));
+            graphics.drawOval(x - 3, y - 3, ICON_SIZE + 6, ICON_SIZE + 6);
+        }
+        if (icon != null) {
+            graphics.drawImage(icon, x, y, ICON_SIZE, ICON_SIZE, null);
         }
     }
 
-    // A five-pointed gold star centred here
-    private static void star(Graphics2D graphics, int cx, int cy, int radius) {
-        Polygon star = new Polygon();
-        for (int i = 0; i < 10; i++) {
-            double r = i % 2 == 0 ? radius : radius * 0.45;
-            double angle = Math.PI / 5 * i - Math.PI / 2;
-            star.addPoint(cx + (int) Math.round(r * Math.cos(angle)), cy + (int) Math.round(r * Math.sin(angle)));
+    /**
+     * The time shown over a timer: for fishing spots and fires (they go at a random time) how long ago they
+     * appeared; a star's layer health; a trap's catch; otherwise the time it has left. Null when there's no time.
+     */
+    static String timerText(ResourceTimers.Timer timer) {
+        switch (timer.kind) {
+            case STAR:
+                return timer.health >= 0 ? Math.round(timer.health * 100) + "%" : null;
+            case TRAP:
+                if (timer.trapState == ResourceTimers.TrapState.CAUGHT) {
+                    return "Caught";
+                }
+                return timer.trapState == ResourceTimers.TrapState.FAILED ? "Collapsed" : clock(timer.ticksToLatest());
+            case TREE:
+            case CALCIFIED:
+            case CAMPFIRE:
+                return timer.due() ? "Due" : clock(Math.max(0, timer.ticksLeft));
+            default:
+                if (timer.windowed()) {
+                    return clock(timer.elapsed);
+                }
+                return timer.due() ? "Due" : clock(timer.ticksToLatest());
         }
-        graphics.setColor(new Color(255, 200, 0));
-        graphics.fill(star);
-        graphics.setColor(Color.BLACK);
-        graphics.setStroke(new BasicStroke(1f));
-        graphics.draw(star);
+    }
+
+    private static Skill skillOf(ResourceTimers.Kind kind) {
+        switch (kind) {
+            case TREE:
+                return Skill.WOODCUTTING;
+            case FISHING_SPOT:
+                return Skill.FISHING;
+            case SHIPWRECK:
+                return Skill.SAILING;
+            case TRAP:
+                return Skill.HUNTER;
+            case FIRE:
+            case CAMPFIRE:
+                return Skill.FIREMAKING;
+            default:
+                return Skill.MINING;
+        }
     }
 
     private boolean yours(ResourceTimers.Timer timer) {

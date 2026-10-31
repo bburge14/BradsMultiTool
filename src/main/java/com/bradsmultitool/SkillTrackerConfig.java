@@ -144,6 +144,28 @@ public interface SkillTrackerConfig extends CommonConfig {
         return 60;
     }
 
+    @ConfigItem(
+        keyName = "timerText",
+        name = "Timer Text",
+        description = "<div width='300'>The time above each resource timer: how long it has left (a star: its layer's health), or for fishing spots and fires, which go at a random time, how long ago they appeared",
+        section = skillingSection,
+        position = 3
+    )
+    default boolean timerText() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "timerSkillIcon",
+        name = "Timer Skill Icon",
+        description = "<div width='300'>The skill's icon above each resource timer (Woodcutting on trees, Fishing on spots...)",
+        section = skillingSection,
+        position = 3
+    )
+    default boolean timerSkillIcon() {
+        return true;
+    }
+
     @Alpha
     @ConfigItem(
         keyName = "zoneColor",
@@ -358,8 +380,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "fishingNewestSpot",
-        name = "Newest Spot Star",
-        description = "<div width='300'>A gold star on the fishing spot that appeared most recently: the one least likely to move soon, so the best one to fish",
+        name = "Mark Newest Spot",
+        description = "<div width='300'>A gold ring around the fishing icon of the spot that appeared most recently. Spots move at a random time, so the newest one is the least likely to move soon: the best one to fish",
         section = fishingSection,
         position = 1
     )
@@ -367,16 +389,6 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
-    @ConfigItem(
-        keyName = "fishingSpotAge",
-        name = "Spot Age",
-        description = "<div width='300'>How long ago each timed fishing spot appeared (\"1:42\"), above its timer",
-        section = fishingSection,
-        position = 1
-    )
-    default boolean fishingSpotAge() {
-        return true;
-    }
 
     @ConfigItem(
         keyName = "fishingMinimapDots",

@@ -16,6 +16,8 @@ final class SkillTrackerConfigDefaults {
         defaults.store("piesAlwaysShown", config.piesAlwaysShown());
         defaults.store("pieStyle", config.pieStyle());
         defaults.store("timerOpacity", config.timerOpacity());
+        defaults.store("timerText", config.timerText());
+        defaults.store("timerSkillIcon", config.timerSkillIcon());
         defaults.store("zoneColor", config.zoneColor());
         defaults.store("bestChoice", config.bestChoice());
         defaults.store("skillingWhenNotRetaliating", config.skillingWhenNotRetaliating());
@@ -34,7 +36,6 @@ final class SkillTrackerConfigDefaults {
         defaults.store("chatRockDepleted", config.chatRockDepleted());
         defaults.store("showFishingSpotTimer", config.showFishingSpotTimer());
         defaults.store("fishingNewestSpot", config.fishingNewestSpot());
-        defaults.store("fishingSpotAge", config.fishingSpotAge());
         defaults.store("fishingMinimapDots", config.fishingMinimapDots());
         defaults.store("fishingActiveColor", config.fishingActiveColor());
         defaults.store("voiceFishingSpot", config.voiceFishingSpot());

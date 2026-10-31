@@ -91,8 +91,8 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 ## Resource timers
 - [x] Trees: pie on trees being chopped (also others' trees), centred on the canopy; turns into a full pulsing red pie when the tree can fall on the next log; no pie on a tree already being chopped when you arrived.
 - [ ] Mining: Motherlode veins, calcified rocks, Daeyalt essence, shooting stars.
-- [ ] Fishing spots: age ("1:42") above each timer, gold star on the newest timed spot (doesn't flick between
-  spots), your spot outlined in Your Spot Colour, minimap dots green then orange to red.
+- [ ] Every resource timer: its time and skill icon above it (Timer Text / Timer Skill Icon). Fishing spots: age
+  ("1:42"), gold ring around the Fishing icon on the newest timed spot (doesn't flick between spots), your spot outlined in Your Spot Colour, minimap dots green then orange to red.
 - [ ] Fire timers are off by default (fishing spot timers on); turned on: green until the earliest time, then a red ring
   filling to the latest; hovering says "Won't move for 1:20 (gone by 4:00 at the latest)" / "Can move any time (...)".
 - [ ] Campfire Timers (on by default) still show with Fire Timers off.
