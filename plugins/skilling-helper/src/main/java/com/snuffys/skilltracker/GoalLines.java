@@ -152,11 +152,8 @@ final class GoalLines {
         List<String> names = new ArrayList<>();
         if (plugin.getGoalItems().suggestion(skill) != null) {
             names.addAll(plugin.getGoalItems().tools(skill));
-        } else if (plugin.getGoalTarget(skill) == null) {
-            TrainingAdvisor.Suggestion suggestion = plugin.getTrainingAdvisor().suggest(skill, level);
-            if (suggestion != null) {
-                names.addAll(suggestion.tools);
-            }
+        } else {
+            names.addAll(plugin.getTrainingAdvisor().goalTools(skill, level));
         }
         Map<String, Boolean> out = new LinkedHashMap<>();
         for (String name : names) {

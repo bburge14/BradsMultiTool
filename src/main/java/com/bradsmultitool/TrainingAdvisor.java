@@ -159,6 +159,60 @@ class TrainingAdvisor {
         if (skill == Skill.FIREMAKING && method.name.toLowerCase().contains("burn")) {
             tools.add("Tinderbox");
         }
+        // Fish it catches: the rod, net or harpoon and the bait ("Fly fishing rod", "Feather")
+        if (skill == Skill.FISHING) {
+            for (String target : method.targets) {
+                SkillHelperData.Catch fish = helpers.catchNamed(target);
+                if (fish != null) {
+                    addNeeds(tools, fish);
+                }
+            }
+        }
+        return tools;
+    }
+
+    private static void addNeeds(List<String> tools, SkillHelperData.Catch fish) {
+        String needs = fish.needs();
+        if (needs == null) {
+            return;
+        }
+        for (String part : needs.split("\\s*\\+\\s*")) {
+            if (!part.isEmpty() && !tools.contains(part)) {
+                tools.add(part);
+            }
+        }
+    }
+
+    /**
+     * The tools and bait this skill's goal needs: for your "Track for goal" pick (the fishing way's rod and bait,
+     * an axe or pickaxe for a tree or rock, a creature's trap), else the suggested method's. Empty when none.
+     */
+    List<String> goalTools(Skill skill, int level) {
+        String target = plugin.getGoalTarget(skill);
+        List<String> tools = new ArrayList<>();
+        if (target == null) {
+            Suggestion suggestion = suggest(skill, level);
+            if (suggestion != null) {
+                tools.addAll(suggestion.tools);
+            }
+        } else if (target.startsWith(GoalTarget.FISH)) {
+            List<SkillHelperData.Catch> catches = fishCatches(target);
+            if (!catches.isEmpty()) {
+                addNeeds(tools, catches.get(0));
+            }
+        } else if (target.startsWith(GoalTarget.OBJECT)) {
+            SkillingData.Resource resource = skilling.object(-1, SkillTracker.goalTargetName(target));
+            if (resource != null && "Woodcutting".equals(resource.skill)) {
+                tools.add("Axe");
+            } else if (resource != null && "Mining".equals(resource.skill)) {
+                tools.add("Pickaxe");
+            }
+        } else if (target.startsWith(GoalTarget.NPC)) {
+            SkillHelperData.Creature creature = helpers.creature(SkillTracker.goalTargetName(target));
+            if (creature != null && creature.trap != null && !creature.trap.isEmpty()) {
+                tools.add(creature.trap);
+            }
+        }
         return tools;
     }
 

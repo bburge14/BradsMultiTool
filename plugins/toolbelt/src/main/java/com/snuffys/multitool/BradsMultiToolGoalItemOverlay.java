@@ -14,8 +14,8 @@ import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
 /**
- * Outlines, in your inventory and bank, the materials of what's suggested for a skill goal (see
- * {@link GoalItems}), with a tooltip saying which goal it's for.
+ * Outlines, in your inventory and bank, the materials of what's suggested for a skill goal, or for a gathering
+ * goal the tools and bait it needs (see {@link GoalItems}), with a tooltip saying which goal it's for.
  */
 @Singleton
 public class BradsMultiToolGoalItemOverlay extends WidgetItemOverlay {
@@ -40,7 +40,7 @@ public class BradsMultiToolGoalItemOverlay extends WidgetItemOverlay {
 
     @Override
     public void renderItemOverlay(Graphics2D graphics, int itemId, WidgetItem widgetItem) {
-        if (!config.highlightGoalItems() || goalItems.highlighted().isEmpty()) {
+        if (!config.highlightGoalItems() || !goalItems.hasHighlights()) {
             return;
         }
         String tooltip = goalItems.tooltip(itemManager.getItemComposition(itemId).getName());

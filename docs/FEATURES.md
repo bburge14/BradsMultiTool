@@ -358,6 +358,10 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   level from what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
   materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
   Lobster". The bank counts once you've opened it this session.
+- For gathering skills (Fishing, Mining, Woodcutting, Hunter) nothing gets used up but bait, so the **tools and
+  bait** the method needs are outlined instead (the rod and feathers for fly fishing, an axe or pickaxe of any
+  kind, the creature's trap; hover for "Needed for your Fishing goal: Feather"), while the spots, rocks and
+  trees themselves are outlined in the world. A fish in your inventory is only outlined for a Cooking goal.
 
 **How to use:**
 1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...; a skill with a goal has Modify goal... instead, which starts from
