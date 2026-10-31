@@ -14,7 +14,7 @@ section to open. All sections except General start collapsed.
 - [Slayer card](#slayer-card)
 - [Gemstone Crab](#gemstone-crab)
 - [Skilling hover cards](#skilling-hover-cards)
-- [Timer pies](#timer-pies)
+- [Resource timers](#resource-timers)
 - [Skilling alerts](#skilling-alerts)
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
@@ -210,26 +210,26 @@ profit** at Grand Exchange prices; with profit on, the anvil and furnace cards a
 
 ---
 
-## Timer pies
+## Resource timers
 
 **What it does:** A small pie over a resource that empties as it runs out: green, then yellow, then red.
 When a tree can fall on the next log it turns into a full red pie that pulses.
 
 | Pie on | Shows | Setting |
 |---|---|---|
-| Trees being chopped (anyone's) | The Forestry timer: it drops while anyone chops and recovers when nobody does | Woodcutting > Tree Timer Pies |
-| Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timer Pies |
-| Fishing spots that moved while you were there | How soon they may move again | Fishing > Fishing Spot Pies |
-| Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timer Pies |
-| Fires you cook on (lit while you were nearby) | Time to the earliest it can go out (60 s), then a pulsing red pie: it can go any moment (fires last 60-119 s) | Firemaking > Fire Timer Pies |
-| Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Fire Timer Pies |
-| Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Pies |
+| Trees being chopped (anyone's) | The Forestry timer: it drops while anyone chops and recovers when nobody does | Woodcutting > Tree Timers |
+| Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timers |
+| Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | How soon they may move again | Fishing > Fishing Spot Timers |
+| Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timers |
+| Fires you cook on (lit while you were nearby) | Time to the earliest it can go out (60 s), then a pulsing red pie: it can go any moment (fires last 60-119 s) | Firemaking > Fire Timers |
+| Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Fire Timers |
+| Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Timers |
 
 **Good to know:** Each pie only shows while you're training its skill (an XP drop in it in the last two
 minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
-Turn on **Skilling > Pies When Not Training** to see them all the time. **Skilling > Pie Style** picks the look:
-*Tile, icon and pie* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore,
-the best fish your level can catch there) and the pie over the picture; *Pie only* is the floating pie. Pies draw under the bank and other interfaces. A tree already being chopped when you
+Turn on **Skilling > Timers When Not Training** to see them all the time. **Skilling > Timer Style** picks the look:
+*Tile, icon and timer* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore,
+the best fish your level can catch there) and the pie over the picture; *Timer only* is the floating timer. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
 Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin...), our pie for that timer hides

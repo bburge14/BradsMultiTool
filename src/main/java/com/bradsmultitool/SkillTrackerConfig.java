@@ -55,8 +55,8 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     enum PieStyle {
-        TILE("Tile, icon and pie"),
-        PIE("Pie only");
+        TILE("Tile, icon and timer"),
+        PIE("Timer only");
 
         private final String name;
         PieStyle(String name) { this.name = name; }
@@ -96,7 +96,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "deferToOtherTimerPlugins",
         name = "Use Other Timer Plugins",
-        description = "When you have another plugin on that draws the same timer (Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer/Tracker, Barbarian or Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, or RuneLite's Hunter plugin for traps), hide our pie for it so they don't stack",
+        description = "When you have another plugin on that draws the same timer (Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer/Tracker, Barbarian or Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, or RuneLite's Hunter plugin for traps), hide our timer for it so they don't stack",
         section = skillingSection,
         position = 3
     )
@@ -106,8 +106,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "piesAlwaysShown",
-        name = "Pies When Not Training",
-        description = "Show timer pies all the time. Off: a resource's pies only show while you train its skill (trees while you chop, rocks while you mine, fires while you cook or burn logs...)",
+        name = "Timers When Not Training",
+        description = "Show resource timers all the time. Off: a resource's timers only show while you train its skill (trees while you chop, rocks while you mine, fires while you cook or burn logs...)",
         section = skillingSection,
         position = 3
     )
@@ -117,8 +117,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "pieStyle",
-        name = "Pie Style",
-        description = "Tile, icon and pie: outline the tile of each timed tree, rock or fishing spot, with a picture of what it gives and the pie over it. Pie only: just the floating pie",
+        name = "Timer Style",
+        description = "Tile, icon and timer: outline the tile of each timed tree, rock or fishing spot, with a picture of what it gives and the timer over it. Timer only: just the floating timer",
         section = skillingSection,
         position = 3
     )
@@ -247,8 +247,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showTreeTimer",
-        name = "Tree Timer Pies",
-        description = "A pie on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping)",
+        name = "Tree Timers",
+        description = "A timer on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping)",
         section = woodcuttingSection,
         position = 1
     )
@@ -288,8 +288,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showMiningTimer",
-        name = "Mining Timer Pies",
-        description = "Pies on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left",
+        name = "Mining Timers",
+        description = "Timers on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left",
         section = miningSection,
         position = 1
     )
@@ -329,8 +329,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showFishingSpotTimer",
-        name = "Fishing Spot Pies",
-        description = "A pie on each fishing spot that's moved since you arrived, showing how soon it may move again (2.5-5 minutes)",
+        name = "Fishing Spot Timers",
+        description = "A timer on each fishing spot that's moved since you arrived, showing how soon it may move again (2.5-5 minutes)",
         section = fishingSection,
         position = 1
     )
@@ -441,8 +441,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showTrapTimer",
-        name = "Trap Timer Pies",
-        description = "A pie on each trap you lay, showing how long until it collapses (green once something is caught)",
+        name = "Trap Timers",
+        description = "A timer on each trap you lay, showing how long until it collapses (green once something is caught)",
         section = hunterSection,
         position = 2
     )
@@ -504,8 +504,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showFireTimer",
-        name = "Fire Timer Pies",
-        description = "A pie on each fire lit nearby, showing how long it may burn (1-2 minutes)",
+        name = "Fire Timers",
+        description = "A timer on each fire lit nearby, showing how long it may burn (1-2 minutes)",
         section = firemakingSection,
         position = 1
     )
@@ -580,8 +580,8 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showShipwreckTimer",
-        name = "Shipwreck Pies",
-        description = "A pie on each Sailing shipwreck you saw surface, showing how long it has left before it sinks",
+        name = "Shipwreck Timers",
+        description = "A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks",
         section = sailingSection,
         position = 1
     )

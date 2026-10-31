@@ -67,6 +67,8 @@ class SkillingAlerts {
     private WorldPoint resourceLocation = null;
     private boolean resourceIsTree = false;
     private NPC resourceNpc = null;
+    /** Where the fishing spot you're using was, to see it jump to a new tile without despawning. */
+    private WorldPoint resourceNpcAt;
     private int resourceClickTick = -1000;
     private int lastWorkingTick = -1000;
     private boolean coinPouchesFull = false;
@@ -213,7 +215,12 @@ class SkillingAlerts {
     public void onGameTick(GameTick event) {
         checkBatchComplete();
         Player player = client.getLocalPlayer();
-        if (player == null || client.getTickCount() - resourceClickTick > RESOURCE_MEMORY_TICKS) {
+        // Remembered while you keep working it: a fishing spot can last five minutes
+        if (player == null || client.getTickCount() - Math.max(resourceClickTick, lastWorkingTick) > RESOURCE_MEMORY_TICKS) {
+            return;
+        }
+        if (resourceNpc != null && resourceNpcAt != null && !resourceNpcAt.equals(resourceNpc.getWorldLocation())) {
+            spotMoved();
             return;
         }
         boolean working;
@@ -245,6 +252,7 @@ class SkillingAlerts {
         if (npc != null) {
             if (SkillingData.isFishingOption(option)) {
                 resourceNpc = npc;
+                resourceNpcAt = npc.getWorldLocation();
                 resourceObjectId = -1;
                 resourceClickTick = client.getTickCount();
             }
@@ -286,11 +294,17 @@ class SkillingAlerts {
 
     @Subscribe
     public void onNpcDespawned(NpcDespawned event) {
-        if (event.getNpc() != resourceNpc || !isWorking()) {
-            return;
+        if (event.getNpc() == resourceNpc) {
+            spotMoved();
         }
+    }
+
+    // Your fishing spot despawned or jumped to another tile: announced if you were still fishing it
+    private void spotMoved() {
+        boolean working = isWorking();
         resourceNpc = null;
-        if (config.resourceGoneAlert()) {
+        resourceNpcAt = null;
+        if (working && config.resourceGoneAlert()) {
             alert(VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED, null);
         }
     }

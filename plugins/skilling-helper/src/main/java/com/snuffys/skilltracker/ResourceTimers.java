@@ -99,6 +99,8 @@ class ResourceTimers {
         TrapState trapState = TrapState.SET;
         // Fires: you've cooked on it
         boolean cookedOn;
+        // Fishing spots: where it was last tick, to see it jump to a new tile without despawning
+        WorldPoint spotAt;
 
         Timer(Kind kind, TileObject object, NPC npc, int minTicks, int maxTicks) {
             this.kind = kind;
@@ -194,6 +196,8 @@ class ResourceTimers {
     private static final Map<Integer, int[]> FISHING_TIMINGS = new HashMap<>();
     private static final int FISHING_MEMORY_TICKS = 1500;
     private static final int OUT_OF_VIEW_DISTANCE = 14;
+    /** A spot that appears this far away or more has (most likely) just come into view, not moved there. */
+    private static final int INTO_VIEW_DISTANCE = 12;
     private static final int FIRE = ObjectID.FIRE;
     private static final int TRAP_TICKS = 100;
     // Hunter traps as laid (from RuneLite's Hunter plugin; crab traps never expire so aren't timed)
@@ -367,6 +371,8 @@ class ResourceTimers {
     private Integer firemakingXp;
     private final Set<Timer> timers = new HashSet<>();
     private final Map<NPC, Timer> fishingSpots = new HashMap<>();
+    /** Fishing spots seen without a timer (there when we arrived): they get one when they move. */
+    private final Map<NPC, WorldPoint> watchedSpots = new HashMap<>();
     // Spots that went out of view: where they were and when they appeared there (tick) / left view (tick)
     private final Map<WorldPoint, int[]> rememberedSpots = new HashMap<>();
     // Shipwreck sites seen sunk (as a stump), so a wreck surfacing there has a known start
@@ -399,6 +405,7 @@ class ResourceTimers {
         byTile.clear();
         timers.clear();
         fishingSpots.clear();
+        watchedSpots.clear();
         rememberedSpots.clear();
         changingTraps.clear();
         changingTrapTicks.clear();
@@ -531,27 +538,63 @@ class ResourceTimers {
         if (!isFishingSpot(npc)) {
             return;
         }
-        int[] timing = FISHING_TIMINGS.getOrDefault(npc.getId(), new int[]{FISHING_MIN_TICKS, FISHING_MAX_TICKS});
+        int[] timing = timing(npc);
         if (timing[1] == 0) {
             return; // never moves
         }
-        Timer timer = new Timer(Kind.FISHING_SPOT, null, npc, timing[0], timing[1]);
         // Back in view of a spot we were timing: carry on from when it appeared
         int[] remembered = rememberedSpots.remove(npc.getWorldLocation());
         int now = client.getTickCount();
+        Player local = client.getLocalPlayer();
+        int elapsed = 0;
         if (remembered != null && now - remembered[0] <= timing[1]) {
-            timer.elapsed = now - remembered[0];
-        } else if (client.getGameState() != GameState.LOGGED_IN) {
-            // Loaded with the area: we don't know when it got there
+            elapsed = now - remembered[0];
+        } else if (client.getGameState() != GameState.LOGGED_IN || local == null
+            || local.getWorldLocation().distanceTo(npc.getWorldLocation()) >= INTO_VIEW_DISTANCE) {
+            // Loaded with the area, or just come into view as you walked up: we don't know when it got there.
+            // Watched without a pie, so it gets one when it moves.
+            watchedSpots.put(npc, npc.getWorldLocation());
             return;
         }
+        startSpot(npc, timing, elapsed);
+    }
+
+    private static int[] timing(NPC npc) {
+        return FISHING_TIMINGS.getOrDefault(npc.getId(), new int[]{FISHING_MIN_TICKS, FISHING_MAX_TICKS});
+    }
+
+    private void startSpot(NPC npc, int[] timing, int elapsed) {
+        Timer old = fishingSpots.remove(npc);
+        if (old != null) {
+            timers.remove(old);
+        }
+        watchedSpots.remove(npc);
+        Timer timer = new Timer(Kind.FISHING_SPOT, null, npc, timing[0], timing[1]);
+        timer.elapsed = elapsed;
+        timer.spotAt = npc.getWorldLocation();
         fishingSpots.put(npc, timer);
         timers.add(timer);
+    }
+
+    // Some spots (minnows, and others now and then) jump to a new tile without despawning: that's a move too
+    private void checkSpotJumps() {
+        for (Timer timer : new ArrayList<>(fishingSpots.values())) {
+            WorldPoint at = timer.npc.getWorldLocation();
+            if (timer.spotAt != null && !timer.spotAt.equals(at)) {
+                startSpot(timer.npc, timing(timer.npc), 0);
+            }
+        }
+        for (Map.Entry<NPC, WorldPoint> e : new ArrayList<>(watchedSpots.entrySet())) {
+            if (!e.getValue().equals(e.getKey().getWorldLocation())) {
+                startSpot(e.getKey(), timing(e.getKey()), 0);
+            }
+        }
     }
 
     @Subscribe
     public void onNpcDespawned(NpcDespawned event) {
         NPC npc = event.getNpc();
+        watchedSpots.remove(npc);
         Timer timer = fishingSpots.remove(npc);
         if (timer != null) {
             timers.remove(timer);
@@ -646,6 +689,7 @@ class ResourceTimers {
     @Subscribe
     public void onGameTick(GameTick tick) {
         int now = client.getTickCount();
+        checkSpotJumps();
         Map<Timer, Integer> choppers = new HashMap<>();
         Map<Timer, Boolean> youChop = new HashMap<>();
         Set<Timer> mined = new HashSet<>();

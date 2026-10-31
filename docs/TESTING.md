@@ -88,10 +88,13 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] XP rates on cards only while you're training that skill.
 - [x] An NPC walking past a tree doesn't change the card.
 
-## Timer pies
+## Resource timers
 - [x] Trees: pie on trees being chopped (also others' trees), centred on the canopy; turns into a full pulsing red pie when the tree can fall on the next log; no pie on a tree already being chopped when you arrived.
 - [ ] Mining: Motherlode veins, calcified rocks, Daeyalt essence, shooting stars.
-- [ ] Fishing spots: pies on spots that moved while you were there.
+- [ ] Fishing spots: a timer only on spots that moved while you were there; none on a spot that was already there
+  or came into view as you walked up, until it moves; a full timer again after each move (minnow spots included).
+- [ ] Fishing spot moved: the voice line plays when the spot you're fishing moves, even after fishing it 3+ minutes.
+- [ ] Timer Style: Tile, icon and timer (outline, picture of logs / ore / best fish, timer over it) and Timer only.
 - [ ] Hunter: pie on traps you lay, green when caught.
 - [ ] Fires: a pie only on a fire you cook on (Use food on it), none on fires you just light or walk past; it
       runs out at about 60 s, then pulses red until the fire goes; it sits still, not bouncing with the flames.

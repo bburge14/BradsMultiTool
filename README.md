@@ -19,7 +19,7 @@ Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just 
 | Plugin | What it has |
 |---|---|
 | **Snuffy's Toolbelt** | Everything below, in one plugin |
-| **Snuffy's Skilling Helper** | The sidebar tracker with goals and suggested training, the pinned skill, skilling hover cards, timer pies and skilling alerts |
+| **Snuffy's Skilling Helper** | The sidebar tracker with goals and suggested training, the pinned skill, skilling hover cards, resource timers and skilling alerts |
 | **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
 | **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
 | **Snuffy's Tick Counter** | Tick count over your head, tick boxes and a smooth tick bar, metronome, click timing for tick skilling |
@@ -88,7 +88,7 @@ developer mode.
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), timer
-pies (only while you train that skill, unless **Pies When Not Training** is on; by default each timed tree, rock or
+pies (only while you train that skill, unless **Timers When Not Training** is on; by default each timed tree, rock or
 fishing spot gets its tile outlined with a picture of what it gives and the pie over it), and alerts that only fire for the resource you're working:
 
 | Skill | What you get |
@@ -283,7 +283,7 @@ All sections except General start collapsed.
 
 ## Credits
 
-- The resource timer pies follow the logic worked out by these Plugin Hub plugins (BSD-2 licensed):
+- The resource resource timers follow the logic worked out by these Plugin Hub plugins (BSD-2 licensed):
   [Tree Despawn Timer](https://github.com/CreativeTechGuy/tree-despawn-timer) by CreativeTechGuy,
   [MLM Despawn Timer](https://github.com/xetrics/mlm-despawn-timer),
   [Calcified Rock Despawn Timer](https://github.com/NotTeeZee/calcified-rocks-despawn-timer),
