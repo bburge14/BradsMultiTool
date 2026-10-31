@@ -72,6 +72,11 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Reset in the PvM HUD's and crab card's right-click menus | OK. RUNELITE_OVERLAY menu entries on our own overlays (like the pinned skill's Unpin); only clear our numbers |
 | Buff bar (your buffs/debuffs with timers) and monster effects on the PvM HUD (poison/venom/burn, freezes, Defence after your special attacks) | OK. Same information as the core Timers and Buffs and Boosts plugins, read from varbits, hitsplats and graphics; information only |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
+| Resource timer tile style (tile outline, item picture, Timer Opacity) | OK. Same look as the core Fishing plugin's spot tiles and icons; steps aside where that plugin (or core Motherlode) already draws them |
+| Fishing spots: window display (earliest/latest move), spot age, newest-spot star, your spot's outline, minimap dots | OK. Plugin Hub's Fishing Spot Tracker shows the same (age, newest-spot badge, minimap dots, active-spot colour); the move window is the one Jagex published (Mod Ash: 250-530 ticks), nothing hidden is read |
+| Track for goal: ways to fish a spot (colour-coded by your level) and recipes for an item, as submenus | OK. RUNELITE-type menu entries that only change our own goal pick; game options untouched |
+| Offering the method you're actually training on (tracker card Track it / Dismiss, chat line) | OK. Reads your clicks (`MenuOptionClicked`, never consumed) and XP drops after the fact; only changes our goal pick when you press Track it |
+| Settings tooltips wrapped with `<div width>` | OK. Plain HTML in descriptions, as RuneLite's settings panel already renders them as HTML |
 
 Never add: anything that clicks, types or acts for the player; menu entry removal based on conditions;
 boss attack/prayer prediction for high-end PvM; hidden-information reveals; "AFK agility" helpers; PvP
@@ -97,3 +102,13 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 - The skilling/farming data files are generated from the OSRS Wiki (CC BY-NC-SA) and RuneLite
   (BSD-2-Clause); both are credited in the README.
 - `runelite-plugin.properties` and the build files need the Plugin Hub template layout at submission.
+
+## Developer launcher (not part of any plugin)
+
+`Launch-BradsMultiTool.bat` / `gradlew runBrad` only run RuneLite's developer client from source, which is how
+RuneLite's own developer guide says to test plugins before the Plugin Hub. Logging in uses RuneLite's own
+`--insecure-write-credentials` client option (RuneLite's documented way to use a Jagex Account with a dev
+client); the launcher only checks the session file exists and shows the character name and date in it, never
+the session itself, and nothing in the plugins reads or sends it. Updating is a plain `git pull` of this
+repository.
+
