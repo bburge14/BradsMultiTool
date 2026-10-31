@@ -79,6 +79,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             return null;
         }
         updateNewestSpot();
+        drawUntimedSpots(graphics);
         for (ResourceTimers.Timer timer : timers.all()) {
             if (!shown(timer)) {
                 continue;
@@ -253,10 +254,25 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         return seconds / 60 + ":" + String.format("%02d", seconds % 60);
     }
 
-    /** Whether a timer is drawn: its setting is on, it has something to show, you train its skill (or Timers When
-     * Not Training is on), and no other timer plugin already draws it. */
+    // Fishing spots with no timer (there before you arrived): with the tile style, still their tile and fish, so
+    // the spots show before you start; no timer, as how long they've been there isn't known
+    private void drawUntimedSpots(Graphics2D graphics) {
+        SkillTrackerConfig.TimerShow when = when(ResourceTimers.Kind.FISHING_SPOT);
+        if (config.pieStyle() != SkillTrackerConfig.PieStyle.TILE || when == SkillTrackerConfig.TimerShow.OFF
+            || (when == SkillTrackerConfig.TimerShow.TRAINING && !training(ResourceTimers.Kind.FISHING_SPOT))
+            || (config.deferToOtherTimerPlugins() && otherPlugins.covers(ResourceTimers.Kind.FISHING_SPOT))) {
+            return;
+        }
+        for (net.runelite.api.NPC npc : timers.untimedSpots()) {
+            zone(graphics, new ResourceTimers.Timer(ResourceTimers.Kind.FISHING_SPOT, null, npc, 0, 0));
+        }
+    }
+
+    /** Whether a timer is drawn: its setting is on, it has something to show, you train its skill (or its setting is Always), and no other timer plugin already draws it. */
     boolean shown(ResourceTimers.Timer timer) {
-        return enabled(timer.kind) && timer.visible() && (config.piesAlwaysShown() || training(timer.kind))
+        SkillTrackerConfig.TimerShow when = when(timer.kind);
+        return when != SkillTrackerConfig.TimerShow.OFF && timer.visible()
+            && (when == SkillTrackerConfig.TimerShow.ALWAYS || training(timer.kind))
             && !(config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind));
     }
 
@@ -279,7 +295,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
     }
 
-    private boolean enabled(ResourceTimers.Kind kind) {
+    private SkillTrackerConfig.TimerShow when(ResourceTimers.Kind kind) {
         switch (kind) {
             case TREE:
                 return config.showTreeTimer();

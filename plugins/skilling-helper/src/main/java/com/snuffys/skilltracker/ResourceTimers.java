@@ -567,7 +567,9 @@ class ResourceTimers {
         }
         int[] timing = timing(npc);
         if (timing[1] == 0) {
-            return; // never moves
+            // Never moves (karambwan, Tempoross): no timer, but its tile and fish still show
+            watchedSpots.put(npc, npc.getWorldLocation());
+            return;
         }
         // Back in view of a spot we were timing: carry on from when it appeared
         int[] remembered = rememberedSpots.remove(npc.getWorldLocation());
@@ -588,6 +590,11 @@ class ResourceTimers {
 
     private static int[] timing(NPC npc) {
         return FISHING_TIMINGS.getOrDefault(npc.getId(), new int[]{FISHING_MIN_TICKS, FISHING_MAX_TICKS});
+    }
+
+    /** Fishing spots in view without a timer (there before you arrived: their age is unknown). */
+    List<NPC> untimedSpots() {
+        return new ArrayList<>(watchedSpots.keySet());
     }
 
     private void startSpot(NPC npc, int[] timing, int elapsed) {

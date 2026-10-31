@@ -226,9 +226,12 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 | Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Timers |
 
 **Good to know:** Fishing spots and fires go at a random time the game picks (Jagex: fishing spots 250-530
-ticks), so no plugin can count down to the moment; their timers show the window (fire timers are off by default). Each timer only shows while you're training its skill (an XP drop in it in the last two
-minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
-Turn on **Skilling > Timers When Not Training** to see them all the time. Above every timer sit its time (time left; a star's layer health; a trap's "Caught"; for fishing spots and fires,
+ticks), so no plugin can count down to the moment; their timers show the window (fire timers are off by default). Each kind's setting (Tree Timers, Mining Timers, Fishing Spot Timers, Trap Timers, Fire
+Timers, Campfire Timers, Shipwreck Timers) picks when it shows: **Always** (as soon as you're near, before you
+start), **While training** (the default: once you've had an XP drop in its skill in the last two minutes:
+trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs) or **Off**. With
+the tile style, fishing spots that have no timer (there before you arrived, or ones that never move like
+karambwan) still get their tile and fish picture, without a timer. Above every timer sit its time (time left; a star's layer health; a trap's "Caught"; for fishing spots and fires,
 how long ago they appeared) and the skill's icon (**Skilling > Timer Text**, **Timer Skill Icon**).
 **Skilling > Timer Opacity** sets how solid they are (60% by default). **Skilling > Timer Style** picks the look:
 *Tile, icon and timer* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore;

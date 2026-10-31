@@ -54,6 +54,17 @@ public interface SkillTrackerConfig extends CommonConfig {
         @Override public String toString() { return name; }
     }
 
+    /** When a kind of resource timer shows: always, only while you train its skill, or never. */
+    enum TimerShow {
+        ALWAYS("Always"),
+        TRAINING("While training"),
+        OFF("Off");
+
+        private final String name;
+        TimerShow(String name) { this.name = name; }
+        @Override public String toString() { return name; }
+    }
+
     enum PieStyle {
         TILE("Tile, icon and timer"),
         PIE("Timer only");
@@ -104,16 +115,6 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
-    @ConfigItem(
-        keyName = "piesAlwaysShown",
-        name = "Timers When Not Training",
-        description = "<div width='300'>Show resource timers all the time. Off: a resource's timers only show while you train its skill (trees while you chop, rocks while you mine, fires while you cook or burn logs...)",
-        section = skillingSection,
-        position = 3
-    )
-    default boolean piesAlwaysShown() {
-        return false;
-    }
 
     @ConfigItem(
         keyName = "pieStyle",
@@ -286,14 +287,14 @@ public interface SkillTrackerConfig extends CommonConfig {
     String woodcuttingSection = "woodcuttingSection";
 
     @ConfigItem(
-        keyName = "showTreeTimer",
+        keyName = "treeTimers",
         name = "Tree Timers",
-        description = "<div width='300'>A timer on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping)",
+        description = "<div width='300'>A timer on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = woodcuttingSection,
         position = 1
     )
-    default boolean showTreeTimer() {
-        return true;
+    default TimerShow showTreeTimer() {
+        return TimerShow.TRAINING;
     }
 
     @ConfigItem(
@@ -327,14 +328,14 @@ public interface SkillTrackerConfig extends CommonConfig {
     String miningSection = "miningSection";
 
     @ConfigItem(
-        keyName = "showMiningTimer",
+        keyName = "miningTimers",
         name = "Mining Timers",
-        description = "<div width='300'>Timers on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left",
+        description = "<div width='300'>Timers on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = miningSection,
         position = 1
     )
-    default boolean showMiningTimer() {
-        return true;
+    default TimerShow showMiningTimer() {
+        return TimerShow.TRAINING;
     }
 
     @ConfigItem(
@@ -368,14 +369,14 @@ public interface SkillTrackerConfig extends CommonConfig {
     String fishingSection = "fishingSection";
 
     @ConfigItem(
-        keyName = "showFishingSpotTimer",
+        keyName = "fishingSpotTimers",
         name = "Fishing Spot Timers",
-        description = "<div width='300'>A timer on each fishing spot that's moved since you arrived (one that was already there gets one once it moves: when it appeared can't be known). Spots move at a random time 2.5-5 minutes after they appear, so it shows that window: green until the earliest it can move, then a red ring filling up to the latest (hover it for the times)",
+        description = "<div width='300'>A timer on each fishing spot that's moved since you arrived (one that was already there gets one once it moves: when it appeared can't be known). Spots move at a random time 2.5-5 minutes after they appear, so it shows that window: green until the earliest it can move, then a red ring filling up to the latest (hover it for the times) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = fishingSection,
         position = 1
     )
-    default boolean showFishingSpotTimer() {
-        return true;
+    default TimerShow showFishingSpotTimer() {
+        return TimerShow.TRAINING;
     }
 
     @ConfigItem(
@@ -515,14 +516,14 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
-        keyName = "showTrapTimer",
+        keyName = "trapTimers",
         name = "Trap Timers",
-        description = "<div width='300'>A timer on each trap you lay, showing how long until it collapses (green once something is caught)",
+        description = "<div width='300'>A timer on each trap you lay, showing how long until it collapses (green once something is caught) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = hunterSection,
         position = 2
     )
-    default boolean showTrapTimer() {
-        return true;
+    default TimerShow showTrapTimer() {
+        return TimerShow.TRAINING;
     }
 
     @ConfigItem(
@@ -578,25 +579,25 @@ public interface SkillTrackerConfig extends CommonConfig {
     String firemakingSection = "firemakingSection";
 
     @ConfigItem(
-        keyName = "showFireTimer",
+        keyName = "fireTimers",
         name = "Fire Timers",
-        description = "<div width='300'>A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times)",
+        description = "<div width='300'>A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = firemakingSection,
         position = 1
     )
-    default boolean showFireTimer() {
-        return false;
+    default TimerShow showFireTimer() {
+        return TimerShow.OFF;
     }
 
     @ConfigItem(
-        keyName = "showCampfireTimer",
+        keyName = "campfireTimers",
         name = "Campfire Timers",
-        description = "<div width='300'>A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it",
+        description = "<div width='300'>A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = firemakingSection,
         position = 2
     )
-    default boolean showCampfireTimer() {
-        return true;
+    default TimerShow showCampfireTimer() {
+        return TimerShow.TRAINING;
     }
 
     @ConfigSection(
@@ -665,14 +666,14 @@ public interface SkillTrackerConfig extends CommonConfig {
     String sailingSection = "sailingSection";
 
     @ConfigItem(
-        keyName = "showShipwreckTimer",
+        keyName = "shipwreckTimers",
         name = "Shipwreck Timers",
-        description = "<div width='300'>A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks",
+        description = "<div width='300'>A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = sailingSection,
         position = 1
     )
-    default boolean showShipwreckTimer() {
-        return true;
+    default TimerShow showShipwreckTimer() {
+        return TimerShow.TRAINING;
     }
 
     @ConfigItem(
