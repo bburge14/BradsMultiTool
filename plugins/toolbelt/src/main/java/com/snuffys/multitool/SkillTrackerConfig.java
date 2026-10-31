@@ -379,14 +379,14 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
-        keyName = "fishingNewestSpot",
+        keyName = "fishingMarkNewest",
         name = "Mark Newest Spot",
-        description = "<div width='300'>A gold ring around the fishing icon of the spot that appeared most recently. Spots move at a random time, so the newest one is the least likely to move soon: the best one to fish",
+        description = "<div width='300'>Off by default. A gold ring around the Fishing icon of the spot that appeared most recently: spots move at a random time, so the newest one is the least likely to move soon, the best one to fish",
         section = fishingSection,
         position = 1
     )
     default boolean fishingNewestSpot() {
-        return true;
+        return false;
     }
 
 
