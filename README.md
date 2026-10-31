@@ -209,12 +209,14 @@ git checkout claude/nifty-feynman-izouon   # skip once this branch is merged int
 
 If the repo is private, Git opens a browser window to sign in to GitHub.
 
-**3. Put the launcher on your desktop** (run once):
+**3. Put the launcher on your desktop** (run once; or open `Launch-BradsMultiTool.bat` and click **Make a
+desktop shortcut** at the bottom of the window):
 
 ```powershell
 $s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Launcher.lnk")
 $s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
 $s.WorkingDirectory = "C:\dev\BradsMultiTool"
+$s.IconLocation = "C:\dev\BradsMultiTool\assets\launcher.ico,0"
 $s.Save()
 ```
 
@@ -223,7 +225,8 @@ $s.Save()
 - **updates** the plugins each time you open it and lists what's new (**Check again** to retry; when you're
   offline or have changed files here, it says so and you launch the version you have);
 - checks your **setup**, each row with a button to fix it:
-  - **RuneLite** installed (**Get RuneLite**);
+  - **RuneLite** installed (it looks in RuneLite's usual folders, its uninstall entry, Start menu shortcuts and
+    the Jagex Launcher's folder; **Find it...** lets you point to `RuneLite.exe` if it's somewhere else);
   - **session saving** on in RuneLite (configure): **Turn it on** adds `--insecure-write-credentials` for you
     (keeping a backup of RuneLite's settings) or opens the configure window to add it yourself;
   - a **Jagex session** saved, for which character and when: **Save one** opens the Jagex Launcher, tells you

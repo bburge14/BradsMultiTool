@@ -14,3 +14,4 @@ releases/
 plugins/*/build/
 plugins/*/.gradle/
 .launch-choice
+.launch-runelite
