@@ -45,8 +45,11 @@ public class BradsMultiToolPluginTest {
                 throw new IllegalArgumentException("Unknown plugin \"" + name + "\": use " + String.join(", ", PLUGINS.keySet()) + " or separate");
             }
         }
+        // The Toolbelt already has every separate plugin in it, so it runs on its own
         if (chosen.contains(BradsMultiToolPlugin.class) && chosen.size() > 1) {
-            System.err.println("Note: the Toolbelt together with separate plugins shows everything twice");
+            System.err.println("Note: the Toolbelt includes all the separate plugins, so it's loaded on its own");
+            chosen.clear();
+            chosen.add(BradsMultiToolPlugin.class);
         }
         System.out.println("Loading Snuffy's: " + chosen);
         ExternalPluginManager.loadBuiltin(chosen.toArray(new Class[0]));

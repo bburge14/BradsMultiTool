@@ -220,11 +220,15 @@ $s.WorkingDirectory = "C:\dev\BradsMultiTool"
 $s.Save()
 ```
 
-Double-clicking it (or `Launch-BradsMultiTool.bat`) first updates the plugins (`git pull`, listing what's new;
-it carries on with the version you have when offline or you've changed files here), then shows whether a Jagex
-session is saved and for which character, and when (it only reads the name and the date, never the session
-itself). Then it asks which plugins to load (the Toolbelt, one of the separate plugins, all of them, or several you name), then builds and
-launches RuneLite with them. It remembers your pick: press Enter next time to load the same again.
+Double-clicking it (or `Launch-BradsMultiTool.bat`) opens **Snuffy's Launcher**, a small window that:
+
+- **updates** the plugins (`git pull`) and lists what's new (**Check again** to retry; when offline or you've
+  changed files here it says so and you launch the version you have);
+- shows your **Jagex Account session**: saved for which character and when (it only reads the name and the
+  date, never the session itself), or how to set one up;
+- lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
+  plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
+- **Launch RuneLite** builds and starts it, with the build and RuneLite's log in their own window.
 
 Why not the Jagex Launcher with the plugin dropped in? RuneLite only loads plugin files of your own in
 developer mode, and it turns developer mode off when started from its launcher, so the dev client (with the

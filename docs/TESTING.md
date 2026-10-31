@@ -193,3 +193,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
   drops the card offers it with Track it / Dismiss and a chat line; Track it switches the goal to it; Dismiss hides it for the session.
 - [ ] Every tracker card has a pin: solid when pinned, faint otherwise; clicking a faint pin moves the pin there (tooltip names the skill it replaces); clicking the solid one unpins.
 - [ ] Card right-click: Set goal... only with no goal; Modify goal... (prefilled, keeps the goal bar's progress) and Clear goal only with one.
+- [ ] Launcher window: update status (Up to date / Updated with the list / Couldn't update), session line with your character and date (or the set-up link), Toolbelt vs Separate plugins checkboxes (greyed while Toolbelt is picked), Launch opens the build in its own console and remembers the pick.
