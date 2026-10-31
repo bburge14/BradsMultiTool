@@ -291,6 +291,66 @@ def options(body):
     return out if len(out) >= 2 and len({o["level"] for o in out}) > 1 else []
 
 
+LOCATIONS = None
+
+
+def locations():
+    """Every page the wiki's location infobox is on (towns, dungeons, hunter areas, banks...)."""
+    global LOCATIONS
+    if LOCATIONS is None:
+        LOCATIONS, offset = set(), 0
+        while True:
+            query = "bucket('infobox_location').select('page_name').limit(1000).offset(%d).run()" % offset
+            rows = api({"action": "bucket", "query": query}).get("bucket", [])
+            LOCATIONS.update(row["page_name"] for row in rows if row.get("page_name"))
+            if len(rows) < 1000:
+                return LOCATIONS
+            offset += 1000
+    return LOCATIONS
+
+
+def places(body):
+    """Where the guide says to do the method: the places in its list of recommended spots, and in sentences like
+    "located in [[Kruk's Dungeon]]" or "at the [[Grand Exchange]]"; only links to the wiki's location pages."""
+    out = []
+
+    def add(link):
+        target, _, label = link.partition("|")
+        target = target.split("#")[0].strip()
+        label = (label or target).strip()
+        if target in locations() and label not in out:
+            out.append(re.sub(r"\s*\((location|area)\)$", "", label))
+
+    lines = body.split("\n")
+    for i, line in enumerate(lines):
+        # A bulleted list introduced by a line about locations or spots: each bullet's first link
+        if re.search(r"location|places?\b|spots?\b|areas?\b", line, re.I) and not line.startswith("*"):
+            for bullet in lines[i + 1:i + 12]:
+                if not bullet.startswith("*"):
+                    if bullet.strip():
+                        break
+                    continue
+                links = re.findall(r"\[\[([^\]]+)\]\]", bullet)
+                if links:
+                    add(links[0])
+    # In sentences, not ones about buying, selling, rewards, teleports or unlocks (the Grand Exchange for supplies)
+    for sentence in re.split(r"(?<=[.!?])\s+|\n", body):
+        if sentence.startswith("*") or re.search(r"buy|sell|purchas|obtain|reward|teleport|unlock|bought|sold|cost|trad",
+                                                 sentence, re.I):
+            continue
+        for m in re.finditer(r"(?:located|found|situated|done|trained|cut|caught|mined)\s+(?:in|at|on|near)\s+"
+                             r"(?:the\s+)?(?:[a-z ]{0,25})?\[\[([^\]]+)\]\]", sentence):
+            add(m.group(1))
+        # Looser "at the [[X]]": not in sentences about what's required (where to show a necklace first)
+        if re.search(r"requir", sentence, re.I):
+            continue
+        for m in re.finditer(r"\b(?:at|in|to)\s+the\s+(?:[a-z]+\s+){0,3}(?:part of the\s+)?\[\[([^\]]+)\]\]", sentence):
+            add(m.group(1))
+        for m in re.finditer(r"\b(?:travel to|go to|head to|run to|walk to)\s+(?:the\s+)?\[\[([^\]]+)\]\]", sentence):
+            add(m.group(1))
+    return out[:5]
+
+
 def entry(name, start, end, fastest, objects, npcs, body="", skill=""):
     ids, names = targets(name, objects, npcs)
     out = {"name": name, "from": start, "to": end, "fastest": fastest}
@@ -321,6 +381,9 @@ def entry(name, start, end, fastest, objects, npcs, body="", skill=""):
     about = summary(body)
     if about:
         out["about"] = about
+    where = places(body) if not name.lower().startswith("quest") else []
+    if where:
+        out["places"] = where
     rows = options(body)
     if rows:
         out["options"] = rows

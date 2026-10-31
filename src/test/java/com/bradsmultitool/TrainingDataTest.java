@@ -92,4 +92,11 @@ public class TrainingDataTest {
         assertEquals("Bloodwood trees", DATA.suggest(Skill.WOODCUTTING, 77, true).name);
         assertEquals("[The Blood Moon Rises]", DATA.suggest(Skill.WOODCUTTING, 77, true).quests.toString());
     }
+
+    // Where the guide says to do a method, from its section (only the wiki's location pages)
+    @Test
+    public void placesFromTheGuide() {
+        assertEquals("Prifddinas", DATA.suggest(Skill.FISHING, 30, false).places.get(0));
+        assertEquals("[Kruk's Dungeon]", DATA.suggest(Skill.RANGED, 50, false, m -> true).places.toString());
+    }
 }

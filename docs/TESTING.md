@@ -123,6 +123,8 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Nothing quest-locked: without Shades of Mort'ton started, Herblore 15-21 says Strength potion (not Serum
       207); without Barbarian Training started, Fishing 58+ isn't Barbarian Fishing; Lunar spells only after Lunar
       Diplomacy; Bloodwood only after The Blood Moon Rises.
+- [ ] Where: line under Train (Fishing 30: "Prifddinas (+4 more)"; Ranged 50 with MM2: "Kruk's Dungeon"), on the
+      pinned overlay too; hover lists all places; none shown for methods the guide gives no place for.
 - [x] With a Woodcutting/Mining/Thieving goal, the suggested trees/rocks/stalls/NPCs are outlined.
 - [ ] Cooking goal with raw food in inventory/bank: card says Make: ..., the raw food is outlined in inventory and bank, hover shows the goal tooltip.
 - [ ] Highlight Goal Items off removes the outlines.

@@ -97,6 +97,15 @@ final class GoalLines {
         return new Actions(name, value, tip);
     }
 
+    /** Where to do the suggested method: "Prifddinas (+4 more)", or null when the guide doesn't say. */
+    static String where(TrainingAdvisor.Suggestion suggestion) {
+        if (suggestion == null || suggestion.method == null || suggestion.method.places.isEmpty()) {
+            return null;
+        }
+        List<String> places = suggestion.method.places;
+        return places.get(0) + (places.size() > 1 ? " (+" + (places.size() - 1) + " more)" : "");
+    }
+
     /**
      * For production skills and Prayer: the best thing to make or use from your inventory and bank, or null.
      * Cooking, Firemaking and Prayer name the item you use ("Cook: Raw karambwan", "Burn: Yew logs", "Offer: Dragon bones").

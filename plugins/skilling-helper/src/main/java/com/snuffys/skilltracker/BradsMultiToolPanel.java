@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -637,11 +638,19 @@ public class BradsMultiToolPanel extends PluginPanel {
                         TrainingAdvisor.Stage first = plan.get(0);
                         lines.add(label(first.suggestion.label) + first.suggestion.text
                             + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
+                        String where = GoalLines.where(first.suggestion);
+                        if (where != null) {
+                            lines.add(label("Where:") + where);
+                        }
                     }
                     // Hover: what the guide says about the method you're on
                     String about = !plan.isEmpty() && plan.get(0).suggestion.method != null ? plan.get(0).suggestion.method.about : null;
-                    if (about != null) {
-                        tooltip = "<html><div width='260'>" + about + "</div></html>";
+                    List<String> places = !plan.isEmpty() && plan.get(0).suggestion.method != null
+                        ? plan.get(0).suggestion.method.places : Collections.emptyList();
+                    if (about != null || !places.isEmpty()) {
+                        tooltip = "<html><div width='260'>" + (about != null ? about : "")
+                            + (places.isEmpty() ? "" : (about != null ? "<br><br>" : "") + "<b>Where:</b> " + String.join(", ", places))
+                            + "</div></html>";
                     }
                     if (plan.size() > 1) {
                         stepEndLevel = plan.get(0).to;

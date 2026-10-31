@@ -307,6 +307,10 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
 - Only what you can do: a method (or a row of its table, like Serum 207) that needs a quest is left out until
   you've done it, or just started it where the guide says partial completion is enough (Barbarian Fishing,
   chinchompas, Serum 207); quests are read from the game's quest list.
+- **Where:** under the Train line, where the guide says to do it ("Where: Prifddinas (+4 more)" for fly fishing,
+  "Kruk's Dungeon" for chinning, "Piscatoris Fishing Colony" for monkfish), also on the pinned overlay; hover the
+  Train line for all of them. Only places the guide names (and only real wiki location pages), so some methods
+  have none.
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
 - Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
   world.

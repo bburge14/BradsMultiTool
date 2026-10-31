@@ -48,6 +48,8 @@ class TrainingData {
         final List<String> targets = new ArrayList<>();
         /** The guide's first sentences about it, or null. */
         final String about;
+        /** Where the guide says to do it ("Prifddinas", "Shilo Village"...), best first, or empty. */
+        final List<String> places = new ArrayList<>();
         /** Another non-combat skill's guide lists it too (it trains both). */
         boolean shared;
         /** The guide's table of what to make or use by level (Herblore's potions), or empty. */
@@ -94,6 +96,11 @@ class TrainingData {
                 }
             }
             about = o.has("about") ? o.get("about").getAsString() : null;
+            if (o.has("places")) {
+                for (JsonElement e : o.getAsJsonArray("places")) {
+                    places.add(e.getAsString());
+                }
+            }
             if (o.has("options")) {
                 for (JsonElement e : o.getAsJsonArray("options")) {
                     options.add(new Option(e.getAsJsonObject()));
