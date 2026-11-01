@@ -87,7 +87,10 @@ final class GoalLines {
         } else if (perAction <= 0 && goalXp > xp) {
             perAction = plugin.getTrainingAdvisor().estimatedXpEach(skill, level);
             prefix = "~";
-            tip += " (estimated from the suggested method until your first XP drop)";
+            String from = plugin.getGoalTarget(skill) != null ? "your pick (" + plugin.describeGoalTarget(skill) + ")"
+                : plugin.getGoalItems().suggestion(skill) != null ? "what you'd make from your items"
+                : "the suggested method";
+            tip += " (estimated from " + from + " until your first XP drop)";
         }
         String value = perAction > 0 && remaining > 0 ? prefix + BradsMultiToolPanel.shortNumber((int) Math.ceil(remaining / perAction)) : "--";
         // The hover names what the count is to, and with a goal gives the other count too
@@ -152,11 +155,8 @@ final class GoalLines {
         List<String> names = new ArrayList<>();
         if (plugin.getGoalItems().suggestion(skill) != null) {
             names.addAll(plugin.getGoalItems().tools(skill));
-        } else if (plugin.getGoalTarget(skill) == null) {
-            TrainingAdvisor.Suggestion suggestion = plugin.getTrainingAdvisor().suggest(skill, level);
-            if (suggestion != null) {
-                names.addAll(suggestion.tools);
-            }
+        } else {
+            names.addAll(plugin.getTrainingAdvisor().goalTools(skill, level));
         }
         Map<String, Boolean> out = new LinkedHashMap<>();
         for (String name : names) {

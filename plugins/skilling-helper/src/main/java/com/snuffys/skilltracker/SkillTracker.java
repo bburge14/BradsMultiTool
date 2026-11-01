@@ -18,6 +18,7 @@ import net.runelite.api.Client;
 import net.runelite.api.Experience;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.Skill;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -62,6 +63,7 @@ class SkillTracker {
     @Inject
     private Provider<MethodDetector> methodDetector;
 
+
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> realLevels = new EnumMap<>(Skill.class);
@@ -101,6 +103,8 @@ class SkillTracker {
             .panel(panel)
             .build();
         clientToolbar.addNavigation(navButton);
+        // Turned on while logged in: the profile's already known, so no profile change comes to move old goals
+        moveToSharedGroup();
     }
 
     void shutDown() {
@@ -127,6 +131,9 @@ class SkillTracker {
         if (event.getGameState() == GameState.LOGIN_SCREEN) {
             realLevels.clear();
         }
+        if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
+            reachedChecked = false;
+        }
         if (event.getGameState() != GameState.LOGGED_IN) {
             updatePanelUI();
         }
@@ -140,6 +147,14 @@ class SkillTracker {
         Player player = client.getLocalPlayer();
         if (player != null) {
             combatLevel = player.getCombatLevel();
+            noteWhatYoureDoing(player);
+        }
+        // Once a login, when your stats and profile are both in: goals reached while away clear
+        if (!reachedChecked && configManager.getRSProfileKey() != null && client.getSkillExperience(Skill.HITPOINTS) > 0) {
+            reachedChecked = true;
+            for (Skill skill : getGoalSkills()) {
+                clearIfReached(skill, client.getSkillExperience(skill));
+            }
         }
         for (Skill s : gainedSkillXp.keySet()) {
             if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
@@ -156,6 +171,7 @@ class SkillTracker {
         int currentXp = event.getXp();
 
         announceLevelUp(skill, currentXp);
+        clearIfReached(skill, currentXp);
 
         if (!baseSkillXp.containsKey(skill)) {
             baseSkillXp.put(skill, currentXp);
@@ -168,6 +184,8 @@ class SkillTracker {
             int drop = gained - previousGained;
             if (drop > 0) {
                 lastXpDrops.put(skill, drop);
+                // By game tick (600ms), so skills gaining XP on the same tick (Attack and Hitpoints) tie
+                lastXpMillis.put(skill, System.currentTimeMillis() / 600 * 600);
                 java.util.ArrayDeque<Integer> recent = recentXpDrops.computeIfAbsent(skill, k -> new java.util.ArrayDeque<>());
                 recent.addLast(drop);
                 while (recent.size() > RECENT_DROPS) {
@@ -180,16 +198,57 @@ class SkillTracker {
         }
     }
 
+    /**
+     * Where goals, their Track for goal picks, Suggest choices, Prayer methods and the pinned skill are saved: one
+     * place for the Toolbelt and the Skilling Helper alike, so either shows the same goals. (The Toolbelt's old
+     * group, so its goals stay where they were; bird houses and compost are kept there too.)
+     */
+    static final String SHARED_GROUP = "bradsmultitool";
+    private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "goalMethod.", "trainingFocus.", "prayerMethod."};
+
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
     // which changes when synced settings arrive), so redraw the tracker then
     @Subscribe
     public void onRuneScapeProfileChanged(RuneScapeProfileChanged event) {
+        moveToSharedGroup();
+        // Goals reached while away (or before this setting) clear now
+        for (Skill skill : getGoalSkills()) {
+            int xp = client.getSkillExperience(skill);
+            if (xp > 0) {
+                clearIfReached(skill, xp);
+            }
+        }
         updatePanelUI();
+    }
+
+    // Goals the Skilling Helper saved under its own group before they were shared: moved to the shared group
+    // (unless that already has one), then removed, so they're never copied back over a goal you change later
+    private void moveToSharedGroup() {
+        String profile = configManager.getRSProfileKey();
+        if (profile == null || SHARED_GROUP.equals(identity.configGroup)) {
+            return;
+        }
+        for (String prefix : SHARED_PREFIXES) {
+            for (String key : configManager.getRSProfileConfigurationKeys(identity.configGroup, profile, prefix)) {
+                String value = configManager.getRSProfileConfiguration(identity.configGroup, key);
+                if (value != null && configManager.getRSProfileConfiguration(SHARED_GROUP, key) == null) {
+                    configManager.setRSProfileConfiguration(SHARED_GROUP, key, value);
+                }
+                configManager.unsetRSProfileConfiguration(identity.configGroup, key);
+            }
+        }
+        String pinned = configManager.getConfiguration(identity.configGroup, "pinnedSkill");
+        if (pinned != null) {
+            if (configManager.getConfiguration(SHARED_GROUP, "pinnedSkill") == null) {
+                configManager.setConfiguration(SHARED_GROUP, "pinnedSkill", pinned);
+            }
+            configManager.unsetConfiguration(identity.configGroup, "pinnedSkill");
+        }
     }
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
-        if (!identity.configGroup.equals(event.getGroup())) {
+        if (!identity.configGroup.equals(event.getGroup()) && !SHARED_GROUP.equals(event.getGroup())) {
             return;
         }
 
@@ -260,7 +319,7 @@ class SkillTracker {
 
     /** The skill's goal in XP, or 0 for none. */
     public int getSkillGoal(Skill skill) {
-        String value = configManager.getRSProfileConfiguration(identity.configGroup, "goal." + skill.name());
+        String value = configManager.getRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name());
         try {
             return value == null ? 0 : Integer.parseInt(value);
         } catch (NumberFormatException e) {
@@ -270,16 +329,16 @@ class SkillTracker {
 
     public void setSkillGoal(Skill skill, int goalXp) {
         if (goalXp <= 0) {
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "goal." + skill.name());
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name());
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
         } else {
             // Modifying a goal still underway keeps where it started (the goal bar's progress)
             int xp = client.getSkillExperience(skill);
             boolean underway = getSkillGoal(skill) > xp && getSkillGoalStart(skill) > 0;
-            configManager.setRSProfileConfiguration(identity.configGroup, "goal." + skill.name(), goalXp);
+            configManager.setRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name(), goalXp);
             if (!underway) {
-                configManager.setRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name(), xp);
+                configManager.setRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name(), xp);
             }
         }
         updatePanelUI();
@@ -328,14 +387,31 @@ class SkillTracker {
      */
     public String getGoalTarget(Skill skill) {
         return configManager.getRSProfileKey() == null ? null
-            : configManager.getRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name());
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+    }
+
+    /** The guide method you picked for this skill's suggestion (its name), or null to have it picked for you. */
+    public String getChosenMethod(Skill skill) {
+        return configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name());
+    }
+
+    /** Pick the suggestion's method (null: automatic). It replaces a Track for goal pick, as it's what you'll train. */
+    public void setChosenMethod(Skill skill, String method) {
+        if (method == null) {
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name(), method);
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+        }
+        updatePanelUI();
     }
 
     public void setGoalTarget(Skill skill, String target) {
         if (target == null) {
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
         } else {
-            configManager.setRSProfileConfiguration(identity.configGroup, "goalTarget." + skill.name(), target);
+            configManager.setRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name(), target);
         }
         updatePanelUI();
     }
@@ -346,11 +422,11 @@ class SkillTracker {
      */
     public PrayerMethod getPrayerMethod(boolean shards) {
         return configManager.getRSProfileKey() == null ? null
-            : PrayerMethod.parse(configManager.getRSProfileConfiguration(identity.configGroup, prayerMethodKey(shards)));
+            : PrayerMethod.parse(configManager.getRSProfileConfiguration(SHARED_GROUP, prayerMethodKey(shards)));
     }
 
     public void setPrayerMethod(PrayerMethod method) {
-        configManager.setRSProfileConfiguration(identity.configGroup, prayerMethodKey(method.shards), method.name());
+        configManager.setRSProfileConfiguration(SHARED_GROUP, prayerMethodKey(method.shards), method.name());
         updatePanelUI();
     }
 
@@ -394,7 +470,7 @@ class SkillTracker {
     /** The focus picked for this skill, or null when it follows the default. */
     public SkillTrackerConfig.TrainingFocus getOwnTrainingFocus(Skill skill) {
         String value = configManager.getRSProfileKey() == null ? null
-            : configManager.getRSProfileConfiguration(identity.configGroup, "trainingFocus." + skill.name());
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, "trainingFocus." + skill.name());
         if (value == null) {
             return null;
         }
@@ -407,9 +483,9 @@ class SkillTracker {
 
     public void setTrainingFocus(Skill skill, SkillTrackerConfig.TrainingFocus focus) {
         if (focus == null) {
-            configManager.unsetRSProfileConfiguration(identity.configGroup, "trainingFocus." + skill.name());
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "trainingFocus." + skill.name());
         } else {
-            configManager.setRSProfileConfiguration(identity.configGroup, "trainingFocus." + skill.name(), focus.name());
+            configManager.setRSProfileConfiguration(SHARED_GROUP, "trainingFocus." + skill.name(), focus.name());
         }
         updatePanelUI();
     }
@@ -422,7 +498,7 @@ class SkillTracker {
 
     /** The one skill pinned to the game screen from the tracker, or null. Kept across restarts. */
     public Skill getPinnedSkill() {
-        String name = configManager.getConfiguration(identity.configGroup, "pinnedSkill");
+        String name = configManager.getConfiguration(SHARED_GROUP, "pinnedSkill");
         if (name == null || name.isEmpty()) {
             return null;
         }
@@ -436,16 +512,16 @@ class SkillTracker {
     /** Pin a skill to the screen (replacing any other), or unpin with null. */
     public void setPinnedSkill(Skill skill) {
         if (skill == null) {
-            configManager.unsetConfiguration(identity.configGroup, "pinnedSkill");
+            configManager.unsetConfiguration(SHARED_GROUP, "pinnedSkill");
         } else {
-            configManager.setConfiguration(identity.configGroup, "pinnedSkill", skill.name());
+            configManager.setConfiguration(SHARED_GROUP, "pinnedSkill", skill.name());
         }
         updatePanelUI();
     }
 
     /** Your XP in the skill when you set its goal (for the goal bar), or 0 if unknown. */
     public int getSkillGoalStart(Skill skill) {
-        String value = configManager.getRSProfileConfiguration(identity.configGroup, "goalStart." + skill.name());
+        String value = configManager.getRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name());
         try {
             return value == null ? 0 : Integer.parseInt(value);
         } catch (NumberFormatException e) {
@@ -511,6 +587,50 @@ class SkillTracker {
         return client.getSkillExperience(skill);
     }
 
+    // When each skill last gained XP (wall clock, so it survives hopping and loading screens)
+    private final Map<Skill, Long> lastXpMillis = new EnumMap<>(Skill.class);
+
+    private boolean reachedChecked;
+
+    // Clear Goals When Reached: the goal goes, with a chat line, once your XP gets there
+    private void clearIfReached(Skill skill, int xp) {
+        int goal = getSkillGoal(skill);
+        if (!config.clearReachedGoals() || goal <= 0 || xp < goal || configManager.getRSProfileKey() == null) {
+            return;
+        }
+        int level = Experience.getLevelForXp(goal);
+        String target = goal == Experience.getXpForLevel(level) ? "level " + level : String.format("%,d XP", goal);
+        setSkillGoal(skill, 0);
+        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName + "]</col> "
+            + skill.getName() + " goal reached (" + target + "): cleared. Set Goal for your next one.", null);
+    }
+
+    /** Whether the tracker's "goals" or "session" list is folded away (kept between launches). */
+    public boolean isListCollapsed(String list) {
+        return Boolean.parseBoolean(configManager.getConfiguration(SHARED_GROUP, "trackerCollapsed." + list));
+    }
+
+    public void setListCollapsed(String list, boolean collapsed) {
+        if (collapsed) {
+            configManager.setConfiguration(SHARED_GROUP, "trackerCollapsed." + list, true);
+        } else {
+            configManager.unsetConfiguration(SHARED_GROUP, "trackerCollapsed." + list);
+        }
+        updatePanelUI();
+    }
+
+    /** When a skill last gained XP (wall clock), 0 if not this session: the tracker lists the latest first. */
+    public long lastXpTime(Skill skill) {
+        return lastXpMillis.getOrDefault(skill, 0L);
+    }
+
+    /** Whether a skill gained XP recently enough to stay in the tracker (see Drop Idle Skills After). */
+    public boolean isRecentlyTrained(Skill skill) {
+        int minutes = config.dropIdleSkillsAfter();
+        Long last = lastXpMillis.get(skill);
+        return minutes <= 0 || (last != null && System.currentTimeMillis() - last <= minutes * 60_000L);
+    }
+
     public List<Skill> getTrackedSkills() {
         List<Skill> skills = new ArrayList<>();
         for (Map.Entry<Skill, Integer> entry : gainedSkillXp.entrySet()) {
@@ -526,9 +646,91 @@ class SkillTracker {
      * An XP drop in the skill in the last two minutes: long enough to cover slow trees and walking between
      * resources, for showing that skill's timer pies only while you train it.
      */
+    /**
+     * Whether you're training this skill lately: an XP drop in it, or you started doing it (fishing a spot,
+     * chopping, mining) in the last two minutes. The second shows a skill's timers as soon as you start, rather
+     * than at your first catch.
+     */
     boolean trainedRecently(Skill skill) {
         Integer last = lastXpTicks.get(skill);
-        return last != null && client.getTickCount() - last <= PIE_TRAINING_TICKS;
+        Integer doing = lastDoingTicks.get(skill);
+        int now = client.getTickCount();
+        return (last != null && now - last <= PIE_TRAINING_TICKS) || (doing != null && now - doing <= PIE_TRAINING_TICKS);
+    }
+
+    /** Whether you're fishing, chopping or mining right now (seen in the last few ticks). */
+    boolean isWorking(Skill skill) {
+        Integer doing = skill == null ? null : lastDoingTicks.get(skill);
+        return doing != null && client.getTickCount() - doing <= WORKING_TICKS;
+    }
+
+    private static final int WORKING_TICKS = 5;
+
+    // The tree or rock you last clicked to chop or mine, for isWorkingOn
+    private WorldPoint workedTile;
+
+    @Subscribe
+    public void onMenuOptionClicked(net.runelite.api.events.MenuOptionClicked event) {
+        String option = net.runelite.client.util.Text.removeTags(event.getMenuOption()).toLowerCase();
+        if (event.getMenuAction().name().startsWith("GAME_OBJECT") && (option.startsWith("chop") || option.equals("mine"))) {
+            workedTile = WorldPoint.fromScene(client.getTopLevelWorldView(), event.getParam0(), event.getParam1(),
+                client.getTopLevelWorldView().getPlane());
+        }
+    }
+
+    /** Whether this is the tree or rock you're chopping or mining right now. */
+    boolean isWorkingOn(net.runelite.api.TileObject object) {
+        if (workedTile == null || !(isWorking(Skill.WOODCUTTING) || isWorking(Skill.MINING))) {
+            return false;
+        }
+        // A click gives a big tree's south-west tile, which its location isn't
+        if (object instanceof net.runelite.api.GameObject) {
+            net.runelite.api.GameObject game = (net.runelite.api.GameObject) object;
+            WorldPoint min = WorldPoint.fromScene(client.getTopLevelWorldView(), game.getSceneMinLocation().getX(),
+                game.getSceneMinLocation().getY(), game.getPlane());
+            if (workedTile.equals(min)) {
+                return true;
+            }
+        }
+        return workedTile.equals(object.getWorldLocation());
+    }
+
+    /** Whether this is the fishing spot (or other NPC) you're working right now. */
+    boolean isWorkingOn(net.runelite.api.NPC npc) {
+        Player you = client.getLocalPlayer();
+        return you != null && you.getInteracting() == npc;
+    }
+
+    // Each skill you were last seen doing, by tick: fishing a spot, or chopping or mining (by animation)
+    private final Map<Skill, Integer> lastDoingTicks = new EnumMap<>(Skill.class);
+
+    private void noteWhatYoureDoing(Player player) {
+        Skill doing = null;
+        int animation = player.getAnimation();
+        if (ResourceTimers.CHOP_ANIMATIONS.contains(animation)) {
+            doing = Skill.WOODCUTTING;
+        } else if (ResourceTimers.MINE_ANIMATIONS.contains(animation)) {
+            doing = Skill.MINING;
+        } else if (player.getInteracting() instanceof net.runelite.api.NPC && isFishingSpot((net.runelite.api.NPC) player.getInteracting())) {
+            doing = Skill.FISHING;
+        }
+        if (doing != null) {
+            lastDoingTicks.put(doing, client.getTickCount());
+        }
+    }
+
+    private static boolean isFishingSpot(net.runelite.api.NPC npc) {
+        net.runelite.api.NPCComposition composition = npc.getTransformedComposition() != null
+            ? npc.getTransformedComposition() : npc.getComposition();
+        if (composition == null) {
+            return false;
+        }
+        for (String action : composition.getActions()) {
+            if (action != null && SkillingData.isFishingOption(action)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     boolean isTraining(Skill skill) {

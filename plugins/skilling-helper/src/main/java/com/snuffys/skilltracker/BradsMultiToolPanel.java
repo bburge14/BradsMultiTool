@@ -82,8 +82,8 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final JLabel skillCountLabel = new JLabel();
     private final JLabel emptyLabel = new JLabel("<html>Gain XP to start tracking skills.<br>Right-click a skill for options.</html>");
     private final JPanel cardsContainer = new JPanel();
-    private final JLabel goalsHeading = sectionHeading("GOALS");
-    private final JLabel sessionHeading = sectionHeading("THIS SESSION");
+    private final JLabel goalsHeading = foldingHeading("GOALS", "goals");
+    private final JLabel sessionHeading = foldingHeading("THIS SESSION", "session");
     // What's laid out now (goal skills, then session skills), so the list is only rebuilt when it changes
     private String cardOrder = "";
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
@@ -168,7 +168,9 @@ public class BradsMultiToolPanel extends PluginPanel {
         stats.setOpaque(false);
         stats.add(statBlock("TOTAL XP", totalXp));
         stats.add(statBlock("XP / HR", rate));
-        stats.add(statBlock("SKILLS", skills));
+        JPanel trained = statBlock("TRAINED", skills);
+        trained.setToolTipText("Skills you've gained XP in this session");
+        stats.add(trained);
         header.add(stats, BorderLayout.CENTER);
 
         JButton goalButton = new JButton("Set Goal");
@@ -207,10 +209,16 @@ public class BradsMultiToolPanel extends PluginPanel {
         List<Skill> goals = plugin.getGoalSkills();
         List<Skill> session = new ArrayList<>();
         for (Skill skill : tracked) {
-            if (!goals.contains(skill)) {
+            // Skills without a goal drop off after a while without XP (Drop Idle Skills After)
+            if (!goals.contains(skill) && plugin.isRecentlyTrained(skill)) {
                 session.add(skill);
             }
         }
+        // Most recent XP first in each list (ties, like Attack and Hitpoints from one hit, keep skill order)
+        java.util.Comparator<Skill> latestFirst = java.util.Comparator.comparingLong((Skill skill) -> -plugin.lastXpTime(skill));
+        goals = new ArrayList<>(goals);
+        goals.sort(latestFirst);
+        session.sort(latestFirst);
         Skill pinnedSkill = plugin.getPinnedSkill();
         if (pinnedSkill != null && !goals.contains(pinnedSkill) && !session.contains(pinnedSkill)) {
             session.add(0, pinnedSkill);
@@ -222,24 +230,55 @@ public class BradsMultiToolPanel extends PluginPanel {
             cards.computeIfAbsent(skill, SkillCard::new).refresh();
         }
 
-        String order = goals + "|" + session;
+        boolean goalsFolded = plugin.isListCollapsed("goals");
+        boolean sessionFolded = plugin.isListCollapsed("session");
+        String order = goals + "|" + session + "|" + goalsFolded + sessionFolded;
         if (!order.equals(cardOrder)) {
             cardOrder = order;
             cardsContainer.removeAll();
             if (shown.isEmpty()) {
                 cardsContainer.add(emptyLabel);
             }
+            // Each list under a heading you click to fold it away or open it again
             if (!goals.isEmpty()) {
+                setHeading(goalsHeading, "GOALS", goalsFolded, goals.size());
                 cardsContainer.add(goalsHeading);
-                goals.forEach(skill -> cardsContainer.add(cards.get(skill)));
-                if (!session.isEmpty()) {
-                    cardsContainer.add(sessionHeading);
+                if (!goalsFolded) {
+                    goals.forEach(skill -> cardsContainer.add(cards.get(skill)));
                 }
             }
-            session.forEach(skill -> cardsContainer.add(cards.get(skill)));
+            if (!session.isEmpty()) {
+                if (!goals.isEmpty() || sessionFolded) {
+                    setHeading(sessionHeading, "THIS SESSION", sessionFolded, session.size());
+                    cardsContainer.add(sessionHeading);
+                }
+                if (!sessionFolded) {
+                    session.forEach(skill -> cardsContainer.add(cards.get(skill)));
+                }
+            }
             cardsContainer.revalidate();
             cardsContainer.repaint();
         }
+    }
+
+    // "- GOALS" when open, "+ GOALS (3)" when folded (plain signs: the game font has no arrows)
+    private static void setHeading(JLabel heading, String name, boolean folded, int count) {
+        heading.setText(folded ? "+ " + name + " (" + count + ")" : "- " + name);
+        heading.setToolTipText(folded ? "Click to show these skills" : "Click to hide these skills");
+    }
+
+    private JLabel foldingHeading(String text, String list) {
+        JLabel label = sectionHeading(text);
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    plugin.setListCollapsed(list, !plugin.isListCollapsed(list));
+                }
+            }
+        });
+        return label;
     }
 
     private static JLabel sectionHeading(String text) {
@@ -395,6 +434,10 @@ public class BradsMultiToolPanel extends PluginPanel {
         if (value >= 1_000_000) {
             return String.format("%.2fM", value / 1_000_000.0);
         }
+        // No decimal from 100K up ("262K", not "262.3K"): it wouldn't fit the narrow stat columns
+        if (value >= 100_000) {
+            return String.format("%.0fK", value / 1_000.0);
+        }
         if (value >= 10_000) {
             return String.format("%.1fK", value / 1_000.0);
         }
@@ -437,6 +480,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private boolean pinHover;
         // What this skill's goal suggestions aim for (its own choice, or the default)
         private final JMenu focusMenu = new JMenu("Suggest");
+        // Pick the guide method the suggestion uses (filled in each time the menu opens, for your level)
+        private final JMenu methodMenu = new JMenu("Method");
         private final Map<SkillTrackerConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(SkillTrackerConfig.TrainingFocus.class);
         private final JRadioButtonMenuItem defaultFocusItem = new JRadioButtonMenuItem();
 
@@ -541,6 +586,21 @@ public class BradsMultiToolPanel extends PluginPanel {
                 focusItems.put(f, item);
             }
             menu.add(focusMenu);
+            menu.add(methodMenu);
+            menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+                @Override
+                public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                    fillMethods();
+                }
+
+                @Override
+                public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+                }
+
+                @Override
+                public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+                }
+            });
             menu.add(suggestedItem);
             menu.add(pinItem);
             menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
@@ -568,6 +628,52 @@ public class BradsMultiToolPanel extends PluginPanel {
                 offerText.setText("<html><div width='170'><font color='#ffff00'>You're training on:</font> "
                     + plugin.describeTarget(skill, target) + ". Track it for your goal?</div></html>");
             }
+        }
+
+        // Suggested (automatic), then each guide method your level and quests allow; the one in use is ticked
+        private void fillMethods() {
+            methodMenu.removeAll();
+            int level = Experience.getLevelForXp(plugin.getCurrentSkillXp(skill));
+            String chosen = plugin.getChosenMethod(skill);
+            ButtonGroup group = new ButtonGroup();
+            // Money Maker: the money-making guides, with their GP/hr
+            if (plugin.getTrainingFocus(skill) == SkillTrackerConfig.TrainingFocus.MONEY) {
+                List<MoneyData.Guide> guides = plugin.getTrainingAdvisor().moneyToPick(skill, level);
+                boolean picked = guides.stream().anyMatch(g -> g.name.equals(chosen));
+                JRadioButtonMenuItem best = new JRadioButtonMenuItem("Most profitable (automatic)", !picked);
+                best.addActionListener(e -> plugin.setChosenMethod(skill, null));
+                group.add(best);
+                methodMenu.add(best);
+                methodMenu.addSeparator();
+                for (MoneyData.Guide guide : guides.subList(0, Math.min(guides.size(), 15))) {
+                    JRadioButtonMenuItem item = new JRadioButtonMenuItem(guide.name + " - " + guide.profitText(),
+                        guide.name.equals(chosen));
+                    item.addActionListener(e -> plugin.setChosenMethod(skill, guide.name));
+                    group.add(item);
+                    methodMenu.add(item);
+                }
+                methodMenu.setEnabled(!guides.isEmpty());
+                return;
+            }
+            List<TrainingData.Method> methods = plugin.getTrainingAdvisor().methodsToPick(skill, level);
+            boolean chosenAvailable = methods.stream().anyMatch(m -> m.name.equals(chosen));
+            JRadioButtonMenuItem auto = new JRadioButtonMenuItem("Suggested (automatic)", chosen == null || !chosenAvailable);
+            auto.addActionListener(e -> plugin.setChosenMethod(skill, null));
+            group.add(auto);
+            methodMenu.add(auto);
+            methodMenu.addSeparator();
+            for (TrainingData.Method method : methods) {
+                // The guide's own XP/hr where it gives one (an estimate)
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem(method.name + (method.fastest ? " (fastest)" : "")
+                    + (method.xpHour > 0 ? " - ~" + shortNumber(method.xpHour) + " xp/hr" : ""), method.name.equals(chosen));
+                if (method.about != null) {
+                    item.setToolTipText("<html><div width='260'>" + method.about + "</div></html>");
+                }
+                item.addActionListener(e -> plugin.setChosenMethod(skill, method.name));
+                group.add(item);
+                methodMenu.add(item);
+            }
+            methodMenu.setEnabled(!methods.isEmpty());
         }
 
         // The pin's spot: the card's top-right corner, in the padding kept clear for it
@@ -686,6 +792,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             defaultFocusItem.setText("Default (" + config.trainingFocus() + ")");
             (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);
             focusMenu.setVisible(skill != Skill.SLAYER);
+            methodMenu.setVisible(skill != Skill.SLAYER && hasGoal);
         }
 
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to

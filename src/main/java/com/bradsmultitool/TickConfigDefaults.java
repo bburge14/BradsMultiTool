@@ -10,9 +10,15 @@ final class TickConfigDefaults {
     }
 
     static void store(ConfigDefaults defaults, TickConfig config) {
+        defaults.store("openGuide", config.openGuide());
+        defaults.store("showClashes", config.showClashes());
         defaults.store("tickOverHead", config.tickOverHead());
         defaults.store("tickBoxes", config.tickBoxes());
+        defaults.store("tickMethod", config.tickMethod());
         defaults.store("tickBoxLayout", config.tickBoxLayout());
+        defaults.store("tickBoxNumbers", config.tickBoxNumbers());
+        defaults.store("tickHalfBoxes", config.tickHalfBoxes());
+        defaults.store("tickBoxesSeparate", config.tickBoxesSeparate());
         defaults.store("tickBar", config.tickBar());
         defaults.store("tickCycle", config.tickCycle());
         defaults.store("tickFollowWeapon", config.tickFollowWeapon());
@@ -20,11 +26,14 @@ final class TickConfigDefaults {
         defaults.store("tickFirstColor", config.tickFirstColor());
         defaults.store("tickTextSize", config.tickTextSize());
         defaults.store("tickBoxSize", config.tickBoxSize());
+        defaults.store("tickBoxShape", config.tickBoxShape());
+        defaults.store("tickBoxOpacity", config.tickBoxOpacity());
         defaults.store("tickBarWidth", config.tickBarWidth());
         defaults.store("metronome", config.metronome());
         defaults.store("metronomeTone", config.metronomeSound());
         defaults.store("metronomeFirstOnly", config.metronomeFirstOnly());
         defaults.store("metronomeVolume", config.metronomeVolume());
+        defaults.store("metronomeAhead", config.metronomeAhead());
         defaults.store("clickTiming", config.clickTiming());
         defaults.store("clickSounds", config.clickSounds());
         defaults.store("clickLateSound", config.clickLateSound());

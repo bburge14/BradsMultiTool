@@ -51,9 +51,104 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         return 1 - Math.min(1, since / (double) TICK_MILLIS) * 0.7;
     }
 
+    /** A box's label: the tick's number, or "1.5" for its half box. */
+    static String label(int tick, boolean half) {
+        return half ? tick + ".5" : String.valueOf(tick);
+    }
+
+    /**
+     * Whether a box is lit now: a tick's box on its tick, or with Half-Tick Boxes only for the tick's first half,
+     * its half box for the second.
+     */
+    static boolean isLit(TickCounter ticks, TickConfig config, int tick, boolean half) {
+        if (tick != ticks.getCount()) {
+            return false;
+        }
+        if (!config.tickHalfBoxes()) {
+            return !half;
+        }
+        boolean secondHalf = System.currentTimeMillis() - ticks.getLastTickMillis() >= TICK_MILLIS / 2;
+        return half == secondHalf;
+    }
+
+    /** How lit: fading over the tick, or over each half with Half-Tick Boxes. */
+    static double halfFade(TickCounter ticks, TickConfig config) {
+        if (!config.tickHalfBoxes()) {
+            return fade(ticks);
+        }
+        long since = (System.currentTimeMillis() - ticks.getLastTickMillis()) % (TICK_MILLIS / 2);
+        return 1 - Math.min(1, since / (double) (TICK_MILLIS / 2)) * 0.7;
+    }
+
+    /** One tick's box at (x, y): its number, lit (and fading) on its tick. */
+    static void drawBox(Graphics2D graphics, FontMetrics metrics, TickConfig config, int x, int y, int size, int tick,
+                        boolean lit, double fade, Color background) {
+        drawBox(graphics, metrics, config, x, y, size, tick, lit, fade, background, String.valueOf(tick));
+    }
+
+    /** As above, with this label in the box instead of the tick's number. */
+    static void drawBox(Graphics2D graphics, FontMetrics metrics, TickConfig config, int x, int y, int size, int tick,
+                        boolean lit, double fade, Color background, String label) {
+        Color color = tickColor(config, tick);
+        java.awt.Composite before = graphics.getComposite();
+        graphics.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER,
+            Math.max(0.1f, Math.min(1f, config.tickBoxOpacity() / 100f))));
+        Object antialias = graphics.getRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING);
+        graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        java.awt.Shape outer = shape(config.tickBoxShape(), x, y, size - 1);
+        graphics.setColor(background);
+        graphics.fill(outer);
+        if (lit) {
+            graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (color.getAlpha() * fade * 0.7)));
+            graphics.fill(outer);
+        }
+        graphics.setColor(lit ? color : IDLE_BORDER);
+        graphics.draw(outer);
+        if (lit) {
+            graphics.draw(shape(config.tickBoxShape(), x + 1, y + 1, size - 3));
+        }
+        if (!config.tickBoxNumbers()) {
+            graphics.setComposite(before);
+            graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                antialias != null ? antialias : java.awt.RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+            return;
+        }
+        String text = label;
+        // A label too wide for its box shrinks to fit (just this box)
+        java.awt.Font original = graphics.getFont();
+        java.awt.Font font = original;
+        while (metrics.stringWidth(text) > size - 4 && font.getSize2D() > 8) {
+            font = font.deriveFont(font.getSize2D() - 1);
+            graphics.setFont(font);
+            metrics = graphics.getFontMetrics();
+        }
+        int textX = x + (size - metrics.stringWidth(text)) / 2;
+        int textY = y + (size - metrics.getHeight()) / 2 + metrics.getAscent();
+        graphics.setColor(Color.BLACK);
+        graphics.drawString(text, textX + 1, textY + 1);
+        graphics.setColor(lit ? Color.WHITE : Color.GRAY);
+        graphics.drawString(text, textX, textY);
+        graphics.setFont(original);
+        graphics.setComposite(before);
+        graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+            antialias != null ? antialias : java.awt.RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+    }
+
+    private static java.awt.Shape shape(TickConfig.BoxShape shape, int x, int y, int size) {
+        switch (shape) {
+            case CIRCLE:
+                return new java.awt.geom.Ellipse2D.Float(x, y, size, size);
+            case ROUNDED:
+                return new java.awt.geom.RoundRectangle2D.Float(x, y, size, size, size / 3f, size / 3f);
+            default:
+                return new java.awt.Rectangle(x, y, size, size);
+        }
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (client.getGameState() != GameState.LOGGED_IN || !config.tickBoxes() || ticks.getCount() <= 0) {
+        if (client.getGameState() != GameState.LOGGED_IN || !config.tickBoxes() || ticks.getCount() <= 0
+            || config.tickBoxesSeparate()) {
             return null;
         }
         int size = config.tickBoxSize();
@@ -64,32 +159,31 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         FontMetrics metrics = graphics.getFontMetrics();
         double fade = fade(ticks);
 
-        for (int tick = 1; tick <= cycle; tick++) {
-            int x = horizontal ? (tick - 1) * (size + GAP) : 0;
-            int y = horizontal ? 0 : (tick - 1) * (size + GAP);
-            Color color = tickColor(config, tick);
-            boolean lit = tick == current;
-            graphics.setColor(BACKGROUND);
-            graphics.fillRect(x, y, size, size);
-            if (lit) {
-                graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (color.getAlpha() * fade * 0.7)));
-                graphics.fillRect(x, y, size, size);
+        java.util.List<TickMethods.Step> steps = TickMethods.steps(config.tickMethod());
+        if (!steps.isEmpty()) {
+            // A tick method: one box per step, labelled, lit when it's time
+            long since = System.currentTimeMillis() - ticks.getLastTickMillis();
+            for (int i = 0; i < steps.size(); i++) {
+                TickMethods.Step step = steps.get(i);
+                int x = horizontal ? i * (size + GAP) : 0;
+                int y = horizontal ? 0 : i * (size + GAP);
+                drawBox(graphics, metrics, config, x, y, size, i == 0 ? 1 : 2, step.lit(current, since),
+                    halfFade(ticks, config), BACKGROUND, step.label);
             }
-            graphics.setColor(lit ? color : IDLE_BORDER);
-            graphics.drawRect(x, y, size - 1, size - 1);
-            if (lit) {
-                graphics.drawRect(x + 1, y + 1, size - 3, size - 3);
-            }
-
-            String text = String.valueOf(tick);
-            int textX = x + (size - metrics.stringWidth(text)) / 2;
-            int textY = y + (size - metrics.getHeight()) / 2 + metrics.getAscent();
-            graphics.setColor(Color.BLACK);
-            graphics.drawString(text, textX + 1, textY + 1);
-            graphics.setColor(lit ? Color.WHITE : Color.GRAY);
-            graphics.drawString(text, textX, textY);
+            int length = steps.size() * size + (steps.size() - 1) * GAP;
+            return horizontal ? new Dimension(length, size) : new Dimension(size, length);
         }
-        int length = cycle * size + (cycle - 1) * GAP;
+        boolean halves = config.tickHalfBoxes();
+        int slots = halves ? cycle * 2 : cycle;
+        for (int slot = 0; slot < slots; slot++) {
+            int tick = halves ? slot / 2 + 1 : slot + 1;
+            boolean half = halves && slot % 2 == 1;
+            int x = horizontal ? slot * (size + GAP) : 0;
+            int y = horizontal ? 0 : slot * (size + GAP);
+            drawBox(graphics, metrics, config, x, y, size, tick, isLit(ticks, config, tick, half), halfFade(ticks, config),
+                BACKGROUND, label(tick, half));
+        }
+        int length = slots * size + (slots - 1) * GAP;
         return horizontal ? new Dimension(length, size) : new Dimension(size, length);
     }
 }

@@ -11,4 +11,14 @@ final class HudColors {
 
     private HudColors() {
     }
+
+    /**
+     * Gives one of our own panels the overlay background colour picked in RuneLite's settings (what its built-in
+     * panels get), so our cards match the rest of the overlays.
+     */
+    static void theme(net.runelite.client.ui.overlay.components.PanelComponent panel, java.awt.Color preferred) {
+        if (preferred != null) {
+            panel.setBackgroundColor(preferred);
+        }
+    }
 }

@@ -3,8 +3,9 @@
 
 Usage: python3 scripts/update_skilling_data.py
 
-Trees come from the Woodcutting page table (level, XP, chop-down time), rocks from the Rock page table
-(level) plus each rock's page (XP), stalls from the Stall/Thievable table (level, XP, XP/hr), and
+Trees come from the Woodcutting page table (level, XP, chop-down time), rocks from the Rock page table and
+the Mining page's ore table, each with its page's Mining info (level, XP, respawn time, and the Mining Guild's
+and Wilderness's where they differ), stalls from the Stall/Thievable table (level, XP, XP/hr), and
 pickpocket targets from the Thieving page table. Object ids come from each page's Infobox Scenery.
 """
 import json
@@ -106,18 +107,73 @@ def trees():
     return out
 
 
+def mining_info(text):
+    """The fields of a rock page's {{Mining info}} box (level, xp or xp1, time = respawn time), or {}."""
+    m = re.search(r"\{\{Mining info(.*?)\n\}\}", text, re.S)
+    return dict((k.strip(), v.strip()) for k, v in re.findall(r"\|\s*(\w+)\s*=\s*([^\n]*)", m.group(1))) if m else {}
+
+
+def seconds(text):
+    """'12 minutes', '5.4 seconds', '75 seconds (1:15)', '1 minute 30 seconds' as seconds, or None."""
+    text = re.sub(r"\(.*?\)", "", text)
+    parts = re.findall(r"([\d.]+)\s*(minute|second|tick)", text)
+    if not parts:
+        return None
+    return sum(float(n) * (60 if unit == "minute" else 0.6 if unit == "tick" else 1) for n, unit in parts)
+
+
+def respawn(info):
+    """Respawn times in ticks from Mining info's time: the usual one, and the Mining Guild's and the
+    Wilderness's where it gives them ('12 minutes<br/>6 minutes in Mining Guild and Wilderness')."""
+    out = {}
+    parts = re.split(r"<br\s*/?>", info.get("time", ""))
+    usual = seconds(parts[0])
+    if usual:
+        out["respawnTicks"] = int(round(usual / 0.6))
+    for part in parts[1:]:
+        s = seconds(part)
+        if s and "guild" in part.lower():
+            out["guildRespawnTicks"] = int(round(s / 0.6))
+        if s and "wilderness" in part.lower():
+            out["wildRespawnTicks"] = int(round(s / 0.6))
+    return out
+
+
+def rock_pages():
+    """Every rock page (with the Rock table's level, if it's there): the Rock page's table, and a rock for each ore in the Mining page's table ('Lead ore'
+    -> 'Lead rocks'), which lists newer ones the Rock page misses."""
+    pages = {}
+    for cells in rows_of(first_table(wikitext("Rock"))):
+        page = link_text(cells[0]) if cells else None
+        if page and page not in pages:
+            pages[page] = number(cells[1]) if len(cells) > 1 else None
+    mining = wikitext("Mining")
+    for target in re.findall(r"\{\{plinkt\|([^|}]+)", first_table(mining, "==Mineable items==")):
+        target = target.strip()
+        base = target[:-4] if target.lower().endswith(" ore") else target
+        page = target if target.lower().endswith("rocks") else base + " rocks"
+        if page not in pages:
+            pages[page] = None
+    return pages
+
+
 def rocks():
     out = []
-    for cells in rows_of(first_table(wikitext("Rock"))):
-        if len(cells) < 2:
-            continue
-        page, level = link_text(cells[0]), number(cells[1])
-        if not page or level is None:
-            continue
+    for page, table_level in rock_pages().items():
         text = wikitext(page)
-        m = re.search(r"([\d.]+)\s*(?:\[\[)?(?:Mining )?(?:\[\[)?experience", text, re.I)
-        xp = float(m.group(1)) if m else None
-        out.append({"page": page, "skill": "Mining", "level": int(level), "xp": xp})
+        info = mining_info(text)
+        level = number(info.get("level", "")) if info else None
+        xp = number(info.get("xp") or info.get("xp1") or "") if info else None
+        # Pages without a Mining info box: the Rock table's level, the text's XP
+        level = level if level is not None else table_level
+        if level is None or not text:
+            continue
+        if xp is None:
+            m = re.search(r"([\d.]+)\s*(?:\[\[)?(?:Mining )?(?:\[\[)?experience", text, re.I)
+            xp = float(m.group(1)) if m else None
+        entry = {"page": page, "skill": "Mining", "level": int(level), "xp": xp}
+        entry.update(respawn(info))
+        out.append(entry)
         time.sleep(0.2)
     return out
 
@@ -186,12 +242,32 @@ def pickpockets():
     return out
 
 
+def depleted_ids(page):
+    """Ids of the page's spent versions (a depleted rock, a tree stump): its Infobox Scenery versions named
+    'Depleted', 'Empty' or 'Stump', or called plain 'Rocks'. They aren't the resource itself."""
+    text = wikitext(page)
+    out = set()
+    for box in re.findall(r"\{\{Infobox Scenery(.*?)\n\}\}", text, re.S):
+        fields = dict((k.strip(), v.strip()) for k, v in re.findall(r"\|\s*(\w+)\s*=\s*([^\n]*)", box))
+        for key, value in fields.items():
+            m = re.fullmatch(r"version(\d+)", key)
+            if not m:
+                continue
+            n = m.group(1)
+            name = fields.get("name" + n, "")
+            if re.search(r"deplet|empty|stump", value, re.I) or name.lower() == "rocks":
+                out.update(int(x) for x in re.findall(r"\d+", fields.get("id" + n, "")))
+    return out
+
+
 def main():
     objects = {}
     for entry in trees() + rocks() + stalls():
         ids = object_ids(entry["page"])
         if not ids:
             ids = infobox_ids(entry["page"])
+        spent = depleted_ids(entry["page"])
+        ids = [i for i in ids if i not in spent]
         time.sleep(0.2)
         for i in ids:
             objects.setdefault(str(i), {k: v for k, v in entry.items() if v is not None})

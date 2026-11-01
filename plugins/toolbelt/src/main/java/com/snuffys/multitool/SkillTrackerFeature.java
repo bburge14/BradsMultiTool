@@ -31,7 +31,6 @@ class SkillTrackerFeature {
     @Inject private OtherTimerPlugins otherTimerPlugins;
     @Inject private BradsMultiToolSkillingOverlay skillingOverlay;
     @Inject private BradsMultiToolResourceTimerOverlay resourceTimerOverlay;
-    @Inject private BradsMultiToolFishingMinimapOverlay fishingMinimapOverlay;
     @Inject private BradsMultiToolTrainingOverlay trainingOverlay;
     @Inject private BradsMultiToolGoalItemOverlay goalItemOverlay;
     @Inject private BradsMultiToolPinnedSkillOverlay pinnedSkillOverlay;
@@ -47,9 +46,34 @@ class SkillTrackerFeature {
 
     @Inject private ConfigDefaults configDefaults;
     @Inject private SkillTrackerConfig config;
+    @Inject private net.runelite.client.config.ConfigManager configManager;
+    @Inject private PluginIdentity identity;
+
+    // The resource timers' on/off switches (and the one Timers When Not Training switch) became an Always /
+    // While training / Off choice per kind under new keys: carry your old choice over the first time
+    private static final String[][] TIMER_KEYS = {
+        {"showTreeTimer", "treeTimers"}, {"showMiningTimer", "miningTimers"}, {"showFishingSpotTimer", "fishingSpotTimers"},
+        {"showTrapTimer", "trapTimers"}, {"showFireTimer", "fireTimers"}, {"showCampfireTimer", "campfireTimers"},
+        {"showShipwreckTimer", "shipwreckTimers"}};
+
+    private void migrateTimerSettings() {
+        String group = identity.configGroup;
+        boolean always = "true".equals(configManager.getConfiguration(group, "piesAlwaysShown"));
+        for (String[] keys : TIMER_KEYS) {
+            String old = configManager.getConfiguration(group, keys[0]);
+            if (old != null && configManager.getConfiguration(group, keys[1]) == null) {
+                SkillTrackerConfig.TimerShow when = "false".equals(old) ? SkillTrackerConfig.TimerShow.OFF
+                    : always ? SkillTrackerConfig.TimerShow.ALWAYS : SkillTrackerConfig.TimerShow.TRAINING;
+                configManager.setConfiguration(group, keys[1], when);
+            }
+        }
+    }
 
     void start(Lifecycle lifecycle) {
-        configDefaults.add(() -> SkillTrackerConfigDefaults.store(configDefaults, config));
+        configDefaults.add(() -> {
+            migrateTimerSettings();
+            SkillTrackerConfigDefaults.store(configDefaults, config);
+        });
         // Kill counts use monster hitpoints; Slayer goals suggest a Slayer master
         lifecycle.load(monsterData, monsterData::load);
         lifecycle.load(skillingData, skillingData::load);
@@ -62,7 +86,7 @@ class SkillTrackerFeature {
         lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, skillingAlerts,
             resourceTimers, farmingData, birdhouseTracker, otherTimerPlugins, skillingOverlay, trainingOverlay);
         otherTimerPlugins.refresh();
-        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, fishingMinimapOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
+        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
         skillTracker.startUp();
         lifecycle.onStop(skillTracker::shutDown);
     }

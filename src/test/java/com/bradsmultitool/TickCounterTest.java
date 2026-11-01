@@ -35,4 +35,21 @@ public class TickCounterTest {
             assertTrue(overlay.getSimpleName() + " must be @Singleton", overlay.isAnnotationPresent(Singleton.class));
         }
     }
+
+    @org.junit.Test
+    public void halfBoxesAreLabelled() {
+        org.junit.Assert.assertEquals("1", BradsMultiToolTickBoxOverlay.label(1, false));
+        org.junit.Assert.assertEquals("1.5", BradsMultiToolTickBoxOverlay.label(1, true));
+    }
+
+    @org.junit.Test
+    public void tickMethodStepsLightOnTime() {
+        java.util.List<TickMethods.Step> halves = TickMethods.steps(TickConfig.TickMethod.ONE_TICK_HALVES);
+        org.junit.Assert.assertEquals(1, TickMethods.cycle(TickConfig.TickMethod.ONE_TICK_HALVES));
+        org.junit.Assert.assertTrue(halves.get(0).lit(1, 100));   // box 1: first half
+        org.junit.Assert.assertFalse(halves.get(0).lit(1, 400));
+        org.junit.Assert.assertTrue(halves.get(1).lit(1, 400));   // box 2: second half
+        org.junit.Assert.assertTrue(TickMethods.steps(TickConfig.TickMethod.CUSTOM).isEmpty());
+    }
 }
+

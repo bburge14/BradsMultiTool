@@ -146,3 +146,23 @@ The Plugin Hub builds a plugin from the root of a repository, at a commit named 
 `runelite/plugin-hub`'s `plugins/` folder (`repository=...` and `commit=...`). A `plugins/<folder>` here is
 already laid out that way, so publishing one means making that folder the root of a repository (its own, or a
 copy of it) and submitting that file. Settle the open questions in docs/PLUGIN_HUB_COMPLIANCE.md first.
+
+## Saved data shared between plugins
+
+Settings live in each plugin's own config group, but skilling data the player builds up is kept in the
+Toolbelt's old group `"bradsmultitool"` (`SkillTracker.SHARED_GROUP`) by both the Toolbelt and the Skilling
+Helper: goals, goal starts, Track for goal picks, Suggest choices, Prayer methods and the pinned skill (RuneScape
+profile keys, plus `pinnedSkill`), as bird houses and compost already were. `SkillTracker.moveToSharedGroup`
+moves anything the Skilling Helper saved under its own group before this, once, without overwriting.
+
+`training.json` methods carry `xpHour` where the guide's text gives an XP rate ("around 45,000 experience per
+hour"; the top of a range), read by `scripts/update_training_data.py` (`xp_rate`).
+
+## The Toolbelt's settings page
+
+`BradsMultiToolConfig` redeclares every section (RuneLite only shows a config's own sections) and names them after
+their plugin ("PvM: HUD", "Skilling: Goals"). It also overrides the smaller skills' settings (Thieving, Farming,
+Firemaking, Runecraft, Agility, Cooking, Sailing, Smithing) into one "Skilling: Other Skills" section; the keys are
+the same, so values carry over between the Toolbelt and the Skilling Helper's own sections. SettingsPanelTest checks
+each setting shows once and keeps its plugin's section except those.
+

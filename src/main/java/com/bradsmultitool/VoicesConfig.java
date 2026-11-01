@@ -16,6 +16,35 @@ import net.runelite.client.config.Units;
 @ConfigGroup("snuffysalerts")
 public interface VoicesConfig extends CommonConfig {
 
+    @ConfigSection(
+        name = "About",
+        description = "<div width='300'>Snuffy's Alerts: one voice and volume for all of Snuffy's separate plugins, and the idle warnings. Clashes (said in chat while they're on): RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        position = -10
+    )
+    String aboutSection = "aboutSection";
+
+    @ConfigItem(
+        keyName = "openGuide",
+        name = "Open the Guide",
+        description = "<div width='300'>Opens the feature guide in your browser (then switches itself back off)",
+        section = aboutSection,
+        position = 0
+    )
+    default boolean openGuide() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "showClashes",
+        name = "Clash Warnings",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        section = aboutSection,
+        position = 1
+    )
+    default boolean showClashes() {
+        return true;
+    }
+
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
 
     @ConfigSection(
@@ -28,7 +57,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigSection(
         name = "Idle",
         description = "Idle character and idle logout warnings",
-        position = 30,
+        position = 5,
         closedByDefault = true
     )
     String idleSection = "idleSection";
@@ -78,7 +107,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Same Voice For All",
         description = "<div width='300'>Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
         section = generalSection,
-        position = 4
+        position = 3
     )
     @Override
     default boolean syncVoice() {
@@ -90,7 +119,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Chat Messages",
         description = "<div width='300'>Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
         section = generalSection,
-        position = 3
+        position = 4
     )
     @Override
     default boolean sendChatMessages() {
@@ -102,7 +131,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "AFK Alert",
         description = "<div width='300'>Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
         section = idleSection,
-        position = 31
+        position = 0
     )
     @Override
     default boolean characterIdleAlert() {
@@ -117,10 +146,10 @@ public interface VoicesConfig extends CommonConfig {
     120)
     @ConfigItem(
         keyName = "characterIdleSeconds",
-        name = "Idle Alert After",
+        name = "AFK Alert After",
         description = "<div width='300'>Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
         section = idleSection,
-        position = 32
+        position = 1
     )
     @Units(Units.SECONDS)
     @Override
@@ -139,7 +168,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Warn Before Logout",
         description = "<div width='300'>How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
         section = idleSection,
-        position = 34
+        position = 4
     )
     @Units(Units.SECONDS)
     @Override
@@ -152,7 +181,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Repeat Logout Warning",
         description = "Repeat the idle logout announcement until you move",
         section = idleSection,
-        position = 36
+        position = 5
     )
     @Override
     default boolean repeatIdleAlert() {
@@ -164,7 +193,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Repeat Every",
         description = "Seconds between repeat idle logout alerts",
         section = idleSection,
-        position = 37
+        position = 6
     )
     @Units(Units.SECONDS)
     @Override
@@ -177,7 +206,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the idle logout alert after the first",
         section = idleSection,
-        position = 38
+        position = 7
     )
     @Override
     default int maxIdleRepeats() {
@@ -189,7 +218,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Voice: Character Idle",
         description = "<div width='300'>When your character has gone AFK (turning it on plays a preview)",
         section = idleSection,
-        position = 39
+        position = 2
     )
     @Override
     default boolean voiceCharacterIdle() {
@@ -201,7 +230,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Chat: Character Idle",
         description = "Chat message when your character has gone AFK",
         section = idleSection,
-        position = 40
+        position = 3
     )
     @Override
     default boolean chatCharacterIdle() {
@@ -213,7 +242,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Voice: Logout Warning",
         description = "<div width='300'>When you are about to be logged out for inactivity (turning it on plays a preview)",
         section = idleSection,
-        position = 41
+        position = 8
     )
     @Override
     default boolean voiceIdleLogout() {
@@ -225,7 +254,7 @@ public interface VoicesConfig extends CommonConfig {
         name = "Chat: Logout Warning",
         description = "<div width='300'>Chat message when you are about to be logged out for inactivity",
         section = idleSection,
-        position = 42
+        position = 9
     )
     @Override
     default boolean chatIdleLogout() {

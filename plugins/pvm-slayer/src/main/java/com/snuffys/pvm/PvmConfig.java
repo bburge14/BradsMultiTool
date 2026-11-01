@@ -16,6 +16,59 @@ import net.runelite.client.config.Units;
 @ConfigGroup("snuffyspvm")
 public interface PvmConfig extends CommonConfig, BuffConfig {
 
+    @ConfigSection(
+        name = "About",
+        description = "<div width='300'>Snuffy's PvM/Slayer: the PvM HUD and monster hover card, buff bar and potion timers, health and prayer warnings, combat alerts, and the Slayer card (its hotkey shows or hides it) with task monster outlines. Clashes (said in chat while they're on): RuneLite's Slayer plugin with its task highlight on (you'd see two outlines), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        position = -10
+    )
+    String aboutSection = "aboutSection";
+
+    @ConfigSection(
+        name = "Supply Alerts",
+        description = "Running low on ammo, runes or cannonballs",
+        position = 16,
+        closedByDefault = true
+    )
+    String supplyAlertsSection = "supplyAlertsSection";
+
+    @ConfigSection(
+        name = "Slayer Alerts",
+        description = "Alerts for your Slayer task: missing item, superiors, halfway, nearly done and complete",
+        position = 19,
+        closedByDefault = true
+    )
+    String slayerAlertsSection = "slayerAlertsSection";
+
+    @ConfigSection(
+        name = "Slayer Monsters",
+        description = "Slayer details on monsters, and outlines on your task's monsters",
+        position = 18,
+        closedByDefault = true
+    )
+    String slayerMonstersSection = "slayerMonstersSection";
+
+    @ConfigItem(
+        keyName = "openGuide",
+        name = "Open the Guide",
+        description = "<div width='300'>Opens the feature guide in your browser (then switches itself back off)",
+        section = aboutSection,
+        position = 0
+    )
+    default boolean openGuide() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "showClashes",
+        name = "Clash Warnings",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        section = aboutSection,
+        position = 1
+    )
+    default boolean showClashes() {
+        return true;
+    }
+
     // Repeated from CommonConfig and BuffConfig: RuneLite only shows sections an interface declares itself
 
 
@@ -29,7 +82,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Idle",
         description = "Idle character and idle logout warnings",
-        position = 30,
+        position = 5,
         closedByDefault = true
     )
     String idleSection = "idleSection";
@@ -63,7 +116,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Potion Buffs",
         description = "Buff timers on the HUD and running-out / expired alerts",
-        position = 6,
+        position = 12,
         closedByDefault = true
     )
     String buffSection = "buffSection";
@@ -81,7 +134,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Low Health Alert",
         description = "Alert when your hitpoints fall to the threshold or below",
         section = healthSection,
-        position = 14
+        position = 0
     )
     default boolean enableLowHealthAlert() {
         return true;
@@ -93,7 +146,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Alert Below",
         description = "<div width='300'>Alert when hitpoints fall to this percentage of your level or below",
         section = healthSection,
-        position = 15
+        position = 1
     )
     @Units(Units.PERCENT)
     default int lowHealthPercent() {
@@ -105,7 +158,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Flash Health Orb",
         description = "Flash the hitpoints orb by the minimap while health is low",
         section = healthSection,
-        position = 16
+        position = 2
     )
     default boolean flashHealthOrb() {
         return true;
@@ -116,7 +169,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Repeat Voice Alert",
         description = "Repeat the low health alert until you heal",
         section = healthSection,
-        position = 18
+        position = 3
     )
     default boolean repeatHealthAlert() {
         return false;
@@ -127,7 +180,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Repeat Every",
         description = "Seconds between low health alerts",
         section = healthSection,
-        position = 19
+        position = 4
     )
     @Units(Units.SECONDS)
     default int repeatHealthInterval() {
@@ -139,7 +192,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the low health alert after the first",
         section = healthSection,
-        position = 20
+        position = 5
     )
     default int maxHealthRepeats() {
         return 2;
@@ -150,7 +203,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Low Health",
         description = "<div width='300'>When your health drops below the threshold (turning it on plays a preview)",
         section = healthSection,
-        position = 21
+        position = 6
     )
     default boolean voiceHealthLow() {
         return true;
@@ -161,7 +214,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Low Health",
         description = "Chat message when your health drops below the threshold",
         section = healthSection,
-        position = 22
+        position = 7
     )
     default boolean chatHealthLow() {
         return true;
@@ -170,7 +223,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Prayer",
         description = "Low and empty prayer warnings",
-        position = 21,
+        position = 14,
         closedByDefault = true
     )
     String prayerSection = "prayerSection";
@@ -180,7 +233,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Low Prayer Alert",
         description = "Alert when prayer points fall below warning threshold",
         section = prayerSection,
-        position = 22
+        position = 0
     )
     default boolean enableLowPrayerAlert() {
         return true;
@@ -192,7 +245,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Alert Below",
         description = "<div width='300'>Alert when prayer points fall to this percentage of your level or below",
         section = prayerSection,
-        position = 23
+        position = 1
     )
     @Units(Units.PERCENT)
     default int lowPrayerPercent() {
@@ -204,7 +257,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Flash Prayer Orb",
         description = "Flash the prayer orb by the minimap while prayer is low",
         section = prayerSection,
-        position = 24
+        position = 2
     )
     default boolean flashPrayerOrb() {
         return true;
@@ -212,10 +265,10 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigItem(
         keyName = "flashOutOfPrayerOverhead",
-        name = "Overhead 'Out of Prayer' Flash",
+        name = "'Out of Prayer' Over Head",
         description = "<div width='300'>Flash an 'OUT OF PRAYER' box above the player in the game world",
         section = prayerSection,
-        position = 25
+        position = 3
     )
     default boolean flashOutOfPrayerOverhead() {
         return true;
@@ -224,10 +277,10 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @Range(min = 10, max = 48)
     @ConfigItem(
         keyName = "outOfPrayerTextSize",
-        name = "Out of Prayer Size",
+        name = "'Out of Prayer' Text Size",
         description = "<div width='300'>How big the flashing OUT OF PRAYER message over your head is (16 is the game's bold text size)",
         section = prayerSection,
-        position = 26
+        position = 4
     )
     default int outOfPrayerTextSize() {
         return 16;
@@ -238,7 +291,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Repeat Voice Alert",
         description = "Repeat low prayer alert until restored",
         section = prayerSection,
-        position = 27
+        position = 5
     )
     default boolean repeatPrayerAlert() {
         return false;
@@ -249,7 +302,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Repeat Every",
         description = "Seconds between low prayer alerts",
         section = prayerSection,
-        position = 28
+        position = 6
     )
     @Units(Units.SECONDS)
     default int repeatPrayerInterval() {
@@ -261,7 +314,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the low prayer alert after the first",
         section = prayerSection,
-        position = 29
+        position = 7
     )
     default int maxPrayerRepeats() {
         return 2;
@@ -272,7 +325,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Low / Out of Prayer",
         description = "<div width='300'>When prayer is low or runs out (turning it on plays a preview)",
         section = prayerSection,
-        position = 30
+        position = 8
     )
     default boolean voicePrayerLow() {
         return true;
@@ -283,7 +336,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Low / Out of Prayer",
         description = "Chat message when prayer is low or runs out",
         section = prayerSection,
-        position = 31
+        position = 9
     )
     default boolean chatPrayerLow() {
         return true;
@@ -292,7 +345,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Combat Alerts",
         description = "<div width='300'>Special attack, antifire, poison, stamina, ammo, runes and cannon alerts",
-        position = 29,
+        position = 15,
         closedByDefault = true
     )
     String combatAlertsSection = "combatAlertsSection";
@@ -326,7 +379,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Antifire Running Out",
         description = "<div width='300'>Alert shortly before antifire / super antifire protection ends",
         section = combatAlertsSection,
-        position = 2
+        position = 4
     )
     default boolean antifireAlert() {
         return true;
@@ -334,10 +387,10 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigItem(
         keyName = "poisonAlert",
-        name = "Poison & Venom",
+        name = "Poison and Venom",
         description = "<div width='300'>Alert when you are poisoned or venomed, and when poison protection is running out",
         section = combatAlertsSection,
-        position = 3
+        position = 7
     )
     default boolean poisonAlert() {
         return true;
@@ -348,7 +401,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Stamina Worn Off",
         description = "Alert when a stamina potion wears off",
         section = combatAlertsSection,
-        position = 4
+        position = 10
     )
     default boolean staminaAlert() {
         return true;
@@ -358,8 +411,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "ammoAlert",
         name = "Low Ammo",
         description = "<div width='300'>Alert when your ammo or thrown weapons run low while using ranged",
-        section = combatAlertsSection,
-        position = 5
+        section = supplyAlertsSection,
+        position = 0
     )
     default boolean ammoAlert() {
         return true;
@@ -369,8 +422,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "ammoThreshold",
         name = "Low Ammo At",
         description = "Ammo count that counts as low",
-        section = combatAlertsSection,
-        position = 6
+        section = supplyAlertsSection,
+        position = 1
     )
     default int ammoThreshold() {
         return 50;
@@ -380,8 +433,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "runesAlert",
         name = "Out of Runes",
         description = "Alert when a spell fails for lack of runes",
-        section = combatAlertsSection,
-        position = 7
+        section = supplyAlertsSection,
+        position = 4
     )
     default boolean runesAlert() {
         return true;
@@ -391,8 +444,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "cannonAlert",
         name = "Cannon Low",
         description = "Alert when your cannon is running low on cannonballs",
-        section = combatAlertsSection,
-        position = 8
+        section = supplyAlertsSection,
+        position = 7
     )
     default boolean cannonAlert() {
         return true;
@@ -402,8 +455,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "cannonThreshold",
         name = "Cannon Low At",
         description = "Cannonballs left that counts as low",
-        section = combatAlertsSection,
-        position = 9
+        section = supplyAlertsSection,
+        position = 8
     )
     default int cannonThreshold() {
         return 10;
@@ -414,7 +467,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Special Attack Ready",
         description = "<div width='300'>When your special attack is back up (turning it on plays a preview)",
         section = combatAlertsSection,
-        position = 10
+        position = 2
     )
     default boolean voiceSpecReady() {
         return true;
@@ -425,7 +478,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Special Attack Ready",
         description = "Chat message when your special attack is back up",
         section = combatAlertsSection,
-        position = 11
+        position = 3
     )
     default boolean chatSpecReady() {
         return true;
@@ -436,7 +489,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Antifire Running Out",
         description = "<div width='300'>When antifire protection is about to end (turning it on plays a preview)",
         section = combatAlertsSection,
-        position = 12
+        position = 5
     )
     default boolean voiceAntifire() {
         return true;
@@ -447,7 +500,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Antifire Running Out",
         description = "Chat message when antifire protection is about to end",
         section = combatAlertsSection,
-        position = 13
+        position = 6
     )
     default boolean chatAntifire() {
         return true;
@@ -458,7 +511,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Poison / Venom",
         description = "<div width='300'>When you are poisoned or venomed, or poison protection is ending (turning it on plays a preview)",
         section = combatAlertsSection,
-        position = 14
+        position = 8
     )
     default boolean voicePoison() {
         return true;
@@ -469,7 +522,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Poison / Venom",
         description = "<div width='300'>Chat message when you are poisoned or venomed, or poison protection is ending",
         section = combatAlertsSection,
-        position = 15
+        position = 9
     )
     default boolean chatPoison() {
         return true;
@@ -480,7 +533,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Stamina Worn Off",
         description = "<div width='300'>When a stamina potion wears off (turning it on plays a preview)",
         section = combatAlertsSection,
-        position = 16
+        position = 11
     )
     default boolean voiceStamina() {
         return true;
@@ -491,7 +544,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Stamina Worn Off",
         description = "Chat message when a stamina potion wears off",
         section = combatAlertsSection,
-        position = 17
+        position = 12
     )
     default boolean chatStamina() {
         return true;
@@ -501,8 +554,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceAmmo",
         name = "Voice: Low Ammo",
         description = "When your ammo runs low (turning it on plays a preview)",
-        section = combatAlertsSection,
-        position = 18
+        section = supplyAlertsSection,
+        position = 2
     )
     default boolean voiceAmmo() {
         return true;
@@ -512,8 +565,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatAmmo",
         name = "Chat: Low Ammo",
         description = "Chat message when your ammo runs low",
-        section = combatAlertsSection,
-        position = 19
+        section = supplyAlertsSection,
+        position = 3
     )
     default boolean chatAmmo() {
         return true;
@@ -523,8 +576,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceRunes",
         name = "Voice: Out of Runes",
         description = "<div width='300'>When you can't cast for lack of runes (turning it on plays a preview)",
-        section = combatAlertsSection,
-        position = 20
+        section = supplyAlertsSection,
+        position = 5
     )
     default boolean voiceRunes() {
         return true;
@@ -534,8 +587,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatRunes",
         name = "Chat: Out of Runes",
         description = "Chat message when you can't cast for lack of runes",
-        section = combatAlertsSection,
-        position = 21
+        section = supplyAlertsSection,
+        position = 6
     )
     default boolean chatRunes() {
         return true;
@@ -545,8 +598,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceCannon",
         name = "Voice: Cannon Low",
         description = "<div width='300'>When your cannon is low on cannonballs (turning it on plays a preview)",
-        section = combatAlertsSection,
-        position = 22
+        section = supplyAlertsSection,
+        position = 9
     )
     default boolean voiceCannon() {
         return true;
@@ -556,8 +609,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatCannon",
         name = "Chat: Cannon Low",
         description = "Chat message when your cannon is low on cannonballs",
-        section = combatAlertsSection,
-        position = 23
+        section = supplyAlertsSection,
+        position = 10
     )
     default boolean chatCannon() {
         return true;
@@ -566,7 +619,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Buff Bar",
         description = "<div width='300'>Your buffs and debuffs as a row of icons with timers, like RS3's",
-        position = 40,
+        position = 11,
         closedByDefault = true
     )
     String buffBarSection = "buffBarSection";
@@ -574,17 +627,17 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "PvM HUD",
         description = "Combat HUD and monster hover info for non-crab monsters",
-        position = 39,
+        position = 10,
         closedByDefault = true
     )
     String pvmSection = "pvmSection";
 
     @ConfigItem(
         keyName = "enablePvmOverlay",
-        name = "Enable PvM HUD",
+        name = "Show PvM HUD",
         description = "<div width='300'>Show combat HUD (DPS, target HP bar, aggro state, weaknesses) when attacking any monster",
         section = pvmSection,
-        position = 40
+        position = 0
     )
     default boolean enablePvmOverlay() {
         return true;
@@ -592,10 +645,10 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigItem(
         keyName = "showHoverInfo",
-        name = "Monster Hover Info",
+        name = "Monster Hover Card",
         description = "<div width='300'>When hovering an attackable monster, show its level, health, weakness, attack style and  aggression next to the cursor (hidden for the monster type you're already fighting)",
         section = pvmSection,
-        position = 41
+        position = 1
     )
     default boolean showHoverInfo() {
         return true;
@@ -606,7 +659,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "DPS Mode",
         description = "<div width='300'>Per Monster: each monster you fight from scratch. Per Type: keeps going while you fight the same kind of monster, resets on a different one. Session: a rolling average over the whole session",
         section = pvmSection,
-        position = 42
+        position = 3
     )
     default DpsTrackingMode dpsMode() {
         return DpsTrackingMode.PER_TARGET_TYPE;
@@ -617,7 +670,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Linger After Combat",
         description = "<div width='300'>Seconds the PvM HUD and DPS history remain visible after combat ends",
         section = pvmSection,
-        position = 43
+        position = 2
     )
     @Units(Units.SECONDS)
     default int pvmLingerSeconds() {
@@ -629,7 +682,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Show Weakness",
         description = "<div width='300'>Show style, elemental, or slayer bane weakness on the PvM overlay",
         section = pvmSection,
-        position = 44
+        position = 4
     )
     default boolean showPvmWeakness() {
         return true;
@@ -640,7 +693,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Show DPS",
         description = "Display live or rolling session DPS on the PvM overlay",
         section = pvmSection,
-        position = 45
+        position = 5
     )
     default boolean showPvmDps() {
         return true;
@@ -651,7 +704,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Show Last Hit",
         description = "Display continuous most recent hit dealt to PvM monsters",
         section = pvmSection,
-        position = 46
+        position = 6
     )
     default boolean showPvmLastHit() {
         return true;
@@ -662,7 +715,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Show Max Hit",
         description = "Display continuous highest hit dealt to PvM monsters",
         section = pvmSection,
-        position = 47
+        position = 7
     )
     default boolean showPvmMaxHit() {
         return true;
@@ -670,26 +723,26 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigItem(
         keyName = "showPvmAggro",
-        name = "Show Aggro Status",
+        name = "Show Aggression",
         description = "<div width='300'>Show whether the monster is aggressive and its tolerance timer",
         section = pvmSection,
-        position = 48
+        position = 8
     )
     default boolean showPvmAggro() {
         return true;
     }
 
     @ConfigSection(
-        name = "Slayer",
-        description = "<div width='300'>Task tracker, required items, superior and task-complete alerts",
-        position = 48,
+        name = "Slayer Card",
+        description = "The Slayer card: your task, kills left, where to go and how to get there, or the master to visit without a task",
+        position = 17,
         closedByDefault = true
     )
     String slayerSection = "slayerSection";
 
     @ConfigItem(
         keyName = "showSlayerTask",
-        name = "Show Task Tracker",
+        name = "Show Slayer Card",
         description = "Show your task, kills left, kill rate and time to finish",
         section = slayerSection,
         position = 0
@@ -714,7 +767,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Where To Go",
         description = "<div width='300'>On a task, list where to kill it (multicombat, cannon, safespot) and how to get to the first place",
         section = slayerSection,
-        position = 5
+        position = 6
     )
     default boolean showSlayerDirections() {
         return true;
@@ -725,7 +778,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Master Card Without a Task",
         description = "<div width='300'>With no task, show the best Slayer master for your levels, where they are and how to get there",
         section = slayerSection,
-        position = 9
+        position = 10
     )
     default boolean showSlayerMasterCard() {
         return true;
@@ -769,7 +822,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Required Item",
         description = "The item the task needs (red when you don't have it)",
         section = slayerSection,
-        position = 4
+        position = 5
     )
     default boolean slayerRequiredItem() {
         return true;
@@ -780,7 +833,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "How To Get There",
         description = "<div width='300'>The fastest ways to the first place to kill your task, or to the Slayer master",
         section = slayerSection,
-        position = 7
+        position = 8
     )
     default boolean slayerTravelRoutes() {
         return true;
@@ -791,7 +844,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Next Master",
         description = "<div width='300'>With no task, the next Slayer master you'll unlock and what they need",
         section = slayerSection,
-        position = 10
+        position = 11
     )
     default boolean slayerNextMaster() {
         return true;
@@ -803,7 +856,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Places Shown",
         description = "How many places to kill your task to list",
         section = slayerSection,
-        position = 6
+        position = 7
     )
     default int slayerPlacesShown() {
         return 3;
@@ -815,7 +868,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Routes Shown",
         description = "How many ways to get there to list",
         section = slayerSection,
-        position = 8
+        position = 9
     )
     default int slayerRoutesShown() {
         return 2;
@@ -825,8 +878,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "showSlayerMonsterInfo",
         name = "Slayer Info on Monsters",
         description = "<div width='300'>On the monster hover card and PvM HUD for Slayer monsters: the Slayer level needed (red if you can't damage it yet), the gear its task needs (earmuffs, nose peg, rock hammer...; red if you don't have it), whether it's your task, and Slayer XP",
-        section = slayerSection,
-        position = 11
+        section = slayerMonstersSection,
+        position = 0
     )
     default boolean showSlayerMonsterInfo() {
         return true;
@@ -836,8 +889,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "highlightTaskMonsters",
         name = "Highlight Task Monsters",
         description = "<div width='300'>Outline the monsters that count for your task. On a Konar task, ones outside her assigned area aren't outlined (kills there don't count)",
-        section = slayerSection,
-        position = 12
+        section = slayerMonstersSection,
+        position = 1
     )
     default boolean highlightTaskMonsters() {
         return true;
@@ -848,8 +901,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "taskMonsterColor",
         name = "Task Monster Colour",
         description = "Outline colour for task monsters",
-        section = slayerSection,
-        position = 13
+        section = slayerMonstersSection,
+        position = 2
     )
     default Color taskMonsterColor() {
         return new Color(255, 120, 0, 200);
@@ -857,10 +910,10 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigItem(
         keyName = "slayerItemAlert",
-        name = "Missing Item Warning",
+        name = "Missing Slayer Item",
         description = "<div width='300'>Warn when fighting a task monster without its required item (e.g. rock hammer)",
-        section = slayerSection,
-        position = 11
+        section = slayerAlertsSection,
+        position = 0
     )
     default boolean slayerItemAlert() {
         return true;
@@ -870,8 +923,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "superiorAlert",
         name = "Superior Spawned",
         description = "Alert when a superior slayer monster appears",
-        section = slayerSection,
-        position = 12
+        section = slayerAlertsSection,
+        position = 3
     )
     default boolean superiorAlert() {
         return true;
@@ -881,8 +934,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "taskCompleteAlert",
         name = "Task Complete",
         description = "Alert when your slayer task is finished",
-        section = slayerSection,
-        position = 13
+        section = slayerAlertsSection,
+        position = 12
     )
     default boolean taskCompleteAlert() {
         return true;
@@ -892,8 +945,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceSlayerItem",
         name = "Voice: Missing Slayer Item",
         description = "<div width='300'>When fighting a task monster without its required item (turning it on plays a preview)",
-        section = slayerSection,
-        position = 14
+        section = slayerAlertsSection,
+        position = 1
     )
     default boolean voiceSlayerItem() {
         return true;
@@ -903,8 +956,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatSlayerItem",
         name = "Chat: Missing Slayer Item",
         description = "<div width='300'>Chat message when fighting a task monster without its required item",
-        section = slayerSection,
-        position = 15
+        section = slayerAlertsSection,
+        position = 2
     )
     default boolean chatSlayerItem() {
         return true;
@@ -914,8 +967,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceSuperior",
         name = "Voice: Superior Spawned",
         description = "<div width='300'>When a superior slayer monster appears (turning it on plays a preview)",
-        section = slayerSection,
-        position = 16
+        section = slayerAlertsSection,
+        position = 4
     )
     default boolean voiceSuperior() {
         return true;
@@ -925,8 +978,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatSuperior",
         name = "Chat: Superior Spawned",
         description = "Chat message when a superior slayer monster appears",
-        section = slayerSection,
-        position = 17
+        section = slayerAlertsSection,
+        position = 5
     )
     default boolean chatSuperior() {
         return true;
@@ -936,8 +989,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceTaskComplete",
         name = "Voice: Task Complete",
         description = "<div width='300'>When your slayer task is done (turning it on plays a preview)",
-        section = slayerSection,
-        position = 18
+        section = slayerAlertsSection,
+        position = 13
     )
     default boolean voiceTaskComplete() {
         return true;
@@ -947,8 +1000,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatTaskComplete",
         name = "Chat: Task Complete",
         description = "Chat message when your slayer task is done",
-        section = slayerSection,
-        position = 19
+        section = slayerAlertsSection,
+        position = 14
     )
     default boolean chatTaskComplete() {
         return true;
@@ -958,8 +1011,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "taskHalfwayAlert",
         name = "Task Halfway",
         description = "Alert when you've done half of your slayer task",
-        section = slayerSection,
-        position = 20
+        section = slayerAlertsSection,
+        position = 6
     )
     default boolean taskHalfwayAlert() {
         return true;
@@ -972,8 +1025,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "taskNearlyDoneAt",
         name = "Task Nearly Done At",
         description = "<div width='300'>Alert when this many kills are left on your slayer task (0: off)",
-        section = slayerSection,
-        position = 21
+        section = slayerAlertsSection,
+        position = 9
     )
     default int taskNearlyDoneAt() {
         return 10;
@@ -983,8 +1036,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceTaskHalfway",
         name = "Voice: Task Halfway",
         description = "<div width='300'>When half your slayer task is done (turning it on plays a preview)",
-        section = slayerSection,
-        position = 22
+        section = slayerAlertsSection,
+        position = 7
     )
     default boolean voiceTaskHalfway() {
         return true;
@@ -994,8 +1047,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatTaskHalfway",
         name = "Chat: Task Halfway",
         description = "Chat message when half your slayer task is done",
-        section = slayerSection,
-        position = 23
+        section = slayerAlertsSection,
+        position = 8
     )
     default boolean chatTaskHalfway() {
         return true;
@@ -1005,8 +1058,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceTaskNearlyDone",
         name = "Voice: Task Nearly Done",
         description = "<div width='300'>When your slayer task is down to Task Nearly Done At (turning it on plays a preview)",
-        section = slayerSection,
-        position = 24
+        section = slayerAlertsSection,
+        position = 10
     )
     default boolean voiceTaskNearlyDone() {
         return true;
@@ -1016,8 +1069,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatTaskNearlyDone",
         name = "Chat: Task Nearly Done",
         description = "<div width='300'>Chat message when your slayer task is down to Task Nearly Done At",
-        section = slayerSection,
-        position = 25
+        section = slayerAlertsSection,
+        position = 11
     )
     default boolean chatTaskNearlyDone() {
         return true;
@@ -1078,7 +1131,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Show Monster Effects",
         description = "<div width='300'>On the HUD: what's on the monster you fight (poisoned, venomed, burning, frozen with time left) and its Defence after your special attacks lower it (Dragon warhammer, Elder maul, Bandos godsword, Arclight)",
         section = pvmSection,
-        position = 49
+        position = 9
     )
     default boolean showMonsterEffects() {
         return true;
@@ -1129,7 +1182,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Same Voice For All",
         description = "<div width='300'>Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
         section = generalSection,
-        position = 4
+        position = 3
     )
     @Override
     default boolean syncVoice() {
@@ -1141,7 +1194,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat Messages",
         description = "<div width='300'>Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
         section = generalSection,
-        position = 3
+        position = 4
     )
     @Override
     default boolean sendChatMessages() {
@@ -1153,7 +1206,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "AFK Alert",
         description = "<div width='300'>Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
         section = idleSection,
-        position = 31
+        position = 0
     )
     @Override
     default boolean characterIdleAlert() {
@@ -1168,10 +1221,10 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     120)
     @ConfigItem(
         keyName = "characterIdleSeconds",
-        name = "Idle Alert After",
+        name = "AFK Alert After",
         description = "<div width='300'>Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
         section = idleSection,
-        position = 32
+        position = 1
     )
     @Units(Units.SECONDS)
     @Override
@@ -1190,7 +1243,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Warn Before Logout",
         description = "<div width='300'>How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
         section = idleSection,
-        position = 34
+        position = 4
     )
     @Units(Units.SECONDS)
     @Override
@@ -1203,7 +1256,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Repeat Logout Warning",
         description = "Repeat the idle logout announcement until you move",
         section = idleSection,
-        position = 36
+        position = 5
     )
     @Override
     default boolean repeatIdleAlert() {
@@ -1215,7 +1268,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Repeat Every",
         description = "Seconds between repeat idle logout alerts",
         section = idleSection,
-        position = 37
+        position = 6
     )
     @Units(Units.SECONDS)
     @Override
@@ -1228,7 +1281,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the idle logout alert after the first",
         section = idleSection,
-        position = 38
+        position = 7
     )
     @Override
     default int maxIdleRepeats() {
@@ -1240,7 +1293,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Character Idle",
         description = "<div width='300'>When your character has gone AFK (turning it on plays a preview)",
         section = idleSection,
-        position = 39
+        position = 2
     )
     @Override
     default boolean voiceCharacterIdle() {
@@ -1252,7 +1305,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Character Idle",
         description = "Chat message when your character has gone AFK",
         section = idleSection,
-        position = 40
+        position = 3
     )
     @Override
     default boolean chatCharacterIdle() {
@@ -1264,7 +1317,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Logout Warning",
         description = "<div width='300'>When you are about to be logged out for inactivity (turning it on plays a preview)",
         section = idleSection,
-        position = 41
+        position = 8
     )
     @Override
     default boolean voiceIdleLogout() {
@@ -1276,7 +1329,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Logout Warning",
         description = "<div width='300'>Chat message when you are about to be logged out for inactivity",
         section = idleSection,
-        position = 42
+        position = 9
     )
     @Override
     default boolean chatIdleLogout() {
@@ -1290,7 +1343,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Show Buffs on HUD",
         description = "<div width='300'>Show each active potion buff with its boost and time left (on the PvM HUD and the crab card)",
         section = buffSection,
-        position = 5
+        position = 0
     )
     @Override
     default boolean enableBuffStatus() {
@@ -1302,7 +1355,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Flash When Expired",
         description = "Flash the Buff line on the HUD when buff is expired",
         section = buffSection,
-        position = 6
+        position = 2
     )
     @Override
     default boolean flashExpiredBuff() {
@@ -1317,7 +1370,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Warn Before Ending",
         description = "Warn this many seconds before a buff runs out (0 = off)",
         section = buffSection,
-        position = 7
+        position = 1
     )
     @Units(Units.SECONDS)
     @Override
@@ -1330,7 +1383,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Repeat Expired Alert",
         description = "Repeat the expired buff announcement",
         section = buffSection,
-        position = 10
+        position = 3
     )
     @Override
     default boolean repeatBuffAlert() {
@@ -1342,7 +1395,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Repeat Every",
         description = "Seconds between repeat buff alerts",
         section = buffSection,
-        position = 11
+        position = 4
     )
     @Units(Units.SECONDS)
     @Override
@@ -1355,7 +1408,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the expired buff alert after the first",
         section = buffSection,
-        position = 12
+        position = 5
     )
     @Override
     default int maxBuffRepeats() {
@@ -1367,7 +1420,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Potion Running Out",
         description = "<div width='300'>Shortly before a potion boost runs out (turning it on plays a preview)",
         section = buffSection,
-        position = 13
+        position = 6
     )
     @Override
     default boolean voiceBuffLow() {
@@ -1379,7 +1432,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Potion Running Out",
         description = "Chat message shortly before a potion boost runs out",
         section = buffSection,
-        position = 14
+        position = 7
     )
     @Override
     default boolean chatBuffLow() {
@@ -1391,7 +1444,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Voice: Potion Expired",
         description = "<div width='300'>When a potion boost has run out (turning it on plays a preview)",
         section = buffSection,
-        position = 15
+        position = 8
     )
     @Override
     default boolean voiceBuffExpired() {
@@ -1403,7 +1456,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         name = "Chat: Potion Expired",
         description = "Chat message when a potion boost has run out",
         section = buffSection,
-        position = 16
+        position = 9
     )
     @Override
     default boolean chatBuffExpired() {

@@ -27,7 +27,8 @@ enum AlertType {
     CRAB_LOW_HEALTH("CrabLowHealth", VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH),
     INVENTORY_FULL("InventoryFull", VoiceAlertService.VoiceLine.INVENTORY_FULL),
     TREE_GONE("TreeGone", VoiceAlertService.VoiceLine.TREE_GONE),
-    ROCK_DEPLETED("RockDepleted", VoiceAlertService.VoiceLine.ROCK_DEPLETED),
+    // Its voice under a new key, off by default (most rocks go after one ore, so it'd speak after nearly every one)
+    ROCK_DEPLETED("voiceRockDepletedEach", "chatRockDepleted", new String[]{VoiceAlertService.VoiceLine.ROCK_DEPLETED.fileName}),
     FISHING_SPOT("FishingSpot", VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED),
     COIN_POUCH("CoinPouch", VoiceAlertService.VoiceLine.COIN_POUCH_FULL),
     BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
@@ -44,8 +45,12 @@ enum AlertType {
     }
 
     AlertType(String key, String[] preview) {
-        this.voiceKey = "voice" + key;
-        this.chatKey = "chat" + key;
+        this("voice" + key, "chat" + key, preview);
+    }
+
+    AlertType(String voiceKey, String chatKey, String[] preview) {
+        this.voiceKey = voiceKey;
+        this.chatKey = chatKey;
         this.preview = preview;
     }
 

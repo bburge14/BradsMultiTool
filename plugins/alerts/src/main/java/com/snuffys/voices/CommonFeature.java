@@ -23,9 +23,11 @@ class CommonFeature {
     private VoiceSync voiceSync;
     @Inject
     private CommonConfig config;
+    @Inject
+    private PluginClashes clashes;
 
     void start(Lifecycle lifecycle) {
-        lifecycle.subscribe(inGame, alerts, idleWarnings, configDefaults, voiceSync);
+        lifecycle.subscribe(inGame, alerts, idleWarnings, configDefaults, voiceSync, clashes);
         configDefaults.add(() -> CommonConfigDefaults.store(configDefaults, config));
         lifecycle.overlay(idleWarningOverlay);
         voiceSync.start();
@@ -33,6 +35,7 @@ class CommonFeature {
         lifecycle.onStop(() -> {
             pluginFamily.stop();
             alerts.shutDown();
+            clashes.stop();
             configDefaults.clear();
         });
     }

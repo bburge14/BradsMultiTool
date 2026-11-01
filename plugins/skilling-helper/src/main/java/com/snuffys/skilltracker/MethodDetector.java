@@ -41,6 +41,81 @@ class MethodDetector {
     private final SkillHelperData helpers;
     private final CombatStyle combatStyle;
     private final PluginIdentity identity;
+    private final net.runelite.client.game.ItemManager itemManager;
+
+    // The way you're fishing (a fishing spot option as the spot data names it: "fly fishing", "stripy feathers"),
+    // worked out from the XP of your last catch, and the menu option you'd clicked then
+    private volatile String fishingWay;
+    private String fishingWayOption;
+    private String fishingOption;
+
+    // Which of the spot's ways a menu option is: one named like it ("Bait"), else one no other option of the spot
+    // is named after ("Lure" is fly fishing or stripy feathers), whichever you carry the rod and bait for (the
+    // exact bait counting most, so stripy feathers win over plain feathers when that's what you have)
+    private String guessWay(NPC npc, String option) {
+        SkillHelperData.FishingSpot spot = helpers.fishingSpot(npc.getId());
+        net.runelite.api.NPCComposition composition = npc.getTransformedComposition() != null
+            ? npc.getTransformedComposition() : npc.getComposition();
+        if (spot == null || composition == null) {
+            return null;
+        }
+        Set<String> others = new HashSet<>();
+        for (String action : composition.getActions()) {
+            if (action != null && !action.equalsIgnoreCase(option) && SkillingData.isFishingOption(action)) {
+                others.add(action.toLowerCase());
+            }
+        }
+        Set<String> carried = carried();
+        String best = null;
+        int bestScore = Integer.MIN_VALUE;
+        for (Map.Entry<String, List<SkillHelperData.Catch>> way : spot.options.entrySet()) {
+            String key = way.getKey().toLowerCase();
+            if (others.contains(key) || way.getValue().isEmpty()) {
+                continue;
+            }
+            SkillHelperData.Catch first = way.getValue().get(0);
+            int score = key.equals(option) ? 4 : 0;
+            String needs = first.needs();
+            boolean hasAll = true;
+            if (needs != null) {
+                for (String part : needs.toLowerCase().split("\\s*\\+\\s*")) {
+                    hasAll &= carried.stream().anyMatch(item -> GoalItems.isTool(item, part));
+                }
+            }
+            score += hasAll ? 2 : -2;
+            if (first.bait != null && carried.contains(first.bait.toLowerCase())) {
+                score += 1;
+            }
+            if (score > bestScore) {
+                bestScore = score;
+                best = key;
+            }
+        }
+        return best;
+    }
+
+    // Everything in your inventory and worn (lower-case names)
+    private Set<String> carried() {
+        Set<String> names = new HashSet<>();
+        for (net.runelite.api.ItemContainer container : new net.runelite.api.ItemContainer[]{
+            client.getItemContainer(net.runelite.api.gameval.InventoryID.INV),
+            client.getItemContainer(net.runelite.api.gameval.InventoryID.WORN)}) {
+            if (container == null) {
+                continue;
+            }
+            for (net.runelite.api.Item item : container.getItems()) {
+                if (item.getId() > 0) {
+                    names.add(itemManager.getItemComposition(item.getId()).getName().toLowerCase());
+                }
+            }
+        }
+        return names;
+    }
+
+    /** The way you're fishing now (lower-case, as fishing spot data names it): guessed when you click, confirmed by your catches. */
+    String fishingWay() {
+        return fishingWay;
+    }
 
     // What you last clicked that trains a skill, and when
     private Skill clickedSkill;
@@ -59,7 +134,8 @@ class MethodDetector {
 
     @Inject
     MethodDetector(Client client, SkillTracker plugin, SkillingData skilling, SkillHelperData helpers,
-                   CombatStyle combatStyle, PluginIdentity identity) {
+                   CombatStyle combatStyle, PluginIdentity identity, net.runelite.client.game.ItemManager itemManager) {
+        this.itemManager = itemManager;
         this.client = client;
         this.plugin = plugin;
         this.skilling = skilling;
@@ -110,6 +186,16 @@ class MethodDetector {
             if (SkillingData.isFishingOption(option) && helpers.fishingSpot(npc.getId()) != null) {
                 skill = Skill.FISHING;
                 spot = npc;
+                // The way you're about to fish, from the option and what you carry ("Lure" with feathers: fly
+                // fishing); your first catch corrects it if it's wrong
+                String way = guessWay(npc, option);
+                if (way != null) {
+                    fishingWay = way;
+                    fishingWayOption = option;
+                } else if (fishingWayOption != null && !fishingWayOption.equals(option)) {
+                    fishingWay = null;
+                }
+                fishingOption = option;
             } else if (option.equals("pickpocket")) {
                 skill = Skill.THIEVING;
                 target = GoalTarget.NPC + name.toLowerCase();
@@ -135,7 +221,18 @@ class MethodDetector {
         Skill skill = event.getSkill();
         Integer before = lastXp.put(skill, event.getXp());
         int drop = before == null ? 0 : event.getXp() - before;
-        if (drop <= 0 || plugin.getSkillGoal(skill) <= event.getXp()) {
+        if (drop <= 0) {
+            return;
+        }
+        // The way you're fishing, for the fishing spot tiles (whether or not you have a goal)
+        if (skill == Skill.FISHING && skill == clickedSkill && client.getTickCount() - clickTick <= CLICK_MEMORY_TICKS) {
+            String fish = fishingTarget(drop);
+            if (fish != null) {
+                fishingWay = GoalTarget.parts(fish)[1];
+                fishingWayOption = fishingOption;
+            }
+        }
+        if (plugin.getSkillGoal(skill) <= event.getXp()) {
             return;
         }
         String target = null;
@@ -243,6 +340,7 @@ class MethodDetector {
         offers.clear();
         dismissed.clear();
         clickedSkill = null;
+        fishingWay = null;
     }
 
     Map<Skill, String> offers() {

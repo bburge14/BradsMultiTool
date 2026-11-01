@@ -48,6 +48,8 @@ class TrainingData {
         final List<String> targets = new ArrayList<>();
         /** The guide's first sentences about it, or null. */
         final String about;
+        /** The XP per hour the guide gives for it (the top of its range), 0 when it doesn't say. */
+        final int xpHour;
         /** Where the guide says to do it ("Prifddinas", "Shilo Village"...), best first, or empty. */
         final List<String> places = new ArrayList<>();
         /** Another non-combat skill's guide lists it too (it trains both). */
@@ -96,6 +98,7 @@ class TrainingData {
                 }
             }
             about = o.has("about") ? o.get("about").getAsString() : null;
+            xpHour = o.has("xpHour") ? o.get("xpHour").getAsInt() : 0;
             if (o.has("places")) {
                 for (JsonElement e : o.getAsJsonArray("places")) {
                     places.add(e.getAsString());
@@ -263,6 +266,34 @@ class TrainingData {
             }
         }
         return chosen != null ? chosen : fallback != null ? fallback : questing;
+    }
+
+    /**
+     * Every method you could use at this level (not questing), for picking your own: the guide's fastest ones
+     * first, then its other methods, each latest-starting first.
+     */
+    List<Method> available(Skill skill, int level, java.util.function.Predicate<Method> canDo) {
+        List<Method> out = new ArrayList<>();
+        for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
+            if (method.covers(level) && !method.isQuesting() && canDo.test(method)
+                && out.stream().noneMatch(m -> m.name.equals(method.name))) {
+                out.add(method);
+            }
+        }
+        out.sort((a, b) -> a.fastest != b.fastest ? (a.fastest ? -1 : 1) : Integer.compare(b.from, a.from));
+        return out;
+    }
+
+    /** The guide's methods that start above this level (not questing), latest-starting last. */
+    List<Method> later(Skill skill, int level) {
+        List<Method> out = new ArrayList<>();
+        for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
+            if (method.from > level && !method.isQuesting()) {
+                out.add(method);
+            }
+        }
+        out.sort((a, b) -> Integer.compare(a.from, b.from));
+        return out;
     }
 
     /** The guide's questing method for this level (quests worth doing for their XP), or null. */

@@ -28,6 +28,10 @@ import net.runelite.client.ui.overlay.components.PanelComponent;
  */
 public class BradsMultiToolSlayerOverlay extends Overlay {
 
+    // RuneLite's own settings, for its overlay background colour
+    @javax.inject.Inject
+    private net.runelite.client.config.RuneLiteConfig runeLiteConfig;
+
     private static final Color TITLE_COLOR = new Color(255, 185, 0);
     private static final Color PLACE_COLOR = Color.WHITE;
     private static final Color SOFT = new Color(180, 180, 180);
@@ -61,6 +65,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
+        HudColors.theme(panel, runeLiteConfig.overlayBackgroundColor());
         SlayerTracker tracker = plugin.getSlayerTracker();
         if (!config.showSlayerTask() || plugin.isSlayerCardHidden() || client.getGameState() != GameState.LOGGED_IN) {
             return null;

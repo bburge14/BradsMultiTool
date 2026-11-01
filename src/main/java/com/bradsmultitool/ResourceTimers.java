@@ -30,6 +30,7 @@ import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
@@ -69,7 +70,7 @@ import net.runelite.client.util.Text;
 @Singleton
 class ResourceTimers {
 
-    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK, TRAP, FIRE, CAMPFIRE }
+    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK, TRAP, FIRE, CAMPFIRE, ROCK }
 
     enum TrapState { SET, CAUGHT, FAILED }
 
@@ -101,6 +102,8 @@ class ResourceTimers {
         boolean cookedOn;
         // Fishing spots: where it was last tick, to see it jump to a new tile without despawning
         WorldPoint spotAt;
+        // Depleted rocks: the rock it was ("Lead rocks"), for its ore's picture
+        String resource;
 
         Timer(Kind kind, TileObject object, NPC npc, int minTicks, int maxTicks) {
             this.kind = kind;
@@ -437,14 +440,123 @@ class ResourceTimers {
         changingTraps.clear();
         changingTrapTicks.clear();
         sunkWrecks.clear();
+        depletingRocks.clear();
+        greyRocks.clear();
+        rockNames.clear();
         playerSpawnTick.clear();
         playerSpawnPoint.clear();
+    }
+
+    // Respawns the game announced, by tile: {ticks, tick announced, depleted rock id, rock}, until that depleted
+    // rock appears there; and grey rocks that just appeared, {object, tick}, in case the announcement comes after
+    private final Map<WorldPoint, Object[]> depletingRocks = new HashMap<>();
+    private final Map<WorldPoint, Object[]> greyRocks = new HashMap<>();
+    // The rock last seen on each tile ("Lead rocks"), for the ore's picture once it's depleted
+    private final Map<WorldPoint, String> rockNames = new HashMap<>();
+    // The game's own rock respawn script: its arguments are the rock's tile (packed), the depleted rock's id and
+    // the ticks until the ore is back (RuneLite's Mining plugin reads the same)
+    private static final int ROCK_RESPAWN_SCRIPT = 5474;
+
+    @Subscribe
+    public void onScriptPreFired(ScriptPreFired event) {
+        if (event.getScriptId() != ROCK_RESPAWN_SCRIPT) {
+            return;
+        }
+        if (event.getScriptEvent() == null) {
+            return;
+        }
+        Object[] args = event.getScriptEvent().getArguments();
+        if (args == null || args.length < 6 || !(args[1] instanceof Integer) || !(args[2] instanceof Integer)
+            || !(args[5] instanceof Integer)) {
+            return;
+        }
+        WorldPoint at = WorldPoint.fromCoord((Integer) args[1]);
+        int greyId = (Integer) args[2];
+        int ticks = (Integer) args[5];
+        // Motherlode veins and calcified rocks have timers of their own
+        if (ticks <= 0 || VEINS.contains(greyId) || CALCIFIED_ROCKS.contains(greyId)) {
+            return;
+        }
+        String rock = rockNames.get(at);
+        Object[] arrived = greyRocks.remove(at);
+        if (arrived != null && ((GameObject) arrived[0]).getId() == greyId) {
+            startRespawn((GameObject) arrived[0], ticks, rock);
+            return;
+        }
+        GameObject grey = objectAt(at, greyId);
+        if (grey != null) {
+            startRespawn(grey, ticks, rock);
+            return;
+        }
+        depletingRocks.put(at, new Object[]{ticks, client.getTickCount(), greyId, rock});
+    }
+
+    // The game object with this id on this tile, if it's loaded
+    private GameObject objectAt(WorldPoint at, int id) {
+        net.runelite.api.coords.LocalPoint local = net.runelite.api.coords.LocalPoint.fromWorld(client.getTopLevelWorldView(), at);
+        if (local == null) {
+            return null;
+        }
+        net.runelite.api.Tile[][][] tiles = client.getTopLevelWorldView().getScene().getTiles();
+        net.runelite.api.Tile tile = tiles[at.getPlane()][local.getSceneX()][local.getSceneY()];
+        if (tile == null || tile.getGameObjects() == null) {
+            return null;
+        }
+        for (GameObject object : tile.getGameObjects()) {
+            if (object != null && object.getId() == id) {
+                return object;
+            }
+        }
+        return null;
+    }
+
+    private static final Set<Integer> MINING_GUILD_REGIONS = Set.of(12183, 12184);
+
+    private void startRespawn(GameObject grey, int ticks, String rock) {
+        remove(grey);
+        Timer timer = new Timer(Kind.ROCK, grey, null, ticks, ticks);
+        timer.resource = rock;
+        add(timer, grey);
+    }
+
+
+    /** A rock's respawn time here: faster in the Mining Guild or the Wilderness where the wiki says so. */
+    static int respawnTicks(SkillingData.Resource rock, WorldPoint at) {
+        if (rock.guildRespawnTicks > 0 && MINING_GUILD_REGIONS.contains(at.getRegionID())) {
+            return rock.guildRespawnTicks;
+        }
+        boolean wilderness = at.getX() >= 2944 && at.getX() <= 3391 && at.getY() >= 3520 && at.getY() <= 3967;
+        if (rock.wildRespawnTicks > 0 && wilderness) {
+            return rock.wildRespawnTicks;
+        }
+        return rock.respawnTicks;
     }
 
     @Subscribe
     public void onGameObjectSpawned(GameObjectSpawned event) {
         GameObject object = event.getGameObject();
         int id = object.getId();
+        // A depleted rock the game announced a respawn for: time its ore coming back (from what's left of the
+        // announced time); one that's not announced yet is kept a moment in case the announcement comes after
+        // (Matched by the id the game gives: a depleted rock still offers Mine, "no ore available")
+        Object[] depleted = depletingRocks.get(object.getWorldLocation());
+        if (depleted != null && (int) depleted[2] == id) {
+            depletingRocks.remove(object.getWorldLocation());
+            int left = (int) depleted[0] - (client.getTickCount() - (int) depleted[1]);
+            if (left > 0) {
+                startRespawn(object, left, (String) depleted[3]);
+            }
+            return;
+        }
+        if (client.getGameState() == GameState.LOGGED_IN && data.object(id, objectName(id)) == null) {
+            greyRocks.put(object.getWorldLocation(), new Object[]{object, client.getTickCount()});
+        } else {
+            // A rock with ore: remembered, for its ore's picture once it's mined out
+            SkillingData.Resource rock = data.object(id, objectName(id));
+            if (rock != null && "Mining".equals(rock.skill)) {
+                rockNames.put(object.getWorldLocation(), rock.name);
+            }
+        }
         if (CALCIFIED_ROCKS.contains(id)) {
             add(new Timer(Kind.CALCIFIED, object, null, CALCIFIED_TICKS, CALCIFIED_TICKS), object);
             return;
@@ -567,7 +679,9 @@ class ResourceTimers {
         }
         int[] timing = timing(npc);
         if (timing[1] == 0) {
-            return; // never moves
+            // Never moves (karambwan, Tempoross): no timer, but its tile and fish still show
+            watchedSpots.put(npc, npc.getWorldLocation());
+            return;
         }
         // Back in view of a spot we were timing: carry on from when it appeared
         int[] remembered = rememberedSpots.remove(npc.getWorldLocation());
@@ -588,6 +702,11 @@ class ResourceTimers {
 
     private static int[] timing(NPC npc) {
         return FISHING_TIMINGS.getOrDefault(npc.getId(), new int[]{FISHING_MIN_TICKS, FISHING_MAX_TICKS});
+    }
+
+    /** Fishing spots in view without a timer (there before you arrived: their age is unknown). */
+    List<NPC> untimedSpots() {
+        return new ArrayList<>(watchedSpots.keySet());
     }
 
     private void startSpot(NPC npc, int[] timing, int elapsed) {
@@ -765,6 +884,8 @@ class ResourceTimers {
         });
         updateStars();
         playerSpawnPoint.keySet().retainAll(playerSpawnTick.keySet());
+        depletingRocks.values().removeIf(rock -> now - (int) rock[1] > (int) rock[0]);
+        greyRocks.values().removeIf(rock -> now - (int) rock[1] > 5);
 
         for (Timer timer : timers) {
             switch (timer.kind) {

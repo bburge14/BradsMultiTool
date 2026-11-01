@@ -82,7 +82,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Agility course obstacle card (laps to level) and a shortcut card.
 - [ ] Cooking: hover a range or fire with raw food: each food shows XP (or the level it needs), burning, and XP for all.
 - [ ] Smithing: hover an anvil with bars (best item, how many, next unlock) and a furnace with ores (bars, how many with your coal).
-- [ ] Skilling > Best Choice By = Most profit: anvil Best changes to the most profitable item and a Profit line appears (anvil and furnace).
+- [ ] Skilling Hover Cards > Best Choice By = Most profit: anvil Best changes to the most profitable item and a Profit line appears (anvil and furnace).
 - [x] Auto retaliate off: hovering a pickpocketable NPC whose left-click is Attack shows the Thieving card.
 - [ ] Sailing: charting spot (task text on its own lines, riddle answer for diving tasks), shipwreck (best hook) and shoal cards.
 - [x] XP rates on cards only while you're training that skill.
@@ -92,14 +92,14 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Trees: pie on trees being chopped (also others' trees), centred on the canopy; turns into a full pulsing red pie when the tree can fall on the next log; no pie on a tree already being chopped when you arrived.
 - [ ] Mining: Motherlode veins, calcified rocks, Daeyalt essence, shooting stars.
 - [ ] Every resource timer: its time and skill icon above it (Timer Text / Timer Skill Icon). Fishing spots: age
-  ("1:42"), with Mark Newest Spot on (off by default), a gold ring around the Fishing icon on the newest timed spot, your spot outlined in Your Spot Colour, minimap dots green then orange to red.
+  ("1:42"), with Mark Newest Spot on (off by default), a gold ring around the Fishing icon on the newest timed spot, your spot outlined in Your Spot Colour.
 - [ ] Fire timers are off by default (fishing spot timers on); turned on: green until the earliest time, then a red ring
   filling to the latest; hovering says "Won't move for 1:20 (gone by 4:00 at the latest)" / "Can move any time (...)".
 - [ ] Campfire Timers (on by default) still show with Fire Timers off.
 - [ ] Fishing spots: a timer only on spots that moved while you were there; none on a spot that was already there
   or came into view as you walked up, until it moves; a full timer again after each move (minnow spots included).
 - [ ] Fishing spot moved: the voice line plays when the spot you're fishing moves, even after fishing it 3+ minutes.
-- [ ] Timer Style: Tile, icon and timer (outline, picture of logs / ore / best fish, timer over it) and Timer only.
+- [ ] Timer Style: Tile and icon (no pie: the outline goes green/yellow/red, pulsing red when due; traps, fires and campfires keep a pie; hover a fishing spot for its times) and Floating timer (pies).
 - [ ] Hunter: pie on traps you lay, green when caught.
 - [ ] Fires: a pie only on a fire you cook on (Use food on it), none on fires you just light or walk past; it
       runs out at about 60 s, then pulses red until the fire goes; it sits still, not bouncing with the flames.
@@ -193,4 +193,28 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
   drops the card offers it with Track it / Dismiss and a chat line; Track it switches the goal to it; Dismiss hides it for the session.
 - [ ] Every tracker card has a pin: solid when pinned, faint otherwise; clicking a faint pin moves the pin there (tooltip names the skill it replaces); clicking the solid one unpins.
 - [ ] Card right-click: Set goal... only with no goal; Modify goal... (prefilled, keeps the goal bar's progress) and Clear goal only with one.
-- [ ] Launcher window: Toolbelt icon on the window and desktop shortcut (Make a desktop shortcut; an existing shortcut gets the icon). Setup rows (RuneLite found wherever it is installed, Find it... otherwise, session saving with Turn it on, session with Save one / Refresh it ticking itself once saved, Java, git); update status (Up to date / Updated with the list / Couldn't update), session line with your character and date (or the set-up link), Toolbelt vs Separate plugins checkboxes (greyed while Toolbelt is picked), Launch opens the build in its own console and remembers the pick.
+- [ ] Launcher: Relaunch closes RuneLite and starts it again (forced after 20 s if it hangs); a new version found while open says "Update ready: Relaunch to use it". Launcher window: Toolbelt icon on the window and desktop shortcut (Make a desktop shortcut; an existing shortcut gets the icon). Setup rows (RuneLite found wherever it is installed, Find it... otherwise, session saving with Turn it on, session with Save one / Refresh it ticking itself once saved, Java, git); update status (Up to date / Updated with the list / Couldn't update), session line with your character and date (or the set-up link), Toolbelt vs Separate plugins checkboxes (greyed while Toolbelt is picked), Launch runs hidden with the progress bar (building, starting, "RuneLite is running"), stays open, says when RuneLite closes, Show log opens the output; remembers the pick.
+- [ ] Fishing/Mining/Woodcutting goal: tools and bait outlined in the inventory and bank (fly fishing rod + feathers, any axe/pickaxe), not the fish/ore/logs; the spots/rocks/trees outlined in the world. Fish only outlined with a Cooking goal.
+
+- [ ] Set a goal in the Toolbelt, launch the Skilling Helper alone: the same goal (and Track for goal pick, Suggest choice, pinned skill) is there, and the other way round.
+- [ ] Fishing spot tiles: fly fishing shows trout and salmon stacked (only those your level catches); right as you click Lure with feathers (no catch needed); with stripy feathers it shows rainbow fish; Bait shows pike.
+- [ ] Fishing goal with a fishing suggestion (e.g. Fly fishing: Trout, Salmon): every spot that catches those fish is outlined in the world, before you start fishing.
+- [ ] Each timer kind's setting is Always / While training / Off (old on/off choices carried over: off stays Off, on becomes While training, or Always if Timers When Not Training was on). Fishing Spot Timers on Always: spots show their tile and fish before you start fishing (untimed spots without a timer).
+
+- [ ] Hide Outlines While Working: only the spot/tree/rock you're working loses its goal outline (and plain spot outline); other spots, trees and rocks and the tools stay outlined; back a few seconds after stopping.
+- [ ] Card right-click > Method: lists the guide methods for your level (fastest marked, hover for the guide text); picking one changes the card to "Your method: ..." with its outlines/tools/estimate; Suggested (automatic) goes back; shared with the Skilling Helper.
+- [ ] Mining: mine out any rock (iron, lead, coal...): the depleted rock's tile counts down to the ore coming back (red, yellow, green), with the ore picture and time; lead rocks can be tracked for a Mining goal and the guide's Lead rocks method outlines them.
+- [ ] Lead rocks: mine one out: its depleted tile gets the respawn timer; grey lead rocks are never outlined for a goal.
+- [ ] Card > Method: methods show ~XP/hr where the guide gives one; with Suggest on Money Maker it lists money makers with GP/hr, and picking one shows "Your money maker: ...".
+- [ ] Tracker: a skill without a goal leaves after Drop Idle Skills After (30 min) without XP and returns on new XP; goal skills and the pinned skill stay; header shows TRAINED with a tooltip.
+- [ ] Tracker: GOALS and THIS SESSION each list the skill with the latest XP first; Attack/Hitpoints from one hit don't swap back and forth.
+- [ ] Tracker: click the GOALS / THIS SESSION heading to fold the list ("+ GOALS (3)") and again to open it; remembered after a relaunch.
+- [ ] Settings > About: heading tooltip lists the plugin and its clashes; Open the Guide opens the guide and switches off. each clash is said in chat once a login, in one plain sentence.
+- [ ] Tick Counter > Move Boxes Separately: the boxes become separate see-through boxes, each Alt + draggable and kept where placed after a relaunch; only boxes up to the cycle length show.
+- [ ] Tick boxes: Box Shape (square/rounded/circle), Box Opacity and Box Size apply to both the row and the separate boxes.
+- [ ] Reaching a goal clears it with a chat line; a goal already reached clears at the next login; Clear Goals When Reached off keeps it (Done!).
+- [ ] Tick Counter > Half-Tick Boxes: a 1.5 box after each tick box; the tick box lights the first half, the half box the second; with Move Boxes Separately each half box moves on its own.
+- [ ] Metronome Play Ahead (200 ms): clicking on the sound lands green in Click Timing; raising/lowering it moves the clicks later/earlier; 0 plays on the tick.
+- [ ] Tick Boxes > Tick Pattern: 1-tick two halves (box 1 first half, box 2 second), each movable with Move Boxes Separately; Custom = Ticks Per Cycle.
+- [ ] Any of Snuffy's plugins with a clashing plugin on (e.g. RuneLite's Mining or Metronome): a yellow warning info box top-left, tooltip lists the clashes; it goes within a few seconds of turning the clash off, and when the plugin stops.
+- [ ] About > Clash Warnings off: no warning icon, no chat line (within a few seconds); on again brings them back.

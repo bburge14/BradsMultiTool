@@ -48,6 +48,10 @@ import net.runelite.client.util.Text;
  */
 public class BradsMultiToolSkillingOverlay extends Overlay {
 
+    // RuneLite's own settings, for its overlay background colour
+    @javax.inject.Inject
+    private net.runelite.client.config.RuneLiteConfig runeLiteConfig;
+
     private static final NumberFormat NUMBER = NumberFormat.getIntegerInstance();
     private static final Color TITLE_COLOR = new Color(0, 220, 220);
     private static final Color HEADER_COLOR = new Color(255, 200, 80);
@@ -97,6 +101,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
+        HudColors.theme(panel, runeLiteConfig.overlayBackgroundColor());
         if (client.getGameState() != GameState.LOGGED_IN) {
             return null;
         }

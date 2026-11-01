@@ -91,6 +91,18 @@ class MoneyData {
         return best;
     }
 
+    /** Every guide that trains this skill and whose requirements you meet, most profitable first. */
+    List<Guide> available(Skill skill, int level, ToIntFunction<String> levels) {
+        List<Guide> out = new ArrayList<>();
+        for (Guide guide : guides) {
+            if (guide.skills.contains(skill.name()) && meets(guide, skill, level, levels)) {
+                out.add(guide);
+            }
+        }
+        out.sort((a, b) -> Long.compare(b.profit, a.profit));
+        return out;
+    }
+
     private static boolean meets(Guide guide, Skill skill, int level, ToIntFunction<String> levels) {
         for (Map.Entry<String, Integer> req : guide.reqs.entrySet()) {
             int have = req.getKey().equals(skill.name()) ? level : levels.applyAsInt(req.getKey());

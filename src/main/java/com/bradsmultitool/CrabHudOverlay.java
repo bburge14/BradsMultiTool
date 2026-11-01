@@ -30,6 +30,10 @@ import net.runelite.client.ui.overlay.components.PanelComponent;
  */
 public class CrabHudOverlay extends Overlay {
 
+    // RuneLite's own settings, for its overlay background colour
+    @javax.inject.Inject
+    private net.runelite.client.config.RuneLiteConfig runeLiteConfig;
+
     private static final Color GOOD = HudColors.GOOD;
     private static final Color BAD = HudColors.BAD;
     // After the crab moves its stats stay up this long before the radar takes over
@@ -85,6 +89,7 @@ public class CrabHudOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
+        HudColors.theme(panelComponent, runeLiteConfig.overlayBackgroundColor());
         if (client.getGameState() != GameState.LOGGED_IN || isLobbyScreenOpen()) {
             return null;
         }

@@ -351,6 +351,34 @@ def places(body):
     return out[:5]
 
 
+def rate_number(text):
+    """'45,000' -> 45000, '45k' -> 45000, '1.2m' -> 1200000; None if not a number."""
+    m = re.fullmatch(r"\s*(\d[\d,]*(?:\.\d+)?)\s*([km])?\s*", text, re.I)
+    if not m:
+        return None
+    try:
+        value = float(m.group(1).replace(",", ""))
+    except ValueError:
+        return None
+    return int(value * {"k": 1000, "m": 1000000}.get((m.group(2) or "").lower(), 1))
+
+
+def xp_rate(body):
+    """The XP per hour the guide gives for a method ('around 45,000 experience per hour', 'up to 60k xp/hr',
+    '40,000-50,000 xp/h'): the top of the first range it gives, or None. {{NoCoins|45,000}} reads as 45,000."""
+    text = re.sub(r"\{\{(?:NoCoins|Coins|formatnum)\|([^}]*)\}\}", r"\1", body)
+    text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", text)
+    text = re.sub(r"<[^>]+>|'{2,}", "", text)
+    number = r"\d[\d,]*(?:\.\d+)?\s*[km]?"
+    unit = r"(?:experience|exp|xp)\s*(?:points\s*)?(?:per\s+hour|an\s+hour|/\s*h(?:ou)?r?\b|p/?h\b|hourly)"
+    m = re.search("(" + number + r")(?:\s*(?:-|–|to)\s*(" + number + r"))?\s*" + unit, text, re.I)
+    if not m:
+        return None
+    top = rate_number(m.group(2) or m.group(1))
+    # Not a level or other small number that happens to sit before "xp/h"
+    return top if top and top >= 1000 else None
+
+
 def entry(name, start, end, fastest, objects, npcs, body="", skill=""):
     ids, names = targets(name, objects, npcs)
     out = {"name": name, "from": start, "to": end, "fastest": fastest}
@@ -381,6 +409,9 @@ def entry(name, start, end, fastest, objects, npcs, body="", skill=""):
     about = summary(body)
     if about:
         out["about"] = about
+    rate = xp_rate(body)
+    if rate:
+        out["xpHour"] = rate
     where = places(body) if not name.lower().startswith("quest") else []
     if where:
         out["places"] = where

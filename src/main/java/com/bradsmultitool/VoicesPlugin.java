@@ -25,6 +25,7 @@ public class VoicesPlugin extends Plugin {
 
     @Override
     protected void startUp() throws Exception {
+        lifecycle.plugin = this;
         common.start(lifecycle);
         feature.start(lifecycle);
     }

@@ -15,7 +15,7 @@ public interface BuffConfig extends Config {
     @ConfigSection(
         name = "Potion Buffs",
         description = "Buff timers on the HUD and running-out / expired alerts",
-        position = 6,
+        position = 12,
         closedByDefault = true
     )
     String buffSection = "buffSection";
@@ -25,7 +25,7 @@ public interface BuffConfig extends Config {
         name = "Show Buffs on HUD",
         description = "<div width='300'>Show each active potion buff with its boost and time left (on the PvM HUD and the crab card)",
         section = buffSection,
-        position = 5
+        position = 0
     )
     default boolean enableBuffStatus() {
         return true;
@@ -36,7 +36,7 @@ public interface BuffConfig extends Config {
         name = "Flash When Expired",
         description = "Flash the Buff line on the HUD when buff is expired",
         section = buffSection,
-        position = 6
+        position = 2
     )
     default boolean flashExpiredBuff() {
         return true;
@@ -50,7 +50,7 @@ public interface BuffConfig extends Config {
         name = "Warn Before Ending",
         description = "Warn this many seconds before a buff runs out (0 = off)",
         section = buffSection,
-        position = 7
+        position = 1
     )
     @Units(Units.SECONDS)
     default int buffWarningSeconds() {
@@ -62,7 +62,7 @@ public interface BuffConfig extends Config {
         name = "Repeat Expired Alert",
         description = "Repeat the expired buff announcement",
         section = buffSection,
-        position = 10
+        position = 3
     )
     default boolean repeatBuffAlert() {
         return false;
@@ -73,7 +73,7 @@ public interface BuffConfig extends Config {
         name = "Repeat Every",
         description = "Seconds between repeat buff alerts",
         section = buffSection,
-        position = 11
+        position = 4
     )
     @Units(Units.SECONDS)
     default int repeatBuffInterval() {
@@ -85,7 +85,7 @@ public interface BuffConfig extends Config {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the expired buff alert after the first",
         section = buffSection,
-        position = 12
+        position = 5
     )
     default int maxBuffRepeats() {
         return 2;
@@ -96,7 +96,7 @@ public interface BuffConfig extends Config {
         name = "Voice: Potion Running Out",
         description = "<div width='300'>Shortly before a potion boost runs out (turning it on plays a preview)",
         section = buffSection,
-        position = 13
+        position = 6
     )
     default boolean voiceBuffLow() {
         return true;
@@ -107,7 +107,7 @@ public interface BuffConfig extends Config {
         name = "Chat: Potion Running Out",
         description = "Chat message shortly before a potion boost runs out",
         section = buffSection,
-        position = 14
+        position = 7
     )
     default boolean chatBuffLow() {
         return true;
@@ -118,7 +118,7 @@ public interface BuffConfig extends Config {
         name = "Voice: Potion Expired",
         description = "<div width='300'>When a potion boost has run out (turning it on plays a preview)",
         section = buffSection,
-        position = 15
+        position = 8
     )
     default boolean voiceBuffExpired() {
         return true;
@@ -129,7 +129,7 @@ public interface BuffConfig extends Config {
         name = "Chat: Potion Expired",
         description = "Chat message when a potion boost has run out",
         section = buffSection,
-        position = 16
+        position = 9
     )
     default boolean chatBuffExpired() {
         return true;

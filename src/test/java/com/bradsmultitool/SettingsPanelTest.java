@@ -48,14 +48,18 @@ public class SettingsPanelTest {
         // Every separate plugin's setting is in the Toolbelt's panel too, in the same section (Timer Opacity...)
         java.util.Map<String, String> sections = new java.util.HashMap<>();
         for (ConfigItemDescriptor item : toolbelt.getItems()) {
-            sections.put(item.getItem().keyName(), item.getItem().section());
+            org.junit.Assert.assertNull("Toolbelt shows " + item.getItem().keyName() + " twice",
+                sections.put(item.getItem().keyName(), item.getItem().section()));
         }
         for (Class<?> part : new Class<?>[]{SkillTrackerConfig.class, PvmConfig.class, GemCrabConfig.class, TickConfig.class, CommonConfig.class}) {
             for (Method method : part.getDeclaredMethods()) {
                 net.runelite.client.config.ConfigItem item = method.getAnnotation(net.runelite.client.config.ConfigItem.class);
                 if (item != null) {
                     org.junit.Assert.assertTrue("Toolbelt is missing " + item.keyName(), sections.containsKey(item.keyName()));
-                    org.junit.Assert.assertEquals("Toolbelt section of " + item.keyName(), item.section(), sections.get(item.keyName()));
+                    // (the Toolbelt keeps the smaller skills together in Other Skills)
+                    if (!"otherSkillsSection".equals(sections.get(item.keyName()))) {
+                        org.junit.Assert.assertEquals("Toolbelt section of " + item.keyName(), item.section(), sections.get(item.keyName()));
+                    }
                 }
             }
         }

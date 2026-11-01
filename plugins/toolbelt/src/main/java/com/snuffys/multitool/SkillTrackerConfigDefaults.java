@@ -10,10 +10,11 @@ final class SkillTrackerConfigDefaults {
     }
 
     static void store(ConfigDefaults defaults, SkillTrackerConfig config) {
+        defaults.store("openGuide", config.openGuide());
+        defaults.store("showClashes", config.showClashes());
         defaults.store("showSkillingHover", config.showSkillingHover());
         defaults.store("showSkillingRates", config.showSkillingRates());
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());
-        defaults.store("piesAlwaysShown", config.piesAlwaysShown());
         defaults.store("pieStyle", config.pieStyle());
         defaults.store("timerOpacity", config.timerOpacity());
         defaults.store("timerText", config.timerText());
@@ -28,15 +29,14 @@ final class SkillTrackerConfigDefaults {
         defaults.store("batchCompleteAlert", config.batchCompleteAlert());
         defaults.store("voiceBatchComplete", config.voiceBatchComplete());
         defaults.store("chatBatchComplete", config.chatBatchComplete());
-        defaults.store("showTreeTimer", config.showTreeTimer());
+        defaults.store("treeTimers", config.showTreeTimer());
         defaults.store("voiceTreeGone", config.voiceTreeGone());
         defaults.store("chatTreeGone", config.chatTreeGone());
-        defaults.store("showMiningTimer", config.showMiningTimer());
-        defaults.store("voiceRockDepleted", config.voiceRockDepleted());
+        defaults.store("miningTimers", config.showMiningTimer());
+        defaults.store("voiceRockDepletedEach", config.voiceRockDepletedEach());
         defaults.store("chatRockDepleted", config.chatRockDepleted());
-        defaults.store("showFishingSpotTimer", config.showFishingSpotTimer());
+        defaults.store("fishingSpotTimers", config.showFishingSpotTimer());
         defaults.store("fishingMarkNewest", config.fishingNewestSpot());
-        defaults.store("fishingMinimapDots", config.fishingMinimapDots());
         defaults.store("fishingActiveColor", config.fishingActiveColor());
         defaults.store("voiceFishingSpot", config.voiceFishingSpot());
         defaults.store("chatFishingSpot", config.chatFishingSpot());
@@ -45,17 +45,17 @@ final class SkillTrackerConfigDefaults {
         defaults.store("chatCoinPouch", config.chatCoinPouch());
         defaults.store("showFarmingHover", config.showFarmingHover());
         defaults.store("showHunterHover", config.showHunterHover());
-        defaults.store("showTrapTimer", config.showTrapTimer());
+        defaults.store("trapTimers", config.showTrapTimer());
         defaults.store("showBirdhouseHover", config.showBirdhouseHover());
         defaults.store("birdhouseAlert", config.birdhouseAlert());
         defaults.store("voiceBirdhouses", config.voiceBirdhouses());
         defaults.store("chatBirdhouses", config.chatBirdhouses());
-        defaults.store("showFireTimer", config.showFireTimer());
-        defaults.store("showCampfireTimer", config.showCampfireTimer());
+        defaults.store("fireTimers", config.showFireTimer());
+        defaults.store("campfireTimers", config.showCampfireTimer());
         defaults.store("showRunecraftHover", config.showRunecraftHover());
         defaults.store("showAgilityHover", config.showAgilityHover());
         defaults.store("showCookingHover", config.showCookingHover());
-        defaults.store("showShipwreckTimer", config.showShipwreckTimer());
+        defaults.store("shipwreckTimers", config.showShipwreckTimer());
         defaults.store("showSailingHover", config.showSailingHover());
         defaults.store("showSmithingHover", config.showSmithingHover());
         defaults.store("showTrackerProgressBar", config.showTrackerProgressBar());
@@ -71,9 +71,12 @@ final class SkillTrackerConfigDefaults {
         defaults.store("trainingFocus", config.trainingFocus());
         defaults.store("highlightSuggestedTraining", config.highlightSuggestedTraining());
         defaults.store("highlightGoalItems", config.highlightGoalItems());
+        defaults.store("hideOutlinesWhileWorking", config.hideOutlinesWhileWorking());
         defaults.store("trainingHighlightColor", config.trainingHighlightColor());
         defaults.store("autoPauseSkills", config.autoPauseSkills());
         defaults.store("autoPauseSeconds", config.autoPauseSeconds());
+        defaults.store("dropIdleSkillsAfter", config.dropIdleSkillsAfter());
+        defaults.store("clearReachedGoals", config.clearReachedGoals());
         defaults.store("ignoredSkills", config.ignoredSkills());
         defaults.store("voiceLevelUp", config.voiceLevelUp());
         defaults.store("chatLevelUp", config.chatLevelUp());

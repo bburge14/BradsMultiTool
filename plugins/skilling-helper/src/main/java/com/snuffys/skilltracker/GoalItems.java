@@ -25,7 +25,8 @@ import net.runelite.client.game.ItemManager;
 /**
  * For each production skill you have a goal in (Cooking, Smithing, Fletching...): the best thing you can
  * make at your level from what's in your inventory and bank (most XP, or most profit, per the Best Choice
- * setting), and which of your items are its materials, so they can be highlighted. The bank is what you
+ * setting), and which of your items are its materials, so they can be highlighted. For gathering goals
+ * (Fishing, Mining, Woodcutting, Hunter), the tools and bait their method needs instead. The bank is what you
  * last saw when it was open.
  */
 @Singleton
@@ -46,6 +47,9 @@ class GoalItems {
     private volatile Map<Skill, Integer> counts = Collections.emptyMap();
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
+    // Gathering goals (Fishing, Mining, Woodcutting, Hunter...): lower-case tool or bait -> "Needed for your
+    // Fishing goal: Feather"; matched to items by isTool, so a dragon axe counts for "axe"
+    private volatile Map<String, String> tools = Collections.emptyMap();
     // How many of each item you carry or bank (lower-case names)
     private volatile Map<String, Integer> amounts = Collections.emptyMap();
     // Everything you carry, wear or bank (lower-case names), for checking tools
@@ -93,11 +97,22 @@ class GoalItems {
     boolean owns(String tool) {
         String t = tool.toLowerCase();
         for (String item : owned) {
-            if (item.equals(t) || item.startsWith(t + " (") || item.endsWith(" " + t) || variantOf(item, t)) {
+            if (isTool(item, t)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Whether an item (lower-case) is this tool (lower-case) or a better kind of it: "dragon axe" for "axe",
+     * "fishing rod (...)" for "fishing rod". A fly fishing or oily rod isn't a "fishing rod" for bait fishing.
+     */
+    static boolean isTool(String item, String tool) {
+        if (item.equals(tool) || item.startsWith(tool + " (") || variantOf(item, tool)) {
+            return true;
+        }
+        return item.endsWith(" " + tool) && !(tool.equals("fishing rod") && (item.startsWith("fly ") || item.startsWith("oily ")));
     }
 
     /**
@@ -169,9 +184,27 @@ class GoalItems {
         return method != null ? method.tools : make.tools;
     }
 
-    /** The tooltip for an item that's a material for a goal suggestion, or null. */
+    /** The tooltip for an item that's a material for a goal suggestion, or a gathering goal's tool or bait; else null. */
     String tooltip(String itemName) {
-        return itemName == null ? null : highlighted.get(itemName.toLowerCase());
+        if (itemName == null) {
+            return null;
+        }
+        String item = itemName.toLowerCase();
+        String material = highlighted.get(item);
+        if (material != null) {
+            return material;
+        }
+        for (Map.Entry<String, String> tool : tools.entrySet()) {
+            if (isTool(item, tool.getKey())) {
+                return tool.getValue();
+            }
+        }
+        return null;
+    }
+
+    /** Whether anything is highlighted at all (materials, tools or bait). */
+    boolean hasHighlights() {
+        return !highlighted.isEmpty() || !tools.isEmpty();
     }
 
     Map<String, String> highlighted() {
@@ -197,7 +230,7 @@ class GoalItems {
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
-        if (identity.configGroup.equals(event.getGroup())) {
+        if (identity.configGroup.equals(event.getGroup()) || SkillTracker.SHARED_GROUP.equals(event.getGroup())) {
             dirty = true;
         }
     }
@@ -221,8 +254,16 @@ class GoalItems {
         Map<Skill, RecipeData.Recipe> suggestions = new HashMap<>();
         Map<String, String> highlighted = new HashMap<>();
         Map<Skill, Integer> counts = new HashMap<>();
+        Map<String, String> tools = new HashMap<>();
         for (Skill skill : plugin.getGoalSkills()) {
-            if (!recipes.covers(skill) || plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
+            if (plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
+                continue;
+            }
+            // Gathering skills use nothing up but bait: outline the tools and bait the method needs instead
+            if (!recipes.covers(skill)) {
+                for (String tool : plugin.getTrainingAdvisor().goalTools(skill, client.getRealSkillLevel(skill))) {
+                    tools.putIfAbsent(tool.toLowerCase(), "Needed for your " + skill.getName() + " goal: " + tool);
+                }
                 continue;
             }
             // The skill's training focus picks the score: cheapest = most profit per XP, money maker = most
@@ -263,6 +304,7 @@ class GoalItems {
         this.suggestions = suggestions;
         this.counts = counts;
         this.highlighted = highlighted;
+        this.tools = tools;
     }
 
     /** Whether a recipe uses this item (lower-case name) as a material. */

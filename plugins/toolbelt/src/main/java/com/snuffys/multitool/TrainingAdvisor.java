@@ -99,9 +99,26 @@ class TrainingAdvisor {
             SlayerData.Master master = plugin.getSlayerData().bestMaster(plugin.getCombatLevel(), level);
             return master == null ? null : new Suggestion("Train:", "Tasks from " + master.name, null);
         }
+        // The method you picked from the card's Method list, while your level and quests allow it
+        String chosen = plugin.getChosenMethod(skill);
+        TrainingData.Method picked = null;
+        if (chosen != null) {
+            for (TrainingData.Method m : methodsToPick(skill, level)) {
+                if (m.name.equals(chosen)) {
+                    picked = m;
+                    break;
+                }
+            }
+        }
         SkillTrackerConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
-        switch (focus) {
+        switch (picked != null ? SkillTrackerConfig.TrainingFocus.FASTEST : focus) {
             case MONEY:
+                // The money maker you picked from the card's Method list, while you still meet it
+                for (MoneyData.Guide g : moneyToPick(skill, level)) {
+                    if (g.name.equals(chosen)) {
+                        return new Suggestion("Your money maker:", g.name + " (" + g.profitText() + ")", null);
+                    }
+                }
                 MoneyData.Guide guide = money.best(skill, level, this::levelOf);
                 if (guide != null) {
                     return new Suggestion("Money:", guide.name + " (" + guide.profitText() + ")", null);
@@ -118,7 +135,8 @@ class TrainingAdvisor {
             default:
                 break;
         }
-        TrainingData.Method method = training.suggest(skill, level, focus == SkillTrackerConfig.TrainingFocus.OTHER, this::canDo);
+        TrainingData.Method method = picked != null ? picked
+            : training.suggest(skill, level, focus == SkillTrackerConfig.TrainingFocus.OTHER, this::canDo);
         if (method == null) {
             return null;
         }
@@ -129,10 +147,10 @@ class TrainingAdvisor {
             String text = option.with.isEmpty() ? method.name + ": " + option.name
                 : option.name + " (" + String.join(" + ", option.with) + ")";
             double each = option.xpEach() > 0 ? option.xpEach() : xpEach(method, level);
-            return new Suggestion("Train:", text, method, each, toolsFor(skill, method));
+            return new Suggestion(picked != null ? "Your method:" : "Train:", text, method, each, toolsFor(skill, method));
         }
         String text = method.targets.isEmpty() ? method.name : method.name + ": " + String.join(", ", method.targets);
-        return new Suggestion("Train:", text, method, xpEach(method, level), toolsFor(skill, method));
+        return new Suggestion(picked != null ? "Your method:" : "Train:", text, method, xpEach(method, level), toolsFor(skill, method));
     }
 
     // What a guide method needs to hand: an axe or pickaxe for its trees or rocks, the trap for its creature,
@@ -159,7 +177,98 @@ class TrainingAdvisor {
         if (skill == Skill.FIREMAKING && method.name.toLowerCase().contains("burn")) {
             tools.add("Tinderbox");
         }
+        // Fish it catches: the rod, net or harpoon and the bait ("Fly fishing rod", "Feather")
+        if (skill == Skill.FISHING) {
+            for (String target : method.targets) {
+                SkillHelperData.Catch fish = helpers.catchNamed(target);
+                if (fish != null) {
+                    addNeeds(tools, fish);
+                }
+            }
+        }
         return tools;
+    }
+
+    private static void addNeeds(List<String> tools, SkillHelperData.Catch fish) {
+        String needs = fish.needs();
+        if (needs == null) {
+            return;
+        }
+        for (String part : needs.split("\\s*\\+\\s*")) {
+            if (!part.isEmpty() && !tools.contains(part)) {
+                tools.add(part);
+            }
+        }
+    }
+
+    /**
+     * The tools and bait this skill's goal needs: for your "Track for goal" pick (the fishing way's rod and bait,
+     * an axe or pickaxe for a tree or rock, a creature's trap), else the suggested method's. Empty when none.
+     */
+    List<String> goalTools(Skill skill, int level) {
+        String target = plugin.getGoalTarget(skill);
+        List<String> tools = new ArrayList<>();
+        if (target == null) {
+            Suggestion suggestion = suggest(skill, level);
+            if (suggestion != null) {
+                tools.addAll(suggestion.tools);
+            }
+        } else if (target.startsWith(GoalTarget.FISH)) {
+            List<SkillHelperData.Catch> catches = fishCatches(target);
+            if (!catches.isEmpty()) {
+                addNeeds(tools, catches.get(0));
+            }
+        } else if (target.startsWith(GoalTarget.OBJECT)) {
+            SkillingData.Resource resource = skilling.object(-1, SkillTracker.goalTargetName(target));
+            if (resource != null && "Woodcutting".equals(resource.skill)) {
+                tools.add("Axe");
+            } else if (resource != null && "Mining".equals(resource.skill)) {
+                tools.add("Pickaxe");
+            }
+        } else if (target.startsWith(GoalTarget.NPC)) {
+            SkillHelperData.Creature creature = helpers.creature(SkillTracker.goalTargetName(target));
+            if (creature != null && creature.trap != null && !creature.trap.isEmpty()) {
+                tools.add(creature.trap);
+            }
+        }
+        return tools;
+    }
+
+    /** The money-making guides you could pick for this skill (you meet them at this level), best first. */
+    List<MoneyData.Guide> moneyToPick(Skill skill, int level) {
+        return money.available(skill, level, this::levelOf);
+    }
+
+    /** The guide methods you could pick at this level for this skill (see {@link TrainingData#available}). */
+    List<TrainingData.Method> methodsToPick(Skill skill, int level) {
+        List<TrainingData.Method> out = new ArrayList<>(training.available(skill, level, this::canDo));
+        // and the guide's later methods you can already do: its trees, rocks or creatures are at or below your
+        // level ("Lead rocks" from 60 in the guide, but lead can be mined from 25)
+        for (TrainingData.Method method : training.later(skill, level)) {
+            int needs = levelNeeded(method);
+            if (needs > 0 && needs <= level && canDo(method) && out.stream().noneMatch(m -> m.name.equals(method.name))) {
+                out.add(method);
+            }
+        }
+        return out;
+    }
+
+    // The level a guide method's own trees, rocks, stalls or creatures need (the lowest of them), 0 if unknown
+    private int levelNeeded(TrainingData.Method method) {
+        int needs = 0;
+        for (int id : method.objects) {
+            SkillingData.Resource resource = skilling.object(id, null);
+            if (resource != null && resource.level > 0 && (needs == 0 || resource.level < needs)) {
+                needs = resource.level;
+            }
+        }
+        for (String npc : method.npcs) {
+            SkillHelperData.Creature creature = helpers.creature(npc);
+            if (creature != null && creature.level > 0 && (needs == 0 || creature.level < needs)) {
+                needs = creature.level;
+            }
+        }
+        return needs;
     }
 
     /**

@@ -29,6 +29,10 @@ import net.runelite.client.util.Text;
  */
 public class BradsMultiToolHoverOverlay extends Overlay {
 
+    // RuneLite's own settings, for its overlay background colour
+    @javax.inject.Inject
+    private net.runelite.client.config.RuneLiteConfig runeLiteConfig;
+
     @Inject
     private CombatStyle combatStyle;
 
@@ -67,6 +71,7 @@ public class BradsMultiToolHoverOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
+        HudColors.theme(panel, runeLiteConfig.overlayBackgroundColor());
         if (!config.showHoverInfo() || client.getGameState() != GameState.LOGGED_IN || client.isMenuOpen()) {
             return null;
         }

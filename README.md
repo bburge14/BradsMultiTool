@@ -87,16 +87,16 @@ developer mode.
 - Superior spawned, task halfway, task nearly done (10 left by default) and task complete alerts.
 
 ### Skilling
-Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), timer
-pies (only while you train that skill, unless **Timers When Not Training** is on; by default each timed tree, rock or
-fishing spot gets its tile outlined with a picture of what it gives and the pie over it), and alerts that only fire for the resource you're working:
+Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), resource
+timers (each kind set to show Always, While training or Off; by default each timed tree, rock or
+fishing spot gets its tile outlined with a picture of what it gives, the outline changing colour as its timer runs out; traps and fires keep a small pie), and alerts that only fire for the resource you're working:
 
 | Skill | What you get |
 |---|---|
 | Woodcutting | Tree card (level, XP, your axe in its metal colour, best axe for you); a pie on every tree being chopped (Forestry timer, counting every player chopping, pulsing once it can fall on the next log); tree fallen alert |
 | Mining | Rock card; pies on Motherlode Mine veins, calcified rocks, Daeyalt essence and shooting stars (exact, from the star's layer health); rock depleted alert |
 | Prayer | Libation bowl card: your blessed bone shards, the XP they give, wine and prayer points needed, the level they reach; shards count as a Prayer goal item |
-| Fishing | Spot card for every kind of spot (net, bait, lure, cage, harpoon, karambwan, anglerfish, dark crab, eels, minnows, aerial, boat spots...): what each way of fishing it catches, level, XP, tool needed; timers on spots showing the window they move in (per spot type), how long ago each appeared, (optionally) a gold ring on the newest spot (the best one to fish), your spot highlighted, and minimap dots; fishing spot moved alert |
+| Fishing | Spot card for every kind of spot (net, bait, lure, cage, harpoon, karambwan, anglerfish, dark crab, eels, minnows, aerial, boat spots...): what each way of fishing it catches, level, XP, tool needed; timers on spots showing the window they move in (per spot type), how long ago each appeared, (optionally) a gold ring on the newest spot (the best one to fish) and your spot highlighted; fishing spot moved alert |
 | Thieving | Stall and pickpocket cards (level, XP, never-fail level with the Ardougne cloak, stun damage); coin pouches full alert |
 | Farming | Patch card: crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's protection payment, and what you can plant |
 | Hunter | Creature card (level, XP, trap); trap spot card (young tree, boulder, pit: what you can catch there, with levels); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
@@ -104,12 +104,12 @@ fishing spot gets its tile outlined with a picture of what it gives and the pie 
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
 | Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |
-| Smithing | Anvil card: for each bar you carry, the best item you can make (most XP or most profit: Skilling > Best Choice By), how many, the XP (and profit at GE prices), and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
+| Smithing | Anvil card: for each bar you carry, the best item you can make (most XP or most profit: Skilling Hover Cards > Best Choice By), how many, the XP (and profit at GE prices), and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
 | Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish), sea monster card (HP, safe keel, bounty parts), current duck card (despawn timer); pies on shipwrecks showing how long until they sink |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 
 If you also run a dedicated timer plugin (Tree Despawn Timer, MLM Despawn Timer, Fishing Spot Tracker,
-RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't stack (Skilling > Use Other
+RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't stack (Resource Timers > Use Other
 Timer Plugins). XP rates on the cards only show while you're training that skill. Inventory full is announced while you
 work a resource.
 
@@ -145,13 +145,18 @@ work a resource.
   tools follow your pick ("Offer: Dragon bones (Gilded altar)").
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
-  **Highlight Goal Items**).
+  **Highlight Goal Items** (Goals)).
 - **Pin to screen**: click the pin in a card's top-right corner (or right-click > **Pin to screen**) to show that skill on the game screen (level
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
   time: the pinned card's pin is solid, the others faint, and clicking a faint one moves the pin there. Click the
   solid pin to unpin, or right-click the overlay > **Unpin**.
 - **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 5 minutes by default) and resumes on your
   next XP.
+- **Idle skills drop off**: a skill without a goal leaves the tracker after 30 minutes without XP (**Drop Idle Skills
+  After**, 0 for never) and comes back, with its session numbers, when you gain XP in it again. Skills with a goal
+  and the pinned skill always stay; there's no other limit on how many cards it shows. **TRAINED** at the top counts
+  the skills you've gained XP in this session. Both lists put the skill you last gained XP in at the top; click a list's heading to fold it away ("+ GOALS (3)")
+  or open it again, which it remembers.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.
@@ -222,7 +227,8 @@ $s.Save()
 
 **4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small window that:
 
-- **updates** the plugins each time you open it and lists what's new (**Check again** to retry; when you're
+- **updates** the plugins each time you open it, and checks again every 10 minutes while it's open, listing what's
+  new (with RuneLite running it says "Update ready: Relaunch to use it") (**Check again** to retry; when you're
   offline or have changed files here, it says so and you launch the version you have);
 - checks your **setup**, each row with a button to fix it:
   - **RuneLite** installed (it looks in RuneLite's usual folders, its uninstall entry, Start menu shortcuts and
@@ -235,8 +241,12 @@ $s.Save()
   - **Java** (needed to build) and **git** (for updates);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
   plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
-- **Launch RuneLite** builds and starts it, with the build and RuneLite's log in their own window. The first
-  launch downloads Gradle and RuneLite, so it takes a few minutes.
+- **Relaunch** closes RuneLite (as its X button would; forced if it hangs), updates, and starts it again with your
+  pick;
+- **Launch RuneLite** builds and starts it silently (no console window): a progress bar shows it building,
+  starting RuneLite and then "RuneLite is running", and the launcher stays open (it says when RuneLite closes,
+  and **Launch** works again). If something goes wrong it says so in red; **Show log** opens the full output.
+  The first launch downloads Gradle and RuneLite, so it takes a few minutes.
 
 The first time, work down the Setup rows until they're all ticked, then press **Launch RuneLite**. After that
 it's just open and Launch: updates come in on their own.
@@ -291,6 +301,15 @@ change in the Toolbelt don't carry over to them (and the other way round).
 </details>
 
 ## Settings guide
+
+Each plugin's settings start with **About**: hover its heading for what the plugin does and which other plugins
+clash with it, and switch on **Open the Guide** to open the full feature guide. While a clashing plugin is on (or the
+setting of it that clashes), every one of Snuffy's plugins shows a small yellow warning icon among RuneLite's info
+boxes (top left of the game; hover it for the clashes and what they mean), and each plugin says its clashes in chat
+once a login. It's live: turn the clashing plugin or setting off and the icon goes within a few seconds. Don't want
+any of it? Turn off **About > Clash Warnings** in that plugin's settings. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
+minnows), Motherlode Mine (veins), Slayer (task highlight), Metronome and Idle Notifier.
+
 
 All sections except General start collapsed.
 

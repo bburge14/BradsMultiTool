@@ -2,7 +2,12 @@
 
 Every feature, what it does, how to use it and where its settings are. Settings are in RuneLite's
 configuration panel (the wrench icon) under **Snuffy's Toolbelt**; each section below names the settings
-section to open. All sections except General start collapsed.
+section to open. In the Toolbelt, sections are named after their plugin and
+grouped in order: About, General, Idle, then **PvM:** (HUD, Buff Bar, Potion Buffs, Health, Prayer, Combat Alerts,
+Supply Alerts), **Slayer:** (Card, Monsters, Alerts), **GemCrab:** (Crab, Colours), **Skilling:** (Tracker, Goals,
+Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, and Other Skills for the rest), and
+**Tick:** (Counter, Boxes, Bar, Metronome, Click Timing). Each separate plugin has the same sections without the
+plugin's name, and the Skilling Helper gives every skill its own. All start collapsed except About and General.
 
 - [Alerts (all of them)](#alerts-all-of-them)
 - [PvM HUD](#pvm-hud)
@@ -57,7 +62,7 @@ style, DPS, and your last and max hit. It stays up for a few seconds after the f
 **How to use:** Attack anything. The HUD can be moved like any RuneLite overlay (hold Alt and drag).
 Right-click the HUD > **Reset** clears this session's damage and DPS.
 
-**Settings (PvM HUD):** Enable PvM HUD; Show Monster Effects; DPS Mode (Per Monster, Per Type, or the whole
+**Settings (PvM HUD):** Show PvM HUD; Show Monster Effects; DPS Mode (Per Monster, Per Type, or the whole
 session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status.
 
 ---
@@ -72,7 +77,7 @@ followers go by your god items, vyre noble clothing and greegrees protect you.
 **How to use:** Hover a monster. The card follows the game's left-click option, so it only shows when
 the top-left tooltip names the monster.
 
-**Settings:** PvM HUD > Monster Hover Info. With **Skilling > Skill Cards With Auto Retaliate Off** on
+**Settings:** PvM HUD > Monster Hover Card. With **Skilling Hover Cards > Skill Cards With Auto Retaliate Off** on
 and auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 
 ---
@@ -148,7 +153,7 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 **How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which); it stays that
 way after a restart.
 
-**Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
+**Settings (Slayer):** Show Slayer Card; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
 Prayer; Required Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
 Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned,
 Task Complete, Task Halfway and Task Nearly Done (at 10 left by default, 0 off) alerts with Voice/Chat switches.
@@ -170,7 +175,7 @@ damage, whatever skill you train). The card shows your gear's damage bonus for t
 for another style (a Necklace of anguish while meleeing), since that slot could be adding damage. Armour's
 defence doesn't matter, so lower-tier gear with more damage beats better armour without it.
 
-**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Gear Check; Low Prayer/HP (%); Show Last/Max Hit; the four
+**Settings (Gemstone Crab):** Crab HUD and Highlights; Low Health Alert (%); Gear Check; Low Prayer/HP (%); Show Last/Max Hit; the four
 outline colours; Voice/Chat switches.
 
 ---
@@ -179,17 +184,17 @@ outline colours; Voice/Chat switches.
 
 Hover a thing to see a card next to the cursor. Cards follow the game's left-click option, so an NPC
 walking past doesn't change them. Requirement lines read "Requires: Level N" with the skill's icon (green
-when you have it, red when you don't). With **Skilling > XP Rates on Hover** on, the wiki's XP/hr and your
+when you have it, red when you don't). With **Skilling Hover Cards > XP Rates on Hover** on, the wiki's XP/hr and your
 own rate show while you're training that skill.
 
 | Hover | You see | Setting |
 |---|---|---|
-| Tree | Level, XP, your axe (in its metal colour) and the best axe for you | Skilling > Skilling Hover Info |
-| Rock | Level, XP, pickaxe | Skilling > Skilling Hover Info |
-| Libation bowl (the Teomat) | Your blessed bone shards, the XP they give (5 each, 6 with sunfire wine), jugs of wine needed (one per 400) and carried, prayer points needed, the level they take you to | Skilling > Skilling Hover Info |
-| Fishing spot (every kind: net/bait, lure/bait, cage/harpoon, big net, karambwan, karambwanji, anglerfish, dark crab, sacred/lava/infernal eels, minnows, aerial, squid, boat spots...) | Each way to fish it with the tool it needs (green if you have it) and each catch with its level and XP | Skilling > Skilling Hover Info |
-| Stall | Level, XP, the kind of loot | Skilling > Skilling Hover Info |
-| Pickpocket NPC | Level, XP, never-fail level with the Ardougne cloak, stun damage | Skilling > Skilling Hover Info |
+| Tree | Level, XP, your axe (in its metal colour) and the best axe for you | Skilling Hover Cards > Show Hover Cards |
+| Rock | Level, XP, pickaxe | Skilling Hover Cards > Show Hover Cards |
+| Libation bowl (the Teomat) | Your blessed bone shards, the XP they give (5 each, 6 with sunfire wine), jugs of wine needed (one per 400) and carried, prayer points needed, the level they take you to | Skilling Hover Cards > Show Hover Cards |
+| Fishing spot (every kind: net/bait, lure/bait, cage/harpoon, big net, karambwan, karambwanji, anglerfish, dark crab, sacred/lava/infernal eels, minnows, aerial, squid, boat spots...) | Each way to fish it with the tool it needs (green if you have it) and each catch with its level and XP | Skilling Hover Cards > Show Hover Cards |
+| Stall | Level, XP, the kind of loot | Skilling Hover Cards > Show Hover Cards |
+| Pickpocket NPC | Level, XP, never-fail level with the Ardougne cloak, stun damage | Skilling Hover Cards > Show Hover Cards |
 | Farming patch | Crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's payment, what you can plant | Farming > Farming Patch Hover |
 | Hunter creature | Level, XP, the trap | Hunter > Creature Hover |
 | Hunter trap spot (young tree, boulder, pit) | The trap it takes and what you can catch with it: the creatures nearby, else all of them, each with its level (green if you can) and XP | Hunter > Creature Hover |
@@ -212,32 +217,43 @@ profit** at Grand Exchange prices; with profit on, the anvil and furnace cards a
 
 ## Resource timers
 
-**What it does:** A small pie over a resource that empties as it runs out: green, then yellow, then red.
+**What it does:** Shows how long a resource has left. Trees and rocks (Woodcutting and Mining) get a plain pie on
+the tree or rock, like RuneLite's own. With the default tile style a fishing spot's tile outline is its timer
+(green, then yellow, then red), with the fish pictures; traps, fires and campfires keep a small pie over their
+picture.
 When a tree can fall on the next log it turns into a full red pie that pulses.
 
 | Pie on | Shows | Setting |
 |---|---|---|
 | Trees being chopped (anyone's) | The Forestry timer: it drops while anyone chops and recovers when nobody does | Woodcutting > Tree Timers |
+| Depleted rocks (any rock you mine out while you're there: copper to runite, lead, nickel, gem rocks, amethyst...) | Time until the ore is back, exactly: the game announces each rock's respawn time to the client, and that's what it counts down (as RuneLite's Mining plugin does): a pie on the rock that empties as the ore comes back (red, yellow, then green), like RuneLite's Mining plugin | Mining > Mining Timers |
 | Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timers |
-| Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | Spots move at a random time 2.5-5 minutes after they appear, so this shows the window: green until the earliest it can move, then a red ring filling up to the latest; hover for the times. Above it, how long ago it appeared ("1:42") and the Fishing icon, ringed in gold on the newest spot (the least likely to move soon) with **Mark Newest Spot** on (off by default); the spot you fish is outlined in **Your Spot Colour**; and each gets a minimap dot (green, then orange to red). A spot that outlives 5 minutes without being seen to move starts over | Fishing > Fishing Spot Timers, Mark Newest Spot, Minimap Dots, Your Spot Colour |
+| Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | Spots move at a random time 2.5-5 minutes after they appear, so this shows the window: green until the earliest it can move, then a red ring filling up to the latest; hover for the times. Above it, how long ago it appeared ("1:42") and the Fishing icon, ringed in gold on the newest spot (the least likely to move soon) with **Mark Newest Spot** on (off by default); and the spot you fish is outlined in **Your Spot Colour**. A spot that outlives 5 minutes without being seen to move starts over | Fishing > Fishing Spot Timers, Mark Newest Spot, Your Spot Colour |
 | Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timers |
 | Fires you cook on (lit while you were nearby) | Fires go out at a random time 60-119 s after lighting: green until the earliest, then a red ring filling up to the latest; hover for the times. Off by default | Firemaking > Fire Timers |
 | Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Campfire Timers |
 | Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Timers |
 
 **Good to know:** Fishing spots and fires go at a random time the game picks (Jagex: fishing spots 250-530
-ticks), so no plugin can count down to the moment; their timers show the window (fire timers are off by default). Each timer only shows while you're training its skill (an XP drop in it in the last two
-minutes): trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs.
-Turn on **Skilling > Timers When Not Training** to see them all the time. Above every timer sit its time (time left; a star's layer health; a trap's "Caught"; for fishing spots and fires,
-how long ago they appeared) and the skill's icon (**Skilling > Timer Text**, **Timer Skill Icon**).
-**Skilling > Timer Opacity** sets how solid they are (60% by default). **Skilling > Timer Style** picks the look:
-*Tile, icon and timer* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore,
-the best fish your level can catch there) and the pie over the picture; *Timer only* is the floating timer. Where RuneLite's Fishing plugin already draws its spot icons or tiles, or its
+ticks), so no plugin can count down to the moment; their timers show the window (fire timers are off by default). Each kind's setting (Tree Timers, Mining Timers, Fishing Spot Timers, Trap Timers, Fire
+Timers, Campfire Timers, Shipwreck Timers) picks when it shows: **Always** (as soon as you're near, before you
+start), **While training** (the default: from the moment you start fishing a spot, chopping or mining, or once you've had an XP drop in its skill in the last two minutes:
+trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs) or **Off**. With
+the tile style, fishing spots that have no timer (there before you arrived, or ones that never move like
+karambwan) still get their tile and fish picture, without a timer. Above every timer sit its time (time left; a star's layer health; a trap's "Caught"; for fishing spots and fires,
+how long ago they appeared) and the skill's icon (**Resource Timers > Timer Text**, **Timer Skill Icon**).
+**Resource Timers > Timer Opacity** sets how solid they are (60% by default). **Resource Timers > Timer Style** picks the look:
+*Tile and icon* (the default) outlines the tile with a picture of what it gives (logs, ore;
+for fishing spots the fish of the way you're fishing, picked when you click from the option and the rod and bait you carry (your catches correct it), stacked when it gives
+several like trout and salmon, else of the best way for your level), the outline coloured by the timer (untimed
+fishing spots in the **Zone Colour**; hover a fishing spot or fire for when it can go); *Floating timer* puts a
+pie over each instead. Where RuneLite's Fishing plugin already draws its spot icons or tiles, or its
 Motherlode Mine plugin its vein icons, ours leave the icon or outline out and only add the timer. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
-Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin...), our pie for that timer hides
-(**Skilling > Use Other Timer Plugins**).
+Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin, RuneLite's Mining plugin for depleted rocks and
+Daeyalt, RuneLite's Fishing plugin's Minnow overlay for minnow spots...), our pie for that timer hides
+(**Resource Timers > Use Other Timer Plugins**).
 
 ---
 
@@ -247,11 +263,11 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 
 | Alert | When | Setting |
 |---|---|---|
-| Tree fallen / rock depleted / fishing spot moved | Your resource is gone ("The tree has fallen."); not for level 1 trees and rocks, which go after one log or ore | Skilling > Resource Gone |
-| Inventory full | Your inventory fills while skilling | Skilling > Inventory Full |
+| Tree fallen / rock depleted / fishing spot moved | Your resource is gone ("The tree has fallen."); not for level 1 trees and rocks, which go after one log or ore | Skilling Alerts > Resource Gone |
+| Inventory full | Your inventory fills while skilling | Skilling Alerts > Inventory Full |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
-| Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling > Batch Complete Alert |
+| Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling Alerts > Batch Complete |
 
 ---
 
@@ -319,8 +335,15 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   Train line for all of them. Only places the guide names (and only real wiki location pages), so some methods
   have none.
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
-- Where that method is a tree, rock, stall, pickpocket NPC or Hunter creature, those are outlined in the
+- Where that method is a tree, rock, stall, pickpocket NPC, Hunter creature or fishing (every spot that catches its fish), those are outlined in the
   world.
+- **Pick another method:** right-click the skill's card > **Method** lists every guide method your level and
+  quests allow (also the guide's later ones whose trees, rocks or creatures you can already use: Lead rocks from
+  Mining 25, though the guide lists it from 60), each with the XP/hr the guide gives for it where it gives one
+  ("~46K xp/hr", an estimate). With the skill's Suggest set to **Money Maker**, it lists the wiki's money-making
+  methods for the skill you meet the requirements for instead, with their GP/hr, most profitable first (the fastest marked; hover one for what the guide says about it). Pick one and the card, the
+  world outlines, the tools and the actions estimate follow it ("Your method: Barbarian Fishing"); once your level
+  is past what it covers, it goes back to **Suggested (automatic)**, which you can also pick any time.
 - **Train something else:** right-click a Hunter creature, pickpocket NPC, fishing spot, tree, rock or
   stall for a skill you have a goal in, or any monster while a combat skill has a goal, and choose
   **Track for goal** (offered whenever that skill has a goal; a monster, the Gemstone Crab included, counts for
@@ -355,18 +378,29 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
 - For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
   Magic, Runecraft) and Prayer the card also says what to **Make** (or, by the item you use, **Cook**:
   Raw karambwan, **Burn**: logs, **Bury**/**Offer**: bones, **Scatter**: ashes) and how many you have: the best thing you can make at your
-  level from what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
+  level from what's in your inventory and bank (most XP, or most profit with **Skilling Hover Cards > Best Choice By**). Its
   materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
   Lobster". The bank counts once you've opened it this session.
+- For gathering skills (Fishing, Mining, Woodcutting, Hunter) nothing gets used up but bait, so the **tools and
+  bait** the method needs are outlined instead (the rod and feathers for fly fishing, an axe or pickaxe of any
+  kind, the creature's trap; hover for "Needed for your Fishing goal: Feather"), while the spots, rocks and
+  trees themselves are outlined in the world. A fish in your inventory is only outlined for a Cooking goal.
+- **Hide Outlines While Working** (on by default): the fishing spot, tree or rock you're working drops its goal
+  outline (and a fishing spot its plain tile outline) while you work it, since you've found it; the others keep
+  theirs, and it comes back a few seconds after you stop.
 
 **How to use:**
 1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...; a skill with a goal has Modify goal... instead, which starts from
    its goal and keeps the goal bar's progress).
 2. Pick the skill (the list shows your level in each; below it, your level, XP and any current goal) and
    type a target: a number up to 99 is a level, anything bigger is an XP amount.
-3. Clear it from the card's right-click menu (Clear goal only shows while the skill has a goal).
+3. Clear it from the card's right-click menu (Clear goal only shows while the skill has a goal). A goal you reach
+   clears itself, with a chat line ("Fishing goal reached (level 53): cleared"); turn off **Clear Goals When
+   Reached** to keep reached goals (they show Done!).
 
-Goals are saved with your RuneScape profile, so they stay after a relaunch. To have them on another PC,
+Goals are saved with your RuneScape profile, so they stay after a relaunch. The Toolbelt and the Skilling Helper
+share them (and your Track for goal picks, Suggest choices and pinned skill), so switching between them keeps
+your goals. To have them on another PC,
 log in to a RuneLite account on both and turn on **Sync** for your profile (Profiles panel).
 
 **Settings (Skill Tracker):** Suggested Method; **Training Focus** (for skills without their
@@ -410,6 +444,19 @@ clicks; it never clicks, changes a menu or does anything for you.
   your character from any camera angle.
 - **Tick Boxes:** a box for each tick of the cycle (3 boxes for a 3-tick cycle), in a row or a column, the
   current one lit. Move them with Alt + drag.
+- **Move Boxes Separately:** each tick box becomes its own see-through box you Alt + drag anywhere, for example
+  one over each item you click in a tick method (box 1 on the item for tick 1, and so on); each stays where you
+  put it. They start stacked in the top-left corner; a box shows while its tick is in the cycle.
+- **Half-Tick Boxes:** a half box after each tick box ("1.5"): the tick's box lights for the first half of the tick
+  and its half box for the second, for actions between ticks. For 1-tick karambwans set Ticks Per Cycle to 1:
+  click the fire when box 1 lights and the karambwan when 1.5 does; with Move Boxes Separately put box 1 over the
+  fire and 1.5 over the karambwan.
+- **Tick Pattern:** *1-tick: two halves*: box 1 lights for the first half of every tick and box 2 for the
+  second, for clicking twice a tick (1-tick karambwans: box 1 on the fire, box 2 on the karambwan). *Custom* is
+  one box per tick from Ticks Per Cycle.
+- **Play Ahead:** the metronome sounds this long before each tick (200 ms by default), so clicking when you hear it
+  lands on the tick: reacting to a sound, plus the sound's own delay, takes about that long. If Click Timing says
+  your clicks on the sound are late, raise it; if early, lower it. 0 plays it on the tick.
 - **Tick Bar:** fills smoothly from left to right over each tick and snaps back on the next, so you can see the
   tick coming instead of reacting to a flash. Move it with Alt + drag.
 - The first tick of each cycle is in its own colour (green by default).
@@ -434,7 +481,7 @@ clicks; it never clicks, changes a menu or does anything for you.
 3-tick skilling), or turn on **Follow Attack Speed** for combat. Turn on **Metronome** to hear it. For 1-ticking, set Ticks Per Cycle to 1 and
 turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 
-**Settings (Tick Counter):** Count Over Head; Tick Boxes and Box Layout (Horizontal or Vertical); Tick Bar;
+**Settings (Tick Counter, Tick Boxes, Tick Bar, Metronome, Click Timing):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
 Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
 volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.

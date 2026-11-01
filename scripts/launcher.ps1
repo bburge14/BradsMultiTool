@@ -1,8 +1,9 @@
-# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins, checks the setup (RuneLite
+# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins (on opening, then every 10
+# minutes while it's open), Relaunch closes and restarts RuneLite with any update, checks the setup (RuneLite
 # installed, session saving on in RuneLite (configure), a Jagex session saved, Java, git) with a button to fix
 # each, and walks through saving a session; lets you pick which plugins RuneLite loads, and launches it. The Toolbelt has every separate
-# plugin in it, so it's either the Toolbelt on its own or any of the separate ones. The build and RuneLite's log
-# open in their own console window.
+# plugin in it, so it's either the Toolbelt on its own or any of the separate ones. Launching runs hidden with a
+# progress bar (building, starting, running; the log a click away) and the window stays open while RuneLite runs.
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
@@ -36,7 +37,7 @@ $form.Text = "Snuffy's Launcher"
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
 $form.StartPosition = 'CenterScreen'
-$form.ClientSize = New-Object System.Drawing.Size(460, 584)
+$form.ClientSize = New-Object System.Drawing.Size(460, 668)
 $form.Font = New-Object System.Drawing.Font('Segoe UI', 9)
 $icon = Join-Path $root 'assets\launcher.ico'
 if (Test-Path $icon) {
@@ -349,31 +350,190 @@ if ($lastNames -contains 'toolbelt') { $toolbelt.Checked = $true } else { $separ
 # ---- Launch ----
 $launch = New-Object System.Windows.Forms.Button
 $launch.Text = 'Launch RuneLite'
-$launch.Location = New-Object System.Drawing.Point(232, 544)
+$launch.Location = New-Object System.Drawing.Point(232, 600)
 $launch.Size = New-Object System.Drawing.Size(126, 32)
 $launch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
 $form.Controls.Add($launch)
 $form.AcceptButton = $launch
 $close = New-Object System.Windows.Forms.Button
 $close.Text = 'Close'
-$close.Location = New-Object System.Drawing.Point(366, 544)
+$close.Location = New-Object System.Drawing.Point(366, 600)
 $close.Size = New-Object System.Drawing.Size(82, 32)
 $close.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
 $form.Controls.Add($close)
 $form.CancelButton = $close
 
-$launch.Add_Click({
+# Progress: building, starting RuneLite, running. The build runs hidden; its output goes to a log you can open.
+$launchStatus = New-Label 'Ready.' 14 544 330
+$form.Controls.Add($launchStatus)
+$showLog = New-Object System.Windows.Forms.LinkLabel
+$showLog.Text = 'Show log'
+$showLog.Location = New-Object System.Drawing.Point(386, 544)
+$showLog.AutoSize = $true
+$showLog.Visible = $false
+$form.Controls.Add($showLog)
+$progress = New-Object System.Windows.Forms.ProgressBar
+$progress.Location = New-Object System.Drawing.Point(14, 566)
+$progress.Size = New-Object System.Drawing.Size(434, 18)
+$progress.Style = 'Continuous'
+$form.Controls.Add($progress)
+
+$logFile = Join-Path $env:TEMP "snuffys-runelite.log"
+$showLog.Add_LinkClicked({ if (Test-Path $logFile) { Start-Process notepad.exe -ArgumentList "`"$logFile`"" } })
+$script:runner = $null
+$script:logOffset = 0
+$script:tasks = 0
+$script:stage = 'idle'
+
+function Set-Status($text, $color, $value) {
+    $launchStatus.Text = $text
+    $launchStatus.ForeColor = $color
+    if ($value -ge 0) { $progress.Value = [Math]::Min(100, $value) }
+}
+
+# What's new in the log since last time (read without locking it: the build is still writing)
+function Read-NewLog {
+    if (-not (Test-Path $logFile)) { return '' }
+    try {
+        $stream = [System.IO.File]::Open($logFile, 'Open', 'Read', 'ReadWrite')
+        try {
+            if ($stream.Length -le $script:logOffset) { return '' }
+            $stream.Seek($script:logOffset, 'Begin') | Out-Null
+            $reader = New-Object System.IO.StreamReader($stream)
+            $text = $reader.ReadToEnd()
+            $script:logOffset = $stream.Length
+            return $text
+        } finally {
+            $stream.Dispose()
+        }
+    } catch {
+        return ''
+    }
+}
+
+function RuneLite-Window {
+    return Get-Process -Name 'java', 'javaw' -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like '*RuneLite*' } | Select-Object -First 1
+}
+
+$watcher = New-Object System.Windows.Forms.Timer
+$watcher.Interval = 500
+$watcher.Add_Tick({
+    $new = Read-NewLog
+    if ($new) {
+        $script:tasks += ([regex]::Matches($new, '(?m)^> Task :')).Count
+        if ($new -match 'BUILD FAILED|FAILURE: Build failed') { $script:stage = 'failed' }
+        elseif ($script:stage -eq 'building' -and $new -match "Loading Snuffy's") { $script:stage = 'starting' }
+    }
+    switch ($script:stage) {
+        'building' { Set-Status "Building Snuffy's plugins..." ([System.Drawing.SystemColors]::ControlText) ([Math]::Min(65, 5 + 7 * $script:tasks)) }
+        'starting' {
+            if (RuneLite-Window) {
+                $script:stage = 'running'
+                Set-Status 'RuneLite is running.' $green 100
+            } else {
+                Set-Status 'Starting RuneLite...' ([System.Drawing.SystemColors]::ControlText) ([Math]::Min(95, [Math]::Max($progress.Value, 70) + 1))
+            }
+        }
+    }
+    if ($script:stage -eq 'failed') {
+        $watcher.Stop()
+        Set-Status "Couldn't build or start RuneLite: see the log." $red -1
+        $showLog.Visible = $true
+        $launch.Enabled = $true
+        return
+    }
+    if ($script:runner -and $script:runner.HasExited) {
+        $watcher.Stop()
+        $launch.Enabled = $true
+        $relaunch.Enabled = $true
+        if ($script:stage -eq 'running') {
+            Set-Status 'RuneLite closed.' ([System.Drawing.SystemColors]::ControlText) 0
+        } else {
+            Set-Status "RuneLite stopped before it opened: see the log." $red -1
+            $showLog.Visible = $true
+        }
+        $script:stage = 'idle'
+    }
+})
+
+function Start-RuneLite {
     if ($separate.Checked -and -not ($boxes.Values | Where-Object { $_.Checked })) {
         [System.Windows.Forms.MessageBox]::Show('Tick at least one plugin, or pick the Toolbelt.', "Snuffy's") | Out-Null
         return
     }
     $load = if ($toolbelt.Checked) { 'toolbelt' } else { ($plugins.Keys | Where-Object { $boxes[$_].Checked }) -join ',' }
     Set-Content -Path $choiceFile -Value $load
-    # The build and RuneLite's log in their own window, kept open if something goes wrong
-    $command = "title Snuffy's - RuneLite ($load) && gradlew.bat runBrad `"-Pload=$load`" || (echo. & echo RuneLite exited with an error. Scroll up for details. & pause)"
-    Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root
-    $form.Close()
+    # Hidden: no console window; everything it prints goes to the log
+    Set-Content -Path $logFile -Value ''
+    $script:logOffset = 0
+    $script:tasks = 0
+    $script:stage = 'building'
+    $showLog.Visible = $true
+    $launch.Enabled = $false
+    Set-Status "Building Snuffy's plugins..." ([System.Drawing.SystemColors]::ControlText) 5
+    $command = "gradlew.bat --console=plain runBrad `"-Pload=$load`" > `"$logFile`" 2>&1"
+    $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    $watcher.Start()
+    $relaunch.Enabled = $true
+    $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+}
+$launch.Add_Click({ Start-RuneLite })
+
+function RuneLite-Running {
+    return $script:runner -and -not $script:runner.HasExited
+}
+
+# ---- Relaunch: close RuneLite (as its X button does, forced if it hangs), update, launch again ----
+$relaunch = New-Object System.Windows.Forms.Button
+$relaunch.Text = 'Relaunch'
+$relaunch.Location = New-Object System.Drawing.Point(132, 600)
+$relaunch.Size = New-Object System.Drawing.Size(92, 32)
+$relaunch.Enabled = $false
+$form.Controls.Add($relaunch)
+$script:closingSince = $null
+$closer = New-Object System.Windows.Forms.Timer
+$closer.Interval = 500
+$closer.Add_Tick({
+    if (-not (RuneLite-Running)) {
+        $closer.Stop()
+        Update-Plugins
+        Start-RuneLite
+        return
+    }
+    # Still open after 20 seconds: end it and the build behind it
+    if (((Get-Date) - $script:closingSince).TotalSeconds -gt 20) {
+        & taskkill.exe /PID $script:runner.Id /T /F | Out-Null
+    }
 })
+$relaunch.Add_Click({
+    if (-not (RuneLite-Running)) {
+        Update-Plugins
+        Start-RuneLite
+        return
+    }
+    Set-Status 'Closing RuneLite...' ([System.Drawing.SystemColors]::ControlText) 0
+    $relaunch.Enabled = $false
+    $window = RuneLite-Window
+    if ($window) { [void]$window.CloseMainWindow() }
+    $script:closingSince = Get-Date
+    $closer.Start()
+})
+
+# ---- Updates while the launcher's open: checked every 10 minutes; RuneLite running? Relaunch to use them ----
+$autoUpdate = New-Object System.Windows.Forms.Timer
+$autoUpdate.Interval = 10 * 60 * 1000
+$autoUpdate.Add_Tick({
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
+    git -C $root fetch --quiet 2>$null
+    $behind = (git -C $root rev-list --count 'HEAD..@{u}' 2>$null)
+    if ($LASTEXITCODE -ne 0 -or [int]$behind -le 0) { return }
+    Update-Plugins
+    if (RuneLite-Running) {
+        $updateStatus.Text = 'Update ready: Relaunch to use it.'
+        $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+    }
+})
+$autoUpdate.Start()
 
 # Desktop shortcut: make (or fix) one with the Toolbelt's icon; shortcuts already pointing here get the icon too
 $bat = Join-Path $root 'Launch-BradsMultiTool.bat'
@@ -389,7 +549,7 @@ function Set-ShortcutIcons {
 }
 $shortcut = New-Object System.Windows.Forms.LinkLabel
 $shortcut.Text = 'Make a desktop shortcut'
-$shortcut.Location = New-Object System.Drawing.Point(14, 552)
+$shortcut.Location = New-Object System.Drawing.Point(14, 644)
 $shortcut.AutoSize = $true
 $form.Controls.Add($shortcut)
 $shortcut.Add_LinkClicked({

@@ -41,6 +41,11 @@ class SkillingData {
         /** What a thievable stall gives ("Gems", "Raw fish"), or null. */
         final String loot;
         final int xpPerHour;
+        /** Mining: ticks until a depleted rock has its ore back, 0 if unknown; and in the Mining Guild and the
+         * Wilderness, where some are faster (0: the same). */
+        final int respawnTicks;
+        final int guildRespawnTicks;
+        final int wildRespawnTicks;
 
         Resource(JsonObject o) {
             name = o.get("page").getAsString();
@@ -51,6 +56,9 @@ class SkillingData {
             oneLog = o.has("oneLog") && o.get("oneLog").getAsBoolean();
             loot = o.has("loot") && !o.get("loot").isJsonNull() ? o.get("loot").getAsString() : null;
             xpPerHour = o.has("xpPerHour") ? o.get("xpPerHour").getAsInt() : 0;
+            respawnTicks = o.has("respawnTicks") ? o.get("respawnTicks").getAsInt() : 0;
+            guildRespawnTicks = o.has("guildRespawnTicks") ? o.get("guildRespawnTicks").getAsInt() : 0;
+            wildRespawnTicks = o.has("wildRespawnTicks") ? o.get("wildRespawnTicks").getAsInt() : 0;
         }
     }
 
