@@ -414,9 +414,19 @@ class ResourceTimers {
     private final Map<Player, WorldPoint> playerSpawnPoint = new HashMap<>();
 
     @Inject
-    ResourceTimers(Client client, SkillingData data) {
+    ResourceTimers(Client client, SkillingData data, SkillTrackerConfig config) {
         this.client = client;
         this.data = data;
+        this.config = config;
+    }
+
+    private final SkillTrackerConfig config;
+
+    // Debug: Rock Timers: each step in chat
+    void debug(String text) {
+        if (config.debugRockTimers()) {
+            client.addChatMessage(net.runelite.api.ChatMessageType.GAMEMESSAGE, "", "<col=ff9040>[Rock timer]</col> " + text, null);
+        }
     }
 
     /** Every timer currently tracked (check {@link Timer#visible()}). */
@@ -465,11 +475,13 @@ class ResourceTimers {
         Object[] args = event.getScriptEvent().getArguments();
         if (args == null || args.length < 6 || !(args[1] instanceof Integer) || !(args[2] instanceof Integer)
             || !(args[5] instanceof Integer)) {
+            debug("respawn notice with unexpected arguments: " + java.util.Arrays.toString(args));
             return;
         }
         WorldPoint at = WorldPoint.fromCoord((Integer) args[1]);
         int greyId = (Integer) args[2];
         int ticks = (Integer) args[5];
+        debug("respawn notice: " + at + ", grey rock " + greyId + ", " + ticks + " ticks, rock " + rockNames.get(at));
         // Motherlode veins and calcified rocks have timers of their own
         if (ticks <= 0 || VEINS.contains(greyId) || CALCIFIED_ROCKS.contains(greyId)) {
             return;
@@ -485,6 +497,7 @@ class ResourceTimers {
             startRespawn(grey, ticks, rock);
             return;
         }
+        debug("grey rock " + greyId + " not loaded yet at " + at + ": waiting for it");
         depletingRocks.put(at, new Object[]{ticks, client.getTickCount(), greyId, rock});
     }
 
@@ -514,6 +527,7 @@ class ResourceTimers {
     private static final Set<Integer> MINING_GUILD_REGIONS = Set.of(12183, 12184);
 
     private void startRespawn(GameObject grey, int ticks, String rock) {
+        debug("timer started on " + grey.getWorldLocation() + " (" + rock + "), " + ticks + " ticks");
         remove(grey);
         Timer timer = new Timer(Kind.ROCK, grey, null, ticks, ticks);
         timer.resource = rock;

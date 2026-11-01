@@ -82,7 +82,11 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         drawUntimedSpots(graphics);
         for (ResourceTimers.Timer timer : timers.all()) {
             if (!shown(timer)) {
+                debugHidden(timer);
                 continue;
+            }
+            if (timer.kind == ResourceTimers.Kind.ROCK && debugged.add(timer)) {
+                timers.debug("drawing the timer on " + timer.object.getWorldLocation());
             }
             boolean tile = config.pieStyle() == SkillTrackerConfig.PieStyle.TILE;
             if (tile && !keepsPie(timer.kind)) {
@@ -284,6 +288,21 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             Color outline = config.hideOutlinesWhileWorking() && plugin.isWorkingOn(npc) ? NO_OUTLINE : null;
             zone(graphics, new ResourceTimers.Timer(ResourceTimers.Kind.FISHING_SPOT, null, npc, 0, 0), outline, false);
         }
+    }
+
+    // Debug: Rock Timers: why a depleted rock's timer isn't drawn (once per timer)
+    private final java.util.Set<ResourceTimers.Timer> debugged = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
+
+    private void debugHidden(ResourceTimers.Timer timer) {
+        if (timer.kind != ResourceTimers.Kind.ROCK || !debugged.add(timer)) {
+            return;
+        }
+        SkillTrackerConfig.TimerShow when = when(timer.kind);
+        String why = when == SkillTrackerConfig.TimerShow.OFF ? "Mining Timers is Off"
+            : when == SkillTrackerConfig.TimerShow.TRAINING && !training(timer.kind) ? "Mining Timers is While training and you're not training Mining"
+            : config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind) ? "another timer plugin covers it (Use Other Timer Plugins)"
+            : "not visible";
+        timers.debug("timer on " + timer.object.getWorldLocation() + " not drawn: " + why);
     }
 
     /** Whether a timer is drawn: its setting is on, it has something to show, you train its skill (or its setting is Always), and no other timer plugin already draws it. */

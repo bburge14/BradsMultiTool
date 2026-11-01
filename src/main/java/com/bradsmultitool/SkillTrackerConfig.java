@@ -339,6 +339,17 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "debugRockTimers",
+        name = "Debug: Rock Timers",
+        description = "<div width='300'>Troubleshooting: says in chat each step of a depleted rock's timer (the game's respawn notice, the grey rock, the timer starting, and why it isn't drawn if it isn't). Leave off normally",
+        section = miningSection,
+        position = 9
+    )
+    default boolean debugRockTimers() {
+        return false;
+    }
+
+    @ConfigItem(
         keyName = "voiceRockDepletedEach",
         name = "Voice: Rock Depleted",
         description = "<div width='300'>Off by default: most rocks go after one ore, so it would speak after nearly every one. When the rock you are mining is depleted (turning it on plays a preview)",
