@@ -22,6 +22,8 @@ final class TickConfigDefaults {
         defaults.store("tickFirstColor", config.tickFirstColor());
         defaults.store("tickTextSize", config.tickTextSize());
         defaults.store("tickBoxSize", config.tickBoxSize());
+        defaults.store("tickBoxShape", config.tickBoxShape());
+        defaults.store("tickBoxOpacity", config.tickBoxOpacity());
         defaults.store("tickBarWidth", config.tickBarWidth());
         defaults.store("metronome", config.metronome());
         defaults.store("metronomeTone", config.metronomeSound());

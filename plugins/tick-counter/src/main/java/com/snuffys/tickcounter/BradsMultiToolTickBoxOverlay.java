@@ -55,16 +55,22 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
     static void drawBox(Graphics2D graphics, FontMetrics metrics, TickConfig config, int x, int y, int size, int tick,
                         boolean lit, double fade, Color background) {
         Color color = tickColor(config, tick);
+        java.awt.Composite before = graphics.getComposite();
+        graphics.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER,
+            Math.max(0.1f, Math.min(1f, config.tickBoxOpacity() / 100f))));
+        Object antialias = graphics.getRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING);
+        graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        java.awt.Shape outer = shape(config.tickBoxShape(), x, y, size - 1);
         graphics.setColor(background);
-        graphics.fillRect(x, y, size, size);
+        graphics.fill(outer);
         if (lit) {
             graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (color.getAlpha() * fade * 0.7)));
-            graphics.fillRect(x, y, size, size);
+            graphics.fill(outer);
         }
         graphics.setColor(lit ? color : IDLE_BORDER);
-        graphics.drawRect(x, y, size - 1, size - 1);
+        graphics.draw(outer);
         if (lit) {
-            graphics.drawRect(x + 1, y + 1, size - 3, size - 3);
+            graphics.draw(shape(config.tickBoxShape(), x + 1, y + 1, size - 3));
         }
         String text = String.valueOf(tick);
         int textX = x + (size - metrics.stringWidth(text)) / 2;
@@ -73,6 +79,20 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         graphics.drawString(text, textX + 1, textY + 1);
         graphics.setColor(lit ? Color.WHITE : Color.GRAY);
         graphics.drawString(text, textX, textY);
+        graphics.setComposite(before);
+        graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+            antialias != null ? antialias : java.awt.RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+    }
+
+    private static java.awt.Shape shape(TickConfig.BoxShape shape, int x, int y, int size) {
+        switch (shape) {
+            case CIRCLE:
+                return new java.awt.geom.Ellipse2D.Float(x, y, size, size);
+            case ROUNDED:
+                return new java.awt.geom.RoundRectangle2D.Float(x, y, size, size, size / 3f, size / 3f);
+            default:
+                return new java.awt.Rectangle(x, y, size, size);
+        }
     }
 
     @Override

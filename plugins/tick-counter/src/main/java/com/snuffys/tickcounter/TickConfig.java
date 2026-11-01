@@ -55,6 +55,23 @@ public interface TickConfig extends Config {
         }
     }
 
+    enum BoxShape {
+        SQUARE("Square"),
+        ROUNDED("Rounded"),
+        CIRCLE("Circle");
+
+        private final String label;
+
+        BoxShape(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     /** Pairs of game sounds: one for most ticks, the other for the first tick of each cycle. */
     enum Sound {
         PLOP("Plop", SoundEffectID.GE_INCREMENT_PLOP, SoundEffectID.GE_DECREMENT_PLOP),
@@ -241,6 +258,35 @@ public interface TickConfig extends Config {
     )
     default int tickBoxSize() {
         return 40;
+    }
+
+    @ConfigItem(
+        keyName = "tickBoxShape",
+        name = "Box Shape",
+        description = "Square, rounded or circle tick boxes",
+        section = tickSection,
+        position = 9
+    )
+    default BoxShape tickBoxShape() {
+        return BoxShape.SQUARE;
+    }
+
+    @Range(min
+    =
+    10,
+    max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "tickBoxOpacity",
+        name = "Box Opacity",
+        description = "<div width='300'>How solid the tick boxes are: lower to see what's under them (useful with Move Boxes Separately)",
+        section = tickSection,
+        position = 9
+    )
+    default int tickBoxOpacity() {
+        return 100;
     }
 
     @Range(min

@@ -464,7 +464,7 @@ clicks; it never clicks, changes a menu or does anything for you.
 3-tick skilling), or turn on **Follow Attack Speed** for combat. Turn on **Metronome** to hear it. For 1-ticking, set Ticks Per Cycle to 1 and
 turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 
-**Settings (Tick Counter):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical) and Move Boxes Separately; Tick Bar;
+**Settings (Tick Counter):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
 Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
 volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.
