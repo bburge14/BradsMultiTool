@@ -242,12 +242,32 @@ def pickpockets():
     return out
 
 
+def depleted_ids(page):
+    """Ids of the page's spent versions (a depleted rock, a tree stump): its Infobox Scenery versions named
+    'Depleted', 'Empty' or 'Stump', or called plain 'Rocks'. They aren't the resource itself."""
+    text = wikitext(page)
+    out = set()
+    for box in re.findall(r"\{\{Infobox Scenery(.*?)\n\}\}", text, re.S):
+        fields = dict((k.strip(), v.strip()) for k, v in re.findall(r"\|\s*(\w+)\s*=\s*([^\n]*)", box))
+        for key, value in fields.items():
+            m = re.fullmatch(r"version(\d+)", key)
+            if not m:
+                continue
+            n = m.group(1)
+            name = fields.get("name" + n, "")
+            if re.search(r"deplet|empty|stump", value, re.I) or name.lower() == "rocks":
+                out.update(int(x) for x in re.findall(r"\d+", fields.get("id" + n, "")))
+    return out
+
+
 def main():
     objects = {}
     for entry in trees() + rocks() + stalls():
         ids = object_ids(entry["page"])
         if not ids:
             ids = infobox_ids(entry["page"])
+        spent = depleted_ids(entry["page"])
+        ids = [i for i in ids if i not in spent]
         time.sleep(0.2)
         for i in ids:
             objects.setdefault(str(i), {k: v for k, v in entry.items() if v is not None})

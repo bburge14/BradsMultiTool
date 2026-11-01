@@ -18,6 +18,7 @@ import net.runelite.api.Client;
 import net.runelite.api.Experience;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.Skill;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -599,6 +600,41 @@ class SkillTracker {
     }
 
     private static final int WORKING_TICKS = 5;
+
+    // The tree or rock you last clicked to chop or mine, for isWorkingOn
+    private WorldPoint workedTile;
+
+    @Subscribe
+    public void onMenuOptionClicked(net.runelite.api.events.MenuOptionClicked event) {
+        String option = net.runelite.client.util.Text.removeTags(event.getMenuOption()).toLowerCase();
+        if (event.getMenuAction().name().startsWith("GAME_OBJECT") && (option.startsWith("chop") || option.equals("mine"))) {
+            workedTile = WorldPoint.fromScene(client.getTopLevelWorldView(), event.getParam0(), event.getParam1(),
+                client.getTopLevelWorldView().getPlane());
+        }
+    }
+
+    /** Whether this is the tree or rock you're chopping or mining right now. */
+    boolean isWorkingOn(net.runelite.api.TileObject object) {
+        if (workedTile == null || !(isWorking(Skill.WOODCUTTING) || isWorking(Skill.MINING))) {
+            return false;
+        }
+        // A click gives a big tree's south-west tile, which its location isn't
+        if (object instanceof net.runelite.api.GameObject) {
+            net.runelite.api.GameObject game = (net.runelite.api.GameObject) object;
+            WorldPoint min = WorldPoint.fromScene(client.getTopLevelWorldView(), game.getSceneMinLocation().getX(),
+                game.getSceneMinLocation().getY(), game.getPlane());
+            if (workedTile.equals(min)) {
+                return true;
+            }
+        }
+        return workedTile.equals(object.getWorldLocation());
+    }
+
+    /** Whether this is the fishing spot (or other NPC) you're working right now. */
+    boolean isWorkingOn(net.runelite.api.NPC npc) {
+        Player you = client.getLocalPlayer();
+        return you != null && you.getInteracting() == npc;
+    }
 
     // Each skill you were last seen doing, by tick: fishing a spot, or chopping or mining (by animation)
     private final Map<Skill, Integer> lastDoingTicks = new EnumMap<>(Skill.class);

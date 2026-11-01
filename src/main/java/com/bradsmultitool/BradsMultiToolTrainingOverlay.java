@@ -117,7 +117,7 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         Set<String> suggestedFish = new HashSet<>();
         for (Skill skill : plugin.getGoalSkills()) {
             int xp = client.getSkillExperience(skill);
-            if (plugin.getSkillGoal(skill) <= xp || (config.hideOutlinesWhileWorking() && plugin.isWorking(skill))) {
+            if (plugin.getSkillGoal(skill) <= xp) {
                 continue;
             }
             // What you picked with "Track for goal" wins over the suggestion
@@ -160,14 +160,17 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         Color color = config.trainingHighlightColor();
         for (GameObject object : objects.values()) {
             String resource = resourceOf.get(object);
-            if (ids.contains(object.getId()) || (resource != null && resources.contains(resource))) {
+            // Not the one you're working: you've found it
+            if ((ids.contains(object.getId()) || (resource != null && resources.contains(resource)))
+                && !(config.hideOutlinesWhileWorking() && plugin.isWorkingOn(object))) {
                 outlines.drawOutline(object, OUTLINE_WIDTH, color, OUTLINE_FEATHER);
             }
         }
         if (!npcNames.isEmpty() || !suggestedFish.isEmpty()) {
             for (NPC npc : client.getTopLevelWorldView().npcs()) {
                 String name = npc.getName() != null ? npc.getName().toLowerCase() : null;
-                if (name != null && ((npcNames.contains(name) && offers(npc, fishOptions.get(name))) || catches(npc, suggestedFish))) {
+                if (name != null && ((npcNames.contains(name) && offers(npc, fishOptions.get(name))) || catches(npc, suggestedFish))
+                    && !(config.hideOutlinesWhileWorking() && plugin.isWorkingOn(npc))) {
                     outlines.drawOutline(npc, OUTLINE_WIDTH, color, OUTLINE_FEATHER);
                 }
             }

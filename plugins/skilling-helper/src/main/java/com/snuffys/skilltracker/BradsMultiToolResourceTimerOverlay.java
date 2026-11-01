@@ -275,9 +275,9 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             || (config.deferToOtherTimerPlugins() && otherPlugins.covers(ResourceTimers.Kind.FISHING_SPOT))) {
             return;
         }
-        // While you fish, their plain outlines step aside (the fish pictures stay)
-        Color outline = config.hideOutlinesWhileWorking() && plugin.isWorking(Skill.FISHING) ? NO_OUTLINE : null;
+        // The spot you're fishing drops its plain outline (its fish picture stays)
         for (net.runelite.api.NPC npc : timers.untimedSpots()) {
+            Color outline = config.hideOutlinesWhileWorking() && plugin.isWorkingOn(npc) ? NO_OUTLINE : null;
             zone(graphics, new ResourceTimers.Timer(ResourceTimers.Kind.FISHING_SPOT, null, npc, 0, 0), outline, false);
         }
     }

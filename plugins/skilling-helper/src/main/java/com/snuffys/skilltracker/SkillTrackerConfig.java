@@ -850,7 +850,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "hideOutlinesWhileWorking",
         name = "Hide Outlines While Working",
-        description = "<div width='300'>While you're fishing, chopping or mining, hide that skill's goal outlines (the suggested spots, trees and rocks, the tools in your inventory and bank) and the plain tile outlines of fishing spots without a timer; they come back a few seconds after you stop. Timer outlines stay",
+        description = "<div width='300'>The fishing spot, tree or rock you're working drops its goal outline (and a fishing spot its plain tile outline) while you work it; the others keep theirs, and it comes back a few seconds after you stop. Timer outlines stay",
         section = trackerSection,
         position = 72
     )

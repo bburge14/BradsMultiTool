@@ -201,6 +201,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Fishing goal with a fishing suggestion (e.g. Fly fishing: Trout, Salmon): every spot that catches those fish is outlined in the world, before you start fishing.
 - [ ] Each timer kind's setting is Always / While training / Off (old on/off choices carried over: off stays Off, on becomes While training, or Always if Timers When Not Training was on). Fishing Spot Timers on Always: spots show their tile and fish before you start fishing (untimed spots without a timer).
 
-- [ ] Hide Outlines While Working: while fishing/chopping/mining, that skill's suggestion outlines, tool outlines and plain (Zone Colour) spot outlines disappear; timer outlines and fish pictures stay; all back a few seconds after stopping.
+- [ ] Hide Outlines While Working: only the spot/tree/rock you're working loses its goal outline (and plain spot outline); other spots, trees and rocks and the tools stay outlined; back a few seconds after stopping.
 - [ ] Card right-click > Method: lists the guide methods for your level (fastest marked, hover for the guide text); picking one changes the card to "Your method: ..." with its outlines/tools/estimate; Suggested (automatic) goes back; shared with the Skilling Helper.
 - [ ] Mining: mine out any rock (iron, lead, coal...): the depleted rock's tile counts down to the ore coming back (red, yellow, green), with the ore picture and time; lead rocks can be tracked for a Mining goal and the guide's Lead rocks method outlines them.
+- [ ] Lead rocks: mine one out: its depleted tile gets the respawn timer; grey lead rocks are never outlined for a goal.

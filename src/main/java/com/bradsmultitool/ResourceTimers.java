@@ -456,11 +456,28 @@ class ResourceTimers {
             return;
         }
         SkillingData.Resource resource = data.object(id, objectName(id));
-        if (resource == null || !"Mining".equals(resource.skill) || resource.respawnTicks <= 0) {
+        if (resource == null || !"Mining".equals(resource.skill) || resource.respawnTicks <= 0 || !canMine(id)) {
             return;
         }
         WorldPoint at = object.getWorldLocation();
         depletingRocks.put(at, new Object[]{respawnTicks(resource, at), client.getTickCount(), resource.name});
+    }
+
+    // Whether an object offers "Mine" (a rock with ore; a depleted one doesn't)
+    private boolean canMine(int id) {
+        ObjectComposition composition = client.getObjectDefinition(id);
+        if (composition != null && composition.getImpostorIds() != null && composition.getImpostor() != null) {
+            composition = composition.getImpostor();
+        }
+        if (composition == null || composition.getActions() == null) {
+            return false;
+        }
+        for (String action : composition.getActions()) {
+            if ("Mine".equalsIgnoreCase(action)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** A rock's respawn time here: faster in the Mining Guild or the Wilderness where the wiki says so. */
@@ -482,8 +499,8 @@ class ResourceTimers {
         // The depleted rock taking the place of one just mined out: time its ore coming back
         Object[] depleted = depletingRocks.remove(object.getWorldLocation());
         if (depleted != null && client.getTickCount() - (int) depleted[1] <= 2) {
-            SkillingData.Resource same = data.object(id, objectName(id));
-            if (same == null || !same.name.equals(depleted[2])) {
+            // The depleted rock: one you can't mine (the same rock back again would have Mine)
+            if (!canMine(id)) {
                 Timer rock = new Timer(Kind.ROCK, object, null, (int) depleted[0], (int) depleted[0]);
                 rock.resource = (String) depleted[2];
                 add(rock, object);
