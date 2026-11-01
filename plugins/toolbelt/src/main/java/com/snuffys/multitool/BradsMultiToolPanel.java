@@ -82,8 +82,8 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final JLabel skillCountLabel = new JLabel();
     private final JLabel emptyLabel = new JLabel("<html>Gain XP to start tracking skills.<br>Right-click a skill for options.</html>");
     private final JPanel cardsContainer = new JPanel();
-    private final JLabel goalsHeading = sectionHeading("GOALS");
-    private final JLabel sessionHeading = sectionHeading("THIS SESSION");
+    private final JLabel goalsHeading = foldingHeading("GOALS", "goals");
+    private final JLabel sessionHeading = foldingHeading("THIS SESSION", "session");
     // What's laid out now (goal skills, then session skills), so the list is only rebuilt when it changes
     private String cardOrder = "";
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
@@ -230,24 +230,55 @@ public class BradsMultiToolPanel extends PluginPanel {
             cards.computeIfAbsent(skill, SkillCard::new).refresh();
         }
 
-        String order = goals + "|" + session;
+        boolean goalsFolded = plugin.isListCollapsed("goals");
+        boolean sessionFolded = plugin.isListCollapsed("session");
+        String order = goals + "|" + session + "|" + goalsFolded + sessionFolded;
         if (!order.equals(cardOrder)) {
             cardOrder = order;
             cardsContainer.removeAll();
             if (shown.isEmpty()) {
                 cardsContainer.add(emptyLabel);
             }
+            // Each list under a heading you click to fold it away or open it again
             if (!goals.isEmpty()) {
+                setHeading(goalsHeading, "GOALS", goalsFolded, goals.size());
                 cardsContainer.add(goalsHeading);
-                goals.forEach(skill -> cardsContainer.add(cards.get(skill)));
-                if (!session.isEmpty()) {
-                    cardsContainer.add(sessionHeading);
+                if (!goalsFolded) {
+                    goals.forEach(skill -> cardsContainer.add(cards.get(skill)));
                 }
             }
-            session.forEach(skill -> cardsContainer.add(cards.get(skill)));
+            if (!session.isEmpty()) {
+                if (!goals.isEmpty() || sessionFolded) {
+                    setHeading(sessionHeading, "THIS SESSION", sessionFolded, session.size());
+                    cardsContainer.add(sessionHeading);
+                }
+                if (!sessionFolded) {
+                    session.forEach(skill -> cardsContainer.add(cards.get(skill)));
+                }
+            }
             cardsContainer.revalidate();
             cardsContainer.repaint();
         }
+    }
+
+    // "- GOALS" when open, "+ GOALS (3)" when folded (plain signs: the game font has no arrows)
+    private static void setHeading(JLabel heading, String name, boolean folded, int count) {
+        heading.setText(folded ? "+ " + name + " (" + count + ")" : "- " + name);
+        heading.setToolTipText(folded ? "Click to show these skills" : "Click to hide these skills");
+    }
+
+    private JLabel foldingHeading(String text, String list) {
+        JLabel label = sectionHeading(text);
+        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    plugin.setListCollapsed(list, !plugin.isListCollapsed(list));
+                }
+            }
+        });
+        return label;
     }
 
     private static JLabel sectionHeading(String text) {

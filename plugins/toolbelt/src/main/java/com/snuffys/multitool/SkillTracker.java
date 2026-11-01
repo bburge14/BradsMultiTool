@@ -571,6 +571,20 @@ class SkillTracker {
     // When each skill last gained XP (wall clock, so it survives hopping and loading screens)
     private final Map<Skill, Long> lastXpMillis = new EnumMap<>(Skill.class);
 
+    /** Whether the tracker's "goals" or "session" list is folded away (kept between launches). */
+    public boolean isListCollapsed(String list) {
+        return Boolean.parseBoolean(configManager.getConfiguration(SHARED_GROUP, "trackerCollapsed." + list));
+    }
+
+    public void setListCollapsed(String list, boolean collapsed) {
+        if (collapsed) {
+            configManager.setConfiguration(SHARED_GROUP, "trackerCollapsed." + list, true);
+        } else {
+            configManager.unsetConfiguration(SHARED_GROUP, "trackerCollapsed." + list);
+        }
+        updatePanelUI();
+    }
+
     /** When a skill last gained XP (wall clock), 0 if not this session: the tracker lists the latest first. */
     public long lastXpTime(Skill skill) {
         return lastXpMillis.getOrDefault(skill, 0L);
