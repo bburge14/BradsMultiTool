@@ -2,7 +2,11 @@
 
 Every feature, what it does, how to use it and where its settings are. Settings are in RuneLite's
 configuration panel (the wrench icon) under **Snuffy's Toolbelt**; each section below names the settings
-section to open. All sections except General start collapsed.
+section to open. Sections follow the plugins: About and General first, then Idle, the PvM sections (PvM HUD, Buff
+Bar, Potion Buffs, Health, Prayer, Combat Alerts, Slayer Card, Slayer Monsters, Slayer Alerts), Gemstone Crab, the
+skilling sections (Skill Tracker, Goals, Skilling Hover Cards, Resource Timers, Skilling Alerts, then one per
+skill) and the tick sections (Tick Counter, Tick Boxes and Bar, Metronome, Click Timing). All start collapsed
+except About and General.
 
 - [Alerts (all of them)](#alerts-all-of-them)
 - [PvM HUD](#pvm-hud)
@@ -57,7 +61,7 @@ style, DPS, and your last and max hit. It stays up for a few seconds after the f
 **How to use:** Attack anything. The HUD can be moved like any RuneLite overlay (hold Alt and drag).
 Right-click the HUD > **Reset** clears this session's damage and DPS.
 
-**Settings (PvM HUD):** Enable PvM HUD; Show Monster Effects; DPS Mode (Per Monster, Per Type, or the whole
+**Settings (PvM HUD):** Show PvM HUD; Show Monster Effects; DPS Mode (Per Monster, Per Type, or the whole
 session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status.
 
 ---
@@ -72,7 +76,7 @@ followers go by your god items, vyre noble clothing and greegrees protect you.
 **How to use:** Hover a monster. The card follows the game's left-click option, so it only shows when
 the top-left tooltip names the monster.
 
-**Settings:** PvM HUD > Monster Hover Info. With **Skilling > Skill Cards With Auto Retaliate Off** on
+**Settings:** PvM HUD > Monster Hover Card. With **Skilling Hover Cards > Skill Cards With Auto Retaliate Off** on
 and auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 
 ---
@@ -148,7 +152,7 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
 **How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which); it stays that
 way after a restart.
 
-**Settings (Slayer):** Show Task Tracker; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
+**Settings (Slayer):** Show Slayer Card; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
 Prayer; Required Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
 Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned,
 Task Complete, Task Halfway and Task Nearly Done (at 10 left by default, 0 off) alerts with Voice/Chat switches.
@@ -170,7 +174,7 @@ damage, whatever skill you train). The card shows your gear's damage bonus for t
 for another style (a Necklace of anguish while meleeing), since that slot could be adding damage. Armour's
 defence doesn't matter, so lower-tier gear with more damage beats better armour without it.
 
-**Settings (Gemstone Crab):** Enable Crab Features; Low Health Alert (%); Gear Check; Low Prayer/HP (%); Show Last/Max Hit; the four
+**Settings (Gemstone Crab):** Crab HUD and Highlights; Low Health Alert (%); Gear Check; Low Prayer/HP (%); Show Last/Max Hit; the four
 outline colours; Voice/Chat switches.
 
 ---
@@ -179,17 +183,17 @@ outline colours; Voice/Chat switches.
 
 Hover a thing to see a card next to the cursor. Cards follow the game's left-click option, so an NPC
 walking past doesn't change them. Requirement lines read "Requires: Level N" with the skill's icon (green
-when you have it, red when you don't). With **Skilling > XP Rates on Hover** on, the wiki's XP/hr and your
+when you have it, red when you don't). With **Skilling Hover Cards > XP Rates on Hover** on, the wiki's XP/hr and your
 own rate show while you're training that skill.
 
 | Hover | You see | Setting |
 |---|---|---|
-| Tree | Level, XP, your axe (in its metal colour) and the best axe for you | Skilling > Skilling Hover Info |
-| Rock | Level, XP, pickaxe | Skilling > Skilling Hover Info |
-| Libation bowl (the Teomat) | Your blessed bone shards, the XP they give (5 each, 6 with sunfire wine), jugs of wine needed (one per 400) and carried, prayer points needed, the level they take you to | Skilling > Skilling Hover Info |
-| Fishing spot (every kind: net/bait, lure/bait, cage/harpoon, big net, karambwan, karambwanji, anglerfish, dark crab, sacred/lava/infernal eels, minnows, aerial, squid, boat spots...) | Each way to fish it with the tool it needs (green if you have it) and each catch with its level and XP | Skilling > Skilling Hover Info |
-| Stall | Level, XP, the kind of loot | Skilling > Skilling Hover Info |
-| Pickpocket NPC | Level, XP, never-fail level with the Ardougne cloak, stun damage | Skilling > Skilling Hover Info |
+| Tree | Level, XP, your axe (in its metal colour) and the best axe for you | Skilling Hover Cards > Show Hover Cards |
+| Rock | Level, XP, pickaxe | Skilling Hover Cards > Show Hover Cards |
+| Libation bowl (the Teomat) | Your blessed bone shards, the XP they give (5 each, 6 with sunfire wine), jugs of wine needed (one per 400) and carried, prayer points needed, the level they take you to | Skilling Hover Cards > Show Hover Cards |
+| Fishing spot (every kind: net/bait, lure/bait, cage/harpoon, big net, karambwan, karambwanji, anglerfish, dark crab, sacred/lava/infernal eels, minnows, aerial, squid, boat spots...) | Each way to fish it with the tool it needs (green if you have it) and each catch with its level and XP | Skilling Hover Cards > Show Hover Cards |
+| Stall | Level, XP, the kind of loot | Skilling Hover Cards > Show Hover Cards |
+| Pickpocket NPC | Level, XP, never-fail level with the Ardougne cloak, stun damage | Skilling Hover Cards > Show Hover Cards |
 | Farming patch | Crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's payment, what you can plant | Farming > Farming Patch Hover |
 | Hunter creature | Level, XP, the trap | Hunter > Creature Hover |
 | Hunter trap spot (young tree, boulder, pit) | The trap it takes and what you can catch with it: the creatures nearby, else all of them, each with its level (green if you can) and XP | Hunter > Creature Hover |
@@ -236,8 +240,8 @@ start), **While training** (the default: from the moment you start fishing a spo
 trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs) or **Off**. With
 the tile style, fishing spots that have no timer (there before you arrived, or ones that never move like
 karambwan) still get their tile and fish picture, without a timer. Above every timer sit its time (time left; a star's layer health; a trap's "Caught"; for fishing spots and fires,
-how long ago they appeared) and the skill's icon (**Skilling > Timer Text**, **Timer Skill Icon**).
-**Skilling > Timer Opacity** sets how solid they are (60% by default). **Skilling > Timer Style** picks the look:
+how long ago they appeared) and the skill's icon (**Resource Timers > Timer Text**, **Timer Skill Icon**).
+**Resource Timers > Timer Opacity** sets how solid they are (60% by default). **Resource Timers > Timer Style** picks the look:
 *Tile and icon* (the default) outlines the tile with a picture of what it gives (logs, ore;
 for fishing spots the fish of the way you're fishing, picked when you click from the option and the rod and bait you carry (your catches correct it), stacked when it gives
 several like trout and salmon, else of the best way for your level), the outline coloured by the timer (untimed
@@ -248,7 +252,7 @@ arrived gets no pie (its time can't be known). Other players' logs can't be seen
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
 Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin, RuneLite's Mining plugin for depleted rocks and
 Daeyalt, RuneLite's Fishing plugin's Minnow overlay for minnow spots...), our pie for that timer hides
-(**Skilling > Use Other Timer Plugins**).
+(**Resource Timers > Use Other Timer Plugins**).
 
 ---
 
@@ -258,11 +262,11 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 
 | Alert | When | Setting |
 |---|---|---|
-| Tree fallen / rock depleted / fishing spot moved | Your resource is gone ("The tree has fallen."); not for level 1 trees and rocks, which go after one log or ore | Skilling > Resource Gone |
-| Inventory full | Your inventory fills while skilling | Skilling > Inventory Full |
+| Tree fallen / rock depleted / fishing spot moved | Your resource is gone ("The tree has fallen."); not for level 1 trees and rocks, which go after one log or ore | Skilling Alerts > Resource Gone |
+| Inventory full | Your inventory fills while skilling | Skilling Alerts > Inventory Full |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
-| Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling > Batch Complete Alert |
+| Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling Alerts > Batch Complete |
 
 ---
 
@@ -373,7 +377,7 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
 - For production skills (Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking, Construction,
   Magic, Runecraft) and Prayer the card also says what to **Make** (or, by the item you use, **Cook**:
   Raw karambwan, **Burn**: logs, **Bury**/**Offer**: bones, **Scatter**: ashes) and how many you have: the best thing you can make at your
-  level from what's in your inventory and bank (most XP, or most profit with **Skilling > Best Choice By**). Its
+  level from what's in your inventory and bank (most XP, or most profit with **Skilling Hover Cards > Best Choice By**). Its
   materials are outlined in your inventory and bank; hover one for "Suggested for your Cooking goal:
   Lobster". The bank counts once you've opened it this session.
 - For gathering skills (Fishing, Mining, Woodcutting, Hunter) nothing gets used up but bait, so the **tools and
@@ -473,7 +477,7 @@ clicks; it never clicks, changes a menu or does anything for you.
 3-tick skilling), or turn on **Follow Attack Speed** for combat. Turn on **Metronome** to hear it. For 1-ticking, set Ticks Per Cycle to 1 and
 turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 
-**Settings (Tick Counter):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
+**Settings (Tick Counter, Tick Boxes and Bar, Metronome, Click Timing):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
 Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
 volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.

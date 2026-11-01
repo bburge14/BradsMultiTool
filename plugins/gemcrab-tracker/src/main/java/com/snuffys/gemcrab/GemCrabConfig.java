@@ -39,7 +39,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Potion Buffs",
         description = "Buff timers on the HUD and running-out / expired alerts",
-        position = 6,
+        position = 12,
         closedByDefault = true
     )
     String buffSection = "buffSection";
@@ -54,7 +54,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Idle",
         description = "Idle character and idle logout warnings",
-        position = 30,
+        position = 5,
         closedByDefault = true
     )
     String idleSection = "idleSection";
@@ -62,17 +62,17 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Gemstone Crab",
         description = "Crab HUD, radar, alerts and outlines",
-        position = 49,
+        position = 20,
         closedByDefault = true
     )
     String crabSection = "crabSection";
 
     @ConfigItem(
         keyName = "enableCrabFeatures",
-        name = "Enable Crab Features",
+        name = "Crab HUD and Highlights",
         description = "<div width='300'>Master toggle for Crab HUD, Radar, and 3D highlights in the caves",
         section = crabSection,
-        position = 50
+        position = 0
     )
     default boolean enableCrabFeatures() {
         return true;
@@ -86,10 +86,10 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     99)
     @ConfigItem(
         keyName = "crabLowHealthPercent",
-        name = "Low Health Alert",
+        name = "About to Burrow At",
         description = "<div width='300'>Alert when the crab's health falls to this percentage or below",
         section = crabSection,
-        position = 51
+        position = 1
     )
     @Units(Units.PERCENT)
     default int crabLowHealthPercent() {
@@ -101,10 +101,10 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     99)
     @ConfigItem(
         keyName = "crabLowStatsPercent",
-        name = "Low Prayer/HP",
+        name = "Low Prayer/HP At",
         description = "<div width='300'>Show Prayer: LOW / Health: LOW on the crab card at or below this share of your level (0: off)",
         section = crabSection,
-        position = 53
+        position = 7
     )
     @Units(Units.PERCENT)
     default int crabLowStatsPercent() {
@@ -116,7 +116,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Gear Check",
         description = "<div width='300'>Your gear's damage bonus for the style you're fighting with, and any worn item whose damage bonus is for another style (only damage counts against the crab)",
         section = crabSection,
-        position = 52
+        position = 6
     )
     default boolean crabGearCheck() {
         return true;
@@ -127,7 +127,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Show Last Hit",
         description = "Display continuous most recent hit dealt to Gemstone Crabs",
         section = crabSection,
-        position = 54
+        position = 8
     )
     default boolean showCrabLastHit() {
         return true;
@@ -138,7 +138,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Show Max Hit",
         description = "Display continuous highest hit dealt to Gemstone Crabs",
         section = crabSection,
-        position = 55
+        position = 9
     )
     default boolean showCrabMaxHit() {
         return true;
@@ -150,7 +150,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Crab Colour",
         description = "Soft translucent outline for active fighting crab",
         section = crabSection,
-        position = 56
+        position = 10
     )
     default Color activeCrabColor() {
         return new Color(0, 220, 255, 130);
@@ -159,10 +159,10 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     @Alpha
     @ConfigItem(
         keyName = "mineableShellColor",
-        name = "Shell (Mineable)",
+        name = "Shell Colour (Mineable)",
         description = "<div width='300'>Outline for a crab shell you can mine (you were in the top 16 damage dealers and have gems left)",
         section = crabSection,
-        position = 57
+        position = 11
     )
     default Color mineableShellColor() {
         return new Color(40, 230, 80, 140);
@@ -171,10 +171,10 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     @Alpha
     @ConfigItem(
         keyName = "depletedShellColor",
-        name = "Shell (Can't Mine)",
+        name = "Shell Colour (Can't Mine)",
         description = "<div width='300'>Outline for a crab shell you can't mine (not in the top 16 damage dealers, or already mined)",
         section = crabSection,
-        position = 58
+        position = 12
     )
     default Color depletedShellColor() {
         return new Color(255, 60, 60, 140);
@@ -186,7 +186,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Tunnel Colour",
         description = "<div width='300'>Soft translucent outline for cave tunnels when crab is burrowed",
         section = crabSection,
-        position = 59
+        position = 13
     )
     default Color tunnelColor() {
         return new Color(40, 230, 80, 140);
@@ -197,7 +197,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Voice: Crab Moved",
         description = "<div width='300'>When the Gemstone Crab relocates (turning it on plays a preview)",
         section = crabSection,
-        position = 60
+        position = 4
     )
     default boolean voiceCrabMoved() {
         return true;
@@ -208,7 +208,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Chat: Crab Moved",
         description = "Chat message when the Gemstone Crab relocates",
         section = crabSection,
-        position = 61
+        position = 5
     )
     default boolean chatCrabMoved() {
         return true;
@@ -219,7 +219,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Voice: Crab About to Burrow",
         description = "<div width='300'>When the Gemstone Crab is low on health (turning it on plays a preview)",
         section = crabSection,
-        position = 62
+        position = 2
     )
     default boolean voiceCrabLowHealth() {
         return true;
@@ -230,7 +230,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Chat: Crab About to Burrow",
         description = "Chat message when the Gemstone Crab is low on health",
         section = crabSection,
-        position = 63
+        position = 3
     )
     default boolean chatCrabLowHealth() {
         return true;
@@ -281,7 +281,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Same Voice For All",
         description = "<div width='300'>Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
         section = generalSection,
-        position = 4
+        position = 3
     )
     @Override
     default boolean syncVoice() {
@@ -293,7 +293,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Chat Messages",
         description = "<div width='300'>Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
         section = generalSection,
-        position = 3
+        position = 4
     )
     @Override
     default boolean sendChatMessages() {
@@ -305,7 +305,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "AFK Alert",
         description = "<div width='300'>Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
         section = idleSection,
-        position = 31
+        position = 0
     )
     @Override
     default boolean characterIdleAlert() {
@@ -320,10 +320,10 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     120)
     @ConfigItem(
         keyName = "characterIdleSeconds",
-        name = "Idle Alert After",
+        name = "AFK Alert After",
         description = "<div width='300'>Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
         section = idleSection,
-        position = 32
+        position = 1
     )
     @Units(Units.SECONDS)
     @Override
@@ -342,7 +342,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Warn Before Logout",
         description = "<div width='300'>How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
         section = idleSection,
-        position = 34
+        position = 4
     )
     @Units(Units.SECONDS)
     @Override
@@ -355,7 +355,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Repeat Logout Warning",
         description = "Repeat the idle logout announcement until you move",
         section = idleSection,
-        position = 36
+        position = 5
     )
     @Override
     default boolean repeatIdleAlert() {
@@ -367,7 +367,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Repeat Every",
         description = "Seconds between repeat idle logout alerts",
         section = idleSection,
-        position = 37
+        position = 6
     )
     @Units(Units.SECONDS)
     @Override
@@ -380,7 +380,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the idle logout alert after the first",
         section = idleSection,
-        position = 38
+        position = 7
     )
     @Override
     default int maxIdleRepeats() {
@@ -392,7 +392,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Voice: Character Idle",
         description = "<div width='300'>When your character has gone AFK (turning it on plays a preview)",
         section = idleSection,
-        position = 39
+        position = 2
     )
     @Override
     default boolean voiceCharacterIdle() {
@@ -404,7 +404,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Chat: Character Idle",
         description = "Chat message when your character has gone AFK",
         section = idleSection,
-        position = 40
+        position = 3
     )
     @Override
     default boolean chatCharacterIdle() {
@@ -416,7 +416,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Voice: Logout Warning",
         description = "<div width='300'>When you are about to be logged out for inactivity (turning it on plays a preview)",
         section = idleSection,
-        position = 41
+        position = 8
     )
     @Override
     default boolean voiceIdleLogout() {
@@ -428,7 +428,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Chat: Logout Warning",
         description = "<div width='300'>Chat message when you are about to be logged out for inactivity",
         section = idleSection,
-        position = 42
+        position = 9
     )
     @Override
     default boolean chatIdleLogout() {
@@ -442,7 +442,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Show Buffs on HUD",
         description = "<div width='300'>Show each active potion buff with its boost and time left (on the PvM HUD and the crab card)",
         section = buffSection,
-        position = 5
+        position = 0
     )
     @Override
     default boolean enableBuffStatus() {
@@ -454,7 +454,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Flash When Expired",
         description = "Flash the Buff line on the HUD when buff is expired",
         section = buffSection,
-        position = 6
+        position = 2
     )
     @Override
     default boolean flashExpiredBuff() {
@@ -469,7 +469,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Warn Before Ending",
         description = "Warn this many seconds before a buff runs out (0 = off)",
         section = buffSection,
-        position = 7
+        position = 1
     )
     @Units(Units.SECONDS)
     @Override
@@ -482,7 +482,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Repeat Expired Alert",
         description = "Repeat the expired buff announcement",
         section = buffSection,
-        position = 10
+        position = 3
     )
     @Override
     default boolean repeatBuffAlert() {
@@ -494,7 +494,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Repeat Every",
         description = "Seconds between repeat buff alerts",
         section = buffSection,
-        position = 11
+        position = 4
     )
     @Units(Units.SECONDS)
     @Override
@@ -507,7 +507,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the expired buff alert after the first",
         section = buffSection,
-        position = 12
+        position = 5
     )
     @Override
     default int maxBuffRepeats() {
@@ -519,7 +519,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Voice: Potion Running Out",
         description = "<div width='300'>Shortly before a potion boost runs out (turning it on plays a preview)",
         section = buffSection,
-        position = 13
+        position = 6
     )
     @Override
     default boolean voiceBuffLow() {
@@ -531,7 +531,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Chat: Potion Running Out",
         description = "Chat message shortly before a potion boost runs out",
         section = buffSection,
-        position = 14
+        position = 7
     )
     @Override
     default boolean chatBuffLow() {
@@ -543,7 +543,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Voice: Potion Expired",
         description = "<div width='300'>When a potion boost has run out (turning it on plays a preview)",
         section = buffSection,
-        position = 15
+        position = 8
     )
     @Override
     default boolean voiceBuffExpired() {
@@ -555,7 +555,7 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         name = "Chat: Potion Expired",
         description = "Chat message when a potion boost has run out",
         section = buffSection,
-        position = 16
+        position = 9
     )
     @Override
     default boolean chatBuffExpired() {

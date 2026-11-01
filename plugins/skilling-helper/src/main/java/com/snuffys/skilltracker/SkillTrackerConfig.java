@@ -23,6 +23,30 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     String aboutSection = "aboutSection";
 
+    @ConfigSection(
+        name = "Skilling Alerts",
+        description = "Inventory full, resource gone and batch complete alerts",
+        position = 34,
+        closedByDefault = true
+    )
+    String skillingAlertsSection = "skillingAlertsSection";
+
+    @ConfigSection(
+        name = "Resource Timers",
+        description = "How resource timers look, and stepping aside for other timer plugins; each skill's section turns its timers on",
+        position = 33,
+        closedByDefault = true
+    )
+    String resourceTimersSection = "resourceTimersSection";
+
+    @ConfigSection(
+        name = "Goals",
+        description = "Goals and their suggested training: the method, its outlines, tools and items, and clearing reached goals",
+        position = 31,
+        closedByDefault = true
+    )
+    String goalsSection = "goalsSection";
+
     @ConfigItem(
         keyName = "openGuide",
         name = "Open the Guide",
@@ -47,7 +71,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Idle",
         description = "Idle character and idle logout warnings",
-        position = 30,
+        position = 5,
         closedByDefault = true
     )
     String idleSection = "idleSection";
@@ -93,19 +117,19 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigSection(
-        name = "Skilling",
-        description = "Hover cards and alerts shared by every skill",
-        position = 59,
+        name = "Skilling Hover Cards",
+        description = "Hover cards for trees, rocks, fishing spots, stalls and other skilling things",
+        position = 32,
         closedByDefault = true
     )
     String skillingSection = "skillingSection";
 
     @ConfigItem(
         keyName = "showSkillingHover",
-        name = "Skilling Hover Info",
+        name = "Show Hover Cards",
         description = "<div width='300'>When hovering a tree, rock, fishing spot, stall or pickpocket target, show level, XP, tools and more",
         section = skillingSection,
-        position = 1
+        position = 0
     )
     default boolean showSkillingHover() {
         return true;
@@ -116,7 +140,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "XP Rates on Hover",
         description = "<div width='300'>Show the wiki's XP/hr and your own rate on the hover card while you're training that skill",
         section = skillingSection,
-        position = 2
+        position = 1
     )
     default boolean showSkillingRates() {
         return true;
@@ -126,8 +150,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "deferToOtherTimerPlugins",
         name = "Use Other Timer Plugins",
         description = "<div width='300'>When you have another plugin on that draws the same timer (Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer/Tracker, Barbarian or Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer; RuneLite's Hunter plugin for traps, its Mining plugin for depleted rocks and Daeyalt, its Fishing plugin's Minnow overlay for minnow spots), hide our timer for it so they don't stack",
-        section = skillingSection,
-        position = 3
+        section = resourceTimersSection,
+        position = 5
     )
     default boolean deferToOtherTimerPlugins() {
         return true;
@@ -138,8 +162,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "pieStyle",
         name = "Timer Style",
         description = "<div width='300'>Tile and icon: outline the tile of each timed tree, rock, fishing spot (and the rest), with a picture of what it gives; the outline is the timer, going green, yellow, red (pulsing once it's due). Traps, fires and campfires keep a pie timer over their picture. Floating timer: a pie timer over each instead",
-        section = skillingSection,
-        position = 3
+        section = resourceTimersSection,
+        position = 0
     )
     default PieStyle pieStyle() {
         return PieStyle.TILE;
@@ -156,8 +180,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "timerOpacity",
         name = "Timer Opacity",
         description = "<div width='300'>How solid the resource timers are drawn (the tile outlines, or the floating timers): lower to see through them",
-        section = skillingSection,
-        position = 3
+        section = resourceTimersSection,
+        position = 1
     )
     default int timerOpacity() {
         return 60;
@@ -167,8 +191,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "timerText",
         name = "Timer Text",
         description = "<div width='300'>The time above each resource timer: how long it has left (a star: its layer's health), or for fishing spots and fires, which go at a random time, how long ago they appeared",
-        section = skillingSection,
-        position = 3
+        section = resourceTimersSection,
+        position = 2
     )
     default boolean timerText() {
         return true;
@@ -178,7 +202,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "timerSkillIcon",
         name = "Timer Skill Icon",
         description = "<div width='300'>The skill's icon above each resource timer (Woodcutting on trees, Fishing on spots...)",
-        section = skillingSection,
+        section = resourceTimersSection,
         position = 3
     )
     default boolean timerSkillIcon() {
@@ -190,8 +214,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "zoneColor",
         name = "Zone Colour",
         description = "<div width='300'>Colour of the tile outline for fishing spots that have no timer (the timed ones take their timer's colour)",
-        section = skillingSection,
-        position = 3
+        section = resourceTimersSection,
+        position = 4
     )
     default Color zoneColor() {
         return new Color(0, 255, 255, 220);
@@ -202,7 +226,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Best Choice By",
         description = "<div width='300'>How cards pick the \"best\" thing to make from what you carry (e.g. the anvil card): Most XP, or Most Profit at Grand Exchange prices",
         section = skillingSection,
-        position = 4
+        position = 2
     )
     default BestChoice bestChoice() {
         return BestChoice.XP;
@@ -213,7 +237,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Skill Cards With Auto Retaliate Off",
         description = "<div width='300'>With auto retaliate off, hovering an NPC you can also skill on (e.g. pickpocket) shows the skilling card instead of the monster card, even when Attack is the left-click option",
         section = skillingSection,
-        position = 5
+        position = 3
     )
     default boolean skillingWhenNotRetaliating() {
         return true;
@@ -223,8 +247,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "inventoryFullAlert",
         name = "Inventory Full",
         description = "Alert when your inventory fills up while skilling",
-        section = skillingSection,
-        position = 6
+        section = skillingAlertsSection,
+        position = 0
     )
     default boolean inventoryFullAlert() {
         return true;
@@ -234,8 +258,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "voiceInventoryFull",
         name = "Voice: Inventory Full",
         description = "<div width='300'>When your inventory fills while skilling (turning it on plays a preview)",
-        section = skillingSection,
-        position = 7
+        section = skillingAlertsSection,
+        position = 1
     )
     default boolean voiceInventoryFull() {
         return true;
@@ -245,8 +269,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "chatInventoryFull",
         name = "Chat: Inventory Full",
         description = "Chat message when your inventory fills while skilling",
-        section = skillingSection,
-        position = 8
+        section = skillingAlertsSection,
+        position = 2
     )
     default boolean chatInventoryFull() {
         return true;
@@ -256,8 +280,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "resourceGoneAlert",
         name = "Resource Gone",
         description = "<div width='300'>Alert when your tree falls, rock depletes or fishing spot moves",
-        section = skillingSection,
-        position = 9
+        section = skillingAlertsSection,
+        position = 3
     )
     default boolean resourceGoneAlert() {
         return true;
@@ -265,10 +289,10 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "batchCompleteAlert",
-        name = "Batch Complete Alert",
+        name = "Batch Complete",
         description = "<div width='300'>Alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (you stop gaining XP and your character stops)",
-        section = skillingSection,
-        position = 10
+        section = skillingAlertsSection,
+        position = 4
     )
     default boolean batchCompleteAlert() {
         return true;
@@ -278,8 +302,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "voiceBatchComplete",
         name = "Voice: Batch Complete",
         description = "<div width='300'>When your production batch finishes (turning it on plays a preview)",
-        section = skillingSection,
-        position = 11
+        section = skillingAlertsSection,
+        position = 5
     )
     default boolean voiceBatchComplete() {
         return true;
@@ -289,8 +313,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "chatBatchComplete",
         name = "Chat: Batch Complete",
         description = "Chat message when your production batch finishes",
-        section = skillingSection,
-        position = 12
+        section = skillingAlertsSection,
+        position = 6
     )
     default boolean chatBatchComplete() {
         return true;
@@ -299,7 +323,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Woodcutting",
         description = "Tree timers and alerts",
-        position = 60,
+        position = 40,
         closedByDefault = true
     )
     String woodcuttingSection = "woodcuttingSection";
@@ -309,7 +333,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Tree Timers",
         description = "<div width='300'>A timer on each tree being chopped that empties as it nears falling (Forestry timer; counts every player chopping) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = woodcuttingSection,
-        position = 1
+        position = 0
     )
     default TimerShow showTreeTimer() {
         return TimerShow.TRAINING;
@@ -320,7 +344,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Tree Fallen",
         description = "<div width='300'>When the tree you are chopping falls (turning it on plays a preview)",
         section = woodcuttingSection,
-        position = 2
+        position = 1
     )
     default boolean voiceTreeGone() {
         return true;
@@ -331,7 +355,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Tree Fallen",
         description = "Chat message when the tree you are chopping falls",
         section = woodcuttingSection,
-        position = 3
+        position = 2
     )
     default boolean chatTreeGone() {
         return true;
@@ -340,7 +364,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Mining",
         description = "Mining timers and alerts",
-        position = 61,
+        position = 41,
         closedByDefault = true
     )
     String miningSection = "miningSection";
@@ -350,7 +374,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Mining Timers",
         description = "<div width='300'>Timers on Motherlode Mine ore veins, calcified rocks, Daeyalt essence and shooting stars (the star's current layer) showing how long they have left Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = miningSection,
-        position = 1
+        position = 0
     )
     default TimerShow showMiningTimer() {
         return TimerShow.TRAINING;
@@ -362,7 +386,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Rock Depleted",
         description = "<div width='300'>Off by default: most rocks go after one ore, so it would speak after nearly every one. When the rock you are mining is depleted (turning it on plays a preview)",
         section = miningSection,
-        position = 2
+        position = 1
     )
     default boolean voiceRockDepletedEach() {
         return false;
@@ -373,7 +397,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Rock Depleted",
         description = "Chat message when the rock you are mining is depleted",
         section = miningSection,
-        position = 3
+        position = 2
     )
     default boolean chatRockDepleted() {
         return true;
@@ -382,7 +406,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Fishing",
         description = "Fishing spot timers and alerts",
-        position = 62,
+        position = 42,
         closedByDefault = true
     )
     String fishingSection = "fishingSection";
@@ -392,7 +416,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Fishing Spot Timers",
         description = "<div width='300'>A timer on each fishing spot that's moved since you arrived (one that was already there gets one once it moves: when it appeared can't be known). Spots move at a random time 2.5-5 minutes after they appear, so it shows that window: green until the earliest it can move, then a red ring filling up to the latest (hover it for the times) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = fishingSection,
-        position = 1
+        position = 0
     )
     default TimerShow showFishingSpotTimer() {
         return TimerShow.TRAINING;
@@ -403,7 +427,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Mark Newest Spot",
         description = "<div width='300'>Off by default. A gold ring around the Fishing icon of the spot that appeared most recently: spots move at a random time, so the newest one is the least likely to move soon, the best one to fish",
         section = fishingSection,
-        position = 1
+        position = 2
     )
     default boolean fishingNewestSpot() {
         return false;
@@ -428,7 +452,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Fishing Spot Moved",
         description = "When your fishing spot moves (turning it on plays a preview)",
         section = fishingSection,
-        position = 2
+        position = 3
     )
     default boolean voiceFishingSpot() {
         return true;
@@ -439,7 +463,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Fishing Spot Moved",
         description = "Chat message when your fishing spot moves",
         section = fishingSection,
-        position = 3
+        position = 4
     )
     default boolean chatFishingSpot() {
         return true;
@@ -448,7 +472,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Thieving",
         description = "Thieving alerts",
-        position = 63,
+        position = 43,
         closedByDefault = true
     )
     String thievingSection = "thievingSection";
@@ -458,7 +482,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Coin Pouch Alert",
         description = "<div width='300'>Alert when your coin pouches reach the most you can hold (28, more with the Ardougne Diary)",
         section = thievingSection,
-        position = 1
+        position = 0
     )
     default boolean coinPouchAlert() {
         return true;
@@ -469,7 +493,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Coin Pouches Full",
         description = "<div width='300'>When your coin pouches are full (turning it on plays a preview)",
         section = thievingSection,
-        position = 2
+        position = 1
     )
     default boolean voiceCoinPouch() {
         return true;
@@ -480,7 +504,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Coin Pouches Full",
         description = "Chat message when your coin pouches are full",
         section = thievingSection,
-        position = 3
+        position = 2
     )
     default boolean chatCoinPouch() {
         return true;
@@ -489,7 +513,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Farming",
         description = "Farming patch info",
-        position = 64,
+        position = 44,
         closedByDefault = true
     )
     String farmingSection = "farmingSection";
@@ -508,7 +532,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Hunter",
         description = "Hunter creature info, trap and bird house timers",
-        position = 65,
+        position = 45,
         closedByDefault = true
     )
     String hunterSection = "hunterSection";
@@ -518,7 +542,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Creature Hover",
         description = "<div width='300'>Hovering a Hunter creature shows its level, XP and the trap it needs",
         section = hunterSection,
-        position = 1
+        position = 0
     )
     default boolean showHunterHover() {
         return true;
@@ -529,7 +553,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Trap Timers",
         description = "<div width='300'>A timer on each trap you lay, showing how long until it collapses (green once something is caught) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = hunterSection,
-        position = 2
+        position = 1
     )
     default TimerShow showTrapTimer() {
         return TimerShow.TRAINING;
@@ -540,7 +564,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Bird House Hover",
         description = "Hovering a bird house shows its type and when it is ready",
         section = hunterSection,
-        position = 3
+        position = 2
     )
     default boolean showBirdhouseHover() {
         return true;
@@ -551,7 +575,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Bird Houses Ready Alert",
         description = "Alert when the bird houses you seeded are full (50 minutes)",
         section = hunterSection,
-        position = 4
+        position = 3
     )
     default boolean birdhouseAlert() {
         return true;
@@ -562,7 +586,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Bird Houses Ready",
         description = "<div width='300'>When your bird houses are ready (turning it on plays a preview)",
         section = hunterSection,
-        position = 5
+        position = 4
     )
     default boolean voiceBirdhouses() {
         return true;
@@ -573,7 +597,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Bird Houses Ready",
         description = "Chat message when your bird houses are ready",
         section = hunterSection,
-        position = 6
+        position = 5
     )
     default boolean chatBirdhouses() {
         return true;
@@ -582,7 +606,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Firemaking",
         description = "Fire timers",
-        position = 66,
+        position = 46,
         closedByDefault = true
     )
     String firemakingSection = "firemakingSection";
@@ -592,7 +616,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Fire Timers",
         description = "<div width='300'>A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = firemakingSection,
-        position = 1
+        position = 0
     )
     default TimerShow showFireTimer() {
         return TimerShow.OFF;
@@ -603,7 +627,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Campfire Timers",
         description = "<div width='300'>A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = firemakingSection,
-        position = 2
+        position = 1
     )
     default TimerShow showCampfireTimer() {
         return TimerShow.TRAINING;
@@ -612,7 +636,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Runecraft",
         description = "Altar info",
-        position = 67,
+        position = 47,
         closedByDefault = true
     )
     String runecraftSection = "runecraftSection";
@@ -631,7 +655,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Agility",
         description = "Course and shortcut info",
-        position = 68,
+        position = 48,
         closedByDefault = true
     )
     String agilitySection = "agilitySection";
@@ -650,7 +674,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Cooking",
         description = "Burn levels",
-        position = 69,
+        position = 49,
         closedByDefault = true
     )
     String cookingSection = "cookingSection";
@@ -669,7 +693,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Sailing",
         description = "Sailing timers",
-        position = 70,
+        position = 50,
         closedByDefault = true
     )
     String sailingSection = "sailingSection";
@@ -690,7 +714,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Sailing Hover",
         description = "<div width='300'>Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you), trawling shoals (Fishing level, fish, depth, bait), sea monsters (HP, safe keel, bounty parts) and your current duck",
         section = sailingSection,
-        position = 2
+        position = 0
     )
     default boolean showSailingHover() {
         return true;
@@ -699,7 +723,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Smithing",
         description = "Anvil and furnace cards",
-        position = 71,
+        position = 51,
         closedByDefault = true
     )
     String smithingSection = "smithingSection";
@@ -718,7 +742,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigSection(
         name = "Skill Tracker",
         description = "Sidebar XP tracker",
-        position = 80,
+        position = 30,
         closedByDefault = true
     )
     String trackerSection = "trackerSection";
@@ -728,7 +752,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Show Progress Bar",
         description = "The level progress bar at the top of each skill card",
         section = trackerSection,
-        position = 60
+        position = 0
     )
     default boolean showTrackerProgressBar() {
         return true;
@@ -739,7 +763,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Show XP Gained",
         description = "XP gained this session",
         section = trackerSection,
-        position = 61
+        position = 1
     )
     default boolean showTrackerXpGained() {
         return true;
@@ -750,7 +774,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Show XP to Level",
         description = "XP left until the next level",
         section = trackerSection,
-        position = 62
+        position = 2
     )
     default boolean showTrackerXpToLevel() {
         return true;
@@ -761,7 +785,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Show Actions Left",
         description = "<div width='300'>How many more of your last action until the next level (not shown for combat skills)",
         section = trackerSection,
-        position = 63
+        position = 3
     )
     default boolean showTrackerActions() {
         return true;
@@ -771,8 +795,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "trackerActionsToGoal",
         name = "Actions Until Goal",
         description = "<div width='300'>When a skill has a goal, count actions left until the goal instead of until the next level. When the suggested method changes before the goal, it counts to the end of the step you're on (hover the count to see what it counts to)",
-        section = trackerSection,
-        position = 64
+        section = goalsSection,
+        position = 1
     )
     default boolean trackerActionsToGoal() {
         return false;
@@ -780,10 +804,10 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showTrackerXpPerHour",
-        name = "Show XP/Hr",
+        name = "Show XP/hr",
         description = "XP per hour",
         section = trackerSection,
-        position = 65
+        position = 4
     )
     default boolean showTrackerXpPerHour() {
         return true;
@@ -791,10 +815,10 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showXpPerMinute",
-        name = "Show XP/Min",
+        name = "Show XP/min",
         description = "XP per minute",
         section = trackerSection,
-        position = 66
+        position = 5
     )
     default boolean showXpPerMinute() {
         return true;
@@ -805,7 +829,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Show Time to Level",
         description = "Estimated time until the next level at your current rate",
         section = trackerSection,
-        position = 67
+        position = 6
     )
     default boolean showTrackerTimeToLevel() {
         return true;
@@ -815,8 +839,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "showTrackerGoal",
         name = "Show Goal",
         description = "<div width='300'>Your goal for the skill (right-click a skill card to set one): XP left and time to reach it",
-        section = trackerSection,
-        position = 68
+        section = goalsSection,
+        position = 0
     )
     default boolean showTrackerGoal() {
         return true;
@@ -824,10 +848,10 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "showTrainingSuggestion",
-        name = "Suggested Method",
+        name = "Show Suggested Method",
         description = "<div width='300'>On a skill with a goal, show the wiki training guide's method for your level and what to switch to on the way",
-        section = trackerSection,
-        position = 69
+        section = goalsSection,
+        position = 2
     )
     default boolean showTrainingSuggestion() {
         return true;
@@ -837,8 +861,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "trainingFocus",
         name = "Training Focus",
         description = "<div width='300'>What goal suggestions aim for, unless a skill has its own (right-click a skill in the tracker > Suggest, or pick it when setting a goal): the wiki guide's fastest XP, its other methods (often more AFK), the cheapest way (fewest GP per XP when making things; gathering is free), or the best money maker you can do. Slayer always suggests the best Slayer master",
-        section = trackerSection,
-        position = 70
+        section = goalsSection,
+        position = 3
     )
     default TrainingFocus trainingFocus() {
         return TrainingFocus.FASTEST;
@@ -848,8 +872,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "highlightSuggestedTraining",
         name = "Highlight Suggested Method",
         description = "<div width='300'>Outline the trees, rocks, stalls or NPCs of the suggested method for each skill you have a goal in",
-        section = trackerSection,
-        position = 71
+        section = goalsSection,
+        position = 4
     )
     default boolean highlightSuggestedTraining() {
         return true;
@@ -859,8 +883,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "highlightGoalItems",
         name = "Highlight Goal Items",
         description = "<div width='300'>For Cooking, Smithing, Fletching, Crafting, Herblore, Firemaking and other goals, outline in your inventory and bank the materials of the best thing you can make from them (hover for which goal)",
-        section = trackerSection,
-        position = 72
+        section = goalsSection,
+        position = 5
     )
     default boolean highlightGoalItems() {
         return true;
@@ -870,8 +894,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "hideOutlinesWhileWorking",
         name = "Hide Outlines While Working",
         description = "<div width='300'>The fishing spot, tree or rock you're working drops its goal outline (and a fishing spot its plain tile outline) while you work it; the others keep theirs, and it comes back a few seconds after you stop. Timer outlines stay",
-        section = trackerSection,
-        position = 72
+        section = goalsSection,
+        position = 7
     )
     default boolean hideOutlinesWhileWorking() {
         return true;
@@ -882,8 +906,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "trainingHighlightColor",
         name = "Highlight Colour",
         description = "Outline colour for the suggested method and goal items",
-        section = trackerSection,
-        position = 73
+        section = goalsSection,
+        position = 6
     )
     default Color trainingHighlightColor() {
         return new Color(80, 200, 255, 200);
@@ -894,7 +918,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Auto-Pause Idle Skills",
         description = "<div width='300'>Stop a skill's XP/hr clock when you haven't gained XP in it for a while; it resumes on your next XP",
         section = trackerSection,
-        position = 74
+        position = 7
     )
     default boolean autoPauseSkills() {
         return true;
@@ -906,7 +930,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Auto-Pause After",
         description = "<div width='300'>Seconds without XP in a skill before it auto-pauses (10 seconds to an hour)",
         section = trackerSection,
-        position = 75
+        position = 8
     )
     @Units(Units.SECONDS)
     default int autoPauseSeconds() {
@@ -922,7 +946,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Drop Idle Skills After",
         description = "<div width='300'>A skill without a goal leaves the tracker after this long without XP (0: never), and comes back with its session numbers when you gain XP in it again. Skills with a goal and the pinned skill always stay",
         section = trackerSection,
-        position = 76
+        position = 9
     )
     default int dropIdleSkillsAfter() {
         return 30;
@@ -932,8 +956,8 @@ public interface SkillTrackerConfig extends CommonConfig {
         keyName = "clearReachedGoals",
         name = "Clear Goals When Reached",
         description = "<div width='300'>A goal clears itself once you reach it (a chat line says so), leaving its skill free for a new one. Off: it stays, showing Done!",
-        section = trackerSection,
-        position = 77
+        section = goalsSection,
+        position = 8
     )
     default boolean clearReachedGoals() {
         return true;
@@ -944,7 +968,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Ignored Skills",
         description = "Comma-separated list of skills to filter out",
         section = trackerSection,
-        position = 76
+        position = 10
     )
     default String ignoredSkills() {
         return "";
@@ -955,7 +979,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Level Up",
         description = "<div width='300'>Say the skill and your new level when you level up (turning it on plays a preview)",
         section = trackerSection,
-        position = 77
+        position = 11
     )
     default boolean voiceLevelUp() {
         return true;
@@ -966,7 +990,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Level Up",
         description = "<div width='300'>Chat message when you level up (off by default; the game already congratulates you)",
         section = trackerSection,
-        position = 78
+        position = 12
     )
     default boolean chatLevelUp() {
         return false;
@@ -1017,7 +1041,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Same Voice For All",
         description = "<div width='300'>Use the same voice and volume in all of Snuffy's plugins you have: changing them in one changes them in the others (that have this on), and one you install later picks them up. Turn off to give this plugin its own voice",
         section = generalSection,
-        position = 4
+        position = 3
     )
     @Override
     default boolean syncVoice() {
@@ -1029,7 +1053,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat Messages",
         description = "<div width='300'>Also post alerts as in-game chat messages. Each alert also has its own Chat switch in its section",
         section = generalSection,
-        position = 3
+        position = 4
     )
     @Override
     default boolean sendChatMessages() {
@@ -1041,7 +1065,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "AFK Alert",
         description = "<div width='300'>Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
         section = idleSection,
-        position = 31
+        position = 0
     )
     @Override
     default boolean characterIdleAlert() {
@@ -1056,10 +1080,10 @@ public interface SkillTrackerConfig extends CommonConfig {
     120)
     @ConfigItem(
         keyName = "characterIdleSeconds",
-        name = "Idle Alert After",
+        name = "AFK Alert After",
         description = "<div width='300'>Seconds of your character doing nothing, with no clicks or key presses, before the AFK alert",
         section = idleSection,
-        position = 32
+        position = 1
     )
     @Units(Units.SECONDS)
     @Override
@@ -1078,7 +1102,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Warn Before Logout",
         description = "<div width='300'>How many seconds before the idle logout to warn you. Out of combat that's the normal idle timeout (follows RuneLite's Logout Timer plugin); in combat the game only logs you out after 20 minutes without a click or key press",
         section = idleSection,
-        position = 34
+        position = 4
     )
     @Units(Units.SECONDS)
     @Override
@@ -1091,7 +1115,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Repeat Logout Warning",
         description = "Repeat the idle logout announcement until you move",
         section = idleSection,
-        position = 36
+        position = 5
     )
     @Override
     default boolean repeatIdleAlert() {
@@ -1103,7 +1127,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Repeat Every",
         description = "Seconds between repeat idle logout alerts",
         section = idleSection,
-        position = 37
+        position = 6
     )
     @Units(Units.SECONDS)
     @Override
@@ -1116,7 +1140,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Max Repeats",
         description = "<div width='300'>How many times to repeat the idle logout alert after the first",
         section = idleSection,
-        position = 38
+        position = 7
     )
     @Override
     default int maxIdleRepeats() {
@@ -1128,7 +1152,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Character Idle",
         description = "<div width='300'>When your character has gone AFK (turning it on plays a preview)",
         section = idleSection,
-        position = 39
+        position = 2
     )
     @Override
     default boolean voiceCharacterIdle() {
@@ -1140,7 +1164,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Character Idle",
         description = "Chat message when your character has gone AFK",
         section = idleSection,
-        position = 40
+        position = 3
     )
     @Override
     default boolean chatCharacterIdle() {
@@ -1152,7 +1176,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Logout Warning",
         description = "<div width='300'>When you are about to be logged out for inactivity (turning it on plays a preview)",
         section = idleSection,
-        position = 41
+        position = 8
     )
     @Override
     default boolean voiceIdleLogout() {
@@ -1164,7 +1188,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Logout Warning",
         description = "<div width='300'>Chat message when you are about to be logged out for inactivity",
         section = idleSection,
-        position = 42
+        position = 9
     )
     @Override
     default boolean chatIdleLogout() {

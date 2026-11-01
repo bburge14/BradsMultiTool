@@ -104,12 +104,12 @@ fishing spot gets its tile outlined with a picture of what it gives, the outline
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
 | Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |
-| Smithing | Anvil card: for each bar you carry, the best item you can make (most XP or most profit: Skilling > Best Choice By), how many, the XP (and profit at GE prices), and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
+| Smithing | Anvil card: for each bar you carry, the best item you can make (most XP or most profit: Skilling Hover Cards > Best Choice By), how many, the XP (and profit at GE prices), and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
 | Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish), sea monster card (HP, safe keel, bounty parts), current duck card (despawn timer); pies on shipwrecks showing how long until they sink |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 
 If you also run a dedicated timer plugin (Tree Despawn Timer, MLM Despawn Timer, Fishing Spot Tracker,
-RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't stack (Skilling > Use Other
+RuneLite's Hunter plugin, ...), our pie for that timer hides so the two don't stack (Resource Timers > Use Other
 Timer Plugins). XP rates on the cards only show while you're training that skill. Inventory full is announced while you
 work a resource.
 
@@ -145,7 +145,7 @@ work a resource.
   tools follow your pick ("Offer: Dragon bones (Gilded altar)").
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
-  **Highlight Goal Items**).
+  **Highlight Goal Items** (Goals)).
 - **Pin to screen**: click the pin in a card's top-right corner (or right-click > **Pin to screen**) to show that skill on the game screen (level
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
   time: the pinned card's pin is solid, the others faint, and clicking a faint one moves the pin there. Click the

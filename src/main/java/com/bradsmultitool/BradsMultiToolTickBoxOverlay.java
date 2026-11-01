@@ -107,6 +107,12 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         if (lit) {
             graphics.draw(shape(config.tickBoxShape(), x + 1, y + 1, size - 3));
         }
+        if (!config.tickBoxNumbers()) {
+            graphics.setComposite(before);
+            graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                antialias != null ? antialias : java.awt.RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+            return;
+        }
         String text = label;
         int textX = x + (size - metrics.stringWidth(text)) / 2;
         int textY = y + (size - metrics.getHeight()) / 2 + metrics.getAscent();

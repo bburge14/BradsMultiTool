@@ -21,6 +21,30 @@ public interface TickConfig extends Config {
     )
     String aboutSection = "aboutSection";
 
+    @ConfigSection(
+        name = "Click Timing",
+        description = "How long after the tick each click lands, its sounds, and the ideal click zone",
+        position = 63,
+        closedByDefault = true
+    )
+    String clickTimingSection = "clickTimingSection";
+
+    @ConfigSection(
+        name = "Metronome",
+        description = "A sound on every tick, early by Play Ahead so you can click on it",
+        position = 62,
+        closedByDefault = true
+    )
+    String metronomeSection = "metronomeSection";
+
+    @ConfigSection(
+        name = "Tick Boxes and Bar",
+        description = "The tick boxes (in a row, or moved separately) and the smooth tick bar",
+        position = 61,
+        closedByDefault = true
+    )
+    String tickBoxesSection = "tickBoxesSection";
+
     @ConfigItem(
         keyName = "openGuide",
         name = "Open the Guide",
@@ -35,7 +59,7 @@ public interface TickConfig extends Config {
     @ConfigSection(
         name = "Tick Counter",
         description = "<div width='300'>Counts game ticks over your head or in a box you can move, with an optional metronome",
-        position = 85
+        position = 60
     )
     String tickSection = "tickSection";
 
@@ -134,8 +158,8 @@ public interface TickConfig extends Config {
         keyName = "tickBoxes",
         name = "Tick Boxes",
         description = "<div width='300'>A box for each tick of the cycle, lighting up in turn. Move them with Alt + drag",
-        section = tickSection,
-        position = 1
+        section = tickBoxesSection,
+        position = 0
     )
     default boolean tickBoxes() {
         return false;
@@ -145,19 +169,30 @@ public interface TickConfig extends Config {
         keyName = "tickBoxLayout",
         name = "Box Layout",
         description = "Tick boxes in a row or a column",
-        section = tickSection,
-        position = 2
+        section = tickBoxesSection,
+        position = 1
     )
     default Layout tickBoxLayout() {
         return Layout.HORIZONTAL;
     }
 
     @ConfigItem(
+        keyName = "tickBoxNumbers",
+        name = "Box Numbers",
+        description = "Show each tick box's number (1, 2, 3, or 1.5 for a half box)",
+        section = tickBoxesSection,
+        position = 4
+    )
+    default boolean tickBoxNumbers() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "tickHalfBoxes",
         name = "Half-Tick Boxes",
         description = "<div width='300'>A half box after each tick box (\"1.5\"): the tick's box lights for the first half of the tick, its half box for the second, for actions between ticks (1-tick karambwans: the fire on the tick, the karambwan between). With Move Boxes Separately the half boxes move separately too",
-        section = tickSection,
-        position = 2
+        section = tickBoxesSection,
+        position = 3
     )
     default boolean tickHalfBoxes() {
         return false;
@@ -167,7 +202,7 @@ public interface TickConfig extends Config {
         keyName = "tickBoxesSeparate",
         name = "Move Boxes Separately",
         description = "<div width='300'>Each tick box becomes its own see-through box you can Alt + drag anywhere, say over the item you click on that tick for a tick method; each stays where you put it. Off: the boxes move together in a row or column",
-        section = tickSection,
+        section = tickBoxesSection,
         position = 2
     )
     default boolean tickBoxesSeparate() {
@@ -178,8 +213,8 @@ public interface TickConfig extends Config {
         keyName = "tickBar",
         name = "Tick Bar",
         description = "<div width='300'>A bar that fills smoothly over each tick and snaps back on the next, so you can see the tick coming instead of reacting to it. Move it with Alt + drag",
-        section = tickSection,
-        position = 3
+        section = tickBoxesSection,
+        position = 8
     )
     default boolean tickBar() {
         return false;
@@ -196,7 +231,7 @@ public interface TickConfig extends Config {
         name = "Ticks Per Cycle",
         description = "<div width='300'>The count goes 1 to this and starts over: 3 for 3-tick skilling, your weapon's attack speed for combat",
         section = tickSection,
-        position = 4
+        position = 1
     )
     default int tickCycle() {
         return 4;
@@ -207,7 +242,7 @@ public interface TickConfig extends Config {
         name = "Follow Attack Speed",
         description = "<div width='300'>Use your weapon's attack speed for the cycle (one faster on Rapid) and start the count again each time you attack, so 1 is your attack tick",
         section = tickSection,
-        position = 5
+        position = 2
     )
     default boolean tickFollowWeapon() {
         return false;
@@ -219,7 +254,7 @@ public interface TickConfig extends Config {
         name = "Tick Colour",
         description = "Colour of the count on most ticks",
         section = tickSection,
-        position = 6
+        position = 3
     )
     default Color tickColor() {
         return new Color(255, 255, 255, 230);
@@ -231,7 +266,7 @@ public interface TickConfig extends Config {
         name = "First Tick Colour",
         description = "Colour of the count on the first tick of each cycle",
         section = tickSection,
-        position = 7
+        position = 4
     )
     default Color tickFirstColor() {
         return new Color(0, 230, 120, 230);
@@ -248,7 +283,7 @@ public interface TickConfig extends Config {
         name = "Over Head Text Size",
         description = "Size of the count over your head",
         section = tickSection,
-        position = 8
+        position = 5
     )
     default int tickTextSize() {
         return 22;
@@ -264,8 +299,8 @@ public interface TickConfig extends Config {
         keyName = "tickBoxSize",
         name = "Box Size",
         description = "Width and height of each tick box",
-        section = tickSection,
-        position = 9
+        section = tickBoxesSection,
+        position = 6
     )
     default int tickBoxSize() {
         return 40;
@@ -275,8 +310,8 @@ public interface TickConfig extends Config {
         keyName = "tickBoxShape",
         name = "Box Shape",
         description = "Square, rounded or circle tick boxes",
-        section = tickSection,
-        position = 9
+        section = tickBoxesSection,
+        position = 5
     )
     default BoxShape tickBoxShape() {
         return BoxShape.SQUARE;
@@ -293,8 +328,8 @@ public interface TickConfig extends Config {
         keyName = "tickBoxOpacity",
         name = "Box Opacity",
         description = "<div width='300'>How solid the tick boxes are: lower to see what's under them (useful with Move Boxes Separately)",
-        section = tickSection,
-        position = 9
+        section = tickBoxesSection,
+        position = 7
     )
     default int tickBoxOpacity() {
         return 100;
@@ -310,8 +345,8 @@ public interface TickConfig extends Config {
         keyName = "tickBarWidth",
         name = "Bar Width",
         description = "Width of the tick bar",
-        section = tickSection,
-        position = 10
+        section = tickBoxesSection,
+        position = 9
     )
     default int tickBarWidth() {
         return 150;
@@ -321,8 +356,8 @@ public interface TickConfig extends Config {
         keyName = "metronome",
         name = "Metronome",
         description = "A game sound on every tick",
-        section = tickSection,
-        position = 11
+        section = metronomeSection,
+        position = 0
     )
     default boolean metronome() {
         return false;
@@ -331,10 +366,10 @@ public interface TickConfig extends Config {
     // A new key: the old metronomeSound could be saved as Off, which isn't a tone any more
     @ConfigItem(
         keyName = "metronomeTone",
-        name = "Tone",
+        name = "Sound",
         description = "<div width='300'>The metronome's sounds: a pair of game sounds, the second on the first tick of each cycle",
-        section = tickSection,
-        position = 12
+        section = metronomeSection,
+        position = 1
     )
     default Sound metronomeSound() {
         return Sound.PLOP;
@@ -344,8 +379,8 @@ public interface TickConfig extends Config {
         keyName = "metronomeFirstOnly",
         name = "First Tick Only",
         description = "Only play the metronome on the first tick of each cycle",
-        section = tickSection,
-        position = 13
+        section = metronomeSection,
+        position = 3
     )
     default boolean metronomeFirstOnly() {
         return false;
@@ -358,8 +393,8 @@ public interface TickConfig extends Config {
         keyName = "metronomeVolume",
         name = "Volume",
         description = "<div width='300'>Volume of the metronome and the click sounds (0-100); 0 uses the game's sound effect volume",
-        section = tickSection,
-        position = 14
+        section = metronomeSection,
+        position = 4
     )
     default int metronomeVolume() {
         return 50;
@@ -373,8 +408,8 @@ public interface TickConfig extends Config {
         keyName = "metronomeAhead",
         name = "Play Ahead",
         description = "<div width='300'>Sound the metronome this long before each tick, so clicking when you hear it lands on the tick (your reaction and sound delay take about this long). Raise it if Click Timing says your clicks on the sound are late, lower it if they're early. 0: on the tick",
-        section = tickSection,
-        position = 14
+        section = metronomeSection,
+        position = 2
     )
     default int metronomeAhead() {
         return 200;
@@ -384,8 +419,8 @@ public interface TickConfig extends Config {
         keyName = "clickTiming",
         name = "Click Timing",
         description = "<div width='300'>Show how long after the tick each click landed (in ms) over your head, and a summary of your last clicks with the tick bar (Alt + drag to move it)",
-        section = tickSection,
-        position = 15
+        section = clickTimingSection,
+        position = 0
     )
     default boolean clickTiming() {
         return false;
@@ -395,8 +430,8 @@ public interface TickConfig extends Config {
         keyName = "clickSounds",
         name = "Click Sounds",
         description = "<div width='300'>A ding for each click on time, the Late Sound for a late one (after Late After) or a missed tick",
-        section = tickSection,
-        position = 16
+        section = clickTimingSection,
+        position = 1
     )
     default boolean clickSounds() {
         return false;
@@ -406,8 +441,8 @@ public interface TickConfig extends Config {
         keyName = "clickLateSound",
         name = "Late Sound",
         description = "The sound for a late click or a missed tick",
-        section = tickSection,
-        position = 17
+        section = clickTimingSection,
+        position = 2
     )
     default LateSound clickLateSound() {
         return LateSound.VWOOP;
@@ -423,8 +458,8 @@ public interface TickConfig extends Config {
         keyName = "clickLateMs",
         name = "Late After",
         description = "<div width='300'>A click this long after the tick or later counts as late: with your ping it may land on the next tick",
-        section = tickSection,
-        position = 18
+        section = clickTimingSection,
+        position = 3
     )
     @Units(Units.MILLISECONDS)
     default int clickLateMs() {
@@ -438,8 +473,8 @@ public interface TickConfig extends Config {
         keyName = "clickIdealFrom",
         name = "Ideal From",
         description = "<div width='300'>Start of the ideal click zone, shaded green on the tick bar: clicks in it show green, other clicks before Late After white",
-        section = tickSection,
-        position = 19
+        section = clickTimingSection,
+        position = 4
     )
     @Units(Units.MILLISECONDS)
     default int clickIdealFrom() {
@@ -453,8 +488,8 @@ public interface TickConfig extends Config {
         keyName = "clickIdealTo",
         name = "Ideal To",
         description = "End of the ideal click zone (0 for no zone)",
-        section = tickSection,
-        position = 20
+        section = clickTimingSection,
+        position = 5
     )
     @Units(Units.MILLISECONDS)
     default int clickIdealTo() {
@@ -466,8 +501,8 @@ public interface TickConfig extends Config {
         keyName = "clickEveryTick",
         name = "Click Every Tick",
         description = "<div width='300'>For 1-ticking, where you click once every tick: once you've started clicking, a tick that passes without a click counts as missed and plays the Late Sound. Leave off for methods that don't click every tick",
-        section = tickSection,
-        position = 21
+        section = clickTimingSection,
+        position = 6
     )
     default boolean clickEveryTick() {
         return false;
