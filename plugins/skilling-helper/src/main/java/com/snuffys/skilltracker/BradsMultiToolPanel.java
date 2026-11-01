@@ -441,6 +441,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private boolean pinHover;
         // What this skill's goal suggestions aim for (its own choice, or the default)
         private final JMenu focusMenu = new JMenu("Suggest");
+        // Pick the guide method the suggestion uses (filled in each time the menu opens, for your level)
+        private final JMenu methodMenu = new JMenu("Method");
         private final Map<SkillTrackerConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(SkillTrackerConfig.TrainingFocus.class);
         private final JRadioButtonMenuItem defaultFocusItem = new JRadioButtonMenuItem();
 
@@ -545,6 +547,21 @@ public class BradsMultiToolPanel extends PluginPanel {
                 focusItems.put(f, item);
             }
             menu.add(focusMenu);
+            menu.add(methodMenu);
+            menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+                @Override
+                public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                    fillMethods();
+                }
+
+                @Override
+                public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+                }
+
+                @Override
+                public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+                }
+            });
             menu.add(suggestedItem);
             menu.add(pinItem);
             menu.add(menuItem("Reset " + skill.getName(), () -> plugin.resetSkill(skill)));
@@ -572,6 +589,32 @@ public class BradsMultiToolPanel extends PluginPanel {
                 offerText.setText("<html><div width='170'><font color='#ffff00'>You're training on:</font> "
                     + plugin.describeTarget(skill, target) + ". Track it for your goal?</div></html>");
             }
+        }
+
+        // Suggested (automatic), then each guide method your level and quests allow; the one in use is ticked
+        private void fillMethods() {
+            methodMenu.removeAll();
+            int level = Experience.getLevelForXp(plugin.getCurrentSkillXp(skill));
+            String chosen = plugin.getChosenMethod(skill);
+            List<TrainingData.Method> methods = plugin.getTrainingAdvisor().methodsToPick(skill, level);
+            boolean chosenAvailable = methods.stream().anyMatch(m -> m.name.equals(chosen));
+            ButtonGroup group = new ButtonGroup();
+            JRadioButtonMenuItem auto = new JRadioButtonMenuItem("Suggested (automatic)", chosen == null || !chosenAvailable);
+            auto.addActionListener(e -> plugin.setChosenMethod(skill, null));
+            group.add(auto);
+            methodMenu.add(auto);
+            methodMenu.addSeparator();
+            for (TrainingData.Method method : methods) {
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem(method.name + (method.fastest ? " (fastest)" : ""),
+                    method.name.equals(chosen));
+                if (method.about != null) {
+                    item.setToolTipText("<html><div width='260'>" + method.about + "</div></html>");
+                }
+                item.addActionListener(e -> plugin.setChosenMethod(skill, method.name));
+                group.add(item);
+                methodMenu.add(item);
+            }
+            methodMenu.setEnabled(!methods.isEmpty());
         }
 
         // The pin's spot: the card's top-right corner, in the padding kept clear for it
@@ -690,6 +733,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             defaultFocusItem.setText("Default (" + config.trainingFocus() + ")");
             (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);
             focusMenu.setVisible(skill != Skill.SLAYER);
+            methodMenu.setVisible(skill != Skill.SLAYER && hasGoal);
         }
 
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to

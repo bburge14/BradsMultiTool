@@ -99,8 +99,19 @@ class TrainingAdvisor {
             SlayerData.Master master = plugin.getSlayerData().bestMaster(plugin.getCombatLevel(), level);
             return master == null ? null : new Suggestion("Train:", "Tasks from " + master.name, null);
         }
+        // The method you picked from the card's Method list, while your level and quests allow it
+        String chosen = plugin.getChosenMethod(skill);
+        TrainingData.Method picked = null;
+        if (chosen != null) {
+            for (TrainingData.Method m : training.available(skill, level, this::canDo)) {
+                if (m.name.equals(chosen)) {
+                    picked = m;
+                    break;
+                }
+            }
+        }
         SkillTrackerConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
-        switch (focus) {
+        switch (picked != null ? SkillTrackerConfig.TrainingFocus.FASTEST : focus) {
             case MONEY:
                 MoneyData.Guide guide = money.best(skill, level, this::levelOf);
                 if (guide != null) {
@@ -118,7 +129,8 @@ class TrainingAdvisor {
             default:
                 break;
         }
-        TrainingData.Method method = training.suggest(skill, level, focus == SkillTrackerConfig.TrainingFocus.OTHER, this::canDo);
+        TrainingData.Method method = picked != null ? picked
+            : training.suggest(skill, level, focus == SkillTrackerConfig.TrainingFocus.OTHER, this::canDo);
         if (method == null) {
             return null;
         }
@@ -129,10 +141,10 @@ class TrainingAdvisor {
             String text = option.with.isEmpty() ? method.name + ": " + option.name
                 : option.name + " (" + String.join(" + ", option.with) + ")";
             double each = option.xpEach() > 0 ? option.xpEach() : xpEach(method, level);
-            return new Suggestion("Train:", text, method, each, toolsFor(skill, method));
+            return new Suggestion(picked != null ? "Your method:" : "Train:", text, method, each, toolsFor(skill, method));
         }
         String text = method.targets.isEmpty() ? method.name : method.name + ": " + String.join(", ", method.targets);
-        return new Suggestion("Train:", text, method, xpEach(method, level), toolsFor(skill, method));
+        return new Suggestion(picked != null ? "Your method:" : "Train:", text, method, xpEach(method, level), toolsFor(skill, method));
     }
 
     // What a guide method needs to hand: an axe or pickaxe for its trees or rocks, the trap for its creature,
@@ -214,6 +226,11 @@ class TrainingAdvisor {
             }
         }
         return tools;
+    }
+
+    /** The guide methods you could pick at this level for this skill (see {@link TrainingData#available}). */
+    List<TrainingData.Method> methodsToPick(Skill skill, int level) {
+        return training.available(skill, level, this::canDo);
     }
 
     /**

@@ -189,7 +189,7 @@ class SkillTracker {
      * group, so its goals stay where they were; bird houses and compost are kept there too.)
      */
     static final String SHARED_GROUP = "bradsmultitool";
-    private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "trainingFocus.", "prayerMethod."};
+    private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "goalMethod.", "trainingFocus.", "prayerMethod."};
 
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
     // which changes when synced settings arrive), so redraw the tracker then
@@ -366,6 +366,23 @@ class SkillTracker {
     public String getGoalTarget(Skill skill) {
         return configManager.getRSProfileKey() == null ? null
             : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+    }
+
+    /** The guide method you picked for this skill's suggestion (its name), or null to have it picked for you. */
+    public String getChosenMethod(Skill skill) {
+        return configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name());
+    }
+
+    /** Pick the suggestion's method (null: automatic). It replaces a Track for goal pick, as it's what you'll train. */
+    public void setChosenMethod(Skill skill, String method) {
+        if (method == null) {
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name(), method);
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+        }
+        updatePanelUI();
     }
 
     public void setGoalTarget(Skill skill, String target) {

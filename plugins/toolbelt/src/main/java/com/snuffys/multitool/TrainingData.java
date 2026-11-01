@@ -265,6 +265,22 @@ class TrainingData {
         return chosen != null ? chosen : fallback != null ? fallback : questing;
     }
 
+    /**
+     * Every method you could use at this level (not questing), for picking your own: the guide's fastest ones
+     * first, then its other methods, each latest-starting first.
+     */
+    List<Method> available(Skill skill, int level, java.util.function.Predicate<Method> canDo) {
+        List<Method> out = new ArrayList<>();
+        for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
+            if (method.covers(level) && !method.isQuesting() && canDo.test(method)
+                && out.stream().noneMatch(m -> m.name.equals(method.name))) {
+                out.add(method);
+            }
+        }
+        out.sort((a, b) -> a.fastest != b.fastest ? (a.fastest ? -1 : 1) : Integer.compare(b.from, a.from));
+        return out;
+    }
+
     /** The guide's questing method for this level (quests worth doing for their XP), or null. */
     Method questing(Skill skill, int level) {
         for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
