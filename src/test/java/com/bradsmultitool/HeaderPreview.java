@@ -10,7 +10,7 @@ import javax.swing.JPanel;
 /** Renders the skill tracker's header box offline (at the sidebar's width) to check its layout. */
 public class HeaderPreview {
     public static void main(String[] args) throws Exception {
-        JPanel header = BradsMultiToolPanel.buildHeader(new JLabel("1,020"), new JLabel("83,454"), new JLabel("2"), new JLabel(), () -> { }, () -> { });
+        JPanel header = BradsMultiToolPanel.buildHeader(new JLabel("1,020"), new JLabel("83,454"), new JLabel("2"), () -> { }, () -> { });
         int width = 205;
         header.setSize(new Dimension(width, header.getPreferredSize().height));
         layout(header);

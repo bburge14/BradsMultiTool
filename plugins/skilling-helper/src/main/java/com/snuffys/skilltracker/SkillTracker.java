@@ -62,17 +62,7 @@ class SkillTracker {
     private KillTracker killTracker;
     @Inject
     private Provider<MethodDetector> methodDetector;
-    @Inject
-    private Provider<PluginClashes> clashes;
 
-    /** Clashes with other plugins on right now, for the sidebar: {name, note}. */
-    public List<String[]> getActiveClashes() {
-        List<String[]> out = new ArrayList<>();
-        for (PluginClashes.Clash clash : clashes.get().active()) {
-            out.add(new String[]{clash.name, clash.message});
-        }
-        return out;
-    }
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> gainedSkillXp = new EnumMap<>(Skill.class);

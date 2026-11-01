@@ -23,8 +23,8 @@ import net.runelite.client.util.LinkBrowser;
 /**
  * The plugin's About settings: Open the Guide (opens its part of the feature guide, then switches itself off),
  * and clashes with other plugins, checked live: while one that draws or says the same thing is on (or a setting
- * of it that does), a warning icon shows among RuneLite's info boxes (hover it for the list), it's listed in the
- * Skilling Helper's sidebar, and said once a login in chat; turning the other
+ * of it that does), a warning icon shows among RuneLite's info boxes (hover it for the list) and it's said once a
+ * login in chat; turning the other
  * plugin or setting off ends it, and turning it back on says it again. Only reads which plugins and settings are on; never changes them.
  */
 @Singleton
@@ -66,7 +66,7 @@ class PluginClashes {
     }
 
     private static Clash timer(String plugin, String name, String what) {
-        return plugin(plugin, name, name + " is on: Snuffy's " + what + " are hidden while it is (Use Other Timer Plugins)",
+        return plugin(plugin, name, name + " is on, so Snuffy's " + what + " are hidden (Use Other Timer Plugins)",
             "skilltracker");
     }
 
@@ -85,29 +85,29 @@ class PluginClashes {
         timer("SalvagingAfkTimerPlugin", "Salvaging AFK Timer", "shipwreck timers"),
         timer("FireTimerPlugin", "Fire Timer", "fire timers"),
         plugin(CORE + "hunter.HunterPlugin", "RuneLite's Hunter",
-            "RuneLite's Hunter plugin is on: Snuffy's trap timers are hidden while it is (Use Other Timer Plugins)", "skilltracker"),
+            "RuneLite's Hunter plugin is on, so Snuffy's trap timers are hidden (Use Other Timer Plugins)", "skilltracker"),
         plugin(CORE + "mining.MiningPlugin", "RuneLite's Mining",
-            "RuneLite's Mining plugin is on: Snuffy's depleted rock and Daeyalt timers are hidden while it is (it draws its own)",
+            "RuneLite's Mining plugin is on and draws its own rock timers, so Snuffy's depleted rock and Daeyalt timers are hidden",
             "skilltracker"),
         setting(CORE + "fishing.FishingPlugin", "RuneLite's Fishing (spot icons)", "fishing", true,
-            "RuneLite's Fishing plugin shows fishing spot icons: Snuffy's fishing spot tiles leave out their fish pictures while it does",
+            "RuneLite's Fishing plugin shows fishing spot icons, so Snuffy's spot tiles leave out the fish pictures",
             "skilltracker", "showIcons"),
         setting(CORE + "fishing.FishingPlugin", "RuneLite's Fishing (spot tiles)", "fishing", false,
-            "RuneLite's Fishing plugin outlines fishing spot tiles: Snuffy's leave out their own outline while it does",
+            "RuneLite's Fishing plugin outlines fishing spot tiles, so Snuffy's spot tiles leave out their outline",
             "skilltracker", "showTiles"),
         setting(CORE + "fishing.FishingPlugin", "RuneLite's Fishing (minnows)", "fishing", true,
-            "RuneLite's Fishing plugin times minnow spots: Snuffy's minnow spot timers are hidden while it does",
+            "RuneLite's Fishing plugin times minnow spots, so Snuffy's minnow timers are hidden",
             "skilltracker", "showMinnowOverlay"),
         setting(CORE + "motherlode.MotherlodePlugin", "RuneLite's Motherlode Mine (veins)", "motherlode", true,
-            "RuneLite's Motherlode Mine plugin marks the veins: Snuffy's vein timers leave out their pictures while it does",
+            "RuneLite's Motherlode Mine plugin marks the veins, so Snuffy's vein timers leave out their pictures",
             "skilltracker", "showVeins"),
         setting(CORE + "slayer.SlayerPlugin", "RuneLite's Slayer (task highlight)", "slayer", false,
-            "RuneLite's Slayer plugin highlights your task monsters too: turn off its highlight or Snuffy's Task Monster Outlines to see one",
+            "RuneLite's Slayer plugin also highlights your task monsters; turn off its highlight or Snuffy's Highlight Task Monsters to see just one",
             "pvm", "highlightOutline", "highlightHull", "highlightTile"),
         plugin(CORE + "metronome.MetronomePlugin", "RuneLite's Metronome",
-            "RuneLite's Metronome is on: with Snuffy's Metronome on too you'll hear both", "tickcounter"),
+            "RuneLite's Metronome is on; with Snuffy's Metronome on too, you'll hear both", "tickcounter"),
         plugin(CORE + "idlenotifier.IdleNotifierPlugin", "RuneLite's Idle Notifier",
-            "RuneLite's Idle Notifier is on: it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab", "voices"));
+            "RuneLite's Idle Notifier is on, so it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab", "voices"));
 
     private final Client client;
     private final ClientThread clientThread;
@@ -119,8 +119,7 @@ class PluginClashes {
     private final net.runelite.client.ui.overlay.infobox.InfoBoxManager infoBoxes;
     // The warning icon among RuneLite's info boxes (top left) while something clashes; hover it for the list
     private ClashInfoBox infoBox;
-    // Clashes on right now; and the ones said in chat this login
-    private volatile List<Clash> active = Collections.emptyList();
+    // The clashes said in chat this login
     private final Set<Clash> said = new HashSet<>();
     private static final int CHECK_TICKS = 5;
 
@@ -210,11 +209,10 @@ class PluginClashes {
             for (Clash clash : now) {
                 if (said.add(clash)) {
                     client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName
-                        + "]</col> Heads up: " + clash.message + ".", null);
+                        + "]</col> " + clash.message + ".", null);
                 }
             }
         }
-        active = Collections.unmodifiableList(now);
         showInfoBox(now);
     }
 
@@ -224,7 +222,7 @@ class PluginClashes {
             stop();
             return;
         }
-        StringBuilder tip = new StringBuilder(identity.chatName + ": clashing plugins on");
+        StringBuilder tip = new StringBuilder(identity.chatName + ": other plugins doing the same thing");
         for (Clash clash : now) {
             tip.append("</br>- ").append(clash.message);
         }
@@ -275,11 +273,6 @@ class PluginClashes {
         public java.awt.Color getTextColor() {
             return java.awt.Color.WHITE;
         }
-    }
-
-    /** The clashes on right now (for the sidebar). */
-    List<Clash> active() {
-        return active;
     }
 
     // No settings named: the plugin being on is enough; else any of them on

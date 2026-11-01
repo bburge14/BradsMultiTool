@@ -82,8 +82,6 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final JLabel skillCountLabel = new JLabel();
     private final JLabel emptyLabel = new JLabel("<html>Gain XP to start tracking skills.<br>Right-click a skill for options.</html>");
     private final JPanel cardsContainer = new JPanel();
-    private final JLabel clashesLabel = new JLabel();
-    private String shownClashes = "";
     private final JLabel goalsHeading = foldingHeading("GOALS", "goals");
     private final JLabel sessionHeading = foldingHeading("THIS SESSION", "session");
     // What's laid out now (goal skills, then session skills), so the list is only rebuilt when it changes
@@ -100,7 +98,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         setBorder(new EmptyBorder(10, 10, 10, 10));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JPanel header = buildHeader(totalXpLabel, totalRateLabel, skillCountLabel, clashesLabel,
+        JPanel header = buildHeader(totalXpLabel, totalRateLabel, skillCountLabel,
             () -> askForGoal(null), () -> LinkBrowser.browse(NEW_ISSUE_URL));
 
         cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
@@ -126,7 +124,7 @@ public class BradsMultiToolPanel extends PluginPanel {
      * The header box: title and subtitle on the left with a small "Issues?" button centred beside them,
      * three equal stat columns (caption centred over value), and the Set Goal button across the bottom.
      */
-    static JPanel buildHeader(JLabel totalXp, JLabel rate, JLabel skills, JLabel clashesLabel, Runnable onSetGoal, Runnable onIssues) {
+    static JPanel buildHeader(JLabel totalXp, JLabel rate, JLabel skills, Runnable onSetGoal, Runnable onIssues) {
         JPanel header = new JPanel(new BorderLayout(0, 8));
         header.setBackground(ColorScheme.DARKER_GRAY_COLOR);
         header.setBorder(BorderFactory.createCompoundBorder(
@@ -179,17 +177,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         goalButton.setToolTipText("Pick a skill and a target level or XP; it's pinned under Goals");
         goalButton.setFocusPainted(false);
         goalButton.addActionListener(e -> onSetGoal.run());
-        JPanel bottom = new JPanel(new BorderLayout(0, 4));
-        bottom.setOpaque(false);
-        bottom.add(goalButton, BorderLayout.NORTH);
-        // Other plugins on right now that clash (hidden when there are none); hover for what each means
-        clashesLabel.setFont(FontManager.getRunescapeSmallFont());
-        clashesLabel.setForeground(new Color(255, 200, 0));
-        clashesLabel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 200, 0, 120)), new EmptyBorder(3, 5, 3, 5)));
-        clashesLabel.setVisible(false);
-        bottom.add(clashesLabel, BorderLayout.SOUTH);
-        header.add(bottom, BorderLayout.SOUTH);
+        header.add(goalButton, BorderLayout.SOUTH);
         return header;
     }
 
@@ -204,30 +192,7 @@ public class BradsMultiToolPanel extends PluginPanel {
     /**
      * Must be called on the Swing EDT.
      */
-    // The clashes box under Set Goal: "Clashes: RuneLite's Mining, Fire Timer" (hover for each note)
-    private void updateClashes() {
-        List<String[]> clashes = plugin.getActiveClashes();
-        String key = clashes.stream().map(c -> c[0]).reduce("", (a, b) -> a + "|" + b);
-        if (key.equals(shownClashes)) {
-            return;
-        }
-        shownClashes = key;
-        clashesLabel.setVisible(!clashes.isEmpty());
-        if (clashes.isEmpty()) {
-            return;
-        }
-        StringBuilder names = new StringBuilder();
-        StringBuilder notes = new StringBuilder("<html><div width='260'><b>Clashing plugins on now</b>");
-        for (String[] clash : clashes) {
-            names.append(names.length() > 0 ? ", " : "").append(clash[0]);
-            notes.append("<br><br>").append(clash[1]).append('.');
-        }
-        clashesLabel.setText("<html><div width='190'>Clashes: " + names + "</div></html>");
-        clashesLabel.setToolTipText(notes.append("</div></html>").toString());
-    }
-
     public void updatePanel() {
-        updateClashes();
         List<Skill> tracked = plugin.getTrackedSkills();
         int totalRate = 0;
         for (Skill skill : tracked) {
