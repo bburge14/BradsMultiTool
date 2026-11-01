@@ -66,8 +66,8 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     enum PieStyle {
-        TILE("Tile, icon and timer"),
-        PIE("Timer only");
+        TILE("Tile and icon"),
+        PIE("Floating timer");
 
         private final String name;
         PieStyle(String name) { this.name = name; }
@@ -119,7 +119,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "pieStyle",
         name = "Timer Style",
-        description = "<div width='300'>Tile, icon and timer: outline the tile of each timed tree, rock or fishing spot, with a picture of what it gives and the timer over it. Timer only: just the floating timer",
+        description = "<div width='300'>Tile and icon: outline the tile of each timed tree, rock, fishing spot (and the rest), with a picture of what it gives; the outline is the timer, going green, yellow, red (pulsing once it's due). Traps, fires and campfires keep a pie timer over their picture. Floating timer: a pie timer over each instead",
         section = skillingSection,
         position = 3
     )
@@ -137,7 +137,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "timerOpacity",
         name = "Timer Opacity",
-        description = "<div width='300'>How solid the resource timers are drawn: lower to see the tree, rock or fishing spot through them",
+        description = "<div width='300'>How solid the resource timers are drawn (the tile outlines, or the floating timers): lower to see through them",
         section = skillingSection,
         position = 3
     )
@@ -171,7 +171,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "zoneColor",
         name = "Zone Colour",
-        description = "<div width='300'>Colour of the tile outline for timed trees, rocks and fishing spots (filled in a fainter shade)",
+        description = "<div width='300'>Colour of the tile outline for fishing spots that have no timer (the timed ones take their timer's colour)",
         section = skillingSection,
         position = 3
     )

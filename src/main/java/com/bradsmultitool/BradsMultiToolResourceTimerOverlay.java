@@ -85,7 +85,17 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 continue;
             }
             boolean tile = config.pieStyle() == SkillTrackerConfig.PieStyle.TILE;
-            Point at = tile ? zone(graphics, timer) : position(timer);
+            if (tile && !keepsPie(timer.kind)) {
+                // No pie: the tile's outline is the timer (green, yellow, red; pulsing red once it's due)
+                Point at = zone(graphics, timer, outlineColor(timer), false);
+                if (at != null) {
+                    drawLabels(graphics, timer, at);
+                    hoverWindow(timer);
+                }
+                continue;
+            }
+            // Traps, fires and campfires keep a pie: a set time they run out by (with the tile style, over the picture)
+            Point at = tile ? zone(graphics, timer, null, true) : position(timer);
             if (at == null) {
                 continue;
             }
@@ -264,7 +274,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             return;
         }
         for (net.runelite.api.NPC npc : timers.untimedSpots()) {
-            zone(graphics, new ResourceTimers.Timer(ResourceTimers.Kind.FISHING_SPOT, null, npc, 0, 0));
+            zone(graphics, new ResourceTimers.Timer(ResourceTimers.Kind.FISHING_SPOT, null, npc, 0, 0), null, false);
         }
     }
 
@@ -318,7 +328,56 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
 
     // The tile style: outlines the resource's tiles, draws what it gives in the middle, and returns where the pie
     // goes (over the picture's top right corner, or the middle of the tile when there's no picture)
-    private Point zone(Graphics2D graphics, ResourceTimers.Timer timer) {
+    /** Traps, fires and campfires: a pie timer even with the tile style (they run out by a set time). */
+    static boolean keepsPie(ResourceTimers.Kind kind) {
+        return kind == ResourceTimers.Kind.TRAP || kind == ResourceTimers.Kind.FIRE || kind == ResourceTimers.Kind.CAMPFIRE;
+    }
+
+    // The tile outline as the timer, at the Timer Opacity setting: windowColor for fishing spots and fires; green,
+    // yellow, red as the others run down (a trap green once caught, red if it sprang empty); pulsing red once due
+    private Color outlineColor(ResourceTimers.Timer timer) {
+        double scale = config.timerOpacity() / 60.0;
+        if (timer.windowed()) {
+            return withAlpha(windowColor(timer), 230 * scale);
+        }
+        double left = timer.progress();
+        Color color = left > 0.5 ? HudColors.GOOD : left > 0.2 ? HudColors.WARN : HudColors.BAD;
+        if (timer.kind == ResourceTimers.Kind.TRAP && timer.trapState != ResourceTimers.TrapState.SET) {
+            color = timer.trapState == ResourceTimers.TrapState.CAUGHT ? HudColors.GOOD : HudColors.BAD;
+        } else if (timer.due()) {
+            return withAlpha(HudColors.BAD, (90 + 165 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0))) * scale);
+        }
+        return withAlpha(color, 230 * scale);
+    }
+
+    // Hovering a fishing spot's or fire's tile: when it can go ("Won't move for 1:20 (gone by 4:00 at the latest)")
+    private void hoverWindow(ResourceTimers.Timer timer) {
+        if (!timer.windowed()) {
+            return;
+        }
+        Polygon poly = timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
+        net.runelite.api.Point mouse = client.getMouseCanvasPosition();
+        if (poly != null && mouse != null && poly.contains(mouse.getX(), mouse.getY())) {
+            tooltips.add(new Tooltip(windowText(timer)));
+        }
+    }
+
+    /** A fishing spot's or fire's colour: green while it can't go yet, then yellow to red through its window. */
+    static Color windowColor(ResourceTimers.Timer timer) {
+        if (timer.ticksToEarliest() > 0) {
+            return HudColors.GOOD;
+        }
+        double t = timer.windowPassed();
+        Color from = HudColors.WARN;
+        Color to = HudColors.BAD;
+        return new Color((int) (from.getRed() + (to.getRed() - from.getRed()) * t),
+            (int) (from.getGreen() + (to.getGreen() - from.getGreen()) * t),
+            (int) (from.getBlue() + (to.getBlue() - from.getBlue()) * t));
+    }
+
+    // Outline in this colour (null: Zone Colour, or Your Spot Colour on the spot you fish), with the picture of
+    // what it gives; returns where the pie goes (forPie) or the middle top of the picture (for the labels)
+    private Point zone(Graphics2D graphics, ResourceTimers.Timer timer, Color outline, boolean forPie) {
         int plane = client.getTopLevelWorldView().getPlane();
         LocalPoint local = timer.npc != null ? timer.npc.getLocalLocation() : timer.object.getLocalLocation();
         if (local == null) {
@@ -329,10 +388,12 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         Polygon poly = otherPlugins.drawsTile(timer.kind, yours) ? null
             : timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
         if (poly != null) {
-            Color zone = yours && timer.kind == ResourceTimers.Kind.FISHING_SPOT ? config.fishingActiveColor() : config.zoneColor();
+            boolean yourSpot = yours && timer.kind == ResourceTimers.Kind.FISHING_SPOT;
+            Color zone = outline != null ? outline : yourSpot ? config.fishingActiveColor() : config.zoneColor();
             graphics.setColor(new Color(0, 0, 0, 50));
             graphics.fill(poly);
-            graphics.setStroke(new BasicStroke(1.5f));
+            // The spot you fish: a thicker outline (its colour is its timer's)
+            graphics.setStroke(new BasicStroke(outline != null && yourSpot ? 3f : 1.5f));
             graphics.setColor(zone);
             graphics.draw(poly);
         }
@@ -350,7 +411,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             }
         }
         if (icons.isEmpty()) {
-            return middle;
+            return forPie ? middle : new Point(middle.getX(), middle.getY() + DIAMETER / 2);
         }
         // Several (trout and salmon from one way of fishing): stacked, each a little down and right of the last
         int width = icons.get(0).getWidth() + STACK_STEP * (icons.size() - 1);
@@ -360,7 +421,9 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         for (int i = 0; i < icons.size(); i++) {
             graphics.drawImage(icons.get(i), x + STACK_STEP * i, y + STACK_STEP * i, null);
         }
-        return new Point(x + width - DIAMETER / 4, y + DIAMETER / 4);
+        return forPie ? new Point(x + width - DIAMETER / 4, y + DIAMETER / 4)
+            // drawLabels puts the time above a pie-sized space centred here: just above the picture
+            : new Point(middle.getX(), y + DIAMETER / 2 - 2);
     }
 
     private static final int STACK_STEP = 9;

@@ -99,7 +99,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Fishing spots: a timer only on spots that moved while you were there; none on a spot that was already there
   or came into view as you walked up, until it moves; a full timer again after each move (minnow spots included).
 - [ ] Fishing spot moved: the voice line plays when the spot you're fishing moves, even after fishing it 3+ minutes.
-- [ ] Timer Style: Tile, icon and timer (outline, picture of logs / ore / best fish, timer over it) and Timer only.
+- [ ] Timer Style: Tile and icon (no pie: the outline goes green/yellow/red, pulsing red when due; traps, fires and campfires keep a pie; hover a fishing spot for its times) and Floating timer (pies).
 - [ ] Hunter: pie on traps you lay, green when caught.
 - [ ] Fires: a pie only on a fire you cook on (Use food on it), none on fires you just light or walk past; it
       runs out at about 60 s, then pulses red until the fire goes; it sits still, not bouncing with the flames.

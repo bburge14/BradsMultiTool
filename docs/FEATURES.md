@@ -212,7 +212,9 @@ profit** at Grand Exchange prices; with profit on, the anvil and furnace cards a
 
 ## Resource timers
 
-**What it does:** A small pie over a resource that empties as it runs out: green, then yellow, then red.
+**What it does:** Shows how long a resource has left. With the default tile style the resource's tile outline
+is the timer: green, then yellow, then red as it runs out (pulsing red once it's due); traps, fires and campfires,
+which run out by a set time, keep a small pie that empties instead.
 When a tree can fall on the next log it turns into a full red pie that pulses.
 
 | Pie on | Shows | Setting |
@@ -234,9 +236,11 @@ the tile style, fishing spots that have no timer (there before you arrived, or o
 karambwan) still get their tile and fish picture, without a timer. Above every timer sit its time (time left; a star's layer health; a trap's "Caught"; for fishing spots and fires,
 how long ago they appeared) and the skill's icon (**Skilling > Timer Text**, **Timer Skill Icon**).
 **Skilling > Timer Opacity** sets how solid they are (60% by default). **Skilling > Timer Style** picks the look:
-*Tile, icon and timer* (the default) outlines the tile in the **Zone Colour** with a picture of what it gives (logs, ore;
+*Tile and icon* (the default) outlines the tile with a picture of what it gives (logs, ore;
 for fishing spots the fish of the way you're fishing, worked out from your catches, stacked when it gives
-several like trout and salmon, else of the best way for your level) and the pie over the picture; *Timer only* is the floating timer. Where RuneLite's Fishing plugin already draws its spot icons or tiles, or its
+several like trout and salmon, else of the best way for your level), the outline coloured by the timer (untimed
+fishing spots in the **Zone Colour**; hover a fishing spot or fire for when it can go); *Floating timer* puts a
+pie over each instead. Where RuneLite's Fishing plugin already draws its spot icons or tiles, or its
 Motherlode Mine plugin its vein icons, ours leave the icon or outline out and only add the timer. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree

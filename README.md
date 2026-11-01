@@ -89,7 +89,7 @@ developer mode.
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), resource
 timers (each kind set to show Always, While training or Off; by default each timed tree, rock or
-fishing spot gets its tile outlined with a picture of what it gives and the timer over it), and alerts that only fire for the resource you're working:
+fishing spot gets its tile outlined with a picture of what it gives, the outline changing colour as its timer runs out; traps and fires keep a small pie), and alerts that only fire for the resource you're working:
 
 | Skill | What you get |
 |---|---|
