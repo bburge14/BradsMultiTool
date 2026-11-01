@@ -35,5 +35,9 @@ public class GoalTargetTest {
         assertEquals(60, SkillTracker.averageOf(Arrays.asList(50, 70, 50, 70)), 0.001);
         assertEquals(17.5, SkillTracker.averageOf(Arrays.asList(17, 18)), 0.001);
         assertEquals(0, SkillTracker.averageOf(Arrays.asList()), 0.001);
+        // The usual drop: a pillar tag between floor spikes doesn't change it; a tie goes to the later drop
+        assertEquals(24, SkillTracker.usualOf(Arrays.asList(24, 24, 120, 24)));
+        assertEquals(26, SkillTracker.usualOf(Arrays.asList(24, 26)));
+        assertEquals(0, SkillTracker.usualOf(Arrays.asList()));
     }
 }

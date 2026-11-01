@@ -751,6 +751,31 @@ class SkillTracker {
         return recent == null || recent.isEmpty() ? 0 : averageOf(recent);
     }
 
+    /**
+     * Your usual XP drop in a skill: the most common of your last drops (the latest of those tied), 0 before the
+     * first. One method gives the same XP each time, so a one-off (a pillar tagged between floor spikes) doesn't
+     * change it, and changing method changes it once the new drops outnumber the old.
+     */
+    public int getUsualXpDrop(Skill skill) {
+        java.util.ArrayDeque<Integer> recent = recentXpDrops.get(skill);
+        return recent == null ? 0 : usualOf(recent);
+    }
+
+    static int usualOf(Iterable<Integer> drops) {
+        java.util.Map<Integer, Integer> counts = new java.util.HashMap<>();
+        int best = 0;
+        int bestCount = 0;
+        for (int drop : drops) {
+            int count = counts.merge(drop, 1, Integer::sum);
+            // Oldest first: a later drop wins a tie
+            if (count >= bestCount) {
+                best = drop;
+                bestCount = count;
+            }
+        }
+        return best;
+    }
+
     /** How many XP drops {@link #getAverageXpDrop} covers. */
     public int getAverageXpDropCount(Skill skill) {
         java.util.ArrayDeque<Integer> recent = recentXpDrops.get(skill);

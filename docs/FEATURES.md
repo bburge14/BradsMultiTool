@@ -415,9 +415,10 @@ Actions Until Goal (the actions field counts to the goal instead of the next lev
 method changes before the goal it counts to the end of the step you're on). Hover the count: it says what it
 counts to, and with a goal shows both, "Next level: 120 actions" and "Your goal: 4,300 actions", marking the
 one shown.
-Once you're getting XP, the count uses the average of your last 30 XP drops in the skill (shown with a "~";
-hover for the XP each), so a method that gives different XP each time (trout and salmon, 17 and 18 XP for a
-17.5 XP action) doesn't make it jump around.
+Once you're getting XP, Fishing's count uses the average of your last 30 XP drops (shown with a "~"; hover for
+the XP each), since one spot catches different fish (trout and salmon). Every other skill uses your usual XP drop
+(the most common of your last 30), so a one-off, like tagging an arena pillar between floor spikes, doesn't throw
+it off.
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
 picked with Track for goal, or can make from your items), shown with a "~" (a method catching several fish, like fly fishing's trout and salmon, counts the average
 XP of those you can catch). Attack, Strength, Defence,

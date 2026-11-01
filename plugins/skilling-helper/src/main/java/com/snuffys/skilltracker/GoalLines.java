@@ -67,15 +67,19 @@ final class GoalLines {
                 until = "until level " + stepEndLevel + ", where the suggested method changes";
             }
         }
-        // The average of your last XP drops: one method can give different XP each time (trout and salmon)
-        double perAction = plugin.getAverageXpDrop(skill);
+        // Fishing: the average of your last XP drops (one spot catches different fish: trout and salmon). Anything
+        // else: your usual drop, so a one-off (a pillar tagged between floor spikes) doesn't throw the count off
+        boolean averaged = skill == Skill.FISHING;
+        double perAction = averaged ? plugin.getAverageXpDrop(skill) : plugin.getUsualXpDrop(skill);
         String prefix = "";
         String name = "Actions";
         String tip = "Actions " + until;
         int drops = plugin.getAverageXpDropCount(skill);
-        if (perAction > 0 && drops > 1) {
+        if (perAction > 0 && drops > 1 && averaged) {
             prefix = "~";
             tip += " (at " + String.format("%,.1f", perAction) + " XP each, the average of your last " + drops + " XP drops)";
+        } else if (perAction > 0) {
+            tip += " (at " + String.format("%,.0f", perAction) + " XP each, your usual XP drop)";
         }
         if (KILL_SKILLS.contains(skill)) {
             TrainingAdvisor.KillEstimate kill = goalXp > xp ? plugin.getTrainingAdvisor().killEstimate(skill) : null;
