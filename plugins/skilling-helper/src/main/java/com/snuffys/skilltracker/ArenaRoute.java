@@ -66,6 +66,8 @@ class ArenaRoute {
     private static final int DART_FALL_TICKS = 70;
     // Obstacles that can fail where the wiki gives no chance: a guess
     private static final double UNKNOWN_FAIL = 0.15;
+    // The route leaves out obstacles you'd fail more often than this
+    static final double MAX_FAIL = 0.5;
 
     private final Client client;
     private final SkillTrackerConfig config;
@@ -343,13 +345,17 @@ class ArenaRoute {
         return obstacle.successChance(level) == 1 ? Status.SAFE : Status.MAY_FAIL;
     }
 
-    /** Ticks this obstacle costs you on the way to the pillar, falls included; -1 if you can't do it. */
+    /** Ticks this obstacle costs you on the way to the pillar, falls included; -1 if you can't do it, or you'd fail it more often than not. */
     static double cost(SkillHelperData.ArenaObstacle obstacle, int level) {
         if (level < obstacle.level) {
             return -1;
         }
         double chance = obstacle.successChance(level);
         double fail = chance < 0 ? UNKNOWN_FAIL : 1 - chance;
+        // More likely to fall than get across: not worth routing through
+        if (fail > MAX_FAIL) {
+            return -1;
+        }
         int fall = obstacle.note != null && obstacle.note.contains("drains") ? DART_FALL_TICKS : FALL_TICKS;
         return obstacle.ticks + WALK_TICKS + fail * fall;
     }

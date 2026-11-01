@@ -519,7 +519,7 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
   too, like floor spikes and pressure pads) for its level, XP, time, XP per tick,
   your chance to get across, and whether it's the best XP per tick you can do safely.
 - **Arena Route:** the quickest way to the tagged pillar, drawn as a line from you across the pillars with its obstacles
-  outlined thicker and the pillar's tile marked. It only uses obstacles your level allows and counts each one's time,
+  outlined thicker and the pillar's tile marked. It only uses obstacles your level allows (and leaves out any you'd fail more often than not) and counts each one's time,
   the walk across each pillar and the time a fall would cost you. The arena card shows how many obstacles and about
   how long. It's worked out from the obstacles loaded around you, so it can only route through what the game has
   loaded. The arena's pillars stand on a 5 by 5 grid (not every pillar has a ticket dispenser, but they all count),

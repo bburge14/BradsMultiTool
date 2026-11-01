@@ -70,6 +70,17 @@ public class ArenaRouteTest {
     }
 
     @Test
+    public void routeSkipsLikelyFails() {
+        // Spinning blades: 154/256 at 40 (fails 40%: used); a made-up obstacle failing 60% isn't
+        SkillHelperData.ArenaObstacle blades = DATA.arenaObstacle(3580);
+        assertTrue(ArenaRoute.cost(blades, 40) > 0);
+        assertTrue(blades.successChance(40) > 0.5);
+        SkillHelperData.ArenaObstacle shaky = new SkillHelperData.ArenaObstacle(new com.google.gson.Gson().fromJson(
+            "{\"name\":\"Shaky\",\"level\":1,\"xp\":10,\"ticks\":4,\"low\":50,\"high\":100}", com.google.gson.JsonObject.class));
+        assertEquals(-1, ArenaRoute.cost(shaky, 1), 0); // about 20% to get across
+    }
+
+    @Test
     public void pillarGrid() {
         // The wiki's pins: floor spikes at 2761,9573 sit between the pillars at 2761,9568 and 2761,9579; a
         // pressure pad at 2799,9579 between 2794,9579 and 2805,9579
