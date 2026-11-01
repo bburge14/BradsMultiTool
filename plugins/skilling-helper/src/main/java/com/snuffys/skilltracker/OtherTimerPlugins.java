@@ -38,6 +38,7 @@ class OtherTimerPlugins {
 
     private static final String FISHING = "net.runelite.client.plugins.fishing.FishingPlugin";
     private static final String MOTHERLODE = "net.runelite.client.plugins.motherlode.MotherlodePlugin";
+    private static final String MINING = "net.runelite.client.plugins.mining.MiningPlugin";
     // Minnow spots (Fishing Platform): RuneLite's Fishing plugin times them with its Minnow overlay
     private static final java.util.Set<Integer> MINNOW_SPOTS = java.util.Set.of(7730, 7731, 7732, 7733);
 
@@ -46,6 +47,7 @@ class OtherTimerPlugins {
     private final Set<ResourceTimers.Kind> covered = EnumSet.noneOf(ResourceTimers.Kind.class);
     private boolean fishingOn;
     private boolean motherlodeOn;
+    private boolean miningOn;
 
     @Inject
     OtherTimerPlugins(PluginManager pluginManager, ConfigManager configManager) {
@@ -85,15 +87,18 @@ class OtherTimerPlugins {
     }
 
     /**
-     * True when another plugin already draws this timer: a dedicated timer plugin for its kind; RuneLite's Fishing
-     * plugin for minnow spots, with its Minnow overlay on. (RuneLite's Mining plugin's rock pies don't count: ours
-     * take priority there; turn that plugin off to have only ours.)
+     * True when another plugin already draws this timer: a dedicated timer plugin for its kind; RuneLite's Mining
+     * plugin for depleted rocks and Daeyalt essence (it always times those); RuneLite's Fishing plugin for minnow
+     * spots, with its Minnow overlay on.
      */
     boolean covers(ResourceTimers.Timer timer) {
         if (covers(timer.kind)) {
             return true;
         }
         switch (timer.kind) {
+            case ROCK:
+            case DAEYALT:
+                return miningOn;
             case FISHING_SPOT:
                 return fishingOn && timer.npc != null && MINNOW_SPOTS.contains(timer.npc.getId())
                     && setting("fishing", "showMinnowOverlay", true);
@@ -106,12 +111,14 @@ class OtherTimerPlugins {
         covered.clear();
         fishingOn = false;
         motherlodeOn = false;
+        miningOn = false;
         for (Plugin plugin : pluginManager.getPlugins()) {
             if (!pluginManager.isPluginEnabled(plugin)) {
                 continue;
             }
             fishingOn |= plugin.getClass().getName().equals(FISHING);
             motherlodeOn |= plugin.getClass().getName().equals(MOTHERLODE);
+            miningOn |= plugin.getClass().getName().equals(MINING);
             Set<ResourceTimers.Kind> kinds = PLUGINS.get(plugin.getClass().getSimpleName());
             if (kinds == null) {
                 kinds = PLUGINS.get(plugin.getClass().getName());

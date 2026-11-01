@@ -221,7 +221,7 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 | Pie on | Shows | Setting |
 |---|---|---|
 | Trees being chopped (anyone's) | The Forestry timer: it drops while anyone chops and recovers when nobody does | Woodcutting > Tree Timers |
-| Depleted rocks (any rock you mine out while you're there: copper to runite, lead, nickel, gem rocks, amethyst...) | Time until the ore is back, exactly: the game announces each rock's respawn time to the client, and that's what it counts down (as RuneLite's Mining plugin does): a pie on the rock that empties as the ore comes back (red, yellow, then green), like RuneLite's Mining plugin (ours show even with that plugin on; turn it off to have only ours) | Mining > Mining Timers |
+| Depleted rocks (any rock you mine out while you're there: copper to runite, lead, nickel, gem rocks, amethyst...) | Time until the ore is back, exactly: the game announces each rock's respawn time to the client, and that's what it counts down (as RuneLite's Mining plugin does): a pie on the rock that empties as the ore comes back (red, yellow, then green), like RuneLite's Mining plugin | Mining > Mining Timers |
 | Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timers |
 | Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | Spots move at a random time 2.5-5 minutes after they appear, so this shows the window: green until the earliest it can move, then a red ring filling up to the latest; hover for the times. Above it, how long ago it appeared ("1:42") and the Fishing icon, ringed in gold on the newest spot (the least likely to move soon) with **Mark Newest Spot** on (off by default); and the spot you fish is outlined in **Your Spot Colour**. A spot that outlives 5 minutes without being seen to move starts over | Fishing > Fishing Spot Timers, Mark Newest Spot, Your Spot Colour |
 | Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timers |
@@ -246,8 +246,8 @@ pie over each instead. Where RuneLite's Fishing plugin already draws its spot ic
 Motherlode Mine plugin its vein icons, ours leave the icon or outline out and only add the timer. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
-Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin, RuneLite's Fishing plugin's Minnow overlay for minnow
-spots...), our pie for that timer hides
+Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin, RuneLite's Mining plugin for depleted rocks and
+Daeyalt, RuneLite's Fishing plugin's Minnow overlay for minnow spots...), our pie for that timer hides
 (**Skilling > Use Other Timer Plugins**).
 
 ---

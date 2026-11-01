@@ -107,7 +107,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "deferToOtherTimerPlugins",
         name = "Use Other Timer Plugins",
-        description = "<div width='300'>When you have another plugin on that draws the same timer (Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer/Tracker, Barbarian or Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer; RuneLite's Hunter plugin for traps, its Fishing plugin's Minnow overlay for minnow spots), hide our timer for it so they don't stack",
+        description = "<div width='300'>When you have another plugin on that draws the same timer (Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer/Tracker, Barbarian or Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer; RuneLite's Hunter plugin for traps, its Mining plugin for depleted rocks and Daeyalt, its Fishing plugin's Minnow overlay for minnow spots), hide our timer for it so they don't stack",
         section = skillingSection,
         position = 3
     )
