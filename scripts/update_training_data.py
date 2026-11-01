@@ -474,6 +474,32 @@ def by_level(text, objects, npcs, skill):
     return out
 
 
+# Single obstacles you repeat for XP that the guides mention inside another method's text rather than as their own
+# method: (skill, wiki page, where it is, from level, to level, XP per hour as the guide gives it, text). The page's
+# Infobox Scenery gives the object to outline.
+SINGLE_OBSTACLES = [
+    # Agility training, Brimhaven Agility Arena: "the floor spike obstacle ... approximately 36,000 experience per hour"
+    ("Agility", "Floor spikes (Brimhaven Agility Arena)", "Brimhaven Agility Arena", 20, 50, 36000,
+     "Jump the floor spikes in the Brimhaven Agility Arena back and forth instead of collecting tickets: low "
+     "effort, about 36,000 experience per hour. You fail (and take a little damage) until level 50."),
+]
+
+
+def single_obstacles(skill, out):
+    """Adds the skill's single repeatable obstacles (SINGLE_OBSTACLES) as methods of their own."""
+    for obstacle_skill, page, where, start, end, rate, about in SINGLE_OBSTACLES:
+        if obstacle_skill != skill:
+            continue
+        ids = sorted({int(i) for field in re.findall(r"\|id\d* *= *([\d, ]+)", wikitext(page))
+                      for i in re.findall(r"\d+", field)})
+        entry = {"name": "Floor spikes, Brimhaven Agility Arena" if page.startswith("Floor spikes") else page,
+                 "from": start, "to": end, "fastest": False, "about": about, "places": [where], "xpHour": rate}
+        if ids:
+            entry["objects"] = ids
+        out.append(entry)
+    return out
+
+
 def main():
     with open(os.path.join(RESOURCES, "skilling.json")) as f:
         skilling = json.load(f)
@@ -483,7 +509,7 @@ def main():
     with open(os.path.join(RESOURCES, "skill_helpers.json")) as f:
         npcs += list(json.load(f)["hunter"])
     data = {"source": "oldschool.runescape.wiki (Pay-to-play training guides)",
-            "skills": {skill.upper(): methods(skill, objects, npcs) for skill in SKILLS}}
+            "skills": {skill.upper(): single_obstacles(skill, methods(skill, objects, npcs)) for skill in SKILLS}}
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     total = sum(len(v) for v in data["skills"].values())
