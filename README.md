@@ -231,8 +231,8 @@ $s.Save()
   pulls any update straight away, listing what's new (**Check again** to retry; when you're offline or have changed
   files here, it says so and you launch the version you have);
 - **warns you when the open RuneLite is out of date**: it remembers which version each launch was built from (even
-  if you close and reopen the launcher), and when there's a newer one it turns red ("RuneLite is running an older
-  version: Relaunch to use the new one"), makes **Relaunch** bold and pops up a Windows notification;
+  if you close and reopen the launcher), and when there's a newer one it turns red ("RuneLite is out of date: press
+  Relaunch", with what's new listed below), makes **Relaunch** bold and pops up a Windows notification;
 - checks your **setup**, each row with a button to fix it:
   - **RuneLite** installed (it looks in RuneLite's usual folders, its uninstall entry, Start menu shortcuts and
     the Jagex Launcher's folder; **Find it...** lets you point to `RuneLite.exe` if it's somewhere else);

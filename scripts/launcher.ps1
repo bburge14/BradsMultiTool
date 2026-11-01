@@ -572,7 +572,7 @@ function Check-RunningVersion {
     }
     $behind = (git -C $root rev-list --count "$($running.Trim())..HEAD" 2>$null)
     if (-not $behind) { $behind = 'some' }
-    $updateStatus.Text = "RuneLite is running an older version ($behind update(s) behind): Relaunch to use the new one."
+    $updateStatus.Text = "RuneLite is out of date: press Relaunch."
     $updateStatus.ForeColor = $red
     $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
     $relaunch.Enabled = $true
