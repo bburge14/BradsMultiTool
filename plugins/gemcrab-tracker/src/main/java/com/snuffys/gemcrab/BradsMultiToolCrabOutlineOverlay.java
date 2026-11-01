@@ -38,20 +38,20 @@ public class BradsMultiToolCrabOutlineOverlay extends Overlay {
         }
         NPC crab = gemCrab.getActiveCrab();
         if (crab != null && !crab.isDead() && gemCrab.isCrabActive()) {
-            outlines.drawOutline(crab, 2, config.activeCrabColor(), 1);
+            outlines.drawOutline(crab, 1, config.activeCrabColor(), 1);
         }
         Color shell = gemCrab.isShellMineable() ? config.mineableShellColor() : config.depletedShellColor();
         NPC shellNpc = gemCrab.getDormantCrabShellNpc();
         if (shellNpc != null && !shellNpc.isDead()) {
-            outlines.drawOutline(shellNpc, 2, shell, 1);
+            outlines.drawOutline(shellNpc, 1, shell, 1);
         }
         for (TileObject shellObject : gemCrab.getTrackedShellObjects()) {
-            outlines.drawOutline(shellObject, 2, shell, 1);
+            outlines.drawOutline(shellObject, 1, shell, 1);
         }
         if (gemCrab.isCrabBurrowed()) {
             for (TileObject tunnel : gemCrab.getTrackedTunnels()) {
                 if (tunnel != null) {
-                    outlines.drawOutline(tunnel, 2, config.tunnelColor(), 1);
+                    outlines.drawOutline(tunnel, 1, config.tunnelColor(), 1);
                 }
             }
         }

@@ -200,7 +200,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         int y = top - ICON_SIZE - 1;
         if (newest) {
             graphics.setColor(new Color(255, 200, 0));
-            graphics.setStroke(new BasicStroke(2f));
+            graphics.setStroke(new BasicStroke(1f));
             graphics.drawOval(x - 3, y - 3, ICON_SIZE + 6, ICON_SIZE + 6);
         }
         if (icon != null) {
@@ -425,7 +425,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             graphics.setColor(new Color(0, 0, 0, 50));
             graphics.fill(poly);
             // The spot you fish: a thicker outline (its colour is its timer's)
-            graphics.setStroke(new BasicStroke(outline != null && yourSpot ? 3f : 1.5f));
+            graphics.setStroke(new BasicStroke(outline != null && yourSpot ? 2f : 1f));
             graphics.setColor(zone);
             graphics.draw(poly);
         }

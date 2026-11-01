@@ -91,7 +91,7 @@ class BradsMultiToolArenaOverlay extends Overlay {
             Color color = config.arenaObstacleColours() ? colour(arena.status(object, e.getValue())) : ROUTE;
             graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), route ? 70 : 35));
             graphics.fill(box);
-            graphics.setStroke(new BasicStroke(route ? 3f : 1.5f));
+            graphics.setStroke(new BasicStroke(route ? 2f : 1f));
             graphics.setColor(color);
             graphics.draw(box);
         }
@@ -131,10 +131,10 @@ class BradsMultiToolArenaOverlay extends Overlay {
             }
             at = next;
         }
-        graphics.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        graphics.setStroke(new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         graphics.setColor(new Color(0, 0, 0, 120));
         graphics.draw(path);
-        graphics.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        graphics.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         graphics.setColor(ROUTE);
         graphics.draw(path);
         WorldPoint target = arena.getTarget();
