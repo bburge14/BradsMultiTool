@@ -6,7 +6,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
 
-/** The tick boxes as separate overlays (one per tick, up to the longest cycle), for Move Boxes Separately. */
+/** The tick boxes as separate overlays (one per tick and its half box, up to the longest cycle), for Move Boxes Separately. */
 @Singleton
 class TickSingleBoxes {
 
@@ -17,7 +17,8 @@ class TickSingleBoxes {
     @Inject
     TickSingleBoxes(Client client, TickConfig config, TickCounter ticks) {
         for (int tick = 1; tick <= MOST; tick++) {
-            overlays.add(new BradsMultiToolTickSingleBoxOverlay(client, config, ticks, tick));
+            overlays.add(new BradsMultiToolTickSingleBoxOverlay(client, config, ticks, tick, false));
+            overlays.add(new BradsMultiToolTickSingleBoxOverlay(client, config, ticks, tick, true));
         }
     }
 }

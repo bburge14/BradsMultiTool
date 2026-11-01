@@ -442,9 +442,10 @@ clicks; it never clicks, changes a menu or does anything for you.
 - **Move Boxes Separately:** each tick box becomes its own see-through box you Alt + drag anywhere, for example
   one over each item you click in a tick method (box 1 on the item for tick 1, and so on); each stays where you
   put it. They start stacked in the top-left corner; a box shows while its tick is in the cycle.
-- **Ideal Zone Box:** a box ("GO") that lights up between ticks, during your ideal click zone (Ideal From to Ideal To
-  after each tick), for methods where you act part way through a tick. Move it with Alt + drag; it takes the tick
-  boxes' shape, size and opacity.
+- **Half-Tick Boxes:** a half box after each tick box ("1.5"): the tick's box lights for the first half of the tick
+  and its half box for the second, for actions between ticks. For 1-tick karambwans set Ticks Per Cycle to 1:
+  click the fire when box 1 lights and the karambwan when 1.5 does; with Move Boxes Separately put box 1 over the
+  fire and 1.5 over the karambwan.
 - **Play Ahead:** the metronome sounds this long before each tick (200 ms by default), so clicking when you hear it
   lands on the tick: reacting to a sound, plus the sound's own delay, takes about that long. If Click Timing says
   your clicks on the sound are late, raise it; if early, lower it. 0 plays it on the tick.

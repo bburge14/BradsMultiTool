@@ -73,7 +73,7 @@ class TickCounter {
 
     /** Whether the count is shown or sounded at all. */
     boolean active() {
-        return config.tickOverHead() || config.tickBoxes() || config.tickBar() || config.metronome() || config.tickZoneBox()
+        return config.tickOverHead() || config.tickBoxes() || config.tickBar() || config.metronome()
             || timingClicks();
     }
 

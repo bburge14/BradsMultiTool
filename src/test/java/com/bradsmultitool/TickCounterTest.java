@@ -37,12 +37,9 @@ public class TickCounterTest {
     }
 
     @org.junit.Test
-    public void zoneBoxLightsInTheIdealZone() {
-        org.junit.Assert.assertFalse(BradsMultiToolTickZoneOverlay.inZone(50, 100, 350));
-        org.junit.Assert.assertTrue(BradsMultiToolTickZoneOverlay.inZone(100, 100, 350));
-        org.junit.Assert.assertTrue(BradsMultiToolTickZoneOverlay.inZone(349, 100, 350));
-        org.junit.Assert.assertFalse(BradsMultiToolTickZoneOverlay.inZone(350, 100, 350));
-        org.junit.Assert.assertFalse(BradsMultiToolTickZoneOverlay.inZone(200, 100, 0)); // no zone
+    public void halfBoxesAreLabelled() {
+        org.junit.Assert.assertEquals("1", BradsMultiToolTickBoxOverlay.label(1, false));
+        org.junit.Assert.assertEquals("1.5", BradsMultiToolTickBoxOverlay.label(1, true));
     }
 }
 

@@ -25,12 +25,15 @@ public class BradsMultiToolTickSingleBoxOverlay extends Overlay {
     private final TickConfig config;
     private final TickCounter ticks;
     private final int tick;
+    // The tick's half box ("1.5"), with Half-Tick Boxes
+    private final boolean half;
 
-    BradsMultiToolTickSingleBoxOverlay(Client client, TickConfig config, TickCounter ticks, int tick) {
+    BradsMultiToolTickSingleBoxOverlay(Client client, TickConfig config, TickCounter ticks, int tick, boolean half) {
         this.client = client;
         this.config = config;
         this.ticks = ticks;
         this.tick = tick;
+        this.half = half;
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
@@ -38,19 +41,20 @@ public class BradsMultiToolTickSingleBoxOverlay extends Overlay {
     /** Each box's own name, so RuneLite keeps each one where you put it. */
     @Override
     public String getName() {
-        return "SnuffysTickBox" + tick;
+        return (half ? "SnuffysTickHalfBox" : "SnuffysTickBox") + tick;
     }
 
     @Override
     public Dimension render(Graphics2D graphics) {
         if (client.getGameState() != GameState.LOGGED_IN || !config.tickBoxes() || !config.tickBoxesSeparate()
-            || ticks.getCount() <= 0 || tick > Math.max(1, ticks.getCycle())) {
+            || ticks.getCount() <= 0 || tick > Math.max(1, ticks.getCycle()) || (half && !config.tickHalfBoxes())) {
             return null;
         }
         int size = config.tickBoxSize();
         graphics.setFont(FontManager.getRunescapeBoldFont().deriveFont(Font.BOLD, size * 0.55f));
         BradsMultiToolTickBoxOverlay.drawBox(graphics, graphics.getFontMetrics(), config, 0, 0, size, tick,
-            tick == ticks.getCount(), BradsMultiToolTickBoxOverlay.fade(ticks), BACKGROUND);
+            BradsMultiToolTickBoxOverlay.isLit(ticks, config, tick, half), BradsMultiToolTickBoxOverlay.halfFade(ticks, config),
+            BACKGROUND, BradsMultiToolTickBoxOverlay.label(tick, half));
         return new Dimension(size, size);
     }
 }

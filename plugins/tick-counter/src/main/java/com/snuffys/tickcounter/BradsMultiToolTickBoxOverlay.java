@@ -51,6 +51,35 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         return 1 - Math.min(1, since / (double) TICK_MILLIS) * 0.7;
     }
 
+    /** A box's label: the tick's number, or "1.5" for its half box. */
+    static String label(int tick, boolean half) {
+        return half ? tick + ".5" : String.valueOf(tick);
+    }
+
+    /**
+     * Whether a box is lit now: a tick's box on its tick, or with Half-Tick Boxes only for the tick's first half,
+     * its half box for the second.
+     */
+    static boolean isLit(TickCounter ticks, TickConfig config, int tick, boolean half) {
+        if (tick != ticks.getCount()) {
+            return false;
+        }
+        if (!config.tickHalfBoxes()) {
+            return !half;
+        }
+        boolean secondHalf = System.currentTimeMillis() - ticks.getLastTickMillis() >= TICK_MILLIS / 2;
+        return half == secondHalf;
+    }
+
+    /** How lit: fading over the tick, or over each half with Half-Tick Boxes. */
+    static double halfFade(TickCounter ticks, TickConfig config) {
+        if (!config.tickHalfBoxes()) {
+            return fade(ticks);
+        }
+        long since = (System.currentTimeMillis() - ticks.getLastTickMillis()) % (TICK_MILLIS / 2);
+        return 1 - Math.min(1, since / (double) (TICK_MILLIS / 2)) * 0.7;
+    }
+
     /** One tick's box at (x, y): its number, lit (and fading) on its tick. */
     static void drawBox(Graphics2D graphics, FontMetrics metrics, TickConfig config, int x, int y, int size, int tick,
                         boolean lit, double fade, Color background) {
@@ -115,12 +144,17 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         FontMetrics metrics = graphics.getFontMetrics();
         double fade = fade(ticks);
 
-        for (int tick = 1; tick <= cycle; tick++) {
-            int x = horizontal ? (tick - 1) * (size + GAP) : 0;
-            int y = horizontal ? 0 : (tick - 1) * (size + GAP);
-            drawBox(graphics, metrics, config, x, y, size, tick, tick == current, fade, BACKGROUND);
+        boolean halves = config.tickHalfBoxes();
+        int slots = halves ? cycle * 2 : cycle;
+        for (int slot = 0; slot < slots; slot++) {
+            int tick = halves ? slot / 2 + 1 : slot + 1;
+            boolean half = halves && slot % 2 == 1;
+            int x = horizontal ? slot * (size + GAP) : 0;
+            int y = horizontal ? 0 : slot * (size + GAP);
+            drawBox(graphics, metrics, config, x, y, size, tick, isLit(ticks, config, tick, half), halfFade(ticks, config),
+                BACKGROUND, label(tick, half));
         }
-        int length = cycle * size + (cycle - 1) * GAP;
+        int length = slots * size + (slots - 1) * GAP;
         return horizontal ? new Dimension(length, size) : new Dimension(size, length);
     }
 }

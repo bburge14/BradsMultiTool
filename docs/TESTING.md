@@ -213,5 +213,5 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tick Counter > Move Boxes Separately: the boxes become separate see-through boxes, each Alt + draggable and kept where placed after a relaunch; only boxes up to the cycle length show.
 - [ ] Tick boxes: Box Shape (square/rounded/circle), Box Opacity and Box Size apply to both the row and the separate boxes.
 - [ ] Reaching a goal clears it with a chat line; a goal already reached clears at the next login; Clear Goals When Reached off keeps it (Done!).
-- [ ] Tick Counter > Ideal Zone Box: a GO box lights during Ideal From–Ideal To after each tick; Alt + draggable; follows Box Shape/Size/Opacity.
+- [ ] Tick Counter > Half-Tick Boxes: a 1.5 box after each tick box; the tick box lights the first half, the half box the second; with Move Boxes Separately each half box moves on its own.
 - [ ] Metronome Play Ahead (200 ms): clicking on the sound lands green in Click Timing; raising/lowering it moves the clicks later/earlier; 0 plays on the tick.

@@ -153,6 +153,17 @@ public interface TickConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "tickHalfBoxes",
+        name = "Half-Tick Boxes",
+        description = "<div width='300'>A half box after each tick box (\"1.5\"): the tick's box lights for the first half of the tick, its half box for the second, for actions between ticks (1-tick karambwans: the fire on the tick, the karambwan between). With Move Boxes Separately the half boxes move separately too",
+        section = tickSection,
+        position = 2
+    )
+    default boolean tickHalfBoxes() {
+        return false;
+    }
+
+    @ConfigItem(
         keyName = "tickBoxesSeparate",
         name = "Move Boxes Separately",
         description = "<div width='300'>Each tick box becomes its own see-through box you can Alt + drag anywhere, say over the item you click on that tick for a tick method; each stays where you put it. Off: the boxes move together in a row or column",
@@ -450,16 +461,6 @@ public interface TickConfig extends Config {
         return 350;
     }
 
-    @ConfigItem(
-        keyName = "tickZoneBox",
-        name = "Ideal Zone Box",
-        description = "<div width='300'>A box that lights up between ticks, during your ideal click zone (Ideal From to Ideal To after each tick), for methods where you act part way through a tick. Move it with Alt + drag; it takes the tick boxes' shape, size and opacity",
-        section = tickSection,
-        position = 20
-    )
-    default boolean tickZoneBox() {
-        return false;
-    }
 
     @ConfigItem(
         keyName = "clickEveryTick",

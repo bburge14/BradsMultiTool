@@ -14,6 +14,7 @@ final class TickConfigDefaults {
         defaults.store("tickOverHead", config.tickOverHead());
         defaults.store("tickBoxes", config.tickBoxes());
         defaults.store("tickBoxLayout", config.tickBoxLayout());
+        defaults.store("tickHalfBoxes", config.tickHalfBoxes());
         defaults.store("tickBoxesSeparate", config.tickBoxesSeparate());
         defaults.store("tickBar", config.tickBar());
         defaults.store("tickCycle", config.tickCycle());
@@ -36,7 +37,6 @@ final class TickConfigDefaults {
         defaults.store("clickLateMs", config.clickLateMs());
         defaults.store("clickIdealFrom", config.clickIdealFrom());
         defaults.store("clickIdealTo", config.clickIdealTo());
-        defaults.store("tickZoneBox", config.tickZoneBox());
         defaults.store("clickEveryTick", config.clickEveryTick());
     }
 }
