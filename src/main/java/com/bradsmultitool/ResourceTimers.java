@@ -524,10 +524,6 @@ class ResourceTimers {
         return null;
     }
 
-    // What a mined-out rock turns into: something with nothing to mine (grey "Rocks", an emptied crystal wall)
-    private boolean isGreyRock(GameObject object) {
-        return !canMine(object.getId());
-    }
     private static final Set<Integer> MINING_GUILD_REGIONS = Set.of(12183, 12184);
 
     private void startRespawn(GameObject grey, int ticks, String rock) {
@@ -538,22 +534,6 @@ class ResourceTimers {
         add(timer, grey);
     }
 
-    // Whether an object offers "Mine" (a rock with ore; a depleted one doesn't)
-    private boolean canMine(int id) {
-        ObjectComposition composition = client.getObjectDefinition(id);
-        if (composition != null && composition.getImpostorIds() != null && composition.getImpostor() != null) {
-            composition = composition.getImpostor();
-        }
-        if (composition == null || composition.getActions() == null) {
-            return false;
-        }
-        for (String action : composition.getActions()) {
-            if ("Mine".equalsIgnoreCase(action)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     /** A rock's respawn time here: faster in the Mining Guild or the Wilderness where the wiki says so. */
     static int respawnTicks(SkillingData.Resource rock, WorldPoint at) {
@@ -573,16 +553,18 @@ class ResourceTimers {
         int id = object.getId();
         // A depleted rock the game announced a respawn for: time its ore coming back (from what's left of the
         // announced time); one that's not announced yet is kept a moment in case the announcement comes after
-        if (client.getGameState() == GameState.LOGGED_IN && isGreyRock(object)) {
-            Object[] depleted = depletingRocks.get(object.getWorldLocation());
-            if (depleted != null && (int) depleted[2] == id) {
-                depletingRocks.remove(object.getWorldLocation());
-                int left = (int) depleted[0] - (client.getTickCount() - (int) depleted[1]);
-                if (left > 0) {
-                    startRespawn(object, left, (String) depleted[3]);
-                }
-                return;
+        // (Matched by the id the game gives: a depleted rock still offers Mine, "no ore available")
+        Object[] depleted = depletingRocks.get(object.getWorldLocation());
+        if (depleted != null && (int) depleted[2] == id) {
+            depletingRocks.remove(object.getWorldLocation());
+            int left = (int) depleted[0] - (client.getTickCount() - (int) depleted[1]);
+            debug("grey rock " + id + " appeared at " + object.getWorldLocation() + ", " + left + " ticks left");
+            if (left > 0) {
+                startRespawn(object, left, (String) depleted[3]);
             }
+            return;
+        }
+        if (client.getGameState() == GameState.LOGGED_IN && data.object(id, objectName(id)) == null) {
             greyRocks.put(object.getWorldLocation(), new Object[]{object, client.getTickCount()});
         } else {
             // A rock with ore: remembered, for its ore's picture once it's mined out
