@@ -524,6 +524,7 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
   how long. It's worked out from the obstacles loaded around you, so it can only route through what the game has
   loaded. The arena's pillars stand on a 5 by 5 grid (not every pillar has a ticket dispenser, but they all count),
   and the route is worked out again every game tick from the pillar nearest you, so it follows you as you go.
+  **Arena Route on Minimap** draws it on the minimap too, with a dot on the tagged pillar.
   **Arena Route Readout** adds what it found to the card (obstacles, links, the pillar nearest you, each step), for
   checking.
 - **One Obstacle Training:** cross the same obstacle over and over instead of running a course (the arena's floor
@@ -542,7 +543,7 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
 RuneLite's own Agility plugin has an arena timer and a lap counter too, and its Show Clickboxes outlines most arena
 obstacles (Snuffy's colours leave those to it); with any of them on, Snuffy's clash warning says so.
 **Settings (Agility):** Obstacle Hover, Course Card, Brimhaven Arena Card, Pillar Warning At, Voice/Chat: Pillar
-About to Move (both on), Arena Obstacle Colours, Arena Route, Arena Route Readout, One Obstacle Training, Run Energy Alert Below,
+About to Move (both on), Arena Obstacle Colours, Arena Route, Arena Route on Minimap, Arena Route Readout, One Obstacle Training, Run Energy Alert Below,
 Voice/Chat: Run Energy Low.
 
 ## Issues? button
