@@ -233,7 +233,7 @@ class PluginClashes {
         }
         StringBuilder tip = new StringBuilder(identity.chatName + ": other plugins doing the same thing");
         for (Clash clash : now) {
-            tip.append("</br>- ").append(clash.message);
+            tip.append(wrap("- " + clash.message));
         }
         if (infoBox == null && lifecycle.plugin != null) {
             infoBox = new ClashInfoBox(lifecycle.plugin);
@@ -242,6 +242,27 @@ class PluginClashes {
         if (infoBox != null) {
             infoBox.setTooltip(tip.toString());
         }
+    }
+
+    // RuneLite's tooltips don't wrap: break each note into short lines so it fits beside an open sidebar
+    private static final int TIP_WIDTH = 55;
+
+    static String wrap(String text) {
+        StringBuilder out = new StringBuilder();
+        StringBuilder line = new StringBuilder();
+        for (String word : text.split(" ")) {
+            if (line.length() > 0 && line.length() + 1 + word.length() > TIP_WIDTH) {
+                out.append("</br>").append(line);
+                line = new StringBuilder("  ");
+            } else if (line.length() > 0 && !line.toString().equals("  ")) {
+                line.append(' ');
+            }
+            line.append(word);
+        }
+        if (line.toString().trim().length() > 0) {
+            out.append("</br>").append(line);
+        }
+        return out.toString();
     }
 
     /** Takes the warning icon away (no clashes, logged out, or the plugin stopping). */
