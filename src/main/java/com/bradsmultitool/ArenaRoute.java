@@ -88,6 +88,13 @@ class ArenaRoute {
     /** Obstacles not in a gap between two pillars (the readout counts them). */
     @Getter
     private int unlinked;
+    // Plank pieces in the scene, by the id they show now (a piece can change what it shows)
+    private final Map<TileObject, Integer> plankPieces = new LinkedHashMap<>();
+    /** The plank ends of the smooth (safe) and broken planks, when the broken pieces tell them apart. */
+    @Getter
+    private final java.util.Set<TileObject> goodPlanks = new java.util.HashSet<>();
+    @Getter
+    private final java.util.Set<TileObject> badPlanks = new java.util.HashSet<>();
     private int lastScan = -SCAN_TICKS;
 
     @Inject
@@ -116,6 +123,9 @@ class ArenaRoute {
     }
 
     private void clear() {
+        plankPieces.clear();
+        goodPlanks.clear();
+        badPlanks.clear();
         obstacles.clear();
         links.clear();
         route = Collections.emptyList();
@@ -126,6 +136,9 @@ class ArenaRoute {
 
     // The obstacles in the loaded scene, and the gaps between pillars they sit in
     private void scan() {
+        plankPieces.clear();
+        goodPlanks.clear();
+        badPlanks.clear();
         obstacles.clear();
         links.clear();
         unlinked = 0;
@@ -146,6 +159,11 @@ class ArenaRoute {
             }
         }
         links.addAll(link(obstacles, helpers.arenaGrid()));
+        for (Link link : links) {
+            if (link.obstacle.name.equals("Plank")) {
+                sortPlanks(link);
+            }
+        }
         for (TileObject object : obstacles.keySet()) {
             boolean linked = false;
             for (Link link : links) {
@@ -156,12 +174,92 @@ class ArenaRoute {
     }
 
     private void add(TileObject object) {
+        if (object != null && helpers.isPlankPiece(object.getId())) {
+            plankPieces.put(object, shownId(object.getId()));
+        }
         if (object != null) {
             SkillHelperData.ArenaObstacle obstacle = helpers.arenaObstacle(object.getId());
             if (obstacle != null) {
                 obstacles.put(object, obstacle);
             }
         }
+    }
+
+    // The id an object shows now (one that changes with the game's state shows another object)
+    private int shownId(int id) {
+        net.runelite.api.ObjectComposition composition = client.getObjectDefinition(id);
+        if (composition != null && composition.getImpostorIds() != null) {
+            net.runelite.api.ObjectComposition shown = composition.getImpostor();
+            return shown != null ? shown.getId() : id;
+        }
+        return id;
+    }
+
+    // The three planks of a gap lie side by side; the two bad ones have broken pieces. Sorts the gap's plank ends
+    // into the smooth one and the broken ones (only when some line has broken pieces and some doesn't)
+    private void sortPlanks(Link link) {
+        boolean alongX = link.a.getY() == link.b.getY();
+        java.util.Set<Integer> brokenLines = new java.util.HashSet<>();
+        java.util.Set<Integer> lines = new java.util.HashSet<>();
+        for (Map.Entry<TileObject, Integer> e : plankPieces.entrySet()) {
+            WorldPoint at = e.getKey().getWorldLocation();
+            if (!between(at, link, alongX)) {
+                continue;
+            }
+            int line = alongX ? at.getY() : at.getX();
+            lines.add(line);
+            if (helpers.isBrokenPlank(e.getValue())) {
+                brokenLines.add(line);
+            }
+        }
+        if (brokenLines.isEmpty() || brokenLines.size() == lines.size()) {
+            return;
+        }
+        for (TileObject end : link.objects) {
+            int line = alongX ? end.getWorldLocation().getY() : end.getWorldLocation().getX();
+            (brokenLines.contains(line) ? badPlanks : goodPlanks).add(end);
+        }
+    }
+
+    // Whether this tile is in the gap between the link's two pillars (along it, and near its line)
+    private static boolean between(WorldPoint at, Link link, boolean alongX) {
+        int lo = alongX ? Math.min(link.a.getX(), link.b.getX()) : Math.min(link.a.getY(), link.b.getY());
+        int hi = alongX ? Math.max(link.a.getX(), link.b.getX()) : Math.max(link.a.getY(), link.b.getY());
+        int along = alongX ? at.getX() : at.getY();
+        int across = alongX ? at.getY() - link.a.getY() : at.getX() - link.a.getX();
+        return along > lo && along < hi && Math.abs(across) <= 4;
+    }
+
+    /** What the piece shows now and whether it's broken, for the readout: "3573 3576x" per plank line. */
+    String plankReadout() {
+        StringBuilder out = new StringBuilder();
+        for (Map.Entry<TileObject, Integer> e : plankPieces.entrySet()) {
+            if (out.length() < 60) {
+                out.append(e.getValue()).append(helpers.isBrokenPlank(e.getValue()) ? "x " : " ");
+            }
+        }
+        return out.length() == 0 ? "-" : out.toString().trim();
+    }
+
+    /** This object's status for you: a known smooth plank is safe, a known broken one is red. */
+    Status status(TileObject object, SkillHelperData.ArenaObstacle obstacle) {
+        if (goodPlanks.contains(object)) {
+            return Status.SAFE;
+        }
+        if (badPlanks.contains(object)) {
+            return Status.TOO_LOW;
+        }
+        return status(obstacle);
+    }
+
+    /** The arena obstacle object at this tile with this id, or null. */
+    TileObject objectAt(int id, WorldPoint at) {
+        for (TileObject object : obstacles.keySet()) {
+            if (object.getId() == id && object.getWorldLocation().getX() == at.getX() && object.getWorldLocation().getY() == at.getY()) {
+                return object;
+            }
+        }
+        return null;
     }
 
     /**
@@ -267,6 +365,10 @@ class ArenaRoute {
         int level = client.getBoostedSkillLevel(Skill.AGILITY);
         for (Link link : links) {
             link.cost = cost(link.obstacle, level);
+            // A gap whose smooth plank is known: no fall to count
+            if (link.cost >= 0 && link.objects.stream().anyMatch(goodPlanks::contains)) {
+                link.cost = link.obstacle.ticks + WALK_TICKS;
+            }
         }
         if (start == null || target == null || !config.arenaRoute() || reps.get().trainingOne()) {
             return;
@@ -353,7 +455,7 @@ class ArenaRoute {
             return "no pillar arrow yet";
         }
         if (reps.get().trainingOne()) {
-            return "hidden: training " + reps.get().getName();
+            return "hidden (training)";
         }
         if (start == null) {
             return "finding you";

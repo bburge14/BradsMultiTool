@@ -513,7 +513,8 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
   session and per hour. **Voice/Chat: Pillar About to Move** warns you **Pillar Warning At** seconds before (10).
 - **Arena Obstacle Colours:** in the arena, each obstacle is outlined by your Agility level: **green** you can do it
   and won't fail, **yellow** you can do it but may fail (floor spikes until 50, spinning blades and darts until 99,
-  the wrong plank), **red** your level is too low. Hover one (Obstacle Hover; it works on the ones you can't click
+  the wrong plank), **red** your level is too low. Planks: of each gap's three, the two broken ones are red and the
+  smooth one green, told apart by their broken pieces (until it can tell, all three are yellow). Hover one (Obstacle Hover; it works on the ones you can't click
   too, like floor spikes and pressure pads) for its level, XP, time, XP per tick,
   your chance to get across, and whether it's the best XP per tick you can do safely.
 - **Arena Route:** the quickest way to the tagged pillar, drawn as a line from you across the pillars with its obstacles
@@ -527,11 +528,12 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
 - **One Obstacle Training:** cross the same obstacle over and over instead of running a course (the arena's floor
   spikes back and forth, or any Agility shortcut anywhere), and after three reps in a row a card shows it: reps, reps
   and XP per hour, reps to your next level and goal. In the arena it's on the arena card, that obstacle is outlined
-  thicker, and the route and the pillar warning step aside until you stop (about two minutes without a rep) or move
+  thicker, and the route and the pillar warning step aside until you stop (a minute without a rep), tag a pillar or move
   on to another obstacle. Laps on a course count on the Course Card instead.
 - **Single obstacles as your method:** the arena obstacles worth repeating (rope swing, pressure pad, floor spikes,
   spinning blades, darts) are each in the Agility card's **Method** list from their level to 99, with their best XP
-  per hour; pick one and it's your suggestion and gets outlined.
+  per hour; pick one and it's your suggestion and gets outlined. Right-click one in the arena and **Track for goal**
+  picks it too (while Agility has a goal).
 - **Run Energy Alert Below:** while you're training Agility, an alert ("Your run energy is low") when your run
   energy drops below this (15%; 0 turns it off).
 - **Obstacle Hover:** hovering an obstacle or shortcut shows its level, the course XP per lap and laps to level.

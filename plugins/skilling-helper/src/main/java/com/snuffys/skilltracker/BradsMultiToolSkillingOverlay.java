@@ -211,7 +211,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             // Brimhaven Agility Arena obstacles: level, XP, time and how likely you are to fail
             SkillHelperData.ArenaObstacle arenaObstacle = helpers.arenaObstacle(id);
             if (arenaObstacle != null) {
-                buildArenaObstacleCard(arenaObstacle);
+                WorldPoint at = WorldPoint.fromScene(client.getTopLevelWorldView(), entry.getParam0(), entry.getParam1(),
+                    client.getTopLevelWorldView().getPlane());
+                buildArenaObstacleCard(arenaObstacle, arenaRoute.objectAt(id, at));
                 return true;
             }
             // Course obstacles by id (RuneLite's agility plugin list), so it works wherever the obstacle stands
@@ -260,25 +262,31 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         for (Map.Entry<net.runelite.api.TileObject, SkillHelperData.ArenaObstacle> e : arenaRoute.getObstacles().entrySet()) {
             java.awt.Shape box = e.getKey().getClickbox();
             if (box != null && box.contains(mouse.getX(), mouse.getY())) {
-                buildArenaObstacleCard(e.getValue());
+                buildArenaObstacleCard(e.getValue(), e.getKey());
                 return true;
             }
         }
         return false;
     }
 
-    private void buildArenaObstacleCard(SkillHelperData.ArenaObstacle obstacle) {
+    private void buildArenaObstacleCard(SkillHelperData.ArenaObstacle obstacle, net.runelite.api.TileObject object) {
         int level = client.getBoostedSkillLevel(Skill.AGILITY);
         ArenaRoute.Status status = ArenaRoute.status(obstacle, level);
+        boolean smooth = object != null && arenaRoute.getGoodPlanks().contains(object);
+        boolean broken = object != null && arenaRoute.getBadPlanks().contains(object);
         panel.getChildren().clear();
         panel.getChildren().add(TitleComponent.builder().text(obstacle.name).color(TITLE_COLOR).build());
         addRequirement(Skill.AGILITY, obstacle.level);
         line("XP:", trim(obstacle.xp), Color.WHITE);
-        line("Time:", obstacle.ticks + " ticks (" + trim(obstacle.ticks * 0.6) + "s)", Color.WHITE);
+        line("Time:", obstacle.ticks + " ticks (" + String.format("%.1f", obstacle.ticks * 0.6) + "s)", Color.WHITE);
         line("XP per tick:", String.format("%.1f", obstacle.xpPerTick()), Color.WHITE);
         double chance = obstacle.successChance(level);
         Color color = BradsMultiToolArenaOverlay.colour(status);
-        if (status == ArenaRoute.Status.TOO_LOW) {
+        if (smooth) {
+            line("This plank:", "Smooth: safe", BradsMultiToolArenaOverlay.SAFE);
+        } else if (broken && chance < 1) {
+            line("This plank:", "Broken: you'll fall", BradsMultiToolArenaOverlay.TOO_LOW);
+        } else if (status == ArenaRoute.Status.TOO_LOW) {
             line("You:", "Level too low", color);
         } else if (chance == 1) {
             line("You:", "Won't fail", color);

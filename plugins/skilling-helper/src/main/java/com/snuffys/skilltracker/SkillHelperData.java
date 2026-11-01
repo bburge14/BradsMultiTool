@@ -353,6 +353,9 @@ class SkillHelperData {
     private final java.util.Set<Integer> arenaDispensers = new java.util.HashSet<>();
     // The arena's pillar grid: x, y of its south-west pillar, spacing, columns, rows (empty when not loaded)
     private int[] arenaGrid = new int[0];
+    // The plank's middle pieces and the broken pieces the bad planks show
+    private final java.util.Set<Integer> plankMiddles = new java.util.HashSet<>();
+    private final java.util.Set<Integer> brokenPlanks = new java.util.HashSet<>();
 
     void load(Gson gson) {
         creatures.clear();
@@ -374,6 +377,8 @@ class SkillHelperData {
         shortcuts.clear();
         arenaObstacles.clear();
         arenaDispensers.clear();
+        plankMiddles.clear();
+        brokenPlanks.clear();
         try (InputStream in = SkillHelperData.class.getResourceAsStream(RESOURCE)) {
             if (in == null) {
                 log.warn("{} not found; Hunter/Runecraft/Cooking/Agility hover info disabled", RESOURCE);
@@ -418,6 +423,10 @@ class SkillHelperData {
                     }
                     for (JsonElement id : arena.getAsJsonArray("dispensers")) {
                         arenaDispensers.add(id.getAsInt());
+                    }
+                    if (arena.has("plankMiddles")) {
+                        arena.getAsJsonArray("plankMiddles").forEach(id -> plankMiddles.add(id.getAsInt()));
+                        arena.getAsJsonArray("brokenPlanks").forEach(id -> brokenPlanks.add(id.getAsInt()));
                     }
                     JsonObject grid = arena.getAsJsonObject("grid");
                     if (grid != null) {
@@ -622,6 +631,17 @@ class SkillHelperData {
     /** Whether this object is one of the arena's ticket dispensers (the pillars you tag). */
     boolean isArenaDispenser(int objectId) {
         return arenaDispensers.contains(objectId);
+    }
+
+    /** Whether this object is a piece of an arena plank (an end, a middle or a broken piece). */
+    boolean isPlankPiece(int objectId) {
+        ArenaObstacle obstacle = arenaObstacles.get(objectId);
+        return obstacle != null && obstacle.name.equals("Plank") || plankMiddles.contains(objectId) || brokenPlanks.contains(objectId);
+    }
+
+    /** Whether this is a broken plank piece (the bad planks show them). */
+    boolean isBrokenPlank(int objectId) {
+        return brokenPlanks.contains(objectId);
     }
 
     /** The arena's pillar grid: x, y of its south-west pillar, spacing, columns, rows (empty when not loaded). */

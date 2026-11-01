@@ -19,7 +19,7 @@ import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.Text;
 
 /**
- * Adds "Track for goal" to the right-click menu of a Hunter creature, pickpocket NPC, fishing spot, tree,
+ * Adds "Track for goal" to the right-click menu of a Brimhaven Arena obstacle (picks it as your Agility method), a Hunter creature, pickpocket NPC, fishing spot, tree,
  * rock or stall when its skill has a goal, or of a monster when a combat skill has one, so you can outline what you'd rather train on than the
  * suggestion; and of an item in your inventory or bank that a production skill or Prayer with a goal uses, so
  * the goal card works it out from that item. For bones and blessed bone shards it opens a list of how you train
@@ -38,6 +38,8 @@ class GoalTargetMenu {
     private final SkillHelperData helpers;
     private final RecipeData recipes;
     private final ItemManager itemManager;
+    @Inject
+    private TrainingData training;
 
     @Inject
     GoalTargetMenu(Client client, SkillTracker plugin, SkillingData skilling,
@@ -73,6 +75,9 @@ class GoalTargetMenu {
                 skills.addAll(GoalLines.KILL_SKILLS);
                 skills.add(Skill.MAGIC);
             }
+        } else if (entry.getType() == MenuAction.EXAMINE_OBJECT && helpers.arenaObstacle(entry.getIdentifier()) != null) {
+            addArenaEntry(event, helpers.arenaObstacle(entry.getIdentifier()));
+            return;
         } else if (entry.getType() == MenuAction.EXAMINE_OBJECT) {
             SkillingData.Resource resource = skilling.object(entry.getIdentifier(), Text.removeTags(entry.getTarget()));
             if (resource != null && skill(resource.skill) != null) {
@@ -95,6 +100,21 @@ class GoalTargetMenu {
             .setTarget(event.getTarget())
             .setType(MenuAction.RUNELITE)
             .onClick(e -> skills.forEach(s -> plugin.setGoalTarget(s, tracked ? null : target)));
+    }
+
+    // A Brimhaven Arena obstacle worth repeating is an Agility method of its own: tracking it picks that method
+    private void addArenaEntry(MenuEntryAdded event, SkillHelperData.ArenaObstacle obstacle) {
+        String name = obstacle.name + ", Brimhaven Agility Arena";
+        if (plugin.getSkillGoal(Skill.AGILITY) <= client.getSkillExperience(Skill.AGILITY)
+            || training.named(Skill.AGILITY, name) == null || client.getRealSkillLevel(Skill.AGILITY) < obstacle.level) {
+            return;
+        }
+        boolean tracked = name.equals(plugin.getChosenMethod(Skill.AGILITY));
+        client.getMenu().createMenuEntry(-1)
+            .setOption(tracked ? UNTRACK : TRACK)
+            .setTarget(event.getTarget())
+            .setType(MenuAction.RUNELITE)
+            .onClick(e -> plugin.setChosenMethod(Skill.AGILITY, tracked ? null : name));
     }
 
     // Each way of fishing the spot with what it catches and needs ("Fly fishing: Trout, Salmon (Fly fishing rod + Feather)"),

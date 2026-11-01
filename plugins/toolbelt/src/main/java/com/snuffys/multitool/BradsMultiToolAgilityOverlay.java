@@ -140,6 +140,8 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         add("Obstacle objects", route.getObstacles().size() + " (" + route.getUnlinked() + " unlinked)");
         add("Safe/may fail/too low", safe + "/" + mayFail + "/" + tooLow);
         add("Links", String.valueOf(route.getLinks().size()));
+        add("Planks (x broken)", route.plankReadout());
+        add("Smooth/broken ends", route.getGoodPlanks().size() + "/" + route.getBadPlanks().size());
         add("From (pillar nearest you)", point(route.getStart()));
         add("To (hint arrow)", point(route.getTarget()));
         if (reps.getName() != null) {

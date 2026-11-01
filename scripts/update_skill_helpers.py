@@ -429,7 +429,11 @@ def arena():
     xs, ys = sorted({x for x, _ in pins}), sorted({y for _, y in pins})
     step = min(b - a for a, b in zip(xs, xs[1:]))
     grid = {"x": xs[0], "y": ys[0], "step": step, "columns": (xs[-1] - xs[0]) // step + 1, "rows": (ys[-1] - ys[0]) // step + 1}
-    return {"obstacles": obstacles, "dispensers": dispensers, "grid": grid}
+    # The plank's pieces (RuneLite's object names): the middles, and the broken pieces the two bad planks show
+    names = fetch(RUNELITE + "runelite-api/src/main/java/net/runelite/api/gameval/ObjectID.java")
+    middles = sorted(int(i) for i in re.findall(r"AGILITYARENA_PLANK\d*_MIDDLE = (\d+);", names))
+    broken = sorted(int(i) for i in re.findall(r"AGILITYARENA_PLANK_BROKE\d* = (\d+);", names))
+    return {"obstacles": obstacles, "dispensers": dispensers, "grid": grid, "plankMiddles": middles, "brokenPlanks": broken}
 
 
 def main():

@@ -19,7 +19,7 @@ import net.runelite.client.eventbus.Subscribe;
  * One-obstacle training: crossing the same obstacle over and over (the Brimhaven Arena's floor spikes back and
  * forth, or an Agility shortcut anywhere) instead of running a course. Each Agility XP drop counts as a rep of the
  * obstacle or shortcut next to you; a few in a row of the same one and it's training, with reps, rates and reps to
- * your level and goal, until you stop for a while or move to another. Only reads your XP and the objects near you.
+ * your level and goal, until you stop for a minute, move to another, or tag a pillar. Only reads your XP and the objects near you.
  */
 @Singleton
 class ObstacleReps {
@@ -30,7 +30,7 @@ class ObstacleReps {
     private static final int MAX_ARENA_OBSTACLE_XP = 40;
     // It's training after this many reps in a row, and ends after this long without one (ticks)
     static final int TRAINING_REPS = 3;
-    private static final int IDLE_TICKS = 200;
+    private static final int IDLE_TICKS = 100;
 
     private final Client client;
     private final SkillTrackerConfig config;
@@ -79,6 +79,9 @@ class ObstacleReps {
         String crossedName;
         if (agility.inArena()) {
             if (gain > MAX_ARENA_OBSTACLE_XP) {
+                // A pillar tagged: you're chasing pillars, not training one obstacle
+                name = null;
+                reps = 0;
                 return;
             }
             crossed = nearestArenaObstacle(at);

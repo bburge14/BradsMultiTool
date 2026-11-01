@@ -88,7 +88,7 @@ class BradsMultiToolArenaOverlay extends Overlay {
             if (box == null) {
                 continue;
             }
-            Color color = config.arenaObstacleColours() ? colour(arena.status(e.getValue())) : ROUTE;
+            Color color = config.arenaObstacleColours() ? colour(arena.status(object, e.getValue())) : ROUTE;
             graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), route ? 70 : 35));
             graphics.fill(box);
             graphics.setStroke(new BasicStroke(route ? 3f : 1.5f));
