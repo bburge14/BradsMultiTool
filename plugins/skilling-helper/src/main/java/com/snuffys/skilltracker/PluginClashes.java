@@ -113,14 +113,16 @@ class PluginClashes {
     private final PluginManager pluginManager;
     private final ConfigManager configManager;
     private final PluginIdentity identity;
+    private final InGame inGame;
     // Clashes on right now; and the ones said in chat this login
     private volatile List<Clash> active = Collections.emptyList();
     private final Set<Clash> said = new HashSet<>();
-    private boolean announced;
+    private static final int CHECK_TICKS = 5;
 
     @Inject
     PluginClashes(Client client, ClientThread clientThread, PluginManager pluginManager, ConfigManager configManager,
-                  PluginIdentity identity) {
+                  PluginIdentity identity, InGame inGame) {
+        this.inGame = inGame;
         this.client = client;
         this.clientThread = clientThread;
         this.pluginManager = pluginManager;
@@ -144,13 +146,17 @@ class PluginClashes {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
-        if (event.getGameState() == GameState.LOGGED_IN && !announced) {
-            announced = true;
-            check();
-        } else if (event.getGameState() == GameState.LOGIN_SCREEN) {
+        if (event.getGameState() == GameState.LOGIN_SCREEN) {
             // Said again at the next login
-            announced = false;
             said.clear();
+        }
+    }
+
+    // Checked every few seconds too, not only when a plugin or setting changes, so nothing is missed
+    @Subscribe
+    public void onGameTick(net.runelite.api.events.GameTick event) {
+        if (client.getTickCount() % CHECK_TICKS == 0) {
+            check();
         }
     }
 
@@ -189,7 +195,8 @@ class PluginClashes {
             }
         }
         said.retainAll(now);
-        if (client.getGameState() == GameState.LOGGED_IN && announced) {
+        // In the game and past the welcome screen, so the chat box shows it
+        if (client.getGameState() == GameState.LOGGED_IN && inGame.ready()) {
             for (Clash clash : now) {
                 if (said.add(clash)) {
                     client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName
