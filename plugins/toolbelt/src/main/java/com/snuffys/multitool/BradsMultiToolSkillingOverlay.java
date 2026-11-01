@@ -112,6 +112,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
         if (config.showSkillingHover() && !client.isMenuOpen() && buildCard()) {
             CursorTooltip.render(client, graphics, panel);
+        } else if (config.showAgilityHover() && !client.isMenuOpen() && buildArenaHoverCard()) {
+            CursorTooltip.render(client, graphics, panel);
         }
         return null;
     }
@@ -241,6 +243,26 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         if (config.showSmithingHover() && (option.equals("smelt") || target.equalsIgnoreCase("furnace"))) {
             return buildFurnaceCard();
+        }
+        return false;
+    }
+
+    // Arena obstacles you can't click (floor spikes, pressure pads, blades: only Examine) get their card from the
+    // mouse being over their shape instead of the left-click option
+    private boolean buildArenaHoverCard() {
+        if (arenaRoute.getObstacles().isEmpty()) {
+            return false;
+        }
+        net.runelite.api.Point mouse = client.getMouseCanvasPosition();
+        if (mouse == null) {
+            return false;
+        }
+        for (Map.Entry<net.runelite.api.TileObject, SkillHelperData.ArenaObstacle> e : arenaRoute.getObstacles().entrySet()) {
+            java.awt.Shape box = e.getKey().getClickbox();
+            if (box != null && box.contains(mouse.getX(), mouse.getY())) {
+                buildArenaObstacleCard(e.getValue());
+                return true;
+            }
         }
         return false;
     }

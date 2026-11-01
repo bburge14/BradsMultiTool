@@ -513,7 +513,8 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
   session and per hour. **Voice/Chat: Pillar About to Move** warns you **Pillar Warning At** seconds before (10).
 - **Arena Obstacle Colours:** in the arena, each obstacle is outlined by your Agility level: **green** you can do it
   and won't fail, **yellow** you can do it but may fail (floor spikes until 50, spinning blades and darts until 99,
-  the wrong plank), **red** your level is too low. Hover one (Obstacle Hover) for its level, XP, time, XP per tick,
+  the wrong plank), **red** your level is too low. Hover one (Obstacle Hover; it works on the ones you can't click
+  too, like floor spikes and pressure pads) for its level, XP, time, XP per tick,
   your chance to get across, and whether it's the best XP per tick you can do safely.
 - **Arena Route:** the quickest way to the tagged pillar, drawn as a line from you across the pillars with its obstacles
   outlined thicker and the pillar's tile marked. It only uses obstacles your level allows and counts each one's time,
