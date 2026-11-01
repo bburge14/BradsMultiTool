@@ -28,7 +28,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String aboutSection = "aboutSection";
 
     @ConfigSection(
-        name = "Tick Bar",
+        name = "Tick: Bar",
         description = "The smooth tick bar that fills over each tick (move it with Alt + drag)",
         position = 62,
         closedByDefault = true
@@ -36,7 +36,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String tickBarSection = "tickBarSection";
 
     @ConfigSection(
-        name = "Gemstone Crab Colours",
+        name = "GemCrab: Colours",
         description = "Colours of the crab, its shell and the tunnel highlights",
         position = 21,
         closedByDefault = true
@@ -44,7 +44,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String crabColoursSection = "crabColoursSection";
 
     @ConfigSection(
-        name = "Supply Alerts",
+        name = "PvM: Supply Alerts",
         description = "Running low on ammo, runes or cannonballs",
         position = 16,
         closedByDefault = true
@@ -52,7 +52,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String supplyAlertsSection = "supplyAlertsSection";
 
     @ConfigSection(
-        name = "Click Timing",
+        name = "Tick: Click Timing",
         description = "How long after the tick each click lands, its sounds, and the ideal click zone",
         position = 64,
         closedByDefault = true
@@ -60,7 +60,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String clickTimingSection = "clickTimingSection";
 
     @ConfigSection(
-        name = "Metronome",
+        name = "Tick: Metronome",
         description = "A sound on every tick, early by Play Ahead so you can click on it",
         position = 63,
         closedByDefault = true
@@ -68,7 +68,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String metronomeSection = "metronomeSection";
 
     @ConfigSection(
-        name = "Tick Boxes",
+        name = "Tick: Boxes",
         description = "The tick boxes, in a row or moved separately, with half-tick boxes",
         position = 61,
         closedByDefault = true
@@ -76,7 +76,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String tickBoxesSection = "tickBoxesSection";
 
     @ConfigSection(
-        name = "Slayer Alerts",
+        name = "Slayer: Alerts",
         description = "Alerts for your Slayer task: missing item, superiors, halfway, nearly done and complete",
         position = 19,
         closedByDefault = true
@@ -84,7 +84,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String slayerAlertsSection = "slayerAlertsSection";
 
     @ConfigSection(
-        name = "Slayer Monsters",
+        name = "Slayer: Monsters",
         description = "Slayer details on monsters, and outlines on your task's monsters",
         position = 18,
         closedByDefault = true
@@ -92,7 +92,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String slayerMonstersSection = "slayerMonstersSection";
 
     @ConfigSection(
-        name = "Skilling Alerts",
+        name = "Skilling: Alerts",
         description = "Inventory full, resource gone and batch complete alerts",
         position = 34,
         closedByDefault = true
@@ -100,7 +100,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String skillingAlertsSection = "skillingAlertsSection";
 
     @ConfigSection(
-        name = "Resource Timers",
+        name = "Skilling: Resource Timers",
         description = "How resource timers look, and stepping aside for other timer plugins; each skill's section turns its timers on",
         position = 33,
         closedByDefault = true
@@ -108,7 +108,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String resourceTimersSection = "resourceTimersSection";
 
     @ConfigSection(
-        name = "Goals",
+        name = "Skilling: Goals",
         description = "Goals and their suggested training: the method, its outlines, tools and items, and clearing reached goals",
         position = 31,
         closedByDefault = true
@@ -129,7 +129,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
 
     @ConfigSection(
-        name = "Tick Counter",
+        name = "Tick: Counter",
         description = "<div width='300'>Counts game ticks over your head or in a box you can move, with an optional metronome",
         position = 60,
         closedByDefault = true
@@ -144,7 +144,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String generalSection = "generalSection";
 
     @ConfigSection(
-        name = "Potion Buffs",
+        name = "PvM: Potion Buffs",
         description = "Buff timers on the HUD and running-out / expired alerts",
         position = 12,
         closedByDefault = true
@@ -152,7 +152,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String buffSection = "buffSection";
 
     @ConfigSection(
-        name = "Health",
+        name = "PvM: Health",
         description = "Low health warnings",
         position = 13,
         closedByDefault = true
@@ -160,7 +160,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String healthSection = "healthSection";
 
     @ConfigSection(
-        name = "Prayer",
+        name = "PvM: Prayer",
         description = "Low and empty prayer warnings",
         position = 14,
         closedByDefault = true
@@ -168,7 +168,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String prayerSection = "prayerSection";
 
     @ConfigSection(
-        name = "Combat Alerts",
+        name = "PvM: Combat Alerts",
         description = "<div width='300'>Special attack, antifire, poison, stamina, ammo, runes and cannon alerts",
         position = 15,
         closedByDefault = true
@@ -184,7 +184,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String idleSection = "idleSection";
 
     @ConfigSection(
-        name = "Buff Bar",
+        name = "PvM: Buff Bar",
         description = "<div width='300'>Your buffs and debuffs as a row of icons with timers, like RS3's",
         position = 11,
         closedByDefault = true
@@ -192,7 +192,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String buffBarSection = "buffBarSection";
 
     @ConfigSection(
-        name = "PvM HUD",
+        name = "PvM: HUD",
         description = "Combat HUD and monster hover info for non-crab monsters",
         position = 10,
         closedByDefault = true
@@ -200,7 +200,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String pvmSection = "pvmSection";
 
     @ConfigSection(
-        name = "Slayer Card",
+        name = "Slayer: Card",
         description = "The Slayer card: your task, kills left, where to go and how to get there, or the master to visit without a task",
         position = 17,
         closedByDefault = true
@@ -208,7 +208,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String slayerSection = "slayerSection";
 
     @ConfigSection(
-        name = "Gemstone Crab",
+        name = "GemCrab: Crab",
         description = "Crab HUD, radar, alerts and outlines",
         position = 20,
         closedByDefault = true
@@ -216,7 +216,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String crabSection = "crabSection";
 
     @ConfigSection(
-        name = "Skilling Hover Cards",
+        name = "Skilling: Hover Cards",
         description = "Hover cards for trees, rocks, fishing spots, stalls and other skilling things",
         position = 32,
         closedByDefault = true
@@ -224,7 +224,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String skillingSection = "skillingSection";
 
     @ConfigSection(
-        name = "Woodcutting",
+        name = "Skilling: Woodcutting",
         description = "Tree timers and alerts",
         position = 40,
         closedByDefault = true
@@ -232,7 +232,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String woodcuttingSection = "woodcuttingSection";
 
     @ConfigSection(
-        name = "Mining",
+        name = "Skilling: Mining",
         description = "Mining timers and alerts",
         position = 41,
         closedByDefault = true
@@ -240,31 +240,17 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String miningSection = "miningSection";
 
     @ConfigSection(
-        name = "Fishing",
+        name = "Skilling: Fishing",
         description = "Fishing spot timers and alerts",
         position = 42,
         closedByDefault = true
     )
     String fishingSection = "fishingSection";
 
-    @ConfigSection(
-        name = "Thieving",
-        description = "Thieving alerts",
-        position = 43,
-        closedByDefault = true
-    )
-    String thievingSection = "thievingSection";
+
 
     @ConfigSection(
-        name = "Farming",
-        description = "Farming patch info",
-        position = 44,
-        closedByDefault = true
-    )
-    String farmingSection = "farmingSection";
-
-    @ConfigSection(
-        name = "Hunter",
+        name = "Skilling: Hunter",
         description = "Hunter creature info, trap and bird house timers",
         position = 45,
         closedByDefault = true
@@ -272,55 +258,21 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String hunterSection = "hunterSection";
 
     @ConfigSection(
-        name = "Firemaking",
-        description = "Fire timers",
+        name = "Skilling: Other Skills",
+        description = "Thieving, Farming, Firemaking, Runecraft, Agility, Cooking, Sailing and Smithing (each has its own section in Snuffy's Skilling Helper)",
         position = 46,
         closedByDefault = true
     )
-    String firemakingSection = "firemakingSection";
+    String otherSkillsSection = "otherSkillsSection";
+
+
+
+
+
+
 
     @ConfigSection(
-        name = "Runecraft",
-        description = "Altar info",
-        position = 47,
-        closedByDefault = true
-    )
-    String runecraftSection = "runecraftSection";
-
-    @ConfigSection(
-        name = "Agility",
-        description = "Course and shortcut info",
-        position = 48,
-        closedByDefault = true
-    )
-    String agilitySection = "agilitySection";
-
-    @ConfigSection(
-        name = "Cooking",
-        description = "Burn levels",
-        position = 49,
-        closedByDefault = true
-    )
-    String cookingSection = "cookingSection";
-
-    @ConfigSection(
-        name = "Sailing",
-        description = "Sailing timers",
-        position = 50,
-        closedByDefault = true
-    )
-    String sailingSection = "sailingSection";
-
-    @ConfigSection(
-        name = "Smithing",
-        description = "Anvil and furnace cards",
-        position = 51,
-        closedByDefault = true
-    )
-    String smithingSection = "smithingSection";
-
-    @ConfigSection(
-        name = "Skill Tracker",
+        name = "Skilling: Tracker",
         description = "Sidebar XP tracker",
         position = 30,
         closedByDefault = true
@@ -653,4 +605,150 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         return PvmConfig.super.chatBuffExpired();
     }
     // ---- End of BuffConfig's settings ----
+
+    // ---- The Toolbelt keeps the smaller skills together in Other Skills (the Skilling Helper gives each a section)
+
+    @ConfigItem(
+        keyName = "coinPouchAlert",
+        name = "Thieving: Coin Pouch Alert",
+        description = "<div width='300'>Alert when your coin pouches reach the most you can hold (28, more with the Ardougne Diary)",
+        section = otherSkillsSection,
+        position = 0
+    )
+    @Override
+    default boolean coinPouchAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceCoinPouch",
+        name = "Thieving: Voice: Coin Pouches Full",
+        description = "<div width='300'>When your coin pouches are full (turning it on plays a preview)",
+        section = otherSkillsSection,
+        position = 1
+    )
+    @Override
+    default boolean voiceCoinPouch() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatCoinPouch",
+        name = "Thieving: Chat: Coin Pouches Full",
+        description = "Chat message when your coin pouches are full",
+        section = otherSkillsSection,
+        position = 2
+    )
+    @Override
+    default boolean chatCoinPouch() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showFarmingHover",
+        name = "Farming: Patch Hover",
+        description = "<div width='300'>Hovering a farming patch shows what's growing, its stage, roughly when it's grown, compost, watering, protection and what you can plant",
+        section = otherSkillsSection,
+        position = 3
+    )
+    @Override
+    default boolean showFarmingHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "fireTimers",
+        name = "Firemaking: Fire Timers",
+        description = "<div width='300'>A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
+        section = otherSkillsSection,
+        position = 4
+    )
+    @Override
+    default SkillTrackerConfig.TimerShow showFireTimer() {
+        return SkillTrackerConfig.TimerShow.OFF;
+    }
+
+    @ConfigItem(
+        keyName = "campfireTimers",
+        name = "Firemaking: Campfire Timers",
+        description = "<div width='300'>A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
+        section = otherSkillsSection,
+        position = 5
+    )
+    @Override
+    default SkillTrackerConfig.TimerShow showCampfireTimer() {
+        return SkillTrackerConfig.TimerShow.TRAINING;
+    }
+
+    @ConfigItem(
+        keyName = "showRunecraftHover",
+        name = "Runecraft: Altar Hover",
+        description = "<div width='300'>Hovering an altar shows the rune, level, XP and how many runes you make per essence",
+        section = otherSkillsSection,
+        position = 6
+    )
+    @Override
+    default boolean showRunecraftHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showAgilityHover",
+        name = "Agility: Obstacle Hover",
+        description = "<div width='300'>Hovering a course obstacle or shortcut shows its Agility level, the course XP per lap and laps to your next level",
+        section = otherSkillsSection,
+        position = 7
+    )
+    @Override
+    default boolean showAgilityHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showCookingHover",
+        name = "Cooking: Range / Fire Hover",
+        description = "<div width='300'>Hovering a range or fire shows each raw food you are carrying: its level, XP and burn level",
+        section = otherSkillsSection,
+        position = 8
+    )
+    @Override
+    default boolean showCookingHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showSailingHover",
+        name = "Sailing: Hover",
+        description = "<div width='300'>Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you), trawling shoals (Fishing level, fish, depth, bait), sea monsters (HP, safe keel, bounty parts) and your current duck",
+        section = otherSkillsSection,
+        position = 9
+    )
+    @Override
+    default boolean showSailingHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "shipwreckTimers",
+        name = "Sailing: Shipwreck Timers",
+        description = "<div width='300'>A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
+        section = otherSkillsSection,
+        position = 10
+    )
+    @Override
+    default SkillTrackerConfig.TimerShow showShipwreckTimer() {
+        return SkillTrackerConfig.TimerShow.TRAINING;
+    }
+
+    @ConfigItem(
+        keyName = "showSmithingHover",
+        name = "Smithing: Anvil / Furnace Hover",
+        description = "<div width='300'>Hovering an anvil or furnace shows what you can make from the bars or ores you are carrying",
+        section = otherSkillsSection,
+        position = 11
+    )
+    @Override
+    default boolean showSmithingHover() {
+        return true;
+    }
 }

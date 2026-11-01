@@ -2,12 +2,12 @@
 
 Every feature, what it does, how to use it and where its settings are. Settings are in RuneLite's
 configuration panel (the wrench icon) under **Snuffy's Toolbelt**; each section below names the settings
-section to open. Sections follow the plugins: About and General first, then Idle, the PvM sections (PvM HUD, Buff
-Bar, Potion Buffs, Health, Prayer, Combat Alerts, Supply Alerts, Slayer Card, Slayer Monsters, Slayer Alerts),
-Gemstone Crab and its Colours, the
-skilling sections (Skill Tracker, Goals, Skilling Hover Cards, Resource Timers, Skilling Alerts, then one per
-skill) and the tick sections (Tick Counter, Tick Boxes, Tick Bar, Metronome, Click Timing). All start collapsed
-except About and General.
+section to open. In the Toolbelt, sections are named after their plugin and
+grouped in order: About, General, Idle, then **PvM:** (HUD, Buff Bar, Potion Buffs, Health, Prayer, Combat Alerts,
+Supply Alerts), **Slayer:** (Card, Monsters, Alerts), **GemCrab:** (Crab, Colours), **Skilling:** (Tracker, Goals,
+Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, and Other Skills for the rest), and
+**Tick:** (Counter, Boxes, Bar, Metronome, Click Timing). Each separate plugin has the same sections without the
+plugin's name, and the Skilling Helper gives every skill its own. All start collapsed except About and General.
 
 - [Alerts (all of them)](#alerts-all-of-them)
 - [PvM HUD](#pvm-hud)

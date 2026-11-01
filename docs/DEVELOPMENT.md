@@ -158,3 +158,11 @@ moves anything the Skilling Helper saved under its own group before this, once, 
 `training.json` methods carry `xpHour` where the guide's text gives an XP rate ("around 45,000 experience per
 hour"; the top of a range), read by `scripts/update_training_data.py` (`xp_rate`).
 
+## The Toolbelt's settings page
+
+`BradsMultiToolConfig` redeclares every section (RuneLite only shows a config's own sections) and names them after
+their plugin ("PvM: HUD", "Skilling: Goals"). It also overrides the smaller skills' settings (Thieving, Farming,
+Firemaking, Runecraft, Agility, Cooking, Sailing, Smithing) into one "Skilling: Other Skills" section; the keys are
+the same, so values carry over between the Toolbelt and the Skilling Helper's own sections. SettingsPanelTest checks
+each setting shows once and keeps its plugin's section except those.
+
