@@ -237,7 +237,7 @@ karambwan) still get their tile and fish picture, without a timer. Above every t
 how long ago they appeared) and the skill's icon (**Skilling > Timer Text**, **Timer Skill Icon**).
 **Skilling > Timer Opacity** sets how solid they are (60% by default). **Skilling > Timer Style** picks the look:
 *Tile and icon* (the default) outlines the tile with a picture of what it gives (logs, ore;
-for fishing spots the fish of the way you're fishing, worked out from your catches, stacked when it gives
+for fishing spots the fish of the way you're fishing, picked when you click from the option and the rod and bait you carry (your catches correct it), stacked when it gives
 several like trout and salmon, else of the best way for your level), the outline coloured by the timer (untimed
 fishing spots in the **Zone Colour**; hover a fishing spot or fire for when it can go); *Floating timer* puts a
 pie over each instead. Where RuneLite's Fishing plugin already draws its spot icons or tiles, or its
