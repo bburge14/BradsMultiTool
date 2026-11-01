@@ -35,4 +35,14 @@ public class TickCounterTest {
             assertTrue(overlay.getSimpleName() + " must be @Singleton", overlay.isAnnotationPresent(Singleton.class));
         }
     }
+
+    @org.junit.Test
+    public void zoneBoxLightsInTheIdealZone() {
+        org.junit.Assert.assertFalse(BradsMultiToolTickZoneOverlay.inZone(50, 100, 350));
+        org.junit.Assert.assertTrue(BradsMultiToolTickZoneOverlay.inZone(100, 100, 350));
+        org.junit.Assert.assertTrue(BradsMultiToolTickZoneOverlay.inZone(349, 100, 350));
+        org.junit.Assert.assertFalse(BradsMultiToolTickZoneOverlay.inZone(350, 100, 350));
+        org.junit.Assert.assertFalse(BradsMultiToolTickZoneOverlay.inZone(200, 100, 0)); // no zone
+    }
 }
+

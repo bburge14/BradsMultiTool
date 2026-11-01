@@ -17,12 +17,13 @@ class TickCounterFeature {
     @Inject private BradsMultiToolTickBoxOverlay boxOverlay;
     @Inject private BradsMultiToolTickBarOverlay barOverlay;
     @Inject private TickSingleBoxes singleBoxes;
+    @Inject private BradsMultiToolTickZoneOverlay zoneOverlay;
 
     void start(Lifecycle lifecycle) {
         configDefaults.add(() -> TickConfigDefaults.store(configDefaults, config));
         // CombatStyle knows the weapon's style (Rapid) for Follow Attack Speed
         lifecycle.subscribe(inGame, combatStyle, tickCounter, configDefaults, clashes);
-        lifecycle.overlay(headOverlay, boxOverlay, barOverlay);
+        lifecycle.overlay(headOverlay, boxOverlay, barOverlay, zoneOverlay);
         singleBoxes.overlays.forEach(lifecycle::overlay);
         lifecycle.onStop(configDefaults::clear);
     }

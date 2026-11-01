@@ -54,6 +54,12 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
     /** One tick's box at (x, y): its number, lit (and fading) on its tick. */
     static void drawBox(Graphics2D graphics, FontMetrics metrics, TickConfig config, int x, int y, int size, int tick,
                         boolean lit, double fade, Color background) {
+        drawBox(graphics, metrics, config, x, y, size, tick, lit, fade, background, String.valueOf(tick));
+    }
+
+    /** As above, with this label in the box instead of the tick's number. */
+    static void drawBox(Graphics2D graphics, FontMetrics metrics, TickConfig config, int x, int y, int size, int tick,
+                        boolean lit, double fade, Color background, String label) {
         Color color = tickColor(config, tick);
         java.awt.Composite before = graphics.getComposite();
         graphics.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER,
@@ -72,7 +78,7 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         if (lit) {
             graphics.draw(shape(config.tickBoxShape(), x + 1, y + 1, size - 3));
         }
-        String text = String.valueOf(tick);
+        String text = label;
         int textX = x + (size - metrics.stringWidth(text)) / 2;
         int textY = y + (size - metrics.getHeight()) / 2 + metrics.getAscent();
         graphics.setColor(Color.BLACK);

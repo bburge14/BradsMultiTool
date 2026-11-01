@@ -442,6 +442,9 @@ clicks; it never clicks, changes a menu or does anything for you.
 - **Move Boxes Separately:** each tick box becomes its own see-through box you Alt + drag anywhere, for example
   one over each item you click in a tick method (box 1 on the item for tick 1, and so on); each stays where you
   put it. They start stacked in the top-left corner; a box shows while its tick is in the cycle.
+- **Ideal Zone Box:** a box ("GO") that lights up between ticks, during your ideal click zone (Ideal From to Ideal To
+  after each tick), for methods where you act part way through a tick. Move it with Alt + drag; it takes the tick
+  boxes' shape, size and opacity.
 - **Tick Bar:** fills smoothly from left to right over each tick and snaps back on the next, so you can see the
   tick coming instead of reacting to a flash. Move it with Alt + drag.
 - The first tick of each cycle is in its own colour (green by default).

@@ -35,6 +35,7 @@ final class TickConfigDefaults {
         defaults.store("clickLateMs", config.clickLateMs());
         defaults.store("clickIdealFrom", config.clickIdealFrom());
         defaults.store("clickIdealTo", config.clickIdealTo());
+        defaults.store("tickZoneBox", config.tickZoneBox());
         defaults.store("clickEveryTick", config.clickEveryTick());
     }
 }

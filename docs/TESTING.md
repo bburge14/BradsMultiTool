@@ -213,3 +213,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tick Counter > Move Boxes Separately: the boxes become separate see-through boxes, each Alt + draggable and kept where placed after a relaunch; only boxes up to the cycle length show.
 - [ ] Tick boxes: Box Shape (square/rounded/circle), Box Opacity and Box Size apply to both the row and the separate boxes.
 - [ ] Reaching a goal clears it with a chat line; a goal already reached clears at the next login; Clear Goals When Reached off keeps it (Done!).
+- [ ] Tick Counter > Ideal Zone Box: a GO box lights during Ideal From–Ideal To after each tick; Alt + draggable; follows Box Shape/Size/Opacity.

@@ -436,6 +436,17 @@ public interface TickConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "tickZoneBox",
+        name = "Ideal Zone Box",
+        description = "<div width='300'>A box that lights up between ticks, during your ideal click zone (Ideal From to Ideal To after each tick), for methods where you act part way through a tick. Move it with Alt + drag; it takes the tick boxes' shape, size and opacity",
+        section = tickSection,
+        position = 20
+    )
+    default boolean tickZoneBox() {
+        return false;
+    }
+
+    @ConfigItem(
         keyName = "clickEveryTick",
         name = "Click Every Tick",
         description = "<div width='300'>For 1-ticking, where you click once every tick: once you've started clicking, a tick that passes without a click counts as missed and plays the Late Sound. Leave off for methods that don't click every tick",
