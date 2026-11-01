@@ -69,6 +69,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("trainingFocus", config.trainingFocus());
         defaults.store("highlightSuggestedTraining", config.highlightSuggestedTraining());
         defaults.store("highlightGoalItems", config.highlightGoalItems());
+        defaults.store("hideOutlinesWhileWorking", config.hideOutlinesWhileWorking());
         defaults.store("trainingHighlightColor", config.trainingHighlightColor());
         defaults.store("autoPauseSkills", config.autoPauseSkills());
         defaults.store("autoPauseSeconds", config.autoPauseSeconds());

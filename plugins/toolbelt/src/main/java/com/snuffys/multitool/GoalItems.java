@@ -50,6 +50,8 @@ class GoalItems {
     // Gathering goals (Fishing, Mining, Woodcutting, Hunter...): lower-case tool or bait -> "Needed for your
     // Fishing goal: Feather"; matched to items by isTool, so a dragon axe counts for "axe"
     private volatile Map<String, String> tools = Collections.emptyMap();
+    // Which goal each tool is for, so it can step aside while you're working that skill
+    private volatile Map<String, Skill> toolSkills = Collections.emptyMap();
     // How many of each item you carry or bank (lower-case names)
     private volatile Map<String, Integer> amounts = Collections.emptyMap();
     // Everything you carry, wear or bank (lower-case names), for checking tools
@@ -195,7 +197,7 @@ class GoalItems {
             return material;
         }
         for (Map.Entry<String, String> tool : tools.entrySet()) {
-            if (isTool(item, tool.getKey())) {
+            if (isTool(item, tool.getKey()) && !(config.hideOutlinesWhileWorking() && plugin.isWorking(toolSkills.get(tool.getKey())))) {
                 return tool.getValue();
             }
         }
@@ -255,6 +257,7 @@ class GoalItems {
         Map<String, String> highlighted = new HashMap<>();
         Map<Skill, Integer> counts = new HashMap<>();
         Map<String, String> tools = new HashMap<>();
+        Map<String, Skill> toolSkills = new HashMap<>();
         for (Skill skill : plugin.getGoalSkills()) {
             if (plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
                 continue;
@@ -263,6 +266,7 @@ class GoalItems {
             if (!recipes.covers(skill)) {
                 for (String tool : plugin.getTrainingAdvisor().goalTools(skill, client.getRealSkillLevel(skill))) {
                     tools.putIfAbsent(tool.toLowerCase(), "Needed for your " + skill.getName() + " goal: " + tool);
+                    toolSkills.putIfAbsent(tool.toLowerCase(), skill);
                 }
                 continue;
             }
@@ -305,6 +309,7 @@ class GoalItems {
         this.counts = counts;
         this.highlighted = highlighted;
         this.tools = tools;
+        this.toolSkills = toolSkills;
     }
 
     /** Whether a recipe uses this item (lower-case name) as a material. */

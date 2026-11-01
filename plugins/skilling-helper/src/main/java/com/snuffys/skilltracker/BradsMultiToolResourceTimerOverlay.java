@@ -273,8 +273,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             || (config.deferToOtherTimerPlugins() && otherPlugins.covers(ResourceTimers.Kind.FISHING_SPOT))) {
             return;
         }
+        // While you fish, their plain outlines step aside (the fish pictures stay)
+        Color outline = config.hideOutlinesWhileWorking() && plugin.isWorking(Skill.FISHING) ? NO_OUTLINE : null;
         for (net.runelite.api.NPC npc : timers.untimedSpots()) {
-            zone(graphics, new ResourceTimers.Timer(ResourceTimers.Kind.FISHING_SPOT, null, npc, 0, 0), null, false);
+            zone(graphics, new ResourceTimers.Timer(ResourceTimers.Kind.FISHING_SPOT, null, npc, 0, 0), outline, false);
         }
     }
 
@@ -387,7 +389,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         boolean yours = yours(timer);
         Polygon poly = otherPlugins.drawsTile(timer.kind, yours) ? null
             : timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
-        if (poly != null) {
+        if (poly != null && outline != NO_OUTLINE) {
             boolean yourSpot = yours && timer.kind == ResourceTimers.Kind.FISHING_SPOT;
             Color zone = outline != null ? outline : yourSpot ? config.fishingActiveColor() : config.zoneColor();
             graphics.setColor(new Color(0, 0, 0, 50));
@@ -427,6 +429,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     }
 
     private static final int STACK_STEP = 9;
+    /** Passed to zone for no tile outline at all (just the picture). */
+    private static final Color NO_OUTLINE = new Color(0, 0, 0, 0);
 
     // What a timed resource gives, by item name: logs for trees, ore for rocks; for a fishing spot, the fish of the
     // way you're fishing (when the spot has it), else of the best way for your level: every fish it gives you

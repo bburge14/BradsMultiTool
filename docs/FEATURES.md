@@ -370,6 +370,9 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   bait** the method needs are outlined instead (the rod and feathers for fly fishing, an axe or pickaxe of any
   kind, the creature's trap; hover for "Needed for your Fishing goal: Feather"), while the spots, rocks and
   trees themselves are outlined in the world. A fish in your inventory is only outlined for a Cooking goal.
+- **Hide Outlines While Working** (on by default): once you're fishing, chopping or mining, that skill's goal
+  outlines (the suggested spots, trees and rocks, the tools in your inventory and bank) and the plain outlines of
+  untimed fishing spots step aside, since you've found it; they come back a few seconds after you stop.
 
 **How to use:**
 1. Click **Set Goal** at the top of the tracker (or right-click a card > Set goal...; a skill with a goal has Modify goal... instead, which starts from

@@ -575,6 +575,14 @@ class SkillTracker {
         return (last != null && now - last <= PIE_TRAINING_TICKS) || (doing != null && now - doing <= PIE_TRAINING_TICKS);
     }
 
+    /** Whether you're fishing, chopping or mining right now (seen in the last few ticks). */
+    boolean isWorking(Skill skill) {
+        Integer doing = skill == null ? null : lastDoingTicks.get(skill);
+        return doing != null && client.getTickCount() - doing <= WORKING_TICKS;
+    }
+
+    private static final int WORKING_TICKS = 5;
+
     // Each skill you were last seen doing, by tick: fishing a spot, or chopping or mining (by animation)
     private final Map<Skill, Integer> lastDoingTicks = new EnumMap<>(Skill.class);
 

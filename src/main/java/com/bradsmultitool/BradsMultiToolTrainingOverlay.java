@@ -117,7 +117,7 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         Set<String> suggestedFish = new HashSet<>();
         for (Skill skill : plugin.getGoalSkills()) {
             int xp = client.getSkillExperience(skill);
-            if (plugin.getSkillGoal(skill) <= xp) {
+            if (plugin.getSkillGoal(skill) <= xp || (config.hideOutlinesWhileWorking() && plugin.isWorking(skill))) {
                 continue;
             }
             // What you picked with "Track for goal" wins over the suggestion
