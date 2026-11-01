@@ -227,7 +227,8 @@ $s.Save()
 
 **4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small window that:
 
-- **updates** the plugins each time you open it and lists what's new (**Check again** to retry; when you're
+- **updates** the plugins each time you open it, and checks again every 10 minutes while it's open, listing what's
+  new (with RuneLite running it says "Update ready: Relaunch to use it") (**Check again** to retry; when you're
   offline or have changed files here, it says so and you launch the version you have);
 - checks your **setup**, each row with a button to fix it:
   - **RuneLite** installed (it looks in RuneLite's usual folders, its uninstall entry, Start menu shortcuts and
@@ -240,6 +241,8 @@ $s.Save()
   - **Java** (needed to build) and **git** (for updates);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
   plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
+- **Relaunch** closes RuneLite (as its X button would; forced if it hangs), updates, and starts it again with your
+  pick;
 - **Launch RuneLite** builds and starts it silently (no console window): a progress bar shows it building,
   starting RuneLite and then "RuneLite is running", and the launcher stays open (it says when RuneLite closes,
   and **Launch** works again). If something goes wrong it says so in red; **Show log** opens the full output.

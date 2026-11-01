@@ -1,4 +1,5 @@
-# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins, checks the setup (RuneLite
+# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins (on opening, then every 10
+# minutes while it's open), Relaunch closes and restarts RuneLite with any update, checks the setup (RuneLite
 # installed, session saving on in RuneLite (configure), a Jagex session saved, Java, git) with a button to fix
 # each, and walks through saving a session; lets you pick which plugins RuneLite loads, and launches it. The Toolbelt has every separate
 # plugin in it, so it's either the Toolbelt on its own or any of the separate ones. Launching runs hidden with a
@@ -36,7 +37,7 @@ $form.Text = "Snuffy's Launcher"
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
 $form.StartPosition = 'CenterScreen'
-$form.ClientSize = New-Object System.Drawing.Size(460, 640)
+$form.ClientSize = New-Object System.Drawing.Size(460, 668)
 $form.Font = New-Object System.Drawing.Font('Segoe UI', 9)
 $icon = Join-Path $root 'assets\launcher.ico'
 if (Test-Path $icon) {
@@ -444,6 +445,7 @@ $watcher.Add_Tick({
     if ($script:runner -and $script:runner.HasExited) {
         $watcher.Stop()
         $launch.Enabled = $true
+        $relaunch.Enabled = $true
         if ($script:stage -eq 'running') {
             Set-Status 'RuneLite closed.' ([System.Drawing.SystemColors]::ControlText) 0
         } else {
@@ -454,7 +456,7 @@ $watcher.Add_Tick({
     }
 })
 
-$launch.Add_Click({
+function Start-RuneLite {
     if ($separate.Checked -and -not ($boxes.Values | Where-Object { $_.Checked })) {
         [System.Windows.Forms.MessageBox]::Show('Tick at least one plugin, or pick the Toolbelt.', "Snuffy's") | Out-Null
         return
@@ -472,7 +474,66 @@ $launch.Add_Click({
     $command = "gradlew.bat --console=plain runBrad `"-Pload=$load`" > `"$logFile`" 2>&1"
     $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
     $watcher.Start()
+    $relaunch.Enabled = $true
+    $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+}
+$launch.Add_Click({ Start-RuneLite })
+
+function RuneLite-Running {
+    return $script:runner -and -not $script:runner.HasExited
+}
+
+# ---- Relaunch: close RuneLite (as its X button does, forced if it hangs), update, launch again ----
+$relaunch = New-Object System.Windows.Forms.Button
+$relaunch.Text = 'Relaunch'
+$relaunch.Location = New-Object System.Drawing.Point(132, 600)
+$relaunch.Size = New-Object System.Drawing.Size(92, 32)
+$relaunch.Enabled = $false
+$form.Controls.Add($relaunch)
+$script:closingSince = $null
+$closer = New-Object System.Windows.Forms.Timer
+$closer.Interval = 500
+$closer.Add_Tick({
+    if (-not (RuneLite-Running)) {
+        $closer.Stop()
+        Update-Plugins
+        Start-RuneLite
+        return
+    }
+    # Still open after 20 seconds: end it and the build behind it
+    if (((Get-Date) - $script:closingSince).TotalSeconds -gt 20) {
+        & taskkill.exe /PID $script:runner.Id /T /F | Out-Null
+    }
 })
+$relaunch.Add_Click({
+    if (-not (RuneLite-Running)) {
+        Update-Plugins
+        Start-RuneLite
+        return
+    }
+    Set-Status 'Closing RuneLite...' ([System.Drawing.SystemColors]::ControlText) 0
+    $relaunch.Enabled = $false
+    $window = RuneLite-Window
+    if ($window) { [void]$window.CloseMainWindow() }
+    $script:closingSince = Get-Date
+    $closer.Start()
+})
+
+# ---- Updates while the launcher's open: checked every 10 minutes; RuneLite running? Relaunch to use them ----
+$autoUpdate = New-Object System.Windows.Forms.Timer
+$autoUpdate.Interval = 10 * 60 * 1000
+$autoUpdate.Add_Tick({
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
+    git -C $root fetch --quiet 2>$null
+    $behind = (git -C $root rev-list --count 'HEAD..@{u}' 2>$null)
+    if ($LASTEXITCODE -ne 0 -or [int]$behind -le 0) { return }
+    Update-Plugins
+    if (RuneLite-Running) {
+        $updateStatus.Text = 'Update ready: Relaunch to use it.'
+        $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+    }
+})
+$autoUpdate.Start()
 
 # Desktop shortcut: make (or fix) one with the Toolbelt's icon; shortcuts already pointing here get the icon too
 $bat = Join-Path $root 'Launch-BradsMultiTool.bat'
@@ -488,7 +549,7 @@ function Set-ShortcutIcons {
 }
 $shortcut = New-Object System.Windows.Forms.LinkLabel
 $shortcut.Text = 'Make a desktop shortcut'
-$shortcut.Location = New-Object System.Drawing.Point(14, 608)
+$shortcut.Location = New-Object System.Drawing.Point(14, 644)
 $shortcut.AutoSize = $true
 $form.Controls.Add($shortcut)
 $shortcut.Add_LinkClicked({
