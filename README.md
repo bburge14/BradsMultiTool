@@ -235,8 +235,10 @@ $s.Save()
   - **Java** (needed to build) and **git** (for updates);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
   plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
-- **Launch RuneLite** builds and starts it, with the build and RuneLite's log in their own window. The first
-  launch downloads Gradle and RuneLite, so it takes a few minutes.
+- **Launch RuneLite** builds and starts it silently (no console window): a progress bar shows it building,
+  starting RuneLite and then "RuneLite is running", and the launcher stays open (it says when RuneLite closes,
+  and **Launch** works again). If something goes wrong it says so in red; **Show log** opens the full output.
+  The first launch downloads Gradle and RuneLite, so it takes a few minutes.
 
 The first time, work down the Setup rows until they're all ticked, then press **Launch RuneLite**. After that
 it's just open and Launch: updates come in on their own.
