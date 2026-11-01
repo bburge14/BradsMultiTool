@@ -96,4 +96,23 @@ public class SkillingDataTest {
         assertEquals("Mithril axe", SkillingData.bestOwnedTool(axes, owned).name);
         assertEquals("Rune pickaxe", SkillingData.bestOwnedTool(SkillingData.toolsFor("Mining"), owned).name);
     }
+
+    @Test
+    public void everyRockHasItsRespawnTime() {
+        // Lead rocks came with Sailing (58917), after the wiki's Rock table was written
+        SkillingData.Resource lead = DATA.object(58917, null);
+        org.junit.Assert.assertNotNull(lead);
+        org.junit.Assert.assertEquals("Lead rocks", lead.name);
+        org.junit.Assert.assertEquals(25, lead.level);
+        org.junit.Assert.assertEquals(10, lead.respawnTicks);
+        // Runite: 12 minutes, 6 in the Mining Guild and the Wilderness
+        SkillingData.Resource runite = DATA.object(11376, "Runite rocks");
+        org.junit.Assert.assertNotNull(runite);
+        org.junit.Assert.assertEquals(1200, runite.respawnTicks);
+        org.junit.Assert.assertEquals(600, ResourceTimers.respawnTicks(runite,
+            new net.runelite.api.coords.WorldPoint(3060, 3884, 0))); // Lava Maze, in the Wilderness
+        org.junit.Assert.assertEquals(1200, ResourceTimers.respawnTicks(runite,
+            new net.runelite.api.coords.WorldPoint(2975, 3235, 0)));
+    }
 }
+

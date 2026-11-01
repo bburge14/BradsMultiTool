@@ -51,6 +51,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Slayer card pictures (master chatheads, task icons, ~90 small PNGs from the wiki, ~0.3MB) | OK. Game imagery as hosted on the wiki, credited in the README; other Plugin Hub plugins bundle game images the same way. Fallback is an in-game item sprite |
 | Skilling hover cards (trees, rocks, stalls, pickpocket, fishing, farming) | OK. Information from the wiki and visible game state |
 | Resource timer pies (trees, MLM, calcified, Daeyalt, stars, fishing spots, shipwrecks) | OK. Each mirrors an existing Plugin Hub plugin (credited in README) |
+| Depleted rock respawn timers | OK. RuneLite's own Mining plugin shows rock respawn timers; ours use the wiki's published respawn times, only for rocks seen being mined out |
 | Farming patch hover | OK. Same information as the core Time Tracking plugin |
 | Hunter: creature hover, trap pies, bird house hover + ready alert | OK. Core Hunter and Time Tracking plugins show trap timers and bird house times |
 | Firemaking fire pies | OK. Plugin Hub has fire-timer |

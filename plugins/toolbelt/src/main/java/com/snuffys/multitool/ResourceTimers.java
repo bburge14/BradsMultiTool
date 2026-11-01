@@ -69,7 +69,7 @@ import net.runelite.client.util.Text;
 @Singleton
 class ResourceTimers {
 
-    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK, TRAP, FIRE, CAMPFIRE }
+    enum Kind { TREE, VEIN, CALCIFIED, DAEYALT, FISHING_SPOT, STAR, SHIPWRECK, TRAP, FIRE, CAMPFIRE, ROCK }
 
     enum TrapState { SET, CAUGHT, FAILED }
 
@@ -101,6 +101,8 @@ class ResourceTimers {
         boolean cookedOn;
         // Fishing spots: where it was last tick, to see it jump to a new tile without despawning
         WorldPoint spotAt;
+        // Depleted rocks: the rock it was ("Lead rocks"), for its ore's picture
+        String resource;
 
         Timer(Kind kind, TileObject object, NPC npc, int minTicks, int maxTicks) {
             this.kind = kind;
@@ -437,14 +439,57 @@ class ResourceTimers {
         changingTraps.clear();
         changingTrapTicks.clear();
         sunkWrecks.clear();
+        depletingRocks.clear();
         playerSpawnTick.clear();
         playerSpawnPoint.clear();
+    }
+
+    // Rocks just mined out, by tile: {respawn ticks, tick it went}, until the depleted rock appears there
+    private final Map<WorldPoint, Object[]> depletingRocks = new HashMap<>();
+    private static final Set<Integer> MINING_GUILD_REGIONS = Set.of(12183, 12184);
+
+    // A mineable rock went: unless the area is unloading, the depleted rock that replaces it gets a timer
+    private void onRockDespawned(GameObject object) {
+        int id = object.getId();
+        if (client.getGameState() != GameState.LOGGED_IN || VEINS.contains(id) || CALCIFIED_ROCKS.contains(id)
+            || STARS.contains(id) || id == DAEYALT_ACTIVE) {
+            return;
+        }
+        SkillingData.Resource resource = data.object(id, objectName(id));
+        if (resource == null || !"Mining".equals(resource.skill) || resource.respawnTicks <= 0) {
+            return;
+        }
+        WorldPoint at = object.getWorldLocation();
+        depletingRocks.put(at, new Object[]{respawnTicks(resource, at), client.getTickCount(), resource.name});
+    }
+
+    /** A rock's respawn time here: faster in the Mining Guild or the Wilderness where the wiki says so. */
+    static int respawnTicks(SkillingData.Resource rock, WorldPoint at) {
+        if (rock.guildRespawnTicks > 0 && MINING_GUILD_REGIONS.contains(at.getRegionID())) {
+            return rock.guildRespawnTicks;
+        }
+        boolean wilderness = at.getX() >= 2944 && at.getX() <= 3391 && at.getY() >= 3520 && at.getY() <= 3967;
+        if (rock.wildRespawnTicks > 0 && wilderness) {
+            return rock.wildRespawnTicks;
+        }
+        return rock.respawnTicks;
     }
 
     @Subscribe
     public void onGameObjectSpawned(GameObjectSpawned event) {
         GameObject object = event.getGameObject();
         int id = object.getId();
+        // The depleted rock taking the place of one just mined out: time its ore coming back
+        Object[] depleted = depletingRocks.remove(object.getWorldLocation());
+        if (depleted != null && client.getTickCount() - (int) depleted[1] <= 2) {
+            SkillingData.Resource same = data.object(id, objectName(id));
+            if (same == null || !same.name.equals(depleted[2])) {
+                Timer rock = new Timer(Kind.ROCK, object, null, (int) depleted[0], (int) depleted[0]);
+                rock.resource = (String) depleted[2];
+                add(rock, object);
+                return;
+            }
+        }
         if (CALCIFIED_ROCKS.contains(id)) {
             add(new Timer(Kind.CALCIFIED, object, null, CALCIFIED_TICKS, CALCIFIED_TICKS), object);
             return;
@@ -512,6 +557,7 @@ class ResourceTimers {
             changingTraps.put(object.getWorldLocation(), timer);
             changingTrapTicks.put(object.getWorldLocation(), client.getTickCount());
         }
+        onRockDespawned(object);
         remove(object);
     }
 
@@ -772,6 +818,7 @@ class ResourceTimers {
         });
         updateStars();
         playerSpawnPoint.keySet().retainAll(playerSpawnTick.keySet());
+        depletingRocks.values().removeIf(rock -> now - (int) rock[1] > 5);
 
         for (Timer timer : timers) {
             switch (timer.kind) {

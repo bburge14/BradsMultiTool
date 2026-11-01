@@ -28,8 +28,8 @@ import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
 /**
- * Countdown pies over trees, Motherlode veins, calcified rocks, Daeyalt essence, shooting stars, fishing
- * spots, shipwrecks, traps, fires and Forester's Campfires (see {@link ResourceTimers}), each only while
+ * Countdown timers over trees, Motherlode veins, calcified rocks, depleted rocks (until their ore is back),
+ * Daeyalt essence, shooting stars, fishing spots, shipwrecks, traps, fires and Forester's Campfires (see {@link ResourceTimers}), each only while
  * you train its skill unless Timers When Not Training is on: green, then yellow, then red as each runs out, pulsing once it's due.
  * Fishing spots and fires go at a random time in a window, so theirs show the window instead (see {@link #drawWindow}).
  * With Pie Style on Tile, icon and pie (the default), each one's tile is outlined in the Zone Colour with a picture of
@@ -208,6 +208,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         switch (timer.kind) {
             case STAR:
                 return timer.health >= 0 ? Math.round(timer.health * 100) + "%" : null;
+            case ROCK:
+                return timer.due() ? "Now" : clock(timer.ticksToLatest());
             case TRAP:
                 if (timer.trapState == ResourceTimers.TrapState.CAUGHT) {
                     return "Caught";
@@ -344,6 +346,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
         double left = timer.progress();
         Color color = left > 0.5 ? HudColors.GOOD : left > 0.2 ? HudColors.WARN : HudColors.BAD;
+        // A depleted rock the other way round: red while its ore is far off, green as it's about to come back
+        if (timer.kind == ResourceTimers.Kind.ROCK) {
+            return withAlpha(left > 0.5 ? HudColors.BAD : left > 0.2 ? HudColors.WARN : HudColors.GOOD, 230 * scale);
+        }
         if (timer.kind == ResourceTimers.Kind.TRAP && timer.trapState != ResourceTimers.TrapState.SET) {
             color = timer.trapState == ResourceTimers.TrapState.CAUGHT ? HudColors.GOOD : HudColors.BAD;
         } else if (timer.due()) {
@@ -438,8 +444,26 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         if (timer.kind == ResourceTimers.Kind.FISHING_SPOT) {
             return fishOf(timer.npc.getId());
         }
+        if (timer.kind == ResourceTimers.Kind.ROCK) {
+            return oreOf(timer.resource);
+        }
         String product = product(timer);
         return product == null ? Collections.emptyList() : Collections.singletonList(product);
+    }
+
+    // A rock's ore by the rock's name, whichever has a picture: "Lead rocks" -> Lead ore, "Coal rocks" -> Coal,
+    // "Amethyst crystals" -> Amethyst
+    private List<String> oreOf(String rock) {
+        if (rock == null) {
+            return Collections.emptyList();
+        }
+        String base = rock.replaceAll("(?i)\\s+(rocks?|crystals|vein|deposit)$", "");
+        for (String name : new String[]{base + " ore", base}) {
+            if (itemIcons.get(name) != null) {
+                return Collections.singletonList(name);
+            }
+        }
+        return Collections.emptyList();
     }
 
     private List<String> fishOf(int npcId) {
