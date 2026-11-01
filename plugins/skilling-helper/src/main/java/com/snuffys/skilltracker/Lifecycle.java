@@ -28,6 +28,8 @@ class Lifecycle {
     private final Set<Object> overlays = Collections.newSetFromMap(new IdentityHashMap<>());
     private final Set<Object> loaded = Collections.newSetFromMap(new IdentityHashMap<>());
     private final List<Runnable> onStop = new ArrayList<>();
+    /** The plugin these belong to (set by its startUp), for things RuneLite files under a plugin, like info boxes. */
+    net.runelite.client.plugins.Plugin plugin;
 
     @Inject
     Lifecycle(EventBus eventBus, OverlayManager overlayManager, Gson gson) {

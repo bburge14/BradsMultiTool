@@ -216,3 +216,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tick Counter > Half-Tick Boxes: a 1.5 box after each tick box; the tick box lights the first half, the half box the second; with Move Boxes Separately each half box moves on its own.
 - [ ] Metronome Play Ahead (200 ms): clicking on the sound lands green in Click Timing; raising/lowering it moves the clicks later/earlier; 0 plays on the tick.
 - [ ] Tick Boxes > Tick Pattern: 1-tick two halves (box 1 first half, box 2 second), each movable with Move Boxes Separately; Custom = Ticks Per Cycle.
+- [ ] Any of Snuffy's plugins with a clashing plugin on (e.g. RuneLite's Mining or Metronome): a yellow warning info box top-left, tooltip lists the clashes; it goes within a few seconds of turning the clash off, and when the plugin stops.

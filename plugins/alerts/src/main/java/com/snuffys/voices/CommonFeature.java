@@ -35,6 +35,7 @@ class CommonFeature {
         lifecycle.onStop(() -> {
             pluginFamily.stop();
             alerts.shutDown();
+            clashes.stop();
             configDefaults.clear();
         });
     }

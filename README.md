@@ -301,9 +301,10 @@ change in the Toolbelt don't carry over to them (and the other way round).
 
 Each plugin's settings start with **About**: hover its heading for what the plugin does and which other plugins
 clash with it, and switch on **Open the Guide** to open the full feature guide. While a clashing plugin is on (or the
-setting of it that clashes), it's listed in the **Clashes** box under Set Goal in the tracker sidebar (hover it for
-what each means; it updates live and disappears when there are none), and each plugin says its clashes in chat once
-a login. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
+setting of it that clashes), every one of Snuffy's plugins shows a small yellow warning icon among RuneLite's info
+boxes (top left of the game; hover it for the clashes and what they mean), the Skilling Helper and Toolbelt also
+list them in a **Clashes** box under Set Goal in the sidebar, and each plugin says its clashes in chat once a login.
+It's all live: turn the clashing plugin or setting off and the icon and box go within a few seconds. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
 minnows), Motherlode Mine (veins), Slayer (task highlight), Metronome and Idle Notifier.
 
 

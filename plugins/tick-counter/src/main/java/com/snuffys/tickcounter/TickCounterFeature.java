@@ -25,5 +25,6 @@ class TickCounterFeature {
         lifecycle.overlay(headOverlay, boxOverlay, barOverlay);
         singleBoxes.overlays.forEach(lifecycle::overlay);
         lifecycle.onStop(configDefaults::clear);
+        lifecycle.onStop(clashes::stop);
     }
 }

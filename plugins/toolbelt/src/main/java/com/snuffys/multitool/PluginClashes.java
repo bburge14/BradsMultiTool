@@ -23,7 +23,8 @@ import net.runelite.client.util.LinkBrowser;
 /**
  * The plugin's About settings: Open the Guide (opens its part of the feature guide, then switches itself off),
  * and clashes with other plugins, checked live: while one that draws or says the same thing is on (or a setting
- * of it that does), it's listed in the Skilling Helper's sidebar and said once a login in chat; turning the other
+ * of it that does), a warning icon shows among RuneLite's info boxes (hover it for the list), it's listed in the
+ * Skilling Helper's sidebar, and said once a login in chat; turning the other
  * plugin or setting off ends it, and turning it back on says it again. Only reads which plugins and settings are on; never changes them.
  */
 @Singleton
@@ -114,6 +115,10 @@ class PluginClashes {
     private final ConfigManager configManager;
     private final PluginIdentity identity;
     private final InGame inGame;
+    private final Lifecycle lifecycle;
+    private final net.runelite.client.ui.overlay.infobox.InfoBoxManager infoBoxes;
+    // The warning icon among RuneLite's info boxes (top left) while something clashes; hover it for the list
+    private ClashInfoBox infoBox;
     // Clashes on right now; and the ones said in chat this login
     private volatile List<Clash> active = Collections.emptyList();
     private final Set<Clash> said = new HashSet<>();
@@ -121,8 +126,11 @@ class PluginClashes {
 
     @Inject
     PluginClashes(Client client, ClientThread clientThread, PluginManager pluginManager, ConfigManager configManager,
-                  PluginIdentity identity, InGame inGame) {
+                  PluginIdentity identity, InGame inGame, Lifecycle lifecycle,
+                  net.runelite.client.ui.overlay.infobox.InfoBoxManager infoBoxes) {
         this.inGame = inGame;
+        this.lifecycle = lifecycle;
+        this.infoBoxes = infoBoxes;
         this.client = client;
         this.clientThread = clientThread;
         this.pluginManager = pluginManager;
@@ -205,6 +213,66 @@ class PluginClashes {
             }
         }
         active = Collections.unmodifiableList(now);
+        showInfoBox(now);
+    }
+
+    // Every one of Snuffy's plugins shows clashes this way (not only the ones with a sidebar)
+    private void showInfoBox(List<Clash> now) {
+        if (now.isEmpty() || client.getGameState() != GameState.LOGGED_IN) {
+            stop();
+            return;
+        }
+        StringBuilder tip = new StringBuilder(identity.chatName + ": clashing plugins on");
+        for (Clash clash : now) {
+            tip.append("</br>- ").append(clash.message);
+        }
+        if (infoBox == null && lifecycle.plugin != null) {
+            infoBox = new ClashInfoBox(lifecycle.plugin);
+            infoBoxes.addInfoBox(infoBox);
+        }
+        if (infoBox != null) {
+            infoBox.setTooltip(tip.toString());
+        }
+    }
+
+    /** Takes the warning icon away (no clashes, logged out, or the plugin stopping). */
+    void stop() {
+        if (infoBox != null) {
+            infoBoxes.removeInfoBox(infoBox);
+            infoBox = null;
+        }
+    }
+
+    /** A small yellow warning sign, drawn here rather than shipped as an image. */
+    static final class ClashInfoBox extends net.runelite.client.ui.overlay.infobox.InfoBox {
+        ClashInfoBox(Plugin plugin) {
+            super(icon(), plugin);
+        }
+
+        private static java.awt.image.BufferedImage icon() {
+            java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(24, 24, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g = image.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+            java.awt.Polygon sign = new java.awt.Polygon(new int[]{12, 23, 1}, new int[]{1, 22, 22}, 3);
+            g.setColor(new java.awt.Color(255, 200, 0));
+            g.fill(sign);
+            g.setColor(java.awt.Color.BLACK);
+            g.draw(sign);
+            g.fillRect(11, 8, 3, 8);
+            g.fillRect(11, 18, 3, 2);
+            g.dispose();
+            return image;
+        }
+
+        @Override
+        public String getText() {
+            return "";
+        }
+
+        @Override
+        public java.awt.Color getTextColor() {
+            return java.awt.Color.WHITE;
+        }
     }
 
     /** The clashes on right now (for the sidebar). */

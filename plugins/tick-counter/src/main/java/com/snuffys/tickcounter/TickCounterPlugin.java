@@ -22,6 +22,7 @@ public class TickCounterPlugin extends Plugin {
 
     @Override
     protected void startUp() throws Exception {
+        lifecycle.plugin = this;
         feature.start(lifecycle);
     }
 

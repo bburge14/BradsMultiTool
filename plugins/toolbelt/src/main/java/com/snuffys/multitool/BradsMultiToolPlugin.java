@@ -33,6 +33,7 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Override
     protected void startUp() throws Exception {
+        lifecycle.plugin = this;
         common.start(lifecycle);
         skillTracker.start(lifecycle);
         pvm.start(lifecycle);
