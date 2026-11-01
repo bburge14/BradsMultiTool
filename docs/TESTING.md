@@ -214,3 +214,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tick boxes: Box Shape (square/rounded/circle), Box Opacity and Box Size apply to both the row and the separate boxes.
 - [ ] Reaching a goal clears it with a chat line; a goal already reached clears at the next login; Clear Goals When Reached off keeps it (Done!).
 - [ ] Tick Counter > Ideal Zone Box: a GO box lights during Ideal From–Ideal To after each tick; Alt + draggable; follows Box Shape/Size/Opacity.
+- [ ] Metronome Play Ahead (200 ms): clicking on the sound lands green in Click Timing; raising/lowering it moves the clicks later/earlier; 0 plays on the tick.

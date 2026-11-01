@@ -445,6 +445,9 @@ clicks; it never clicks, changes a menu or does anything for you.
 - **Ideal Zone Box:** a box ("GO") that lights up between ticks, during your ideal click zone (Ideal From to Ideal To
   after each tick), for methods where you act part way through a tick. Move it with Alt + drag; it takes the tick
   boxes' shape, size and opacity.
+- **Play Ahead:** the metronome sounds this long before each tick (200 ms by default), so clicking when you hear it
+  lands on the tick: reacting to a sound, plus the sound's own delay, takes about that long. If Click Timing says
+  your clicks on the sound are late, raise it; if early, lower it. 0 plays it on the tick.
 - **Tick Bar:** fills smoothly from left to right over each tick and snaps back on the next, so you can see the
   tick coming instead of reacting to a flash. Move it with Alt + drag.
 - The first tick of each cycle is in its own colour (green by default).

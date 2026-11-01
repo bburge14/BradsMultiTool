@@ -354,6 +354,21 @@ public interface TickConfig extends Config {
         return 50;
     }
 
+    @Range(max
+    =
+    500)
+    @Units(Units.MILLISECONDS)
+    @ConfigItem(
+        keyName = "metronomeAhead",
+        name = "Play Ahead",
+        description = "<div width='300'>Sound the metronome this long before each tick, so clicking when you hear it lands on the tick (your reaction and sound delay take about this long). Raise it if Click Timing says your clicks on the sound are late, lower it if they're early. 0: on the tick",
+        section = tickSection,
+        position = 14
+    )
+    default int metronomeAhead() {
+        return 200;
+    }
+
     @ConfigItem(
         keyName = "clickTiming",
         name = "Click Timing",

@@ -171,9 +171,35 @@ class TickCounter {
         attacked = false;
         lastTickMillis = System.currentTimeMillis();
 
-        TickConfig.Sound sound = config.metronomeSound();
-        if (config.metronome() && !missed && (count == 1 || !config.metronomeFirstOnly())) {
-            play(count == 1 ? sound.first : sound.tick);
+        // On the tick, unless Play Ahead sounds it early (onClientTick)
+        if (config.metronomeAhead() <= 0 && !missed) {
+            playMetronome(count);
+        }
+        aheadPlayed = false;
+    }
+
+    private void playMetronome(int tickCount) {
+        TickConfig.Sound sound = config.metronome() ? config.metronomeSound() : null;
+        if (sound != null && (tickCount == 1 || !config.metronomeFirstOnly())) {
+            play(tickCount == 1 ? sound.first : sound.tick);
+        }
+    }
+
+    // Play Ahead: the metronome for the coming tick, that long before it (ticks come every 600 ms); checked every
+    // frame, so within a frame of the time
+    private boolean aheadPlayed;
+
+    @Subscribe
+    public void onClientTick(net.runelite.api.events.ClientTick event) {
+        int ahead = config.metronomeAhead();
+        if (ahead <= 0 || aheadPlayed || lastTickMillis == 0 || !config.metronome()) {
+            return;
+        }
+        long untilNext = lastTickMillis + 600 - System.currentTimeMillis();
+        if (untilNext <= ahead) {
+            aheadPlayed = true;
+            // The coming tick's place in the cycle (an attack resetting it can't be known ahead)
+            playMetronome(count >= Math.max(1, cycle) ? 1 : count + 1);
         }
     }
 
