@@ -105,6 +105,53 @@ class SkillHelperData {
         }
     }
 
+    /** A Brimhaven Agility Arena obstacle: its level, XP, time and how often it fails. */
+    static final class ArenaObstacle {
+        final String name;
+        final int level;
+        final double xp;
+        final int ticks;
+        final int noFailLevel;
+        final int low;
+        final int high;
+        final String note;
+
+        ArenaObstacle(JsonObject o) {
+            name = o.get("name").getAsString();
+            level = (int) number(o, "level");
+            xp = number(o, "xp");
+            ticks = (int) number(o, "ticks");
+            noFailLevel = (int) number(o, "noFailLevel");
+            low = (int) number(o, "low");
+            high = (int) number(o, "high");
+            note = text(o, "note");
+        }
+
+        /** XP per game tick spent on it. */
+        double xpPerTick() {
+            return ticks <= 0 ? 0 : xp / ticks;
+        }
+
+        /**
+         * Your chance to get across at this Agility level: the game's roll from its success chart when the wiki has
+         * one, else certain from its no-fail level up, else -1 (the wiki doesn't say).
+         */
+        double successChance(int agility) {
+            if (agility < level) {
+                return 0;
+            }
+            if (noFailLevel > 0 && agility >= noFailLevel) {
+                return 1;
+            }
+            if (high > 0) {
+                int lvl = Math.min(99, agility);
+                double roll = Math.floor(low * (99 - lvl) / 98.0 + high * (lvl - 1) / 98.0 + 0.5);
+                return Math.min(1, (1 + roll) / 256.0);
+            }
+            return noFailLevel > 0 ? -1 : 1;
+        }
+    }
+
     static final class Shortcut {
         final String name;
         final int level;
@@ -302,6 +349,8 @@ class SkillHelperData {
     private final Map<String, Food> foods = new HashMap<>();
     private final Map<Integer, Course> obstacles = new HashMap<>();
     private final Map<Integer, Shortcut> shortcuts = new HashMap<>();
+    private final Map<Integer, ArenaObstacle> arenaObstacles = new HashMap<>();
+    private final java.util.Set<Integer> arenaDispensers = new java.util.HashSet<>();
 
     void load(Gson gson) {
         creatures.clear();
@@ -321,6 +370,8 @@ class SkillHelperData {
         foods.clear();
         obstacles.clear();
         shortcuts.clear();
+        arenaObstacles.clear();
+        arenaDispensers.clear();
         try (InputStream in = SkillHelperData.class.getResourceAsStream(RESOURCE)) {
             if (in == null) {
                 log.warn("{} not found; Hunter/Runecraft/Cooking/Agility hover info disabled", RESOURCE);
@@ -353,6 +404,18 @@ class SkillHelperData {
                     Course course = courses.get(e.getValue().getAsString());
                     if (course != null) {
                         obstacles.put(Integer.parseInt(e.getKey()), course);
+                    }
+                }
+                JsonObject arena = root.getAsJsonObject("arena");
+                if (arena != null) {
+                    for (JsonElement e : arena.getAsJsonArray("obstacles")) {
+                        ArenaObstacle obstacle = new ArenaObstacle(e.getAsJsonObject());
+                        for (JsonElement id : e.getAsJsonObject().getAsJsonArray("ids")) {
+                            arenaObstacles.put(id.getAsInt(), obstacle);
+                        }
+                    }
+                    for (JsonElement id : arena.getAsJsonArray("dispensers")) {
+                        arenaDispensers.add(id.getAsInt());
                     }
                 }
                 JsonObject sailing = root.getAsJsonObject("sailing");
@@ -542,6 +605,16 @@ class SkillHelperData {
             }
         }
         return best;
+    }
+
+    /** The Brimhaven Agility Arena obstacle with this object id, or null. */
+    ArenaObstacle arenaObstacle(int objectId) {
+        return arenaObstacles.get(objectId);
+    }
+
+    /** Whether this object is one of the arena's ticket dispensers (the pillars you tag). */
+    boolean isArenaDispenser(int objectId) {
+        return arenaDispensers.contains(objectId);
     }
 
     Shortcut shortcut(int objectId) {

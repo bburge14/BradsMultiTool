@@ -39,6 +39,7 @@ class OtherTimerPlugins {
     private static final String FISHING = "net.runelite.client.plugins.fishing.FishingPlugin";
     private static final String MOTHERLODE = "net.runelite.client.plugins.motherlode.MotherlodePlugin";
     private static final String MINING = "net.runelite.client.plugins.mining.MiningPlugin";
+    private static final String AGILITY = "net.runelite.client.plugins.agility.AgilityPlugin";
     // Minnow spots (Fishing Platform): RuneLite's Fishing plugin times them with its Minnow overlay
     private static final java.util.Set<Integer> MINNOW_SPOTS = java.util.Set.of(7730, 7731, 7732, 7733);
 
@@ -48,6 +49,7 @@ class OtherTimerPlugins {
     private boolean fishingOn;
     private boolean motherlodeOn;
     private boolean miningOn;
+    private boolean agilityOn;
 
     @Inject
     OtherTimerPlugins(PluginManager pluginManager, ConfigManager configManager) {
@@ -73,6 +75,11 @@ class OtherTimerPlugins {
     boolean drawsTile(ResourceTimers.Kind kind, boolean yourSpot) {
         return kind == ResourceTimers.Kind.FISHING_SPOT && fishingOn && setting("fishing", "showTiles", false)
             && (yourSpot || !setting("fishing", "onlyCurrent", false));
+    }
+
+    /** True when RuneLite's Agility plugin outlines course obstacles (its Show Clickboxes, Brimhaven's included). */
+    boolean outlinesAgilityObstacles() {
+        return agilityOn && setting("agility", "showClickboxes", true);
     }
 
     // Another plugin's setting as saved, or its default when never changed (only read, never written)
@@ -112,6 +119,7 @@ class OtherTimerPlugins {
         fishingOn = false;
         motherlodeOn = false;
         miningOn = false;
+        agilityOn = false;
         for (Plugin plugin : pluginManager.getPlugins()) {
             if (!pluginManager.isPluginEnabled(plugin)) {
                 continue;
@@ -119,6 +127,7 @@ class OtherTimerPlugins {
             fishingOn |= plugin.getClass().getName().equals(FISHING);
             motherlodeOn |= plugin.getClass().getName().equals(MOTHERLODE);
             miningOn |= plugin.getClass().getName().equals(MINING);
+            agilityOn |= plugin.getClass().getName().equals(AGILITY);
             Set<ResourceTimers.Kind> kinds = PLUGINS.get(plugin.getClass().getSimpleName());
             if (kinds == null) {
                 kinds = PLUGINS.get(plugin.getClass().getName());

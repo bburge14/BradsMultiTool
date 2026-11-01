@@ -8,6 +8,7 @@ Usage: python3 scripts/update_skill_helpers.py
 - Cooking: burn levels on a fire, a range, and with cooking gauntlets (Cooking/Burn level)
 - Agility courses: level (Agility page), XP per lap and every obstacle id (RuneLite's agility plugin, BSD-2-Clause)
 - Agility shortcuts: level, name and object ids (RuneLite's AgilityShortcut, BSD-2-Clause)
+- Brimhaven Agility Arena: obstacles (level, XP, ticks, ids, when they stop failing) and ticket dispenser ids
 - Sailing: sea charting tasks (level, type, XP, location), shipwrecks, salvaging hooks, trawling shoals
 """
 import json
@@ -389,10 +390,46 @@ def smithing():
     return {"anvil": anvil, "furnace": furnace}
 
 
+def arena():
+    """The Brimhaven Agility Arena: each obstacle (level, XP, ticks, object ids, and when it stops failing) and the
+    ticket dispenser ids, from the arena's obstacle table and each obstacle's page."""
+    text = wikitext("Brimhaven Agility Arena")
+    section = text[text.find("==Obstacles=="):]
+    obstacles = []
+    for cells in rows_of(tables(section)[0]):
+        m = re.search(r"\[\[([^|\]]+)\|([^\]]+)\]\]", cells[2] if len(cells) > 2 else "")
+        if not m or number(cells[0]) is None:
+            continue
+        page, name = m.group(1), m.group(2)
+        ticks = re.findall(r"\d+", cells[4])
+        body = wikitext(page)
+        ids = [int(i) for line in re.findall(r"\|\s*id\d*\s*=\s*([^\n]+)", body) for i in re.findall(r"\d+", line)]
+        obstacle = {"name": name, "level": int(number(cells[0])), "xp": number(cells[3].split("(")[0]),
+                    "ticks": max(int(t) for t in ticks), "ids": sorted(set(ids))}
+        # When it stops failing: "no longer fail ... at level N", "With 99 Agility ... no longer fail", or the
+        # success chart (low/high out of 256, as the game rolls it)
+        plain_body = plain(body)
+        stop = re.search(r"no longer fail[^.]*?level (\d+)", plain_body) or re.search(r"(\d+) Agility[^.]*no longer fail", plain_body)
+        chart = re.search(r"low1=(\d+)\|high1=(\d+)", body)
+        if stop:
+            obstacle["noFailLevel"] = int(stop.group(1))
+        if chart:
+            obstacle["low"], obstacle["high"] = int(chart.group(1)), int(chart.group(2))
+        if "Plank" in name:
+            obstacle["note"] = "Only the smooth plank is safe (it changes every minute); any plank at 99"
+            obstacle["noFailLevel"] = 99
+        if "Darts" in name:
+            obstacle["note"] = "Failing drains 2 Agility levels"
+        obstacles.append(obstacle)
+    dispenser = wikitext("Ticket dispenser")
+    dispensers = sorted({int(i) for line in re.findall(r"\|\s*id\d*\s*=\s*([^\n]+)", dispenser) for i in re.findall(r"\d+", line)})
+    return {"obstacles": obstacles, "dispensers": dispensers}
+
+
 def main():
     ids = object_ids()
     data = {"source": "oldschool.runescape.wiki; RuneLite (BSD-2-Clause)", "hunter": hunter(), "runecraft": runecraft(),
-            "burn": burn_levels(), "agility": courses(ids), "shortcuts": shortcuts(ids), "sailing": sailing(),
+            "burn": burn_levels(), "agility": courses(ids), "arena": arena(), "shortcuts": shortcuts(ids), "sailing": sailing(),
             "cooking": cooking(), "smithing": smithing(), "fishing": fishing_spots()}
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)

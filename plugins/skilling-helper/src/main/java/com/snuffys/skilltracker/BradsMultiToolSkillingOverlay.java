@@ -76,6 +76,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final Map<String, Integer> prices = new HashMap<>();
     // Item name -> id for pictures, -1 when not found (looked up once)
     private final ItemIcons itemIcons;
+    @Inject
+    private ArenaRoute arenaRoute;
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
@@ -204,6 +206,12 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return true;
         }
         if (config.showAgilityHover()) {
+            // Brimhaven Agility Arena obstacles: level, XP, time and how likely you are to fail
+            SkillHelperData.ArenaObstacle arenaObstacle = helpers.arenaObstacle(id);
+            if (arenaObstacle != null) {
+                buildArenaObstacleCard(arenaObstacle);
+                return true;
+            }
             // Course obstacles by id (RuneLite's agility plugin list), so it works wherever the obstacle stands
             SkillHelperData.Course course = helpers.courseFor(id);
             if (course != null) {
@@ -235,6 +243,34 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return buildFurnaceCard();
         }
         return false;
+    }
+
+    private void buildArenaObstacleCard(SkillHelperData.ArenaObstacle obstacle) {
+        int level = client.getBoostedSkillLevel(Skill.AGILITY);
+        ArenaRoute.Status status = ArenaRoute.status(obstacle, level);
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(obstacle.name).color(TITLE_COLOR).build());
+        addRequirement(Skill.AGILITY, obstacle.level);
+        line("XP:", trim(obstacle.xp), Color.WHITE);
+        line("Time:", obstacle.ticks + " ticks (" + trim(obstacle.ticks * 0.6) + "s)", Color.WHITE);
+        line("XP per tick:", String.format("%.1f", obstacle.xpPerTick()), Color.WHITE);
+        double chance = obstacle.successChance(level);
+        Color color = BradsMultiToolArenaOverlay.colour(status);
+        if (status == ArenaRoute.Status.TOO_LOW) {
+            line("You:", "Level too low", color);
+        } else if (chance == 1) {
+            line("You:", "Won't fail", color);
+        } else if (chance > 0) {
+            line("Success:", Math.round(chance * 100) + "%", color);
+        } else {
+            line("You:", obstacle.noFailLevel > 0 ? "May fail until " + obstacle.noFailLevel : "May fail", color);
+        }
+        if (obstacle.note != null) {
+            panel.getChildren().add(new TextBlockComponent(obstacle.note, HudColors.WARN, false));
+        }
+        if (status == ArenaRoute.Status.SAFE && obstacle.xpPerTick() > 0 && obstacle.xpPerTick() >= arenaRoute.bestSafeXpPerTick()) {
+            panel.getChildren().add(new TextBlockComponent("Best XP per tick you can do safely here", HudColors.GOOD, false));
+        }
     }
 
     private void buildBirdhouseCard(int spot) {

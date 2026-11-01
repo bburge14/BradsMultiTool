@@ -741,6 +741,39 @@ public interface SkillTrackerConfig extends CommonConfig {
         position = 5
     )
     default boolean chatArenaPillar() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "arenaObstacleColours",
+        name = "Arena Obstacle Colours",
+        description = "<div width='300'>In the Brimhaven Agility Arena, outlines each obstacle by your Agility level: green you can do it safely, yellow you can do it but may fail, red your level is too low. Hover one for its XP, time and fail chance",
+        section = agilitySection,
+        position = 6
+    )
+    default boolean arenaObstacleColours() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "arenaRoute",
+        name = "Arena Route",
+        description = "<div width='300'>Shows the quickest way to the tagged pillar using only obstacles you can do, counting each obstacle's time and how likely you are to fail it",
+        section = agilitySection,
+        position = 7
+    )
+    default boolean arenaRoute() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "arenaDebug",
+        name = "Arena Route Readout",
+        description = "<div width='300'>Adds what the route sees to the arena card: pillars and obstacles found, links between pillars, and the route's steps. For checking the route works",
+        section = agilitySection,
+        position = 8
+    )
+    default boolean arenaDebug() {
         return false;
     }
 
@@ -753,7 +786,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Run Energy Alert Below",
         description = "<div width='300'>While you're training Agility, alert when your run energy drops below this (0: off)",
         section = agilitySection,
-        position = 6
+        position = 9
     )
     default int runEnergyBelow() {
         return 15;
@@ -764,7 +797,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Run Energy Low",
         description = "<div width='300'>Says when your run energy is low while training Agility (turning it on plays a preview)",
         section = agilitySection,
-        position = 7
+        position = 10
     )
     default boolean voiceRunEnergy() {
         return true;
@@ -775,7 +808,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Run Energy Low",
         description = "<div width='300'>Chat message when your run energy is low while training Agility",
         section = agilitySection,
-        position = 8
+        position = 11
     )
     default boolean chatRunEnergy() {
         return true;

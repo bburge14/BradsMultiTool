@@ -27,6 +27,8 @@ class SkillTrackerFeature {
     @Inject private MethodDetector methodDetector;
     @Inject private AgilityTracker agilityTracker;
     @Inject private BradsMultiToolAgilityOverlay agilityOverlay;
+    @Inject private ArenaRoute arenaRoute;
+    @Inject private BradsMultiToolArenaOverlay arenaOverlay;
     @Inject private SkillingAlerts skillingAlerts;
     @Inject private ResourceTimers resourceTimers;
     @Inject private BirdhouseTracker birdhouseTracker;
@@ -71,9 +73,19 @@ class SkillTrackerFeature {
         }
     }
 
+    // "Chat: Pillar About to Move" started off and is now on: turn it on once for players who already had it saved
+    private void turnOnPillarChat() {
+        String group = identity.configGroup;
+        if (configManager.getConfiguration(group, "pillarChatTurnedOn") == null) {
+            configManager.setConfiguration(group, "pillarChatTurnedOn", true);
+            configManager.setConfiguration(group, "chatArenaPillar", true);
+        }
+    }
+
     void start(Lifecycle lifecycle) {
         configDefaults.add(() -> {
             migrateTimerSettings();
+            turnOnPillarChat();
             SkillTrackerConfigDefaults.store(configDefaults, config);
         });
         // Kill counts use monster hitpoints; Slayer goals suggest a Slayer master
@@ -85,10 +97,10 @@ class SkillTrackerFeature {
         lifecycle.load(trainingData, trainingData::load);
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(moneyData, moneyData::load);
-        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, skillingAlerts,
+        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, arenaRoute, skillingAlerts,
             resourceTimers, farmingData, birdhouseTracker, otherTimerPlugins, skillingOverlay, trainingOverlay);
         otherTimerPlugins.refresh();
-        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, agilityOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
+        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, agilityOverlay, arenaOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
         skillTracker.startUp();
         lifecycle.onStop(skillTracker::shutDown);
     }

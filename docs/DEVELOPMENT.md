@@ -36,7 +36,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `money.json` | `update_money_data.py` | Wiki: money making guides (skill, requirements, profit) |
 | `training.json` | `update_training_data.py` | Wiki: training guides' methods by level, each with what it trains on (its section's Main links), the guide's first sentences about it, and its table by level (level, item, ingredients, XP) where it has one; where the guide says to do it (links to the wiki's location pages in its list of spots or in "located in"/"at the" sentences, not ones about buying, rewards or requirements); the quests each method and row needs (finished, or "started" where the guide says partial completion; a row's from the item's infobox quest) |
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
-| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing, fishing spots (every spot type by NPC id) |
+| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility (and the Brimhaven Arena's obstacles), Sailing, fishing spots (every spot type by NPC id) |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](../VOICE_CREDITS.md)) |
 | `icons/skilltracker.png` (the tracker's sidebar tab: the Skilling logo, in the all-in-one too), `assets/hub/` and `icon.png` (Plugin Hub icons) | `update_icons.py` (needs Pillow) | The logos in `assets/` (MultiTool, Skilling, PvM, GemCrab, Alerts) |
 

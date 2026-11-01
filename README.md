@@ -102,7 +102,7 @@ fishing spot gets its tile outlined with a picture of what it gives, the outline
 | Hunter | Creature card (level, XP, trap); trap spot card (young tree, boulder, pit: what you can catch there, with levels); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
 | Firemaking | Timers on Forester's Campfires showing how long they have left, and (off by default) on fires you cook on showing the window they go out in |
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
-| Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level) |
+| Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level); Brimhaven Arena obstacles coloured by your level with the quickest route to the tagged pillar |
 | Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |
 | Smithing | Anvil card: for each bar you carry, the best item you can make (most XP or most profit: Skilling Hover Cards > Best Choice By), how many, the XP (and profit at GE prices), and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
 | Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish), sea monster card (HP, safe keel, bounty parts), current duck card (despawn timer); pies on shipwrecks showing how long until they sink |

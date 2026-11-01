@@ -9,6 +9,7 @@ import net.runelite.api.Client;
 import net.runelite.api.Experience;
 import net.runelite.api.GameState;
 import net.runelite.api.Skill;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
@@ -32,6 +33,8 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
     private final SkillTrackerConfig config;
     private final AgilityTracker agility;
     private final SkillTracker plugin;
+    @Inject
+    private ArenaRoute route;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
@@ -83,6 +86,48 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         if (agility.ticketsPerHour() > 0) {
             panel.getChildren().add(LineComponent.builder().left("Tickets/hr").right(String.valueOf((int) agility.ticketsPerHour())).build());
         }
+        if (config.arenaRoute() && !route.getRoute().isEmpty()) {
+            panel.getChildren().add(LineComponent.builder().left("Route").right(route.getRoute().size() + " obstacles, ~"
+                + clock((int) Math.round(route.routeTicks()))).build());
+        }
+        if (config.arenaDebug()) {
+            debug();
+        }
+    }
+
+    // The route readout: what the scene scan found, and the route's steps
+    private void debug() {
+        int safe = 0;
+        int mayFail = 0;
+        int tooLow = 0;
+        for (SkillHelperData.ArenaObstacle obstacle : route.getObstacles().values()) {
+            ArenaRoute.Status status = route.status(obstacle);
+            safe += status == ArenaRoute.Status.SAFE ? 1 : 0;
+            mayFail += status == ArenaRoute.Status.MAY_FAIL ? 1 : 0;
+            tooLow += status == ArenaRoute.Status.TOO_LOW ? 1 : 0;
+        }
+        add("Pillars found", String.valueOf(route.getPillars().size()));
+        add("Obstacle objects", route.getObstacles().size() + " (" + route.getUnlinked() + " unlinked)");
+        add("Safe/may fail/too low", safe + "/" + mayFail + "/" + tooLow);
+        add("Links", String.valueOf(route.getLinks().size()));
+        add("From", point(route.getStart()));
+        add("To (hint arrow)", point(route.getTarget()));
+        if (route.getRoute().isEmpty()) {
+            add("Route", route.getTarget() == null ? "no pillar tagged" : route.getTarget().equals(route.getStart()) ? "you're there" : "none found");
+        }
+        WorldPoint at = route.getStart();
+        for (ArenaRoute.Link link : route.getRoute()) {
+            at = link.other(at);
+            add(" " + link.obstacle.name, "to " + point(at));
+        }
+    }
+
+    private void add(String left, String right) {
+        panel.getChildren().add(LineComponent.builder().left(left).right(right).build());
+    }
+
+    private static String point(WorldPoint p) {
+        return p == null ? "-" : p.getX() + "," + p.getY();
     }
 
     // The course: laps, rates, lap time, laps to level and goal, marks
