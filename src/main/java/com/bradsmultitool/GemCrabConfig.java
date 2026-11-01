@@ -23,6 +23,14 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     )
     String aboutSection = "aboutSection";
 
+    @ConfigSection(
+        name = "Gemstone Crab Colours",
+        description = "Colours of the crab, its shell and the tunnel highlights",
+        position = 21,
+        closedByDefault = true
+    )
+    String crabColoursSection = "crabColoursSection";
+
     @ConfigItem(
         keyName = "openGuide",
         name = "Open the Guide",
@@ -149,8 +157,8 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         keyName = "activeCrabColor",
         name = "Crab Colour",
         description = "Soft translucent outline for active fighting crab",
-        section = crabSection,
-        position = 10
+        section = crabColoursSection,
+        position = 0
     )
     default Color activeCrabColor() {
         return new Color(0, 220, 255, 130);
@@ -161,8 +169,8 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         keyName = "mineableShellColor",
         name = "Shell Colour (Mineable)",
         description = "<div width='300'>Outline for a crab shell you can mine (you were in the top 16 damage dealers and have gems left)",
-        section = crabSection,
-        position = 11
+        section = crabColoursSection,
+        position = 1
     )
     default Color mineableShellColor() {
         return new Color(40, 230, 80, 140);
@@ -173,8 +181,8 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         keyName = "depletedShellColor",
         name = "Shell Colour (Can't Mine)",
         description = "<div width='300'>Outline for a crab shell you can't mine (not in the top 16 damage dealers, or already mined)",
-        section = crabSection,
-        position = 12
+        section = crabColoursSection,
+        position = 2
     )
     default Color depletedShellColor() {
         return new Color(255, 60, 60, 140);
@@ -185,8 +193,8 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
         keyName = "tunnelColor",
         name = "Tunnel Colour",
         description = "<div width='300'>Soft translucent outline for cave tunnels when crab is burrowed",
-        section = crabSection,
-        position = 13
+        section = crabColoursSection,
+        position = 3
     )
     default Color tunnelColor() {
         return new Color(40, 230, 80, 140);

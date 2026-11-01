@@ -22,9 +22,17 @@ public interface TickConfig extends Config {
     String aboutSection = "aboutSection";
 
     @ConfigSection(
+        name = "Tick Bar",
+        description = "The smooth tick bar that fills over each tick (move it with Alt + drag)",
+        position = 62,
+        closedByDefault = true
+    )
+    String tickBarSection = "tickBarSection";
+
+    @ConfigSection(
         name = "Click Timing",
         description = "How long after the tick each click lands, its sounds, and the ideal click zone",
-        position = 63,
+        position = 64,
         closedByDefault = true
     )
     String clickTimingSection = "clickTimingSection";
@@ -32,14 +40,14 @@ public interface TickConfig extends Config {
     @ConfigSection(
         name = "Metronome",
         description = "A sound on every tick, early by Play Ahead so you can click on it",
-        position = 62,
+        position = 63,
         closedByDefault = true
     )
     String metronomeSection = "metronomeSection";
 
     @ConfigSection(
-        name = "Tick Boxes and Bar",
-        description = "The tick boxes (in a row, or moved separately) and the smooth tick bar",
+        name = "Tick Boxes",
+        description = "The tick boxes, in a row or moved separately, with half-tick boxes",
         position = 61,
         closedByDefault = true
     )
@@ -213,8 +221,8 @@ public interface TickConfig extends Config {
         keyName = "tickBar",
         name = "Tick Bar",
         description = "<div width='300'>A bar that fills smoothly over each tick and snaps back on the next, so you can see the tick coming instead of reacting to it. Move it with Alt + drag",
-        section = tickBoxesSection,
-        position = 8
+        section = tickBarSection,
+        position = 0
     )
     default boolean tickBar() {
         return false;
@@ -345,8 +353,8 @@ public interface TickConfig extends Config {
         keyName = "tickBarWidth",
         name = "Bar Width",
         description = "Width of the tick bar",
-        section = tickBoxesSection,
-        position = 9
+        section = tickBarSection,
+        position = 1
     )
     default int tickBarWidth() {
         return 150;

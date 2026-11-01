@@ -24,9 +24,17 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     String aboutSection = "aboutSection";
 
     @ConfigSection(
+        name = "Supply Alerts",
+        description = "Running low on ammo, runes or cannonballs",
+        position = 16,
+        closedByDefault = true
+    )
+    String supplyAlertsSection = "supplyAlertsSection";
+
+    @ConfigSection(
         name = "Slayer Alerts",
         description = "Alerts for your Slayer task: missing item, superiors, halfway, nearly done and complete",
-        position = 18,
+        position = 19,
         closedByDefault = true
     )
     String slayerAlertsSection = "slayerAlertsSection";
@@ -34,7 +42,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Slayer Monsters",
         description = "Slayer details on monsters, and outlines on your task's monsters",
-        position = 17,
+        position = 18,
         closedByDefault = true
     )
     String slayerMonstersSection = "slayerMonstersSection";
@@ -392,8 +400,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "ammoAlert",
         name = "Low Ammo",
         description = "<div width='300'>Alert when your ammo or thrown weapons run low while using ranged",
-        section = combatAlertsSection,
-        position = 13
+        section = supplyAlertsSection,
+        position = 0
     )
     default boolean ammoAlert() {
         return true;
@@ -403,8 +411,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "ammoThreshold",
         name = "Low Ammo At",
         description = "Ammo count that counts as low",
-        section = combatAlertsSection,
-        position = 14
+        section = supplyAlertsSection,
+        position = 1
     )
     default int ammoThreshold() {
         return 50;
@@ -414,8 +422,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "runesAlert",
         name = "Out of Runes",
         description = "Alert when a spell fails for lack of runes",
-        section = combatAlertsSection,
-        position = 17
+        section = supplyAlertsSection,
+        position = 4
     )
     default boolean runesAlert() {
         return true;
@@ -425,8 +433,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "cannonAlert",
         name = "Cannon Low",
         description = "Alert when your cannon is running low on cannonballs",
-        section = combatAlertsSection,
-        position = 20
+        section = supplyAlertsSection,
+        position = 7
     )
     default boolean cannonAlert() {
         return true;
@@ -436,8 +444,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "cannonThreshold",
         name = "Cannon Low At",
         description = "Cannonballs left that counts as low",
-        section = combatAlertsSection,
-        position = 21
+        section = supplyAlertsSection,
+        position = 8
     )
     default int cannonThreshold() {
         return 10;
@@ -535,8 +543,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceAmmo",
         name = "Voice: Low Ammo",
         description = "When your ammo runs low (turning it on plays a preview)",
-        section = combatAlertsSection,
-        position = 15
+        section = supplyAlertsSection,
+        position = 2
     )
     default boolean voiceAmmo() {
         return true;
@@ -546,8 +554,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatAmmo",
         name = "Chat: Low Ammo",
         description = "Chat message when your ammo runs low",
-        section = combatAlertsSection,
-        position = 16
+        section = supplyAlertsSection,
+        position = 3
     )
     default boolean chatAmmo() {
         return true;
@@ -557,8 +565,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceRunes",
         name = "Voice: Out of Runes",
         description = "<div width='300'>When you can't cast for lack of runes (turning it on plays a preview)",
-        section = combatAlertsSection,
-        position = 18
+        section = supplyAlertsSection,
+        position = 5
     )
     default boolean voiceRunes() {
         return true;
@@ -568,8 +576,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatRunes",
         name = "Chat: Out of Runes",
         description = "Chat message when you can't cast for lack of runes",
-        section = combatAlertsSection,
-        position = 19
+        section = supplyAlertsSection,
+        position = 6
     )
     default boolean chatRunes() {
         return true;
@@ -579,8 +587,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "voiceCannon",
         name = "Voice: Cannon Low",
         description = "<div width='300'>When your cannon is low on cannonballs (turning it on plays a preview)",
-        section = combatAlertsSection,
-        position = 22
+        section = supplyAlertsSection,
+        position = 9
     )
     default boolean voiceCannon() {
         return true;
@@ -590,8 +598,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         keyName = "chatCannon",
         name = "Chat: Cannon Low",
         description = "Chat message when your cannon is low on cannonballs",
-        section = combatAlertsSection,
-        position = 23
+        section = supplyAlertsSection,
+        position = 10
     )
     default boolean chatCannon() {
         return true;
@@ -716,7 +724,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigSection(
         name = "Slayer Card",
         description = "The Slayer card: your task, kills left, where to go and how to get there, or the master to visit without a task",
-        position = 16,
+        position = 17,
         closedByDefault = true
     )
     String slayerSection = "slayerSection";

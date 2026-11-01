@@ -28,9 +28,33 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String aboutSection = "aboutSection";
 
     @ConfigSection(
+        name = "Tick Bar",
+        description = "The smooth tick bar that fills over each tick (move it with Alt + drag)",
+        position = 62,
+        closedByDefault = true
+    )
+    String tickBarSection = "tickBarSection";
+
+    @ConfigSection(
+        name = "Gemstone Crab Colours",
+        description = "Colours of the crab, its shell and the tunnel highlights",
+        position = 21,
+        closedByDefault = true
+    )
+    String crabColoursSection = "crabColoursSection";
+
+    @ConfigSection(
+        name = "Supply Alerts",
+        description = "Running low on ammo, runes or cannonballs",
+        position = 16,
+        closedByDefault = true
+    )
+    String supplyAlertsSection = "supplyAlertsSection";
+
+    @ConfigSection(
         name = "Click Timing",
         description = "How long after the tick each click lands, its sounds, and the ideal click zone",
-        position = 63,
+        position = 64,
         closedByDefault = true
     )
     String clickTimingSection = "clickTimingSection";
@@ -38,14 +62,14 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigSection(
         name = "Metronome",
         description = "A sound on every tick, early by Play Ahead so you can click on it",
-        position = 62,
+        position = 63,
         closedByDefault = true
     )
     String metronomeSection = "metronomeSection";
 
     @ConfigSection(
-        name = "Tick Boxes and Bar",
-        description = "The tick boxes (in a row, or moved separately) and the smooth tick bar",
+        name = "Tick Boxes",
+        description = "The tick boxes, in a row or moved separately, with half-tick boxes",
         position = 61,
         closedByDefault = true
     )
@@ -54,7 +78,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigSection(
         name = "Slayer Alerts",
         description = "Alerts for your Slayer task: missing item, superiors, halfway, nearly done and complete",
-        position = 18,
+        position = 19,
         closedByDefault = true
     )
     String slayerAlertsSection = "slayerAlertsSection";
@@ -62,7 +86,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigSection(
         name = "Slayer Monsters",
         description = "Slayer details on monsters, and outlines on your task's monsters",
-        position = 17,
+        position = 18,
         closedByDefault = true
     )
     String slayerMonstersSection = "slayerMonstersSection";
@@ -178,7 +202,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @ConfigSection(
         name = "Slayer Card",
         description = "The Slayer card: your task, kills left, where to go and how to get there, or the master to visit without a task",
-        position = 16,
+        position = 17,
         closedByDefault = true
     )
     String slayerSection = "slayerSection";

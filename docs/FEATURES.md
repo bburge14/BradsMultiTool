@@ -3,9 +3,10 @@
 Every feature, what it does, how to use it and where its settings are. Settings are in RuneLite's
 configuration panel (the wrench icon) under **Snuffy's Toolbelt**; each section below names the settings
 section to open. Sections follow the plugins: About and General first, then Idle, the PvM sections (PvM HUD, Buff
-Bar, Potion Buffs, Health, Prayer, Combat Alerts, Slayer Card, Slayer Monsters, Slayer Alerts), Gemstone Crab, the
+Bar, Potion Buffs, Health, Prayer, Combat Alerts, Supply Alerts, Slayer Card, Slayer Monsters, Slayer Alerts),
+Gemstone Crab and its Colours, the
 skilling sections (Skill Tracker, Goals, Skilling Hover Cards, Resource Timers, Skilling Alerts, then one per
-skill) and the tick sections (Tick Counter, Tick Boxes and Bar, Metronome, Click Timing). All start collapsed
+skill) and the tick sections (Tick Counter, Tick Boxes, Tick Bar, Metronome, Click Timing). All start collapsed
 except About and General.
 
 - [Alerts (all of them)](#alerts-all-of-them)
@@ -477,7 +478,7 @@ clicks; it never clicks, changes a menu or does anything for you.
 3-tick skilling), or turn on **Follow Attack Speed** for combat. Turn on **Metronome** to hear it. For 1-ticking, set Ticks Per Cycle to 1 and
 turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 
-**Settings (Tick Counter, Tick Boxes and Bar, Metronome, Click Timing):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
+**Settings (Tick Counter, Tick Boxes, Tick Bar, Metronome, Click Timing):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
 Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
 volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.
