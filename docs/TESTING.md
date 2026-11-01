@@ -207,3 +207,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Lead rocks: mine one out: its depleted tile gets the respawn timer; grey lead rocks are never outlined for a goal.
 - [ ] Card > Method: methods show ~XP/hr where the guide gives one; with Suggest on Money Maker it lists money makers with GP/hr, and picking one shows "Your money maker: ...".
 - [ ] Tracker: a skill without a goal leaves after Drop Idle Skills After (30 min) without XP and returns on new XP; goal skills and the pinned skill stay; header shows TRAINED with a tooltip.
+- [ ] Tracker: GOALS and THIS SESSION each list the skill with the latest XP first; Attack/Hitpoints from one hit don't swap back and forth.

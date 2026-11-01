@@ -155,7 +155,7 @@ work a resource.
 - **Idle skills drop off**: a skill without a goal leaves the tracker after 30 minutes without XP (**Drop Idle Skills
   After**, 0 for never) and comes back, with its session numbers, when you gain XP in it again. Skills with a goal
   and the pinned skill always stay; there's no other limit on how many cards it shows. **TRAINED** at the top counts
-  the skills you've gained XP in this session.
+  the skills you've gained XP in this session. Both lists put the skill you last gained XP in at the top.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.

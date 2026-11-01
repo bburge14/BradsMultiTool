@@ -214,6 +214,11 @@ public class BradsMultiToolPanel extends PluginPanel {
                 session.add(skill);
             }
         }
+        // Most recent XP first in each list (ties, like Attack and Hitpoints from one hit, keep skill order)
+        java.util.Comparator<Skill> latestFirst = java.util.Comparator.comparingLong((Skill skill) -> -plugin.lastXpTime(skill));
+        goals = new ArrayList<>(goals);
+        goals.sort(latestFirst);
+        session.sort(latestFirst);
         Skill pinnedSkill = plugin.getPinnedSkill();
         if (pinnedSkill != null && !goals.contains(pinnedSkill) && !session.contains(pinnedSkill)) {
             session.add(0, pinnedSkill);

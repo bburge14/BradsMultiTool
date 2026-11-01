@@ -172,7 +172,8 @@ class SkillTracker {
             int drop = gained - previousGained;
             if (drop > 0) {
                 lastXpDrops.put(skill, drop);
-                lastXpMillis.put(skill, System.currentTimeMillis());
+                // By game tick (600ms), so skills gaining XP on the same tick (Attack and Hitpoints) tie
+                lastXpMillis.put(skill, System.currentTimeMillis() / 600 * 600);
                 java.util.ArrayDeque<Integer> recent = recentXpDrops.computeIfAbsent(skill, k -> new java.util.ArrayDeque<>());
                 recent.addLast(drop);
                 while (recent.size() > RECENT_DROPS) {
@@ -569,6 +570,11 @@ class SkillTracker {
 
     // When each skill last gained XP (wall clock, so it survives hopping and loading screens)
     private final Map<Skill, Long> lastXpMillis = new EnumMap<>(Skill.class);
+
+    /** When a skill last gained XP (wall clock), 0 if not this session: the tracker lists the latest first. */
+    public long lastXpTime(Skill skill) {
+        return lastXpMillis.getOrDefault(skill, 0L);
+    }
 
     /** Whether a skill gained XP recently enough to stay in the tracker (see Drop Idle Skills After). */
     public boolean isRecentlyTrained(Skill skill) {
