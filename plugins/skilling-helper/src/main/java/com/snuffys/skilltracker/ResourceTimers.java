@@ -30,6 +30,7 @@ import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
@@ -441,14 +442,70 @@ class ResourceTimers {
         sunkWrecks.clear();
         depletingRocks.clear();
         greyRocks.clear();
+        rockNames.clear();
         playerSpawnTick.clear();
         playerSpawnPoint.clear();
     }
 
-    // Rocks just mined out, by tile: {respawn ticks, tick it went, rock}, until the depleted rock appears there;
-    // and grey rocks that just appeared, {object, tick}, in case the mined rock's despawn comes after
+    // Respawns the game announced, by tile: {ticks, tick announced, depleted rock id, rock}, until that depleted
+    // rock appears there; and grey rocks that just appeared, {object, tick}, in case the announcement comes after
     private final Map<WorldPoint, Object[]> depletingRocks = new HashMap<>();
     private final Map<WorldPoint, Object[]> greyRocks = new HashMap<>();
+    // The rock last seen on each tile ("Lead rocks"), for the ore's picture once it's depleted
+    private final Map<WorldPoint, String> rockNames = new HashMap<>();
+    // The game's own rock respawn script: its arguments are the rock's tile (packed), the depleted rock's id and
+    // the ticks until the ore is back (RuneLite's Mining plugin reads the same)
+    private static final int ROCK_RESPAWN_SCRIPT = 5474;
+
+    @Subscribe
+    public void onScriptPreFired(ScriptPreFired event) {
+        if (event.getScriptId() != ROCK_RESPAWN_SCRIPT || event.getScriptEvent() == null) {
+            return;
+        }
+        Object[] args = event.getScriptEvent().getArguments();
+        if (args == null || args.length < 6 || !(args[1] instanceof Integer) || !(args[2] instanceof Integer)
+            || !(args[5] instanceof Integer)) {
+            return;
+        }
+        WorldPoint at = WorldPoint.fromCoord((Integer) args[1]);
+        int greyId = (Integer) args[2];
+        int ticks = (Integer) args[5];
+        // Motherlode veins and calcified rocks have timers of their own
+        if (ticks <= 0 || VEINS.contains(greyId) || CALCIFIED_ROCKS.contains(greyId)) {
+            return;
+        }
+        String rock = rockNames.get(at);
+        Object[] arrived = greyRocks.remove(at);
+        if (arrived != null && ((GameObject) arrived[0]).getId() == greyId) {
+            startRespawn((GameObject) arrived[0], ticks, rock);
+            return;
+        }
+        GameObject grey = objectAt(at, greyId);
+        if (grey != null) {
+            startRespawn(grey, ticks, rock);
+            return;
+        }
+        depletingRocks.put(at, new Object[]{ticks, client.getTickCount(), greyId, rock});
+    }
+
+    // The game object with this id on this tile, if it's loaded
+    private GameObject objectAt(WorldPoint at, int id) {
+        net.runelite.api.coords.LocalPoint local = net.runelite.api.coords.LocalPoint.fromWorld(client.getTopLevelWorldView(), at);
+        if (local == null) {
+            return null;
+        }
+        net.runelite.api.Tile[][][] tiles = client.getTopLevelWorldView().getScene().getTiles();
+        net.runelite.api.Tile tile = tiles[at.getPlane()][local.getSceneX()][local.getSceneY()];
+        if (tile == null || tile.getGameObjects() == null) {
+            return null;
+        }
+        for (GameObject object : tile.getGameObjects()) {
+            if (object != null && object.getId() == id) {
+                return object;
+            }
+        }
+        return null;
+    }
 
     // What a mined-out rock turns into: something with nothing to mine (grey "Rocks", an emptied crystal wall)
     private boolean isGreyRock(GameObject object) {
@@ -456,29 +513,8 @@ class ResourceTimers {
     }
     private static final Set<Integer> MINING_GUILD_REGIONS = Set.of(12183, 12184);
 
-    // A mineable rock went: unless the area is unloading, the depleted rock that replaces it gets a timer
-    private void onRockDespawned(GameObject object) {
-        int id = object.getId();
-        if (client.getGameState() != GameState.LOGGED_IN || VEINS.contains(id) || CALCIFIED_ROCKS.contains(id)
-            || STARS.contains(id) || id == DAEYALT_ACTIVE) {
-            return;
-        }
-        SkillingData.Resource resource = data.object(id, objectName(id));
-        if (resource == null || !"Mining".equals(resource.skill) || resource.respawnTicks <= 0 || !canMine(id)) {
-            return;
-        }
-        WorldPoint at = object.getWorldLocation();
-        int ticks = respawnTicks(resource, at);
-        // The grey rock may have arrived first (the game swaps them in either order)
-        Object[] arrived = greyRocks.remove(at);
-        if (arrived != null && client.getTickCount() - (int) arrived[1] <= 2) {
-            startRespawn((GameObject) arrived[0], ticks, resource.name);
-            return;
-        }
-        depletingRocks.put(at, new Object[]{ticks, client.getTickCount(), resource.name});
-    }
-
     private void startRespawn(GameObject grey, int ticks, String rock) {
+        remove(grey);
         Timer timer = new Timer(Kind.ROCK, grey, null, ticks, ticks);
         timer.resource = rock;
         add(timer, grey);
@@ -517,15 +553,25 @@ class ResourceTimers {
     public void onGameObjectSpawned(GameObjectSpawned event) {
         GameObject object = event.getGameObject();
         int id = object.getId();
-        // The depleted rock taking the place of one just mined out: time its ore coming back. A grey rock is one
-        // you can't mine (the same rock back again would offer Mine); kept a moment in case the mined one goes after
+        // A depleted rock the game announced a respawn for: time its ore coming back (from what's left of the
+        // announced time); one that's not announced yet is kept a moment in case the announcement comes after
         if (client.getGameState() == GameState.LOGGED_IN && isGreyRock(object)) {
-            Object[] depleted = depletingRocks.remove(object.getWorldLocation());
-            if (depleted != null && client.getTickCount() - (int) depleted[1] <= 2) {
-                startRespawn(object, (int) depleted[0], (String) depleted[2]);
+            Object[] depleted = depletingRocks.get(object.getWorldLocation());
+            if (depleted != null && (int) depleted[2] == id) {
+                depletingRocks.remove(object.getWorldLocation());
+                int left = (int) depleted[0] - (client.getTickCount() - (int) depleted[1]);
+                if (left > 0) {
+                    startRespawn(object, left, (String) depleted[3]);
+                }
                 return;
             }
             greyRocks.put(object.getWorldLocation(), new Object[]{object, client.getTickCount()});
+        } else {
+            // A rock with ore: remembered, for its ore's picture once it's mined out
+            SkillingData.Resource rock = data.object(id, objectName(id));
+            if (rock != null && "Mining".equals(rock.skill)) {
+                rockNames.put(object.getWorldLocation(), rock.name);
+            }
         }
         if (CALCIFIED_ROCKS.contains(id)) {
             add(new Timer(Kind.CALCIFIED, object, null, CALCIFIED_TICKS, CALCIFIED_TICKS), object);
@@ -594,7 +640,6 @@ class ResourceTimers {
             changingTraps.put(object.getWorldLocation(), timer);
             changingTrapTicks.put(object.getWorldLocation(), client.getTickCount());
         }
-        onRockDespawned(object);
         remove(object);
     }
 
@@ -855,7 +900,7 @@ class ResourceTimers {
         });
         updateStars();
         playerSpawnPoint.keySet().retainAll(playerSpawnTick.keySet());
-        depletingRocks.values().removeIf(rock -> now - (int) rock[1] > 5);
+        depletingRocks.values().removeIf(rock -> now - (int) rock[1] > (int) rock[0]);
         greyRocks.values().removeIf(rock -> now - (int) rock[1] > 5);
 
         for (Timer timer : timers) {
