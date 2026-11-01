@@ -895,6 +895,21 @@ public interface SkillTrackerConfig extends CommonConfig {
         return 300;
     }
 
+    @Range(max
+    =
+    240)
+    @Units(Units.MINUTES)
+    @ConfigItem(
+        keyName = "dropIdleSkillsAfter",
+        name = "Drop Idle Skills After",
+        description = "<div width='300'>A skill without a goal leaves the tracker after this long without XP (0: never), and comes back with its session numbers when you gain XP in it again. Skills with a goal and the pinned skill always stay",
+        section = trackerSection,
+        position = 76
+    )
+    default int dropIdleSkillsAfter() {
+        return 30;
+    }
+
     @ConfigItem(
         keyName = "ignoredSkills",
         name = "Ignored Skills",

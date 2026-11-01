@@ -172,6 +172,7 @@ class SkillTracker {
             int drop = gained - previousGained;
             if (drop > 0) {
                 lastXpDrops.put(skill, drop);
+                lastXpMillis.put(skill, System.currentTimeMillis());
                 java.util.ArrayDeque<Integer> recent = recentXpDrops.computeIfAbsent(skill, k -> new java.util.ArrayDeque<>());
                 recent.addLast(drop);
                 while (recent.size() > RECENT_DROPS) {
@@ -564,6 +565,16 @@ class SkillTracker {
 
     public int getCurrentSkillXp(Skill skill) {
         return client.getSkillExperience(skill);
+    }
+
+    // When each skill last gained XP (wall clock, so it survives hopping and loading screens)
+    private final Map<Skill, Long> lastXpMillis = new EnumMap<>(Skill.class);
+
+    /** Whether a skill gained XP recently enough to stay in the tracker (see Drop Idle Skills After). */
+    public boolean isRecentlyTrained(Skill skill) {
+        int minutes = config.dropIdleSkillsAfter();
+        Long last = lastXpMillis.get(skill);
+        return minutes <= 0 || (last != null && System.currentTimeMillis() - last <= minutes * 60_000L);
     }
 
     public List<Skill> getTrackedSkills() {

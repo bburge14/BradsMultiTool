@@ -206,3 +206,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Mining: mine out any rock (iron, lead, coal...): the depleted rock's tile counts down to the ore coming back (red, yellow, green), with the ore picture and time; lead rocks can be tracked for a Mining goal and the guide's Lead rocks method outlines them.
 - [ ] Lead rocks: mine one out: its depleted tile gets the respawn timer; grey lead rocks are never outlined for a goal.
 - [ ] Card > Method: methods show ~XP/hr where the guide gives one; with Suggest on Money Maker it lists money makers with GP/hr, and picking one shows "Your money maker: ...".
+- [ ] Tracker: a skill without a goal leaves after Drop Idle Skills After (30 min) without XP and returns on new XP; goal skills and the pinned skill stay; header shows TRAINED with a tooltip.

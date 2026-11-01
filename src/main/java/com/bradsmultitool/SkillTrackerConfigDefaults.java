@@ -73,6 +73,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("trainingHighlightColor", config.trainingHighlightColor());
         defaults.store("autoPauseSkills", config.autoPauseSkills());
         defaults.store("autoPauseSeconds", config.autoPauseSeconds());
+        defaults.store("dropIdleSkillsAfter", config.dropIdleSkillsAfter());
         defaults.store("ignoredSkills", config.ignoredSkills());
         defaults.store("voiceLevelUp", config.voiceLevelUp());
         defaults.store("chatLevelUp", config.chatLevelUp());
