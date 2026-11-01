@@ -82,7 +82,7 @@ class Alerts {
     // A Voice Alerts / Chat Messages switch, falling back to its default
     boolean toggle(String key) {
         String value = configManager.getConfiguration(identity.configGroup, key);
-        return value == null ? !"chatLevelUp".equals(key) : Boolean.parseBoolean(value);
+        return value == null ? !"chatLevelUp".equals(key) && !"voiceRockDepletedEach".equals(key) : Boolean.parseBoolean(value);
     }
 
     // Changing the voice or volume plays a sample in it; turning an alert's voice on plays that alert

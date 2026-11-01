@@ -103,7 +103,7 @@ class TrainingAdvisor {
         String chosen = plugin.getChosenMethod(skill);
         TrainingData.Method picked = null;
         if (chosen != null) {
-            for (TrainingData.Method m : training.available(skill, level, this::canDo)) {
+            for (TrainingData.Method m : methodsToPick(skill, level)) {
                 if (m.name.equals(chosen)) {
                     picked = m;
                     break;
@@ -230,7 +230,34 @@ class TrainingAdvisor {
 
     /** The guide methods you could pick at this level for this skill (see {@link TrainingData#available}). */
     List<TrainingData.Method> methodsToPick(Skill skill, int level) {
-        return training.available(skill, level, this::canDo);
+        List<TrainingData.Method> out = new ArrayList<>(training.available(skill, level, this::canDo));
+        // and the guide's later methods you can already do: its trees, rocks or creatures are at or below your
+        // level ("Lead rocks" from 60 in the guide, but lead can be mined from 25)
+        for (TrainingData.Method method : training.later(skill, level)) {
+            int needs = levelNeeded(method);
+            if (needs > 0 && needs <= level && canDo(method) && out.stream().noneMatch(m -> m.name.equals(method.name))) {
+                out.add(method);
+            }
+        }
+        return out;
+    }
+
+    // The level a guide method's own trees, rocks, stalls or creatures need (the lowest of them), 0 if unknown
+    private int levelNeeded(TrainingData.Method method) {
+        int needs = 0;
+        for (int id : method.objects) {
+            SkillingData.Resource resource = skilling.object(id, null);
+            if (resource != null && resource.level > 0 && (needs == 0 || resource.level < needs)) {
+                needs = resource.level;
+            }
+        }
+        for (String npc : method.npcs) {
+            SkillHelperData.Creature creature = helpers.creature(npc);
+            if (creature != null && creature.level > 0 && (needs == 0 || creature.level < needs)) {
+                needs = creature.level;
+            }
+        }
+        return needs;
     }
 
     /**

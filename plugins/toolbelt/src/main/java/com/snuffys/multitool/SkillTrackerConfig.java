@@ -339,14 +339,14 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
-        keyName = "voiceRockDepleted",
+        keyName = "voiceRockDepletedEach",
         name = "Voice: Rock Depleted",
-        description = "<div width='300'>When the rock you are mining is depleted (turning it on plays a preview)",
+        description = "<div width='300'>Off by default: most rocks go after one ore, so it would speak after nearly every one. When the rock you are mining is depleted (turning it on plays a preview)",
         section = miningSection,
         position = 2
     )
-    default boolean voiceRockDepleted() {
-        return true;
+    default boolean voiceRockDepletedEach() {
+        return false;
     }
 
     @ConfigItem(

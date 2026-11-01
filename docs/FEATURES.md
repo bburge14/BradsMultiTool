@@ -331,7 +331,8 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
 - Where that method is a tree, rock, stall, pickpocket NPC, Hunter creature or fishing (every spot that catches its fish), those are outlined in the
   world.
 - **Pick another method:** right-click the skill's card > **Method** lists every guide method your level and
-  quests allow (the fastest marked; hover one for what the guide says about it). Pick one and the card, the
+  quests allow (also the guide's later ones whose trees, rocks or creatures you can already use: Lead rocks from
+  Mining 25, though the guide lists it from 60) (the fastest marked; hover one for what the guide says about it). Pick one and the card, the
   world outlines, the tools and the actions estimate follow it ("Your method: Barbarian Fishing"); once your level
   is past what it covers, it goes back to **Suggested (automatic)**, which you can also pick any time.
 - **Train something else:** right-click a Hunter creature, pickpocket NPC, fishing spot, tree, rock or

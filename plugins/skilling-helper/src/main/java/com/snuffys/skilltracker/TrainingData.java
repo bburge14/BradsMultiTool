@@ -281,6 +281,18 @@ class TrainingData {
         return out;
     }
 
+    /** The guide's methods that start above this level (not questing), latest-starting last. */
+    List<Method> later(Skill skill, int level) {
+        List<Method> out = new ArrayList<>();
+        for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
+            if (method.from > level && !method.isQuesting()) {
+                out.add(method);
+            }
+        }
+        out.sort((a, b) -> Integer.compare(a.from, b.from));
+        return out;
+    }
+
     /** The guide's questing method for this level (quests worth doing for their XP), or null. */
     Method questing(Skill skill, int level) {
         for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
