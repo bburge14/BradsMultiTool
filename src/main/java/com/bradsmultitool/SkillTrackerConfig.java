@@ -58,6 +58,17 @@ public interface SkillTrackerConfig extends CommonConfig {
         return false;
     }
 
+    @ConfigItem(
+        keyName = "showClashes",
+        name = "Clash Warnings",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list), the Clashes box in the tracker sidebar, and a chat line once a login. Off: none of them",
+        section = aboutSection,
+        position = 1
+    )
+    default boolean showClashes() {
+        return true;
+    }
+
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
 
 

@@ -11,6 +11,7 @@ final class PvmConfigDefaults {
 
     static void store(ConfigDefaults defaults, PvmConfig config) {
         defaults.store("openGuide", config.openGuide());
+        defaults.store("showClashes", config.showClashes());
         defaults.store("enableLowHealthAlert", config.enableLowHealthAlert());
         defaults.store("lowHealthPercent", config.lowHealthPercent());
         defaults.store("flashHealthOrb", config.flashHealthOrb());

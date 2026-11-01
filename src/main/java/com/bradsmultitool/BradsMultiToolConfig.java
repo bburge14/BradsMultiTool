@@ -127,6 +127,18 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         return false;
     }
 
+    @ConfigItem(
+        keyName = "showClashes",
+        name = "Clash Warnings",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list), the Clashes box in the tracker sidebar, and a chat line once a login. Off: none of them",
+        section = aboutSection,
+        position = 1
+    )
+    @Override
+    default boolean showClashes() {
+        return true;
+    }
+
 
     @ConfigSection(
         name = "Tick: Counter",

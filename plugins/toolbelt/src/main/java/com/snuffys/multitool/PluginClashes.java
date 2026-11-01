@@ -197,7 +197,9 @@ class PluginClashes {
             }
         }
         List<Clash> now = new java.util.ArrayList<>();
-        for (Clash clash : forFamily(identity.familyId)) {
+        // Clash Warnings off: nothing shown or said
+        boolean warn = !"false".equals(configManager.getConfiguration(identity.configGroup, "showClashes"));
+        for (Clash clash : warn ? forFamily(identity.familyId) : Collections.<Clash>emptyList()) {
             if (on.contains(clash.plugin) && settingOn(clash)) {
                 now.add(clash);
             }

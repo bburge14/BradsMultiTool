@@ -11,6 +11,7 @@ final class SkillTrackerConfigDefaults {
 
     static void store(ConfigDefaults defaults, SkillTrackerConfig config) {
         defaults.store("openGuide", config.openGuide());
+        defaults.store("showClashes", config.showClashes());
         defaults.store("showSkillingHover", config.showSkillingHover());
         defaults.store("showSkillingRates", config.showSkillingRates());
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());

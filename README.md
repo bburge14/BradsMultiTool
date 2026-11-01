@@ -304,7 +304,8 @@ clash with it, and switch on **Open the Guide** to open the full feature guide. 
 setting of it that clashes), every one of Snuffy's plugins shows a small yellow warning icon among RuneLite's info
 boxes (top left of the game; hover it for the clashes and what they mean), the Skilling Helper and Toolbelt also
 list them in a **Clashes** box under Set Goal in the sidebar, and each plugin says its clashes in chat once a login.
-It's all live: turn the clashing plugin or setting off and the icon and box go within a few seconds. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
+It's all live: turn the clashing plugin or setting off and the icon and box go within a few seconds. Don't want
+any of it? Turn off **About > Clash Warnings** in that plugin's settings. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
 minnows), Motherlode Mine (veins), Slayer (task highlight), Metronome and Idle Notifier.
 
 

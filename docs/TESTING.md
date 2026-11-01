@@ -217,3 +217,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Metronome Play Ahead (200 ms): clicking on the sound lands green in Click Timing; raising/lowering it moves the clicks later/earlier; 0 plays on the tick.
 - [ ] Tick Boxes > Tick Pattern: 1-tick two halves (box 1 first half, box 2 second), each movable with Move Boxes Separately; Custom = Ticks Per Cycle.
 - [ ] Any of Snuffy's plugins with a clashing plugin on (e.g. RuneLite's Mining or Metronome): a yellow warning info box top-left, tooltip lists the clashes; it goes within a few seconds of turning the clash off, and when the plugin stops.
+- [ ] About > Clash Warnings off: no warning icon, no sidebar Clashes box, no chat line (within a few seconds); on again brings them back.
