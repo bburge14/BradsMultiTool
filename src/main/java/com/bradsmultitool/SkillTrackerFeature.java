@@ -83,10 +83,22 @@ class SkillTrackerFeature {
         }
     }
 
+    // Auto-Pause After went from 300 seconds to 10 by default: move players still on the old default, once
+    private void shortenAutoPause() {
+        String group = identity.configGroup;
+        if (configManager.getConfiguration(group, "autoPauseShortened") == null) {
+            configManager.setConfiguration(group, "autoPauseShortened", true);
+            if ("300".equals(configManager.getConfiguration(group, "autoPauseSeconds"))) {
+                configManager.setConfiguration(group, "autoPauseSeconds", 10);
+            }
+        }
+    }
+
     void start(Lifecycle lifecycle) {
         configDefaults.add(() -> {
             migrateTimerSettings();
             turnOnPillarChat();
+            shortenAutoPause();
             SkillTrackerConfigDefaults.store(configDefaults, config);
         });
         // Kill counts use monster hitpoints; Slayer goals suggest a Slayer master

@@ -1088,7 +1088,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     @Units(Units.SECONDS)
     default int autoPauseSeconds() {
-        return 300;
+        return 10;
     }
 
     @Range(max
