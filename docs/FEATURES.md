@@ -528,6 +528,9 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
   and XP per hour, reps to your next level and goal. In the arena it's on the arena card, that obstacle is outlined
   thicker, and the route and the pillar warning step aside until you stop (about two minutes without a rep) or move
   on to another obstacle. Laps on a course count on the Course Card instead.
+- **Single obstacles as your method:** the arena obstacles worth repeating (rope swing, pressure pad, floor spikes,
+  spinning blades, darts) are each in the Agility card's **Method** list from their level to 99, with their best XP
+  per hour; pick one and it's your suggestion and gets outlined.
 - **Run Energy Alert Below:** while you're training Agility, an alert ("Your run energy is low") when your run
   energy drops below this (15%; 0 turns it off).
 - **Obstacle Hover:** hovering an obstacle or shortcut shows its level, the course XP per lap and laps to level.

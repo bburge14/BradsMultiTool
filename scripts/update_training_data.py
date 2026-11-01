@@ -477,26 +477,34 @@ def by_level(text, objects, npcs, skill):
 # Single obstacles you repeat for XP that the guides mention inside another method's text rather than as their own
 # method: (skill, wiki page, where it is, from level, to level, XP per hour as the guide gives it, text). The page's
 # Infobox Scenery gives the object to outline.
-SINGLE_OBSTACLES = [
-    # Agility training, Brimhaven Agility Arena: "the floor spike obstacle ... approximately 36,000 experience per hour"
-    ("Agility", "Floor spikes (Brimhaven Agility Arena)", "Brimhaven Agility Arena", 20, 50, 36000,
-     "Jump the floor spikes in the Brimhaven Agility Arena back and forth instead of collecting tickets: low "
-     "effort, about 36,000 experience per hour. You fail (and take a little damage) until level 50."),
-]
+ARENA = "Brimhaven Agility Arena"
 
 
 def single_obstacles(skill, out):
-    """Adds the skill's single repeatable obstacles (SINGLE_OBSTACLES) as methods of their own."""
-    for obstacle_skill, page, where, start, end, rate, about in SINGLE_OBSTACLES:
-        if obstacle_skill != skill:
+    """Adds each Brimhaven Agility Arena obstacle that gives XP as an Agility method of its own (cross it over and
+    over instead of collecting tickets), from the arena data in skill_helpers.json (update_skill_helpers.py): its
+    level to 99, at its best rate (its XP every its ticks, 6,000 ticks an hour: floor spikes' 36,000 is the wiki's
+    figure)."""
+    if skill != "Agility":
+        return out
+    with open(os.path.join(RESOURCES, "skill_helpers.json")) as f:
+        arena = json.load(f).get("arena", {})
+    for o in arena.get("obstacles", []):
+        # Only the ones worth repeating (3+ XP a tick: the slow ones are for getting between pillars)
+        if o["ticks"] <= 0 or o["xp"] / o["ticks"] < 3:
             continue
-        ids = sorted({int(i) for field in re.findall(r"\|id\d* *= *([\d, ]+)", wikitext(page))
-                      for i in re.findall(r"\d+", field)})
-        entry = {"name": "Floor spikes, Brimhaven Agility Arena" if page.startswith("Floor spikes") else page,
-                 "from": start, "to": end, "fastest": False, "about": about, "places": [where], "xpHour": rate}
-        if ids:
-            entry["objects"] = ids
-        out.append(entry)
+        rate = int(round(o["xp"] / o["ticks"] * 6000, -2))
+        about = ("Cross the %s in the %s over and over instead of collecting tickets: %g XP every %d ticks, about "
+                 "%s XP an hour at best (10%% more with Karamja gloves)." % (
+                     o["name"].lower(), ARENA, o["xp"], o["ticks"], format(rate, ",")))
+        if o.get("high"):
+            about += " You can fail it (and take damage) until 99."
+        elif o.get("noFailLevel"):
+            about += " You can fail it (and take damage) until %d." % o["noFailLevel"]
+        if o.get("note"):
+            about += " " + o["note"] + "."
+        out.append({"name": "%s, %s" % (o["name"], ARENA), "from": max(1, o["level"]), "to": 99, "fastest": False,
+                    "about": about, "places": [ARENA], "xpHour": rate, "objects": o["ids"]})
     return out
 
 
