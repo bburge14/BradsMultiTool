@@ -395,6 +395,10 @@ public class BradsMultiToolPanel extends PluginPanel {
         if (value >= 1_000_000) {
             return String.format("%.2fM", value / 1_000_000.0);
         }
+        // No decimal from 100K up ("262K", not "262.3K"): it wouldn't fit the narrow stat columns
+        if (value >= 100_000) {
+            return String.format("%.0fK", value / 1_000.0);
+        }
         if (value >= 10_000) {
             return String.format("%.1fK", value / 1_000.0);
         }

@@ -87,7 +87,10 @@ final class GoalLines {
         } else if (perAction <= 0 && goalXp > xp) {
             perAction = plugin.getTrainingAdvisor().estimatedXpEach(skill, level);
             prefix = "~";
-            tip += " (estimated from the suggested method until your first XP drop)";
+            String from = plugin.getGoalTarget(skill) != null ? "your pick (" + plugin.describeGoalTarget(skill) + ")"
+                : plugin.getGoalItems().suggestion(skill) != null ? "what you'd make from your items"
+                : "the suggested method";
+            tip += " (estimated from " + from + " until your first XP drop)";
         }
         String value = perAction > 0 && remaining > 0 ? prefix + BradsMultiToolPanel.shortNumber((int) Math.ceil(remaining / perAction)) : "--";
         // The hover names what the count is to, and with a goal gives the other count too
