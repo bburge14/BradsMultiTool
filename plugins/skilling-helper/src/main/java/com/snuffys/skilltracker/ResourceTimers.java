@@ -440,12 +440,20 @@ class ResourceTimers {
         changingTrapTicks.clear();
         sunkWrecks.clear();
         depletingRocks.clear();
+        greyRocks.clear();
         playerSpawnTick.clear();
         playerSpawnPoint.clear();
     }
 
-    // Rocks just mined out, by tile: {respawn ticks, tick it went}, until the depleted rock appears there
+    // Rocks just mined out, by tile: {respawn ticks, tick it went, rock}, until the depleted rock appears there;
+    // and grey rocks that just appeared, {object, tick}, in case the mined rock's despawn comes after
     private final Map<WorldPoint, Object[]> depletingRocks = new HashMap<>();
+    private final Map<WorldPoint, Object[]> greyRocks = new HashMap<>();
+
+    // What a mined-out rock turns into: something with nothing to mine (grey "Rocks", an emptied crystal wall)
+    private boolean isGreyRock(GameObject object) {
+        return !canMine(object.getId());
+    }
     private static final Set<Integer> MINING_GUILD_REGIONS = Set.of(12183, 12184);
 
     // A mineable rock went: unless the area is unloading, the depleted rock that replaces it gets a timer
@@ -460,7 +468,20 @@ class ResourceTimers {
             return;
         }
         WorldPoint at = object.getWorldLocation();
-        depletingRocks.put(at, new Object[]{respawnTicks(resource, at), client.getTickCount(), resource.name});
+        int ticks = respawnTicks(resource, at);
+        // The grey rock may have arrived first (the game swaps them in either order)
+        Object[] arrived = greyRocks.remove(at);
+        if (arrived != null && client.getTickCount() - (int) arrived[1] <= 2) {
+            startRespawn((GameObject) arrived[0], ticks, resource.name);
+            return;
+        }
+        depletingRocks.put(at, new Object[]{ticks, client.getTickCount(), resource.name});
+    }
+
+    private void startRespawn(GameObject grey, int ticks, String rock) {
+        Timer timer = new Timer(Kind.ROCK, grey, null, ticks, ticks);
+        timer.resource = rock;
+        add(timer, grey);
     }
 
     // Whether an object offers "Mine" (a rock with ore; a depleted one doesn't)
@@ -496,16 +517,15 @@ class ResourceTimers {
     public void onGameObjectSpawned(GameObjectSpawned event) {
         GameObject object = event.getGameObject();
         int id = object.getId();
-        // The depleted rock taking the place of one just mined out: time its ore coming back
-        Object[] depleted = depletingRocks.remove(object.getWorldLocation());
-        if (depleted != null && client.getTickCount() - (int) depleted[1] <= 2) {
-            // The depleted rock: one you can't mine (the same rock back again would have Mine)
-            if (!canMine(id)) {
-                Timer rock = new Timer(Kind.ROCK, object, null, (int) depleted[0], (int) depleted[0]);
-                rock.resource = (String) depleted[2];
-                add(rock, object);
+        // The depleted rock taking the place of one just mined out: time its ore coming back. A grey rock is one
+        // you can't mine (the same rock back again would offer Mine); kept a moment in case the mined one goes after
+        if (client.getGameState() == GameState.LOGGED_IN && isGreyRock(object)) {
+            Object[] depleted = depletingRocks.remove(object.getWorldLocation());
+            if (depleted != null && client.getTickCount() - (int) depleted[1] <= 2) {
+                startRespawn(object, (int) depleted[0], (String) depleted[2]);
                 return;
             }
+            greyRocks.put(object.getWorldLocation(), new Object[]{object, client.getTickCount()});
         }
         if (CALCIFIED_ROCKS.contains(id)) {
             add(new Timer(Kind.CALCIFIED, object, null, CALCIFIED_TICKS, CALCIFIED_TICKS), object);
@@ -836,6 +856,7 @@ class ResourceTimers {
         updateStars();
         playerSpawnPoint.keySet().retainAll(playerSpawnTick.keySet());
         depletingRocks.values().removeIf(rock -> now - (int) rock[1] > 5);
+        greyRocks.values().removeIf(rock -> now - (int) rock[1] > 5);
 
         for (Timer timer : timers) {
             switch (timer.kind) {

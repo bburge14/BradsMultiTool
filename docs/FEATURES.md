@@ -214,13 +214,13 @@ profit** at Grand Exchange prices; with profit on, the anvil and furnace cards a
 
 **What it does:** Shows how long a resource has left. With the default tile style the resource's tile outline
 is the timer: green, then yellow, then red as it runs out (pulsing red once it's due); traps, fires and campfires,
-which run out by a set time, keep a small pie that empties instead.
+and depleted rocks, which run out by a set time, keep a small pie that empties instead.
 When a tree can fall on the next log it turns into a full red pie that pulses.
 
 | Pie on | Shows | Setting |
 |---|---|---|
 | Trees being chopped (anyone's) | The Forestry timer: it drops while anyone chops and recovers when nobody does | Woodcutting > Tree Timers |
-| Depleted rocks (any rock you mine out while you're there: copper to runite, lead, nickel, gem rocks, amethyst...) | Time until the ore is back, from each rock's respawn time on the wiki (faster in the Mining Guild and the Wilderness where the wiki says so): the outline goes red, yellow, then green as it's about to come back, with the ore's picture and the time left | Mining > Mining Timers |
+| Depleted rocks (any rock you mine out while you're there: copper to runite, lead, nickel, gem rocks, amethyst...) | Time until the ore is back, from each rock's respawn time on the wiki (faster in the Mining Guild and the Wilderness where the wiki says so): a pie that empties as the ore comes back (red, yellow, then green), with the ore's picture and the time left | Mining > Mining Timers |
 | Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timers |
 | Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | Spots move at a random time 2.5-5 minutes after they appear, so this shows the window: green until the earliest it can move, then a red ring filling up to the latest; hover for the times. Above it, how long ago it appeared ("1:42") and the Fishing icon, ringed in gold on the newest spot (the least likely to move soon) with **Mark Newest Spot** on (off by default); and the spot you fish is outlined in **Your Spot Colour**. A spot that outlives 5 minutes without being seen to move starts over | Fishing > Fishing Spot Timers, Mark Newest Spot, Your Spot Colour |
 | Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timers |

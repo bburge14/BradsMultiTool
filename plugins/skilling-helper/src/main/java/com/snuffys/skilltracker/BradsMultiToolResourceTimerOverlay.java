@@ -106,6 +106,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             }
             double left = timer.progress();
             Color color = left > 0.5 ? HudColors.GOOD : left > 0.2 ? HudColors.WARN : HudColors.BAD;
+            // A depleted rock the other way round: red while its ore is far off, green as it's about to come back
+            if (timer.kind == ResourceTimers.Kind.ROCK) {
+                color = left > 0.5 ? HudColors.BAD : left > 0.2 ? HudColors.WARN : HudColors.GOOD;
+            }
             // A trap goes green once something's caught, red if it sprang empty
             if (timer.kind == ResourceTimers.Kind.TRAP && timer.trapState != ResourceTimers.TrapState.SET) {
                 color = timer.trapState == ResourceTimers.TrapState.CAUGHT ? HudColors.GOOD : HudColors.BAD;
@@ -332,9 +336,10 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
 
     // The tile style: outlines the resource's tiles, draws what it gives in the middle, and returns where the pie
     // goes (over the picture's top right corner, or the middle of the tile when there's no picture)
-    /** Traps, fires and campfires: a pie timer even with the tile style (they run out by a set time). */
+    /** Traps, fires, campfires and depleted rocks: a pie timer even with the tile style (they go by a set time). */
     static boolean keepsPie(ResourceTimers.Kind kind) {
-        return kind == ResourceTimers.Kind.TRAP || kind == ResourceTimers.Kind.FIRE || kind == ResourceTimers.Kind.CAMPFIRE;
+        return kind == ResourceTimers.Kind.TRAP || kind == ResourceTimers.Kind.FIRE || kind == ResourceTimers.Kind.CAMPFIRE
+            || kind == ResourceTimers.Kind.ROCK;
     }
 
     // The tile outline as the timer, at the Timer Opacity setting: windowColor for fishing spots and fires; green,
