@@ -929,6 +929,17 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "clearReachedGoals",
+        name = "Clear Goals When Reached",
+        description = "<div width='300'>A goal clears itself once you reach it (a chat line says so), leaving its skill free for a new one. Off: it stays, showing Done!",
+        section = trackerSection,
+        position = 77
+    )
+    default boolean clearReachedGoals() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "ignoredSkills",
         name = "Ignored Skills",
         description = "Comma-separated list of skills to filter out",

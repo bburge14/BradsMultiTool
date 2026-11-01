@@ -130,6 +130,9 @@ class SkillTracker {
         if (event.getGameState() == GameState.LOGIN_SCREEN) {
             realLevels.clear();
         }
+        if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
+            reachedChecked = false;
+        }
         if (event.getGameState() != GameState.LOGGED_IN) {
             updatePanelUI();
         }
@@ -144,6 +147,13 @@ class SkillTracker {
         if (player != null) {
             combatLevel = player.getCombatLevel();
             noteWhatYoureDoing(player);
+        }
+        // Once a login, when your stats and profile are both in: goals reached while away clear
+        if (!reachedChecked && configManager.getRSProfileKey() != null && client.getSkillExperience(Skill.HITPOINTS) > 0) {
+            reachedChecked = true;
+            for (Skill skill : getGoalSkills()) {
+                clearIfReached(skill, client.getSkillExperience(skill));
+            }
         }
         for (Skill s : gainedSkillXp.keySet()) {
             if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
@@ -160,6 +170,7 @@ class SkillTracker {
         int currentXp = event.getXp();
 
         announceLevelUp(skill, currentXp);
+        clearIfReached(skill, currentXp);
 
         if (!baseSkillXp.containsKey(skill)) {
             baseSkillXp.put(skill, currentXp);
@@ -199,6 +210,13 @@ class SkillTracker {
     @Subscribe
     public void onRuneScapeProfileChanged(RuneScapeProfileChanged event) {
         moveToSharedGroup();
+        // Goals reached while away (or before this setting) clear now
+        for (Skill skill : getGoalSkills()) {
+            int xp = client.getSkillExperience(skill);
+            if (xp > 0) {
+                clearIfReached(skill, xp);
+            }
+        }
         updatePanelUI();
     }
 
@@ -570,6 +588,21 @@ class SkillTracker {
 
     // When each skill last gained XP (wall clock, so it survives hopping and loading screens)
     private final Map<Skill, Long> lastXpMillis = new EnumMap<>(Skill.class);
+
+    private boolean reachedChecked;
+
+    // Clear Goals When Reached: the goal goes, with a chat line, once your XP gets there
+    private void clearIfReached(Skill skill, int xp) {
+        int goal = getSkillGoal(skill);
+        if (!config.clearReachedGoals() || goal <= 0 || xp < goal || configManager.getRSProfileKey() == null) {
+            return;
+        }
+        int level = Experience.getLevelForXp(goal);
+        String target = goal == Experience.getXpForLevel(level) ? "level " + level : String.format("%,d XP", goal);
+        setSkillGoal(skill, 0);
+        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName + "]</col> "
+            + skill.getName() + " goal reached (" + target + "): cleared. Set Goal for your next one.", null);
+    }
 
     /** Whether the tracker's "goals" or "session" list is folded away (kept between launches). */
     public boolean isListCollapsed(String list) {

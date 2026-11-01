@@ -389,7 +389,9 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
    its goal and keeps the goal bar's progress).
 2. Pick the skill (the list shows your level in each; below it, your level, XP and any current goal) and
    type a target: a number up to 99 is a level, anything bigger is an XP amount.
-3. Clear it from the card's right-click menu (Clear goal only shows while the skill has a goal).
+3. Clear it from the card's right-click menu (Clear goal only shows while the skill has a goal). A goal you reach
+   clears itself, with a chat line ("Fishing goal reached (level 53): cleared"); turn off **Clear Goals When
+   Reached** to keep reached goals (they show Done!).
 
 Goals are saved with your RuneScape profile, so they stay after a relaunch. The Toolbelt and the Skilling Helper
 share them (and your Track for goal picks, Suggest choices and pinned skill), so switching between them keeps
