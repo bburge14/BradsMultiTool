@@ -3,7 +3,6 @@ package com.snuffys.multitool;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
@@ -23,36 +22,51 @@ import net.runelite.client.util.LinkBrowser;
 
 /**
  * The plugin's About settings: Open the Guide (opens its part of the feature guide, then switches itself off),
- * and clashes with other plugins, checked live: when one that draws or says the same thing is on (or a setting of
- * it that does), a chat note says so once, remembered so it isn't repeated at every login; turning the other
+ * and clashes with other plugins, checked live: while one that draws or says the same thing is on (or a setting
+ * of it that does), it's listed in the Skilling Helper's sidebar and said once a login in chat; turning the other
  * plugin or setting off ends it, and turning it back on says it again. Only reads which plugins and settings are on; never changes them.
  */
 @Singleton
 class PluginClashes {
 
-    private static final String SAID = "clashesSaid";
     private static final String GUIDE = "https://github.com/bburge14/BradsMultiTool/blob/HEAD/docs/FEATURES.md";
 
-    /** Another plugin (by class name; RuneLite's own by full name), optionally only with one of its settings on. */
+    /**
+     * Another plugin (by class name; RuneLite's own by full name), optionally only while one of its settings is on
+     * (keyDefault: that setting's default, when nothing's saved), with its name for the sidebar and the note.
+     */
     static final class Clash {
         final String plugin;
+        final String name;
         final String group;
         final List<String> keys;
+        final boolean keyDefault;
         final String message;
         final Set<String> families;
 
-        Clash(String plugin, String group, List<String> keys, String message, String... families) {
+        Clash(String plugin, String name, String group, List<String> keys, boolean keyDefault, String message, String... families) {
             this.plugin = plugin;
+            this.name = name;
             this.group = group;
             this.keys = keys;
+            this.keyDefault = keyDefault;
             this.message = message;
             this.families = new HashSet<>(Arrays.asList(families));
         }
     }
 
+    private static Clash plugin(String plugin, String name, String message, String... families) {
+        return new Clash(plugin, name, null, Collections.emptyList(), false, message, families);
+    }
+
+    private static Clash setting(String plugin, String name, String group, boolean byDefault, String message, String family,
+                                 String... keys) {
+        return new Clash(plugin, name, group, Arrays.asList(keys), byDefault, message, family);
+    }
+
     private static Clash timer(String plugin, String name, String what) {
-        return new Clash(plugin, null, Collections.emptyList(),
-            name + " is on: Snuffy's " + what + " are hidden while it is (Use Other Timer Plugins)", "skilltracker");
+        return plugin(plugin, name, name + " is on: Snuffy's " + what + " are hidden while it is (Use Other Timer Plugins)",
+            "skilltracker");
     }
 
     private static final String CORE = "net.runelite.client.plugins.";
@@ -69,15 +83,29 @@ class PluginClashes {
         timer("StarAfkTimerPlugin", "Star AFK Timer", "shooting star timers"),
         timer("SalvagingAfkTimerPlugin", "Salvaging AFK Timer", "shipwreck timers"),
         timer("FireTimerPlugin", "Fire Timer", "fire timers"),
-        new Clash(CORE + "hunter.HunterPlugin", null, Collections.emptyList(),
+        plugin(CORE + "hunter.HunterPlugin", "RuneLite's Hunter",
             "RuneLite's Hunter plugin is on: Snuffy's trap timers are hidden while it is (Use Other Timer Plugins)", "skilltracker"),
-        new Clash(CORE + "mining.MiningPlugin", null, Collections.emptyList(),
-            "RuneLite's Mining plugin is on: Snuffy's depleted rock timers are hidden while it is (it draws its own)", "skilltracker"),
-        new Clash(CORE + "slayer.SlayerPlugin", "slayer", Arrays.asList("highlightOutline", "highlightHull", "highlightTile"),
-            "RuneLite's Slayer plugin highlights your task monsters too: turn off its highlight or Snuffy's Task Monster Outlines to see one", "pvm"),
-        new Clash(CORE + "metronome.MetronomePlugin", null, Collections.emptyList(),
+        plugin(CORE + "mining.MiningPlugin", "RuneLite's Mining",
+            "RuneLite's Mining plugin is on: Snuffy's depleted rock and Daeyalt timers are hidden while it is (it draws its own)",
+            "skilltracker"),
+        setting(CORE + "fishing.FishingPlugin", "RuneLite's Fishing (spot icons)", "fishing", true,
+            "RuneLite's Fishing plugin shows fishing spot icons: Snuffy's fishing spot tiles leave out their fish pictures while it does",
+            "skilltracker", "showIcons"),
+        setting(CORE + "fishing.FishingPlugin", "RuneLite's Fishing (spot tiles)", "fishing", false,
+            "RuneLite's Fishing plugin outlines fishing spot tiles: Snuffy's leave out their own outline while it does",
+            "skilltracker", "showTiles"),
+        setting(CORE + "fishing.FishingPlugin", "RuneLite's Fishing (minnows)", "fishing", true,
+            "RuneLite's Fishing plugin times minnow spots: Snuffy's minnow spot timers are hidden while it does",
+            "skilltracker", "showMinnowOverlay"),
+        setting(CORE + "motherlode.MotherlodePlugin", "RuneLite's Motherlode Mine (veins)", "motherlode", true,
+            "RuneLite's Motherlode Mine plugin marks the veins: Snuffy's vein timers leave out their pictures while it does",
+            "skilltracker", "showVeins"),
+        setting(CORE + "slayer.SlayerPlugin", "RuneLite's Slayer (task highlight)", "slayer", false,
+            "RuneLite's Slayer plugin highlights your task monsters too: turn off its highlight or Snuffy's Task Monster Outlines to see one",
+            "pvm", "highlightOutline", "highlightHull", "highlightTile"),
+        plugin(CORE + "metronome.MetronomePlugin", "RuneLite's Metronome",
             "RuneLite's Metronome is on: with Snuffy's Metronome on too you'll hear both", "tickcounter"),
-        new Clash(CORE + "idlenotifier.IdleNotifierPlugin", null, Collections.emptyList(),
+        plugin(CORE + "idlenotifier.IdleNotifierPlugin", "RuneLite's Idle Notifier",
             "RuneLite's Idle Notifier is on: it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab", "voices"));
 
     private final Client client;
@@ -85,8 +113,9 @@ class PluginClashes {
     private final PluginManager pluginManager;
     private final ConfigManager configManager;
     private final PluginIdentity identity;
-    // Clashes currently on (said once each); the ones before the first login are said on it
-    private final Set<Clash> active = new HashSet<>();
+    // Clashes on right now; and the ones said in chat this login
+    private volatile List<Clash> active = Collections.emptyList();
+    private final Set<Clash> said = new HashSet<>();
     private boolean announced;
 
     @Inject
@@ -118,6 +147,10 @@ class PluginClashes {
         if (event.getGameState() == GameState.LOGGED_IN && !announced) {
             announced = true;
             check();
+        } else if (event.getGameState() == GameState.LOGIN_SCREEN) {
+            // Said again at the next login
+            announced = false;
+            said.clear();
         }
     }
 
@@ -139,7 +172,8 @@ class PluginClashes {
         }
     }
 
-    // What's on now: new clashes are said (after login), ones that ended are forgotten so they're said again later
+    // What's on now, kept for the sidebar; each clash is said in chat once a login (and again if it ends and
+    // comes back)
     private void check() {
         Set<String> on = new HashSet<>();
         for (Plugin plugin : pluginManager.getPlugins()) {
@@ -148,32 +182,27 @@ class PluginClashes {
                 on.add(plugin.getClass().getSimpleName());
             }
         }
-        Set<Clash> now = new LinkedHashSet<>();
+        List<Clash> now = new java.util.ArrayList<>();
         for (Clash clash : forFamily(identity.familyId)) {
             if (on.contains(clash.plugin) && settingOn(clash)) {
                 now.add(clash);
             }
         }
-        // Said once, and remembered (so not at every login); once a clash ends it's forgotten, to be said again
-        Set<String> said = new HashSet<>(Arrays.asList(
-            String.valueOf(configManager.getConfiguration(identity.configGroup, SAID)).split(",")));
-        boolean changed = said.removeIf(name -> !name.isEmpty() && now.stream().noneMatch(c -> c.plugin.equals(name)));
+        said.retainAll(now);
         if (client.getGameState() == GameState.LOGGED_IN && announced) {
             for (Clash clash : now) {
-                if (said.add(clash.plugin)) {
-                    changed = true;
+                if (said.add(clash)) {
                     client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName
                         + "]</col> Heads up: " + clash.message + ".", null);
                 }
             }
         }
-        if (changed) {
-            said.remove("null");
-            said.remove("");
-            configManager.setConfiguration(identity.configGroup, SAID, String.join(",", said));
-        }
-        active.clear();
-        active.addAll(now);
+        active = Collections.unmodifiableList(now);
+    }
+
+    /** The clashes on right now (for the sidebar). */
+    List<Clash> active() {
+        return active;
     }
 
     // No settings named: the plugin being on is enough; else any of them on
@@ -182,7 +211,8 @@ class PluginClashes {
             return true;
         }
         for (String key : clash.keys) {
-            if (Boolean.parseBoolean(configManager.getConfiguration(clash.group, key))) {
+            String value = configManager.getConfiguration(clash.group, key);
+            if (value == null ? clash.keyDefault : Boolean.parseBoolean(value)) {
                 return true;
             }
         }

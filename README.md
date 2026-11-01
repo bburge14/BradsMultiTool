@@ -300,9 +300,11 @@ change in the Toolbelt don't carry over to them (and the other way round).
 ## Settings guide
 
 Each plugin's settings start with **About**: hover its heading for what the plugin does and which other plugins
-clash with it, and switch on **Open the Guide** to open the full feature guide. When a clashing plugin is on (or the
-setting of it that clashes), a chat note says so once; turn that plugin off and it's forgotten, so turning it on
-again says it again.
+clash with it, and switch on **Open the Guide** to open the full feature guide. While a clashing plugin is on (or the
+setting of it that clashes), it's listed in the **Clashes** box under Set Goal in the tracker sidebar (hover it for
+what each means; it updates live and disappears when there are none), and each plugin says its clashes in chat once
+a login. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
+minnows), Motherlode Mine (veins), Slayer (task highlight), Metronome and Idle Notifier.
 
 
 All sections except General start collapsed.
