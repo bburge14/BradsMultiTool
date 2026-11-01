@@ -16,6 +16,24 @@ import net.runelite.client.config.Units;
 @ConfigGroup("snuffysgemcrab")
 public interface GemCrabConfig extends CommonConfig, BuffConfig {
 
+    @ConfigSection(
+        name = "About",
+        description = "<div width='300'>Snuffy's GemCrab Tracker: the Gemstone Crab HUD with the burrow countdown, the radar to the next cove, outlines and alerts. Clashes (said in chat while they're on): RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        position = -10
+    )
+    String aboutSection = "aboutSection";
+
+    @ConfigItem(
+        keyName = "openGuide",
+        name = "Open the Guide",
+        description = "<div width='300'>Opens the feature guide in your browser (then switches itself back off)",
+        section = aboutSection,
+        position = 0
+    )
+    default boolean openGuide() {
+        return false;
+    }
+
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
 
     @ConfigSection(

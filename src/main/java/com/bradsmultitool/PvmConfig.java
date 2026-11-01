@@ -16,6 +16,24 @@ import net.runelite.client.config.Units;
 @ConfigGroup("snuffyspvm")
 public interface PvmConfig extends CommonConfig, BuffConfig {
 
+    @ConfigSection(
+        name = "About",
+        description = "<div width='300'>Snuffy's PvM/Slayer: the PvM HUD and monster hover card, buff bar and potion timers, health and prayer warnings, combat alerts, and the Slayer card (its hotkey shows or hides it) with task monster outlines. Clashes (said in chat while they're on): RuneLite's Slayer plugin with its task highlight on (you'd see two outlines), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        position = -10
+    )
+    String aboutSection = "aboutSection";
+
+    @ConfigItem(
+        keyName = "openGuide",
+        name = "Open the Guide",
+        description = "<div width='300'>Opens the feature guide in your browser (then switches itself back off)",
+        section = aboutSection,
+        position = 0
+    )
+    default boolean openGuide() {
+        return false;
+    }
+
     // Repeated from CommonConfig and BuffConfig: RuneLite only shows sections an interface declares itself
 
 

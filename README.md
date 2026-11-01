@@ -299,6 +299,12 @@ change in the Toolbelt don't carry over to them (and the other way round).
 
 ## Settings guide
 
+Each plugin's settings start with **About**: hover its heading for what the plugin does and which other plugins
+clash with it, and switch on **Open the Guide** to open the full feature guide. When a clashing plugin is on (or the
+setting of it that clashes), a chat note says so once; turn that plugin off and it's forgotten, so turning it on
+again says it again.
+
+
 All sections except General start collapsed.
 
 | Section | What's in it |

@@ -15,6 +15,24 @@ import net.runelite.client.config.Units;
 public interface TickConfig extends Config {
 
     @ConfigSection(
+        name = "About",
+        description = "<div width='300'>Snuffy's Tick Counter: the tick count over your head, tick boxes and the smooth tick bar (move them with Alt + drag), the metronome and click timing. Clashes (said in chat while they're on): RuneLite's Metronome (you'd hear both). Open the Guide for every feature and how to use it.",
+        position = -10
+    )
+    String aboutSection = "aboutSection";
+
+    @ConfigItem(
+        keyName = "openGuide",
+        name = "Open the Guide",
+        description = "<div width='300'>Opens the feature guide in your browser (then switches itself back off)",
+        section = aboutSection,
+        position = 0
+    )
+    default boolean openGuide() {
+        return false;
+    }
+
+    @ConfigSection(
         name = "Tick Counter",
         description = "<div width='300'>Counts game ticks over your head or in a box you can move, with an optional metronome",
         position = 85

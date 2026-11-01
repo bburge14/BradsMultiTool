@@ -10,6 +10,7 @@ final class TickConfigDefaults {
     }
 
     static void store(ConfigDefaults defaults, TickConfig config) {
+        defaults.store("openGuide", config.openGuide());
         defaults.store("tickOverHead", config.tickOverHead());
         defaults.store("tickBoxes", config.tickBoxes());
         defaults.store("tickBoxLayout", config.tickBoxLayout());
