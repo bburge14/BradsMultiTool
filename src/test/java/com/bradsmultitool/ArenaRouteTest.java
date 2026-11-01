@@ -51,10 +51,10 @@ public class ArenaRouteTest {
     @Test
     public void routeAvoidsWhatYouCantDo() {
         // A square of pillars: the quick way (floor spikes, then a rope swing) needs 20 Agility
-        WorldPoint a = new WorldPoint(2761, 9546, 3);
-        WorldPoint b = new WorldPoint(2772, 9546, 3);
-        WorldPoint c = new WorldPoint(2772, 9557, 3);
-        WorldPoint d = new WorldPoint(2761, 9557, 3);
+        WorldPoint a = new WorldPoint(2761, 9546, 0);
+        WorldPoint b = new WorldPoint(2772, 9546, 0);
+        WorldPoint c = new WorldPoint(2772, 9557, 0);
+        WorldPoint d = new WorldPoint(2761, 9557, 0);
         ArenaRoute.Link spikes = new ArenaRoute.Link(a, b, DATA.arenaObstacle(3582));
         ArenaRoute.Link swing = new ArenaRoute.Link(b, c, DATA.arenaObstacle(3566));
         ArenaRoute.Link bars = new ArenaRoute.Link(a, d, DATA.arenaObstacle(3563));
@@ -67,7 +67,23 @@ public class ArenaRouteTest {
             List<ArenaRoute.Link> route = ArenaRoute.shortest(links, a, c);
             assertEquals(level < 20 ? Arrays.asList(bars, wall) : Arrays.asList(spikes, swing), route);
         }
-        assertTrue(ArenaRoute.neighbours(a, b));
-        assertTrue(!ArenaRoute.neighbours(a, c));
+    }
+
+    @Test
+    public void pillarGrid() {
+        // The wiki's pins: floor spikes at 2761,9573 sit between the pillars at 2761,9568 and 2761,9579; a
+        // pressure pad at 2799,9579 between 2794,9579 and 2805,9579
+        int[] grid = DATA.arenaGrid();
+        assertEquals(5, grid.length);
+        WorldPoint[] spikes = ArenaRoute.gap(new WorldPoint(2761, 9573, 3), grid);
+        assertEquals(new WorldPoint(2761, 9568, 0), spikes[0]);
+        assertEquals(new WorldPoint(2761, 9579, 0), spikes[1]);
+        WorldPoint[] pad = ArenaRoute.gap(new WorldPoint(2799, 9579, 0), grid);
+        assertEquals(new WorldPoint(2794, 9579, 0), pad[0]);
+        assertEquals(new WorldPoint(2805, 9579, 0), pad[1]);
+        // The middle pillars have no dispenser but are still pillars
+        assertEquals(new WorldPoint(2783, 9568, 0), ArenaRoute.nearestPillar(new WorldPoint(2785, 9566, 3), grid));
+        // On a pillar itself, no gap
+        assertEquals(null, ArenaRoute.gap(new WorldPoint(2783, 9568, 0), grid));
     }
 }

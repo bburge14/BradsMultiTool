@@ -35,6 +35,8 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
     private final SkillTracker plugin;
     @Inject
     private ArenaRoute route;
+    @Inject
+    private ObstacleReps reps;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
@@ -56,6 +58,9 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         panel.getChildren().clear();
         if (config.agilityArenaCard() && agility.inArena()) {
             arenaCard();
+        } else if (reps.trainingOne()) {
+            panel.getChildren().add(TitleComponent.builder().text(reps.getName()).color(TITLE).build());
+            trainingLines();
         } else if (config.agilityCourseCard() && agility.courseActive()) {
             courseCard();
         } else {
@@ -86,7 +91,7 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         if (agility.ticketsPerHour() > 0) {
             panel.getChildren().add(LineComponent.builder().left("Tickets/hr").right(String.valueOf((int) agility.ticketsPerHour())).build());
         }
-        if (route.trainingOne()) {
+        if (reps.trainingOne()) {
             trainingLines();
         } else if (config.arenaRoute() && !route.getRoute().isEmpty()) {
             panel.getChildren().add(LineComponent.builder().left("Route").right(route.getRoute().size() + " obstacles, ~"
@@ -99,20 +104,22 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
 
     // One-obstacle training: reps, rates and reps to your next level and goal
     private void trainingLines() {
-        add("Training", route.getTraining().name);
-        add("Reps", String.valueOf(route.getReps()));
-        if (route.repsPerHour() > 0) {
-            add("Reps/hr", String.format("%,.0f", route.repsPerHour()));
-            add("XP/hr", BradsMultiToolPanel.shortNumber((long) (route.repsPerHour() * route.getRepXp())));
+        if (agility.inArena()) {
+            add("Training", reps.getName());
+        }
+        add("Reps", String.valueOf(reps.getReps()));
+        if (reps.repsPerHour() > 0) {
+            add("Reps/hr", String.format("%,.0f", reps.repsPerHour()));
+            add("XP/hr", BradsMultiToolPanel.shortNumber((long) (reps.repsPerHour() * reps.getRepXp())));
         }
         int xp = client.getSkillExperience(Skill.AGILITY);
         int level = Experience.getLevelForXp(xp);
-        if (level < Experience.MAX_REAL_LEVEL && route.repsTo(Experience.getXpForLevel(level + 1)) > 0) {
-            add("Reps to " + (level + 1), String.format("%,d", route.repsTo(Experience.getXpForLevel(level + 1))));
+        if (level < Experience.MAX_REAL_LEVEL && reps.repsTo(Experience.getXpForLevel(level + 1)) > 0) {
+            add("Reps to " + (level + 1), String.format("%,d", reps.repsTo(Experience.getXpForLevel(level + 1))));
         }
         int goal = plugin.getSkillGoal(Skill.AGILITY);
-        if (goal > xp && route.repsTo(goal) > 0) {
-            add("Reps to goal", String.format("%,d", route.repsTo(goal)));
+        if (goal > xp && reps.repsTo(goal) > 0) {
+            add("Reps to goal", String.format("%,d", reps.repsTo(goal)));
         }
     }
 
@@ -127,15 +134,13 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
             mayFail += status == ArenaRoute.Status.MAY_FAIL ? 1 : 0;
             tooLow += status == ArenaRoute.Status.TOO_LOW ? 1 : 0;
         }
-        add("Pillars found", String.valueOf(route.getPillars().size()));
         add("Obstacle objects", route.getObstacles().size() + " (" + route.getUnlinked() + " unlinked)");
         add("Safe/may fail/too low", safe + "/" + mayFail + "/" + tooLow);
         add("Links", String.valueOf(route.getLinks().size()));
-        add("Pillar offset", String.format("%.1f,%.1f", route.getOffsetX(), route.getOffsetY()));
-        add("From (your pillar)", point(route.getStart()));
+        add("From (pillar nearest you)", point(route.getStart()));
         add("To (hint arrow)", point(route.getTarget()));
-        if (route.getTraining() != null) {
-            add("Last obstacle", route.getTraining().name + " x" + route.getReps());
+        if (reps.getName() != null) {
+            add("Last obstacle", reps.getName() + " x" + reps.getReps());
         }
         if (route.getRoute().isEmpty()) {
             add("Route", route.getTarget() == null ? "no pillar tagged" : route.getTarget().equals(route.getStart()) ? "you're there" : "none found");

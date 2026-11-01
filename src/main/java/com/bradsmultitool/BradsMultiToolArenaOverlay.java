@@ -44,6 +44,8 @@ class BradsMultiToolArenaOverlay extends Overlay {
     private final AgilityTracker agility;
     private final SkillHelperData helpers;
     private final OtherTimerPlugins otherPlugins;
+    @Inject
+    private ObstacleReps reps;
 
     @Inject
     BradsMultiToolArenaOverlay(Client client, SkillTrackerConfig config, ArenaRoute arena, AgilityTracker agility,
@@ -74,8 +76,7 @@ class BradsMultiToolArenaOverlay extends Overlay {
         boolean theirs = otherPlugins.outlinesAgilityObstacles();
         for (Map.Entry<TileObject, SkillHelperData.ArenaObstacle> e : arena.getObstacles().entrySet()) {
             TileObject object = e.getKey();
-            boolean route = onRoute.contains(object) || arena.trainingOne() && e.getValue() == arena.getTraining()
-                && object.getWorldLocation().distanceTo2D(client.getLocalPlayer().getWorldLocation()) <= 6;
+            boolean route = onRoute.contains(object) || reps.isTraining(object);
             // RuneLite's Agility plugin outlines the ones in its course list: leave those to it
             if (theirs && helpers.courseFor(object.getId()) != null) {
                 continue;
@@ -137,7 +138,8 @@ class BradsMultiToolArenaOverlay extends Overlay {
         graphics.setColor(ROUTE);
         graphics.draw(path);
         WorldPoint target = arena.getTarget();
-        LocalPoint local = target == null ? null : LocalPoint.fromWorld(client.getTopLevelWorldView(), target);
+        LocalPoint local = target == null ? null : LocalPoint.fromWorld(client.getTopLevelWorldView(),
+            new WorldPoint(target.getX(), target.getY(), client.getTopLevelWorldView().getPlane()));
         Polygon tile = local == null ? null : Perspective.getCanvasTilePoly(client, local);
         if (tile != null) {
             graphics.setColor(new Color(0, 220, 255, 60));
@@ -158,12 +160,13 @@ class BradsMultiToolArenaOverlay extends Overlay {
 
     // A pillar's middle (the dispenser sits off to one side)
     private WorldPoint centre(WorldPoint pillar) {
-        return new WorldPoint((int) Math.round(pillar.getX() - arena.getOffsetX()),
-            (int) Math.round(pillar.getY() - arena.getOffsetY()), pillar.getPlane());
+        return pillar;
     }
 
     private Point canvas(WorldPoint point) {
-        LocalPoint local = LocalPoint.fromWorld(client.getTopLevelWorldView(), point);
-        return local == null ? null : Perspective.localToCanvas(client, local, point.getPlane(), 0);
+        // Pillars are kept on plane 0: draw them on the plane you're on
+        int plane = client.getTopLevelWorldView().getPlane();
+        LocalPoint local = LocalPoint.fromWorld(client.getTopLevelWorldView(), new WorldPoint(point.getX(), point.getY(), plane));
+        return local == null ? null : Perspective.localToCanvas(client, local, client.getTopLevelWorldView().getPlane(), 0);
     }
 }

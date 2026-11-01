@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import lombok.Getter;
 import net.runelite.api.Client;
@@ -18,18 +19,17 @@ import net.runelite.api.Tile;
 import net.runelite.api.TileObject;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.events.StatChanged;
 import net.runelite.client.eventbus.Subscribe;
 
 /**
- * The Brimhaven Agility Arena's obstacles and the quickest way to the tagged pillar. Every few ticks in the arena it
- * looks through the loaded scene for the ticket dispensers (one on each pillar) and the obstacles; each obstacle
- * links the two pillars it sits between. The route is worked out again every tick from the pillar you're standing
- * on (the one whose middle you're in; while you're on an obstacle, the last one) to the one the hint arrow points
- * at, using only obstacles your Agility level allows, counting each one's time, the walk across the pillar and the
- * time a fall costs times how likely you are to fall. Also one-obstacle training: crossing the same obstacle over
- * and over (floor spikes back and forth) counts reps from your Agility XP, and the route steps aside meanwhile.
- * Only reads the scene, your level, XP and the hint arrow; it draws a route, like a map, and never clicks anything.
+ * The Brimhaven Agility Arena's obstacles and the quickest way to the tagged pillar. The pillars stand on a square
+ * grid (from the wiki's ticket dispenser pins: not every pillar has a dispenser, so the grid, not the dispensers,
+ * gives the pillars) and each obstacle sits midway between two neighbouring pillars. Every few ticks it looks
+ * through the loaded scene for the obstacles and links each to the two pillars it sits between. Every tick the
+ * route is worked out again, from the pillar nearest you to the one the hint arrow points at, using only obstacles
+ * your Agility level allows, counting each one's time, the walk across the pillar and the time a fall costs times
+ * how likely you are to fall. Only reads the scene, your level and the hint arrow; it draws a route, like a map,
+ * and never clicks anything.
  */
 @Singleton
 class ArenaRoute {
@@ -58,35 +58,21 @@ class ArenaRoute {
 
     // Rescan the scene this often (ticks) while in the arena
     private static final int SCAN_TICKS = 5;
-    // Pillars sit 11 tiles apart; neighbours are this far apart along one line
-    private static final int NEAR = 7;
-    private static final int FAR = 15;
-    private static final int OFF_LINE = 4;
-    // An obstacle belongs to the pair of pillars whose middle is this close
-    private static final double MIDDLE = 7;
+    // An obstacle belongs to the gap whose middle is this close (tiles)
+    private static final double GAP = 4.5;
     // Walking across a pillar between obstacles, a fall (back up the climbing rope), and darts' lowered level
     private static final int WALK_TICKS = 6;
     private static final int FALL_TICKS = 30;
     private static final int DART_FALL_TICKS = 70;
     // Obstacles that can fail where the wiki gives no chance: a guess
     private static final double UNKNOWN_FAIL = 0.15;
-    // You're on a pillar when you're this close to its middle (tiles, either way)
-    private static final int ON_PILLAR = 4;
-    // One-obstacle training: an XP drop counts as a rep of the obstacle this close to you; drops bigger than any
-    // obstacle gives (Karamja gloves included) are a pillar's tag; it's training after this many reps in a row, and
-    // ends after this long without one
-    private static final int REP_NEAR = 4;
-    private static final int MAX_OBSTACLE_XP = 40;
-    private static final int TRAINING_REPS = 3;
-    private static final int TRAINING_IDLE_TICKS = 200;
 
     private final Client client;
     private final SkillTrackerConfig config;
     private final SkillHelperData helpers;
     private final AgilityTracker agility;
+    private final Provider<ObstacleReps> reps;
 
-    @Getter
-    private final List<WorldPoint> pillars = new ArrayList<>();
     /** Every arena obstacle object in the scene, with what it is. */
     @Getter
     private final Map<TileObject, SkillHelperData.ArenaObstacle> obstacles = new LinkedHashMap<>();
@@ -99,44 +85,30 @@ class ArenaRoute {
     private WorldPoint start;
     @Getter
     private WorldPoint target;
-    /** Obstacles not between two pillars (the readout counts them). */
+    /** Obstacles not in a gap between two pillars (the readout counts them). */
     @Getter
     private int unlinked;
     private int lastScan = -SCAN_TICKS;
-    // Where the dispenser sits on its pillar, from the middle (worked out from the obstacles between pillars)
-    @Getter
-    private double offsetX;
-    @Getter
-    private double offsetY;
-
-    // One-obstacle training
-    @Getter
-    private SkillHelperData.ArenaObstacle training;
-    @Getter
-    private int reps;
-    @Getter
-    private double repXp;
-    private int firstRepTick = -1;
-    private int lastRepTick = -1;
-    private int lastXp = -1;
 
     @Inject
-    ArenaRoute(Client client, SkillTrackerConfig config, SkillHelperData helpers, AgilityTracker agility) {
+    ArenaRoute(Client client, SkillTrackerConfig config, SkillHelperData helpers, AgilityTracker agility,
+               Provider<ObstacleReps> reps) {
         this.client = client;
         this.config = config;
         this.helpers = helpers;
         this.agility = agility;
+        this.reps = reps;
     }
 
     @Subscribe
     public void onGameTick(GameTick event) {
-        if (!agility.inArena() || !(config.arenaObstacleColours() || config.arenaRoute() || config.arenaDebug()
-            || config.arenaOneObstacle())) {
+        if (!agility.inArena() || helpers.arenaGrid().length < 5 || !(config.arenaObstacleColours() || config.arenaRoute()
+            || config.arenaDebug() || config.oneObstacleTraining())) {
             clear();
             return;
         }
         int now = client.getTickCount();
-        if (now - lastScan >= SCAN_TICKS || pillars.isEmpty()) {
+        if (now - lastScan >= SCAN_TICKS || obstacles.isEmpty()) {
             lastScan = now;
             scan();
         }
@@ -144,25 +116,21 @@ class ArenaRoute {
     }
 
     private void clear() {
-        start = null;
-        clearScan();
-    }
-
-    private void clearScan() {
-        pillars.clear();
         obstacles.clear();
         links.clear();
         route = Collections.emptyList();
+        start = null;
         target = null;
         unlinked = 0;
     }
 
-    // The dispensers and obstacles in the loaded scene, and the links between pillars
+    // The obstacles in the loaded scene, and the gaps between pillars they sit in
     private void scan() {
-        clearScan();
+        obstacles.clear();
+        links.clear();
+        unlinked = 0;
         Scene scene = client.getTopLevelWorldView().getScene();
-        Tile[][][] tiles = scene.getTiles();
-        for (Tile[][] plane : tiles) {
+        for (Tile[][] plane : scene.getTiles()) {
             for (Tile[] column : plane) {
                 for (Tile tile : column) {
                     if (tile == null) {
@@ -177,173 +145,92 @@ class ArenaRoute {
                 }
             }
         }
-        // Each obstacle object joins the pair of neighbouring pillars it sits between; a link is the obstacle most
-        // of its objects are
-        Map<String, Link> byPair = new HashMap<>();
-        Map<String, Map<SkillHelperData.ArenaObstacle, Integer>> votes = new HashMap<>();
-        for (Map.Entry<TileObject, SkillHelperData.ArenaObstacle> e : obstacles.entrySet()) {
-            WorldPoint at = e.getKey().getWorldLocation();
-            WorldPoint[] pair = pairFor(at);
-            if (pair == null) {
-                unlinked++;
-                continue;
+        links.addAll(link(obstacles, helpers.arenaGrid()));
+        for (TileObject object : obstacles.keySet()) {
+            boolean linked = false;
+            for (Link link : links) {
+                linked |= link.objects.contains(object);
             }
-            String key = pair[0] + "|" + pair[1];
-            Link link = byPair.computeIfAbsent(key, k -> new Link(pair[0], pair[1], null));
-            link.objects.add(e.getKey());
-            votes.computeIfAbsent(key, k -> new HashMap<>()).merge(e.getValue(), 1, Integer::sum);
+            unlinked += linked ? 0 : 1;
         }
-        for (Map.Entry<String, Link> e : byPair.entrySet()) {
-            SkillHelperData.ArenaObstacle most = Collections.max(votes.get(e.getKey()).entrySet(), Map.Entry.comparingByValue()).getKey();
-            Link link = new Link(e.getValue().a, e.getValue().b, most);
-            link.objects.addAll(e.getValue().objects);
-            links.add(link);
-        }
-        // The obstacles sit midway between pillars' middles, so the dispensers' midpoint minus the obstacle's is
-        // where a dispenser sits on its pillar
-        double dx = 0;
-        double dy = 0;
-        for (Link link : links) {
-            double[] middle = middle(link.objects);
-            dx += (link.a.getX() + link.b.getX()) / 2.0 - middle[0];
-            dy += (link.a.getY() + link.b.getY()) / 2.0 - middle[1];
-        }
-        offsetX = links.isEmpty() ? 0 : dx / links.size();
-        offsetY = links.isEmpty() ? 0 : dy / links.size();
-    }
-
-    static double[] middle(List<TileObject> objects) {
-        double x = 0;
-        double y = 0;
-        for (TileObject object : objects) {
-            x += object.getWorldLocation().getX();
-            y += object.getWorldLocation().getY();
-        }
-        int n = Math.max(1, objects.size());
-        return new double[] {x / n, y / n};
-    }
-
-    // The pillar you're standing on (whose middle you're in), or the last one while you're on an obstacle
-    private WorldPoint yourPillar(WorldPoint you) {
-        WorldPoint best = null;
-        double bestDistance = ON_PILLAR + 0.5;
-        for (WorldPoint pillar : pillars) {
-            double distance = Math.max(Math.abs(you.getX() - (pillar.getX() - offsetX)),
-                Math.abs(you.getY() - (pillar.getY() - offsetY)));
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                best = pillar;
-            }
-        }
-        if (best != null) {
-            return best;
-        }
-        return start != null && pillars.contains(start) ? start : nearest(you);
-    }
-
-    @Subscribe
-    public void onStatChanged(StatChanged event) {
-        if (event.getSkill() != Skill.AGILITY) {
-            return;
-        }
-        int xp = event.getXp();
-        int gain = lastXp < 0 ? 0 : xp - lastXp;
-        lastXp = xp;
-        Player you = client.getLocalPlayer();
-        if (gain <= 0 || gain > MAX_OBSTACLE_XP || you == null || !agility.inArena()) {
-            return;
-        }
-        // The obstacle you just crossed: the nearest one to you
-        SkillHelperData.ArenaObstacle crossed = null;
-        int nearest = REP_NEAR + 1;
-        for (Map.Entry<TileObject, SkillHelperData.ArenaObstacle> e : obstacles.entrySet()) {
-            int distance = e.getKey().getWorldLocation().distanceTo2D(you.getWorldLocation());
-            if (distance < nearest && e.getValue().xp > 0) {
-                nearest = distance;
-                crossed = e.getValue();
-            }
-        }
-        if (crossed == null) {
-            return;
-        }
-        int now = client.getTickCount();
-        if (crossed != training || now - lastRepTick > TRAINING_IDLE_TICKS) {
-            training = crossed;
-            reps = 0;
-            repXp = 0;
-            firstRepTick = now;
-        }
-        repXp = (repXp * reps + gain) / (reps + 1);
-        reps++;
-        lastRepTick = now;
-    }
-
-    /** Whether you're crossing one obstacle over and over (a few reps in a row, the last one lately). */
-    boolean trainingOne() {
-        return config.arenaOneObstacle() && training != null && reps >= TRAINING_REPS
-            && client.getTickCount() - lastRepTick <= TRAINING_IDLE_TICKS;
-    }
-
-    /** Reps per hour of the obstacle you're training (0 until there are two). */
-    double repsPerHour() {
-        int span = lastRepTick - firstRepTick;
-        return reps < 2 || span <= 0 ? 0 : (reps - 1) * 6000.0 / span;
-    }
-
-    /** Reps to this much XP (0 if unknown or there). */
-    int repsTo(int targetXp) {
-        int xp = client.getSkillExperience(Skill.AGILITY);
-        return repXp <= 0 || targetXp <= xp ? 0 : (int) Math.ceil((targetXp - xp) / repXp);
     }
 
     private void add(TileObject object) {
-        if (object == null) {
-            return;
-        }
-        int id = object.getId();
-        if (helpers.isArenaDispenser(id)) {
-            WorldPoint at = object.getWorldLocation();
-            for (WorldPoint pillar : pillars) {
-                if (pillar.distanceTo2D(at) <= 2) {
-                    return;
-                }
+        if (object != null) {
+            SkillHelperData.ArenaObstacle obstacle = helpers.arenaObstacle(object.getId());
+            if (obstacle != null) {
+                obstacles.put(object, obstacle);
             }
-            pillars.add(at);
-            return;
-        }
-        SkillHelperData.ArenaObstacle obstacle = helpers.arenaObstacle(id);
-        if (obstacle != null) {
-            obstacles.put(object, obstacle);
         }
     }
 
-    // The two neighbouring pillars this tile sits between, or null
-    private WorldPoint[] pairFor(WorldPoint at) {
+    /**
+     * Links each obstacle object to the gap between the two neighbouring pillars it sits in; a gap's obstacle is
+     * the one most of its objects are.
+     */
+    static List<Link> link(Map<TileObject, SkillHelperData.ArenaObstacle> obstacles, int[] grid) {
+        Map<String, WorldPoint[]> ends = new LinkedHashMap<>();
+        Map<String, List<TileObject>> objects = new HashMap<>();
+        Map<String, Map<SkillHelperData.ArenaObstacle, Integer>> votes = new HashMap<>();
+        for (Map.Entry<TileObject, SkillHelperData.ArenaObstacle> e : obstacles.entrySet()) {
+            WorldPoint[] gap = gap(e.getKey().getWorldLocation(), grid);
+            if (gap == null) {
+                continue;
+            }
+            String key = gap[0] + "|" + gap[1];
+            ends.putIfAbsent(key, gap);
+            objects.computeIfAbsent(key, k -> new ArrayList<>()).add(e.getKey());
+            votes.computeIfAbsent(key, k -> new HashMap<>()).merge(e.getValue(), 1, Integer::sum);
+        }
+        List<Link> links = new ArrayList<>();
+        for (Map.Entry<String, WorldPoint[]> e : ends.entrySet()) {
+            SkillHelperData.ArenaObstacle most = Collections.max(votes.get(e.getKey()).entrySet(), Map.Entry.comparingByValue()).getKey();
+            Link link = new Link(e.getValue()[0], e.getValue()[1], most);
+            link.objects.addAll(objects.get(e.getKey()));
+            links.add(link);
+        }
+        return links;
+    }
+
+    /** The two neighbouring pillars whose gap this tile is in, or null. */
+    static WorldPoint[] gap(WorldPoint at, int[] grid) {
+        int x0 = grid[0];
+        int y0 = grid[1];
+        int step = grid[2];
+        double fx = (at.getX() - x0) / (double) step;
+        double fy = (at.getY() - y0) / (double) step;
         WorldPoint[] best = null;
-        double bestDistance = MIDDLE;
-        for (int i = 0; i < pillars.size(); i++) {
-            for (int j = i + 1; j < pillars.size(); j++) {
-                WorldPoint p = pillars.get(i);
-                WorldPoint q = pillars.get(j);
-                if (!neighbours(p, q)) {
-                    continue;
-                }
-                double mx = (p.getX() + q.getX()) / 2.0;
-                double my = (p.getY() + q.getY()) / 2.0;
-                double distance = Math.hypot(at.getX() - mx, at.getY() - my);
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    best = new WorldPoint[] {p, q};
-                }
+        double bestDistance = GAP;
+        // An east-west gap (between columns i and i+1 on row j), then a north-south one
+        for (int horizontal = 0; horizontal < 2; horizontal++) {
+            int i = horizontal == 0 ? (int) Math.floor(fx) : (int) Math.round(fx);
+            int j = horizontal == 0 ? (int) Math.round(fy) : (int) Math.floor(fy);
+            int i2 = horizontal == 0 ? i + 1 : i;
+            int j2 = horizontal == 0 ? j : j + 1;
+            if (i < 0 || j < 0 || i2 >= grid[3] || j2 >= grid[4]) {
+                continue;
+            }
+            double mx = x0 + (i + i2) * step / 2.0;
+            double my = y0 + (j + j2) * step / 2.0;
+            double distance = Math.hypot(at.getX() - mx, at.getY() - my);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = new WorldPoint[] {pillar(grid, i, j), pillar(grid, i2, j2)};
             }
         }
         return best;
     }
 
-    static boolean neighbours(WorldPoint p, WorldPoint q) {
-        int dx = Math.abs(p.getX() - q.getX());
-        int dy = Math.abs(p.getY() - q.getY());
-        return dx >= NEAR && dx <= FAR && dy <= OFF_LINE || dy >= NEAR && dy <= FAR && dx <= OFF_LINE;
+    // Pillars are kept on plane 0 so they compare by x/y (you, the hint arrow and obstacles can be on other planes)
+    private static WorldPoint pillar(int[] grid, int i, int j) {
+        return new WorldPoint(grid[0] + i * grid[2], grid[1] + j * grid[2], 0);
+    }
+
+    /** The pillar nearest this tile (the grid's pillars all count, dispenser or not). */
+    static WorldPoint nearestPillar(WorldPoint at, int[] grid) {
+        int i = Math.max(0, Math.min(grid[3] - 1, (int) Math.round((at.getX() - grid[0]) / (double) grid[2])));
+        int j = Math.max(0, Math.min(grid[4] - 1, (int) Math.round((at.getY() - grid[1]) / (double) grid[2])));
+        return pillar(grid, i, j);
     }
 
     /** How this obstacle is for you at your current (boosted) Agility level. */
@@ -369,21 +256,24 @@ class ArenaRoute {
         return obstacle.ticks + WALK_TICKS + fail * fall;
     }
 
-    // Dijkstra from the pillar you're nearest to the tagged one
+    // Every tick: Dijkstra from the pillar nearest you to the tagged one
     private void findRoute() {
         route = Collections.emptyList();
+        int[] grid = helpers.arenaGrid();
         Player you = client.getLocalPlayer();
         WorldPoint hint = client.hasHintArrow() ? client.getHintArrowPoint() : null;
-        start = you == null ? null : yourPillar(you.getWorldLocation());
-        target = hint == null ? null : nearest(hint);
+        start = you == null ? null : nearestPillar(you.getWorldLocation(), grid);
+        target = hint == null ? null : nearestPillar(hint, grid);
         int level = client.getBoostedSkillLevel(Skill.AGILITY);
         for (Link link : links) {
             link.cost = cost(link.obstacle, level);
         }
-        if (start == null || target == null || start.equals(target) || !config.arenaRoute() || trainingOne()) {
+        if (start == null || target == null || !config.arenaRoute() || reps.get().trainingOne()) {
             return;
         }
-        route = shortest(links, start, target);
+        if (!start.equals(target)) {
+            route = shortest(links, start, target);
+        }
     }
 
     /** The cheapest chain of links from one pillar to another (links that cost under 0 can't be used). */
@@ -431,15 +321,15 @@ class ArenaRoute {
         return path;
     }
 
-    // The pillar nearest this tile, or null when none are loaded
-    private WorldPoint nearest(WorldPoint at) {
-        WorldPoint best = null;
-        for (WorldPoint pillar : pillars) {
-            if (best == null || pillar.distanceTo2D(at) < best.distanceTo2D(at)) {
-                best = pillar;
-            }
+    static double[] middle(List<TileObject> objects) {
+        double x = 0;
+        double y = 0;
+        for (TileObject object : objects) {
+            x += object.getWorldLocation().getX();
+            y += object.getWorldLocation().getY();
         }
-        return best;
+        int n = Math.max(1, objects.size());
+        return new double[] {x / n, y / n};
     }
 
     /** The best XP per tick among the obstacles you can do safely in the scene (0 if none). */

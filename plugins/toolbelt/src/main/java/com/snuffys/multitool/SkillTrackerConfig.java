@@ -778,13 +778,13 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
-        keyName = "arenaOneObstacle",
+        keyName = "oneObstacleTraining",
         name = "One Obstacle Training",
-        description = "<div width='300'>When you cross the same arena obstacle over and over (floor spikes back and forth, say) instead of chasing pillars: the arena card counts your reps, reps and XP per hour, and reps to your next level and goal, outlines that obstacle, and the route and pillar warning step aside until you stop",
+        description = "<div width='300'>When you cross the same obstacle over and over instead of running a course (the Brimhaven Arena's floor spikes back and forth, or any Agility shortcut): a card counts your reps, reps and XP per hour, and reps to your next level and goal, and outlines it. In the arena the route and pillar warning step aside until you stop",
         section = agilitySection,
         position = 9
     )
-    default boolean arenaOneObstacle() {
+    default boolean oneObstacleTraining() {
         return true;
     }
 

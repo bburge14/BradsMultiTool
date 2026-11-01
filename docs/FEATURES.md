@@ -519,13 +519,15 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
   outlined thicker and the pillar's tile marked. It only uses obstacles your level allows and counts each one's time,
   the walk across each pillar and the time a fall would cost you. The arena card shows how many obstacles and about
   how long. It's worked out from the obstacles loaded around you, so it can only route through what the game has
-  loaded. It's worked out again every tick from the pillar you're standing on (while you're on an obstacle, the one
-  you left). **Arena Route Readout** adds what it found to the card (pillars, obstacles, links, your pillar, each
-  step), for checking.
-- **One Obstacle Training:** cross the same obstacle over and over (floor spikes back and forth, say) instead of
-  chasing pillars, and after three reps in a row the arena card switches to it: reps, reps and XP per hour, reps to
-  your next level and goal. That obstacle is outlined thicker, and the route and the pillar warning step aside until
-  you stop (about two minutes without a rep) or move on to another obstacle.
+  loaded. The arena's pillars stand on a 5 by 5 grid (not every pillar has a ticket dispenser, but they all count),
+  and the route is worked out again every game tick from the pillar nearest you, so it follows you as you go.
+  **Arena Route Readout** adds what it found to the card (obstacles, links, the pillar nearest you, each step), for
+  checking.
+- **One Obstacle Training:** cross the same obstacle over and over instead of running a course (the arena's floor
+  spikes back and forth, or any Agility shortcut anywhere), and after three reps in a row a card shows it: reps, reps
+  and XP per hour, reps to your next level and goal. In the arena it's on the arena card, that obstacle is outlined
+  thicker, and the route and the pillar warning step aside until you stop (about two minutes without a rep) or move
+  on to another obstacle. Laps on a course count on the Course Card instead.
 - **Run Energy Alert Below:** while you're training Agility, an alert ("Your run energy is low") when your run
   energy drops below this (15%; 0 turns it off).
 - **Obstacle Hover:** hovering an obstacle or shortcut shows its level, the course XP per lap and laps to level.

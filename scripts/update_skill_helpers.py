@@ -423,7 +423,13 @@ def arena():
         obstacles.append(obstacle)
     dispenser = wikitext("Ticket dispenser")
     dispensers = sorted({int(i) for line in re.findall(r"\|\s*id\d*\s*=\s*([^\n]+)", dispenser) for i in re.findall(r"\d+", line)})
-    return {"obstacles": obstacles, "dispensers": dispensers}
+    # The pillars stand on a square grid; the dispensers' map pins (not every pillar has one) give its corner and
+    # spacing: obstacles sit midway between neighbouring pillars
+    pins = [(int(x), int(y)) for x, y in re.findall(r"x:(\d+),y:(\d+)", dispenser)]
+    xs, ys = sorted({x for x, _ in pins}), sorted({y for _, y in pins})
+    step = min(b - a for a, b in zip(xs, xs[1:]))
+    grid = {"x": xs[0], "y": ys[0], "step": step, "columns": (xs[-1] - xs[0]) // step + 1, "rows": (ys[-1] - ys[0]) // step + 1}
+    return {"obstacles": obstacles, "dispensers": dispensers, "grid": grid}
 
 
 def main():

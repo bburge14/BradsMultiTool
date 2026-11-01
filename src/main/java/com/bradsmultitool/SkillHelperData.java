@@ -351,6 +351,8 @@ class SkillHelperData {
     private final Map<Integer, Shortcut> shortcuts = new HashMap<>();
     private final Map<Integer, ArenaObstacle> arenaObstacles = new HashMap<>();
     private final java.util.Set<Integer> arenaDispensers = new java.util.HashSet<>();
+    // The arena's pillar grid: x, y of its south-west pillar, spacing, columns, rows (empty when not loaded)
+    private int[] arenaGrid = new int[0];
 
     void load(Gson gson) {
         creatures.clear();
@@ -416,6 +418,11 @@ class SkillHelperData {
                     }
                     for (JsonElement id : arena.getAsJsonArray("dispensers")) {
                         arenaDispensers.add(id.getAsInt());
+                    }
+                    JsonObject grid = arena.getAsJsonObject("grid");
+                    if (grid != null) {
+                        arenaGrid = new int[] {grid.get("x").getAsInt(), grid.get("y").getAsInt(), grid.get("step").getAsInt(),
+                            grid.get("columns").getAsInt(), grid.get("rows").getAsInt()};
                     }
                 }
                 JsonObject sailing = root.getAsJsonObject("sailing");
@@ -615,6 +622,11 @@ class SkillHelperData {
     /** Whether this object is one of the arena's ticket dispensers (the pillars you tag). */
     boolean isArenaDispenser(int objectId) {
         return arenaDispensers.contains(objectId);
+    }
+
+    /** The arena's pillar grid: x, y of its south-west pillar, spacing, columns, rows (empty when not loaded). */
+    int[] arenaGrid() {
+        return arenaGrid;
     }
 
     Shortcut shortcut(int objectId) {
