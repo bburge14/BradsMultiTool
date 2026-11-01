@@ -51,9 +51,34 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         return 1 - Math.min(1, since / (double) TICK_MILLIS) * 0.7;
     }
 
+    /** One tick's box at (x, y): its number, lit (and fading) on its tick. */
+    static void drawBox(Graphics2D graphics, FontMetrics metrics, TickConfig config, int x, int y, int size, int tick,
+                        boolean lit, double fade, Color background) {
+        Color color = tickColor(config, tick);
+        graphics.setColor(background);
+        graphics.fillRect(x, y, size, size);
+        if (lit) {
+            graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (color.getAlpha() * fade * 0.7)));
+            graphics.fillRect(x, y, size, size);
+        }
+        graphics.setColor(lit ? color : IDLE_BORDER);
+        graphics.drawRect(x, y, size - 1, size - 1);
+        if (lit) {
+            graphics.drawRect(x + 1, y + 1, size - 3, size - 3);
+        }
+        String text = String.valueOf(tick);
+        int textX = x + (size - metrics.stringWidth(text)) / 2;
+        int textY = y + (size - metrics.getHeight()) / 2 + metrics.getAscent();
+        graphics.setColor(Color.BLACK);
+        graphics.drawString(text, textX + 1, textY + 1);
+        graphics.setColor(lit ? Color.WHITE : Color.GRAY);
+        graphics.drawString(text, textX, textY);
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (client.getGameState() != GameState.LOGGED_IN || !config.tickBoxes() || ticks.getCount() <= 0) {
+        if (client.getGameState() != GameState.LOGGED_IN || !config.tickBoxes() || ticks.getCount() <= 0
+            || config.tickBoxesSeparate()) {
             return null;
         }
         int size = config.tickBoxSize();
@@ -67,27 +92,7 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         for (int tick = 1; tick <= cycle; tick++) {
             int x = horizontal ? (tick - 1) * (size + GAP) : 0;
             int y = horizontal ? 0 : (tick - 1) * (size + GAP);
-            Color color = tickColor(config, tick);
-            boolean lit = tick == current;
-            graphics.setColor(BACKGROUND);
-            graphics.fillRect(x, y, size, size);
-            if (lit) {
-                graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (color.getAlpha() * fade * 0.7)));
-                graphics.fillRect(x, y, size, size);
-            }
-            graphics.setColor(lit ? color : IDLE_BORDER);
-            graphics.drawRect(x, y, size - 1, size - 1);
-            if (lit) {
-                graphics.drawRect(x + 1, y + 1, size - 3, size - 3);
-            }
-
-            String text = String.valueOf(tick);
-            int textX = x + (size - metrics.stringWidth(text)) / 2;
-            int textY = y + (size - metrics.getHeight()) / 2 + metrics.getAscent();
-            graphics.setColor(Color.BLACK);
-            graphics.drawString(text, textX + 1, textY + 1);
-            graphics.setColor(lit ? Color.WHITE : Color.GRAY);
-            graphics.drawString(text, textX, textY);
+            drawBox(graphics, metrics, config, x, y, size, tick, tick == current, fade, BACKGROUND);
         }
         int length = cycle * size + (cycle - 1) * GAP;
         return horizontal ? new Dimension(length, size) : new Dimension(size, length);

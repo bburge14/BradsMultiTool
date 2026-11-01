@@ -14,6 +14,7 @@ final class TickConfigDefaults {
         defaults.store("tickOverHead", config.tickOverHead());
         defaults.store("tickBoxes", config.tickBoxes());
         defaults.store("tickBoxLayout", config.tickBoxLayout());
+        defaults.store("tickBoxesSeparate", config.tickBoxesSeparate());
         defaults.store("tickBar", config.tickBar());
         defaults.store("tickCycle", config.tickCycle());
         defaults.store("tickFollowWeapon", config.tickFollowWeapon());

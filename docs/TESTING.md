@@ -210,3 +210,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tracker: GOALS and THIS SESSION each list the skill with the latest XP first; Attack/Hitpoints from one hit don't swap back and forth.
 - [ ] Tracker: click the GOALS / THIS SESSION heading to fold the list ("+ GOALS (3)") and again to open it; remembered after a relaunch.
 - [ ] Settings > About: heading tooltip lists the plugin and its clashes; Open the Guide opens the guide and switches off. With e.g. RuneLite's Metronome on, the Tick Counter says a Heads up once (not every login); turning Metronome off and on says it again.
+- [ ] Tick Counter > Move Boxes Separately: the boxes become separate see-through boxes, each Alt + draggable and kept where placed after a relaunch; only boxes up to the cycle length show.

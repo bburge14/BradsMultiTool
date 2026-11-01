@@ -437,6 +437,9 @@ clicks; it never clicks, changes a menu or does anything for you.
   your character from any camera angle.
 - **Tick Boxes:** a box for each tick of the cycle (3 boxes for a 3-tick cycle), in a row or a column, the
   current one lit. Move them with Alt + drag.
+- **Move Boxes Separately:** each tick box becomes its own see-through box you Alt + drag anywhere, for example
+  one over each item you click in a tick method (box 1 on the item for tick 1, and so on); each stays where you
+  put it. They start stacked in the top-left corner; a box shows while its tick is in the cycle.
 - **Tick Bar:** fills smoothly from left to right over each tick and snaps back on the next, so you can see the
   tick coming instead of reacting to a flash. Move it with Alt + drag.
 - The first tick of each cycle is in its own colour (green by default).
@@ -461,7 +464,7 @@ clicks; it never clicks, changes a menu or does anything for you.
 3-tick skilling), or turn on **Follow Attack Speed** for combat. Turn on **Metronome** to hear it. For 1-ticking, set Ticks Per Cycle to 1 and
 turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 
-**Settings (Tick Counter):** Count Over Head; Tick Boxes and Box Layout (Horizontal or Vertical); Tick Bar;
+**Settings (Tick Counter):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical) and Move Boxes Separately; Tick Bar;
 Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
 volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.

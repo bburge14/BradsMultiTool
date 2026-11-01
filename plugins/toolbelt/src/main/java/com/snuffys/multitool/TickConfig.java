@@ -136,6 +136,17 @@ public interface TickConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "tickBoxesSeparate",
+        name = "Move Boxes Separately",
+        description = "<div width='300'>Each tick box becomes its own see-through box you can Alt + drag anywhere, say over the item you click on that tick for a tick method; each stays where you put it. Off: the boxes move together in a row or column",
+        section = tickSection,
+        position = 2
+    )
+    default boolean tickBoxesSeparate() {
+        return false;
+    }
+
+    @ConfigItem(
         keyName = "tickBar",
         name = "Tick Bar",
         description = "<div width='300'>A bar that fills smoothly over each tick and snaps back on the next, so you can see the tick coming instead of reacting to it. Move it with Alt + drag",
