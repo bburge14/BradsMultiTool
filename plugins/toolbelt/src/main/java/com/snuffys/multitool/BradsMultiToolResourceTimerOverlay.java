@@ -82,13 +82,11 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         drawUntimedSpots(graphics);
         for (ResourceTimers.Timer timer : timers.all()) {
             if (!shown(timer)) {
-                debugHidden(timer);
                 continue;
             }
-            if (timer.kind == ResourceTimers.Kind.ROCK && debugged.add(timer)) {
-                timers.debug("drawing the timer on " + timer.object.getWorldLocation());
-            }
-            boolean tile = config.pieStyle() == SkillTrackerConfig.PieStyle.TILE;
+            // Trees and rocks: just a pie on the tree or rock, like RuneLite's own (no tile, pictures or labels)
+            boolean plain = plainPie(timer.kind);
+            boolean tile = config.pieStyle() == SkillTrackerConfig.PieStyle.TILE && !plain;
             if (tile && !keepsPie(timer.kind)) {
                 // No pie: the tile's outline is the timer (green, yellow, red; pulsing red once it's due)
                 Point at = zone(graphics, timer, outlineColor(timer), false);
@@ -125,7 +123,9 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 left = 1;
             }
             drawPie(graphics, at, left, color, color, alpha);
-            drawLabels(graphics, timer, at);
+            if (!plain) {
+                drawLabels(graphics, timer, at);
+            }
         }
         return null;
     }
@@ -290,21 +290,6 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
     }
 
-    // Debug: Rock Timers: why a depleted rock's timer isn't drawn (once per timer)
-    private final java.util.Set<ResourceTimers.Timer> debugged = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
-
-    private void debugHidden(ResourceTimers.Timer timer) {
-        if (timer.kind != ResourceTimers.Kind.ROCK || !debugged.add(timer)) {
-            return;
-        }
-        SkillTrackerConfig.TimerShow when = when(timer.kind);
-        String why = when == SkillTrackerConfig.TimerShow.OFF ? "Mining Timers is Off"
-            : when == SkillTrackerConfig.TimerShow.TRAINING && !training(timer.kind) ? "Mining Timers is While training and you're not training Mining"
-            : config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind) ? "another timer plugin covers it (Use Other Timer Plugins)"
-            : "not visible";
-        timers.debug("timer on " + timer.object.getWorldLocation() + " not drawn: " + why);
-    }
-
     /** Whether a timer is drawn: its setting is on, it has something to show, you train its skill (or its setting is Always), and no other timer plugin already draws it. */
     boolean shown(ResourceTimers.Timer timer) {
         SkillTrackerConfig.TimerShow when = when(timer.kind);
@@ -355,6 +340,21 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
 
     // The tile style: outlines the resource's tiles, draws what it gives in the middle, and returns where the pie
     // goes (over the picture's top right corner, or the middle of the tile when there's no picture)
+    /** Woodcutting and Mining timers (trees, rocks coming back, veins, calcified rocks, Daeyalt, stars): only a pie. */
+    static boolean plainPie(ResourceTimers.Kind kind) {
+        switch (kind) {
+            case TREE:
+            case ROCK:
+            case VEIN:
+            case CALCIFIED:
+            case DAEYALT:
+            case STAR:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /** Traps, fires, campfires and depleted rocks: a pie timer even with the tile style (they go by a set time). */
     static boolean keepsPie(ResourceTimers.Kind kind) {
         return kind == ResourceTimers.Kind.TRAP || kind == ResourceTimers.Kind.FIRE || kind == ResourceTimers.Kind.CAMPFIRE

@@ -414,19 +414,9 @@ class ResourceTimers {
     private final Map<Player, WorldPoint> playerSpawnPoint = new HashMap<>();
 
     @Inject
-    ResourceTimers(Client client, SkillingData data, SkillTrackerConfig config) {
+    ResourceTimers(Client client, SkillingData data) {
         this.client = client;
         this.data = data;
-        this.config = config;
-    }
-
-    private final SkillTrackerConfig config;
-
-    // Debug: Rock Timers: each step in chat
-    void debug(String text) {
-        if (config.debugRockTimers()) {
-            client.addChatMessage(net.runelite.api.ChatMessageType.GAMEMESSAGE, "", "<col=ff9040>[Rock timer]</col> " + text, null);
-        }
     }
 
     /** Every timer currently tracked (check {@link Timer#visible()}). */
@@ -472,20 +462,17 @@ class ResourceTimers {
         if (event.getScriptId() != ROCK_RESPAWN_SCRIPT) {
             return;
         }
-        debug("game respawn script ran" + (event.getScriptEvent() == null ? " (without arguments)" : ""));
         if (event.getScriptEvent() == null) {
             return;
         }
         Object[] args = event.getScriptEvent().getArguments();
         if (args == null || args.length < 6 || !(args[1] instanceof Integer) || !(args[2] instanceof Integer)
             || !(args[5] instanceof Integer)) {
-            debug("respawn notice with unexpected arguments: " + java.util.Arrays.toString(args));
             return;
         }
         WorldPoint at = WorldPoint.fromCoord((Integer) args[1]);
         int greyId = (Integer) args[2];
         int ticks = (Integer) args[5];
-        debug("respawn notice: " + at + ", grey rock " + greyId + ", " + ticks + " ticks, rock " + rockNames.get(at));
         // Motherlode veins and calcified rocks have timers of their own
         if (ticks <= 0 || VEINS.contains(greyId) || CALCIFIED_ROCKS.contains(greyId)) {
             return;
@@ -501,7 +488,6 @@ class ResourceTimers {
             startRespawn(grey, ticks, rock);
             return;
         }
-        debug("grey rock " + greyId + " not loaded yet at " + at + ": waiting for it");
         depletingRocks.put(at, new Object[]{ticks, client.getTickCount(), greyId, rock});
     }
 
@@ -527,7 +513,6 @@ class ResourceTimers {
     private static final Set<Integer> MINING_GUILD_REGIONS = Set.of(12183, 12184);
 
     private void startRespawn(GameObject grey, int ticks, String rock) {
-        debug("timer started on " + grey.getWorldLocation() + " (" + rock + "), " + ticks + " ticks");
         remove(grey);
         Timer timer = new Timer(Kind.ROCK, grey, null, ticks, ticks);
         timer.resource = rock;
@@ -558,7 +543,6 @@ class ResourceTimers {
         if (depleted != null && (int) depleted[2] == id) {
             depletingRocks.remove(object.getWorldLocation());
             int left = (int) depleted[0] - (client.getTickCount() - (int) depleted[1]);
-            debug("grey rock " + id + " appeared at " + object.getWorldLocation() + ", " + left + " ticks left");
             if (left > 0) {
                 startRespawn(object, left, (String) depleted[3]);
             }
@@ -632,21 +616,8 @@ class ResourceTimers {
     }
 
     @Subscribe
-    public void onConfigChanged(net.runelite.client.events.ConfigChanged event) {
-        if ("debugRockTimers".equals(event.getKey()) && config.debugRockTimers()) {
-            debug("Rock timer debug is on. Mine a rock until it's depleted.");
-        }
-    }
-
-    @Subscribe
     public void onGameObjectDespawned(GameObjectDespawned event) {
         GameObject object = event.getGameObject();
-        if (config.debugRockTimers() && client.getGameState() == GameState.LOGGED_IN) {
-            SkillingData.Resource rock = data.object(object.getId(), objectName(object.getId()));
-            if (rock != null && "Mining".equals(rock.skill)) {
-                debug(rock.name + " (" + object.getId() + ") went at " + object.getWorldLocation());
-            }
-        }
         Timer timer = byTile.get(object.getWorldLocation());
         if (timer != null && timer.kind == Kind.TRAP && timer.object != null && timer.object.getId() == object.getId()) {
             // Keep it for a moment in case the trap is only changing state
