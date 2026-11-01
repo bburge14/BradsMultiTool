@@ -113,6 +113,12 @@ class TrainingAdvisor {
         SkillTrackerConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
         switch (picked != null ? SkillTrackerConfig.TrainingFocus.FASTEST : focus) {
             case MONEY:
+                // The money maker you picked from the card's Method list, while you still meet it
+                for (MoneyData.Guide g : moneyToPick(skill, level)) {
+                    if (g.name.equals(chosen)) {
+                        return new Suggestion("Your money maker:", g.name + " (" + g.profitText() + ")", null);
+                    }
+                }
                 MoneyData.Guide guide = money.best(skill, level, this::levelOf);
                 if (guide != null) {
                     return new Suggestion("Money:", guide.name + " (" + guide.profitText() + ")", null);
@@ -226,6 +232,11 @@ class TrainingAdvisor {
             }
         }
         return tools;
+    }
+
+    /** The money-making guides you could pick for this skill (you meet them at this level), best first. */
+    List<MoneyData.Guide> moneyToPick(Skill skill, int level) {
+        return money.available(skill, level, this::levelOf);
     }
 
     /** The guide methods you could pick at this level for this skill (see {@link TrainingData#available}). */

@@ -596,17 +596,37 @@ public class BradsMultiToolPanel extends PluginPanel {
             methodMenu.removeAll();
             int level = Experience.getLevelForXp(plugin.getCurrentSkillXp(skill));
             String chosen = plugin.getChosenMethod(skill);
+            ButtonGroup group = new ButtonGroup();
+            // Money Maker: the money-making guides, with their GP/hr
+            if (plugin.getTrainingFocus(skill) == SkillTrackerConfig.TrainingFocus.MONEY) {
+                List<MoneyData.Guide> guides = plugin.getTrainingAdvisor().moneyToPick(skill, level);
+                boolean picked = guides.stream().anyMatch(g -> g.name.equals(chosen));
+                JRadioButtonMenuItem best = new JRadioButtonMenuItem("Most profitable (automatic)", !picked);
+                best.addActionListener(e -> plugin.setChosenMethod(skill, null));
+                group.add(best);
+                methodMenu.add(best);
+                methodMenu.addSeparator();
+                for (MoneyData.Guide guide : guides.subList(0, Math.min(guides.size(), 15))) {
+                    JRadioButtonMenuItem item = new JRadioButtonMenuItem(guide.name + " - " + guide.profitText(),
+                        guide.name.equals(chosen));
+                    item.addActionListener(e -> plugin.setChosenMethod(skill, guide.name));
+                    group.add(item);
+                    methodMenu.add(item);
+                }
+                methodMenu.setEnabled(!guides.isEmpty());
+                return;
+            }
             List<TrainingData.Method> methods = plugin.getTrainingAdvisor().methodsToPick(skill, level);
             boolean chosenAvailable = methods.stream().anyMatch(m -> m.name.equals(chosen));
-            ButtonGroup group = new ButtonGroup();
             JRadioButtonMenuItem auto = new JRadioButtonMenuItem("Suggested (automatic)", chosen == null || !chosenAvailable);
             auto.addActionListener(e -> plugin.setChosenMethod(skill, null));
             group.add(auto);
             methodMenu.add(auto);
             methodMenu.addSeparator();
             for (TrainingData.Method method : methods) {
-                JRadioButtonMenuItem item = new JRadioButtonMenuItem(method.name + (method.fastest ? " (fastest)" : ""),
-                    method.name.equals(chosen));
+                // The guide's own XP/hr where it gives one (an estimate)
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem(method.name + (method.fastest ? " (fastest)" : "")
+                    + (method.xpHour > 0 ? " - ~" + shortNumber(method.xpHour) + " xp/hr" : ""), method.name.equals(chosen));
                 if (method.about != null) {
                     item.setToolTipText("<html><div width='260'>" + method.about + "</div></html>");
                 }

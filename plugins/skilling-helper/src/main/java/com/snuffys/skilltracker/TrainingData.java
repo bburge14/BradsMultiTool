@@ -48,6 +48,8 @@ class TrainingData {
         final List<String> targets = new ArrayList<>();
         /** The guide's first sentences about it, or null. */
         final String about;
+        /** The XP per hour the guide gives for it (the top of its range), 0 when it doesn't say. */
+        final int xpHour;
         /** Where the guide says to do it ("Prifddinas", "Shilo Village"...), best first, or empty. */
         final List<String> places = new ArrayList<>();
         /** Another non-combat skill's guide lists it too (it trains both). */
@@ -96,6 +98,7 @@ class TrainingData {
                 }
             }
             about = o.has("about") ? o.get("about").getAsString() : null;
+            xpHour = o.has("xpHour") ? o.get("xpHour").getAsInt() : 0;
             if (o.has("places")) {
                 for (JsonElement e : o.getAsJsonArray("places")) {
                     places.add(e.getAsString());

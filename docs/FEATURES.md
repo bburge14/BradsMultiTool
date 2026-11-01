@@ -334,7 +334,9 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   world.
 - **Pick another method:** right-click the skill's card > **Method** lists every guide method your level and
   quests allow (also the guide's later ones whose trees, rocks or creatures you can already use: Lead rocks from
-  Mining 25, though the guide lists it from 60) (the fastest marked; hover one for what the guide says about it). Pick one and the card, the
+  Mining 25, though the guide lists it from 60), each with the XP/hr the guide gives for it where it gives one
+  ("~46K xp/hr", an estimate). With the skill's Suggest set to **Money Maker**, it lists the wiki's money-making
+  methods for the skill you meet the requirements for instead, with their GP/hr, most profitable first (the fastest marked; hover one for what the guide says about it). Pick one and the card, the
   world outlines, the tools and the actions estimate follow it ("Your method: Barbarian Fishing"); once your level
   is past what it covers, it goes back to **Suggested (automatic)**, which you can also pick any time.
 - **Train something else:** right-click a Hunter creature, pickpocket NPC, fishing spot, tree, rock or

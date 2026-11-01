@@ -155,3 +155,6 @@ Helper: goals, goal starts, Track for goal picks, Suggest choices, Prayer method
 profile keys, plus `pinnedSkill`), as bird houses and compost already were. `SkillTracker.moveToSharedGroup`
 moves anything the Skilling Helper saved under its own group before this, once, without overwriting.
 
+`training.json` methods carry `xpHour` where the guide's text gives an XP rate ("around 45,000 experience per
+hour"; the top of a range), read by `scripts/update_training_data.py` (`xp_rate`).
+
