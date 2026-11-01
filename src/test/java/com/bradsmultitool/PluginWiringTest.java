@@ -51,6 +51,7 @@ public class PluginWiringTest {
             bind(PluginManager.class).toProvider(none());
             bind(ModelOutlineRenderer.class).toProvider(none());
             bind(ScheduledExecutorService.class).toProvider(none());
+            bind(net.runelite.client.config.RuneLiteConfig.class).toProvider(none());
         }
     };
 

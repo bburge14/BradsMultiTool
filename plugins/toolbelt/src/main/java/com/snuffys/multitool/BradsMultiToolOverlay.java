@@ -27,6 +27,10 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
 
 public class BradsMultiToolOverlay extends Overlay {
 
+    // RuneLite's own settings, for its overlay background colour
+    @javax.inject.Inject
+    private net.runelite.client.config.RuneLiteConfig runeLiteConfig;
+
     @Inject
     private CombatStyle combatStyle;
 
@@ -65,6 +69,7 @@ public class BradsMultiToolOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
+        HudColors.theme(panelComponent, runeLiteConfig.overlayBackgroundColor());
         if (client.getGameState() != GameState.LOGGED_IN || isLobbyScreenOpen()) {
             return null;
         }
