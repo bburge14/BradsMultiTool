@@ -25,6 +25,7 @@ plugin's name, and the Skilling Helper gives every skill its own. All start coll
 - [Goals and suggested training](#goals-and-suggested-training)
 - [Tick counter and metronome](#tick-counter-and-metronome)
 - [Idle alerts](#idle-alerts)
+- [Agility](#agility)
 - [Issues? button](#issues-button)
 
 ---
@@ -500,6 +501,23 @@ volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Idea
 Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
 
 ---
+
+## Agility
+
+**What it does:**
+- **Course Card:** while you run a course, its card shows your laps this session (from the game's lap count message),
+  laps and XP per hour (XP per lap is worked out from your own laps), average lap time, laps to your next level and
+  to your goal, and marks of grace picked up. It stays five minutes after your last lap.
+- **Brimhaven Arena Card:** in the Brimhaven Agility Arena, a bar counting down to the ticket pillar moving (every
+  minute; it starts once the pillar's arrow first moves), yellow then red near the end, plus your tickets this
+  session and per hour. **Voice/Chat: Pillar About to Move** warns you **Pillar Warning At** seconds before (10).
+- **Run Energy Alert Below:** while you're training Agility, an alert ("Your run energy is low") when your run
+  energy drops below this (15%; 0 turns it off).
+- **Obstacle Hover:** hovering an obstacle or shortcut shows its level, the course XP per lap and laps to level.
+
+RuneLite's own Agility plugin has an arena timer and a lap counter too; with either on, Snuffy's clash warning says
+so. **Settings (Agility):** Obstacle Hover, Course Card, Brimhaven Arena Card, Pillar Warning At, Voice/Chat: Pillar
+About to Move, Run Energy Alert Below, Voice/Chat: Run Energy Low.
 
 ## Issues? button
 

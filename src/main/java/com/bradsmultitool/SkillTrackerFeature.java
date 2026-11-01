@@ -25,6 +25,8 @@ class SkillTrackerFeature {
     @Inject private GoalItems goalItems;
     @Inject private GoalTargetMenu goalTargetMenu;
     @Inject private MethodDetector methodDetector;
+    @Inject private AgilityTracker agilityTracker;
+    @Inject private BradsMultiToolAgilityOverlay agilityOverlay;
     @Inject private SkillingAlerts skillingAlerts;
     @Inject private ResourceTimers resourceTimers;
     @Inject private BirdhouseTracker birdhouseTracker;
@@ -83,10 +85,10 @@ class SkillTrackerFeature {
         lifecycle.load(trainingData, trainingData::load);
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(moneyData, moneyData::load);
-        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, skillingAlerts,
+        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, skillingAlerts,
             resourceTimers, farmingData, birdhouseTracker, otherTimerPlugins, skillingOverlay, trainingOverlay);
         otherTimerPlugins.refresh();
-        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
+        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, agilityOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
         skillTracker.startUp();
         lifecycle.onStop(skillTracker::shutDown);
     }

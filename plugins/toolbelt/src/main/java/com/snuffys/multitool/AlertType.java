@@ -31,6 +31,8 @@ enum AlertType {
     ROCK_DEPLETED("voiceRockDepletedEach", "chatRockDepleted", new String[]{VoiceAlertService.VoiceLine.ROCK_DEPLETED.fileName}),
     FISHING_SPOT("FishingSpot", VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED),
     COIN_POUCH("CoinPouch", VoiceAlertService.VoiceLine.COIN_POUCH_FULL),
+    ARENA_PILLAR("ArenaPillar", VoiceAlertService.VoiceLine.ARENA_PILLAR_MOVING),
+    RUN_ENERGY("RunEnergy", VoiceAlertService.VoiceLine.RUN_ENERGY_LOW),
     BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
     BATCH_COMPLETE("BatchComplete", VoiceAlertService.VoiceLine.BATCH_COMPLETE),
     LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
@@ -85,6 +87,8 @@ enum AlertType {
             case ROCK_DEPLETED: return ROCK_DEPLETED;
             case FISHING_SPOT_MOVED: return FISHING_SPOT;
             case COIN_POUCH_FULL: return COIN_POUCH;
+            case ARENA_PILLAR_MOVING: return ARENA_PILLAR;
+            case RUN_ENERGY_LOW: return RUN_ENERGY;
             case BIRDHOUSES_READY: return BIRDHOUSES;
             case BATCH_COMPLETE: return BATCH_COMPLETE;
             default:

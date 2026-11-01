@@ -54,6 +54,14 @@ final class SkillTrackerConfigDefaults {
         defaults.store("campfireTimers", config.showCampfireTimer());
         defaults.store("showRunecraftHover", config.showRunecraftHover());
         defaults.store("showAgilityHover", config.showAgilityHover());
+        defaults.store("agilityCourseCard", config.agilityCourseCard());
+        defaults.store("agilityArenaCard", config.agilityArenaCard());
+        defaults.store("arenaWarnSeconds", config.arenaWarnSeconds());
+        defaults.store("voiceArenaPillar", config.voiceArenaPillar());
+        defaults.store("chatArenaPillar", config.chatArenaPillar());
+        defaults.store("runEnergyBelow", config.runEnergyBelow());
+        defaults.store("voiceRunEnergy", config.voiceRunEnergy());
+        defaults.store("chatRunEnergy", config.chatRunEnergy());
         defaults.store("showCookingHover", config.showCookingHover());
         defaults.store("shipwreckTimers", config.showShipwreckTimer());
         defaults.store("showSailingHover", config.showSailingHover());

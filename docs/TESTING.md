@@ -218,3 +218,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tick Boxes > Tick Pattern: 1-tick two halves (box 1 first half, box 2 second), each movable with Move Boxes Separately; Custom = Ticks Per Cycle.
 - [ ] Any of Snuffy's plugins with a clashing plugin on (e.g. RuneLite's Mining or Metronome): a yellow warning info box top-left, tooltip lists the clashes; it goes within a few seconds of turning the clash off, and when the plugin stops.
 - [ ] About > Clash Warnings off: no warning icon, no chat line (within a few seconds); on again brings them back.
+- [ ] Agility: Course Card on a rooftop (laps, laps/hr, XP/hr after 2 laps, lap time, laps to level/goal, marks); Brimhaven Arena Card (countdown from the first pillar move, red near the end, Pillar About to Move voice at 10 s, tickets/hr); Run Energy alert below 15% while training Agility.

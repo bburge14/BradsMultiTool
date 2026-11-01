@@ -123,6 +123,8 @@ LINES = {
     "potion_divine_magic_low": "Divine magic is running out.",
     "potion_divine_magic_expired": "Divine magic has run out.",
     "coin_pouch_full": "Your coin pouches are full.",
+    "arena_pillar_moving": "The pillar is about to move.",
+    "run_energy_low": "Your run energy is low.",
     "birdhouses_ready": "Your bird houses are ready.",
     "batch_complete": "Batch complete.",
 }
@@ -301,7 +303,7 @@ def compact_existing():
 # Which separate plugin each clip ships with: voices/<persona>/<plugin>/<clip>.wav, so each plugin's build
 # takes just its folder. Keep in step with VoiceAlertService.VoicePlugin.of()
 SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_moved", "coin_pouch_full",
-                  "birdhouses_ready", "batch_complete"}
+                  "arena_pillar_moving", "run_energy_low", "birdhouses_ready", "batch_complete"}
 
 
 def plugin_of(key):

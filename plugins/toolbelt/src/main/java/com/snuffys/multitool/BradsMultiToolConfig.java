@@ -270,8 +270,16 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String hunterSection = "hunterSection";
 
     @ConfigSection(
+        name = "Skilling: Agility",
+        description = "Agility: obstacle hover, the course card, the Brimhaven Arena card and the run energy alert",
+        position = 44,
+        closedByDefault = true
+    )
+    String agilitySection = "agilitySection";
+
+    @ConfigSection(
         name = "Skilling: Other Skills",
-        description = "Thieving, Farming, Firemaking, Runecraft, Agility, Cooking, Sailing and Smithing (each has its own section in Snuffy's Skilling Helper)",
+        description = "Thieving, Farming, Firemaking, Runecraft, Cooking, Sailing and Smithing (each has its own section in Snuffy's Skilling Helper)",
         position = 46,
         closedByDefault = true
     )
@@ -704,17 +712,6 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         return true;
     }
 
-    @ConfigItem(
-        keyName = "showAgilityHover",
-        name = "Agility: Obstacle Hover",
-        description = "<div width='300'>Hovering a course obstacle or shortcut shows its Agility level, the course XP per lap and laps to your next level",
-        section = otherSkillsSection,
-        position = 7
-    )
-    @Override
-    default boolean showAgilityHover() {
-        return true;
-    }
 
     @ConfigItem(
         keyName = "showCookingHover",

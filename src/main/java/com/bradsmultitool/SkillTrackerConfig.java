@@ -676,9 +676,108 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Obstacle Hover",
         description = "<div width='300'>Hovering a course obstacle or shortcut shows its Agility level, the course XP per lap and laps to your next level",
         section = agilitySection,
-        position = 1
+        position = 0
     )
     default boolean showAgilityHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "agilityCourseCard",
+        name = "Course Card",
+        description = "<div width='300'>While you run an Agility course: laps this session, laps and XP per hour, average lap time, laps to your next level and goal, and marks of grace picked up",
+        section = agilitySection,
+        position = 1
+    )
+    default boolean agilityCourseCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "agilityArenaCard",
+        name = "Brimhaven Arena Card",
+        description = "<div width='300'>In the Brimhaven Agility Arena: how long until the ticket pillar moves (it moves every minute), and the tickets you've earned this session and per hour",
+        section = agilitySection,
+        position = 2
+    )
+    default boolean agilityArenaCard() {
+        return true;
+    }
+
+    @Range(min
+    =
+    1,
+    max
+    =
+    30)
+    @Units(Units.SECONDS)
+    @ConfigItem(
+        keyName = "arenaWarnSeconds",
+        name = "Pillar Warning At",
+        description = "<div width='300'>How long before the pillar moves to warn you (and turn the card red)",
+        section = agilitySection,
+        position = 3
+    )
+    default int arenaWarnSeconds() {
+        return 10;
+    }
+
+    @ConfigItem(
+        keyName = "voiceArenaPillar",
+        name = "Voice: Pillar About to Move",
+        description = "<div width='300'>Says when the Brimhaven pillar is about to move (turning it on plays a preview)",
+        section = agilitySection,
+        position = 4
+    )
+    default boolean voiceArenaPillar() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatArenaPillar",
+        name = "Chat: Pillar About to Move",
+        description = "<div width='300'>Chat message when the Brimhaven pillar is about to move",
+        section = agilitySection,
+        position = 5
+    )
+    default boolean chatArenaPillar() {
+        return false;
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyBelow",
+        name = "Run Energy Alert Below",
+        description = "<div width='300'>While you're training Agility, alert when your run energy drops below this (0: off)",
+        section = agilitySection,
+        position = 6
+    )
+    default int runEnergyBelow() {
+        return 15;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunEnergy",
+        name = "Voice: Run Energy Low",
+        description = "<div width='300'>Says when your run energy is low while training Agility (turning it on plays a preview)",
+        section = agilitySection,
+        position = 7
+    )
+    default boolean voiceRunEnergy() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRunEnergy",
+        name = "Chat: Run Energy Low",
+        description = "<div width='300'>Chat message when your run energy is low while training Agility",
+        section = agilitySection,
+        position = 8
+    )
+    default boolean chatRunEnergy() {
         return true;
     }
 
