@@ -469,7 +469,11 @@ class ResourceTimers {
 
     @Subscribe
     public void onScriptPreFired(ScriptPreFired event) {
-        if (event.getScriptId() != ROCK_RESPAWN_SCRIPT || event.getScriptEvent() == null) {
+        if (event.getScriptId() != ROCK_RESPAWN_SCRIPT) {
+            return;
+        }
+        debug("game respawn script ran" + (event.getScriptEvent() == null ? " (without arguments)" : ""));
+        if (event.getScriptEvent() == null) {
             return;
         }
         Object[] args = event.getScriptEvent().getArguments();
@@ -646,8 +650,21 @@ class ResourceTimers {
     }
 
     @Subscribe
+    public void onConfigChanged(net.runelite.client.events.ConfigChanged event) {
+        if ("debugRockTimers".equals(event.getKey()) && config.debugRockTimers()) {
+            debug("Rock timer debug is on. Mine a rock until it's depleted.");
+        }
+    }
+
+    @Subscribe
     public void onGameObjectDespawned(GameObjectDespawned event) {
         GameObject object = event.getGameObject();
+        if (config.debugRockTimers() && client.getGameState() == GameState.LOGGED_IN) {
+            SkillingData.Resource rock = data.object(object.getId(), objectName(object.getId()));
+            if (rock != null && "Mining".equals(rock.skill)) {
+                debug(rock.name + " (" + object.getId() + ") went at " + object.getWorldLocation());
+            }
+        }
         Timer timer = byTile.get(object.getWorldLocation());
         if (timer != null && timer.kind == Kind.TRAP && timer.object != null && timer.object.getId() == object.getId()) {
             // Keep it for a moment in case the trap is only changing state
