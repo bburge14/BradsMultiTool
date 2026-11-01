@@ -1,5 +1,6 @@
-# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins (on opening, then every 10
-# minutes while it's open), Relaunch closes and restarts RuneLite with any update, checks the setup (RuneLite
+# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins (on opening, then checked every
+# minute in the background while it's open, pulled as soon as there's one), warns (red, a bold Relaunch, a Windows
+# notification) when the RuneLite that's open was built from an older version, Relaunch closes and restarts RuneLite with any update, checks the setup (RuneLite
 # installed, session saving on in RuneLite (configure), a Jagex session saved, Java, git) with a button to fix
 # each, and walks through saving a session; lets you pick which plugins RuneLite loads, and launches it. The Toolbelt has every separate
 # plugin in it, so it's either the Toolbelt on its own or any of the separate ones. Launching runs hidden with a
@@ -10,6 +11,8 @@ Add-Type -AssemblyName System.Drawing
 
 $root = Split-Path $PSScriptRoot -Parent
 $choiceFile = Join-Path $root '.launch-choice'
+# The version (commit) RuneLite was last launched with, to tell when the open one is out of date
+$runningFile = Join-Path $root '.running-commit'
 $creds = Join-Path $env:USERPROFILE '.runelite\credentials.properties'
 $green = [System.Drawing.Color]::FromArgb(0, 140, 60)
 $red = [System.Drawing.Color]::FromArgb(190, 30, 30)
@@ -72,7 +75,14 @@ function Update-Plugins {
         return
     }
     $old = (git -C $root rev-parse HEAD 2>$null)
-    $out = (git -C $root pull --ff-only 2>&1 | Out-String)
+    # From the branch's upstream, else origin's branch of the same name (a checkout without one set still updates)
+    git -C $root rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        $out = (git -C $root pull --ff-only 2>&1 | Out-String)
+    } else {
+        $branch = (git -C $root rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+        $out = (git -C $root pull --ff-only origin $branch 2>&1 | Out-String)
+    }
     if ($LASTEXITCODE -ne 0) {
         $updateStatus.Text = "Couldn't update (offline, or files changed here)."
         $updateStatus.ForeColor = $red
@@ -471,6 +481,8 @@ function Start-RuneLite {
     $showLog.Visible = $true
     $launch.Enabled = $false
     Set-Status "Building Snuffy's plugins..." ([System.Drawing.SystemColors]::ControlText) 5
+    Set-Content -Path $runningFile -Value (git -C $root rev-parse HEAD 2>$null)
+    $script:warnedFor = $null
     $command = "gradlew.bat --console=plain runBrad `"-Pload=$load`" > `"$logFile`" 2>&1"
     $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
     $watcher.Start()
@@ -519,18 +531,77 @@ $relaunch.Add_Click({
     $closer.Start()
 })
 
-# ---- Updates while the launcher's open: checked every 10 minutes; RuneLite running? Relaunch to use them ----
+# ---- Updates while the launcher's open: fetched every minute in the background (the window never freezes),
+# pulled as soon as there's one; and the open RuneLite checked against the version it was built from ----
+
+# The branch updates come from: its upstream, else origin's branch of the same name
+function Get-Upstream {
+    $up = (git -C $root rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null)
+    if ($LASTEXITCODE -eq 0 -and $up) { return $up.Trim() }
+    $branch = (git -C $root rev-parse --abbrev-ref HEAD 2>$null)
+    if ($branch) { return "origin/$($branch.Trim())" }
+    return $null
+}
+
+# The open RuneLite's version: this launcher's, or (opened before this window) the one saved at its launch
+function Running-Commit {
+    if (-not ((RuneLite-Running) -or (RuneLite-Window))) { return $null }
+    if (Test-Path $runningFile) { return (Get-Content $runningFile -ErrorAction SilentlyContinue | Select-Object -First 1) }
+    return $null
+}
+
+$tray = New-Object System.Windows.Forms.NotifyIcon
+$tray.Icon = if ($form.Icon) { $form.Icon } else { [System.Drawing.SystemIcons]::Information }
+$tray.Text = "Snuffy's Launcher"
+$tray.Add_BalloonTipClicked({ $form.Activate() })
+$form.Add_FormClosed({ $tray.Visible = $false; $tray.Dispose() })
+$script:fetch = $null
+$script:lastFetch = [DateTime]::MinValue
+$script:warnedFor = $null
+
+# Says when the open RuneLite is older than the plugins here (once a notification per new version)
+function Check-RunningVersion {
+    $running = Running-Commit
+    $head = (git -C $root rev-parse HEAD 2>$null)
+    if (-not $running -or -not $head -or $running.Trim() -eq $head.Trim()) {
+        if ($script:warnedFor) {
+            $script:warnedFor = $null
+            $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+        }
+        return
+    }
+    $behind = (git -C $root rev-list --count "$($running.Trim())..HEAD" 2>$null)
+    if (-not $behind) { $behind = 'some' }
+    $updateStatus.Text = "RuneLite is running an older version ($behind update(s) behind): Relaunch to use the new one."
+    $updateStatus.ForeColor = $red
+    $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+    $relaunch.Enabled = $true
+    if ($script:warnedFor -ne $head) {
+        $script:warnedFor = $head
+        $updateLog.Text = (git -C $root log --format='- %s' "$($running.Trim())..HEAD" 2>$null | Out-String).Trim()
+        $tray.Visible = $true
+        $tray.ShowBalloonTip(10000, "Snuffy's plugins updated", 'RuneLite is running an older version. Open the launcher and press Relaunch to use the new one.', 'Info')
+    }
+}
+
 $autoUpdate = New-Object System.Windows.Forms.Timer
-$autoUpdate.Interval = 10 * 60 * 1000
+$autoUpdate.Interval = 5000
 $autoUpdate.Add_Tick({
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
-    git -C $root fetch --quiet 2>$null
-    $behind = (git -C $root rev-list --count 'HEAD..@{u}' 2>$null)
-    if ($LASTEXITCODE -ne 0 -or [int]$behind -le 0) { return }
-    Update-Plugins
-    if (RuneLite-Running) {
-        $updateStatus.Text = 'Update ready: Relaunch to use it.'
-        $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+    if ($script:fetch) {
+        if (-not $script:fetch.HasExited) { return }
+        $script:fetch = $null
+        $upstream = Get-Upstream
+        if ($upstream) {
+            $behind = (git -C $root rev-list --count "HEAD..$upstream" 2>$null)
+            if ($LASTEXITCODE -eq 0 -and [int]$behind -gt 0) { Update-Plugins }
+        }
+        Check-RunningVersion
+        return
+    }
+    if (((Get-Date) - $script:lastFetch).TotalSeconds -ge 60) {
+        $script:lastFetch = Get-Date
+        $script:fetch = Start-Process -FilePath 'git' -ArgumentList '-C', "`"$root`"", 'fetch', '--quiet' -WindowStyle Hidden -PassThru
     }
 })
 $autoUpdate.Start()
@@ -565,5 +636,7 @@ $form.Add_Shown({
     Set-ShortcutIcons
     Check-Setup
     Update-Plugins
+    Check-RunningVersion
+    $script:lastFetch = Get-Date
 })
 [void]$form.ShowDialog()

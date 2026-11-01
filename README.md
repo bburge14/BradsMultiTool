@@ -227,9 +227,12 @@ $s.Save()
 
 **4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small window that:
 
-- **updates** the plugins each time you open it, and checks again every 10 minutes while it's open, listing what's
-  new (with RuneLite running it says "Update ready: Relaunch to use it") (**Check again** to retry; when you're
-  offline or have changed files here, it says so and you launch the version you have);
+- **updates** the plugins each time you open it, and while it's open checks every minute in the background and
+  pulls any update straight away, listing what's new (**Check again** to retry; when you're offline or have changed
+  files here, it says so and you launch the version you have);
+- **warns you when the open RuneLite is out of date**: it remembers which version each launch was built from (even
+  if you close and reopen the launcher), and when there's a newer one it turns red ("RuneLite is running an older
+  version: Relaunch to use the new one"), makes **Relaunch** bold and pops up a Windows notification;
 - checks your **setup**, each row with a button to fix it:
   - **RuneLite** installed (it looks in RuneLite's usual folders, its uninstall entry, Start menu shortcuts and
     the Jagex Launcher's folder; **Find it...** lets you point to `RuneLite.exe` if it's somewhere else);

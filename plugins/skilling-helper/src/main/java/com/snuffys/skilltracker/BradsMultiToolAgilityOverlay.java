@@ -46,7 +46,7 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         this.agility = agility;
         this.plugin = plugin;
         setPosition(OverlayPosition.TOP_LEFT);
-        panel.setPreferredSize(new Dimension(170, 0));
+        panel.setPreferredSize(new Dimension(190, 0));
     }
 
     @Override
@@ -93,9 +93,12 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         }
         if (reps.trainingOne()) {
             trainingLines();
-        } else if (config.arenaRoute() && !route.getRoute().isEmpty()) {
-            panel.getChildren().add(LineComponent.builder().left("Route").right(route.getRoute().size() + " obstacles, ~"
-                + clock((int) Math.round(route.routeTicks()))).build());
+        }
+        if (config.arenaRoute()) {
+            String why = route.whyNoRoute();
+            panel.getChildren().add(LineComponent.builder().left("Route").right(why != null ? why
+                : route.getRoute().size() + " obstacles, ~" + clock((int) Math.round(route.routeTicks())))
+                .rightColor(why != null ? HudColors.WARN : Color.WHITE).build());
         }
         if (config.arenaDebug()) {
             debug();
@@ -141,9 +144,6 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         add("To (hint arrow)", point(route.getTarget()));
         if (reps.getName() != null) {
             add("Last obstacle", reps.getName() + " x" + reps.getReps());
-        }
-        if (route.getRoute().isEmpty()) {
-            add("Route", route.getTarget() == null ? "no pillar tagged" : route.getTarget().equals(route.getStart()) ? "you're there" : "none found");
         }
         WorldPoint at = route.getStart();
         for (ArenaRoute.Link link : route.getRoute()) {

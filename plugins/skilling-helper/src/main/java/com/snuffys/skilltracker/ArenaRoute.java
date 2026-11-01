@@ -344,6 +344,29 @@ class ArenaRoute {
         return best;
     }
 
+    /** Why there's no route right now, or null when there is one (shown on the arena card). */
+    String whyNoRoute() {
+        if (!route.isEmpty()) {
+            return null;
+        }
+        if (target == null) {
+            return "no pillar arrow yet";
+        }
+        if (reps.get().trainingOne()) {
+            return "hidden: training " + reps.get().getName();
+        }
+        if (start == null) {
+            return "finding you";
+        }
+        if (start.equals(target)) {
+            return "you're at the pillar";
+        }
+        if (links.isEmpty()) {
+            return "no obstacles loaded";
+        }
+        return "no way there at your level";
+    }
+
     /** The route's total time in ticks (0 when there's no route). */
     double routeTicks() {
         double total = 0;
