@@ -45,6 +45,9 @@ class AgilityTracker {
     private final SkillTracker plugin;
     private final ItemManager itemManager;
     private final Alerts alerts;
+    // The pillar warning steps aside while you train one obstacle
+    @Inject
+    private javax.inject.Provider<ArenaRoute> arenaRoute;
 
     // The course
     @Getter
@@ -161,7 +164,8 @@ class AgilityTracker {
                 arenaTicksLeft--;
             }
             int warnTicks = (int) Math.round(config.arenaWarnSeconds() / 0.6);
-            if (arenaTicksLeft > 0 && arenaTicksLeft <= warnTicks && !warned && config.agilityArenaCard()) {
+            if (arenaTicksLeft > 0 && arenaTicksLeft <= warnTicks && !warned && config.agilityArenaCard()
+                && (arenaRoute == null || !arenaRoute.get().trainingOne())) {
                 warned = true;
                 alerts.alert(VoiceAlertService.VoiceLine.ARENA_PILLAR_MOVING, null);
             }

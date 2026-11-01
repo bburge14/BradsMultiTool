@@ -62,6 +62,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("arenaObstacleColours", config.arenaObstacleColours());
         defaults.store("arenaRoute", config.arenaRoute());
         defaults.store("arenaDebug", config.arenaDebug());
+        defaults.store("arenaOneObstacle", config.arenaOneObstacle());
         defaults.store("runEnergyBelow", config.runEnergyBelow());
         defaults.store("voiceRunEnergy", config.voiceRunEnergy());
         defaults.store("chatRunEnergy", config.chatRunEnergy());

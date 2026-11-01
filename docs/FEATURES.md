@@ -515,11 +515,17 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
   and won't fail, **yellow** you can do it but may fail (floor spikes until 50, spinning blades and darts until 99,
   the wrong plank), **red** your level is too low. Hover one (Obstacle Hover) for its level, XP, time, XP per tick,
   your chance to get across, and whether it's the best XP per tick you can do safely.
-- **Arena Route:** the quickest way to the tagged pillar, drawn as a line across the pillars with its obstacles
+- **Arena Route:** the quickest way to the tagged pillar, drawn as a line from you across the pillars with its obstacles
   outlined thicker and the pillar's tile marked. It only uses obstacles your level allows and counts each one's time,
   the walk across each pillar and the time a fall would cost you. The arena card shows how many obstacles and about
   how long. It's worked out from the obstacles loaded around you, so it can only route through what the game has
-  loaded. **Arena Route Readout** adds what it found to the card (pillars, obstacles, links, each step), for checking.
+  loaded. It's worked out again every tick from the pillar you're standing on (while you're on an obstacle, the one
+  you left). **Arena Route Readout** adds what it found to the card (pillars, obstacles, links, your pillar, each
+  step), for checking.
+- **One Obstacle Training:** cross the same obstacle over and over (floor spikes back and forth, say) instead of
+  chasing pillars, and after three reps in a row the arena card switches to it: reps, reps and XP per hour, reps to
+  your next level and goal. That obstacle is outlined thicker, and the route and the pillar warning step aside until
+  you stop (about two minutes without a rep) or move on to another obstacle.
 - **Run Energy Alert Below:** while you're training Agility, an alert ("Your run energy is low") when your run
   energy drops below this (15%; 0 turns it off).
 - **Obstacle Hover:** hovering an obstacle or shortcut shows its level, the course XP per lap and laps to level.
@@ -527,7 +533,7 @@ Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
 RuneLite's own Agility plugin has an arena timer and a lap counter too, and its Show Clickboxes outlines most arena
 obstacles (Snuffy's colours leave those to it); with any of them on, Snuffy's clash warning says so.
 **Settings (Agility):** Obstacle Hover, Course Card, Brimhaven Arena Card, Pillar Warning At, Voice/Chat: Pillar
-About to Move (both on), Arena Obstacle Colours, Arena Route, Arena Route Readout, Run Energy Alert Below,
+About to Move (both on), Arena Obstacle Colours, Arena Route, Arena Route Readout, One Obstacle Training, Run Energy Alert Below,
 Voice/Chat: Run Energy Low.
 
 ## Issues? button

@@ -777,6 +777,17 @@ public interface SkillTrackerConfig extends CommonConfig {
         return false;
     }
 
+    @ConfigItem(
+        keyName = "arenaOneObstacle",
+        name = "One Obstacle Training",
+        description = "<div width='300'>When you cross the same arena obstacle over and over (floor spikes back and forth, say) instead of chasing pillars: the arena card counts your reps, reps and XP per hour, and reps to your next level and goal, outlines that obstacle, and the route and pillar warning step aside until you stop",
+        section = agilitySection,
+        position = 9
+    )
+    default boolean arenaOneObstacle() {
+        return true;
+    }
+
     @Range(max
     =
     100)
@@ -786,7 +797,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Run Energy Alert Below",
         description = "<div width='300'>While you're training Agility, alert when your run energy drops below this (0: off)",
         section = agilitySection,
-        position = 9
+        position = 10
     )
     default int runEnergyBelow() {
         return 15;
@@ -797,7 +808,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Voice: Run Energy Low",
         description = "<div width='300'>Says when your run energy is low while training Agility (turning it on plays a preview)",
         section = agilitySection,
-        position = 10
+        position = 11
     )
     default boolean voiceRunEnergy() {
         return true;
@@ -808,7 +819,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Chat: Run Energy Low",
         description = "<div width='300'>Chat message when your run energy is low while training Agility",
         section = agilitySection,
-        position = 11
+        position = 12
     )
     default boolean chatRunEnergy() {
         return true;

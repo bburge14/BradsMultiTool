@@ -26,7 +26,8 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 /**
  * The Brimhaven Agility Arena on screen (see {@link ArenaRoute}): each obstacle outlined green (you can do it
  * safely), yellow (you can, but may fail) or red (your level is too low), and the quickest route to the tagged
- * pillar as a line across the pillars, its obstacles outlined thicker and the pillar's tile marked. Obstacles
+ * pillar as a line from you across the pillars, its obstacles outlined thicker and the pillar's tile marked; while
+ * you train one obstacle, that one outlined thicker instead. Obstacles
  * RuneLite's Agility plugin already outlines (its Show Clickboxes) are left to it.
  */
 @Singleton
@@ -73,7 +74,8 @@ class BradsMultiToolArenaOverlay extends Overlay {
         boolean theirs = otherPlugins.outlinesAgilityObstacles();
         for (Map.Entry<TileObject, SkillHelperData.ArenaObstacle> e : arena.getObstacles().entrySet()) {
             TileObject object = e.getKey();
-            boolean route = onRoute.contains(object);
+            boolean route = onRoute.contains(object) || arena.trainingOne() && e.getValue() == arena.getTraining()
+                && object.getWorldLocation().distanceTo2D(client.getLocalPlayer().getWorldLocation()) <= 6;
             // RuneLite's Agility plugin outlines the ones in its course list: leave those to it
             if (theirs && helpers.courseFor(object.getId()) != null) {
                 continue;
@@ -104,16 +106,18 @@ class BradsMultiToolArenaOverlay extends Overlay {
         if (at == null || arena.getRoute().isEmpty()) {
             return;
         }
+        // From you, wherever you are, then your pillar's middle onwards
         Path2D path = new Path2D.Double();
-        Point first = canvas(at);
         boolean started = false;
+        LocalPoint youAt = client.getLocalPlayer().getLocalLocation();
+        Point first = youAt == null ? null : Perspective.localToCanvas(client, youAt, client.getTopLevelWorldView().getPlane(), 0);
         if (first != null) {
             path.moveTo(first.getX(), first.getY());
             started = true;
         }
         for (ArenaRoute.Link link : arena.getRoute()) {
             WorldPoint next = link.other(at);
-            for (Point p : new Point[] {middle(link), canvas(next)}) {
+            for (Point p : new Point[] {middle(link), canvas(centre(next))}) {
                 if (p == null) {
                     continue;
                 }
@@ -145,14 +149,17 @@ class BradsMultiToolArenaOverlay extends Overlay {
 
     // The middle of an obstacle's objects
     private Point middle(ArenaRoute.Link link) {
-        double x = 0;
-        double y = 0;
-        for (TileObject object : link.objects) {
-            x += object.getWorldLocation().getX();
-            y += object.getWorldLocation().getY();
+        if (link.objects.isEmpty()) {
+            return null;
         }
-        int n = link.objects.size();
-        return n == 0 ? null : canvas(new WorldPoint((int) Math.round(x / n), (int) Math.round(y / n), link.a.getPlane()));
+        double[] m = ArenaRoute.middle(link.objects);
+        return canvas(new WorldPoint((int) Math.round(m[0]), (int) Math.round(m[1]), link.a.getPlane()));
+    }
+
+    // A pillar's middle (the dispenser sits off to one side)
+    private WorldPoint centre(WorldPoint pillar) {
+        return new WorldPoint((int) Math.round(pillar.getX() - arena.getOffsetX()),
+            (int) Math.round(pillar.getY() - arena.getOffsetY()), pillar.getPlane());
     }
 
     private Point canvas(WorldPoint point) {

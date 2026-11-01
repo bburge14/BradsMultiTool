@@ -86,12 +86,33 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         if (agility.ticketsPerHour() > 0) {
             panel.getChildren().add(LineComponent.builder().left("Tickets/hr").right(String.valueOf((int) agility.ticketsPerHour())).build());
         }
-        if (config.arenaRoute() && !route.getRoute().isEmpty()) {
+        if (route.trainingOne()) {
+            trainingLines();
+        } else if (config.arenaRoute() && !route.getRoute().isEmpty()) {
             panel.getChildren().add(LineComponent.builder().left("Route").right(route.getRoute().size() + " obstacles, ~"
                 + clock((int) Math.round(route.routeTicks()))).build());
         }
         if (config.arenaDebug()) {
             debug();
+        }
+    }
+
+    // One-obstacle training: reps, rates and reps to your next level and goal
+    private void trainingLines() {
+        add("Training", route.getTraining().name);
+        add("Reps", String.valueOf(route.getReps()));
+        if (route.repsPerHour() > 0) {
+            add("Reps/hr", String.format("%,.0f", route.repsPerHour()));
+            add("XP/hr", BradsMultiToolPanel.shortNumber((long) (route.repsPerHour() * route.getRepXp())));
+        }
+        int xp = client.getSkillExperience(Skill.AGILITY);
+        int level = Experience.getLevelForXp(xp);
+        if (level < Experience.MAX_REAL_LEVEL && route.repsTo(Experience.getXpForLevel(level + 1)) > 0) {
+            add("Reps to " + (level + 1), String.format("%,d", route.repsTo(Experience.getXpForLevel(level + 1))));
+        }
+        int goal = plugin.getSkillGoal(Skill.AGILITY);
+        if (goal > xp && route.repsTo(goal) > 0) {
+            add("Reps to goal", String.format("%,d", route.repsTo(goal)));
         }
     }
 
@@ -110,8 +131,12 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
         add("Obstacle objects", route.getObstacles().size() + " (" + route.getUnlinked() + " unlinked)");
         add("Safe/may fail/too low", safe + "/" + mayFail + "/" + tooLow);
         add("Links", String.valueOf(route.getLinks().size()));
-        add("From", point(route.getStart()));
+        add("Pillar offset", String.format("%.1f,%.1f", route.getOffsetX(), route.getOffsetY()));
+        add("From (your pillar)", point(route.getStart()));
         add("To (hint arrow)", point(route.getTarget()));
+        if (route.getTraining() != null) {
+            add("Last obstacle", route.getTraining().name + " x" + route.getReps());
+        }
         if (route.getRoute().isEmpty()) {
             add("Route", route.getTarget() == null ? "no pillar tagged" : route.getTarget().equals(route.getStart()) ? "you're there" : "none found");
         }
