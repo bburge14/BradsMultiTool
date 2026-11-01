@@ -113,7 +113,8 @@ public class PluginWiringTest {
             protected void configure() {
                 for (Class<?> service : new Class<?>[]{Client.class, ClientThread.class, ConfigManager.class, OverlayManager.class,
                     ItemManager.class, SpriteManager.class, SkillIconManager.class, ClientToolbar.class, KeyManager.class,
-                    Notifier.class, Gson.class, PluginManager.class, ModelOutlineRenderer.class, ScheduledExecutorService.class}) {
+                    Notifier.class, Gson.class, PluginManager.class, ModelOutlineRenderer.class, ScheduledExecutorService.class,
+                    net.runelite.client.config.RuneLiteConfig.class}) {
                     bindStub(service);
                 }
                 bind(EventBus.class).toInstance(new EventBus());
