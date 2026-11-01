@@ -7,6 +7,12 @@
 # progress bar (building, starting, running; the log a click away) and the window stays open while RuneLite runs.
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+# Finding RuneLite's "Are you sure you want to exit?" box, for Relaunch to answer it
+Add-Type -Namespace Snuffys -Name Win -MemberDefinition @'
+[DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowEx(IntPtr parent, IntPtr after, string cls, string title);
+[DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+[DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
+'@
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $root = Split-Path $PSScriptRoot -Parent
@@ -505,7 +511,25 @@ $form.Controls.Add($relaunch)
 $script:closingSince = $null
 $closer = New-Object System.Windows.Forms.Timer
 $closer.Interval = 500
+# RuneLite's exit warning (its Exit warning setting): Relaunch answers OK for you. Only a window titled "Exit"
+# belonging to RuneLite's own process, brought to the front first, so Enter can't land anywhere else
+function Confirm-Exit {
+    $window = RuneLite-Window
+    if (-not $window) { return }
+    $hwnd = [IntPtr]::Zero
+    while (($hwnd = [Snuffys.Win]::FindWindowEx([IntPtr]::Zero, $hwnd, $null, 'Exit')) -ne [IntPtr]::Zero) {
+        $owner = 0
+        [void][Snuffys.Win]::GetWindowThreadProcessId($hwnd, [ref]$owner)
+        if ($owner -eq $window.Id -and [Snuffys.Win]::SetForegroundWindow($hwnd)) {
+            Start-Sleep -Milliseconds 150
+            [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+            return
+        }
+    }
+}
+
 $closer.Add_Tick({
+    Confirm-Exit
     if (-not (RuneLite-Running)) {
         $closer.Stop()
         Update-Plugins
