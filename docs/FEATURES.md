@@ -451,11 +451,9 @@ clicks; it never clicks, changes a menu or does anything for you.
   and its half box for the second, for actions between ticks. For 1-tick karambwans set Ticks Per Cycle to 1:
   click the fire when box 1 lights and the karambwan when 1.5 does; with Move Boxes Separately put box 1 over the
   fire and 1.5 over the karambwan.
-- **Tick Pattern:** numbered boxes in a timing pattern, for methods with several clicks a tick; what each box
-  stands for is up to you. *1-tick: two halves*: box 1 lights for the first half of each tick, box 2 for the
-  second. *3-tick: three, then two ticks*: boxes 1, 2 and 3 light together on tick 1, box 4 on ticks 2 and 3. The
-  pattern sets the cycle; with Move Boxes Separately place each box where you want it. *Custom* is one box per
-  tick from Ticks Per Cycle.
+- **Tick Pattern:** *1-tick: two halves*: box 1 lights for the first half of every tick and box 2 for the
+  second, for clicking twice a tick (1-tick karambwans: box 1 on the fire, box 2 on the karambwan). *Custom* is
+  one box per tick from Ticks Per Cycle.
 - **Play Ahead:** the metronome sounds this long before each tick (200 ms by default), so clicking when you hear it
   lands on the tick: reacting to a sound, plus the sound's own delay, takes about that long. If Click Timing says
   your clicks on the sound are late, raise it; if early, lower it. 0 plays it on the tick.

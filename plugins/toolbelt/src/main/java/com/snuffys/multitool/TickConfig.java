@@ -90,8 +90,7 @@ public interface TickConfig extends Config {
     /** Timing patterns for the tick boxes (see TickMethods); Custom: one box per tick from Ticks Per Cycle. */
     enum TickMethod {
         CUSTOM("Custom (Ticks Per Cycle)"),
-        ONE_TICK_HALVES("1-tick: two halves"),
-        THREE_TICK("3-tick: three, then two ticks");
+        ONE_TICK_HALVES("1-tick: two halves");
 
         private final String label;
 
@@ -194,7 +193,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "tickMethod",
         name = "Tick Pattern",
-        description = "<div width=\'300\'>Numbered boxes in a timing pattern (what each stands for is up to you). 1-tick: two halves: box 1 lights for the first half of each tick, box 2 for the second. 3-tick: three, then two ticks: boxes 1, 2 and 3 light together on tick 1, box 4 on ticks 2 and 3. The pattern sets the cycle; with Move Boxes Separately each box moves on its own. Custom: one box per tick from Ticks Per Cycle",
+        description = "<div width='300'>1-tick: two halves: box 1 lights for the first half of every tick and box 2 for the second, for clicking twice a tick (with Move Boxes Separately, place each box where you want it). Custom: one box per tick from Ticks Per Cycle",
         section = tickBoxesSection,
         position = 1
     )

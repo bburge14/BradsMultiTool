@@ -215,4 +215,4 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Reaching a goal clears it with a chat line; a goal already reached clears at the next login; Clear Goals When Reached off keeps it (Done!).
 - [ ] Tick Counter > Half-Tick Boxes: a 1.5 box after each tick box; the tick box lights the first half, the half box the second; with Move Boxes Separately each half box moves on its own.
 - [ ] Metronome Play Ahead (200 ms): clicking on the sound lands green in Click Timing; raising/lowering it moves the clicks later/earlier; 0 plays on the tick.
-- [ ] Tick Boxes > Tick Pattern: 1-tick two halves (box 1 first half, box 2 second); 3-tick (boxes 1-3 on tick 1, box 4 on ticks 2-3); with Move Boxes Separately each pattern box moves on its own; Custom = Ticks Per Cycle.
+- [ ] Tick Boxes > Tick Pattern: 1-tick two halves (box 1 first half, box 2 second), each movable with Move Boxes Separately; Custom = Ticks Per Cycle.

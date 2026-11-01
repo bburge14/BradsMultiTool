@@ -42,8 +42,6 @@ final class TickMethods {
         switch (method) {
             case ONE_TICK_HALVES:
                 return 1;
-            case THREE_TICK:
-                return 3;
             default:
                 return 0;
         }
@@ -55,15 +53,11 @@ final class TickMethods {
             case ONE_TICK_HALVES:
                 // Box 1 for the first half of each tick, box 2 for the second
                 return Arrays.asList(new Step(1, Half.FIRST, 1), new Step(2, Half.SECOND, 1));
-            case THREE_TICK:
-                // Boxes 1, 2 and 3 together on tick 1; box 4 on ticks 2 and 3
-                return Arrays.asList(new Step(1, Half.WHOLE, 1), new Step(2, Half.WHOLE, 1),
-                    new Step(3, Half.WHOLE, 1), new Step(4, Half.WHOLE, 2, 3));
             default:
                 return Collections.emptyList();
         }
     }
 
     /** The most steps any method has (separate boxes made for each). */
-    static final int MOST_STEPS = 4;
+    static final int MOST_STEPS = 2;
 }
