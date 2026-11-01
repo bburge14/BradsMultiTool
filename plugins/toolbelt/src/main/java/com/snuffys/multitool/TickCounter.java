@@ -166,7 +166,8 @@ class TickCounter {
         }
 
         boolean follow = config.tickFollowWeapon();
-        cycle = follow ? attackSpeed() : config.tickCycle();
+        int methodCycle = TickMethods.cycle(config.tickMethod());
+        cycle = follow ? attackSpeed() : methodCycle > 0 ? methodCycle : config.tickCycle();
         count = next(count, cycle, follow && attacked);
         attacked = false;
         lastTickMillis = System.currentTimeMillis();

@@ -114,12 +114,21 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
             return;
         }
         String text = label;
+        // A label too wide for its box shrinks to fit (just this box)
+        java.awt.Font original = graphics.getFont();
+        java.awt.Font font = original;
+        while (metrics.stringWidth(text) > size - 4 && font.getSize2D() > 8) {
+            font = font.deriveFont(font.getSize2D() - 1);
+            graphics.setFont(font);
+            metrics = graphics.getFontMetrics();
+        }
         int textX = x + (size - metrics.stringWidth(text)) / 2;
         int textY = y + (size - metrics.getHeight()) / 2 + metrics.getAscent();
         graphics.setColor(Color.BLACK);
         graphics.drawString(text, textX + 1, textY + 1);
         graphics.setColor(lit ? Color.WHITE : Color.GRAY);
         graphics.drawString(text, textX, textY);
+        graphics.setFont(original);
         graphics.setComposite(before);
         graphics.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
             antialias != null ? antialias : java.awt.RenderingHints.VALUE_ANTIALIAS_DEFAULT);
@@ -150,6 +159,20 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
         FontMetrics metrics = graphics.getFontMetrics();
         double fade = fade(ticks);
 
+        java.util.List<TickMethods.Step> steps = TickMethods.steps(config.tickMethod());
+        if (!steps.isEmpty()) {
+            // A tick method: one box per step, labelled, lit when it's time
+            long since = System.currentTimeMillis() - ticks.getLastTickMillis();
+            for (int i = 0; i < steps.size(); i++) {
+                TickMethods.Step step = steps.get(i);
+                int x = horizontal ? i * (size + GAP) : 0;
+                int y = horizontal ? 0 : i * (size + GAP);
+                drawBox(graphics, metrics, config, x, y, size, i == 0 ? 1 : 2, step.lit(current, since),
+                    halfFade(ticks, config), BACKGROUND, step.label);
+            }
+            int length = steps.size() * size + (steps.size() - 1) * GAP;
+            return horizontal ? new Dimension(length, size) : new Dimension(size, length);
+        }
         boolean halves = config.tickHalfBoxes();
         int slots = halves ? cycle * 2 : cycle;
         for (int slot = 0; slot < slots; slot++) {

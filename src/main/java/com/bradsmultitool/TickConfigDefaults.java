@@ -13,6 +13,7 @@ final class TickConfigDefaults {
         defaults.store("openGuide", config.openGuide());
         defaults.store("tickOverHead", config.tickOverHead());
         defaults.store("tickBoxes", config.tickBoxes());
+        defaults.store("tickMethod", config.tickMethod());
         defaults.store("tickBoxLayout", config.tickBoxLayout());
         defaults.store("tickBoxNumbers", config.tickBoxNumbers());
         defaults.store("tickHalfBoxes", config.tickHalfBoxes());

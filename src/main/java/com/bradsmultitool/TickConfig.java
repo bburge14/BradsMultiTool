@@ -87,6 +87,24 @@ public interface TickConfig extends Config {
         }
     }
 
+    /** Timing patterns for the tick boxes (see TickMethods); Custom: one box per tick from Ticks Per Cycle. */
+    enum TickMethod {
+        CUSTOM("Custom (Ticks Per Cycle)"),
+        ONE_TICK_HALVES("1-tick: two halves"),
+        THREE_TICK("3-tick: three, then two ticks");
+
+        private final String label;
+
+        TickMethod(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     enum BoxShape {
         SQUARE("Square"),
         ROUNDED("Rounded"),
@@ -174,11 +192,22 @@ public interface TickConfig extends Config {
     }
 
     @ConfigItem(
+        keyName = "tickMethod",
+        name = "Tick Pattern",
+        description = "<div width=\'300\'>Numbered boxes in a timing pattern (what each stands for is up to you). 1-tick: two halves: box 1 lights for the first half of each tick, box 2 for the second. 3-tick: three, then two ticks: boxes 1, 2 and 3 light together on tick 1, box 4 on ticks 2 and 3. The pattern sets the cycle; with Move Boxes Separately each box moves on its own. Custom: one box per tick from Ticks Per Cycle",
+        section = tickBoxesSection,
+        position = 1
+    )
+    default TickMethod tickMethod() {
+        return TickMethod.CUSTOM;
+    }
+
+    @ConfigItem(
         keyName = "tickBoxLayout",
         name = "Box Layout",
         description = "Tick boxes in a row or a column",
         section = tickBoxesSection,
-        position = 1
+        position = 2
     )
     default Layout tickBoxLayout() {
         return Layout.HORIZONTAL;
@@ -189,7 +218,7 @@ public interface TickConfig extends Config {
         name = "Box Numbers",
         description = "Show each tick box's number (1, 2, 3, or 1.5 for a half box)",
         section = tickBoxesSection,
-        position = 4
+        position = 5
     )
     default boolean tickBoxNumbers() {
         return true;
@@ -200,7 +229,7 @@ public interface TickConfig extends Config {
         name = "Half-Tick Boxes",
         description = "<div width='300'>A half box after each tick box (\"1.5\"): the tick's box lights for the first half of the tick, its half box for the second, for actions between ticks (1-tick karambwans: the fire on the tick, the karambwan between). With Move Boxes Separately the half boxes move separately too",
         section = tickBoxesSection,
-        position = 3
+        position = 4
     )
     default boolean tickHalfBoxes() {
         return false;
@@ -211,7 +240,7 @@ public interface TickConfig extends Config {
         name = "Move Boxes Separately",
         description = "<div width='300'>Each tick box becomes its own see-through box you can Alt + drag anywhere, say over the item you click on that tick for a tick method; each stays where you put it. Off: the boxes move together in a row or column",
         section = tickBoxesSection,
-        position = 2
+        position = 3
     )
     default boolean tickBoxesSeparate() {
         return false;
@@ -308,7 +337,7 @@ public interface TickConfig extends Config {
         name = "Box Size",
         description = "Width and height of each tick box",
         section = tickBoxesSection,
-        position = 6
+        position = 7
     )
     default int tickBoxSize() {
         return 40;
@@ -319,7 +348,7 @@ public interface TickConfig extends Config {
         name = "Box Shape",
         description = "Square, rounded or circle tick boxes",
         section = tickBoxesSection,
-        position = 5
+        position = 6
     )
     default BoxShape tickBoxShape() {
         return BoxShape.SQUARE;
@@ -337,7 +366,7 @@ public interface TickConfig extends Config {
         name = "Box Opacity",
         description = "<div width='300'>How solid the tick boxes are: lower to see what's under them (useful with Move Boxes Separately)",
         section = tickBoxesSection,
-        position = 7
+        position = 8
     )
     default int tickBoxOpacity() {
         return 100;

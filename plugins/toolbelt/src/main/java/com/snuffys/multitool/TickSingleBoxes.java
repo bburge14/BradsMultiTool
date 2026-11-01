@@ -20,5 +20,9 @@ class TickSingleBoxes {
             overlays.add(new BradsMultiToolTickSingleBoxOverlay(client, config, ticks, tick, false));
             overlays.add(new BradsMultiToolTickSingleBoxOverlay(client, config, ticks, tick, true));
         }
+        // A tick method's steps, each its own box
+        for (int step = 0; step < TickMethods.MOST_STEPS; step++) {
+            overlays.add(new BradsMultiToolTickSingleBoxOverlay(client, config, ticks, 0, false, step));
+        }
     }
 }
