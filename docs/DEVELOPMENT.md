@@ -147,6 +147,11 @@ The Plugin Hub builds a plugin from the root of a repository, at a commit named 
 already laid out that way, so publishing one means making that folder the root of a repository (its own, or a
 copy of it) and submitting that file. Settle the open questions in docs/PLUGIN_HUB_COMPLIANCE.md first.
 
+## Plugin audit
+
+`docs/PLUGIN_AUDIT.md` compares RuneLite's own and popular Plugin Hub plugins with ours, feature by feature, with a
+pick list of what to add. Check it (and the compliance doc) before borrowing a feature from another plugin.
+
 ## Saved data shared between plugins
 
 Settings live in each plugin's own config group, but skilling data the player builds up is kept in the
