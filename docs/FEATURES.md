@@ -246,7 +246,8 @@ pie over each instead. Where RuneLite's Fishing plugin already draws its spot ic
 Motherlode Mine plugin its vein icons, ours leave the icon or outline out and only add the timer. Pies draw under the bank and other interfaces. A tree already being chopped when you
 arrived gets no pie (its time can't be known). Other players' logs can't be seen, so a tree someone else
 is chopping can sit at "due" a little while before it falls. If you run a dedicated timer plugin (Tree
-Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin...), our pie for that timer hides
+Despawn Timer, Fishing Spot Tracker, RuneLite's Hunter plugin, RuneLite's Mining plugin for depleted rocks and
+Daeyalt, RuneLite's Fishing plugin's Minnow overlay for minnow spots...), our pie for that timer hides
 (**Skilling > Use Other Timer Plugins**).
 
 ---

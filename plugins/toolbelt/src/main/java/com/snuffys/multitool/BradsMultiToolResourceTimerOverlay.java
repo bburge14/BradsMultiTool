@@ -295,7 +295,7 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         SkillTrackerConfig.TimerShow when = when(timer.kind);
         return when != SkillTrackerConfig.TimerShow.OFF && timer.visible()
             && (when == SkillTrackerConfig.TimerShow.ALWAYS || training(timer.kind))
-            && !(config.deferToOtherTimerPlugins() && otherPlugins.covers(timer.kind));
+            && !(config.deferToOtherTimerPlugins() && otherPlugins.covers(timer));
     }
 
     // Whether you're training the skill the resource is for (an XP drop in it lately)
