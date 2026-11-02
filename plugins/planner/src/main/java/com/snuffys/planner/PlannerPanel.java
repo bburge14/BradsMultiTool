@@ -402,8 +402,12 @@ class PlannerPanel extends PluginPanel {
                         card(choreCard(row));
                     }
                     if (days.isEmpty()) {
-                        add(PlannerUi.empty("No dailies yet. The rewards you've unlocked show here once you're in game, "
-                            + "or press + to add your own."));
+                        // Nothing of yours yet: a few examples (not tracked) of what a daily can be
+                        add(PlannerUi.empty("No dailies yet: press + to add your own. They untick at the daily reset. "
+                            + "For example:"));
+                        for (String[] example : DAILY_EXAMPLES) {
+                            card(exampleCard(example));
+                        }
                     }
                     if (hiddenDays > 0) {
                         add(PlannerUi.link("Show hidden (" + hiddenDays + ")", "Bring back the dailies you hid",
@@ -450,6 +454,27 @@ class PlannerPanel extends PluginPanel {
             return reset;
         }
         return (left > 0 ? left + " left" : "All done") + " \u00b7 " + reset;
+    }
+
+    // Examples shown while you have no dailies (greyed, not tracked): name, where, and its picture's id in PRESET_ITEMS
+    private static final String[][] DAILY_EXAMPLES = {
+        {"Battlestaves", "Zaff in Varrock", "staves"},
+        {"Buckets of sand", "Bert in Yanille", "sand"},
+        {"Bowstrings", "The Flax keeper in Seers' Village", "flax"},
+        {"Herb run", "Catherby, Ardougne, Falador...", ""},
+    };
+
+    private JComponent exampleCard(String[] example) {
+        PlannerUi.Card card = new PlannerUi.Card(example[0], example[1], "example");
+        Integer item = PRESET_ITEMS.get(example[2]);
+        if (item != null) {
+            image(card.icon, icons.item(item, 1, false), 0.4f);
+        } else {
+            image(card.icon, PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.NOTE, 18, PlannerUi.MUTED)), 0.4f);
+        }
+        card.dim();
+        return card.interactive(() -> addChore(false), null, "<html>An example, not tracked<br><font color='#a0a0a0'>"
+            + "Click (or +) to add a daily of your own</font></html>");
     }
 
     private JComponent choreCard(PlannerChores.Row row) {

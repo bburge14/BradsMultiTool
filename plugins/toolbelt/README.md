@@ -39,7 +39,7 @@ Everything in Snuffy's six separate plugins, in one plugin:
 
 **Snuffy's Planner**
 
-- **Today**: the daily rewards you've unlocked (battlestaves, herb boxes, essence, runes, sand, flax, bonemeal, dynamite, ogre arrows), ticked off as you collect them, plus your own dailies, with the time to the reset
+- **Today**: your own dailies, ticked off by you and due again at the daily reset
 - **Weekly**: Tears of Guthix, your own weeklies, the Kingdom of Miscellania's approval and coffer, and your farming contract
 - **Timers**: every farming patch, compost bin and Hespori you've been to, bird houses and timers of your own, with ready alerts
 - **Slayer**: your task, kills left, points and streak

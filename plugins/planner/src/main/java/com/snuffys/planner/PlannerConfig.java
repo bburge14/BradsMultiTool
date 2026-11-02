@@ -17,7 +17,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Planner: a sidebar tab with your dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, and a to-do list with notes. Clashes (a warning icon among the info boxes while they're on): RuneLite's Daily Task Indicator, Loot Tracker and Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Planner: a sidebar tab with your dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, and a to-do list with notes. Clashes (a warning icon among the info boxes while they're on): RuneLite's Loot Tracker and Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -73,7 +73,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Today",
-        description = "<div width='300'>The TODAY list: daily rewards to collect (from the game) and your own daily to-dos, and the voice line when there are some to do",
+        description = "<div width='300'>The TODAY list: your own daily to-dos (examples show until you add one), and the voice line when there are some to do",
         position = 70,
         closedByDefault = true
     )

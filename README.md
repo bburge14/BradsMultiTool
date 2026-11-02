@@ -209,9 +209,8 @@ work a resource.
 ### Snuffy's Planner (sidebar)
 Its own sidebar tab (the calendar icon), also in the Toolbelt. Six lists, each folds away under its heading and
 each can be hidden in the settings; everything is saved per account.
-- **Today**: the daily rewards you've unlocked (battlestaves, herb boxes, essence, runes, sand, bowstrings,
-  bonemeal, dynamite, ogre arrows), ticked off as you collect them, with the time to the daily reset. Add your own
-  dailies (they untick at the reset), rename or hide any. One voice line at login and at the reset if there are
+- **Today**: your own dailies with the time to the daily reset: press **+** to add one (they untick at the reset),
+  click to tick, right-click to edit or delete. Until you add one it shows a few examples (greyed, not tracked). One voice line at login and at the reset if there are
   dailies to do; no chat spam.
 - **Weekly**: Tears of Guthix (when Juna lets you back), your own weeklies, the Kingdom of Miscellania's approval and
   coffer, and your farming contract, with the time to the weekly reset (Wednesday).
@@ -422,7 +421,7 @@ clash with it, and switch on **Open the Guide** to open the full feature guide. 
 setting of it that clashes), every one of Snuffy's plugins shows a small yellow warning icon among RuneLite's info
 boxes (top left of the game; hover it for the clashes and what they mean); nothing is posted in chat. It's live: turn the clashing plugin or setting off and the icon goes within a few seconds. Don't want
 any of it? Turn off **About > Clash Warnings** in that plugin's settings. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
-minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome, Idle Notifier, Daily Task Indicator and
+minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome, Idle Notifier and
 Loot Tracker, and the Tempoross,
 Guardians of the Rift Helper and Sailing plugins' notifications.
 

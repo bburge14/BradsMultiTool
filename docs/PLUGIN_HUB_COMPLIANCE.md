@@ -47,7 +47,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Loot value on the PvM HUD, materials value on goal cards | OK. RuneLite's `NpcLootReceived` and ItemManager GE prices, as the core Loot Tracker; figures only |
 | Death alert and gravestone timer | OK. Same as the old core Death Indicator: reads your death (`ActorDeath`), location and item counts; an InfoBox of our own; nothing acts for the player |
 | Clue drop alert | OK. Clue items by name from kill loot and your inventory; notifications only |
-| Planner: TODAY dailies checklist | OK. The same varbits as core Daily Task Indicator; one generic voice line at login/reset (no chat line unless turned on), never one per item; ticking a line only changes our list |
+| Planner: TODAY dailies checklist | OK. Your own dailies, ticked by hand; one generic voice line at login/reset |
 | Planner: WEEKLY (Tears of Guthix, Kingdom of Miscellania, farming contract) | OK. Tears of Guthix from the game's own collecting varbit going back to 0 (when your game ends) plus the wiki's "start of the seventh day after" rule; kingdom approval/coffer the way core Kingdom of Miscellania reads them; the contract the way core Time Tracking reads it. Information only |
 | Planner: TIMERS (farming patches incl. compost bins and Hespori, bird houses, your own timers) | OK. Same information as core Time Tracking (patch varbits read with its guards: two ticks in one region, no modal interface open; the growth tick offset learnt the same way); own timers are a countdown the player starts, with a notification |
 | Planner: SLAYER | OK. The varps/varbits and game tables core Slayer reads; information only |

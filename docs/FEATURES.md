@@ -639,16 +639,11 @@ account (RuneScape profile), and the Toolbelt and the separate Planner show the 
 Skilling Helper; the Calculator's **Set as goal** sets the same goal (both plugins read it).
 
 **Today: Dailies** (the header counts down to the daily reset, 00:00 UTC):
-- The daily rewards you've unlocked, ticked off by the game as you collect them, the same checks as RuneLite's Daily
-  Task Indicator: battlestaves (Zaff, Varrock easy diary), herb boxes (Nightmare Zone, 9,500 points each, up to 15;
-  not Ironmen; "3 of 15 bought"), pure essence (Wizard Cromperty, Ardougne medium), random runes (Lundail,
-  Wilderness easy), sand (Bert, The Hand in the Sand; not Ultimate Ironmen), bowstrings (Flax keeper, Kandarin easy),
-  bonemeal and slime (Robin, Morytania medium and up), dynamite (Thirus, Kourend & Kebos medium), ogre arrows (Rantz,
-  Western Provinces easy). Members only; ones you haven't unlocked don't show. Each shows the reward's picture and
-  where to get it (hover for the full note); collected ones turn grey with a green tick.
+- Only your own: the game's daily rewards aren't read. Until you add one, a few greyed examples (Battlestaves, Buckets
+  of sand, Bowstrings, Herb run: not tracked) show what a daily can be; clicking one opens **+**.
 - **Your own:** **+** adds a daily or weekly with a name and an optional note; click it to tick it and it unticks at
-  its reset. Right-click any line to **Edit...** (rename it, change its note) or **Delete** it; presets are
-  **Hidden** instead (**Show hidden** brings them back). Presets can be ticked by clicking too.
+  its reset. Right-click any line to **Edit...** (rename it, change its note) or **Delete** it; Tears of Guthix (the one
+  preset, a weekly) is **Hidden** instead (**Show hidden** brings it back).
 - At login and at the reset, if anything's left: one voice line, "You have dailies to do.", and one line in the
   **split private chat** (where friends' logins show, above the chat box when the game's Split Private Chat is on; it
   fades after a while) saying how many are left (**Chat: Dailies**). Never a line per item.

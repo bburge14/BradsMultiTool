@@ -22,11 +22,10 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 
 /**
- * The Planner's TODAY and WEEKLY lists. Presets are the ones the game tells us about: the daily rewards RuneLite's
- * Daily Task Indicator knows (each one's diary or quest, and the variable the game sets once it's collected
- * today), and Tears of Guthix (noticed when your game there ends; Juna lets you back in at the start of the
- * seventh day after). You can add your own (daily or weekly, with a note), rename or edit them, hide presets you
- * don't do, and tick anything by hand; your own ones untick at their reset. Also the weekly list's two read-only
+ * The Planner's TODAY and WEEKLY lists. Dailies are your own (the panel shows a few examples, not tracked, until you
+ * add one); the one preset is the weekly Tears of Guthix (noticed when your game there ends; Juna lets you back in at
+ * the start of the seventh day after). You add your own (daily or weekly, with a note), rename or edit them, hide
+ * the preset if you don't do it, and tick anything by hand; your own ones untick at their reset. Also the weekly list's two read-only
  * lines: the Kingdom of Miscellania (approval and coffer, as RuneLite's Kingdom plugin reads them) and your farming
  * contract (as RuneLite's Time Tracking reads it). Everything is saved with your RuneScape profile.
  * <p>
@@ -38,7 +37,6 @@ class PlannerChores {
 
     static final String GROUP = "bradsmultitool";
     private static final String ITEMS_KEY = "planner.chores";
-    private static final String SEEN_KEY = "planner.choresSeen";
     private static final String TOG_KEY = "planner.togLastPlayed";
     private static final String KINGDOM_KEY = "planner.kingdom";
     private static final String CONTRACT_KEY = "planner.contract";
@@ -48,13 +46,8 @@ class PlannerChores {
     private static final int READ_TICKS = 5;
 
     // Nightmare Zone herb boxes: 9,500 points each, up to 15 a day
-    private static final int HERB_BOX_MAX = 15;
-    private static final int HERB_BOX_COST = 9500;
     // The Hand in the Sand's varbit once the quest is done (Bert's sand)
-    private static final int SAND_QUEST_COMPLETE = 160;
     // Robin's bonemeal: 13 a day for each Morytania diary from medium up
-    private static final int BONEMEAL_PER_DIARY = 13;
-    private static final int ULTIMATE_IRONMAN = 2;
     // Kingdom of Miscellania (RuneLite's Kingdom plugin): the kingdom's regions, approval out of 127
     private static final List<Integer> KINGDOM_REGIONS = Arrays.asList(10044, 10300);
     private static final int MAX_APPROVAL = 127;
@@ -80,16 +73,8 @@ class PlannerChores {
     }
 
     static final String TOG = "tog";
+    // The game-read daily rewards were dropped: dailies are only your own. Tears of Guthix stays (a weekly)
     static final List<Preset> PRESETS = Arrays.asList(
-        new Preset("staves", "Battlestaves", "Zaff in Varrock (Varrock easy diary)", false),
-        new Preset("herbBoxes", "Herb boxes", "Nightmare Zone: 9,500 points each, up to 15 a day (not for Ironmen)", false),
-        new Preset("essence", "Pure essence", "Wizard Cromperty in East Ardougne (Ardougne medium diary)", false),
-        new Preset("runes", "Random runes", "Lundail at the Mage Arena bank (Wilderness easy diary)", false),
-        new Preset("sand", "Buckets of sand", "Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)", false),
-        new Preset("flax", "Bowstrings", "The Flax keeper in Seers' Village (Kandarin easy diary)", false),
-        new Preset("bonemeal", "Bonemeal and slime", "Robin at Port Phasmatys (Morytania medium diary and up)", false),
-        new Preset("dynamite", "Dynamite", "Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)", false),
-        new Preset("arrows", "Ogre arrows", "Rantz near Feldip Hills (Western Provinces easy diary)", false),
         new Preset(TOG, "Tears of Guthix", "Juna in the Lumbridge Swamp caves: back at the start of the seventh day after "
             + "your last game, once you've gained a quest point or 100,000 XP since", true));
 
@@ -107,17 +92,6 @@ class PlannerChores {
 
     private static final class Saved {
         List<Item> items = new ArrayList<>();
-    }
-
-    private static final class SeenSaved {
-        Map<String, Seen> presets = new HashMap<>();
-    }
-
-    /** What the game last said about a preset: its state, when, and the value that said it was collected. */
-    private static final class Seen {
-        int state;
-        long at;
-        int claimValue;
     }
 
     /** A line on the TODAY or WEEKLY list. */
@@ -153,9 +127,6 @@ class PlannerChores {
     private final FarmingData farming;
     private final Gson gson;
 
-    // Daily presets the reset just passed for, with the value they read then: due until that value changes (the
-    // game may only clear it when you next log in)
-    private final Map<String, Integer> pendingReset = new HashMap<>();
     private boolean loggingIn = true;
     private long lastDaily = -1;
     private long lastWeekly = -1;
@@ -209,7 +180,6 @@ class PlannerChores {
     public void onGameStateChanged(GameStateChanged event) {
         if (event.getGameState() == GameState.LOGGING_IN) {
             loggingIn = true;
-            pendingReset.clear();
         }
     }
 
@@ -233,17 +203,9 @@ class PlannerChores {
         long now = System.currentTimeMillis() / 1000;
         long daily = lastDailyReset(now);
         long weekly = lastWeeklyReset(now);
-        // A reset passed while you're logged in: the daily presets you'd collected are due again
+        // A reset passed while you're logged in: your dailies (weeklies) are due again
         boolean dailyReset = !loggingIn && lastDaily >= 0 && daily != lastDaily;
         boolean weeklyReset = !loggingIn && lastWeekly >= 0 && weekly != lastWeekly;
-        if (dailyReset) {
-            for (Preset preset : PRESETS) {
-                if (!preset.weekly) {
-                    pendingReset.put(preset.id, read(preset)[1]);
-                }
-            }
-        }
-        readPresets(now);
         readKingdom();
         readContract();
         boolean login = loggingIn;
@@ -276,100 +238,6 @@ class PlannerChores {
             alerts.alert(line, left + (weekly ? (left == 1 ? " weekly" : " weeklies") : (left == 1 ? " daily" : " dailies"))
                 + " left in Snuffy's Planner" + (login ? "" : " after the reset"));
         }
-    }
-
-    private void readPresets(long now) {
-        Map<String, Seen> seen = seen();
-        boolean changed = false;
-        for (Preset preset : PRESETS) {
-            if (TOG.equals(preset.id)) {
-                continue;
-            }
-            int[] read = read(preset);
-            Integer pending = pendingReset.get(preset.id);
-            if (pending != null) {
-                if (pending == read[1]) {
-                    read[0] = read[0] == LOCKED ? LOCKED : DUE;
-                } else {
-                    pendingReset.remove(preset.id);
-                }
-            }
-            Seen old = seen.get(preset.id);
-            if (old == null || old.state != read[0] || old.claimValue != read[1] || lastDailyReset(old.at) != lastDailyReset(now)) {
-                Seen fresh = new Seen();
-                fresh.state = read[0];
-                fresh.claimValue = read[1];
-                fresh.at = now;
-                seen.put(preset.id, fresh);
-                changed = true;
-            }
-        }
-        if (changed) {
-            SeenSaved saved = new SeenSaved();
-            saved.presets = seen;
-            configManager.setRSProfileConfiguration(GROUP, SEEN_KEY, gson.toJson(saved));
-        }
-    }
-
-    /** A daily preset's state (LOCKED, DUE, DONE) and the value that says it's collected, as the game has them now. */
-    private int[] read(Preset preset) {
-        boolean member = client.getVarcIntValue(VarClientID.PLAYERMEMBER) == 1;
-        if (!member) {
-            return new int[]{LOCKED, 0};
-        }
-        switch (preset.id) {
-            case "staves":
-                return claimed(done(VarbitID.VARROCK_DIARY_EASY_COMPLETE), VarbitID.ZAFF_LAST_CLAIMED);
-            case "herbBoxes": {
-                int bought = client.getVarbitValue(VarbitID.NZONE_HERBBOXES_PURCHASED);
-                if (client.getVarbitValue(VarbitID.IRONMAN) != 0) {
-                    return new int[]{LOCKED, bought};
-                }
-                if (bought >= HERB_BOX_MAX) {
-                    return new int[]{DONE, bought};
-                }
-                // Not enough points to buy one: nothing to collect today
-                return new int[]{client.getVarpValue(VarPlayerID.NZONE_REWARDPOINTS) >= HERB_BOX_COST ? DUE : LOCKED, bought};
-            }
-            case "essence":
-                return claimed(done(VarbitID.ARDOUGNE_DIARY_MEDIUM_COMPLETE), VarbitID.ARDOUGNE_FREE_ESSENCE);
-            case "runes":
-                return claimed(done(VarbitID.WILDERNESS_DIARY_EASY_COMPLETE), VarbitID.LUNDAIL_LAST_CLAIMED);
-            case "sand":
-                return claimed(client.getVarbitValue(VarbitID.IRONMAN) != ULTIMATE_IRONMAN
-                    && client.getVarbitValue(VarbitID.HANDSAND_QUEST) >= SAND_QUEST_COMPLETE, VarbitID.YANILLE_SAND_CLAIMED);
-            case "flax":
-                return claimed(done(VarbitID.KANDARIN_DIARY_EASY_COMPLETE), VarbitID.SEERS_FREE_FLAX);
-            case "bonemeal": {
-                int taken = client.getVarbitValue(VarbitID.MORYTANIA_SLIME_CLAIMED);
-                if (!done(VarbitID.MORYTANIA_DIARY_MEDIUM_COMPLETE)) {
-                    return new int[]{LOCKED, taken};
-                }
-                int max = BONEMEAL_PER_DIARY;
-                if (done(VarbitID.MORYTANIA_DIARY_HARD_COMPLETE)) {
-                    max += BONEMEAL_PER_DIARY;
-                    if (done(VarbitID.MORYTANIA_DIARY_ELITE_COMPLETE)) {
-                        max += BONEMEAL_PER_DIARY;
-                    }
-                }
-                return new int[]{taken < max ? DUE : DONE, taken};
-            }
-            case "dynamite":
-                return claimed(done(VarbitID.KOUREND_DIARY_MEDIUM_COMPLETE), VarbitID.KOUREND_FREE_DYNAMITE);
-            case "arrows":
-                return claimed(done(VarbitID.WESTERN_DIARY_EASY_COMPLETE), VarbitID.WESTERN_RANTZ_ARROWS);
-            default:
-                return new int[]{LOCKED, 0};
-        }
-    }
-
-    private int[] claimed(boolean unlocked, int claimedVarbit) {
-        int value = client.getVarbitValue(claimedVarbit);
-        return new int[]{!unlocked ? LOCKED : value == 0 ? DUE : DONE, value};
-    }
-
-    private boolean done(int diaryVarbit) {
-        return client.getVarbitValue(diaryVarbit) == 1;
     }
 
     // As RuneLite's Kingdom plugin: after Throne of Miscellania, while you're there or once both numbers are set
@@ -421,7 +289,6 @@ class PlannerChores {
                 changes.put(item.id, item);
             }
         }
-        Map<String, Seen> seen = seen();
         for (Preset preset : PRESETS) {
             Item change = changes.get(preset.id);
             if (preset.weekly != weekly || change != null && change.hidden) {
@@ -429,27 +296,12 @@ class PlannerChores {
             }
             String name = change != null && change.name != null ? change.name : preset.name;
             String note = change != null && change.note != null ? change.note : preset.note;
-            boolean byHand = change != null && change.doneAt >= reset;
-            if (TOG.equals(preset.id)) {
-                long last = tog();
-                long back = last > 0 ? togAvailableAt(last) : 0;
-                boolean done = now < back;
-                String detail = done ? "back in " + PlannerPanel.formatDuration(back - now) : last > 0 ? null : "not seen yet";
-                out.add(new Row(preset.id, name, note, true, false, done, last > 0, detail));
-                continue;
-            }
-            Seen state = seen.get(preset.id);
-            if (state == null || state.state == LOCKED) {
-                // Not unlocked (or not seen yet: shown once you log in)
-                continue;
-            }
-            // Read before the last reset: what was collected then is due again now
-            boolean done = state.state == DONE && state.at >= lastDailyReset(now);
-            String detail = null;
-            if ("herbBoxes".equals(preset.id) && state.at >= lastDailyReset(now)) {
-                detail = state.claimValue + " of " + HERB_BOX_MAX + " bought";
-            }
-            out.add(new Row(preset.id, name, note, false, false, done || byHand, true, detail));
+            // Tears of Guthix: back seven days after your last game
+            long last = tog();
+            long back = last > 0 ? togAvailableAt(last) : 0;
+            boolean done = now < back;
+            String detail = done ? "back in " + PlannerPanel.formatDuration(back - now) : last > 0 ? null : "not seen yet";
+            out.add(new Row(preset.id, name, note, true, false, done, last > 0, detail));
         }
         for (Item item : own) {
             if (item.weekly == weekly) {
@@ -628,19 +480,5 @@ class PlannerChores {
             configManager.setRSProfileConfiguration(GROUP, ITEMS_KEY, gson.toJson(saved));
         }
         view.update();
-    }
-
-    private Map<String, Seen> seen() {
-        String json = configManager.getRSProfileConfiguration(GROUP, SEEN_KEY);
-        Map<String, Seen> out = new HashMap<>();
-        try {
-            SeenSaved saved = json == null ? null : gson.fromJson(json, SeenSaved.class);
-            if (saved != null && saved.presets != null) {
-                out.putAll(saved.presets);
-            }
-        } catch (JsonSyntaxException e) {
-            // Unreadable: read afresh
-        }
-        return out;
     }
 }
