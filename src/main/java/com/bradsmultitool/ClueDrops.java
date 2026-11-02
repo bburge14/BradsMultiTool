@@ -70,7 +70,8 @@ class ClueDrops {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
-        if (event.getGameState() != GameState.LOGGED_IN) {
+        // Logging out or hopping (not a loading screen: the inventory isn't sent again after one)
+        if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
             // Your inventory is read afresh at the next login, so what you carry then isn't new
             carried = null;
             dropped.clear();

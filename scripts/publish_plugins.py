@@ -21,6 +21,7 @@ push first checks the working tree is clean, pushed, and plugins/ matches src/. 
 uses your own git login.
 """
 import io
+import stat
 import json
 import os
 import re
@@ -57,6 +58,12 @@ def preflight(dry_run):
                      "that exists here.")
 
 
+def make_writable(func, path, _):
+    """rmtree on Windows: git's object files are read-only; make one writable and try again."""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
 def checkout(name, repo, branch, dry_run):
     """A clone of the plugin's repository in .publish-cache, on its branch, matching the remote."""
     path = os.path.join(CACHE, name)
@@ -67,10 +74,11 @@ def checkout(name, repo, branch, dry_run):
     git("remote", "set-url", "origin", repo, cwd=path)
     git("fetch", "--quiet", "origin", cwd=path, check=False)
     if git("ls-remote", "--heads", "origin", branch, cwd=path):
-        git("checkout", "--quiet", "-B", branch, "origin/" + branch, cwd=path)
+        git("checkout", "--quiet", "-f", "-B", branch, "origin/" + branch, cwd=path)
+        git("clean", "--quiet", "-fdx", cwd=path)
     else:
         # A new, empty repository: start the branch from nothing (dropping anything a dry run committed here)
-        shutil.rmtree(path)
+        shutil.rmtree(path, onerror=make_writable)
         if subprocess.run(["git", "clone", "--quiet", repo, path], stderr=subprocess.DEVNULL).returncode != 0:
             sys.exit("Couldn't clone %s." % repo)
         git("checkout", "--quiet", "--orphan", branch, cwd=path, check=False)
@@ -107,9 +115,10 @@ def read_version(path):
 
 def write_version(path, version):
     gradle = os.path.join(path, "build.gradle")
-    with open(gradle, encoding="utf-8") as f:
+    # newline="": keep the file's own line endings (Windows text mode would turn them into CRLF, a change)
+    with open(gradle, encoding="utf-8", newline="") as f:
         text = f.read()
-    with open(gradle, "w", encoding="utf-8") as f:
+    with open(gradle, "w", encoding="utf-8", newline="") as f:
         f.write(VERSION.sub("version = '%s'" % version, text, count=1))
 
 
@@ -174,11 +183,15 @@ def push(folder, entry, dry_run, head, level):
 def hub_entry(entry):
     """The Plugin Hub entry for a plugin: its repository and the commit its branch is at now."""
     branch = entry.get("branch", "master")
-    head = git("ls-remote", entry["repo"], "refs/heads/" + branch, check=False).split()
+    result = subprocess.run(["git", "ls-remote", entry["repo"], "refs/heads/" + branch], cwd=ROOT, text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode != 0:
+        sys.exit("Couldn't reach %s (offline, or not signed in to GitHub):\n%s" % (entry["repo"], result.stderr.strip()))
+    head = result.stdout.split()
     if not head:
         sys.exit("%s has nothing on %s yet: push first." % (entry["repo"], branch))
     os.makedirs(HUB_OUT, exist_ok=True)
-    with open(os.path.join(HUB_OUT, entry["hubName"]), "w") as f:
+    with open(os.path.join(HUB_OUT, entry["hubName"]), "w", newline="\n") as f:
         f.write("repository=%s\ncommit=%s\n" % (entry["repo"], head[0]))
     print("%-24s commit %s" % (entry["hubName"], head[0][:12]))
     return entry["hubName"]
@@ -189,11 +202,11 @@ def update_hub_fork(fork, names, dry_run, head):
     path = os.path.join(CACHE, "plugin-hub")
     if not os.path.isdir(os.path.join(path, ".git")):
         os.makedirs(CACHE, exist_ok=True)
-        if subprocess.run(["git", "clone", "--quiet", "--depth", "50", fork, path]).returncode != 0:
+        if subprocess.run(["git", "clone", "--quiet", fork, path]).returncode != 0:
             sys.exit("Couldn't clone your plugin-hub fork %s (fork runelite/plugin-hub on GitHub first)." % fork)
     if not git("remote", cwd=path).count("upstream"):
         git("remote", "add", "upstream", "https://github.com/runelite/plugin-hub.git", cwd=path)
-    git("fetch", "--quiet", "--depth", "50", "upstream", "master", cwd=path)
+    git("fetch", "--quiet", "upstream", "master", cwd=path)
     branch = "snuffys-" + head[:7]
     git("checkout", "--quiet", "-B", branch, "upstream/master", cwd=path)
     for name in names:

@@ -89,6 +89,16 @@ class PluginFamily {
         return isFirstOf(SHARED_ORDER);
     }
 
+    /** Which of ours says the shared alerts now (its family id: this plugin's own, or the first running ahead of it). */
+    String sharedHandler() {
+        for (String id : SHARED_ORDER) {
+            if (id.equals(self) || others.contains(id)) {
+                return id;
+            }
+        }
+        return self;
+    }
+
     /** Whether no other of ours ahead of this plugin in {@code order} is running (so this one does the job). */
     boolean isFirstOf(List<String> order) {
         int mine = order.indexOf(self);

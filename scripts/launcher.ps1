@@ -530,7 +530,7 @@ function Confirm-Exit {
     $window = RuneLite-Window
     if (-not $window) { return }
     $hwnd = [IntPtr]::Zero
-    while (($hwnd = [Snuffys.Win]::FindWindowEx([IntPtr]::Zero, $hwnd, $null, 'Exit')) -ne [IntPtr]::Zero) {
+    while (($hwnd = [Snuffys.Win]::FindWindowEx([IntPtr]::Zero, $hwnd, [NullString]::Value, 'Exit')) -ne [IntPtr]::Zero) {
         $owner = 0
         [void][Snuffys.Win]::GetWindowThreadProcessId($hwnd, [ref]$owner)
         if ($owner -eq $window.Id -and [Snuffys.Win]::SetForegroundWindow($hwnd)) {
@@ -541,9 +541,14 @@ function Confirm-Exit {
     }
 }
 
+# Whether any RuneLite is open: the one we started, or one opened before this window
+function RuneLite-Open {
+    return (RuneLite-Running) -or [bool](RuneLite-Window)
+}
+
 $closer.Add_Tick({
     Confirm-Exit
-    if (-not (RuneLite-Running)) {
+    if (-not (RuneLite-Open)) {
         $closer.Stop()
         Update-Plugins
         Start-RuneLite
@@ -551,11 +556,16 @@ $closer.Add_Tick({
     }
     # Still open after 20 seconds: end it and the build behind it
     if (((Get-Date) - $script:closingSince).TotalSeconds -gt 20) {
-        & taskkill.exe /PID $script:runner.Id /T /F | Out-Null
+        if (RuneLite-Running) {
+            & taskkill.exe /PID $script:runner.Id /T /F | Out-Null
+        } else {
+            $window = RuneLite-Window
+            if ($window) { & taskkill.exe /PID $window.Id /T /F | Out-Null }
+        }
     }
 })
 $relaunch.Add_Click({
-    if (-not (RuneLite-Running)) {
+    if (-not (RuneLite-Open)) {
         Update-Plugins
         Start-RuneLite
         return
@@ -625,6 +635,8 @@ $autoUpdate = New-Object System.Windows.Forms.Timer
 $autoUpdate.Interval = 5000
 $autoUpdate.Add_Tick({
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
+    # Not while the Dev tab is pushing: it publishes the commit it started with
+    if ($script:publishRun -and -not $script:publishRun.HasExited) { return }
     if ($script:fetch) {
         if (-not $script:fetch.HasExited) { return }
         $script:fetch = $null
@@ -674,8 +686,9 @@ $shortcut.Add_LinkClicked({
 
 # Python 3: "py -3" (the Windows launcher) or "python"
 function Find-Python {
-    if (Get-Command py -ErrorAction SilentlyContinue) { return @('py', '-3') }
-    if (Get-Command python -ErrorAction SilentlyContinue) { return @('python') }
+    # The comma keeps a one-item list a list (PowerShell would hand back the bare string)
+    if (Get-Command py -ErrorAction SilentlyContinue) { return ,@('py', '-3') }
+    if (Get-Command python -ErrorAction SilentlyContinue) { return ,@('python') }
     return $null
 }
 
@@ -827,7 +840,10 @@ function Start-DevStep($step, $dryRun) {
     if ($step -eq 'push') { $pyArgs += @('--bump', $level) }
     if ($dryRun) { $pyArgs += '--dry-run' }
     $command = "`"$($python[0])`" " + ($pyArgs -join ' ') + " > `"$($script:publishLog)`" 2>&1"
-    $script:publishRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    # cmd /c drops the first and last quote of what it runs: wrap the whole line in one more pair
+    $script:publishRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', "`"$command`"" -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    # Reading the handle now keeps the exit code readable once it ends (Windows PowerShell)
+    $null = $script:publishRun.Handle
     $devPoll.Start()
 }
 $devCheck.Add_Click({ Start-DevStep 'push' $true })
