@@ -49,7 +49,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Planner: Weekly",
-        description = "<div width='300'>The Planner's WEEKLY list: Tears of Guthix, your own weekly to-dos, the Kingdom of Miscellania and the farming contract",
+        description = "<div width='300'>The Planner's WEEKLY list: your own weekly to-dos (examples show until you add one)",
         position = 71,
         closedByDefault = true
     )

@@ -638,26 +638,18 @@ for its menu (edit, hide, delete...). Each list has a **Show ...** setting to hi
 account (RuneScape profile), and the Toolbelt and the separate Planner show the same. Skill goals live in the
 Skilling Helper; the Calculator's **Set as goal** sets the same goal (both plugins read it).
 
-**Today: Dailies** (the header counts down to the daily reset, 00:00 UTC):
-- Only your own: the game's daily rewards aren't read. Until you add one, a few greyed examples (Battlestaves, Buckets
-  of sand, Bowstrings, Herb run: not tracked) show what a daily can be; clicking one opens **+**.
-- **Your own:** **+** adds a daily or weekly with a name and an optional note; click it to tick it and it unticks at
-  its reset. Right-click any line to **Edit...** (rename it, change its note) or **Delete** it; Tears of Guthix (the one
-  preset, a weekly) is **Hidden** instead (**Show hidden** brings it back).
-- At login and at the reset, if anything's left: one voice line, "You have dailies to do.", and one line in the
-  **split private chat** (where friends' logins show, above the chat box when the game's Split Private Chat is on; it
-  fades after a while) saying how many are left (**Chat: Dailies**). Never a line per item.
-
-**Today: Weeklies** (under the dailies, counting down to the weekly reset, Wednesday 00:00 UTC):
-- **Tears of Guthix:** noticed when a game there ends; Juna lets you back at the start of the seventh day after
-  ("back in 3d 4h"). Before your first game with the plugin on it says "not seen yet": tick it by hand when you play
-  it elsewhere. (It also needs a quest point or 100,000 XP since your last visit, which the game doesn't tell us.)
-- Your own weeklies, as above. "You have weeklies to do." at login and the weekly reset (Chat: Weeklies off at first).
-- **Kingdom of Miscellania:** approval and coffer as last seen, as RuneLite's Kingdom plugin reads them (the game
-  sends them while you're in the kingdom, or once they've changed), after Throne of Miscellania. A bar shows
-  the approval; under 50% it's orange.
-- **Farming contract:** Guinevere's contract (the crop), how its Farming Guild patch is doing (from Timers, with its
-  growth bar), or "done: claim from Guinevere".
+**Today: Dailies and Weeklies** (each header counts down to its reset: daily 00:00 UTC, weekly Wednesday 00:00 UTC):
+- Only your own: nothing is read from the game. **+** adds one: **Start from** a preset task (Battlestaves, Buckets of
+  sand, Pure essence, Random runes, Bowstrings, Bonemeal and slime, Dynamite, Ogre arrows, Herb boxes, Herb run, Bird
+  house run, Clue scroll; weekly: Tears of Guthix, Kingdom of Miscellania, Penguin hunting, Farming contract), which
+  fills in its name, where to go and its picture, or **Your own**; then its name, daily or weekly, an optional note
+  and a **Picture** (any preset task's item, or none). Click one to tick it; it unticks at its reset. Right-click to
+  **Edit...** (name, note, picture) or **Delete**.
+- While a list is empty it shows four of the preset tasks as examples (greyed, not tracked); clicking one opens +
+  with it filled in.
+- At login and at the reset, if anything's left: one voice line ("You have dailies to do." / "...weeklies..."), and
+  one line in the **split private chat** (where friends' logins show; it fades) saying how many are left (**Chat:
+  Dailies**, **Chat: Weeklies**). Never a line per item.
 
 **Timers** (the header says how many are ready and running):
 - **Farming patches** (moved here from the Skilling Helper's sidebar; nothing saved is lost): every patch, compost bin
@@ -806,7 +798,7 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
 - Information only: nothing is done in the game.
 
 **Settings (Planner: Today, Weekly, Timers, Slayer, Drops, Notes & To-Do, Calculator):** a Show switch for each list; Dailies To Do
-Alert, Weeklies To Do Alert; Kingdom of Miscellania, Farming Contract; Farming Patch List, Patches Ready Alert, Bird
+Alert, Weeklies To Do Alert; Farming Patch List, Patches Ready Alert, Bird
 Houses Ready Alert; Show GE Prices, Hide Members On Free Worlds (Calculator); Count Other Loot, Valuable Drop From, Valuable Drop Colour, Recent Drops Shown; Voice/Chat switches.
 
 ---

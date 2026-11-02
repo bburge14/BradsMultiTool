@@ -210,10 +210,12 @@ work a resource.
 Its own sidebar tab (the calendar icon), also in the Toolbelt. Six lists, each folds away under its heading and
 each can be hidden in the settings; everything is saved per account.
 - **Today**: your own dailies with the time to the daily reset: press **+** to add one (they untick at the reset),
-  click to tick, right-click to edit or delete. Until you add one it shows a few examples (greyed, not tracked). One voice line at login and at the reset if there are
+  click to tick, right-click to edit or delete. While a list is empty it shows a few preset tasks as examples
+  (greyed, not tracked; click one to add it). One voice line at login and at the reset if there are
   dailies to do; no chat spam.
-- **Weekly**: Tears of Guthix (when Juna lets you back), your own weeklies, the Kingdom of Miscellania's approval and
-  coffer, and your farming contract, with the time to the weekly reset (Wednesday).
+- **Weekly**: your own weeklies, the same way, with the time to the weekly reset (Wednesday). Adding a daily or
+  weekly can start from a preset task (Battlestaves, Herb run, Tears of Guthix, Kingdom of Miscellania...: name, where
+  and picture filled in), and each can have a picture. Nothing is read from the game.
 - **Timers**: every farming patch, compost bin and Hespori you've been to and when it's grown (moved here from the
   Skilling Helper), your bird houses, and timers of your own; each with a ready alert in the game chat. When you add
   or edit a timer you pick what it does when it's done: the voice line or a sound (Bell, Chime, Anvil, Boop, Door;

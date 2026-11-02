@@ -81,7 +81,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Weekly",
-        description = "<div width='300'>The WEEKLY list: Tears of Guthix, your own weekly to-dos, the Kingdom of Miscellania and the farming contract",
+        description = "<div width='300'>The WEEKLY list: your own weekly to-dos (examples show until you add one)",
         position = 71,
         closedByDefault = true
     )
@@ -216,28 +216,6 @@ public interface PlannerConfig extends CommonConfig {
         position = 3
     )
     default boolean chatWeeklies() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "plannerShowKingdom",
-        name = "Kingdom of Miscellania",
-        description = "<div width='300'>Your kingdom's approval and coffer, as last seen (the game sends them while you're there, or once they've changed); after Throne of Miscellania",
-        section = plannerWeeklySection,
-        position = 4
-    )
-    default boolean plannerShowKingdom() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "plannerShowContract",
-        name = "Farming Contract",
-        description = "<div width='300'>Your farming contract from Guinevere at the Farming Guild: what it is, how the patch is doing (from TIMERS), or that it's done",
-        section = plannerWeeklySection,
-        position = 5
-    )
-    default boolean plannerShowContract() {
         return true;
     }
 

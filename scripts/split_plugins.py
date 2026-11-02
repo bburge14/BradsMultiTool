@@ -191,8 +191,7 @@ FEATURES = {
     ],
     "planner": [
         "**Today**: your own dailies, ticked off by you and due again at the daily reset",
-        "**Weekly**: Tears of Guthix, your own weeklies, the Kingdom of Miscellania's approval and coffer, and your "
-        "farming contract",
+        "**Weekly**: your own weeklies; adding either can start from a preset task (name, where and picture filled in)",
         "**Timers**: every farming patch, compost bin and Hespori you've been to, bird houses and timers of your own, "
         "with ready alerts",
         "**Slayer**: your task, kills left, points and streak",

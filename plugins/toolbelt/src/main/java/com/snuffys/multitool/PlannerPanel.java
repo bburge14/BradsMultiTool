@@ -84,18 +84,6 @@ class PlannerPanel extends PluginPanel {
     // A diseased patch's bar (a sicklier yellow than the growing orange)
     private static final Color DISEASED = new Color(190, 175, 50);
 
-    // The daily rewards' items, for their pictures
-    private static final Map<String, Integer> PRESET_ITEMS = Map.of(
-        "staves", ItemID.BATTLESTAFF,
-        "herbBoxes", ItemID.NZONE_HERBBOX,
-        "essence", ItemID.BLANKRUNE_HIGH,
-        "runes", ItemID.CHAOSRUNE,
-        "sand", ItemID.BUCKET_SAND,
-        "flax", ItemID.BOW_STRING,
-        "bonemeal", ItemID.BUCKET_ECTOPLASM,
-        "dynamite", ItemID.LOVAKENGJ_DYNAMITE_FUSED,
-        "arrows", ItemID.OGRE_ARROW,
-        PlannerChores.TOG, ItemID.TOG_BOWL);
 
     private final PlannerConfig config;
     private final ConfigManager configManager;
@@ -375,14 +363,9 @@ class PlannerPanel extends PluginPanel {
             boolean weekly = config.plannerShowWeekly();
             List<PlannerChores.Row> days = daily ? chores.rows(false) : new ArrayList<>();
             List<PlannerChores.Row> weeks = weekly ? chores.rows(true) : new ArrayList<>();
-            int hiddenDays = daily ? chores.hiddenCount(false) : 0;
-            int hiddenWeeks = weekly ? chores.hiddenCount(true) : 0;
-            long[] kingdom = weekly && config.plannerShowKingdom() ? chores.kingdom() : null;
-            String contract = weekly && config.plannerShowContract() ? chores.contract() : null;
-            FarmingTracker.Record contractPatch = contract == null || "done".equals(contract) ? null : contractPatch(contract);
             String dailySummary = summary(days, PlannerChores.lastDailyReset(now) + PlannerChores.DAY - now);
             String weeklySummary = summary(weeks, PlannerChores.lastWeeklyReset(now) + PlannerChores.WEEK - now);
-            StringBuilder key = new StringBuilder().append(daily).append(weekly).append(hiddenDays).append(hiddenWeeks)
+            StringBuilder key = new StringBuilder().append(daily).append(weekly)
                 .append(dailySummary).append(weeklySummary).append('|');
             for (PlannerChores.Row row : days) {
                 rowKey(key, row);
@@ -390,56 +373,46 @@ class PlannerPanel extends PluginPanel {
             for (PlannerChores.Row row : weeks) {
                 rowKey(key, row);
             }
-            if (kingdom != null) {
-                key.append(kingdom[0]).append(kingdom[1]).append(daysAgo(kingdom[2], now));
-            }
-            key.append(contract).append(contractPatch == null ? "" : patchStatus(contractPatch, now));
             return new Built(key.toString(), () -> {
                 if (daily) {
                     add(PlannerUi.header("Dailies", tip(new JLabel(dailySummary), "The daily reset is at 00:00 UTC"),
-                        plus("Add your own daily or weekly", () -> addChore(false))));
+                        plus("Add a daily", () -> addChore(false, null))));
                     for (PlannerChores.Row row : days) {
                         card(choreCard(row));
                     }
                     if (days.isEmpty()) {
-                        // Nothing of yours yet: a few examples (not tracked) of what a daily can be
-                        add(PlannerUi.empty("No dailies yet: press + to add your own. They untick at the daily reset. "
-                            + "For example:"));
-                        for (String[] example : DAILY_EXAMPLES) {
-                            card(exampleCard(example));
-                        }
-                    }
-                    if (hiddenDays > 0) {
-                        add(PlannerUi.link("Show hidden (" + hiddenDays + ")", "Bring back the dailies you hid",
-                            () -> chores.showHidden(false)));
+                        examples(false);
                     }
                 }
                 if (weekly) {
                     JLabel summary = tip(new JLabel(weeklySummary), "The weekly reset is on Wednesday at 00:00 UTC");
-                    JComponent add = plus("Add your own weekly", () -> addChore(true));
+                    JComponent add = plus("Add a weekly", () -> addChore(true, null));
                     add(daily ? PlannerUi.section("Weeklies", summary, add) : PlannerUi.header("Weeklies", summary, add));
                     for (PlannerChores.Row row : weeks) {
                         card(choreCard(row));
                     }
-                    if (kingdom != null) {
-                        card(kingdomCard(kingdom, now));
-                    }
-                    if (contract != null) {
-                        card(contractCard(contract, contractPatch, now));
-                    }
-                    if (weeks.isEmpty() && kingdom == null && contract == null) {
-                        add(PlannerUi.empty("No weeklies yet. Press + to add your own."));
-                    }
-                    if (hiddenWeeks > 0) {
-                        add(PlannerUi.link("Show hidden (" + hiddenWeeks + ")", "Bring back the weeklies you hid",
-                            () -> chores.showHidden(true)));
+                    if (weeks.isEmpty()) {
+                        examples(true);
                     }
                 }
             });
         }
 
+        // Nothing of yours on a list yet: a few preset tasks as examples (greyed, not tracked); click one to add it
+        private void examples(boolean weekly) {
+            add(PlannerUi.empty("No " + (weekly ? "weeklies" : "dailies") + " yet: press + to add your own (or start from a "
+                + "preset). They untick at the " + (weekly ? "weekly" : "daily") + " reset. For example:"));
+            int shown = 0;
+            for (PlannerChores.Template template : PlannerChores.TEMPLATES) {
+                if (template.weekly == weekly && shown < 4) {
+                    card(exampleCard(template));
+                    shown++;
+                }
+            }
+        }
+
         private void rowKey(StringBuilder key, PlannerChores.Row row) {
-            key.append(row.id).append(row.name).append(row.note).append(row.done).append(row.detail).append(';');
+            key.append(row.id).append(row.name).append(row.note).append(row.done).append(row.icon).append(';');
         }
     }
 
@@ -456,51 +429,34 @@ class PlannerPanel extends PluginPanel {
         return (left > 0 ? left + " left" : "All done") + " \u00b7 " + reset;
     }
 
-    // Examples shown while you have no dailies (greyed, not tracked): name, where, and its picture's id in PRESET_ITEMS
-    private static final String[][] DAILY_EXAMPLES = {
-        {"Battlestaves", "Zaff in Varrock", "staves"},
-        {"Buckets of sand", "Bert in Yanille", "sand"},
-        {"Bowstrings", "The Flax keeper in Seers' Village", "flax"},
-        {"Herb run", "Catherby, Ardougne, Falador...", ""},
-    };
-
-    private JComponent exampleCard(String[] example) {
-        PlannerUi.Card card = new PlannerUi.Card(example[0], example[1], "example");
-        Integer item = PRESET_ITEMS.get(example[2]);
-        if (item != null) {
-            image(card.icon, icons.item(item, 1, false), 0.4f);
-        } else {
-            image(card.icon, PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.NOTE, 18, PlannerUi.MUTED)), 0.4f);
-        }
+    private JComponent exampleCard(PlannerChores.Template template) {
+        PlannerUi.Card card = new PlannerUi.Card(template.name, shortNote(template.note), "example");
+        image(card.icon, icons.item(template.icon, 1, false), 0.4f);
         card.dim();
-        return card.interactive(() -> addChore(false), null, "<html>An example, not tracked<br><font color='#a0a0a0'>"
-            + "Click (or +) to add a daily of your own</font></html>");
+        return card.interactive(() -> addChore(template.weekly, template), null, "<html>An example, not tracked: "
+            + PlannerUi.esc(template.name) + "<br><font color='#a0a0a0'>Click to add it (or + for your own)</font></html>");
     }
 
     private JComponent choreCard(PlannerChores.Row row) {
-        String second = row.detail != null ? row.detail : row.custom
-            ? (row.note != null ? row.note : "Your own " + (row.weekly ? "weekly" : "daily")) : shortNote(row.note);
+        String second = row.note != null ? shortNote(row.note) : "Your " + (row.weekly ? "weekly" : "daily");
         PlannerUi.Card card = new PlannerUi.Card(row.name, second, null).east(new PlannerUi.Tick(row.done));
-        Integer item = PRESET_ITEMS.get(row.id);
         float alpha = row.done ? 0.35f : 1f;
-        if (item != null) {
-            image(card.icon, icons.item(item, 1, false), alpha);
+        if (row.icon > 0) {
+            image(card.icon, icons.item(row.icon, 1, false), alpha);
         } else {
             image(card.icon, PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.NOTE, 18, PlannerUi.MUTED)), alpha);
         }
         if (row.done) {
             card.dim();
         }
-        String how = row.custom ? "Your own: click to tick it; it unticks at the " + (row.weekly ? "weekly" : "daily") + " reset"
-            : row.fromGame ? "Ticks itself as you collect it (or click to tick it)" : "Click to tick it";
         JPopupMenu menu = new JPopupMenu();
         menu.add(item(row.done ? "Untick" : "Tick", () -> chores.setDone(row.id, !row.done)));
         menu.add(item("Edit...", () -> editChore(row)));
-        menu.add(item(row.custom ? "Delete" : "Hide", () -> chores.remove(row.id)));
+        menu.add(item("Delete", () -> chores.remove(row.id)));
         return card.interactive(() -> chores.setDone(row.id, !row.done), menu,
             "<html><b>" + PlannerUi.esc(row.name) + "</b>" + (row.note != null ? "<br>" + PlannerUi.esc(row.note) : "")
-                + "<br><font color='#a0a0a0'>" + how + ". Right-click to edit or " + (row.custom ? "delete" : "hide")
-                + ".</font></html>");
+                + "<br><font color='#a0a0a0'>Click to tick it; it unticks at the " + (row.weekly ? "weekly" : "daily")
+                + " reset. Right-click to edit or delete.</font></html>");
     }
 
     // "Zaff in Varrock (Varrock easy diary)" -> "Zaff in Varrock"; "Nightmare Zone: 9,500..." -> "Nightmare Zone"
@@ -518,59 +474,103 @@ class PlannerPanel extends PluginPanel {
         return note.substring(0, cut);
     }
 
-    private JComponent kingdomCard(long[] kingdom, long now) {
-        int percent = PlannerChores.approvalPercent(kingdom[0]);
-        Color colour = percent < 50 ? HudColors.WARN : PlannerUi.READY;
-        PlannerUi.Card card = new PlannerUi.Card("Kingdom of Miscellania", "Coffer " + gp(kingdom[1]) + " gp",
-            percent + "% approval");
-        card.right.setForeground(colour);
-        card.bar(new PlannerUi.Bar(percent / 100.0, colour));
-        image(card.icon, icons.item(ItemID.COINS, 10_000, false), 1f);
-        return card.interactive(null, null, "<html>Approval " + percent + "% and coffer " + String.format("%,d", kingdom[1])
-            + " gp, " + daysAgo(kingdom[2], now) + ".<br><font color='#a0a0a0'>Approval drops each day you "
-            + "don't help out in the kingdom.</font></html>");
-    }
-
-    private JComponent contractCard(String contract, FarmingTracker.Record patch, long now) {
-        boolean done = "done".equals(contract);
-        String status = done ? "Done" : patch == null ? "not planted" : patchStatus(patch, now);
-        PlannerUi.Card card = new PlannerUi.Card("Farming contract", done ? "Claim from Guinevere" : contract, status);
-        card.right.setForeground(statusColour(done ? "ready" : status));
-        if (patch != null) {
-            card.bar(patchBar(patch, now));
+    // Adding one: start from a preset task (its name, note and picture filled in) or your own; pick its picture
+    private void addChore(boolean weeklyList, PlannerChores.Template start) {
+        JComboBox<Object> preset = new JComboBox<>();
+        preset.addItem("Your own");
+        for (PlannerChores.Template template : PlannerChores.TEMPLATES) {
+            preset.addItem(template);
         }
-        BufferedImage picture = done ? null : cropPicture(contract);
-        image(card.icon, picture != null ? picture : icons.skill(Skill.FARMING, false), 1f);
-        return card.interactive(null, null, "Guinevere's contract at the Farming Guild; the patch as you last saw it");
-    }
-
-    // The contract crop's patch at the Farming Guild, as last seen in Timers
-    private FarmingTracker.Record contractPatch(String crop) {
-        for (FarmingTracker.Record patch : farming.records()) {
-            if (patch.title.startsWith("Farming Guild") && patch.crop.equalsIgnoreCase(crop)) {
-                return patch;
-            }
-        }
-        return null;
-    }
-
-    private void addChore(boolean weeklyList) {
         JTextField name = new JTextField();
         JTextField note = new JTextField();
         JComboBox<String> when = new JComboBox<>(new String[]{"Daily", "Weekly"});
         when.setSelectedIndex(weeklyList ? 1 : 0);
-        if (form("Add a daily or weekly", new String[]{"Name", "Resets", "Note (optional)"}, name, when, note)
-            && !name.getText().trim().isEmpty()) {
-            chores.add(name.getText().trim(), when.getSelectedIndex() == 1, note.getText());
+        JComboBox<Integer> icon = iconChoice(0);
+        preset.setRenderer(templateRenderer());
+        preset.addActionListener(e -> {
+            Object picked = preset.getSelectedItem();
+            if (picked instanceof PlannerChores.Template) {
+                PlannerChores.Template template = (PlannerChores.Template) picked;
+                name.setText(template.name);
+                note.setText(template.note);
+                when.setSelectedIndex(template.weekly ? 1 : 0);
+                icon.setSelectedItem(template.icon);
+            }
+        });
+        if (start != null) {
+            preset.setSelectedItem(start);
+        }
+        if (form(weeklyList ? "Add a weekly" : "Add a daily", new String[]{"Start from", "Name", "Resets", "Note (optional)",
+            "Picture"}, preset, name, when, note, icon) && !name.getText().trim().isEmpty()) {
+            chores.add(name.getText().trim(), when.getSelectedIndex() == 1, note.getText(), (Integer) icon.getSelectedItem());
         }
     }
 
     private void editChore(PlannerChores.Row row) {
         JTextField name = new JTextField(row.name);
         JTextField note = new JTextField(row.note == null ? "" : row.note);
-        if (form("Edit " + row.name, new String[]{"Name", "Note"}, name, note) && !name.getText().trim().isEmpty()) {
-            chores.edit(row.id, name.getText().trim(), note.getText());
+        JComboBox<Integer> icon = iconChoice(row.icon);
+        if (form("Edit " + row.name, new String[]{"Name", "Note", "Picture"}, name, note, icon)
+            && !name.getText().trim().isEmpty()) {
+            chores.edit(row.id, name.getText().trim(), note.getText(), (Integer) icon.getSelectedItem());
         }
+    }
+
+    // The pictures to pick from: none, then each preset task's (shown as the item)
+    private JComboBox<Integer> iconChoice(int current) {
+        JComboBox<Integer> box = new JComboBox<>();
+        box.addItem(0);
+        for (PlannerChores.Template template : PlannerChores.TEMPLATES) {
+            if (((javax.swing.DefaultComboBoxModel<Integer>) box.getModel()).getIndexOf(template.icon) < 0) {
+                box.addItem(template.icon);
+            }
+        }
+        if (current > 0 && ((javax.swing.DefaultComboBoxModel<Integer>) box.getModel()).getIndexOf(current) < 0) {
+            box.addItem(current);
+        }
+        box.setSelectedItem(current);
+        box.setRenderer(new javax.swing.DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index,
+                                                                  boolean selected, boolean focus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, "", index, selected, focus);
+                int id = value == null ? 0 : (Integer) value;
+                label.setText(id > 0 ? iconName(id) : "None");
+                label.setIcon(id > 0 && icons.item(id, 1, false) != null ? new ImageIcon(icons.item(id, 1, false)) : null);
+                return label;
+            }
+        });
+        return box;
+    }
+
+    // A preset task's picture's name (the task it's from)
+    private static String iconName(int id) {
+        for (PlannerChores.Template template : PlannerChores.TEMPLATES) {
+            if (template.icon == id) {
+                return template.name;
+            }
+        }
+        return "Picture";
+    }
+
+    // Preset tasks in the list with their pictures and when they reset
+    private javax.swing.ListCellRenderer<Object> templateRenderer() {
+        return new javax.swing.DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index,
+                                                                  boolean selected, boolean focus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, selected, focus);
+                if (value instanceof PlannerChores.Template) {
+                    PlannerChores.Template template = (PlannerChores.Template) value;
+                    label.setText(template.name + (template.weekly ? " (weekly)" : " (daily)"));
+                    BufferedImage picture = icons.item(template.icon, 1, false);
+                    label.setIcon(picture != null ? new ImageIcon(picture) : null);
+                } else {
+                    label.setIcon(null);
+                }
+                return label;
+            }
+        };
     }
 
     // ---- Timers: farming patches, bird houses and your own ----

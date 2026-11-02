@@ -249,7 +249,7 @@ public class PlannerPreview {
             config = configManager.getConfig(PlannerConfig.class);
             farmingData = new FarmingData(null, configManager);
             farmingData.load(gson);
-            chores = new PlannerChores(null, configManager, config, null, view, farmingData, gson);
+            chores = new PlannerChores(null, configManager, config, null, view, gson);
             timers = new PlannerTimers(configManager, config, null, new BirdhouseTracker(null, configManager), view, gson);
             farming = new FarmingTracker(null, configManager, farmingData, config, null, view);
             slayer = new PlannerSlayer(null, configManager, null, view);
@@ -285,21 +285,15 @@ public class PlannerPreview {
 
         void fill() {
             long now = System.currentTimeMillis() / 1000;
-            // TODAY: the rewards as the game last said (one done, the rest due), one hidden, one of your own ticked
-            set("planner.choresSeen", "{\"presets\":{"
-                + seen("staves", PlannerChores.DONE, now) + "," + seen("herbBoxes", PlannerChores.DUE, now).replace("\"claimValue\":0", "\"claimValue\":3")
-                + "," + seen("essence", PlannerChores.DUE, now) + "," + seen("sand", PlannerChores.DONE, now)
-                + "," + seen("flax", PlannerChores.DUE, now) + "," + seen("bonemeal", PlannerChores.DUE, now)
-                + "," + seen("dynamite", PlannerChores.DUE, now) + "," + seen("arrows", PlannerChores.DUE, now) + "}}");
-            chores.remove("arrows");
-            chores.add("Herb run", false, "Catherby, Ardougne, Falador and the Farming Guild");
+            // TODAY: dailies and weeklies of your own (from the preset tasks, with their pictures), one ticked
+            chores.add("Battlestaves", false, "Zaff in Varrock (Varrock easy diary)", net.runelite.api.gameval.ItemID.BATTLESTAFF);
+            chores.add("Herb run", false, "Catherby, Ardougne, Falador and the Farming Guild",
+                net.runelite.api.gameval.ItemID.UNIDENTIFIED_RANARR);
             String herbRun = chores.rows(false).get(chores.rows(false).size() - 1).id;
             chores.setDone(herbRun, true);
-            chores.add("Penguin hunting", true, "Spy on the penguins for Larry");
-            // Tears of Guthix two days ago; the kingdom and a contract
-            set("planner.togLastPlayed", now - 2 * PlannerChores.DAY);
-            set("planner.kingdom", "110|742000|" + (now - 3600));
-            set("planner.contract", "27");
+            chores.add("Buckets of sand", false, "Bert in Yanille", net.runelite.api.gameval.ItemID.BUCKET_SAND);
+            chores.add("Tears of Guthix", true, "Juna in the Lumbridge Swamp caves", net.runelite.api.gameval.ItemID.TOG_BOWL);
+            chores.add("Penguin hunting", true, "Spy on the penguins for Larry", net.runelite.api.gameval.ItemID.PENGUIN_MASK);
 
             // TIMERS: patches as last seen, bird houses seeded 20 minutes ago, three of your own timers
             patch("farmPatch.11061.4774", "Catherby: Herb patch", "Ranarr", FarmingData.GROWING, now + 25 * 60);
@@ -404,9 +398,6 @@ public class PlannerPreview {
             set(key, new FarmingTracker.Record(key, title, crop, state, grownAt, false, 2, 0).encode());
         }
 
-        private static String seen(String id, int state, long now) {
-            return "\"" + id + "\":{\"state\":" + state + ",\"at\":" + now + ",\"claimValue\":0}";
-        }
 
         // A source as saved: its kills, kills since a valuable drop, when it last dropped, and items as
         // name, quantity, value, times dropped
