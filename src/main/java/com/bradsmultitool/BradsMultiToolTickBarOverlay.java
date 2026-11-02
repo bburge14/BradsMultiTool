@@ -43,7 +43,10 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         boolean bar = config.tickBar();
-        boolean summary = config.clickTiming();
+        boolean summary = false;
+        // <click-timing>
+        summary = config.clickTiming();
+        // </click-timing>
         if (client.getGameState() != GameState.LOGGED_IN || (!bar && !summary) || ticks.getCount() <= 0
             || ticks.isHidden()) {
             return null;
@@ -58,6 +61,7 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
             Color fill = BradsMultiToolTickBoxOverlay.tickColor(config, ticks.getCount());
             graphics.setColor(new Color(fill.getRed(), fill.getGreen(), fill.getBlue(), Math.min(fill.getAlpha(), 150)));
             graphics.fillRect(0, 0, (int) (width * progress), HEIGHT);
+            // <click-timing>
             if (ticks.timingClicks()) {
                 // On top of the fill so they always show: the ideal zone (green, edged), and from Late After on,
                 // clicks count as late (orange)
@@ -78,10 +82,12 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
                 graphics.setColor(ticks.clickColor(ticks.getLastClickOffset()));
                 graphics.fillRect(Math.min(width - 2, clickX), 0, 2, HEIGHT);
             }
+            // </click-timing>
             graphics.setColor(Color.BLACK);
             graphics.drawRect(0, 0, width - 1, HEIGHT - 1);
             y = HEIGHT;
         }
+        // <click-timing>
         if (summary) {
             String text = summary();
             graphics.setFont(FontManager.getRunescapeSmallFont());
@@ -93,6 +99,7 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
             graphics.setColor(Color.WHITE);
             graphics.drawString(text, 2, y - metrics.getDescent());
         }
+        // </click-timing>
         return new Dimension(width, y);
     }
 
@@ -101,6 +108,7 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
         return (int) (width * Math.min(1, millis / (double) BradsMultiToolTickBoxOverlay.TICK_MILLIS));
     }
 
+    // <click-timing>
     /** "Last 50: 44 on time (30 ideal), 4 late, 2 missed, avg 310ms" */
     private String summary() {
         int onTime = 0;
@@ -137,4 +145,5 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
         }
         return text.toString();
     }
+    // </click-timing>
 }

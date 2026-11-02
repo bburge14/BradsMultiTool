@@ -603,7 +603,7 @@ clicks; it never clicks, changes a menu or does anything for you.
     sounds keep playing. Turning the plugin off and on shows them again.
   - **Ticks Per Cycle Up / Down:** one more or one less (1-10), saved like changing the setting, with a chat
     line saying the new number (and when Follow Attack Speed or a Tick Pattern sets the cycle instead).
-- **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head: green
+- **Click Timing** (builds from this repository only: the Plugin Hub version leaves it out): each click shows how long after the tick it landed (e.g. "310ms") over your head: green
   in the ideal zone, white elsewhere before Late After, red when late. The tick bar shades the **ideal zone**
   green (**Ideal From** to **Ideal To**, 100-350ms by default) and the late part orange, and marks your last
   click. A summary of your last 50 clicks shows with the bar: "Last 50: 44 on time (30 ideal), 4 late, 2

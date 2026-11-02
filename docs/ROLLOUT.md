@@ -50,7 +50,7 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 - [ ] **Test round in game** of every plugin on its own (launcher: pick the separate plugins) and together
       (clashes between ours, shared goals, one voice for all). docs/TESTING.md is the checklist.
 - [ ] **Open questions** in docs/PLUGIN_HUB_COMPLIANCE.md settled:
-  - Click timing (Tick Counter): ask the reviewers, or leave it out.
+  - Click timing (Tick Counter): done, left out of the published plugins (kept in launcher builds).
   - Voice licences: done (Ryan and L2 Arctic removed).
   - Size: done as far as it goes: the published plugins ship four voices (see the sizes `split_plugins.py` prints).
 - [ ] **READMEs**: each `plugins/<folder>/README.md` is what players see on the Plugin Hub page: check the text

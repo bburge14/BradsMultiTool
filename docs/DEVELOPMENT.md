@@ -90,6 +90,11 @@ see in the shared group, so either plugin alone has it all), `SkillGoals` (the g
 tracker and the Planner's Calculator, so the Planner needn't pull in `SkillTracker`/`GoalItems`), `SkillPlans` (skill plans: the Planner writes them, the tracker reads them), and `RecipeData`,
 `TrainingData`, `ItemPrices`, `ItemIcons` (data only).
 
+Dev-only features: code between `// <click-timing>` and `// </click-timing>` lines (click timing, in the Tick Counter
+classes, its settings and the Toolbelt's section) is left out of every `plugins/` folder, along with the settings
+those blocks declare (from the generated `*ConfigDefaults`) and the words about it in descriptions (`DEV_ONLY_TEXT`
+in `split_plugins.py`). Builds from `src/` (the launcher) keep it. The same script ships only `PUBLISHED_VOICES`.
+
 Rules that keep the split working:
 - A separate plugin has every feature its part has in the Toolbelt: nothing it shows may depend on another
   plugin running. When two parts have the same thing (potion buffs and their alerts on the PvM HUD and the crab

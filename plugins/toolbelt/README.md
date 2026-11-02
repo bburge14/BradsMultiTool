@@ -36,7 +36,6 @@ Everything in Snuffy's six separate plugins, in one plugin:
 - **Tick count** over your head, as numbered tick boxes or a smooth tick bar
 - **Metronome** with a play-ahead option, and hotkeys to reset, hide and change the cycle
 - **Attack timer** that follows your weapon's speed, counting up or down to your next attack
-- **Click timing**: how far into the tick each click lands, for tick skilling practice
 
 **Snuffy's Planner**
 

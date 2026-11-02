@@ -94,7 +94,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Voice alerts (bundled clips) | OK. Character voices are named after RuneScape characters but are our own synthesized clips, not Jagex audio |
 | Skill tracker panel, level-up alerts | OK |
 | Tick counter (over head, tick boxes, smooth tick bar) and metronome, incl. Follow Attack Speed | OK. Core Metronome plugin does the tick sounds (and sets the sound effect volume for one sound and restores it, as we do); Plugin Hub has visual metronome / tick counter plugins. Counts ticks only: it never highlights what to click or when, and never acts for the player |
-| Click timing (ms after the tick for each click, ding/dun sounds, on time / late / missed summary) | Likely OK, but ask the reviewers (see Open questions). Reads `MenuOptionClicked` only (never consumes or changes it) and the time of the last `GameTick`; shows and sounds feedback after the click, never what or when to click |
+| Click timing (ms after the tick for each click, ding/dun sounds, on time / late / missed summary) | Not published: only in builds from this repository. `split_plugins.py` leaves out the code between `// <click-timing>` markers, so the Plugin Hub copies don't have it |
 | Reset in the PvM HUD's and crab card's right-click menus | OK. RUNELITE_OVERLAY menu entries on our own overlays (like the pinned skill's Unpin); only clear our numbers |
 | Buff bar (your buffs/debuffs with timers) and monster effects on the PvM HUD (poison/venom/burn, freezes, Defence after your special attacks) | OK. Same information as the core Timers and Buffs and Boosts plugins, read from varbits, hitsplats and graphics; information only |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
@@ -117,9 +117,7 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 
 ## Open questions before publishing
 
-- **Click timing.** A training aid for tick manipulation (1-ticking): it times your own clicks against the tick
-  and gives feedback after them. Nothing on the Plugin Hub does quite this; ask the reviewers before submitting,
-  and drop it if they object (it's only in the Tick Counter, and the tick count and metronome don't depend on it).
+- **Click timing:** settled. Left out of the published plugins (kept in builds from this repository).
 
 - **Voice clip licences:** settled. Ryan (CC BY-NC-SA) and L2 Arctic (CC BY-NC) were removed; the voices left are
   CC0, public domain, or free to use with credit (VOICE_CREDITS.md).

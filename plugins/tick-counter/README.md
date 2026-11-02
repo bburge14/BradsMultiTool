@@ -1,13 +1,12 @@
 # Snuffy's Tick Counter
 
-Game tick counter as boxes or a smooth bar, a metronome, an attack timer and click timing for tick skilling.
+Game tick counter as boxes or a smooth bar, a metronome and an attack timer.
 
 ## Features
 
 - **Tick count** over your head, as numbered tick boxes or a smooth tick bar
 - **Metronome** with a play-ahead option, and hotkeys to reset, hide and change the cycle
 - **Attack timer** that follows your weapon's speed, counting up or down to your next attack
-- **Click timing**: how far into the tick each click lands, for tick skilling practice
 
 
 ## Installing

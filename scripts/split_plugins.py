@@ -28,6 +28,38 @@ OUT = os.path.join(ROOT, "plugins")
 RELEASES = os.path.join(ROOT, "releases")
 OLD_PACKAGE = "com.bradsmultitool"
 
+# Features only in builds from src/ (the launcher), not on the Plugin Hub: their code sits between
+# "// <click-timing>" and "// </click-timing>" lines, which are left out here, with these words in descriptions
+DEV_ONLY_BLOCK = re.compile(r"^[ \t]*// <click-timing>\n.*?^[ \t]*// </click-timing>\n", re.S | re.M)
+DEV_ONLY_TEXT = {
+    ", an attack timer and click timing for tick skilling": " and an attack timer",
+    ", the metronome and click timing.": " and the metronome.",
+    "the metronome and click timing. */": "and the metronome. */",
+    " Raise it if Click Timing says your clicks on the sound are late, lower it if they're early.": "",
+    "plays the metronome, and times your\n * clicks against the tick (how long after it each landed, a ding or a dun). Only reads your clicks and shows or\n"
+    " * sounds the ticks: it never clicks, changes a menu or does anything in the game.":
+        "and plays the metronome. Only shows and\n * sounds the ticks: it never clicks, changes a menu or does anything in the game.",
+    " snaps back when the next tick comes, with the ideal click zone (green), the late part (orange)\n"
+    " * and your last click marked on it. Under it, with Click\n * Timing on, a summary of your last clicks.":
+        " snaps back when the next tick comes.",
+    "the tick count, and with Click Timing on, how long after the tick each click\n"
+    " * landed, rising and fading like an XP drop (green in the ideal zone, red late).": "the tick count.",
+    "the metronome, click timing and its hotkeys.": "the metronome and its hotkeys.",
+    "Volume of the metronome and the click sounds (0-100)": "Volume of the metronome (0-100)",
+}
+
+
+def dev_only_removed(text):
+    """The text without its dev-only blocks and words, and the config methods those blocks declared."""
+    removed = set()
+    for block in DEV_ONLY_BLOCK.findall(text):
+        removed.update(re.findall(r"default [\w.<>]+ (\w+)\(\)", block))
+    text = DEV_ONLY_BLOCK.sub("", text)
+    for old, new in DEV_ONLY_TEXT.items():
+        text = text.replace(old, new)
+    return text, removed
+
+
 # The voices the published plugins ship (to keep them small for the Plugin Hub); builds from src/ keep every voice.
 # The others' VoicePersona entries are left out of the generated code too, so the settings only offer these.
 PUBLISHED_VOICES = ["amy", "cori", "alan", "john"]
@@ -148,7 +180,6 @@ FEATURES = {
         "**Tick count** over your head, as numbered tick boxes or a smooth tick bar",
         "**Metronome** with a play-ahead option, and hotkeys to reset, hide and change the cycle",
         "**Attack timer** that follows your weapon's speed, counting up or down to your next attack",
-        "**Click timing**: how far into the tick each click lands, for tick skilling practice",
     ],
     "voices": [
         "**One voice and volume** for all of Snuffy's plugins (4 voices)",
@@ -247,6 +278,7 @@ def descriptor(name):
     """name, description and tags from the plugin class's @PluginDescriptor."""
     with open(os.path.join(SRC, name + ".java"), encoding="utf-8") as f:
         text = f.read()
+    text = dev_only_removed(text)[0]
     title = re.search(r'name = "([^"]+)"', text).group(1)
     description = re.search(r'description = "([^"]+)"', text).group(1)
     tags = re.findall(r'"([^"]+)"', re.search(r"tags = \{([^}]*)\}", text).group(1))
@@ -283,9 +315,18 @@ def build(plugin_id, out_root=OUT, quiet=False):
     res_out = os.path.join(out, "src", "main", "resources", package_dir)
     os.makedirs(java_out)
     os.makedirs(res_out)
+    sources = {}
+    gone = set()
     for name in sorted(names):
         with open(os.path.join(SRC, name + ".java"), encoding="utf-8") as f:
-            text = f.read()
+            sources[name], removed = dev_only_removed(f.read())
+        gone |= removed
+    for name in sorted(names):
+        text = sources[name]
+        # The generated defaults list every setting: not the ones left out
+        if name.endswith("ConfigDefaults") and gone:
+            text = "\n".join(line for line in text.split("\n")
+                             if not any("config.%s()" % method in line for method in gone))
         if name == "VoiceAlertService":
             text = published_personas(text)
         text = text.replace("package %s;" % OLD_PACKAGE, "package %s;" % spec["package"])

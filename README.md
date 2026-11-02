@@ -197,7 +197,7 @@ work a resource.
   coming. The first tick of each cycle is in its own colour.
 - **Metronome** with a choice of game sounds (Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, Tinderbox): a
   different sound on the first tick of the cycle.
-- **Click timing** for 1-ticking: how many ms after the tick each click landed, an ideal click zone on the tick
+- **Click timing** (only when run from this repository with the launcher; not in the Plugin Hub version) for 1-ticking: how many ms after the tick each click landed, an ideal click zone on the tick
   bar, a ding when on time and a different sound when late or when you miss a tick, and a summary of your last
   50 clicks.
 - **Follow Attack Speed**: an attack timer for your own attacks. The cycle follows your weapon (and spells,

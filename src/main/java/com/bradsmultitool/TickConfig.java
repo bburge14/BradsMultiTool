@@ -30,6 +30,7 @@ public interface TickConfig extends Config {
     )
     String tickBarSection = "tickBarSection";
 
+    // <click-timing>
     @ConfigSection(
         name = "Click Timing",
         description = "How long after the tick each click lands, its sounds, and the ideal click zone",
@@ -37,6 +38,7 @@ public interface TickConfig extends Config {
         closedByDefault = true
     )
     String clickTimingSection = "clickTimingSection";
+    // </click-timing>
 
     @ConfigSection(
         name = "Metronome",
@@ -167,6 +169,7 @@ public interface TickConfig extends Config {
         }
     }
 
+    // <click-timing>
     /** The "dun" for a late click or a missed tick: low sounds, nothing like the ding of a click on time. */
     enum LateSound {
         VWOOP("Vwoop (prayer off)", SoundEffectID.PRAYER_DEACTIVE_VWOOP),
@@ -187,6 +190,7 @@ public interface TickConfig extends Config {
             return label;
         }
     }
+    // </click-timing>
 
     @ConfigItem(
         keyName = "tickOverHead",
@@ -496,6 +500,7 @@ public interface TickConfig extends Config {
         return 200;
     }
 
+    // <click-timing>
     @ConfigItem(
         keyName = "clickTiming",
         name = "Click Timing",
@@ -588,6 +593,7 @@ public interface TickConfig extends Config {
     default boolean clickEveryTick() {
         return false;
     }
+    // </click-timing>
 
     @ConfigItem(
         keyName = "tickResetKey",

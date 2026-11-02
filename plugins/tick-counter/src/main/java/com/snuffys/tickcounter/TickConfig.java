@@ -11,13 +11,13 @@ import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
-/** Snuffy's Tick Counter: the tick count, boxes and bar, the metronome and click timing. */
+/** Snuffy's Tick Counter: the tick count, boxes and bar and the metronome. */
 @ConfigGroup("snuffystickcounter")
 public interface TickConfig extends Config {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Tick Counter: the tick count over your head, tick boxes and the smooth tick bar (move them with Alt + drag), the metronome and click timing. Clashes (a warning icon among the info boxes while they're on): RuneLite's Metronome (you'd hear both). Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Tick Counter: the tick count over your head, tick boxes and the smooth tick bar (move them with Alt + drag) and the metronome. Clashes (a warning icon among the info boxes while they're on): RuneLite's Metronome (you'd hear both). Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -30,13 +30,6 @@ public interface TickConfig extends Config {
     )
     String tickBarSection = "tickBarSection";
 
-    @ConfigSection(
-        name = "Click Timing",
-        description = "How long after the tick each click lands, its sounds, and the ideal click zone",
-        position = 64,
-        closedByDefault = true
-    )
-    String clickTimingSection = "clickTimingSection";
 
     @ConfigSection(
         name = "Metronome",
@@ -167,26 +160,6 @@ public interface TickConfig extends Config {
         }
     }
 
-    /** The "dun" for a late click or a missed tick: low sounds, nothing like the ding of a click on time. */
-    enum LateSound {
-        VWOOP("Vwoop (prayer off)", SoundEffectID.PRAYER_DEACTIVE_VWOOP),
-        BOING("Boing (splash)", SoundEffectID.MAGIC_SPLASH_BOING),
-        THUD("Thud (zero hit)", SoundEffectID.ZERO_DAMAGE_SPLAT),
-        DOOR("Door", SoundEffectID.CLOSE_DOOR);
-
-        private final String label;
-        final int id;
-
-        LateSound(String label, int id) {
-            this.label = label;
-            this.id = id;
-        }
-
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
 
     @ConfigItem(
         keyName = "tickOverHead",
@@ -473,7 +446,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "metronomeVolume",
         name = "Volume",
-        description = "<div width='300'>Volume of the metronome and the click sounds (0-100); 0 uses the game's sound effect volume",
+        description = "<div width='300'>Volume of the metronome (0-100); 0 uses the game's sound effect volume",
         section = metronomeSection,
         position = 4
     )
@@ -488,7 +461,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "metronomeAhead",
         name = "Play Ahead",
-        description = "<div width='300'>Sound the metronome this long before each tick, so clicking when you hear it lands on the tick (your reaction and sound delay take about this long). Raise it if Click Timing says your clicks on the sound are late, lower it if they're early. 0: on the tick",
+        description = "<div width='300'>Sound the metronome this long before each tick, so clicking when you hear it lands on the tick (your reaction and sound delay take about this long). 0: on the tick",
         section = metronomeSection,
         position = 2
     )
@@ -496,98 +469,6 @@ public interface TickConfig extends Config {
         return 200;
     }
 
-    @ConfigItem(
-        keyName = "clickTiming",
-        name = "Click Timing",
-        description = "<div width='300'>Show how long after the tick each click landed (in ms) over your head, and a summary of your last clicks with the tick bar (Alt + drag to move it)",
-        section = clickTimingSection,
-        position = 0
-    )
-    default boolean clickTiming() {
-        return false;
-    }
-
-    @ConfigItem(
-        keyName = "clickSounds",
-        name = "Click Sounds",
-        description = "<div width='300'>A ding for each click on time, the Late Sound for a late one (after Late After) or a missed tick",
-        section = clickTimingSection,
-        position = 1
-    )
-    default boolean clickSounds() {
-        return false;
-    }
-
-    @ConfigItem(
-        keyName = "clickLateSound",
-        name = "Late Sound",
-        description = "The sound for a late click or a missed tick",
-        section = clickTimingSection,
-        position = 2
-    )
-    default LateSound clickLateSound() {
-        return LateSound.VWOOP;
-    }
-
-    @Range(min
-    =
-    100,
-    max
-    =
-    590)
-    @ConfigItem(
-        keyName = "clickLateMs",
-        name = "Late After",
-        description = "<div width='300'>A click this long after the tick or later counts as late: with your ping it may land on the next tick",
-        section = clickTimingSection,
-        position = 3
-    )
-    @Units(Units.MILLISECONDS)
-    default int clickLateMs() {
-        return 450;
-    }
-
-    @Range(max
-    =
-    590)
-    @ConfigItem(
-        keyName = "clickIdealFrom",
-        name = "Ideal From",
-        description = "<div width='300'>Start of the ideal click zone, shaded green on the tick bar: clicks in it show green, other clicks before Late After white",
-        section = clickTimingSection,
-        position = 4
-    )
-    @Units(Units.MILLISECONDS)
-    default int clickIdealFrom() {
-        return 100;
-    }
-
-    @Range(max
-    =
-    590)
-    @ConfigItem(
-        keyName = "clickIdealTo",
-        name = "Ideal To",
-        description = "End of the ideal click zone (0 for no zone)",
-        section = clickTimingSection,
-        position = 5
-    )
-    @Units(Units.MILLISECONDS)
-    default int clickIdealTo() {
-        return 350;
-    }
-
-
-    @ConfigItem(
-        keyName = "clickEveryTick",
-        name = "Click Every Tick",
-        description = "<div width='300'>For 1-ticking, where you click once every tick: once you've started clicking, a tick that passes without a click counts as missed and plays the Late Sound. Leave off for methods that don't click every tick",
-        section = clickTimingSection,
-        position = 6
-    )
-    default boolean clickEveryTick() {
-        return false;
-    }
 
     @ConfigItem(
         keyName = "tickResetKey",

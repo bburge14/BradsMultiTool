@@ -119,6 +119,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     )
     String supplyAlertsSection = "supplyAlertsSection";
 
+    // <click-timing>
     @ConfigSection(
         name = "Tick: Click Timing",
         description = "How long after the tick each click lands, its sounds, and the ideal click zone",
@@ -126,6 +127,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         closedByDefault = true
     )
     String clickTimingSection = "clickTimingSection";
+    // </click-timing>
 
     @ConfigSection(
         name = "Tick: Metronome",
