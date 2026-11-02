@@ -123,6 +123,9 @@ class SkillTracker {
         pausedSkills.clear();
     }
 
+    // The account the session belongs to (its RuneScape profile key)
+    private String lastProfile;
+
     /** The panel's Reset all skills. */
     public void resetSession() {
         killTracker.reset();
@@ -144,7 +147,8 @@ class SkillTracker {
     @Subscribe
     public void onChatMessage(net.runelite.api.events.ChatMessage event) {
         ItemsGathered.Kind kind = ItemsGathered.of(event.getType(), event.getMessage());
-        if (kind != null && !isSkillIgnored(kind.skill)) {
+        // Not while the skill's clock is paused: the per-hour rate leaves that time out
+        if (kind != null && !isSkillIgnored(kind.skill) && !isSkillPaused(kind.skill)) {
             itemCounts.merge(kind, 1, Integer::sum);
         }
     }
@@ -266,6 +270,23 @@ class SkillTracker {
     // which changes when synced settings arrive), so redraw the tracker then
     @Subscribe
     public void onRuneScapeProfileChanged(RuneScapeProfileChanged event) {
+        // Another account logged in: this session (XP, items, the bank seen) was the last account's
+        String profile = configManager.getRSProfileKey();
+        if (lastProfile != null && profile != null && !profile.equals(lastProfile)) {
+            killTracker.reset();
+            baseSkillXp.clear();
+            gainedSkillXp.clear();
+            skillActiveTicks.clear();
+            lastXpDrops.clear();
+            recentXpDrops.clear();
+            pausedSkills.clear();
+            itemCounts.clear();
+            savedSession = null;
+            goalItems.get().forgetBank();
+        }
+        if (profile != null) {
+            lastProfile = profile;
+        }
         moveToSharedGroup();
         // Goals reached while away (or before this setting) clear now
         for (Skill skill : getGoalSkills()) {

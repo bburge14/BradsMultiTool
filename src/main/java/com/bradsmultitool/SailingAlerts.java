@@ -40,7 +40,7 @@ class SailingAlerts {
         int max = client.getVarbitValue(VarbitID.SAILING_SIDEPANEL_BOAT_HP_MAX);
         int percent = percent(hp, max);
         if (percent >= 0 && percent < config.boatHealthPercent()) {
-            if (!healthWarned) {
+            if (!healthWarned && alerts.ready()) {
                 healthWarned = true;
                 alerts.alert(VoiceAlertService.VoiceLine.BOAT_HEALTH_LOW, hp + "/" + max);
             }

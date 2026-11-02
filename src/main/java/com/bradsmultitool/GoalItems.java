@@ -50,6 +50,13 @@ class GoalItems {
     // The GE value of the materials counted in banked, per goal skill
     private volatile Map<Skill, Long> materialsValue = Collections.emptyMap();
     private boolean bankSeen;
+
+    /** Another account logged in: its bank isn't this one's. */
+    void forgetBank() {
+        bank.clear();
+        bankSeen = false;
+        dirty = true;
+    }
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
     // Gathering goals (Fishing, Mining, Woodcutting, Hunter...): lower-case tool or bait -> "Needed for your

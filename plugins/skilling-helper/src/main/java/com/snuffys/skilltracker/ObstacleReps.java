@@ -78,7 +78,9 @@ class ObstacleReps {
         TileObject crossed;
         String crossedName;
         if (agility.inArena()) {
-            if (gain > MAX_ARENA_OBSTACLE_XP) {
+            // A pillar tag gives 30 XP per 10 Agility levels: bigger than any obstacle from level 20, but 30 at 10-19
+            int tagXp = 30 * (client.getBoostedSkillLevel(Skill.AGILITY) / 10);
+            if (gain > MAX_ARENA_OBSTACLE_XP || tagXp > 0 && gain == tagXp) {
                 // A pillar tagged: you're chasing pillars, not training one obstacle
                 name = null;
                 reps = 0;

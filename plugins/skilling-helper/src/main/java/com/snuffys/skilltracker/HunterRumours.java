@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Skill;
@@ -134,8 +135,12 @@ class HunterRumours {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
-        // The first XP after login is where catches count from
-        lastHunterXp = -1;
+        // The first XP after login is where catches count from (not after a loading screen: a catch right after
+        // one would be lost)
+        if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING
+            || event.getGameState() == GameState.CONNECTION_LOST) {
+            lastHunterXp = -1;
+        }
     }
 
     @Subscribe
