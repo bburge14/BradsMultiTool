@@ -9,6 +9,11 @@ Gemstone Crab HUD with the burrow countdown, radar between coves, gear check, ou
 - **Gear check**, outlines of the crab, its shell and the tunnels, and voice alerts
 
 
+## Screenshots
+
+![Crab hud](screenshots/01-crab-hud.png)
+![Crab radar](screenshots/02-crab-radar.png)
+
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for

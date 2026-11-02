@@ -14,6 +14,9 @@ PvM HUD with loot per hour, monster hover card with weaknesses and max hits, buf
 ## Screenshots
 
 ![Slayer card with and without a task](screenshots/01-slayer-card-with-and-without-a-task.png)
+![Pvm hud](screenshots/02-pvm-hud.png)
+![Monster hover card](screenshots/03-monster-hover-card.png)
+![Buff bar](screenshots/04-buff-bar.png)
 
 ## Installing
 

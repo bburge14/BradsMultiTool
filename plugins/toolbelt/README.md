@@ -57,12 +57,23 @@ Everything in Snuffy's six separate plugins, in one plugin:
 
 ## Screenshots
 
+![Pinned skill card](screenshots/skilltracker-01-pinned-skill-card.png)
+![Sidebar tracker](screenshots/skilltracker-02-sidebar-tracker.png)
+![Hover card](screenshots/skilltracker-03-hover-card.png)
+![Resource timers](screenshots/skilltracker-04-resource-timers.png)
+![Brimhaven agility arena route](screenshots/skilltracker-05-brimhaven-agility-arena-route.png)
 ![Slayer card with and without a task](screenshots/pvm-01-slayer-card-with-and-without-a-task.png)
+![Pvm hud](screenshots/pvm-02-pvm-hud.png)
+![Monster hover card](screenshots/pvm-03-monster-hover-card.png)
+![Buff bar](screenshots/pvm-04-buff-bar.png)
+![Crab hud](screenshots/gemcrab-01-crab-hud.png)
+![Crab radar](screenshots/gemcrab-02-crab-radar.png)
 ![Dailies and weeklies](screenshots/planner-01-dailies-and-weeklies.png)
 ![Farming and your timers](screenshots/planner-02-farming-and-your-timers.png)
 ![Drops for each monster](screenshots/planner-03-drops-for-each-monster.png)
 ![Calculator banked XP](screenshots/planner-04-calculator-banked-XP.png)
 ![Calculator skill plans](screenshots/planner-05-calculator-skill-plans.png)
+![Settings](screenshots/voices-01-settings.png)
 
 ## Installing
 

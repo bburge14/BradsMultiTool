@@ -14,6 +14,14 @@ XP tracker with goals and training suggestions, skilling hover cards, resource t
 - **Voice alerts**: inventory full, resource gone, Forestry events, bird nests, Motherlode sack full, boat health, level-ups and more
 
 
+## Screenshots
+
+![Pinned skill card](screenshots/01-pinned-skill-card.png)
+![Sidebar tracker](screenshots/02-sidebar-tracker.png)
+![Hover card](screenshots/03-hover-card.png)
+![Resource timers](screenshots/04-resource-timers.png)
+![Brimhaven agility arena route](screenshots/05-brimhaven-agility-arena-route.png)
+
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for

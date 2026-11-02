@@ -10,6 +10,10 @@ One voice and volume for all of Snuffy's plugins, plus idle, logout, run energy 
 - **Clue drops** from monsters and skilling
 
 
+## Screenshots
+
+![Settings](screenshots/01-settings.png)
+
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
