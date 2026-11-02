@@ -1,0 +1,370 @@
+package com.bradsmultitool;
+
+import com.google.gson.Gson;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
+import javax.imageio.ImageIO;
+import javax.swing.SwingUtilities;
+import net.runelite.api.Skill;
+import net.runelite.api.gameval.ItemID;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.game.SkillIconManager;
+import net.runelite.client.ui.FontManager;
+import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.ui.laf.RuneLiteLAF;
+
+/**
+ * Renders Snuffy's Planner's sidebar offline, with sample data in each tab, to check its layout:
+ * {@code ./gradlew plannerPreview -Dout=planner} writes planner-today.png, planner-timers.png, planner-slayer.png,
+ * planner-drops.png, planner-notes.png, planner-empty.png (each tab of a new account) and planner-loggedout.png, at 2x.
+ * Item pictures come from the OSRS Wiki (cached in build/planner-icons; without a connection they're left out).
+ */
+public class PlannerPreview {
+
+    private static final int SCALE = 2;
+    private static final int WIDTH = PluginPanel.PANEL_WIDTH + PluginPanel.SCROLLBAR_WIDTH;
+    private static final String GROUP = PlannerChores.GROUP;
+
+    public static void main(String[] args) throws Exception {
+        String out = args.length > 0 ? args[0] : "build/planner";
+        File icons = new File(System.getProperty("icons", "build/planner-icons"));
+        icons.mkdirs();
+        SwingUtilities.invokeAndWait(RuneLiteLAF::setup);
+
+        Sample full = new Sample("preview");
+        full.fill();
+        Sample fresh = new Sample("fresh");
+        WikiIcons pictures = new WikiIcons(icons);
+        String[] tabs = {"today", "timers", "slayer", "drops", "notes"};
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                PlannerPanel panel = full.panel(pictures);
+                for (String tab : tabs) {
+                    panel.showTab(tab);
+                    write(render(panel, 0), out + "-" + tab + ".png");
+                }
+                // The sidebar's usual height: the list scrolls
+                panel.showTab("drops");
+                write(render(panel, 560), out + "-drops-scrolled.png");
+
+                PlannerPanel empty = fresh.panel(pictures);
+                BufferedImage[] each = new BufferedImage[tabs.length];
+                int height = 0;
+                for (int i = 0; i < tabs.length; i++) {
+                    empty.showTab(tabs[i]);
+                    each[i] = render(empty, 0);
+                    height = Math.max(height, each[i].getHeight());
+                }
+                BufferedImage row = new BufferedImage(each.length * (WIDTH + 8) * SCALE, height, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g = row.createGraphics();
+                g.setColor(new Color(20, 20, 20));
+                g.fillRect(0, 0, row.getWidth(), row.getHeight());
+                for (int i = 0; i < each.length; i++) {
+                    g.drawImage(each[i], i * (WIDTH + 8) * SCALE, 0, null);
+                }
+                g.dispose();
+                write(row, out + "-empty.png");
+
+                fresh.loggedIn(false);
+                empty.refresh();
+                write(render(empty, 300), out + "-loggedout.png");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+        System.exit(0);
+    }
+
+    private static void write(BufferedImage image, String path) throws java.io.IOException {
+        ImageIO.write(image, "png", new File(path));
+        System.out.println("Wrote " + path);
+    }
+
+    // At the sidebar's width; height 0 means tall enough for everything
+    private static BufferedImage render(PluginPanel panel, int height) {
+        panel.setSize(WIDTH, height > 0 ? height : 2000);
+        layout(panel);
+        layout(panel);
+        if (height <= 0) {
+            height = Math.max(240, panel.getPreferredSize().height + 2);
+            panel.setSize(WIDTH, height);
+            layout(panel);
+            layout(panel);
+        }
+        BufferedImage out = new BufferedImage(WIDTH * SCALE, height * SCALE, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = out.createGraphics();
+        g.scale(SCALE, SCALE);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        panel.printAll(g);
+        g.dispose();
+        return out;
+    }
+
+    private static void layout(Component c) {
+        if (c instanceof Container) {
+            c.invalidate();
+            ((Container) c).doLayout();
+            for (Component child : ((Container) c).getComponents()) {
+                layout(child);
+            }
+        }
+    }
+
+    /** An account's saved Planner data, written in the trackers' own formats. */
+    private static final class Sample {
+        final ConfigManager configManager;
+        final PlannerConfig config;
+        final PlannerView view = new PlannerView();
+        final Gson gson = new Gson();
+        final FarmingData farmingData;
+        final PlannerChores chores;
+        final PlannerTimers timers;
+        final FarmingTracker farming;
+        final PlannerSlayer slayer;
+        final DropTracker drops;
+        final PlannerNotes notes;
+        final String profile;
+
+        Sample(String profile) throws Exception {
+            this.profile = profile;
+            configManager = SettingsPanelTest.freshConfigManager(new EventBus());
+            // Where the account's (RuneScape profile's) settings go
+            java.lang.reflect.Constructor<?> data = Class.forName("net.runelite.client.config.ConfigData").getDeclaredConstructor(File.class);
+            data.setAccessible(true);
+            File file = File.createTempFile("snuffys-planner-preview", ".properties");
+            file.deleteOnExit();
+            Field rsData = ConfigManager.class.getDeclaredField("rsProfileConfigProfile");
+            rsData.setAccessible(true);
+            rsData.set(configManager, data.newInstance(file));
+            loggedIn(true);
+            config = configManager.getConfig(PlannerConfig.class);
+            farmingData = new FarmingData(null, configManager);
+            farmingData.load(gson);
+            chores = new PlannerChores(null, configManager, config, null, view, farmingData, gson);
+            timers = new PlannerTimers(configManager, config, null, new BirdhouseTracker(null, configManager), view, gson);
+            farming = new FarmingTracker(null, configManager, farmingData, config, null, view);
+            slayer = new PlannerSlayer(null, configManager, null, view);
+            drops = new DropTracker(configManager, null, config, view, gson);
+            notes = new PlannerNotes(configManager, view, gson);
+        }
+
+        void loggedIn(boolean in) {
+            try {
+                Field key = ConfigManager.class.getDeclaredField("rsProfileKey");
+                key.setAccessible(true);
+                key.set(configManager, in ? "rsprofile." + profile : null);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        PlannerPanel panel(PlannerPanel.Icons icons) {
+            return new PlannerPanel(config, configManager, chores, timers, farming, slayer, drops, notes, icons);
+        }
+
+        void set(String key, Object value) {
+            configManager.setRSProfileConfiguration(GROUP, key, value);
+        }
+
+        void fill() {
+            long now = System.currentTimeMillis() / 1000;
+            // TODAY: the rewards as the game last said (one done, the rest due), one hidden, one of your own ticked
+            set("planner.choresSeen", "{\"presets\":{"
+                + seen("staves", PlannerChores.DONE, now) + "," + seen("herbBoxes", PlannerChores.DUE, now).replace("\"claimValue\":0", "\"claimValue\":3")
+                + "," + seen("essence", PlannerChores.DUE, now) + "," + seen("sand", PlannerChores.DONE, now)
+                + "," + seen("flax", PlannerChores.DUE, now) + "," + seen("bonemeal", PlannerChores.DUE, now)
+                + "," + seen("dynamite", PlannerChores.DUE, now) + "," + seen("arrows", PlannerChores.DUE, now) + "}}");
+            chores.remove("arrows");
+            chores.add("Herb run", false, "Catherby, Ardougne, Falador and the Farming Guild");
+            String herbRun = chores.rows(false).get(chores.rows(false).size() - 1).id;
+            chores.setDone(herbRun, true);
+            chores.add("Penguin hunting", true, "Spy on the penguins for Larry");
+            // Tears of Guthix two days ago; the kingdom and a contract
+            set("planner.togLastPlayed", now - 2 * PlannerChores.DAY);
+            set("planner.kingdom", "110|742000|" + (now - 3600));
+            set("planner.contract", "27");
+
+            // TIMERS: patches as last seen, bird houses seeded 20 minutes ago, three of your own timers
+            patch("farmPatch.11061.4774", "Catherby: Herb patch", "Ranarr", FarmingData.GROWING, now + 25 * 60);
+            patch("farmPatch.4922.4774", "Farming Guild: Herb patch", "Avantoe", FarmingData.GROWING, now + 52 * 60);
+            patch("farmPatch.12083.4771", "Falador: Allotment (North)", "Watermelon", FarmingData.HARVESTABLE, 0);
+            patch("farmPatch.9781.4771", "Tree Gnome Stronghold: Fruit tree patch", "Palm", FarmingData.GROWING, now + 9 * 3600);
+            patch("farmPatch.13878.4772", "Port Phasmatys: Herb patch", "Snapdragon", FarmingData.DISEASED, now + 40 * 60);
+            for (int spot = 0; spot < 4; spot++) {
+                set("birdhouse." + spot, now - 20 * 60);
+            }
+            set("planner.timers", "{\"timers\":["
+                + "{\"id\":\"t1\",\"name\":\"Tithe Farm\",\"seconds\":3000,\"endsAt\":" + (now + 1234) + ",\"alerted\":false},"
+                + "{\"id\":\"t2\",\"name\":\"Hespori\",\"seconds\":5400,\"endsAt\":0,\"alerted\":false},"
+                + "{\"id\":\"t3\",\"name\":\"Battlestaff restock\",\"seconds\":600,\"endsAt\":" + (now - 30) + ",\"alerted\":true}]}");
+
+            // SLAYER
+            set("planner.slayer", new PlannerSlayer.Task("Abyssal demons", 87, 150, null, 1240, 42).encode());
+
+            // DROPS
+            set("planner.drops", "{\"sources\":{"
+                + "\"Vorkath\":{\"count\":45,\"value\":5797500,\"items\":{"
+                + "\"Superior dragon bones\":[90,1215000],\"Dragonbone necklace\":[1,2610000],\"Runite ore\":[60,660000],"
+                + "\"Wrath rune\":[1800,540000],\"Blue dragonhide\":[750,1300500],\"Coins\":[45000,45000],\"Vorkath's head\":[1,0]}},"
+                + "\"Abyssal demon\":{\"count\":210,\"value\":1631350,\"items\":{"
+                + "\"Abyssal whip\":[1,1450000],\"Law rune\":[450,63000],\"Rune med helm\":[2,38700],\"Coins\":[52000,52000],"
+                + "\"Pure essence\":[1650,26400],\"Ensouled abyssal head\":[3,1250]}},"
+                + "\"Reward casket (hard)\":{\"count\":3,\"value\":131200,\"items\":{"
+                + "\"Rune platelegs\":[1,38200],\"Purple sweets\":[18,9000],\"Coins\":[84000,84000]}}},"
+                + "\"recent\":["
+                + recent("Vorkath", "Dragonbone necklace", 1, 2610000, now - 60) + ","
+                + recent("Vorkath", "Superior dragon bones", 2, 27000, now - 60) + ","
+                + recent("Vorkath", "Wrath rune", 40, 12000, now - 200) + ","
+                + recent("Abyssal demon", "Abyssal whip", 1, 1450000, now - 3600) + ","
+                + recent("Abyssal demon", "Law rune", 15, 2100, now - 3700) + "]}");
+
+            // NOTES
+            notes.add("Buy 2,000 cannonballs");
+            notes.add("Finish the Kandarin hard diary: the last two tasks are in the Seers' Village bank");
+            notes.add("Charge the Trident of the swamp");
+            notes.add("Hand in the Farming contract");
+            notes.setDone(3, true);
+            notes.setNotes("Spec weapon swap: DWH on Vorkath, then the Arclight.\n\nWorld 330 for the blast furnace.");
+        }
+
+        private void patch(String key, String title, String crop, String state, long grownAt) {
+            set(key, new FarmingTracker.Record(key, title, crop, state, grownAt, false, 2, 0).encode());
+        }
+
+        private static String seen(String id, int state, long now) {
+            return "\"" + id + "\":{\"state\":" + state + ",\"at\":" + now + ",\"claimValue\":0}";
+        }
+
+        private static String recent(String source, String item, long quantity, long value, long at) {
+            return "{\"source\":\"" + source + "\",\"item\":\"" + item + "\",\"quantity\":" + quantity + ",\"value\":" + value
+                + ",\"at\":" + at + "}";
+        }
+    }
+
+    /**
+     * Item pictures from the OSRS Wiki by item name (what ItemManager draws in the client), centred on the game's
+     * 36x32 item canvas with the quantity drawn on top like the game does; skill icons from the client's resources.
+     */
+    private static final class WikiIcons implements PlannerPanel.Icons {
+        private static final Map<Integer, String> NAMES = new HashMap<>();
+        private final File cache;
+        private final SkillIconManager skills = new SkillIconManager();
+        private final Map<String, Integer> ids = new HashMap<>();
+        private final Map<Integer, String> byId = new HashMap<>(NAMES);
+
+        static {
+            NAMES.put(ItemID.BATTLESTAFF, "Battlestaff");
+            NAMES.put(ItemID.NZONE_HERBBOX, "Herb box");
+            NAMES.put(ItemID.BLANKRUNE_HIGH, "Pure essence");
+            NAMES.put(ItemID.CHAOSRUNE, "Chaos rune");
+            NAMES.put(ItemID.BUCKET_SAND, "Bucket of sand");
+            NAMES.put(ItemID.BOW_STRING, "Bow string");
+            NAMES.put(ItemID.BUCKET_ECTOPLASM, "Bucket of slime");
+            NAMES.put(ItemID.LOVAKENGJ_DYNAMITE_FUSED, "Dynamite");
+            NAMES.put(ItemID.OGRE_ARROW, "Ogre arrow");
+            NAMES.put(ItemID.TOG_BOWL, "Stone bowl");
+            NAMES.put(ItemID.BIRDHOUSE_NORMAL, "Bird house");
+        }
+
+        WikiIcons(File cache) {
+            this.cache = cache;
+            // The tradeable names the sample uses (as the GE search finds them in the client)
+            String[] tradeable = {"Grimy ranarr weed", "Avantoe", "Watermelon", "Palm tree seed", "Snapdragon",
+                "Superior dragon bones", "Dragonbone necklace", "Runite ore", "Wrath rune", "Blue dragonhide",
+                "Abyssal whip", "Law rune", "Rune med helm", "Pure essence", "Ensouled abyssal head", "Rune platelegs",
+                "Purple sweets"};
+            int next = 900_000;
+            for (String name : tradeable) {
+                ids.put(name.toLowerCase(), next);
+                byId.put(next++, name);
+            }
+        }
+
+        @Override
+        public BufferedImage item(int itemId, int quantity, boolean showQuantity) {
+            String name = itemId == ItemID.COINS ? coins(quantity) : byId.get(itemId);
+            BufferedImage picture = name == null ? null : load(name);
+            if (picture == null) {
+                return null;
+            }
+            BufferedImage out = new BufferedImage(36, 32, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = out.createGraphics();
+            g.drawImage(picture, (36 - picture.getWidth()) / 2, (32 - picture.getHeight()) / 2 + (showQuantity ? 2 : 0), null);
+            if (showQuantity) {
+                Font font = FontManager.getRunescapeSmallFont();
+                g.setFont(font);
+                String text = quantity >= 10_000_000 ? quantity / 1_000_000 + "M" : quantity >= 100_000 ? quantity / 1000 + "K"
+                    : String.valueOf(quantity);
+                g.setColor(Color.BLACK);
+                g.drawString(text, 1, 11);
+                g.setColor(quantity >= 10_000_000 ? new Color(0, 255, 128) : quantity >= 100_000 ? Color.WHITE : Color.YELLOW);
+                g.drawString(text, 0, 10);
+            }
+            g.dispose();
+            return out;
+        }
+
+        private static String coins(int quantity) {
+            int[] steps = {10000, 1000, 250, 100, 25, 5, 4, 3, 2};
+            for (int step : steps) {
+                if (quantity >= step) {
+                    return "Coins " + step;
+                }
+            }
+            return "Coins 1";
+        }
+
+        @Override
+        public int itemId(String name) {
+            Integer id = name == null ? null : ids.get(name.toLowerCase());
+            return id == null ? -1 : id;
+        }
+
+        @Override
+        public BufferedImage skill(Skill skill, boolean small) {
+            return skills.getSkillImage(skill, small);
+        }
+
+        private BufferedImage load(String name) {
+            String file = name.replace(' ', '_') + ".png";
+            File local = new File(cache, file.replace("'", ""));
+            try {
+                if (!local.exists()) {
+                    for (String attempt : new String[]{file, file.replace(".png", "_5.png")}) {
+                        URL url = new URL("https://oldschool.runescape.wiki/images/" + URLEncoder.encode(attempt, StandardCharsets.UTF_8.name()));
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.setRequestProperty("User-Agent", "Snuffy's Planner preview");
+                        connection.setConnectTimeout(5000);
+                        connection.setReadTimeout(5000);
+                        if (connection.getResponseCode() == 200) {
+                            try (InputStream in = connection.getInputStream()) {
+                                Files.copy(in, local.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                            }
+                            break;
+                        }
+                    }
+                }
+                return local.exists() ? ImageIO.read(local) : null;
+            } catch (java.io.IOException e) {
+                return null;
+            }
+        }
+    }
+}

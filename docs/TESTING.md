@@ -260,13 +260,14 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] With two of Snuffy's plugins installed, clue alerts are said once; no plugin posts a daily reminder in chat.
 
 ## Planner (`runBrad "-Pload=planner"`, and in the Toolbelt)
-- [ ] The Planner tab (calendar icon) shows TODAY, WEEKLY, TIMERS, SLAYER, DROPS, NOTES & TO-DO; clicking a heading
-      folds it and it stays folded after a restart; each Show switch hides its list.
-- [ ] Logged out: "Log in to fill your Planner."; logging into another account shows that account's lists.
+- [ ] The Planner tab (calendar icon) has five tabs across the top (Today, Timers, Slayer, Drops, Notes); the one you
+      pick is still open after a restart; each Show switch hides its list (Today goes when both Dailies and Weeklies
+      are off). Nothing clips or scrolls sideways; cards shade under the mouse; item pictures fill in.
+- [ ] Logged out: "Log in to see your dailies, timers..."; logging into another account shows that account's lists.
 - [ ] TODAY on a member: the dailies you've unlocked (e.g. Zaff's battlestaves after the Varrock easy diary) and
       none you haven't; collecting one ticks it within a few seconds; herb boxes show "n of 15 bought". The heading
       counts down to 00:00 UTC.
-- [ ] Add... a daily with a note (hover shows it), tick it, edit its name, delete it. Hide a preset; Show hidden
+- [ ] + a daily with a note (hover shows it), click it to tick it, right-click to edit its name, delete it. Hide a preset; Show hidden
       brings it back. A ticked custom daily unticks after the daily reset (and a weekly one after Wednesday 00:00 UTC).
 - [ ] At login with dailies left: one voice line "You have dailies to do." and nothing in chat (Chat: Dailies off);
       turning Chat: Dailies on adds one line with how many. Same for weeklies. Nothing when everything is ticked.
@@ -281,14 +282,14 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       a stage while you stand by it, then no "~". Teleporting between two herb patches doesn't copy one's crop onto
       the other or delete it. Right-click > Forget this patch.
 - [ ] Patches ready alert (voice + chat naming them, once per crop); bird houses ready 50 minutes after seeding.
-- [ ] Add timer... "Test" 1 minute: Start counts down, Stop resets, it says "Your timer is done." with the name in
+- [ ] Timers + "Test" 1 minute: the play button counts down (the bar fills), stop resets, it says "Your timer is done." with the name in
       chat when it ends; still there (and running) after relogging; Edit... and Delete work.
 - [ ] SLAYER: task, kills left (of how many), Konar's area, points and streak, without the PvM/Slayer plugin; kept
       while logged out.
-- [ ] DROPS: kill a few monsters: each gets kills and a GE value, click to see items; Recent lists drops, those over
+- [ ] DROPS: kill a few monsters: each gets kills and a GE value, its box shows the items (click the box to fold it); Recent lists drops, those over
       Valuable Drop From in Valuable Drop Colour. With RuneLite's Loot Tracker on, a clue casket or chest is counted
       once (and a monster kill isn't counted twice); the clash note mentions the Loot Tracker. Reset one; Reset all.
-- [ ] NOTES & TO-DO: add (Enter), tick, edit, move up/down, delete, Clear ticked; notes kept after a restart and per
+- [ ] Notes: add a to-do (Enter or +; the field keeps focus), tick, edit, move up/down, delete, Clear ticked; notes kept after a restart and per
       account; typing in notes isn't interrupted by the list redrawing.
 - [ ] The Skilling Helper's sidebar no longer has the FARMING list; its farming patch and bird house hover cards
       still work.

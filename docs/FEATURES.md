@@ -615,60 +615,67 @@ Show/Hide, Ticks Per Cycle Up and Ticks Per Cycle Down hotkeys.
 ## Planner
 
 **Snuffy's Planner** (in the Toolbelt too): its own sidebar tab (the calendar icon) for things on a clock and your
-account's to-do list. Six lists, each under a heading you click to fold it (like the tracker's GOALS), and each with
-a **Show ...** setting to hide it. What you add is saved per account (RuneScape profile), and the Toolbelt and the
-separate Planner show the same. Skill goals aren't here: they stay in the Skilling Helper.
+account's to-do list, laid out like RuneLite's Time Tracking: five tabs across the top (**Today**, **Timers**,
+**Slayer**, **Drops**, **Notes**; the one you pick stays open next time), each with a header line (its title, a
+summary like "3 left · resets in 10h 37m", and a **+** to add) over cards with the item's picture. Right-click a card
+for its menu (edit, hide, delete...). Each list has a **Show ...** setting to hide it. What you add is saved per
+account (RuneScape profile), and the Toolbelt and the separate Planner show the same. Skill goals aren't here: they
+stay in the Skilling Helper.
 
-**TODAY** (with the time to the daily reset, 00:00 UTC):
+**Today: Dailies** (the header counts down to the daily reset, 00:00 UTC):
 - The daily rewards you've unlocked, ticked off by the game as you collect them, the same checks as RuneLite's Daily
   Task Indicator: battlestaves (Zaff, Varrock easy diary), herb boxes (Nightmare Zone, 9,500 points each, up to 15;
   not Ironmen; "3 of 15 bought"), pure essence (Wizard Cromperty, Ardougne medium), random runes (Lundail,
   Wilderness easy), sand (Bert, The Hand in the Sand; not Ultimate Ironmen), bowstrings (Flax keeper, Kandarin easy),
   bonemeal and slime (Robin, Morytania medium and up), dynamite (Thirus, Kourend & Kebos medium), ogre arrows (Rantz,
-  Western Provinces easy). Members only; ones you haven't unlocked don't show. Hover one for where to get it.
-- **Your own:** **Add...** a daily or weekly with a name and an optional note; tick it by hand and it unticks at its
-  reset. Right-click any line to **Edit...** (rename it, change its note) or **Delete** it; presets are **Hidden**
-  instead (**Show hidden** brings them back). Presets can be ticked by hand too.
+  Western Provinces easy). Members only; ones you haven't unlocked don't show. Each shows the reward's picture and
+  where to get it (hover for the full note); collected ones turn grey with a green tick.
+- **Your own:** **+** adds a daily or weekly with a name and an optional note; click it to tick it and it unticks at
+  its reset. Right-click any line to **Edit...** (rename it, change its note) or **Delete** it; presets are
+  **Hidden** instead (**Show hidden** brings them back). Presets can be ticked by clicking too.
 - At login and at the reset, if anything's left: one voice line, "You have dailies to do." Nothing in chat unless
   **Chat: Dailies** is on (off at first). Never a line per item.
 
-**WEEKLY** (with the time to the weekly reset, Wednesday 00:00 UTC):
+**Today: Weeklies** (under the dailies, counting down to the weekly reset, Wednesday 00:00 UTC):
 - **Tears of Guthix:** noticed when a game there ends; Juna lets you back at the start of the seventh day after
   ("back in 3d 4h"). Before your first game with the plugin on it says "not seen yet": tick it by hand when you play
   it elsewhere. (It also needs a quest point or 100,000 XP since your last visit, which the game doesn't tell us.)
 - Your own weeklies, as above. "You have weeklies to do." at login and the weekly reset (Chat: Weeklies off at first).
 - **Kingdom of Miscellania:** approval and coffer as last seen, as RuneLite's Kingdom plugin reads them (the game
-  sends them while you're in the kingdom, or once they've changed), after Throne of Miscellania. Approval under 50%
-  shows orange.
-- **Farming contract:** Guinevere's contract (the crop), how its Farming Guild patch is doing (from TIMERS), or "done:
-  claim from Guinevere".
+  sends them while you're in the kingdom, or once they've changed), after Throne of Miscellania. A bar shows
+  the approval; under 50% it's orange.
+- **Farming contract:** Guinevere's contract (the crop), how its Farming Guild patch is doing (from Timers, with its
+  growth bar), or "done: claim from Guinevere".
 
-**TIMERS:**
+**Timers** (the header says how many are ready and running):
 - **Farming patches** (moved here from the Skilling Helper's sidebar; nothing saved is lost): every patch, compost bin
-  and Hespori patch you've been to with something in it, what's in it and when it's grown ("ready" in green, "in 1h
+  and Hespori patch you've been to with something in it, what's in it (with the crop's picture), a bar
+  filling as it grows and when it's grown ("ready" in green, "in 1h
   20m", "diseased", "dead"), soonest first. The game only tells us a patch's state while you're near it, so each is as
   you last saw it; right-click one to forget it. Like RuneLite's Time Tracking, a patch is only read after two ticks in
   the same area and not while a full-screen interface is open, and the account's growth tick offset is learnt the
   first time a patch is seen growing a stage while you stand there; until then times show with a **~** (they may be out
   by one growth cycle) and the ready alert waits a cycle longer.
-- **Bird houses:** when your Fossil Island bird houses are full (50 minutes after seeding).
-- **Your own timers:** **Add timer...** with a name and a length (minutes, or h:mm); Start, Stop, Again; right-click to
-  edit or delete. They keep running through a logout; one that ends while you're away is said when you're back.
+- **Bird houses:** when your Fossil Island bird houses are full (50 minutes after seeding), with a bar.
+- **Your own timers:** **+** with a name and a length (minutes, or h:mm); the play, stop and again buttons on each,
+  the time left counting down with a bar; right-click to edit, reset or delete. They keep running through a logout; one that ends while
+  you're away is said when you're back.
 - Alerts: Patches Ready (chat names them; once per crop), Bird Houses Ready, Timer Done ("Your timer is done.", chat
   names it), each with Voice/Chat switches.
 
-**SLAYER:** your task and kills left (of how many), Konar's area, Slayer points and streak, read straight from the
-game (as RuneLite's Slayer plugin does), so it works without the PvM/Slayer plugin; kept for when you're logged out.
+**Slayer:** your task and kills left (of how many, with a bar), Konar's area, and Slayer points and streak tiles, read
+straight from the game (as RuneLite's Slayer plugin does), so it works without the PvM/Slayer plugin; kept for when you're logged out.
 
-**DROPS:** for each monster (and chest, clue casket, raid... with **Count Other Loot**): kills or opens, the Grand
-Exchange value and, clicked open, the items; then your latest drops (**Recent Drops Shown**), the valuable ones
-(**Valuable Drop From**, 100K at first) in **Valuable Drop Colour**. Right-click a monster to reset it; **Reset all**
+**Drops** (the header totals the value): a box for each monster, like the Loot Tracker's (and chest, clue casket,
+raid... with **Count Other Loot**): kills or opens and the Grand Exchange value over a grid of the items' pictures with their amounts (click the box to fold it; valuable ones are
+framed in **Valuable Drop Colour**); then your latest drops (**Recent Drops Shown**), the valuable ones
+(**Valuable Drop From**, 100K at first) in **Valuable Drop Colour**. Right-click a monster to reset it; the bin
 clears the lot. Monster drops are RuneLite's own kill loot (as the PvM HUD's loot per hour counts it, which stays in
 PvM); other loot comes from RuneLite's Loot Tracker, so it's only counted while that plugin is on (its monster kills
 aren't counted twice). With the Loot Tracker on, the clash note says the two lists overlap.
 
-**NOTES & TO-DO:** a to-do list (type and press Enter or **Add**; tick, right-click to edit, move up or down, delete;
-**Clear ticked**) and a notes box, saved as you type, for each account.
+**Notes:** a to-do list (type in the box at the top and press Enter or **+**; click a line to tick it, right-click to
+edit, move up or down, delete; **Clear ticked**) and a notes box below, saved as you type, for each account.
 
 **Settings (Planner: Today, Weekly, Timers, Slayer, Drops, Notes & To-Do):** a Show switch for each list; Dailies To Do
 Alert, Weeklies To Do Alert; Kingdom of Miscellania, Farming Contract; Farming Patch List, Patches Ready Alert, Bird
