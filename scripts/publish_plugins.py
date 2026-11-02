@@ -143,7 +143,8 @@ def push(folder, entry, dry_run, head, level):
     path = checkout(name, repo, branch, dry_run)
     old = read_version(path)
     # The last push's source commit, from its message
-    last = re.search(r"BradsMultiTool ([0-9a-f]{7,40})", git("log", "-1", "--format=%B", cwd=path, check=False) or "")
+    last = re.search(r"BradsMultiTool ([0-9a-f]{7,40})",
+                     git("log", "-1", "--grep=From BradsMultiTool", "--format=%B", cwd=path, check=False) or "")
     replace_contents(folder, path)
     # Compare with the version it had, so a version number alone isn't a change
     if old:
@@ -157,7 +158,7 @@ def push(folder, entry, dry_run, head, level):
     git("add", "-A", cwd=path)
     changed = len(git("status", "--porcelain", cwd=path).splitlines())
     title = "%s %s" % (display_name(path), new)
-    notes = changes_since(folder, last.group(1) if last else None)
+    notes = changes_since(folder, last.group(1) if last else None) if old else ["- First release"]
     message = "%s\n\nFrom BradsMultiTool %s.\n\nChanges:\n%s\n" % (title, head[:12], "\n".join(notes))
     git("commit", "--quiet", "-m", message, cwd=path)
     git("tag", "-a", "-f", "v" + new, "-m", title, cwd=path)
