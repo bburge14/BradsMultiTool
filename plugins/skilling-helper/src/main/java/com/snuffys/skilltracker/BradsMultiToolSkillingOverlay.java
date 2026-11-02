@@ -76,6 +76,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final Map<String, Integer> prices = new HashMap<>();
     // Item name -> id for pictures, -1 when not found (looked up once)
     private final ItemIcons itemIcons;
+    @Inject
+    private ArenaRoute arenaRoute;
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
@@ -109,6 +111,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         graphics.setFont(FontManager.getRunescapeSmallFont());
 
         if (config.showSkillingHover() && !client.isMenuOpen() && buildCard()) {
+            CursorTooltip.render(client, graphics, panel);
+        } else if (config.showAgilityHover() && !client.isMenuOpen() && buildArenaHoverCard()) {
             CursorTooltip.render(client, graphics, panel);
         }
         return null;
@@ -204,6 +208,14 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return true;
         }
         if (config.showAgilityHover()) {
+            // Brimhaven Agility Arena obstacles: level, XP, time and how likely you are to fail
+            SkillHelperData.ArenaObstacle arenaObstacle = helpers.arenaObstacle(id);
+            if (arenaObstacle != null) {
+                WorldPoint at = WorldPoint.fromScene(client.getTopLevelWorldView(), entry.getParam0(), entry.getParam1(),
+                    client.getTopLevelWorldView().getPlane());
+                buildArenaObstacleCard(arenaObstacle, arenaRoute.objectAt(id, at));
+                return true;
+            }
             // Course obstacles by id (RuneLite's agility plugin list), so it works wherever the obstacle stands
             SkillHelperData.Course course = helpers.courseFor(id);
             if (course != null) {
@@ -235,6 +247,60 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
             return buildFurnaceCard();
         }
         return false;
+    }
+
+    // Arena obstacles you can't click (floor spikes, pressure pads, blades: only Examine) get their card from the
+    // mouse being over their shape instead of the left-click option
+    private boolean buildArenaHoverCard() {
+        if (arenaRoute.getObstacles().isEmpty()) {
+            return false;
+        }
+        net.runelite.api.Point mouse = client.getMouseCanvasPosition();
+        if (mouse == null) {
+            return false;
+        }
+        for (Map.Entry<net.runelite.api.TileObject, SkillHelperData.ArenaObstacle> e : arenaRoute.getObstacles().entrySet()) {
+            java.awt.Shape box = e.getKey().getClickbox();
+            if (box != null && box.contains(mouse.getX(), mouse.getY())) {
+                buildArenaObstacleCard(e.getValue(), e.getKey());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void buildArenaObstacleCard(SkillHelperData.ArenaObstacle obstacle, net.runelite.api.TileObject object) {
+        int level = client.getBoostedSkillLevel(Skill.AGILITY);
+        ArenaRoute.Status status = ArenaRoute.status(obstacle, level);
+        boolean smooth = object != null && arenaRoute.getGoodPlanks().contains(object);
+        boolean broken = object != null && arenaRoute.getBadPlanks().contains(object);
+        panel.getChildren().clear();
+        panel.getChildren().add(TitleComponent.builder().text(obstacle.name).color(TITLE_COLOR).build());
+        addRequirement(Skill.AGILITY, obstacle.level);
+        line("XP:", trim(obstacle.xp), Color.WHITE);
+        line("Time:", obstacle.ticks + " ticks (" + String.format("%.1f", obstacle.ticks * 0.6) + "s)", Color.WHITE);
+        line("XP per tick:", String.format("%.1f", obstacle.xpPerTick()), Color.WHITE);
+        double chance = obstacle.successChance(level);
+        Color color = BradsMultiToolArenaOverlay.colour(status);
+        if (smooth) {
+            line("This plank:", "Smooth: safe", BradsMultiToolArenaOverlay.SAFE);
+        } else if (broken && chance < 1) {
+            line("This plank:", "Broken: you'll fall", BradsMultiToolArenaOverlay.TOO_LOW);
+        } else if (status == ArenaRoute.Status.TOO_LOW) {
+            line("You:", "Level too low", color);
+        } else if (chance == 1) {
+            line("You:", "Won't fail", color);
+        } else if (chance > 0) {
+            line("Success:", Math.round(chance * 100) + "%", color);
+        } else {
+            line("You:", obstacle.noFailLevel > 0 ? "May fail until " + obstacle.noFailLevel : "May fail", color);
+        }
+        if (obstacle.note != null) {
+            panel.getChildren().add(new TextBlockComponent(obstacle.note, HudColors.WARN, false));
+        }
+        if (status == ArenaRoute.Status.SAFE && obstacle.xpPerTick() > 0 && obstacle.xpPerTick() >= arenaRoute.bestSafeXpPerTick()) {
+            panel.getChildren().add(new TextBlockComponent("Best XP per tick you can do safely here", HudColors.GOOD, false));
+        }
     }
 
     private void buildBirdhouseCard(int spot) {

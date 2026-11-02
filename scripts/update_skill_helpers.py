@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Regenerate src/main/resources/com/bradsmultitool/skill_helpers.json.
 
-Usage: python3 scripts/update_skill_helpers.py
+Usage: python3 scripts/update_skill_helpers.py [--only hunter rumours]  (--only: just those parts)
 
 - Hunter creatures: level, XP and trap from each page's {{Hunter info}} (OSRS Wiki)
+- Hunters' Rumours: each rumour creature's level, locations, method, hunters and pity threshold (OSRS Wiki)
 - Runecraft: each rune's level, XP and multiple-rune levels (Runecraft page) and its altar's object ids
 - Cooking: burn levels on a fire, a range, and with cooking gauntlets (Cooking/Burn level)
 - Agility courses: level (Agility page), XP per lap and every obstacle id (RuneLite's agility plugin, BSD-2-Clause)
 - Agility shortcuts: level, name and object ids (RuneLite's AgilityShortcut, BSD-2-Clause)
+- Brimhaven Agility Arena: obstacles (level, XP, ticks, ids, when they stop failing) and ticket dispenser ids
 - Sailing: sea charting tasks (level, type, XP, location), shipwrecks, salvaging hooks, trawling shoals
 """
 import json
@@ -48,12 +50,18 @@ def hunter():
             text = wikitext(page)
             for block in re.findall(r"\{\{Hunter info(.*?)\n\}\}", text, re.S):
                 fields = dict(re.findall(r"\|\s*(\w+)\s*=\s*([^\n]*)", block))
-                level, xp = number(fields.get("level", "")), number(fields.get("xp", ""))
+                # A page with versions (Herbiboar: hunting and harvesting) gives the first one's
+                xp_text = fields.get("xp", fields.get("xp1", ""))
+                level, xp = number(fields.get("level", fields.get("level1", ""))), number(xp_text)
                 name = plain(fields.get("name", page))
                 if level is None or not name or re.search(r"[|{}=]", name):
                     continue
-                out.setdefault(name.lower(), {"name": name, "level": int(level), "xp": xp,
-                                              "trap": plain(fields.get("trap", "")) or None})
+                entry = {"name": name, "level": int(level), "xp": xp, "trap": plain(fields.get("trap", "")) or None}
+                # XP that depends on your level ("100-179", "1,950–2,461"): the lowest and the highest
+                spread = re.search(r"([\d,.]+)\s*[-–]\s*([\d,.]+)", xp_text)
+                if spread:
+                    entry["xpMax"] = number(spread.group(2))
+                out.setdefault(name.lower(), entry)
             time.sleep(0.1)
         if "continue" not in data:
             return out
@@ -389,11 +397,106 @@ def smithing():
     return {"anvil": anvil, "furnace": furnace}
 
 
+def arena():
+    """The Brimhaven Agility Arena: each obstacle (level, XP, ticks, object ids, and when it stops failing) and the
+    ticket dispenser ids, from the arena's obstacle table and each obstacle's page."""
+    text = wikitext("Brimhaven Agility Arena")
+    section = text[text.find("==Obstacles=="):]
+    obstacles = []
+    for cells in rows_of(tables(section)[0]):
+        m = re.search(r"\[\[([^|\]]+)\|([^\]]+)\]\]", cells[2] if len(cells) > 2 else "")
+        if not m or number(cells[0]) is None:
+            continue
+        page, name = m.group(1), m.group(2)
+        ticks = re.findall(r"\d+", cells[4])
+        body = wikitext(page)
+        ids = [int(i) for line in re.findall(r"\|\s*id\d*\s*=\s*([^\n]+)", body) for i in re.findall(r"\d+", line)]
+        obstacle = {"name": name, "level": int(number(cells[0])), "xp": number(cells[3].split("(")[0]),
+                    "ticks": max(int(t) for t in ticks), "ids": sorted(set(ids))}
+        # When it stops failing: "no longer fail ... at level N", "With 99 Agility ... no longer fail", or the
+        # success chart (low/high out of 256, as the game rolls it)
+        plain_body = plain(body)
+        stop = re.search(r"no longer fail[^.]*?level (\d+)", plain_body) or re.search(r"(\d+) Agility[^.]*no longer fail", plain_body)
+        chart = re.search(r"low1=(\d+)\|high1=(\d+)", body)
+        if stop:
+            obstacle["noFailLevel"] = int(stop.group(1))
+        if chart:
+            obstacle["low"], obstacle["high"] = int(chart.group(1)), int(chart.group(2))
+        if "Plank" in name:
+            obstacle["note"] = "Only the smooth plank is safe (it changes every minute); any plank at 99"
+            obstacle["noFailLevel"] = 99
+        if "Darts" in name:
+            obstacle["note"] = "Failing drains 2 Agility levels"
+        obstacles.append(obstacle)
+    dispenser = wikitext("Ticket dispenser")
+    dispensers = sorted({int(i) for line in re.findall(r"\|\s*id\d*\s*=\s*([^\n]+)", dispenser) for i in re.findall(r"\d+", line)})
+    # The pillars stand on a square grid; the dispensers' map pins (not every pillar has one) give its corner and
+    # spacing: obstacles sit midway between neighbouring pillars
+    pins = [(int(x), int(y)) for x, y in re.findall(r"x:(\d+),y:(\d+)", dispenser)]
+    xs, ys = sorted({x for x, _ in pins}), sorted({y for _, y in pins})
+    step = min(b - a for a, b in zip(xs, xs[1:]))
+    grid = {"x": xs[0], "y": ys[0], "step": step, "columns": (xs[-1] - xs[0]) // step + 1, "rows": (ys[-1] - ys[0]) // step + 1}
+    # The plank's pieces (RuneLite's object names): the middles, and the broken pieces the two bad planks show
+    names = fetch(RUNELITE + "runelite-api/src/main/java/net/runelite/api/gameval/ObjectID.java")
+    middles = sorted(int(i) for i in re.findall(r"AGILITYARENA_PLANK\d*_MIDDLE = (\d+);", names))
+    broken = sorted(int(i) for i in re.findall(r"AGILITYARENA_PLANK_BROKE\d* = (\d+);", names))
+    return {"obstacles": obstacles, "dispensers": dispensers, "grid": grid, "plankMiddles": middles, "brokenPlanks": broken}
+
+
+RUMOUR_HUNTERS = ["Gilman", "Cervus", "Ornus", "Aco", "Teco", "Wolf"]
+
+
+def rumours():
+    """Hunters' Rumours: each creature a guild hunter can ask for (its level, where to find it, the method and which
+    hunters give it) and the method's pity threshold (the catch the rare part is guaranteed by), without and with
+    the guild hunter outfit."""
+    text = re.sub(r"<ref[^>/]*/>|<ref[^>]*>.*?</ref>", "", wikitext("Hunters' Rumours"), flags=re.S)
+    pity = {}
+    for row in re.findall(r"^\|\s*\{\{plinkt\|([^|}]+)(?:\|pic=([^}]*))?\}\}[^|\n]*\|\|\s*1/\d+\s*\|\|\s*(\d+)\s*\|\|\s*(\d+)",
+                          text, re.M):
+        method, pic, plain_pity, outfit = row
+        key = method.strip() + (" (herbiboar)" if "secateurs" in pic.lower() else "")
+        pity[key] = (int(plain_pity), int(outfit))
+    out = []
+    for line in re.findall(r"^\|\{\{SCP\|Hunter\|\d+\}\}.*$", text, re.M):
+        cells = [c.strip() for c in line[1:].split("||")]
+        if len(cells) < 10:
+            continue
+        level = int(re.search(r"\{\{SCP\|Hunter\|(\d+)", cells[0]).group(1))
+        link = re.search(r"\{\{[ip]linkt\|([^|}]+)([^}]*)\}\}", cells[1])
+        if not link:
+            continue
+        page = re.sub(r"\s*\(Hunter\)$", "", link.group(1).strip())
+        txt = re.search(r"txt=([^|}]+)", link.group(2))
+        name = txt.group(1).strip() if txt else page
+        places = [plain(p) for p in re.split(r"<br\s*/?>", cells[2]) if plain(p)]
+        method = re.search(r"\{\{plinkt\|([^|}]+)(?:\|pic=([^}]*))?", cells[3])
+        trap = method.group(1).strip() if method else plain(cells[3])
+        key = trap + (" (herbiboar)" if method and "secateurs" in (method.group(2) or "").lower() else "")
+        hunters = [h for h, cell in zip(RUMOUR_HUNTERS, cells[4:10]) if "{{Yes}}" in cell]
+        entry = {"name": name, "page": page, "level": level, "places": places, "trap": trap, "hunters": hunters}
+        if key in pity:
+            entry["pity"], entry["pityOutfit"] = pity[key]
+        out.append(entry)
+    return out
+
+
 def main():
+    if sys.argv[1:2] == ["--only"]:
+        # Just these parts (hunter, rumours), the rest of the file as it was
+        with open(OUT) as f:
+            data = json.load(f)
+        parts = {"hunter": hunter, "rumours": rumours}
+        for part in sys.argv[2:]:
+            data[part] = parts[part]()
+        with open(OUT, "w") as f:
+            json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
+        print("Wrote %s to %s" % (", ".join(sys.argv[2:]), os.path.normpath(OUT)))
+        return
     ids = object_ids()
     data = {"source": "oldschool.runescape.wiki; RuneLite (BSD-2-Clause)", "hunter": hunter(), "runecraft": runecraft(),
-            "burn": burn_levels(), "agility": courses(ids), "shortcuts": shortcuts(ids), "sailing": sailing(),
-            "cooking": cooking(), "smithing": smithing(), "fishing": fishing_spots()}
+            "burn": burn_levels(), "agility": courses(ids), "arena": arena(), "shortcuts": shortcuts(ids), "sailing": sailing(),
+            "cooking": cooking(), "smithing": smithing(), "fishing": fishing_spots(), "rumours": rumours()}
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     print("Cooking: %d foods; Smithing: %d anvil items, %d bars" % (

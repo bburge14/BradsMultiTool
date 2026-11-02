@@ -3,7 +3,7 @@ package com.bradsmultitool;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-/** What every one of Snuffy's plugins has: alerts (voice and chat), the idle warnings and finding the others. */
+/** What every one of Snuffy's plugins has: alerts (voice and chat), the idle warnings, run energy alerts and finding the others. */
 @Singleton
 class CommonFeature {
 
@@ -13,6 +13,8 @@ class CommonFeature {
     private Alerts alerts;
     @Inject
     private IdleWarnings idleWarnings;
+    @Inject
+    private RunEnergyAlerts runEnergyAlerts;
     @Inject
     private BradsMultiToolIdleWarningOverlay idleWarningOverlay;
     @Inject
@@ -25,9 +27,14 @@ class CommonFeature {
     private CommonConfig config;
     @Inject
     private PluginClashes clashes;
+    @Inject
+    private ClueDrops clueDrops;
+    @Inject
+    private DailyReminders dailyReminders;
 
     void start(Lifecycle lifecycle) {
-        lifecycle.subscribe(inGame, alerts, idleWarnings, configDefaults, voiceSync, clashes);
+        lifecycle.subscribe(inGame, alerts, idleWarnings, runEnergyAlerts, configDefaults, voiceSync, clashes, clueDrops, dailyReminders);
+        dailyReminders.start();
         configDefaults.add(() -> CommonConfigDefaults.store(configDefaults, config));
         lifecycle.overlay(idleWarningOverlay);
         voiceSync.start();

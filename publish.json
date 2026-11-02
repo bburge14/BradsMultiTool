@@ -1,0 +1,36 @@
+{
+  "_about": "Where each plugins/<folder> is published (scripts/publish_plugins.py). Make each repository on GitHub first (empty is fine). hubName is the plugin's file name in runelite/plugin-hub's plugins/ folder.",
+  "pluginHubFork": "https://github.com/bburge14/plugin-hub.git",
+  "plugins": {
+    "skilling-helper": {
+      "repo": "https://github.com/bburge14/snuffys-skilling-helper.git",
+      "hubName": "snuffys-skilling-helper",
+      "publish": true
+    },
+    "pvm-slayer": {
+      "repo": "https://github.com/bburge14/snuffys-pvm-slayer.git",
+      "hubName": "snuffys-pvm-slayer",
+      "publish": true
+    },
+    "gemcrab-tracker": {
+      "repo": "https://github.com/bburge14/snuffys-gemcrab-tracker.git",
+      "hubName": "snuffys-gemcrab-tracker",
+      "publish": true
+    },
+    "tick-counter": {
+      "repo": "https://github.com/bburge14/snuffys-tick-counter.git",
+      "hubName": "snuffys-tick-counter",
+      "publish": true
+    },
+    "alerts": {
+      "repo": "https://github.com/bburge14/snuffys-alerts.git",
+      "hubName": "snuffys-alerts",
+      "publish": true
+    },
+    "toolbelt": {
+      "repo": "https://github.com/bburge14/snuffys-toolbelt.git",
+      "hubName": "snuffys-toolbelt",
+      "publish": true
+    }
+  }
+}

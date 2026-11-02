@@ -53,6 +53,9 @@ public class BradsMultiToolOverlay extends Overlay {
     private MonsterEffects monsterEffects;
 
     @Inject
+    private PvmLoot loot;
+
+    @Inject
     public BradsMultiToolOverlay(Client client, PvmTracker plugin, PvmConfig config, ItemManager itemManager, SpriteManager spriteManager, SkillIconManager skillIconManager) {
         this.client = client;
         this.plugin = plugin;
@@ -64,7 +67,10 @@ public class BradsMultiToolOverlay extends Overlay {
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         panelComponent.setPreferredSize(new Dimension(205, 0));
         // Its own reset, in its right-click menu
-        addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "PvM session", e -> plugin.resetSession());
+        addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "PvM session", e -> {
+            plugin.resetSession();
+            loot.reset();
+        });
     }
 
     @Override
@@ -186,6 +192,15 @@ public class BradsMultiToolOverlay extends Overlay {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Max Hit:")
                     .right(String.valueOf(plugin.getPvmMaxHit()))
+                    .build());
+            }
+
+            // The GE value of this session's kill drops, and per hour once there's a minute to go on
+            if (config.showPvmLoot() && loot.value() > 0) {
+                long perHour = loot.perHour();
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Loot:")
+                    .right(PvmLoot.format(loot.value()) + (perHour >= 0 ? " (" + PvmLoot.format(perHour) + "/h)" : ""))
                     .build());
             }
 

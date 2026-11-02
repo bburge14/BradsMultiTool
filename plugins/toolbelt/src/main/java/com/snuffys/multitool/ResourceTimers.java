@@ -644,7 +644,11 @@ class ResourceTimers {
             timer = new Timer(Kind.TRAP, object, null, TRAP_TICKS, TRAP_TICKS);
         }
         timer.object = object;
-        if (TRAPS_CAUGHT.contains(object.getId())) {
+        if (TRAPS_SET.contains(object.getId()) && timer.trapState != TrapState.SET) {
+            // Laid again on the same tile (a failed trap reset): a fresh trap
+            timer.trapState = TrapState.SET;
+            timer.elapsed = 0;
+        } else if (TRAPS_CAUGHT.contains(object.getId())) {
             timer.trapState = TrapState.CAUGHT;
         } else if (TRAPS_FAILED.contains(object.getId())) {
             timer.trapState = TrapState.FAILED;

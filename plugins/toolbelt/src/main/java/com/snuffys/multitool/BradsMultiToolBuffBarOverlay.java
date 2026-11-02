@@ -13,6 +13,7 @@ import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -22,7 +23,8 @@ import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
 /**
  * The buff bar: your buffs (green border) then debuffs (red), each an icon with its time left underneath and
- * its boost or drain in the corner, like RS3's. Hover one for its name. Moved like any overlay (Alt + drag).
+ * its boost or drain in the corner, like RS3's. Icons are items, spell pictures (vengeance, a freeze, teleblock) or
+ * skill icons. Hover one for its name. Moved like any overlay (Alt + drag).
  */
 public class BradsMultiToolBuffBarOverlay extends Overlay {
 
@@ -35,6 +37,8 @@ public class BradsMultiToolBuffBarOverlay extends Overlay {
     private final ItemManager itemManager;
     private final SkillIconManager skillIcons;
     private final TooltipManager tooltipManager;
+    @Inject
+    private SpriteManager spriteManager;
 
     @Inject
     public BradsMultiToolBuffBarOverlay(Client client, PvmConfig config, StatusEffects effects, ItemManager itemManager,
@@ -76,6 +80,7 @@ public class BradsMultiToolBuffBarOverlay extends Overlay {
             graphics.drawRect(x, y, size - 1, size - 1);
 
             Image icon = effect.itemId > 0 ? itemManager.getImage(effect.itemId)
+                : effect.spriteId > 0 && spriteManager != null ? spriteManager.getSprite(effect.spriteId, 0)
                 : effect.skill != null ? skillIcons.getSkillImage(effect.skill, true) : null;
             if (icon != null) {
                 int inner = size - 6;

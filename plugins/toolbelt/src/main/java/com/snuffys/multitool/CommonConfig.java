@@ -80,9 +80,20 @@ public interface CommonConfig extends Config {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceOnlyUnfocused",
+        name = "Speak Only When Unfocused",
+        description = "<div width='300'>Only speak alerts while the RuneLite window isn't the one you're using (you're in another window); chat messages still post. Like RuneLite's own notifications, which by default don't show while you're in the client",
+        section = generalSection,
+        position = 5
+    )
+    default boolean voiceOnlyUnfocused() {
+        return false;
+    }
+
     @ConfigSection(
         name = "Idle",
-        description = "Idle character and idle logout warnings",
+        description = "Idle character, idle and six-hour logout warnings, and run energy alerts",
         position = 5,
         closedByDefault = true
     )
@@ -210,6 +221,286 @@ public interface CommonConfig extends Config {
         position = 9
     )
     default boolean chatIdleLogout() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "sixHourWarning",
+        name = "Six-Hour Logout Warning",
+        description = "<div width='300'>The game logs you out after six hours online: warn twenty minutes before (from when you logged in or hopped)",
+        section = idleSection,
+        position = 10
+    )
+    default boolean sixHourWarning() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSixHour",
+        name = "Voice: Six-Hour Logout",
+        description = "<div width='300'>Voice line twenty minutes before the six-hour logout (turning it on plays a preview)",
+        section = idleSection,
+        position = 11
+    )
+    default boolean voiceSixHour() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSixHour",
+        name = "Chat: Six-Hour Logout",
+        description = "<div width='300'>Chat message twenty minutes before the six-hour logout",
+        section = idleSection,
+        position = 12
+    )
+    default boolean chatSixHour() {
+        return true;
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyLowAt",
+        name = "Run Energy Low Below",
+        description = "<div width='300'>Alert anywhere when your run energy drops below this (0: off). While it's on, the Agility section's own run energy alert stays quiet so you don't hear both",
+        section = idleSection,
+        position = 13
+    )
+    default int runEnergyLowAt() {
+        return 0;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunLow",
+        name = "Voice: Run Energy Low",
+        description = "<div width='300'>Says when your run energy drops below Run Energy Low Below (turning it on plays a preview)",
+        section = idleSection,
+        position = 14
+    )
+    default boolean voiceRunLow() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRunLow",
+        name = "Chat: Run Energy Low",
+        description = "<div width='300'>Chat message when your run energy drops below Run Energy Low Below",
+        section = idleSection,
+        position = 15
+    )
+    default boolean chatRunLow() {
+        return true;
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyRestoredAt",
+        name = "Run Energy Restored At",
+        description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
+        section = idleSection,
+        position = 16
+    )
+    default int runEnergyRestoredAt() {
+        return 0;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunRestored",
+        name = "Voice: Run Energy Restored",
+        description = "<div width='300'>Says when your run energy is back up to Run Energy Restored At (turning it on plays a preview)",
+        section = idleSection,
+        position = 17
+    )
+    default boolean voiceRunRestored() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRunRestored",
+        name = "Chat: Run Energy Restored",
+        description = "<div width='300'>Chat message when your run energy is back up to Run Energy Restored At",
+        section = idleSection,
+        position = 18
+    )
+    default boolean chatRunRestored() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Reminders",
+        description = "Clue drops and daily rewards to collect",
+        position = 6,
+        closedByDefault = true
+    )
+    String remindersSection = "remindersSection";
+
+    @ConfigItem(
+        keyName = "clueDropAlert",
+        name = "Clue Drop Alert",
+        description = "<div width='300'>When a clue lands for you: a clue scroll in a monster's drop, or a clue bottle, geode, nest or scroll box from skilling going into your inventory. Chat says which tier",
+        section = remindersSection,
+        position = 0
+    )
+    default boolean clueDropAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceClueDrop",
+        name = "Voice: Clue Drop",
+        description = "Voice line when a clue drops (turning it on plays a preview)",
+        section = remindersSection,
+        position = 1
+    )
+    default boolean voiceClueDrop() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatClueDrop",
+        name = "Chat: Clue Drop",
+        description = "Chat message when a clue drops, with its tier",
+        section = remindersSection,
+        position = 2
+    )
+    default boolean chatClueDrop() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyReminders",
+        name = "Daily Reminders",
+        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
+        section = remindersSection,
+        position = 3
+    )
+    default boolean dailyReminders() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceDailies",
+        name = "Voice: Dailies",
+        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
+        section = remindersSection,
+        position = 4
+    )
+    default boolean voiceDailies() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatDailies",
+        name = "Chat: Dailies",
+        description = "Chat message listing the dailies to collect",
+        section = remindersSection,
+        position = 5
+    )
+    default boolean chatDailies() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyStaves",
+        name = "Daily: Battlestaves",
+        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
+        section = remindersSection,
+        position = 6
+    )
+    default boolean dailyStaves() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyHerbBoxes",
+        name = "Daily: Herb Boxes",
+        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
+        section = remindersSection,
+        position = 7
+    )
+    default boolean dailyHerbBoxes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyEssence",
+        name = "Daily: Pure Essence",
+        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
+        section = remindersSection,
+        position = 8
+    )
+    default boolean dailyEssence() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyRunes",
+        name = "Daily: Random Runes",
+        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
+        section = remindersSection,
+        position = 9
+    )
+    default boolean dailyRunes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailySand",
+        name = "Daily: Sand",
+        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
+        section = remindersSection,
+        position = 10
+    )
+    default boolean dailySand() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyFlax",
+        name = "Daily: Bowstrings",
+        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
+        section = remindersSection,
+        position = 11
+    )
+    default boolean dailyFlax() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyBonemeal",
+        name = "Daily: Bonemeal",
+        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
+        section = remindersSection,
+        position = 12
+    )
+    default boolean dailyBonemeal() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyDynamite",
+        name = "Daily: Dynamite",
+        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
+        section = remindersSection,
+        position = 13
+    )
+    default boolean dailyDynamite() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyArrows",
+        name = "Daily: Ogre Arrows",
+        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
+        section = remindersSection,
+        position = 14
+    )
+    default boolean dailyArrows() {
         return true;
     }
 }

@@ -18,7 +18,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Skilling Helper: the XP tracker in the sidebar (set goals with Set Goal; right-click a skill card for its Method, pin and goal options), skilling hover cards, resource timers and alerts. Clashes (said in chat while they're on): Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, RuneLite's Hunter and Mining plugins (our matching timers hide for them), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Skilling Helper: the XP tracker in the sidebar (set goals with Set Goal; right-click a skill card for its Method, pin and goal options), skilling hover cards, resource timers and alerts. Clashes (said in chat while they're on): Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, RuneLite's Hunter and Mining plugins (our matching timers hide for them), Hunter Rumours and Skills Progress (they show the same rumour and Skills tab bars), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -81,11 +81,19 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Idle",
-        description = "Idle character and idle logout warnings",
+        description = "Idle character, idle and six-hour logout warnings, and run energy alerts",
         position = 5,
         closedByDefault = true
     )
     String idleSection = "idleSection";
+
+    @ConfigSection(
+        name = "Reminders",
+        description = "Clue drops and daily rewards to collect",
+        position = 6,
+        closedByDefault = true
+    )
+    String remindersSection = "remindersSection";
 
     enum TrainingFocus {
         FASTEST("Fastest"),
@@ -372,6 +380,50 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceForestryEvent",
+        name = "Voice: Forestry Event",
+        description = "<div width='300'>When a Forestry event starts near you while you're chopping (turning it on plays a preview)",
+        section = woodcuttingSection,
+        position = 3
+    )
+    default boolean voiceForestryEvent() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatForestryEvent",
+        name = "Chat: Forestry Event",
+        description = "<div width='300'>Chat message naming the Forestry event that started near you",
+        section = woodcuttingSection,
+        position = 4
+    )
+    default boolean chatForestryEvent() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceBirdNest",
+        name = "Voice: Bird Nest",
+        description = "<div width='300'>When a bird's nest falls out of the tree (turning it on plays a preview)",
+        section = woodcuttingSection,
+        position = 5
+    )
+    default boolean voiceBirdNest() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBirdNest",
+        name = "Chat: Bird Nest",
+        description = "<div width='300'>Chat message when a bird's nest falls (and when it's a clue nest)",
+        section = woodcuttingSection,
+        position = 6
+    )
+    default boolean chatBirdNest() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Mining",
         description = "Mining timers and alerts",
@@ -411,6 +463,28 @@ public interface SkillTrackerConfig extends CommonConfig {
         position = 2
     )
     default boolean chatRockDepleted() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSackFull",
+        name = "Voice: Motherlode Sack Full",
+        description = "<div width='300'>In the Motherlode Mine, when the pay-dirt you carry fills the sack, so you empty it before mining more (turning it on plays a preview)",
+        section = miningSection,
+        position = 3
+    )
+    default boolean voiceSackFull() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSackFull",
+        name = "Chat: Motherlode Sack Full",
+        description = "<div width='300'>Chat message when the pay-dirt you carry fills the Motherlode sack",
+        section = miningSection,
+        position = 4
+    )
+    default boolean chatSackFull() {
         return true;
     }
 
@@ -540,9 +614,53 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "farmingPatchList",
+        name = "Farming Patch List",
+        description = "<div width='300'>A FARMING list in the sidebar: every patch you've been to with something in it, what's growing and when it's grown (the game only tells us a patch's state while you're near it, so each is as you last saw it). Right-click one to forget it",
+        section = farmingSection,
+        position = 2
+    )
+    default boolean farmingPatchList() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "farmingReadyAlert",
+        name = "Patches Ready Alert",
+        description = "<div width='300'>Says when patches you've planted are grown, naming them in chat (once per crop)",
+        section = farmingSection,
+        position = 3
+    )
+    default boolean farmingReadyAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceFarmingReady",
+        name = "Voice: Patches Ready",
+        description = "<div width='300'>Voice line when your farming patches are grown (turning it on plays a preview)",
+        section = farmingSection,
+        position = 4
+    )
+    default boolean voiceFarmingReady() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatFarmingReady",
+        name = "Chat: Patches Ready",
+        description = "<div width='300'>Chat message naming the farming patches that are grown",
+        section = farmingSection,
+        position = 5
+    )
+    default boolean chatFarmingReady() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Hunter",
-        description = "Hunter creature info, trap and bird house timers",
+        description = "Hunter creature info, trap and bird house timers, Hunters' Rumours",
         position = 45,
         closedByDefault = true
     )
@@ -562,7 +680,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "trapTimers",
         name = "Trap Timers",
-        description = "<div width='300'>A timer on each trap you lay, showing how long until it collapses (green once something is caught) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
+        description = "<div width='300'>A timer on each trap you lay, showing how long until it collapses (green once something is caught; a full pie in Failed Trap Colour once it springs empty). Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = hunterSection,
         position = 1
     )
@@ -612,6 +730,51 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     default boolean chatBirdhouses() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "rumourCard",
+        name = "Rumour Card",
+        description = "<div width='300'>Your Hunters' Rumour in the tracker (and on the pinned Hunter skill): the creature, the guild hunter, catches so far out of the catch the rare part is guaranteed by (fewer in the guild hunter outfit), and where to find it. Read from the hunters' dialogue and the Quetzal whistle's Rumour message, so talk to your hunter or check the whistle once",
+        section = hunterSection,
+        position = 6
+    )
+    default boolean rumourCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRumourComplete",
+        name = "Voice: Rumour Complete",
+        description = "<div width='300'>When your rumour creature's rare part drops (turning it on plays a preview)",
+        section = hunterSection,
+        position = 7
+    )
+    default boolean voiceRumourComplete() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRumourComplete",
+        name = "Chat: Rumour Complete",
+        description = "<div width='300'>Chat message when your rumour creature's rare part drops, with how many you caught",
+        section = hunterSection,
+        position = 8
+    )
+    default boolean chatRumourComplete() {
+        return true;
+    }
+
+    @Alpha
+    @ConfigItem(
+        keyName = "failedTrapColor",
+        name = "Failed Trap Colour",
+        description = "<div width='300'>The colour of a trap's timer once it has sprung with nothing in it (it needs resetting), so it stands out from a trap running out",
+        section = hunterSection,
+        position = 9
+    )
+    default Color failedTrapColor() {
+        return new Color(190, 110, 255);
     }
 
     @ConfigSection(
@@ -676,9 +839,163 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Obstacle Hover",
         description = "<div width='300'>Hovering a course obstacle or shortcut shows its Agility level, the course XP per lap and laps to your next level",
         section = agilitySection,
-        position = 1
+        position = 0
     )
     default boolean showAgilityHover() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "agilityCourseCard",
+        name = "Course Card",
+        description = "<div width='300'>While you run an Agility course: laps this session, laps and XP per hour, average lap time, laps to your next level and goal, and marks of grace picked up",
+        section = agilitySection,
+        position = 1
+    )
+    default boolean agilityCourseCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "agilityArenaCard",
+        name = "Brimhaven Arena Card",
+        description = "<div width='300'>In the Brimhaven Agility Arena: how long until the ticket pillar moves (it moves every minute), and the tickets you've earned this session and per hour",
+        section = agilitySection,
+        position = 2
+    )
+    default boolean agilityArenaCard() {
+        return true;
+    }
+
+    @Range(min
+    =
+    1,
+    max
+    =
+    30)
+    @Units(Units.SECONDS)
+    @ConfigItem(
+        keyName = "arenaWarnSeconds",
+        name = "Pillar Warning At",
+        description = "<div width='300'>How long before the pillar moves to warn you (and turn the card red)",
+        section = agilitySection,
+        position = 3
+    )
+    default int arenaWarnSeconds() {
+        return 10;
+    }
+
+    @ConfigItem(
+        keyName = "voiceArenaPillar",
+        name = "Voice: Pillar About to Move",
+        description = "<div width='300'>Says when the Brimhaven pillar is about to move (turning it on plays a preview)",
+        section = agilitySection,
+        position = 4
+    )
+    default boolean voiceArenaPillar() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatArenaPillar",
+        name = "Chat: Pillar About to Move",
+        description = "<div width='300'>Chat message when the Brimhaven pillar is about to move",
+        section = agilitySection,
+        position = 5
+    )
+    default boolean chatArenaPillar() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "arenaObstacleColours",
+        name = "Arena Obstacle Colours",
+        description = "<div width='300'>In the Brimhaven Agility Arena, outlines each obstacle by your Agility level: green you can do it safely, yellow you can do it but may fail, red your level is too low. Hover one for its XP, time and fail chance",
+        section = agilitySection,
+        position = 6
+    )
+    default boolean arenaObstacleColours() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "arenaRoute",
+        name = "Arena Route",
+        description = "<div width='300'>Shows the quickest way to the tagged pillar using only obstacles you can do, counting each obstacle's time and how likely you are to fail it",
+        section = agilitySection,
+        position = 7
+    )
+    default boolean arenaRoute() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "arenaRouteMinimap",
+        name = "Arena Route on Minimap",
+        description = "<div width='300'>Draws the Arena Route on the minimap too, with a dot on the tagged pillar",
+        section = agilitySection,
+        position = 8
+    )
+    default boolean arenaRouteMinimap() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "arenaDebug",
+        name = "Arena Route Readout",
+        description = "<div width='300'>Adds what the route sees to the arena card: pillars and obstacles found, links between pillars, and the route's steps. For checking the route works",
+        section = agilitySection,
+        position = 9
+    )
+    default boolean arenaDebug() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "oneObstacleTraining",
+        name = "One Obstacle Training",
+        description = "<div width='300'>When you cross the same obstacle over and over instead of running a course (the Brimhaven Arena's floor spikes back and forth, or any Agility shortcut): a card counts your reps, reps and XP per hour, and reps to your next level and goal, and outlines it. In the arena the route and pillar warning step aside until you stop",
+        section = agilitySection,
+        position = 10
+    )
+    default boolean oneObstacleTraining() {
+        return true;
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyBelow",
+        name = "Run Energy Alert Below",
+        description = "<div width='300'>While you're training Agility, alert when your run energy drops below this (0: off). Quiet while the Idle section's Run Energy Low Below is on (that one alerts anywhere, Agility included)",
+        section = agilitySection,
+        position = 11
+    )
+    default int runEnergyBelow() {
+        return 15;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunEnergy",
+        name = "Voice: Run Energy Low",
+        description = "<div width='300'>Says when your run energy is low while training Agility (turning it on plays a preview)",
+        section = agilitySection,
+        position = 12
+    )
+    default boolean voiceRunEnergy() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRunEnergy",
+        name = "Chat: Run Energy Low",
+        description = "<div width='300'>Chat message when your run energy is low while training Agility",
+        section = agilitySection,
+        position = 13
+    )
+    default boolean chatRunEnergy() {
         return true;
     }
 
@@ -703,7 +1020,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Sailing",
-        description = "Sailing timers",
+        description = "Sailing timers, hover cards and boat alerts",
         position = 50,
         closedByDefault = true
     )
@@ -731,6 +1048,63 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceBoatHealth",
+        name = "Voice: Boat Health Low",
+        description = "<div width='300'>On your boat, when its hitpoints drop below Boat Health Low At, once until it's repaired (turning it on plays a preview)",
+        section = sailingSection,
+        position = 2
+    )
+    default boolean voiceBoatHealth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBoatHealth",
+        name = "Chat: Boat Health Low",
+        description = "Chat message when your boat's hitpoints are low",
+        section = sailingSection,
+        position = 3
+    )
+    default boolean chatBoatHealth() {
+        return true;
+    }
+
+    @Range(min = 1, max = 99)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "boatHealthPercent",
+        name = "Boat Health Low At",
+        description = "<div width='300'>Boat hitpoints (percent of its most) below which Boat Health Low warns you",
+        section = sailingSection,
+        position = 4
+    )
+    default int boatHealthPercent() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSailTrim",
+        name = "Voice: Trim Sails",
+        description = "<div width='300'>On your boat, when a gust opens the window to trim the sails for a burst of speed (turning it on plays a preview)",
+        section = sailingSection,
+        position = 5
+    )
+    default boolean voiceSailTrim() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSailTrim",
+        name = "Chat: Trim Sails",
+        description = "Chat message when you can trim the sails",
+        section = sailingSection,
+        position = 6
+    )
+    default boolean chatSailTrim() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Smithing",
         description = "Anvil and furnace cards",
@@ -747,6 +1121,302 @@ public interface SkillTrackerConfig extends CommonConfig {
         position = 1
     )
     default boolean showSmithingHover() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Minigames",
+        description = "Wintertodt, Tempoross and Guardians of the Rift cards and alerts",
+        position = 52,
+        closedByDefault = true
+    )
+    String minigamesSection = "minigamesSection";
+
+    @ConfigItem(
+        keyName = "wintertodtCard",
+        name = "Wintertodt Card",
+        description = "<div width='300'>At the Wintertodt, a small card with your warmth, the Wintertodt's energy, your points this round, the roots and kindling you carry and when the next round starts",
+        section = minigamesSection,
+        position = 0
+    )
+    default boolean wintertodtCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtRound",
+        name = "Voice: Round Starting",
+        description = "<div width='300'>At the Wintertodt, five seconds before the next round starts (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 1
+    )
+    default boolean voiceWintertodtRound() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtRound",
+        name = "Chat: Round Starting",
+        description = "Chat message when the Wintertodt round is about to start",
+        section = minigamesSection,
+        position = 2
+    )
+    default boolean chatWintertodtRound() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtBrazier",
+        name = "Voice: Brazier Out / Broken",
+        description = "<div width='300'>At the Wintertodt, when the brazier you were using goes out or breaks (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 3
+    )
+    default boolean voiceWintertodtBrazier() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtBrazier",
+        name = "Chat: Brazier Out / Broken",
+        description = "Chat message when your Wintertodt brazier goes out or breaks",
+        section = minigamesSection,
+        position = 4
+    )
+    default boolean chatWintertodtBrazier() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtRoots",
+        name = "Voice: Out of Roots",
+        description = "<div width='300'>At the Wintertodt, when you run out of bruma roots while fletching or feeding the brazier (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 5
+    )
+    default boolean voiceWintertodtRoots() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtRoots",
+        name = "Chat: Out of Roots",
+        description = "Chat message when you run out of bruma roots",
+        section = minigamesSection,
+        position = 6
+    )
+    default boolean chatWintertodtRoots() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtHit",
+        name = "Voice: Cold Stopped You",
+        description = "<div width='300'>At the Wintertodt, when the cold or snowfall hits you and stops what you were doing: fletching, feeding, lighting or fixing; chopping carries on (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 7
+    )
+    default boolean voiceWintertodtHit() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtHit",
+        name = "Chat: Cold Stopped You",
+        description = "<div width='300'>Chat message when the cold or snowfall stops what you were doing at the Wintertodt",
+        section = minigamesSection,
+        position = 8
+    )
+    default boolean chatWintertodtHit() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtWarmth",
+        name = "Voice: Warmth Low",
+        description = "<div width='300'>At the Wintertodt, when your warmth drops below Warmth Low At, so you eat or step back (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 9
+    )
+    default boolean voiceWintertodtWarmth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtWarmth",
+        name = "Chat: Warmth Low",
+        description = "Chat message when your Wintertodt warmth is low",
+        section = minigamesSection,
+        position = 10
+    )
+    default boolean chatWintertodtWarmth() {
+        return true;
+    }
+
+    @Range(min = 1, max = 99)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "wintertodtWarmthPercent",
+        name = "Warmth Low At",
+        description = "<div width='300'>Warmth (percent) below which Warmth Low warns you, and the card shows your warmth in red",
+        section = minigamesSection,
+        position = 11
+    )
+    default int wintertodtWarmthPercent() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "temporossCard",
+        name = "Tempoross Card",
+        description = "<div width='300'>During Tempoross, a small card with its energy and essence, the storm, your points, the raw and cooked fish you carry and the damage they'd do",
+        section = minigamesSection,
+        position = 12
+    )
+    default boolean temporossCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTemporossWave",
+        name = "Voice: Wave Incoming",
+        description = "<div width='300'>During Tempoross, when a colossal wave is coming: tether yourself to a mast or totem (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 13
+    )
+    default boolean voiceTemporossWave() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTemporossWave",
+        name = "Chat: Wave Incoming",
+        description = "Chat message when a wave is coming at Tempoross",
+        section = minigamesSection,
+        position = 14
+    )
+    default boolean chatTemporossWave() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTemporossFire",
+        name = "Voice: Fire Near You",
+        description = "<div width='300'>During Tempoross, when lightning is about to start a fire within a few tiles of you (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 15
+    )
+    default boolean voiceTemporossFire() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTemporossFire",
+        name = "Chat: Fire Near You",
+        description = "<div width='300'>Chat message when a fire is about to start near you at Tempoross",
+        section = minigamesSection,
+        position = 16
+    )
+    default boolean chatTemporossFire() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTemporossDoubleSpot",
+        name = "Voice: Double Fishing Spot",
+        description = "<div width='300'>During Tempoross, when the double harpoonfish spot appears (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 17
+    )
+    default boolean voiceTemporossDoubleSpot() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTemporossDoubleSpot",
+        name = "Chat: Double Fishing Spot",
+        description = "<div width='300'>Chat message when the double fishing spot appears at Tempoross",
+        section = minigamesSection,
+        position = 18
+    )
+    default boolean chatTemporossDoubleSpot() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTemporossVulnerable",
+        name = "Voice: Vulnerable",
+        description = "<div width='300'>During Tempoross, when its energy is gone and it can be attacked, starting the next phase (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 19
+    )
+    default boolean voiceTemporossVulnerable() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTemporossVulnerable",
+        name = "Chat: Vulnerable",
+        description = "Chat message when Tempoross is vulnerable",
+        section = minigamesSection,
+        position = 20
+    )
+    default boolean chatTemporossVulnerable() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "riftCard",
+        name = "Guardians of the Rift Card",
+        description = "<div width='300'>In Guardians of the Rift, a small card with the Great Guardian's power, your energy, guardians built, the two altars open now with the Runecraft level each needs (red when yours is too low) and where the portal is",
+        section = minigamesSection,
+        position = 21
+    )
+    default boolean riftCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRiftStarting",
+        name = "Voice: Game Starting",
+        description = "<div width='300'>In Guardians of the Rift, ten seconds before the rift opens and the game starts (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 22
+    )
+    default boolean voiceRiftStarting() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRiftStarting",
+        name = "Chat: Game Starting",
+        description = "<div width='300'>Chat message when the Guardians of the Rift game is about to start",
+        section = minigamesSection,
+        position = 23
+    )
+    default boolean chatRiftStarting() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRiftPortal",
+        name = "Voice: Portal Opened",
+        description = "<div width='300'>In Guardians of the Rift, when the portal to the huge guardian remains opens, with where it is in chat; not while you're in the remains (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 24
+    )
+    default boolean voiceRiftPortal() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRiftPortal",
+        name = "Chat: Portal Opened",
+        description = "Chat message when the Guardians of the Rift portal opens",
+        section = minigamesSection,
+        position = 25
+    )
+    default boolean chatRiftPortal() {
         return true;
     }
 
@@ -945,7 +1615,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     @Units(Units.SECONDS)
     default int autoPauseSeconds() {
-        return 300;
+        return 10;
     }
 
     @Range(max
@@ -971,6 +1641,63 @@ public interface SkillTrackerConfig extends CommonConfig {
         position = 8
     )
     default boolean clearReachedGoals() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showBankedXp",
+        name = "Show Banked XP",
+        description = "<div width='300'>On a production skill's goal (Cooking, Herblore, Prayer...): the XP in what's in your bank and inventory at your level, the most XP things first. Just a figure: it doesn't change the suggestion. Shows once you've opened your bank",
+        section = goalsSection,
+        position = 9
+    )
+    default boolean showBankedXp() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "skillsTabGoalBars",
+        name = "Skills Tab Goal Bars",
+        description = "<div width='300'>A thin gold bar along the bottom of each skill with a goal on the game's Skills tab, filling up as you get closer to the goal",
+        section = goalsSection,
+        position = 10
+    )
+    default boolean skillsTabGoalBars() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrackerItems",
+        name = "Show Items Gathered",
+        description = "<div width='300'>How many logs, fish and ore you've got and food you've cooked (and burnt) this session, and how many an hour, on the skill's card and the pinned skill. Counted from the game's chat messages",
+        section = trackerSection,
+        position = 13
+    )
+    default boolean showTrackerItems() {
+        return true;
+    }
+
+    @Range(max = 240)
+    @Units(Units.MINUTES)
+    @ConfigItem(
+        keyName = "keepSessionMinutes",
+        name = "Keep Session After Restart",
+        description = "<div width='300'>When you restart the client and log back in to the same account within this long of logging out (or of your last XP, if the client closed without logging out), the tracker carries on with that session's XP, rates and items instead of starting again (0: always start again)",
+        section = trackerSection,
+        position = 14
+    )
+    default int keepSessionMinutes() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "showMaterialsValue",
+        name = "Show Materials Value",
+        description = "<div width='300'>On a production skill's goal: the Grand Exchange value of the materials counted in Banked XP (in your bank and inventory). Just a figure. Shows once you've opened your bank",
+        section = goalsSection,
+        position = 10
+    )
+    default boolean showMaterialsValue() {
         return true;
     }
 
@@ -1069,6 +1796,18 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Override
     default boolean sendChatMessages() {
         return CommonConfig.super.sendChatMessages();
+    }
+
+    @ConfigItem(
+        keyName = "voiceOnlyUnfocused",
+        name = "Speak Only When Unfocused",
+        description = "<div width='300'>Only speak alerts while the RuneLite window isn't the one you're using (you're in another window); chat messages still post. Like RuneLite's own notifications, which by default don't show while you're in the client",
+        section = generalSection,
+        position = 5
+    )
+    @Override
+    default boolean voiceOnlyUnfocused() {
+        return CommonConfig.super.voiceOnlyUnfocused();
     }
 
     @ConfigItem(
@@ -1204,6 +1943,302 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Override
     default boolean chatIdleLogout() {
         return CommonConfig.super.chatIdleLogout();
+    }
+
+    @ConfigItem(
+        keyName = "sixHourWarning",
+        name = "Six-Hour Logout Warning",
+        description = "<div width='300'>The game logs you out after six hours online: warn twenty minutes before (from when you logged in or hopped)",
+        section = idleSection,
+        position = 10
+    )
+    @Override
+    default boolean sixHourWarning() {
+        return CommonConfig.super.sixHourWarning();
+    }
+
+    @ConfigItem(
+        keyName = "voiceSixHour",
+        name = "Voice: Six-Hour Logout",
+        description = "<div width='300'>Voice line twenty minutes before the six-hour logout (turning it on plays a preview)",
+        section = idleSection,
+        position = 11
+    )
+    @Override
+    default boolean voiceSixHour() {
+        return CommonConfig.super.voiceSixHour();
+    }
+
+    @ConfigItem(
+        keyName = "chatSixHour",
+        name = "Chat: Six-Hour Logout",
+        description = "<div width='300'>Chat message twenty minutes before the six-hour logout",
+        section = idleSection,
+        position = 12
+    )
+    @Override
+    default boolean chatSixHour() {
+        return CommonConfig.super.chatSixHour();
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyLowAt",
+        name = "Run Energy Low Below",
+        description = "<div width='300'>Alert anywhere when your run energy drops below this (0: off). While it's on, the Agility section's own run energy alert stays quiet so you don't hear both",
+        section = idleSection,
+        position = 13
+    )
+    @Override
+    default int runEnergyLowAt() {
+        return CommonConfig.super.runEnergyLowAt();
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunLow",
+        name = "Voice: Run Energy Low",
+        description = "<div width='300'>Says when your run energy drops below Run Energy Low Below (turning it on plays a preview)",
+        section = idleSection,
+        position = 14
+    )
+    @Override
+    default boolean voiceRunLow() {
+        return CommonConfig.super.voiceRunLow();
+    }
+
+    @ConfigItem(
+        keyName = "chatRunLow",
+        name = "Chat: Run Energy Low",
+        description = "<div width='300'>Chat message when your run energy drops below Run Energy Low Below",
+        section = idleSection,
+        position = 15
+    )
+    @Override
+    default boolean chatRunLow() {
+        return CommonConfig.super.chatRunLow();
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyRestoredAt",
+        name = "Run Energy Restored At",
+        description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
+        section = idleSection,
+        position = 16
+    )
+    @Override
+    default int runEnergyRestoredAt() {
+        return CommonConfig.super.runEnergyRestoredAt();
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunRestored",
+        name = "Voice: Run Energy Restored",
+        description = "<div width='300'>Says when your run energy is back up to Run Energy Restored At (turning it on plays a preview)",
+        section = idleSection,
+        position = 17
+    )
+    @Override
+    default boolean voiceRunRestored() {
+        return CommonConfig.super.voiceRunRestored();
+    }
+
+    @ConfigItem(
+        keyName = "chatRunRestored",
+        name = "Chat: Run Energy Restored",
+        description = "<div width='300'>Chat message when your run energy is back up to Run Energy Restored At",
+        section = idleSection,
+        position = 18
+    )
+    @Override
+    default boolean chatRunRestored() {
+        return CommonConfig.super.chatRunRestored();
+    }
+
+    @ConfigItem(
+        keyName = "clueDropAlert",
+        name = "Clue Drop Alert",
+        description = "<div width='300'>When a clue lands for you: a clue scroll in a monster's drop, or a clue bottle, geode, nest or scroll box from skilling going into your inventory. Chat says which tier",
+        section = remindersSection,
+        position = 0
+    )
+    @Override
+    default boolean clueDropAlert() {
+        return CommonConfig.super.clueDropAlert();
+    }
+
+    @ConfigItem(
+        keyName = "voiceClueDrop",
+        name = "Voice: Clue Drop",
+        description = "Voice line when a clue drops (turning it on plays a preview)",
+        section = remindersSection,
+        position = 1
+    )
+    @Override
+    default boolean voiceClueDrop() {
+        return CommonConfig.super.voiceClueDrop();
+    }
+
+    @ConfigItem(
+        keyName = "chatClueDrop",
+        name = "Chat: Clue Drop",
+        description = "Chat message when a clue drops, with its tier",
+        section = remindersSection,
+        position = 2
+    )
+    @Override
+    default boolean chatClueDrop() {
+        return CommonConfig.super.chatClueDrop();
+    }
+
+    @ConfigItem(
+        keyName = "dailyReminders",
+        name = "Daily Reminders",
+        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
+        section = remindersSection,
+        position = 3
+    )
+    @Override
+    default boolean dailyReminders() {
+        return CommonConfig.super.dailyReminders();
+    }
+
+    @ConfigItem(
+        keyName = "voiceDailies",
+        name = "Voice: Dailies",
+        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
+        section = remindersSection,
+        position = 4
+    )
+    @Override
+    default boolean voiceDailies() {
+        return CommonConfig.super.voiceDailies();
+    }
+
+    @ConfigItem(
+        keyName = "chatDailies",
+        name = "Chat: Dailies",
+        description = "Chat message listing the dailies to collect",
+        section = remindersSection,
+        position = 5
+    )
+    @Override
+    default boolean chatDailies() {
+        return CommonConfig.super.chatDailies();
+    }
+
+    @ConfigItem(
+        keyName = "dailyStaves",
+        name = "Daily: Battlestaves",
+        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
+        section = remindersSection,
+        position = 6
+    )
+    @Override
+    default boolean dailyStaves() {
+        return CommonConfig.super.dailyStaves();
+    }
+
+    @ConfigItem(
+        keyName = "dailyHerbBoxes",
+        name = "Daily: Herb Boxes",
+        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
+        section = remindersSection,
+        position = 7
+    )
+    @Override
+    default boolean dailyHerbBoxes() {
+        return CommonConfig.super.dailyHerbBoxes();
+    }
+
+    @ConfigItem(
+        keyName = "dailyEssence",
+        name = "Daily: Pure Essence",
+        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
+        section = remindersSection,
+        position = 8
+    )
+    @Override
+    default boolean dailyEssence() {
+        return CommonConfig.super.dailyEssence();
+    }
+
+    @ConfigItem(
+        keyName = "dailyRunes",
+        name = "Daily: Random Runes",
+        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
+        section = remindersSection,
+        position = 9
+    )
+    @Override
+    default boolean dailyRunes() {
+        return CommonConfig.super.dailyRunes();
+    }
+
+    @ConfigItem(
+        keyName = "dailySand",
+        name = "Daily: Sand",
+        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
+        section = remindersSection,
+        position = 10
+    )
+    @Override
+    default boolean dailySand() {
+        return CommonConfig.super.dailySand();
+    }
+
+    @ConfigItem(
+        keyName = "dailyFlax",
+        name = "Daily: Bowstrings",
+        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
+        section = remindersSection,
+        position = 11
+    )
+    @Override
+    default boolean dailyFlax() {
+        return CommonConfig.super.dailyFlax();
+    }
+
+    @ConfigItem(
+        keyName = "dailyBonemeal",
+        name = "Daily: Bonemeal",
+        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
+        section = remindersSection,
+        position = 12
+    )
+    @Override
+    default boolean dailyBonemeal() {
+        return CommonConfig.super.dailyBonemeal();
+    }
+
+    @ConfigItem(
+        keyName = "dailyDynamite",
+        name = "Daily: Dynamite",
+        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
+        section = remindersSection,
+        position = 13
+    )
+    @Override
+    default boolean dailyDynamite() {
+        return CommonConfig.super.dailyDynamite();
+    }
+
+    @ConfigItem(
+        keyName = "dailyArrows",
+        name = "Daily: Ogre Arrows",
+        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
+        section = remindersSection,
+        position = 14
+    )
+    @Override
+    default boolean dailyArrows() {
+        return CommonConfig.super.dailyArrows();
     }
     // ---- End of CommonConfig's settings ----
 }

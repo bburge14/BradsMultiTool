@@ -44,22 +44,38 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | PvM HUD, monster hover (HP, weakness, aggression to you) | OK. Information-only; aggression follows the game's documented rule |
 | Buff / health / prayer / spec / poison / antifire alerts | OK. Notifications only, like core plugins |
 | Idle logout warning, AFK alert | OK. Notifications only (core Idle Notifier / Logout Timer do the same); nothing prevents logout |
+| Loot value on the PvM HUD, materials value on goal cards | OK. RuneLite's `NpcLootReceived` and ItemManager GE prices, as the core Loot Tracker; figures only |
+| Death alert and gravestone timer | OK. Same as the old core Death Indicator: reads your death (`ActorDeath`), location and item counts; an InfoBox of our own; nothing acts for the player |
+| Clue drop alert, daily reminders | OK. Clue items by name from kill loot and your inventory; dailies from the same varbits as core Daily Task Indicator; notifications only |
 | Gemstone Crab HUD and radar | OK. Plugin Hub has gemstone-crab-timer |
 | Slayer task card, missing item warning | OK |
 | Task monster outlines (Konar area aware), Slayer info on monster hover/HUD | OK. Core Slayer plugin highlights task monsters too; information only |
+| Slayer points and streak on the card, "next task is a milestone" alert | OK. The same varbits core Slayer shows in its infobox tooltip; information only. Nothing hides or reorders masters or NPC Contact options (Slayer Streak's menu hiding is on the never-add list) |
+| Slayer supplies used (food, doses) per task | OK. Counted from the game's own eat/drink chat messages; saved with ConfigManager (RS profile), no files |
+| Kill goals per monster ("Set kill goal" right-click, chat box number input) | OK. RUNELITE-type menu entry like Track for goal and RuneLite's chat box input (ChatboxPanelManager, as Bank Tags uses); only changes what we show; saved with ConfigManager (RS profile) |
+| Finish-off marker on lizards, gargoyles, rockslugs, zygomites | OK. Core Slayer's "Show monster weakness" does the same (its thresholds); only draws the item, never uses it. Steps aside for core's own marks (reads whether core Slayer and that setting are on, never changes them) |
+| Monster max hit and attack speed on the hover card | OK. Static wiki infobox facts (like Slayer Suite / npc-max-hit on the Hub). No countdown to a monster's next attack |
+| Wrong protection prayer alert (off by default) | OK. Only for monsters whose every wiki attack style one prayer stops, compared with the prayer you have on; says nothing about when or how it attacks next (not boss attack prediction) |
+| Unpotted reminder (off by default) | OK. Notification only: reads your boosted stats when you start a fight |
+| Buff bar: overload, prayer regeneration, vengeance, staff of the dead, imbued heart cooldown, frozen, teleblocked | OK. The same varbits and game messages core Timers & Buffs reads; information only. No clash entry: core shows these as infoboxes by default, and the buff bar already overlaps it (antifire, stamina) as an alternative layout |
 | Slayer master card (no task) and task directions (where to kill, how to get there) | OK. Wiki text only; nothing is pathed, clicked or walked for the player |
 | Slayer card pictures (master chatheads, task icons, ~90 small PNGs from the wiki, ~0.3MB) | OK. Game imagery as hosted on the wiki, credited in the README; other Plugin Hub plugins bundle game images the same way. Fallback is an in-game item sprite |
 | Skilling hover cards (trees, rocks, stalls, pickpocket, fishing, farming) | OK. Information from the wiki and visible game state |
 | Resource timer pies (trees, MLM, calcified, Daeyalt, stars, fishing spots, shipwrecks) | OK. Each mirrors an existing Plugin Hub plugin (credited in README) |
 | Depleted rock respawn timers | OK. Same as RuneLite's own Mining plugin: reads the arguments of the game's rock respawn script (5474) in `ScriptPreFired` (the rock's tile, the depleted rock's id and the ticks until it's back); only reads them, never runs a script |
 | Farming patch hover | OK. Same information as the core Time Tracking plugin |
-| Hunter: creature hover, trap pies, bird house hover + ready alert | OK. Core Hunter and Time Tracking plugins show trap timers and bird house times |
+| Hunter: creature hover, trap pies, bird house hover + ready alert | OK. Core Hunter and Time Tracking plugins show trap timers and bird house times. A trap that sprang empty gets its own colour, as core Hunter colours empty traps |
+| Hunters' Rumours card (creature, catches toward the pity drop, where to find it) and rumour complete alert | OK. Same as the Plugin Hub's Hunter Rumours plugin: reads the guild hunters' dialogue, the Quetzal whistle message, the rare part's chat message and your Hunter XP; wiki locations. Leaves out that plugin's fairy ring auto-scroll (it changes an interface for you) |
+| Skills tab goal bars | OK. An overlay drawn over the Skills tab's widgets (bounds only), like the Plugin Hub's Skills Progress plugin; the interface isn't changed |
+| Items gathered per hour, keeping the tracker session after a restart | OK. Counts the game's own chat messages, as core Woodcutting/Fishing/Cooking plugins do; the session is saved in our own RS profile config, as core XP Tracker keeps its session |
 | Firemaking fire pies | OK. Plugin Hub has fire-timer |
 | Runecraft altar hover, Agility course/shortcut hover, Cooking burn levels | OK. Wiki information; core Agility plugin knows the same shortcuts and courses |
+| Brimhaven Arena obstacle colours, route to the tagged pillar, one-obstacle rep counter (arena and shortcuts) | OK. Information only: outlines obstacles from the loaded scene by your level (wiki data) and draws a route line, like core Agility's clickboxes and the Shortest Path plugin; reads the hint arrow, never clicks or walks for you. Steps aside for obstacles core Agility's Show Clickboxes already outlines |
 | Best Choice By (XP or GE profit) | OK. Prices from RuneLite's ItemManager (no own HTTP client) |
 | Cooking range/fire card (food levels, XP, burn levels), Smithing anvil/furnace cards | OK. Wiki recipe information and your own inventory; no menu or input changes |
 | Skilling card instead of monster card when auto retaliate is off | OK. Only chooses which of our own overlays to draw; reads the auto retaliate setting, changes nothing |
 | Coin pouch full, batch complete alerts | OK. Notifications only |
+| Minigame cards and alerts (Wintertodt, Tempoross, Guardians of the Rift) and Sailing boat alerts (low boat health, trim sails) | OK. Read the game's own HUD boxes, chat, varbits and inventory; core Wintertodt and the Tempoross, GOTR Helper and Sailing hub plugins notify the same things. GOTR altars are shown on our card only: no menu options are hidden, swapped or reordered |
 | Skill tracker goals and auto-pause | OK. Same as the core XP Tracker. Goals, Track for goal picks, Suggest choices, Prayer methods and the pinned skill (like bird houses and compost) are saved under one group, "bradsmultitool", for both the Toolbelt and the Skilling Helper (our own plugins, so either shows the same goals); the Skilling Helper moves goals it saved under its own group there once |
 | Pinned skill overlay (one skill on screen, Unpin via the overlay's own menu) | OK. Like the core XP Tracker's on-screen skill boxes; overlay menu entry only |
 | "Track for goal" right-click option on skilling NPCs/objects, and on inventory/bank items (with a submenu of Prayer methods) | OK. Adds a RUNELITE-type menu entry that only changes what we outline (like core NPC Indicators' Tag); never acts in game, never removes or reorders game options |
@@ -73,6 +89,10 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Reset in the PvM HUD's and crab card's right-click menus | OK. RUNELITE_OVERLAY menu entries on our own overlays (like the pinned skill's Unpin); only clear our numbers |
 | Buff bar (your buffs/debuffs with timers) and monster effects on the PvM HUD (poison/venom/burn, freezes, Defence after your special attacks) | OK. Same information as the core Timers and Buffs and Boosts plugins, read from varbits, hitsplats and graphics; information only |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
+| Tick Counter hotkeys (reset count, show/hide, Ticks Per Cycle up/down) | OK. Keybinds (KeyManager/HotkeyListener, unset by default) that only change our own overlays and our own setting |
+| Attack timer (Follow Attack Speed: count down, late ticks, eating delays) | OK. Your own attacks only, from your animation, chat lines and equipment; information only, like the Plugin Hub's Attack Timer Metronome. Never predicts a monster's attacks |
+| Run energy low / restored alerts | OK. Notifications only, like core Idle Notifier's run energy thresholds |
+| Speak Only When Unfocused | OK. Reads `ClientUI.isFocused()`, the same check RuneLite's `Notifier` makes; no `KeyboardFocusManager` |
 | Tick Pattern (numbered boxes lit in a timing pattern: two halves of a tick) | OK. Numbers only, like a visual metronome: no labels or item names, nothing says what to click; the player decides what each box means and where it goes. Labelled step-by-step presets ("Herb", "Tar"...) were considered and left out as a click guide |
 | Half-Tick Boxes (a box for each half of the tick) | OK. Like RuneLite's own Prayer plugin's flick indicator: shows timing within a tick only; never says what to click and never acts |
 | About settings: Open the Guide, clash notes | OK. Open the Guide opens the feature guide with `LinkBrowser.browse` and switches itself back off; clash notes only read which plugins (and a few of RuneLite's own settings: `slayer.highlightOutline/Hull/Tile`) are on, say so once a login in chat, and show a warning info box (our own InfoBox, removed when the plugin stops) |

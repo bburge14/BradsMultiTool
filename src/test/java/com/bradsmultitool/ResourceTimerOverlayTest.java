@@ -39,5 +39,9 @@ public class ResourceTimerOverlayTest {
         ResourceTimers.Timer trap = new ResourceTimers.Timer(ResourceTimers.Kind.TRAP, null, null, 100, 100);
         trap.trapState = ResourceTimers.TrapState.CAUGHT;
         assertEquals("Caught", BradsMultiToolResourceTimerOverlay.timerText(trap));
+        org.junit.Assert.assertFalse(BradsMultiToolResourceTimerOverlay.failedTrap(trap));
+        trap.trapState = ResourceTimers.TrapState.FAILED;
+        assertEquals("Empty", BradsMultiToolResourceTimerOverlay.timerText(trap)); // sprang empty: reset it
+        org.junit.Assert.assertTrue(BradsMultiToolResourceTimerOverlay.failedTrap(trap));
     }
 }

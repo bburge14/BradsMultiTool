@@ -1,15 +1,25 @@
-# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins (on opening, then every 10
-# minutes while it's open), Relaunch closes and restarts RuneLite with any update, checks the setup (RuneLite
+# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it), two tabs. Dev: pushes the plugins to their own
+# repositories and publishes them to RuneLite's Plugin Hub (docs/ROLLOUT.md). Play: updates the plugins (on opening, then checked every
+# minute in the background while it's open, pulled as soon as there's one), warns (red, a bold Relaunch, a Windows
+# notification) when the RuneLite that's open was built from an older version, Relaunch closes and restarts RuneLite with any update, checks the setup (RuneLite
 # installed, session saving on in RuneLite (configure), a Jagex session saved, Java, git) with a button to fix
 # each, and walks through saving a session; lets you pick which plugins RuneLite loads, and launches it. The Toolbelt has every separate
 # plugin in it, so it's either the Toolbelt on its own or any of the separate ones. Launching runs hidden with a
 # progress bar (building, starting, running; the log a click away) and the window stays open while RuneLite runs.
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+# Finding RuneLite's "Are you sure you want to exit?" box, for Relaunch to answer it
+Add-Type -Namespace Snuffys -Name Win -MemberDefinition @'
+[DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowEx(IntPtr parent, IntPtr after, string cls, string title);
+[DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+[DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
+'@
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $root = Split-Path $PSScriptRoot -Parent
 $choiceFile = Join-Path $root '.launch-choice'
+# The version (commit) RuneLite was last launched with, to tell when the open one is out of date
+$runningFile = Join-Path $root '.running-commit'
 $creds = Join-Path $env:USERPROFILE '.runelite\credentials.properties'
 $green = [System.Drawing.Color]::FromArgb(0, 140, 60)
 $red = [System.Drawing.Color]::FromArgb(190, 30, 30)
@@ -28,7 +38,7 @@ function New-Group($text, $y, $height) {
     $group.Text = $text
     $group.Location = New-Object System.Drawing.Point(12, $y)
     $group.Size = New-Object System.Drawing.Size(436, $height)
-    $form.Controls.Add($group)
+    $playTab.Controls.Add($group)
     return $group
 }
 
@@ -37,8 +47,20 @@ $form.Text = "Snuffy's Launcher"
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
 $form.StartPosition = 'CenterScreen'
-$form.ClientSize = New-Object System.Drawing.Size(460, 668)
+$form.ClientSize = New-Object System.Drawing.Size(468, 700)
 $form.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+# Two tabs: Play (updates, setup, launching) and Dev (pushing the plugins to their repositories and RuneLite)
+$tabs = New-Object System.Windows.Forms.TabControl
+$tabs.Dock = 'Fill'
+$form.Controls.Add($tabs)
+$playTab = New-Object System.Windows.Forms.TabPage
+$playTab.Text = 'Play'
+$playTab.UseVisualStyleBackColor = $true
+$devTab = New-Object System.Windows.Forms.TabPage
+$devTab.Text = 'Dev'
+$devTab.UseVisualStyleBackColor = $true
+$tabs.TabPages.Add($playTab)
+$tabs.TabPages.Add($devTab)
 $icon = Join-Path $root 'assets\launcher.ico'
 if (Test-Path $icon) {
     $form.Icon = New-Object System.Drawing.Icon($icon)
@@ -72,7 +94,14 @@ function Update-Plugins {
         return
     }
     $old = (git -C $root rev-parse HEAD 2>$null)
-    $out = (git -C $root pull --ff-only 2>&1 | Out-String)
+    # From the branch's upstream, else origin's branch of the same name (a checkout without one set still updates)
+    git -C $root rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        $out = (git -C $root pull --ff-only 2>&1 | Out-String)
+    } else {
+        $branch = (git -C $root rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+        $out = (git -C $root pull --ff-only origin $branch 2>&1 | Out-String)
+    }
     if ($LASTEXITCODE -ne 0) {
         $updateStatus.Text = "Couldn't update (offline, or files changed here)."
         $updateStatus.ForeColor = $red
@@ -353,30 +382,30 @@ $launch.Text = 'Launch RuneLite'
 $launch.Location = New-Object System.Drawing.Point(232, 600)
 $launch.Size = New-Object System.Drawing.Size(126, 32)
 $launch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
-$form.Controls.Add($launch)
+$playTab.Controls.Add($launch)
 $form.AcceptButton = $launch
 $close = New-Object System.Windows.Forms.Button
 $close.Text = 'Close'
 $close.Location = New-Object System.Drawing.Point(366, 600)
 $close.Size = New-Object System.Drawing.Size(82, 32)
 $close.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-$form.Controls.Add($close)
+$playTab.Controls.Add($close)
 $form.CancelButton = $close
 
 # Progress: building, starting RuneLite, running. The build runs hidden; its output goes to a log you can open.
 $launchStatus = New-Label 'Ready.' 14 544 330
-$form.Controls.Add($launchStatus)
+$playTab.Controls.Add($launchStatus)
 $showLog = New-Object System.Windows.Forms.LinkLabel
 $showLog.Text = 'Show log'
 $showLog.Location = New-Object System.Drawing.Point(386, 544)
 $showLog.AutoSize = $true
 $showLog.Visible = $false
-$form.Controls.Add($showLog)
+$playTab.Controls.Add($showLog)
 $progress = New-Object System.Windows.Forms.ProgressBar
 $progress.Location = New-Object System.Drawing.Point(14, 566)
 $progress.Size = New-Object System.Drawing.Size(434, 18)
 $progress.Style = 'Continuous'
-$form.Controls.Add($progress)
+$playTab.Controls.Add($progress)
 
 $logFile = Join-Path $env:TEMP "snuffys-runelite.log"
 $showLog.Add_LinkClicked({ if (Test-Path $logFile) { Start-Process notepad.exe -ArgumentList "`"$logFile`"" } })
@@ -471,6 +500,8 @@ function Start-RuneLite {
     $showLog.Visible = $true
     $launch.Enabled = $false
     Set-Status "Building Snuffy's plugins..." ([System.Drawing.SystemColors]::ControlText) 5
+    Set-Content -Path $runningFile -Value (git -C $root rev-parse HEAD 2>$null)
+    $script:warnedFor = $null
     $command = "gradlew.bat --console=plain runBrad `"-Pload=$load`" > `"$logFile`" 2>&1"
     $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
     $watcher.Start()
@@ -489,11 +520,29 @@ $relaunch.Text = 'Relaunch'
 $relaunch.Location = New-Object System.Drawing.Point(132, 600)
 $relaunch.Size = New-Object System.Drawing.Size(92, 32)
 $relaunch.Enabled = $false
-$form.Controls.Add($relaunch)
+$playTab.Controls.Add($relaunch)
 $script:closingSince = $null
 $closer = New-Object System.Windows.Forms.Timer
 $closer.Interval = 500
+# RuneLite's exit warning (its Exit warning setting): Relaunch answers OK for you. Only a window titled "Exit"
+# belonging to RuneLite's own process, brought to the front first, so Enter can't land anywhere else
+function Confirm-Exit {
+    $window = RuneLite-Window
+    if (-not $window) { return }
+    $hwnd = [IntPtr]::Zero
+    while (($hwnd = [Snuffys.Win]::FindWindowEx([IntPtr]::Zero, $hwnd, $null, 'Exit')) -ne [IntPtr]::Zero) {
+        $owner = 0
+        [void][Snuffys.Win]::GetWindowThreadProcessId($hwnd, [ref]$owner)
+        if ($owner -eq $window.Id -and [Snuffys.Win]::SetForegroundWindow($hwnd)) {
+            Start-Sleep -Milliseconds 150
+            [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+            return
+        }
+    }
+}
+
 $closer.Add_Tick({
+    Confirm-Exit
     if (-not (RuneLite-Running)) {
         $closer.Stop()
         Update-Plugins
@@ -519,18 +568,77 @@ $relaunch.Add_Click({
     $closer.Start()
 })
 
-# ---- Updates while the launcher's open: checked every 10 minutes; RuneLite running? Relaunch to use them ----
+# ---- Updates while the launcher's open: fetched every minute in the background (the window never freezes),
+# pulled as soon as there's one; and the open RuneLite checked against the version it was built from ----
+
+# The branch updates come from: its upstream, else origin's branch of the same name
+function Get-Upstream {
+    $up = (git -C $root rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null)
+    if ($LASTEXITCODE -eq 0 -and $up) { return $up.Trim() }
+    $branch = (git -C $root rev-parse --abbrev-ref HEAD 2>$null)
+    if ($branch) { return "origin/$($branch.Trim())" }
+    return $null
+}
+
+# The open RuneLite's version: this launcher's, or (opened before this window) the one saved at its launch
+function Running-Commit {
+    if (-not ((RuneLite-Running) -or (RuneLite-Window))) { return $null }
+    if (Test-Path $runningFile) { return (Get-Content $runningFile -ErrorAction SilentlyContinue | Select-Object -First 1) }
+    return $null
+}
+
+$tray = New-Object System.Windows.Forms.NotifyIcon
+$tray.Icon = if ($form.Icon) { $form.Icon } else { [System.Drawing.SystemIcons]::Information }
+$tray.Text = "Snuffy's Launcher"
+$tray.Add_BalloonTipClicked({ $form.Activate() })
+$form.Add_FormClosed({ $tray.Visible = $false; $tray.Dispose() })
+$script:fetch = $null
+$script:lastFetch = [DateTime]::MinValue
+$script:warnedFor = $null
+
+# Says when the open RuneLite is older than the plugins here (once a notification per new version)
+function Check-RunningVersion {
+    $running = Running-Commit
+    $head = (git -C $root rev-parse HEAD 2>$null)
+    if (-not $running -or -not $head -or $running.Trim() -eq $head.Trim()) {
+        if ($script:warnedFor) {
+            $script:warnedFor = $null
+            $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+        }
+        return
+    }
+    $behind = (git -C $root rev-list --count "$($running.Trim())..HEAD" 2>$null)
+    if (-not $behind) { $behind = 'some' }
+    $updateStatus.Text = "RuneLite is out of date: press Relaunch."
+    $updateStatus.ForeColor = $red
+    $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+    $relaunch.Enabled = $true
+    if ($script:warnedFor -ne $head) {
+        $script:warnedFor = $head
+        $updateLog.Text = (git -C $root log --format='- %s' "$($running.Trim())..HEAD" 2>$null | Out-String).Trim()
+        $tray.Visible = $true
+        $tray.ShowBalloonTip(10000, "Snuffy's plugins updated", 'RuneLite is running an older version. Open the launcher and press Relaunch to use the new one.', 'Info')
+    }
+}
+
 $autoUpdate = New-Object System.Windows.Forms.Timer
-$autoUpdate.Interval = 10 * 60 * 1000
+$autoUpdate.Interval = 5000
 $autoUpdate.Add_Tick({
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
-    git -C $root fetch --quiet 2>$null
-    $behind = (git -C $root rev-list --count 'HEAD..@{u}' 2>$null)
-    if ($LASTEXITCODE -ne 0 -or [int]$behind -le 0) { return }
-    Update-Plugins
-    if (RuneLite-Running) {
-        $updateStatus.Text = 'Update ready: Relaunch to use it.'
-        $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+    if ($script:fetch) {
+        if (-not $script:fetch.HasExited) { return }
+        $script:fetch = $null
+        $upstream = Get-Upstream
+        if ($upstream) {
+            $behind = (git -C $root rev-list --count "HEAD..$upstream" 2>$null)
+            if ($LASTEXITCODE -eq 0 -and [int]$behind -gt 0) { Update-Plugins }
+        }
+        Check-RunningVersion
+        return
+    }
+    if (((Get-Date) - $script:lastFetch).TotalSeconds -ge 60) {
+        $script:lastFetch = Get-Date
+        $script:fetch = Start-Process -FilePath 'git' -ArgumentList '-C', "`"$root`"", 'fetch', '--quiet' -WindowStyle Hidden -PassThru
     }
 })
 $autoUpdate.Start()
@@ -551,7 +659,7 @@ $shortcut = New-Object System.Windows.Forms.LinkLabel
 $shortcut.Text = 'Make a desktop shortcut'
 $shortcut.Location = New-Object System.Drawing.Point(14, 644)
 $shortcut.AutoSize = $true
-$form.Controls.Add($shortcut)
+$playTab.Controls.Add($shortcut)
 $shortcut.Add_LinkClicked({
     $link = $shell.CreateShortcut((Join-Path $desktop "Snuffy's Launcher.lnk"))
     $link.TargetPath = $bat
@@ -561,9 +669,184 @@ $shortcut.Add_LinkClicked({
     [System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher is on your desktop.", "Snuffy's") | Out-Null
 })
 
+# ---- Dev tab: push the plugins to their own repositories, then publish them to RuneLite (Plugin Hub pull
+# request). Runs scripts\publish_plugins.py (repositories in publish.json; docs\ROLLOUT.md) hidden, output live. ----
+
+# Python 3: "py -3" (the Windows launcher) or "python"
+function Find-Python {
+    if (Get-Command py -ErrorAction SilentlyContinue) { return @('py', '-3') }
+    if (Get-Command python -ErrorAction SilentlyContinue) { return @('python') }
+    return $null
+}
+
+$devAbout = New-Label "1. Push to repos: copies each ticked plugin, as committed here, to its own GitHub repository; the ones that changed get a new version. Check first to see what would change.`n2. Publish to RuneLite: gets the Plugin Hub pull request ready, so players get what's in the repositories." 12 10 440 66
+$devTab.Controls.Add($devAbout)
+
+$publishConfig = Join-Path $root 'publish.json'
+$devTicks = [ordered]@{}
+if (Test-Path $publishConfig) {
+    $config = Get-Content $publishConfig -Raw | ConvertFrom-Json
+    $y = 80
+    $x = 14
+    foreach ($folder in $config.plugins.PSObject.Properties.Name) {
+        $box = New-Object System.Windows.Forms.CheckBox
+        $box.Text = $folder
+        $box.Checked = [bool]$config.plugins.$folder.publish
+        $box.Location = New-Object System.Drawing.Point($x, $y)
+        $box.Size = New-Object System.Drawing.Size(140, 20)
+        $devTab.Controls.Add($box)
+        $devTicks[$folder] = $box
+        if ($x -gt 250) { $x = 14; $y += 22 } else { $x += 145 }
+    }
+}
+
+$bumpLabel = New-Label 'Version for changed plugins:' 12 132 170
+$devTab.Controls.Add($bumpLabel)
+$bump = New-Object System.Windows.Forms.ComboBox
+$bump.DropDownStyle = 'DropDownList'
+[void]$bump.Items.Add('patch (fixes: 1.0.0 -> 1.0.1)')
+[void]$bump.Items.Add('minor (new features: 1.0.0 -> 1.1.0)')
+[void]$bump.Items.Add('major (big changes: 1.0.0 -> 2.0.0)')
+$bump.SelectedIndex = 0
+$bump.Location = New-Object System.Drawing.Point(184, 129)
+$bump.Size = New-Object System.Drawing.Size(266, 24)
+$devTab.Controls.Add($bump)
+
+$devCheck = New-Object System.Windows.Forms.Button
+$devCheck.Text = 'Check (dry run)'
+$devCheck.Location = New-Object System.Drawing.Point(12, 162)
+$devCheck.Size = New-Object System.Drawing.Size(120, 30)
+$devTab.Controls.Add($devCheck)
+$devPush = New-Object System.Windows.Forms.Button
+$devPush.Text = 'Push to repos'
+$devPush.Location = New-Object System.Drawing.Point(140, 162)
+$devPush.Size = New-Object System.Drawing.Size(120, 30)
+$devTab.Controls.Add($devPush)
+$devPublish = New-Object System.Windows.Forms.Button
+$devPublish.Text = 'Publish to RuneLite'
+$devPublish.Location = New-Object System.Drawing.Point(268, 162)
+$devPublish.Size = New-Object System.Drawing.Size(140, 30)
+$devPublish.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+$devTab.Controls.Add($devPublish)
+$devStatus = New-Label '' 12 198 440
+$devTab.Controls.Add($devStatus)
+
+$devOut = New-Object System.Windows.Forms.TextBox
+$devOut.Multiline = $true
+$devOut.ReadOnly = $true
+$devOut.ScrollBars = 'Vertical'
+$devOut.Font = New-Object System.Drawing.Font('Consolas', 8.5)
+$devOut.Location = New-Object System.Drawing.Point(12, 220)
+$devOut.Size = New-Object System.Drawing.Size(438, 400)
+$devTab.Controls.Add($devOut)
+
+$prLink = New-Object System.Windows.Forms.LinkLabel
+$prLink.Text = 'Open the Plugin Hub pull request'
+$prLink.Location = New-Object System.Drawing.Point(12, 630)
+$prLink.AutoSize = $true
+$prLink.Visible = $false
+$devTab.Controls.Add($prLink)
+$prLink.Add_LinkClicked({ if ($script:prUrl) { Start-Process $script:prUrl } })
+$devGuide = New-Object System.Windows.Forms.LinkLabel
+$devGuide.Text = 'How it works (ROLLOUT.md)'
+$devGuide.Location = New-Object System.Drawing.Point(290, 630)
+$devGuide.AutoSize = $true
+$devTab.Controls.Add($devGuide)
+$devGuide.Add_LinkClicked({ Start-Process notepad.exe -ArgumentList "`"$(Join-Path $root 'docs\ROLLOUT.md')`"" })
+
+$script:publishLog = Join-Path $env:TEMP 'snuffys-publish.log'
+$script:publishRun = $null
+$script:prUrl = $null
+$devPoll = New-Object System.Windows.Forms.Timer
+$devPoll.Interval = 500
+$devPoll.Add_Tick({
+    if (Test-Path $script:publishLog) {
+        try {
+            $stream = [System.IO.File]::Open($script:publishLog, 'Open', 'Read', 'ReadWrite')
+            $reader = New-Object System.IO.StreamReader($stream)
+            $text = $reader.ReadToEnd()
+            $stream.Dispose()
+            if ($text -ne $devOut.Text) {
+                $devOut.Text = $text
+                $devOut.SelectionStart = $devOut.Text.Length
+                $devOut.ScrollToCaret()
+            }
+            $match = [regex]::Match($text, 'https://github\.com/runelite/plugin-hub/compare/\S+')
+            if ($match.Success) {
+                $script:prUrl = $match.Value
+                $prLink.Visible = $true
+            }
+        } catch { }
+    }
+    if ($script:publishRun -and $script:publishRun.HasExited) {
+        $devPoll.Stop()
+        $devCheck.Enabled = $true
+        $devPush.Enabled = $true
+        $devPublish.Enabled = $true
+        if ($script:publishRun.ExitCode -eq 0) {
+            $devStatus.Text = 'Done.'
+            $devStatus.ForeColor = $green
+        } else {
+            $devStatus.Text = 'Stopped: see the messages below.'
+            $devStatus.ForeColor = $red
+        }
+        $script:publishRun = $null
+    }
+})
+
+# Runs one step: 'push' (with $dryRun for Check) or 'hub'
+function Start-DevStep($step, $dryRun) {
+    $python = Find-Python
+    if (-not $python) {
+        $answer = [System.Windows.Forms.MessageBox]::Show("This needs Python 3. Open python.org to get it?", "Snuffy's", 'YesNo')
+        if ($answer -eq 'Yes') { Start-Process 'https://www.python.org/downloads/' }
+        return
+    }
+    $chosen = @($devTicks.Keys | Where-Object { $devTicks[$_].Checked })
+    if (-not $chosen) {
+        [System.Windows.Forms.MessageBox]::Show('Tick at least one plugin.', "Snuffy's") | Out-Null
+        return
+    }
+    $level = @('patch', 'minor', 'major')[$bump.SelectedIndex]
+    if (-not $dryRun) {
+        $what = $(if ($step -eq 'push') { "Push " + ($chosen -join ', ') + " to their repositories (changed ones get a new $level version)?" }
+                  else { "Get the Plugin Hub pull request ready for " + ($chosen -join ', ') + "?" })
+        $answer = [System.Windows.Forms.MessageBox]::Show($what, "Snuffy's", 'YesNo')
+        if ($answer -ne 'Yes') { return }
+    }
+    Set-Content -Path $script:publishLog -Value ''
+    $devOut.Text = ''
+    $prLink.Visible = $false
+    $script:prUrl = $null
+    $devCheck.Enabled = $false
+    $devPush.Enabled = $false
+    $devPublish.Enabled = $false
+    $devStatus.Text = $(if ($dryRun) { 'Checking...' } elseif ($step -eq 'push') { 'Pushing...' } else { 'Publishing...' })
+    $devStatus.ForeColor = [System.Drawing.SystemColors]::ControlText
+    $pyArgs = @($python | Select-Object -Skip 1) + @('-u', 'scripts\publish_plugins.py', $step) + $chosen
+    if ($step -eq 'push') { $pyArgs += @('--bump', $level) }
+    if ($dryRun) { $pyArgs += '--dry-run' }
+    $command = "`"$($python[0])`" " + ($pyArgs -join ' ') + " > `"$($script:publishLog)`" 2>&1"
+    $script:publishRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    $devPoll.Start()
+}
+$devCheck.Add_Click({ Start-DevStep 'push' $true })
+$devPush.Add_Click({ Start-DevStep 'push' $false })
+$devPublish.Add_Click({ Start-DevStep 'hub' $false })
+if (-not (Test-Path $publishConfig)) {
+    $devStatus.Text = 'publish.json is missing: update the launcher.'
+    $devStatus.ForeColor = $red
+    $devCheck.Enabled = $false
+    $devPush.Enabled = $false
+    $devPublish.Enabled = $false
+}
+
+
 $form.Add_Shown({
     Set-ShortcutIcons
     Check-Setup
     Update-Plugins
+    Check-RunningVersion
+    $script:lastFetch = Get-Date
 })
 [void]$form.ShowDialog()

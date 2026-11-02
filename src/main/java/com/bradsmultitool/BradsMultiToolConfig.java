@@ -22,7 +22,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Toolbelt: every one of Snuffy's plugins in one (don't run it with the separate ones). Clashes (said in chat while they're on): the timer plugins Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, and RuneLite's Hunter and Mining plugins (our matching timers hide for them); RuneLite's Slayer plugin with its task highlight on; RuneLite's Metronome; RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Toolbelt: every one of Snuffy's plugins in one (don't run it with the separate ones). Clashes (said in chat while they're on): the timer plugins Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, and RuneLite's Hunter and Mining plugins (our matching timers hide for them); Hunter Rumours and Skills Progress; RuneLite's Slayer plugin with its task highlight on; RuneLite's Metronome; RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -76,8 +76,16 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String tickBoxesSection = "tickBoxesSection";
 
     @ConfigSection(
+        name = "Tick: Hotkeys",
+        description = "<div width='300'>Keys to reset the count, show or hide the tick overlays and change Ticks Per Cycle (none set at first)",
+        position = 65,
+        closedByDefault = true
+    )
+    String tickHotkeySection = "tickHotkeySection";
+
+    @ConfigSection(
         name = "Slayer: Alerts",
-        description = "Alerts for your Slayer task: missing item, superiors, halfway, nearly done and complete",
+        description = "<div width='300'>Alerts for your Slayer task: missing item, superiors, halfway, nearly done, complete, next task a milestone, and kill goals reached",
         position = 19,
         closedByDefault = true
     )
@@ -85,7 +93,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Slayer: Monsters",
-        description = "Slayer details on monsters, and outlines on your task's monsters",
+        description = "<div width='300'>Slayer details on monsters, outlines on your task's monsters, and the finish-off marker",
         position = 18,
         closedByDefault = true
     )
@@ -181,7 +189,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "PvM: Combat Alerts",
-        description = "<div width='300'>Special attack, antifire, poison, stamina, ammo, runes and cannon alerts",
+        description = "<div width='300'>Special attack, antifire, poison, stamina, wrong protection prayer and unpotted alerts",
         position = 15,
         closedByDefault = true
     )
@@ -189,11 +197,19 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Idle",
-        description = "Idle character and idle logout warnings",
+        description = "Idle character, idle and six-hour logout warnings, and run energy alerts",
         position = 5,
         closedByDefault = true
     )
     String idleSection = "idleSection";
+
+    @ConfigSection(
+        name = "Reminders",
+        description = "Clue drops and daily rewards to collect",
+        position = 6,
+        closedByDefault = true
+    )
+    String remindersSection = "remindersSection";
 
     @ConfigSection(
         name = "PvM: Buff Bar",
@@ -213,7 +229,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Slayer: Card",
-        description = "The Slayer card: your task, kills left, where to go and how to get there, or the master to visit without a task",
+        description = "<div width='300'>The Slayer card: your task, kills left, points and streak, supplies used, kill goals, where to go and how to get there, or the master to visit without a task",
         position = 17,
         closedByDefault = true
     )
@@ -263,19 +279,35 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Skilling: Hunter",
-        description = "Hunter creature info, trap and bird house timers",
+        description = "Hunter creature info, trap and bird house timers, Hunters' Rumours",
         position = 45,
         closedByDefault = true
     )
     String hunterSection = "hunterSection";
 
     @ConfigSection(
+        name = "Skilling: Agility",
+        description = "Agility: obstacle hover, the course card, the Brimhaven Arena card and the run energy alert",
+        position = 44,
+        closedByDefault = true
+    )
+    String agilitySection = "agilitySection";
+
+    @ConfigSection(
         name = "Skilling: Other Skills",
-        description = "Thieving, Farming, Firemaking, Runecraft, Agility, Cooking, Sailing and Smithing (each has its own section in Snuffy's Skilling Helper)",
+        description = "Thieving, Farming, Firemaking, Runecraft, Cooking, Sailing (with its boat alerts) and Smithing (each has its own section in Snuffy's Skilling Helper)",
         position = 46,
         closedByDefault = true
     )
     String otherSkillsSection = "otherSkillsSection";
+
+    @ConfigSection(
+        name = "Skilling: Minigames",
+        description = "Wintertodt, Tempoross and Guardians of the Rift cards and alerts",
+        position = 47,
+        closedByDefault = true
+    )
+    String minigamesSection = "minigamesSection";
 
 
 
@@ -353,6 +385,18 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @Override
     default boolean sendChatMessages() {
         return SkillTrackerConfig.super.sendChatMessages();
+    }
+
+    @ConfigItem(
+        keyName = "voiceOnlyUnfocused",
+        name = "Speak Only When Unfocused",
+        description = "<div width='300'>Only speak alerts while the RuneLite window isn't the one you're using (you're in another window); chat messages still post. Like RuneLite's own notifications, which by default don't show while you're in the client",
+        section = generalSection,
+        position = 5
+    )
+    @Override
+    default boolean voiceOnlyUnfocused() {
+        return SkillTrackerConfig.super.voiceOnlyUnfocused();
     }
 
     @ConfigItem(
@@ -488,6 +532,302 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @Override
     default boolean chatIdleLogout() {
         return SkillTrackerConfig.super.chatIdleLogout();
+    }
+
+    @ConfigItem(
+        keyName = "sixHourWarning",
+        name = "Six-Hour Logout Warning",
+        description = "<div width='300'>The game logs you out after six hours online: warn twenty minutes before (from when you logged in or hopped)",
+        section = idleSection,
+        position = 10
+    )
+    @Override
+    default boolean sixHourWarning() {
+        return SkillTrackerConfig.super.sixHourWarning();
+    }
+
+    @ConfigItem(
+        keyName = "voiceSixHour",
+        name = "Voice: Six-Hour Logout",
+        description = "<div width='300'>Voice line twenty minutes before the six-hour logout (turning it on plays a preview)",
+        section = idleSection,
+        position = 11
+    )
+    @Override
+    default boolean voiceSixHour() {
+        return SkillTrackerConfig.super.voiceSixHour();
+    }
+
+    @ConfigItem(
+        keyName = "chatSixHour",
+        name = "Chat: Six-Hour Logout",
+        description = "<div width='300'>Chat message twenty minutes before the six-hour logout",
+        section = idleSection,
+        position = 12
+    )
+    @Override
+    default boolean chatSixHour() {
+        return SkillTrackerConfig.super.chatSixHour();
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyLowAt",
+        name = "Run Energy Low Below",
+        description = "<div width='300'>Alert anywhere when your run energy drops below this (0: off). While it's on, the Agility section's own run energy alert stays quiet so you don't hear both",
+        section = idleSection,
+        position = 13
+    )
+    @Override
+    default int runEnergyLowAt() {
+        return SkillTrackerConfig.super.runEnergyLowAt();
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunLow",
+        name = "Voice: Run Energy Low",
+        description = "<div width='300'>Says when your run energy drops below Run Energy Low Below (turning it on plays a preview)",
+        section = idleSection,
+        position = 14
+    )
+    @Override
+    default boolean voiceRunLow() {
+        return SkillTrackerConfig.super.voiceRunLow();
+    }
+
+    @ConfigItem(
+        keyName = "chatRunLow",
+        name = "Chat: Run Energy Low",
+        description = "<div width='300'>Chat message when your run energy drops below Run Energy Low Below",
+        section = idleSection,
+        position = 15
+    )
+    @Override
+    default boolean chatRunLow() {
+        return SkillTrackerConfig.super.chatRunLow();
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyRestoredAt",
+        name = "Run Energy Restored At",
+        description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
+        section = idleSection,
+        position = 16
+    )
+    @Override
+    default int runEnergyRestoredAt() {
+        return SkillTrackerConfig.super.runEnergyRestoredAt();
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunRestored",
+        name = "Voice: Run Energy Restored",
+        description = "<div width='300'>Says when your run energy is back up to Run Energy Restored At (turning it on plays a preview)",
+        section = idleSection,
+        position = 17
+    )
+    @Override
+    default boolean voiceRunRestored() {
+        return SkillTrackerConfig.super.voiceRunRestored();
+    }
+
+    @ConfigItem(
+        keyName = "chatRunRestored",
+        name = "Chat: Run Energy Restored",
+        description = "<div width='300'>Chat message when your run energy is back up to Run Energy Restored At",
+        section = idleSection,
+        position = 18
+    )
+    @Override
+    default boolean chatRunRestored() {
+        return SkillTrackerConfig.super.chatRunRestored();
+    }
+
+    @ConfigItem(
+        keyName = "clueDropAlert",
+        name = "Clue Drop Alert",
+        description = "<div width='300'>When a clue lands for you: a clue scroll in a monster's drop, or a clue bottle, geode, nest or scroll box from skilling going into your inventory. Chat says which tier",
+        section = remindersSection,
+        position = 0
+    )
+    @Override
+    default boolean clueDropAlert() {
+        return SkillTrackerConfig.super.clueDropAlert();
+    }
+
+    @ConfigItem(
+        keyName = "voiceClueDrop",
+        name = "Voice: Clue Drop",
+        description = "Voice line when a clue drops (turning it on plays a preview)",
+        section = remindersSection,
+        position = 1
+    )
+    @Override
+    default boolean voiceClueDrop() {
+        return SkillTrackerConfig.super.voiceClueDrop();
+    }
+
+    @ConfigItem(
+        keyName = "chatClueDrop",
+        name = "Chat: Clue Drop",
+        description = "Chat message when a clue drops, with its tier",
+        section = remindersSection,
+        position = 2
+    )
+    @Override
+    default boolean chatClueDrop() {
+        return SkillTrackerConfig.super.chatClueDrop();
+    }
+
+    @ConfigItem(
+        keyName = "dailyReminders",
+        name = "Daily Reminders",
+        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
+        section = remindersSection,
+        position = 3
+    )
+    @Override
+    default boolean dailyReminders() {
+        return SkillTrackerConfig.super.dailyReminders();
+    }
+
+    @ConfigItem(
+        keyName = "voiceDailies",
+        name = "Voice: Dailies",
+        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
+        section = remindersSection,
+        position = 4
+    )
+    @Override
+    default boolean voiceDailies() {
+        return SkillTrackerConfig.super.voiceDailies();
+    }
+
+    @ConfigItem(
+        keyName = "chatDailies",
+        name = "Chat: Dailies",
+        description = "Chat message listing the dailies to collect",
+        section = remindersSection,
+        position = 5
+    )
+    @Override
+    default boolean chatDailies() {
+        return SkillTrackerConfig.super.chatDailies();
+    }
+
+    @ConfigItem(
+        keyName = "dailyStaves",
+        name = "Daily: Battlestaves",
+        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
+        section = remindersSection,
+        position = 6
+    )
+    @Override
+    default boolean dailyStaves() {
+        return SkillTrackerConfig.super.dailyStaves();
+    }
+
+    @ConfigItem(
+        keyName = "dailyHerbBoxes",
+        name = "Daily: Herb Boxes",
+        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
+        section = remindersSection,
+        position = 7
+    )
+    @Override
+    default boolean dailyHerbBoxes() {
+        return SkillTrackerConfig.super.dailyHerbBoxes();
+    }
+
+    @ConfigItem(
+        keyName = "dailyEssence",
+        name = "Daily: Pure Essence",
+        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
+        section = remindersSection,
+        position = 8
+    )
+    @Override
+    default boolean dailyEssence() {
+        return SkillTrackerConfig.super.dailyEssence();
+    }
+
+    @ConfigItem(
+        keyName = "dailyRunes",
+        name = "Daily: Random Runes",
+        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
+        section = remindersSection,
+        position = 9
+    )
+    @Override
+    default boolean dailyRunes() {
+        return SkillTrackerConfig.super.dailyRunes();
+    }
+
+    @ConfigItem(
+        keyName = "dailySand",
+        name = "Daily: Sand",
+        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
+        section = remindersSection,
+        position = 10
+    )
+    @Override
+    default boolean dailySand() {
+        return SkillTrackerConfig.super.dailySand();
+    }
+
+    @ConfigItem(
+        keyName = "dailyFlax",
+        name = "Daily: Bowstrings",
+        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
+        section = remindersSection,
+        position = 11
+    )
+    @Override
+    default boolean dailyFlax() {
+        return SkillTrackerConfig.super.dailyFlax();
+    }
+
+    @ConfigItem(
+        keyName = "dailyBonemeal",
+        name = "Daily: Bonemeal",
+        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
+        section = remindersSection,
+        position = 12
+    )
+    @Override
+    default boolean dailyBonemeal() {
+        return SkillTrackerConfig.super.dailyBonemeal();
+    }
+
+    @ConfigItem(
+        keyName = "dailyDynamite",
+        name = "Daily: Dynamite",
+        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
+        section = remindersSection,
+        position = 13
+    )
+    @Override
+    default boolean dailyDynamite() {
+        return SkillTrackerConfig.super.dailyDynamite();
+    }
+
+    @ConfigItem(
+        keyName = "dailyArrows",
+        name = "Daily: Ogre Arrows",
+        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
+        section = remindersSection,
+        position = 14
+    )
+    @Override
+    default boolean dailyArrows() {
+        return SkillTrackerConfig.super.dailyArrows();
     }
     // ---- End of CommonConfig's settings ----
 
@@ -669,11 +1009,59 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     }
 
     @ConfigItem(
+        keyName = "farmingPatchList",
+        name = "Farming: Patch List",
+        description = "<div width='300'>A FARMING list in the sidebar: every patch you've been to with something in it, what's growing and when it's grown (the game only tells us a patch's state while you're near it, so each is as you last saw it). Right-click one to forget it",
+        section = otherSkillsSection,
+        position = 4
+    )
+    @Override
+    default boolean farmingPatchList() {
+        return SkillTrackerConfig.super.farmingPatchList();
+    }
+
+    @ConfigItem(
+        keyName = "farmingReadyAlert",
+        name = "Farming: Patches Ready Alert",
+        description = "<div width='300'>Says when patches you've planted are grown, naming them in chat (once per crop)",
+        section = otherSkillsSection,
+        position = 5
+    )
+    @Override
+    default boolean farmingReadyAlert() {
+        return SkillTrackerConfig.super.farmingReadyAlert();
+    }
+
+    @ConfigItem(
+        keyName = "voiceFarmingReady",
+        name = "Farming: Voice: Patches Ready",
+        description = "<div width='300'>Voice line when your farming patches are grown (turning it on plays a preview)",
+        section = otherSkillsSection,
+        position = 6
+    )
+    @Override
+    default boolean voiceFarmingReady() {
+        return SkillTrackerConfig.super.voiceFarmingReady();
+    }
+
+    @ConfigItem(
+        keyName = "chatFarmingReady",
+        name = "Farming: Chat: Patches Ready",
+        description = "<div width='300'>Chat message naming the farming patches that are grown",
+        section = otherSkillsSection,
+        position = 7
+    )
+    @Override
+    default boolean chatFarmingReady() {
+        return SkillTrackerConfig.super.chatFarmingReady();
+    }
+
+    @ConfigItem(
         keyName = "fireTimers",
         name = "Firemaking: Fire Timers",
         description = "<div width='300'>A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = otherSkillsSection,
-        position = 4
+        position = 8
     )
     @Override
     default SkillTrackerConfig.TimerShow showFireTimer() {
@@ -685,7 +1073,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Firemaking: Campfire Timers",
         description = "<div width='300'>A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = otherSkillsSection,
-        position = 5
+        position = 9
     )
     @Override
     default SkillTrackerConfig.TimerShow showCampfireTimer() {
@@ -697,31 +1085,20 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Runecraft: Altar Hover",
         description = "<div width='300'>Hovering an altar shows the rune, level, XP and how many runes you make per essence",
         section = otherSkillsSection,
-        position = 6
+        position = 10
     )
     @Override
     default boolean showRunecraftHover() {
         return true;
     }
 
-    @ConfigItem(
-        keyName = "showAgilityHover",
-        name = "Agility: Obstacle Hover",
-        description = "<div width='300'>Hovering a course obstacle or shortcut shows its Agility level, the course XP per lap and laps to your next level",
-        section = otherSkillsSection,
-        position = 7
-    )
-    @Override
-    default boolean showAgilityHover() {
-        return true;
-    }
 
     @ConfigItem(
         keyName = "showCookingHover",
         name = "Cooking: Range / Fire Hover",
         description = "<div width='300'>Hovering a range or fire shows each raw food you are carrying: its level, XP and burn level",
         section = otherSkillsSection,
-        position = 8
+        position = 12
     )
     @Override
     default boolean showCookingHover() {
@@ -733,7 +1110,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Sailing: Hover",
         description = "<div width='300'>Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you), trawling shoals (Fishing level, fish, depth, bait), sea monsters (HP, safe keel, bounty parts) and your current duck",
         section = otherSkillsSection,
-        position = 9
+        position = 13
     )
     @Override
     default boolean showSailingHover() {
@@ -745,7 +1122,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Sailing: Shipwreck Timers",
         description = "<div width='300'>A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = otherSkillsSection,
-        position = 10
+        position = 14
     )
     @Override
     default SkillTrackerConfig.TimerShow showShipwreckTimer() {
@@ -753,11 +1130,73 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     }
 
     @ConfigItem(
+        keyName = "voiceBoatHealth",
+        name = "Sailing: Voice: Boat Health Low",
+        description = "<div width='300'>On your boat, when its hitpoints drop below Boat Health Low At, once until it's repaired (turning it on plays a preview)",
+        section = otherSkillsSection,
+        position = 15
+    )
+    @Override
+    default boolean voiceBoatHealth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBoatHealth",
+        name = "Sailing: Chat: Boat Health Low",
+        description = "Chat message when your boat's hitpoints are low",
+        section = otherSkillsSection,
+        position = 16
+    )
+    @Override
+    default boolean chatBoatHealth() {
+        return true;
+    }
+
+    @Range(min = 1, max = 99)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "boatHealthPercent",
+        name = "Sailing: Boat Health Low At",
+        description = "<div width='300'>Boat hitpoints (percent of its most) below which Boat Health Low warns you",
+        section = otherSkillsSection,
+        position = 17
+    )
+    @Override
+    default int boatHealthPercent() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSailTrim",
+        name = "Sailing: Voice: Trim Sails",
+        description = "<div width='300'>On your boat, when a gust opens the window to trim the sails for a burst of speed (turning it on plays a preview)",
+        section = otherSkillsSection,
+        position = 18
+    )
+    @Override
+    default boolean voiceSailTrim() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSailTrim",
+        name = "Sailing: Chat: Trim Sails",
+        description = "Chat message when you can trim the sails",
+        section = otherSkillsSection,
+        position = 19
+    )
+    @Override
+    default boolean chatSailTrim() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "showSmithingHover",
         name = "Smithing: Anvil / Furnace Hover",
         description = "<div width='300'>Hovering an anvil or furnace shows what you can make from the bars or ores you are carrying",
         section = otherSkillsSection,
-        position = 11
+        position = 20
     )
     @Override
     default boolean showSmithingHover() {

@@ -10,6 +10,7 @@ import net.runelite.api.Client;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.ui.ClientUI;
 
 /**
  * Spoken and chat alerts, shared by every feature: each alert's voice and chat switches, the voice and volume
@@ -26,11 +27,12 @@ class Alerts {
     private final PluginIdentity identity;
     private final InGame inGame;
     private final VoiceSync voiceSync;
+    private final ClientUI clientUI;
     private final VoiceAlertService voice = new VoiceAlertService();
 
     @Inject
     Alerts(Client client, CommonConfig config, ConfigManager configManager, PluginFamily family, PluginIdentity identity, InGame inGame,
-           VoiceSync voiceSync) {
+           VoiceSync voiceSync, ClientUI clientUI) {
         this.client = client;
         this.config = config;
         this.configManager = configManager;
@@ -38,6 +40,7 @@ class Alerts {
         this.identity = identity;
         this.inGame = inGame;
         this.voiceSync = voiceSync;
+        this.clientUI = clientUI;
     }
 
     void shutDown() {
@@ -54,15 +57,31 @@ class Alerts {
 
     /** Speaks an alert, if you're in game and its voice is turned on. */
     void speak(VoiceAlertService.VoiceLine line) {
-        if (ready() && voiceEnabled() && toggle(AlertType.of(line).voiceKey)) {
+        speak(AlertType.of(line), line);
+    }
+
+    // Under this alert's switches (a line two alerts share: Agility's run energy and the one everywhere)
+    private void speak(AlertType type, VoiceAlertService.VoiceLine line) {
+        if (ready() && voiceEnabled() && toggle(type.voiceKey) && speakingNow()) {
             voice.speakAsync(line, persona(), volume());
         }
     }
 
     /** Speaks the line and posts the same words in chat, with any detail in brackets. */
     void alert(VoiceAlertService.VoiceLine line, String detail) {
-        speak(line);
-        chat(AlertType.of(line), detail == null ? line.text : line.text + " (" + detail + ")");
+        alert(AlertType.of(line), line, detail);
+    }
+
+    /** As above, under this alert's Voice and Chat switches. */
+    void alert(AlertType type, VoiceAlertService.VoiceLine line, String detail) {
+        speak(type, line);
+        chat(type, detail == null ? line.text : line.text + " (" + detail + ")");
+    }
+
+    // Speak Only When Unfocused: alerts stay quiet while you're using the RuneLite window (like RuneLite's
+    // notifications, which check the same thing); previews of a setting you just changed still play
+    private boolean speakingNow() {
+        return !config.voiceOnlyUnfocused() || clientUI == null || !clientUI.isFocused();
     }
 
     /** Posts an alert in chat, if you're in game and its chat message is turned on. */
@@ -74,7 +93,7 @@ class Alerts {
 
     /** Plays several clips as one alert (a level-up: "Woodcutting level" then "45"), if its voice is on. */
     void speakClips(AlertType type, String... clips) {
-        if (voiceEnabled() && toggle(type.voiceKey)) {
+        if (voiceEnabled() && toggle(type.voiceKey) && speakingNow()) {
             voice.speakClipsAsync(persona(), volume(), clips);
         }
     }

@@ -27,6 +27,9 @@ FIELDS = [
 # "Yes, unless wearing a Bandos-affiliated item"; null when it's a plain Yes or No.
 # Indexes 16-18: Slayer level needed (null if none), Slayer XP per kill, Slayer task category ("Banshees").
 SLAYER_FIELDS = ["slayer_level", "slayer_experience", "slayer_category"]
+# Indexes 19-20: the wiki's max hit(s) as written ("60 (melee)", "35 (ranged)"), and attack speed in game ticks
+# (null when unknown). Static facts for the hover card, never a countdown to the next attack.
+COMBAT_FIELDS = ["max_hit", "attack_speed"]
 
 
 def aggro_note(value):
@@ -38,7 +41,7 @@ def aggro_note(value):
 
 
 def fetch(offset):
-    select = ",".join("'%s'" % f for f in ["page_name", "id"] + FIELDS + SLAYER_FIELDS)
+    select = ",".join("'%s'" % f for f in ["page_name", "id"] + FIELDS + SLAYER_FIELDS + COMBAT_FIELDS)
     query = "bucket('infobox_monster').select(%s).limit(%d).offset(%d).run()" % (select, PAGE_SIZE, offset)
     url = API + "?" + urllib.parse.urlencode({"action": "bucket", "format": "json", "query": query})
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -91,6 +94,25 @@ def as_list(value):
     return out
 
 
+def max_hits(value):
+    """The wiki's max hits, cleaned ("60 (melee)"): wiki links reduced to their text, templates and bold dropped."""
+    out = []
+    for line in as_list(value):
+        # Bulleted lists ("*31 (auto)\n*45 (special)") become one entry a line
+        for part in line.split("\n"):
+            part = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", part)
+            part = re.sub(r"\{\{[^}]*\}\}|'''|''", "", part).strip().lstrip("*").strip()
+            if part and part not in out:
+                out.append(part)
+    return out
+
+
+def attack_speed(value):
+    """Ticks between attacks (1-10), or None when the wiki has none or it isn't a plain number."""
+    speed = to_int(value)
+    return speed if speed is not None and 0 < speed <= 10 else None
+
+
 def normalize_element(value):
     if not isinstance(value, str) or value.strip().lower() in ("", "none"):
         return None
@@ -128,6 +150,8 @@ def main():
             to_int(row.get("slayer_level")),
             to_float(row.get("slayer_experience")),
             first_text(row.get("slayer_category")),
+            max_hits(row.get("max_hit")),
+            attack_speed(row.get("attack_speed")),
         ]
         ids = row.get("id") or []
         if isinstance(ids, str):
@@ -150,7 +174,7 @@ def main():
     with open(OUT, "w") as f:
         # Names that also have an NPC id are matched through that
         unlisted = {name: entry for name, entry in unlisted.items() if name not in names}
-        json.dump({"source": "oldschool.runescape.wiki", "fields": FIELDS, "monsters": monsters, "names": names,
+        json.dump({"source": "oldschool.runescape.wiki", "fields": FIELDS + ["aggro_note"] + SLAYER_FIELDS + COMBAT_FIELDS,"monsters": monsters, "names": names,
                    "unlisted": unlisted},
                   f, separators=(",", ":"), sort_keys=True)
     print("Wrote %d NPC ids (and %d monsters without one, by name) from %d wiki rows to %s"

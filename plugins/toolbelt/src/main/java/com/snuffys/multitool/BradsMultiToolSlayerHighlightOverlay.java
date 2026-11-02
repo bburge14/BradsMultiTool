@@ -19,7 +19,7 @@ import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 @Singleton
 public class BradsMultiToolSlayerHighlightOverlay extends Overlay {
 
-    private static final int OUTLINE_WIDTH = 2;
+    private static final int OUTLINE_WIDTH = 1;
     private static final int OUTLINE_FEATHER = 4;
 
     private final Client client;

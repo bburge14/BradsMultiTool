@@ -25,9 +25,25 @@ class SkillTrackerFeature {
     @Inject private GoalItems goalItems;
     @Inject private GoalTargetMenu goalTargetMenu;
     @Inject private MethodDetector methodDetector;
+    @Inject private AgilityTracker agilityTracker;
+    @Inject private BradsMultiToolAgilityOverlay agilityOverlay;
+    @Inject private ArenaRoute arenaRoute;
+    @Inject private ObstacleReps obstacleReps;
+    @Inject private BradsMultiToolArenaOverlay arenaOverlay;
+    @Inject private BradsMultiToolArenaMinimapOverlay arenaMinimapOverlay;
     @Inject private SkillingAlerts skillingAlerts;
+    @Inject private ForestryAlerts forestryAlerts;
+    @Inject private MotherlodeSack motherlodeSack;
+    @Inject private WintertodtHelper wintertodtHelper;
+    @Inject private TemporossHelper temporossHelper;
+    @Inject private RiftHelper riftHelper;
+    @Inject private SailingAlerts sailingAlerts;
+    @Inject private BradsMultiToolMinigameOverlay minigameOverlay;
+    @Inject private FarmingTracker farmingTracker;
     @Inject private ResourceTimers resourceTimers;
     @Inject private BirdhouseTracker birdhouseTracker;
+    @Inject private HunterRumours hunterRumours;
+    @Inject private BradsMultiToolSkillsTabOverlay skillsTabOverlay;
     @Inject private OtherTimerPlugins otherTimerPlugins;
     @Inject private BradsMultiToolSkillingOverlay skillingOverlay;
     @Inject private BradsMultiToolResourceTimerOverlay resourceTimerOverlay;
@@ -69,9 +85,31 @@ class SkillTrackerFeature {
         }
     }
 
+    // "Chat: Pillar About to Move" started off and is now on: turn it on once for players who already had it saved
+    private void turnOnPillarChat() {
+        String group = identity.configGroup;
+        if (configManager.getConfiguration(group, "pillarChatTurnedOn") == null) {
+            configManager.setConfiguration(group, "pillarChatTurnedOn", true);
+            configManager.setConfiguration(group, "chatArenaPillar", true);
+        }
+    }
+
+    // Auto-Pause After went from 300 seconds to 10 by default: move players still on the old default, once
+    private void shortenAutoPause() {
+        String group = identity.configGroup;
+        if (configManager.getConfiguration(group, "autoPauseShortened") == null) {
+            configManager.setConfiguration(group, "autoPauseShortened", true);
+            if ("300".equals(configManager.getConfiguration(group, "autoPauseSeconds"))) {
+                configManager.setConfiguration(group, "autoPauseSeconds", 10);
+            }
+        }
+    }
+
     void start(Lifecycle lifecycle) {
         configDefaults.add(() -> {
             migrateTimerSettings();
+            turnOnPillarChat();
+            shortenAutoPause();
             SkillTrackerConfigDefaults.store(configDefaults, config);
         });
         // Kill counts use monster hitpoints; Slayer goals suggest a Slayer master
@@ -83,10 +121,11 @@ class SkillTrackerFeature {
         lifecycle.load(trainingData, trainingData::load);
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(moneyData, moneyData::load);
-        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, skillingAlerts,
-            resourceTimers, farmingData, birdhouseTracker, otherTimerPlugins, skillingOverlay, trainingOverlay);
+        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, arenaRoute, obstacleReps, skillingAlerts, forestryAlerts, motherlodeSack, wintertodtHelper,
+            temporossHelper, riftHelper, sailingAlerts, farmingTracker,
+            resourceTimers, farmingData, birdhouseTracker, hunterRumours, otherTimerPlugins, skillingOverlay, trainingOverlay);
         otherTimerPlugins.refresh();
-        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);
+        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, agilityOverlay, arenaOverlay, arenaMinimapOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay, minigameOverlay, skillsTabOverlay);
         skillTracker.startUp();
         lifecycle.onStop(skillTracker::shutDown);
     }

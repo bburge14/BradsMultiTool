@@ -74,6 +74,18 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         }
         line("XP/hr:", plugin.isSkillAutoPaused(skill) ? "Idle" : paused ? "Paused" : BradsMultiToolPanel.shortNumber(rate), Color.WHITE);
         line("Gained:", BradsMultiToolPanel.shortNumber(plugin.getSkillGained(skill)), Color.WHITE);
+        // Logs, fish, ore or food this session, with how many an hour (Show Items Gathered)
+        if (config.showTrackerItems()) {
+            for (String[] items : plugin.itemLines(skill)) {
+                line(items[0] + ":", items[1], Color.WHITE);
+            }
+        }
+        // Hunter: your Hunters' Rumour (Rumour Card)
+        if (skill == Skill.HUNTER) {
+            for (String[] rumour : plugin.getHunterRumours().lines()) {
+                panelComponent.getChildren().add(new TextBlockComponent(rumour[0] + " " + rumour[1], SOFT, false));
+            }
+        }
 
         int goalXp = plugin.getSkillGoal(skill);
         if (goalXp > 0 && config.showTrackerGoal()) {
@@ -96,6 +108,14 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             GoalLines.ItemLine item = config.showTrainingSuggestion() ? GoalLines.itemLine(plugin, skill) : null;
             if (item != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(item.label + " " + item.item + " " + item.have, SOFT, false));
+            }
+            double banked = plugin.getGoalItems().bankedXp(skill);
+            if (banked >= 1 && config.showBankedXp()) {
+                line("Banked:", BradsMultiToolPanel.shortNumber((long) banked) + " XP", Color.WHITE);
+            }
+            long materials = plugin.getGoalItems().materialsValue(skill);
+            if (materials > 0 && config.showMaterialsValue()) {
+                line("Materials:", BradsMultiToolPanel.shortNumber(materials) + " gp", Color.WHITE);
             }
             String killRate = GoalLines.killRate(plugin, skill);
             if (killRate != null) {

@@ -65,6 +65,12 @@ class PluginClashes {
         return new Clash(plugin, name, group, Arrays.asList(keys), byDefault, message, family);
     }
 
+    // A separate plugin of ours that the Toolbelt already has in it (only the Toolbelt warns about these)
+    private static Clash own(String plugin, String name) {
+        return plugin(plugin, name, name + " is on, and the Toolbelt already has it in it; turn off one or the other",
+            "toolbelt-only");
+    }
+
     private static Clash timer(String plugin, String name, String what) {
         return plugin(plugin, name, name + " is on, so Snuffy's " + what + " are hidden (Use Other Timer Plugins)",
             "skilltracker");
@@ -86,6 +92,12 @@ class PluginClashes {
         timer("FireTimerPlugin", "Fire Timer", "fire timers"),
         plugin(CORE + "hunter.HunterPlugin", "RuneLite's Hunter",
             "RuneLite's Hunter plugin is on, so Snuffy's trap timers are hidden (Use Other Timer Plugins)", "skilltracker"),
+        plugin("HunterRumoursPlugin", "Hunter Rumours",
+            "Hunter Rumours is on and tracks your rumour too; turn off Snuffy's Rumour Card (Hunter) to see just one",
+            "skilltracker"),
+        plugin("SkillsTabProgressBarsPlugin", "Skills Progress",
+            "Skills Progress is on and draws bars on the Skills tab too; turn off Snuffy's Skills Tab Goal Bars (Goals) if they overlap",
+            "skilltracker"),
         plugin(CORE + "mining.MiningPlugin", "RuneLite's Mining",
             "RuneLite's Mining plugin is on and draws its own rock timers, so Snuffy's depleted rock and Daeyalt timers are hidden",
             "skilltracker"),
@@ -101,13 +113,49 @@ class PluginClashes {
         setting(CORE + "motherlode.MotherlodePlugin", "RuneLite's Motherlode Mine (veins)", "motherlode", true,
             "RuneLite's Motherlode Mine plugin marks the veins, so Snuffy's vein timers leave out their pictures",
             "skilltracker", "showVeins"),
+        setting(CORE + "agility.AgilityPlugin", "RuneLite's Agility (arena timer)", "agility", true,
+            "RuneLite's Agility plugin also times the Brimhaven Arena pillar; turn off its Agility Arena timer or Snuffy's Brimhaven Arena Card to see just one",
+            "skilltracker", "agilityArenaTimer"),
+        setting(CORE + "agility.AgilityPlugin", "RuneLite's Agility (obstacle outlines)", "agility", true,
+            "RuneLite's Agility plugin outlines most Brimhaven Arena obstacles, so Snuffy's level colours only show on the rest; turn off its Show Clickboxes to see Snuffy's colours on all of them",
+            "skilltracker", "showClickboxes"),
+        setting(CORE + "agility.AgilityPlugin", "RuneLite's Agility (lap counter)", "agility", true,
+            "RuneLite's Agility plugin also counts your laps; turn off its Show Lap Count or Snuffy's Course Card to see just one",
+            "skilltracker", "showLapCount"),
         setting(CORE + "slayer.SlayerPlugin", "RuneLite's Slayer (task highlight)", "slayer", false,
             "RuneLite's Slayer plugin also highlights your task monsters; turn off its highlight or Snuffy's Highlight Task Monsters to see just one",
             "pvm", "highlightOutline", "highlightHull", "highlightTile"),
+        plugin(CORE + "wintertodt.WintertodtPlugin", "RuneLite's Wintertodt",
+            "RuneLite's Wintertodt plugin is on, so it and Snuffy's Wintertodt alerts can both warn you (round starting, brazier, roots, cold); turn off its notifications or Snuffy's Minigames alerts to hear just one",
+            "skilltracker"),
+        setting("com.tempoross.TemporossPlugin", "Tempoross (notifications)", "tempoross", false,
+            "Tempoross's notifications are on, so it and Snuffy's Tempoross alerts can both warn you (wave, fire, double spot, vulnerable); turn off one of them to hear just one",
+            "skilltracker", "waveNotification", "fireNotification", "doubleSpotNotification", "vulnerableNotification"),
+        setting("com.datbear.GuardiansOfTheRiftHelperPlugin", "Guardians of the Rift Helper (portal)", "guardiansOfTheRiftHelper", true,
+            "Guardians of the Rift Helper's portal notification is on, so it and Snuffy's Portal Opened alert can both warn you; turn off one of them to hear just one",
+            "skilltracker", "portalSpawn"),
+        setting("com.duckblade.osrs.sailing.SailingPlugin", "Sailing (low boat HP)", "sailing", false,
+            "Sailing's low boat HP notification is on, so it and Snuffy's Boat Health Low can both warn you; turn one off to hear just one",
+            "skilltracker", "lowBoatHPNotify"),
+        // Snuffy's own: the Toolbelt has every separate plugin in it, so install one or the other
+        plugin("com.snuffys.multitool.BradsMultiToolPlugin", "Snuffy's Toolbelt",
+            "Snuffy's Toolbelt is on and already has this plugin's features in it; turn off one or the other",
+            "skilltracker", "pvm", "gemcrab", "tickcounter", "voices"),
+        own("com.snuffys.skilltracker.SkillTrackerPlugin", "Snuffy's Skilling Helper"),
+        own("com.snuffys.pvm.PvmPlugin", "Snuffy's PvM/Slayer"),
+        own("com.snuffys.gemcrab.GemCrabPlugin", "Snuffy's GemCrab Tracker"),
+        own("com.snuffys.tickcounter.TickCounterPlugin", "Snuffy's Tick Counter"),
+        own("com.snuffys.voices.VoicesPlugin", "Snuffy's Alerts"),
         plugin(CORE + "metronome.MetronomePlugin", "RuneLite's Metronome",
             "RuneLite's Metronome is on; with Snuffy's Metronome on too, you'll hear both", "tickcounter"),
         plugin(CORE + "idlenotifier.IdleNotifierPlugin", "RuneLite's Idle Notifier",
-            "RuneLite's Idle Notifier is on, so it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab", "voices"));
+            "RuneLite's Idle Notifier is on, so it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab", "voices"),
+        plugin(CORE + "dailytaskindicators.DailyTasksPlugin", "RuneLite's Daily Task Indicator",
+            "RuneLite's Daily Task Indicator is on, so it and Snuffy's Daily Reminders both list your dailies at login; turn off one or the other",
+            "skilltracker", "pvm", "gemcrab", "voices"),
+        // RuneLite's own Death Indicator left the core client; a plugin by that class name (from the Plugin Hub) does the same
+        plugin("DeathIndicatorPlugin", "Death Indicator",
+            "Death Indicator is on and also marks your death; turn off its info box or Snuffy's Gravestone Timer to see just one", "pvm"));
 
     private final Client client;
     private final ClientThread clientThread;
@@ -198,8 +246,10 @@ class PluginClashes {
         List<Clash> now = new java.util.ArrayList<>();
         // Clash Warnings off: nothing shown or said
         boolean warn = !"false".equals(configManager.getConfiguration(identity.configGroup, "showClashes"));
+        String self = lifecycle.plugin != null ? lifecycle.plugin.getClass().getName() : "";
         for (Clash clash : warn ? forFamily(identity.familyId) : Collections.<Clash>emptyList()) {
-            if (on.contains(clash.plugin) && settingOn(clash)) {
+            // Never a clash with itself
+            if (on.contains(clash.plugin) && !clash.plugin.equals(self) && settingOn(clash)) {
                 now.add(clash);
             }
         }
@@ -224,7 +274,7 @@ class PluginClashes {
         }
         StringBuilder tip = new StringBuilder(identity.chatName + ": other plugins doing the same thing");
         for (Clash clash : now) {
-            tip.append("</br>- ").append(clash.message);
+            tip.append(wrap("- " + clash.message));
         }
         if (infoBox == null && lifecycle.plugin != null) {
             infoBox = new ClashInfoBox(lifecycle.plugin);
@@ -233,6 +283,27 @@ class PluginClashes {
         if (infoBox != null) {
             infoBox.setTooltip(tip.toString());
         }
+    }
+
+    // RuneLite's tooltips don't wrap: break each note into short lines so it fits beside an open sidebar
+    private static final int TIP_WIDTH = 55;
+
+    static String wrap(String text) {
+        StringBuilder out = new StringBuilder();
+        StringBuilder line = new StringBuilder();
+        for (String word : text.split(" ")) {
+            if (line.length() > 0 && line.length() + 1 + word.length() > TIP_WIDTH) {
+                out.append("</br>").append(line);
+                line = new StringBuilder("  ");
+            } else if (line.length() > 0 && !line.toString().equals("  ")) {
+                line.append(' ');
+            }
+            line.append(word);
+        }
+        if (line.toString().trim().length() > 0) {
+            out.append("</br>").append(line);
+        }
+        return out.toString();
     }
 
     /** Takes the warning icon away (no clashes, logged out, or the plugin stopping). */
@@ -282,10 +353,15 @@ class PluginClashes {
         }
         for (String key : clash.keys) {
             String value = configManager.getConfiguration(clash.group, key);
-            if (value == null ? clash.keyDefault : Boolean.parseBoolean(value)) {
+            if (value == null ? clash.keyDefault : on(value)) {
                 return true;
             }
         }
         return false;
+    }
+
+    // A switch ("true"), or a notification setting, which RuneLite saves as JSON ({"enabled":true,...})
+    static boolean on(String value) {
+        return Boolean.parseBoolean(value) || value.replace(" ", "").contains("\"enabled\":true");
     }
 }

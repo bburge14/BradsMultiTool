@@ -21,8 +21,16 @@ enum AlertType {
     TASK_COMPLETE("TaskComplete", VoiceAlertService.VoiceLine.TASK_COMPLETE),
     TASK_HALFWAY("TaskHalfway", VoiceAlertService.VoiceLine.TASK_HALFWAY),
     TASK_NEARLY_DONE("TaskNearlyDone", VoiceAlertService.VoiceLine.TASK_NEARLY_DONE),
+    SLAYER_MILESTONE("SlayerMilestone", VoiceAlertService.VoiceLine.SLAYER_MILESTONE),
+    KILL_GOAL("KillGoal", VoiceAlertService.VoiceLine.KILL_GOAL_REACHED),
+    WRONG_PRAYER("WrongPrayer", VoiceAlertService.VoiceLine.WRONG_PRAYER),
+    UNPOTTED("Unpotted", VoiceAlertService.VoiceLine.UNPOTTED),
     CHARACTER_IDLE("CharacterIdle", VoiceAlertService.VoiceLine.CHARACTER_IDLE),
     IDLE_LOGOUT("IdleLogout", VoiceAlertService.VoiceLine.IDLE_LOGOUT),
+    SIX_HOUR("SixHour", VoiceAlertService.VoiceLine.SIX_HOUR_LOGOUT),
+    CLUE_DROP("ClueDrop", VoiceAlertService.VoiceLine.CLUE_DROP),
+    DAILIES("Dailies", VoiceAlertService.VoiceLine.DAILIES),
+    DEATH("Death", VoiceAlertService.VoiceLine.DEATH),
     CRAB_MOVED("CrabMoved", VoiceAlertService.VoiceLine.CRAB_MOVED),
     CRAB_LOW_HEALTH("CrabLowHealth", VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH),
     INVENTORY_FULL("InventoryFull", VoiceAlertService.VoiceLine.INVENTORY_FULL),
@@ -31,7 +39,30 @@ enum AlertType {
     ROCK_DEPLETED("voiceRockDepletedEach", "chatRockDepleted", new String[]{VoiceAlertService.VoiceLine.ROCK_DEPLETED.fileName}),
     FISHING_SPOT("FishingSpot", VoiceAlertService.VoiceLine.FISHING_SPOT_MOVED),
     COIN_POUCH("CoinPouch", VoiceAlertService.VoiceLine.COIN_POUCH_FULL),
+    ARENA_PILLAR("ArenaPillar", VoiceAlertService.VoiceLine.ARENA_PILLAR_MOVING),
+    RUN_ENERGY("RunEnergy", VoiceAlertService.VoiceLine.RUN_ENERGY_LOW),
+    // Run energy anywhere (the Idle section, every plugin); Agility's own alert above uses the same line
+    RUN_LOW("RunLow", VoiceAlertService.VoiceLine.RUN_ENERGY_LOW),
+    RUN_RESTORED("RunRestored", VoiceAlertService.VoiceLine.RUN_ENERGY_RESTORED),
+    FORESTRY_EVENT("ForestryEvent", VoiceAlertService.VoiceLine.FORESTRY_EVENT),
+    SACK_FULL("SackFull", VoiceAlertService.VoiceLine.SACK_FULL),
+    WINTERTODT_ROUND("WintertodtRound", VoiceAlertService.VoiceLine.WINTERTODT_ROUND),
+    WINTERTODT_BRAZIER("WintertodtBrazier", VoiceAlertService.VoiceLine.BRAZIER_OUT),
+    WINTERTODT_ROOTS("WintertodtRoots", VoiceAlertService.VoiceLine.OUT_OF_ROOTS),
+    WINTERTODT_HIT("WintertodtHit", VoiceAlertService.VoiceLine.WINTERTODT_HIT),
+    WINTERTODT_WARMTH("WintertodtWarmth", VoiceAlertService.VoiceLine.WARMTH_LOW),
+    TEMPOROSS_WAVE("TemporossWave", VoiceAlertService.VoiceLine.TEMPOROSS_WAVE),
+    TEMPOROSS_FIRE("TemporossFire", VoiceAlertService.VoiceLine.TEMPOROSS_FIRE),
+    TEMPOROSS_DOUBLE_SPOT("TemporossDoubleSpot", VoiceAlertService.VoiceLine.TEMPOROSS_DOUBLE_SPOT),
+    TEMPOROSS_VULNERABLE("TemporossVulnerable", VoiceAlertService.VoiceLine.TEMPOROSS_VULNERABLE),
+    RIFT_STARTING("RiftStarting", VoiceAlertService.VoiceLine.RIFT_STARTING),
+    RIFT_PORTAL("RiftPortal", VoiceAlertService.VoiceLine.RIFT_PORTAL),
+    BOAT_HEALTH("BoatHealth", VoiceAlertService.VoiceLine.BOAT_HEALTH_LOW),
+    SAIL_TRIM("SailTrim", VoiceAlertService.VoiceLine.TRIM_SAILS),
+    BIRD_NEST("BirdNest", VoiceAlertService.VoiceLine.BIRD_NEST),
+    FARMING_READY("FarmingReady", VoiceAlertService.VoiceLine.FARMING_READY),
     BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
+    RUMOUR_COMPLETE("RumourComplete", VoiceAlertService.VoiceLine.RUMOUR_COMPLETE),
     BATCH_COMPLETE("BatchComplete", VoiceAlertService.VoiceLine.BATCH_COMPLETE),
     LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
 
@@ -76,8 +107,16 @@ enum AlertType {
             case TASK_COMPLETE: return TASK_COMPLETE;
             case TASK_HALFWAY: return TASK_HALFWAY;
             case TASK_NEARLY_DONE: return TASK_NEARLY_DONE;
+            case SLAYER_MILESTONE: return SLAYER_MILESTONE;
+            case KILL_GOAL_REACHED: return KILL_GOAL;
+            case WRONG_PRAYER: return WRONG_PRAYER;
+            case UNPOTTED: return UNPOTTED;
             case CHARACTER_IDLE: return CHARACTER_IDLE;
             case IDLE_LOGOUT: return IDLE_LOGOUT;
+            case SIX_HOUR_LOGOUT: return SIX_HOUR;
+            case CLUE_DROP: return CLUE_DROP;
+            case DAILIES: return DAILIES;
+            case DEATH: return DEATH;
             case CRAB_MOVED: return CRAB_MOVED;
             case CRAB_LOW_HEALTH: return CRAB_LOW_HEALTH;
             case INVENTORY_FULL: return INVENTORY_FULL;
@@ -85,7 +124,29 @@ enum AlertType {
             case ROCK_DEPLETED: return ROCK_DEPLETED;
             case FISHING_SPOT_MOVED: return FISHING_SPOT;
             case COIN_POUCH_FULL: return COIN_POUCH;
+            case ARENA_PILLAR_MOVING: return ARENA_PILLAR;
+            case RUN_ENERGY_LOW: return RUN_ENERGY;
+            case RUN_ENERGY_RESTORED: return RUN_RESTORED;
+            case FORESTRY_EVENT: return FORESTRY_EVENT;
+            case SACK_FULL: return SACK_FULL;
+            case WINTERTODT_ROUND: return WINTERTODT_ROUND;
+            case BRAZIER_OUT: return WINTERTODT_BRAZIER;
+            case BRAZIER_BROKEN: return WINTERTODT_BRAZIER;
+            case OUT_OF_ROOTS: return WINTERTODT_ROOTS;
+            case WINTERTODT_HIT: return WINTERTODT_HIT;
+            case WARMTH_LOW: return WINTERTODT_WARMTH;
+            case TEMPOROSS_WAVE: return TEMPOROSS_WAVE;
+            case TEMPOROSS_FIRE: return TEMPOROSS_FIRE;
+            case TEMPOROSS_DOUBLE_SPOT: return TEMPOROSS_DOUBLE_SPOT;
+            case TEMPOROSS_VULNERABLE: return TEMPOROSS_VULNERABLE;
+            case RIFT_STARTING: return RIFT_STARTING;
+            case RIFT_PORTAL: return RIFT_PORTAL;
+            case BOAT_HEALTH_LOW: return BOAT_HEALTH;
+            case TRIM_SAILS: return SAIL_TRIM;
+            case BIRD_NEST: return BIRD_NEST;
+            case FARMING_READY: return FARMING_READY;
             case BIRDHOUSES_READY: return BIRDHOUSES;
+            case RUMOUR_COMPLETE: return RUMOUR_COMPLETE;
             case BATCH_COMPLETE: return BATCH_COMPLETE;
             default:
                 // Per-potion lines: POTION_<NAME>_LOW / _EXPIRED

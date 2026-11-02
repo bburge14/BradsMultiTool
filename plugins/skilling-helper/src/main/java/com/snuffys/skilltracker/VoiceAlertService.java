@@ -29,6 +29,10 @@ public class VoiceAlertService {
         OUT_OF_PRAYER("out_of_prayer", "Out of prayer points."),
         CRAB_MOVED("crab_moved", "The crab has moved!"),
         IDLE_LOGOUT("idle_logout", "You are about to be logged out."),
+        SIX_HOUR_LOGOUT("six_hour_logout", "Six hour logout in twenty minutes."),
+        CLUE_DROP("clue_drop", "You got a clue."),
+        DAILIES("dailies", "You have dailies to collect."),
+        DEATH("death", "You have died."),
         CRAB_LOW_HEALTH("crab_low_health", "The crab is about to burrow."),
         CHARACTER_IDLE("character_idle", "You are idle."),
         BUFF_LOW("buff_low", "Buff is running out."),
@@ -55,12 +59,38 @@ public class VoiceAlertService {
         TASK_HALFWAY("task_halfway", "Slayer task halfway done."),
         TASK_NEARLY_DONE("task_nearly_done", "Slayer task nearly done."),
         SLAYER_ITEM_MISSING("slayer_item_missing", "You are missing your slayer item."),
+        SLAYER_MILESTONE("slayer_milestone", "Your next slayer task is a milestone."),
+        KILL_GOAL_REACHED("kill_goal_reached", "Kill goal reached."),
+        WRONG_PRAYER("wrong_prayer", "Wrong protection prayer."),
+        UNPOTTED("unpotted", "No combat boost active."),
         INVENTORY_FULL("inventory_full", "Inventory is full."),
         TREE_GONE("tree_gone", "The tree has fallen."),
         ROCK_DEPLETED("rock_depleted", "The rock is depleted."),
         FISHING_SPOT_MOVED("fishing_spot_moved", "The fishing spot has moved."),
         COIN_POUCH_FULL("coin_pouch_full", "Your coin pouches are full."),
+        ARENA_PILLAR_MOVING("arena_pillar_moving", "The pillar is about to move."),
+        RUN_ENERGY_LOW("run_energy_low", "Your run energy is low."),
+        RUN_ENERGY_RESTORED("run_energy_restored", "Your run energy is restored."),
+        FORESTRY_EVENT("forestry_event", "A forestry event has started."),
+        SACK_FULL("sack_full", "The sack is full. Empty it before mining more."),
+        BIRD_NEST("bird_nest", "A bird's nest has fallen."),
+        WINTERTODT_ROUND("wintertodt_round", "The Wintertodt round is about to start."),
+        BRAZIER_OUT("brazier_out", "Your brazier has gone out."),
+        BRAZIER_BROKEN("brazier_broken", "Your brazier is broken."),
+        OUT_OF_ROOTS("out_of_roots", "You're out of roots."),
+        WINTERTODT_HIT("wintertodt_hit", "The cold stopped you. Start again."),
+        WARMTH_LOW("warmth_low", "Your warmth is low."),
+        TEMPOROSS_WAVE("tempoross_wave", "A wave is coming. Tether yourself."),
+        TEMPOROSS_FIRE("tempoross_fire", "A fire is about to start near you."),
+        TEMPOROSS_DOUBLE_SPOT("tempoross_double_spot", "A double fishing spot has appeared."),
+        TEMPOROSS_VULNERABLE("tempoross_vulnerable", "Tempoross is vulnerable. Attack now."),
+        RIFT_STARTING("rift_starting", "The rift opens in ten seconds."),
+        RIFT_PORTAL("rift_portal", "A portal has opened."),
+        BOAT_HEALTH_LOW("boat_health_low", "Your boat's health is low."),
+        TRIM_SAILS("trim_sails", "Trim the sails now."),
+        FARMING_READY("farming_ready", "Your farming patches are ready."),
         BIRDHOUSES_READY("birdhouses_ready", "Your bird houses are ready."),
+        RUMOUR_COMPLETE("rumour_complete", "Rumour complete. Take the part to the Hunter Guild."),
         BATCH_COMPLETE("batch_complete", "Batch complete."),
         // Per-potion buff lines, named after ActiveBuffs kinds: POTION_<NAME>_LOW / _EXPIRED
         POTION_SUPER_COMBAT_LOW("potion_super_combat_low", "Super combat is running out."),
@@ -130,7 +160,7 @@ public class VoiceAlertService {
         /** Potion buffs running out and run out: PvM/Slayer and the GemCrab Tracker both carry these. */
         POTIONS("potions"),
         GEM_CRAB("gemcrab"),
-        /** Idle and logout warnings: every plugin carries these. */
+        /** Idle and logout warnings and run energy: every plugin carries these (Agility's run energy alert too). */
         SHARED("shared");
 
         final String folder;
@@ -152,7 +182,27 @@ public class VoiceAlertService {
                 case "rock_depleted":
                 case "fishing_spot_moved":
                 case "coin_pouch_full":
+                case "arena_pillar_moving":
+                case "forestry_event":
+                case "sack_full":
+                case "wintertodt_round":
+                case "brazier_out":
+                case "brazier_broken":
+                case "out_of_roots":
+                case "wintertodt_hit":
+                case "warmth_low":
+                case "tempoross_wave":
+                case "tempoross_fire":
+                case "tempoross_double_spot":
+                case "tempoross_vulnerable":
+                case "rift_starting":
+                case "rift_portal":
+                case "boat_health_low":
+                case "trim_sails":
+                case "bird_nest":
+                case "farming_ready":
                 case "birdhouses_ready":
+                case "rumour_complete":
                 case "batch_complete":
                     return SKILLING;
                 case "crab_moved":
@@ -160,6 +210,11 @@ public class VoiceAlertService {
                     return GEM_CRAB;
                 case "character_idle":
                 case "idle_logout":
+                case "six_hour_logout":
+                case "run_energy_low":
+                case "run_energy_restored":
+                case "clue_drop":
+                case "dailies":
                     return SHARED;
                 default:
                     return PVM;

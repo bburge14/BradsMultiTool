@@ -20,6 +20,17 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Running out fires again after another divine dose at the same boost, and after re-dosing a regular potion.
 - [ ] A buff's line on the HUD is red while within the running-out window and green whenever it's above it (e.g. after re-dosing).
 - [ ] Running out still fires right after logging in or hopping (says "under 1:00 left" when the timer isn't synced yet).
+- [ ] Hover a gargoyle: Max Hit: 11, Attack Speed: 4 ticks (2.4s); General Graardor lists 60 (melee), 35 (ranged);
+      Show Max Hit and Speed off hides both.
+- [ ] Wrong Protection Prayer on: Protect from Magic against a gargoyle says "Wrong protection prayer" (chat: attacks
+      with melee) once; switching to Protect from Melee stays quiet; no prayer on stays quiet; a mixed-style
+      monster (Graardor) never sets it off.
+- [ ] Unpotted Reminder on: attacking with no boost says "No combat boost active", not again within 2 minutes;
+      after a super combat it stays quiet. Your Style's: a Magic boost doesn't count while meleeing.
+- [ ] Loot line: after a kill with drops, "Loot:" shows their GE value; "/h" appears after a minute; HUD Reset clears it.
+- [ ] Death (e.g. somewhere safe-ish with cheap items): chat/voice says where; the gravestone info box counts down from
+  15:00, pauses while logged out, and goes when you're back at the spot. No box after a death in an instance, the
+  Wilderness, or a safe minigame (nothing lost).
 
 ## Buff bar and monster effects
 - [ ] Buff bar: a potion shows its icon, +boost and time left (divine exact, regular "~" until synced); antifire,
@@ -30,6 +41,11 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] HUD Status: Poisoned/Venomed after poison or venom hits the monster; Frozen 0:xx after Ice barrage (etc.);
       Burning from burn hitsplats.
 - [ ] HUD Defence: Dragon warhammer hit lowers it 30% ("Defence: 140 (-60)"), Elder maul 35%, BGS by the damage.
+- [ ] Buff bar: Overload (Nightmare Zone or a raid) shows one Overload icon with ~time instead of potion icons and
+      boosted stats; Prayer regeneration potion; Staff of the dead special (1:00, gone when you unequip it);
+      Vengeance (ready, then the 0:30 cooldown); Imbued heart cooldown after using it.
+- [ ] Buff bar debuffs: Frozen after an ice spell or bind hits you (gone once you can move); Teleblocked with its
+      time left (Wilderness).
 
 ## Gemstone Crab
 - [ ] When the crab moves, its stats stay up 12s marked (moved) with a "Radar in" countdown, then the radar.
@@ -68,6 +84,17 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] A place whose tags don't fit beside it (Fire giants: Charred Dungeon) has them on the next line,
       right-aligned and grey.
 - [ ] Right-click the card > Show all / fewer places lists every place, and back.
+- [ ] Points and streak on the card (same as RuneLite's Slayer infobox tooltip), also on the no-task card; at a
+      streak of 9, 49, 99... the gold "Next task is your 10th/50th..." note; finishing that task before says
+      "Your next slayer task is a milestone" (chat: task N, Nx points). Not on login.
+- [ ] Supplies Used counts food eaten and potion doses on the task; logging out and in keeps them; a new task
+      starts at 0.
+- [ ] Right-click a monster > Set kill goal, type 5: the hover card shows Kill Goal 0 / 5 and the card lists it;
+      kills count up; the 5th says "Kill goal reached"; Clear kill goal and Clear finished kill goals remove them;
+      goals stay after a relog.
+- [ ] Finish-off marker: rock hammer over a gargoyle at 9 HP or less, ice cooler over a lizard at 4 or less, salt
+      over a rockslug, fungicide over a zygomite. With RuneLite's Slayer plugin on (Show Monster Weakness), task
+      gargoyles/rockslugs/zygomites only get its marker (not two); lizards still get ours.
 - [ ] Pray: line (Fire giants: Protect from Melee; Cave kraken: Magic; Smoke devils: Missiles); none for
       mixed tasks (Spiritual creatures); Protection Prayer off hides it.
 
@@ -100,7 +127,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
   or came into view as you walked up, until it moves; a full timer again after each move (minnow spots included).
 - [ ] Fishing spot moved: the voice line plays when the spot you're fishing moves, even after fishing it 3+ minutes.
 - [ ] Timer Style: Tile and icon (no pie: the outline goes green/yellow/red, pulsing red when due; traps, fires and campfires keep a pie; hover a fishing spot for its times) and Floating timer (pies).
-- [ ] Hunter: pie on traps you lay, green when caught.
+- [ ] Hunter: pie on traps you lay, green when caught; a trap that springs empty turns a full pie in Failed Trap Colour (purple) saying "Empty", and back to a fresh timer once you reset it.
 - [ ] Fires: a pie only on a fire you cook on (Use food on it), none on fires you just light or walk past; it
       runs out at about 60 s, then pulses red until the fire goes; it sits still, not bouncing with the flames.
 - [ ] "The tree has fallen." (new wording) on oaks and up; no tree/rock alert on regular trees, copper or tin.
@@ -113,11 +140,35 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Coin pouches full (at 28, or your Ardougne diary cap).
 - [ ] Bird houses ready 50 minutes after seeding.
 - [ ] Batch complete after a run of cooking / smithing / crafting / fletching / herblore.
+- [ ] Sailing: Boat Health Low below 30% on your own boat (once until repaired); Trim Sails when a gust opens the
+      trim window; neither on someone else's boat or ashore.
+
+## Minigames
+- [ ] Wintertodt: card in the room (warmth, energy, points, roots/kindling, next round); Round Starting at 5 s;
+      Brazier Out / Broken; Out of Roots; Cold Stopped You only when hit while fletching/feeding (not chopping);
+      Warmth Low once below 30%.
+- [ ] Tempoross: card (energy, essence, storm, points, fish, damage) only during the game; Wave Incoming; Fire Near
+      You only for strikes close to you; Double Fishing Spot; Vulnerable.
+- [ ] Guardians of the Rift: card (power, energy, guardians built, open altars red above your level, portal);
+      Game Starting at the 10-second message; Portal Opened with its direction, not while in the remains.
+- [ ] With RuneLite's Wintertodt / Tempoross / GOTR Helper notifications / Sailing's low HP notification on, the
+      clash warning names them.
+- [ ] Hunters' Rumours: take a rumour from a guild hunter (or use the Quetzal whistle's Rumour): HUNTER RUMOUR in the
+      tracker names the creature, method and hunter, Where: (hover for every place); each catch adds to Caught (the
+      pity number drops with guild hunter outfit pieces on); the rare part plays "Rumour complete" and the card says
+      to take it back; handing it in clears the card.
 
 ## Skill tracker
 - [x] Cards, fields switch on/off without gaps, progress bar colours.
+- [ ] Items: chop, fish, mine, cook: the card (and pinned skill) shows "Logs: 342 (1,050/hr)", "Fish:", "Ore:"/"Gems:",
+      "Cooked: ..., 4 burnt (3%)"; Reset rate / Reset clears them; Show Items Gathered off hides them.
+- [ ] Keep Session After Restart: train, close the client, reopen and log in within 30 minutes: the cards carry on
+      (chat says so), XP/hr about the same; after longer (or with it at 0), a fresh session. Reset all skills, restart: fresh.
+- [ ] Skills Tab Goal Bars: a thin gold bar along the bottom of each goal skill on the Skills tab, matching the card's
+      goal bar; none with the setting off or on other tabs.
 - [ ] Training combat (e.g. Gemstone Crab): cards stay still, no field wraps onto two lines; GOALS / THIS SESSION headings centred.
 - [x] Actions left hidden for combat skills.
+- [ ] Production goal (e.g. Cooking) after opening the bank: "Materials: ... gp" under Banked on the card and the pinned skill; Show Materials Value off hides it.
 - [x] Set Goal dialog: the skill list shows your levels; picking one shows your level, XP and current goal.
 - [x] Monsters with no Slayer level (cows, goblins) have no Slayer section.
 - [x] Set Goal button: pick a skill, enter a level (e.g. 80) or XP (e.g. 2000000); the skill appears under GOALS.
@@ -158,7 +209,19 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       Toolbelt (not two stacked boxes); moves with Alt + drag and keeps its place.
 - [x] Tick Bar: fills smoothly over each tick and snaps back on the tick; Bar Width.
 - [x] Metronome on/off; each Tone plays, with the second sound on the first tick; First Tick Only; Volume.
-- [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3); 1 lands on each attack.
+- [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3, autocasting 5); 1 lands on each attack.
+- [ ] Follow Attack Speed: being hit while not attacking (block animation), eating, alching or pickpocketing
+      doesn't restart the count; nor does an animation before your attack delay has run out.
+- [ ] Eat a shark mid-cycle: the count holds on 1 for 3 extra ticks and 1 still lands on your next attack; a
+      karambwan adds 2.
+- [ ] Count Down To Attack: over head 4, 3, 2, 1 on a 4-tick weapon, the boxes numbered 4 3 2 1 (half boxes
+      3.5...); eating shows the extra ticks (e.g. 5).
+- [ ] Late Ticks: stop attacking: -1, -2... in red up to Late Ticks, then back to the plain count; 0 never shows it.
+- [ ] Weapon swap: spec with a different-speed weapon then swap back: the cycle after each attack is that
+      attack's weapon's speed.
+- [ ] Hotkeys (bind each in Hotkeys): Reset Count makes this tick 1; Show/Hide hides and shows the count,
+      boxes and bar (chat says which; the metronome keeps playing); Ticks Per Cycle Up/Down change the setting
+      (1-10, chat says the number). Unbound: nothing happens. Also in the Toolbelt (Tick: Hotkeys).
 - [x] Click Timing: "NNNms" rises over your head on each click (green, red past Late After); the bar marks the
       click; the summary counts on time / late / missed. Right-click "Track for goal" isn't counted.
 - [x] Ideal zone: green on the tick bar from Ideal From to Ideal To; clicks in it show green, others white
@@ -182,6 +245,22 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
 - [x] No AFK alert after logging in without doing anything (login's XP report isn't training).
 - [x] Idle logout warning before the logout.
+- [ ] Run Energy Low Below 30: run below 30%: "Your run energy is low" once, again only after it's back above 40.
+- [ ] Training Agility with Run Energy Low Below on: only one run energy alert (the Agility one stays quiet);
+      with it 0, Agility's own alert works as before.
+- [ ] Run Energy Restored At 100: drop below 90, rest: "Your run energy is restored" at 100; a few steps of
+      running at 100 don't set it off; nothing at login.
+- [ ] With two of Snuffy's plugins running separately, each run energy alert is said once.
+- [ ] Speak Only When Unfocused: with RuneLite focused alerts post in chat but aren't spoken; click another
+      window and they're spoken; Voice switch previews still play.
+
+## Reminders
+- [ ] A monster's clue scroll drop: "Clue: a <tier> clue scroll from <monster>!" once; picking it up says nothing more.
+- [ ] A clue geode / bottle / nest / scroll box from skilling: alert with its tier. Withdrawing one from the bank: no alert.
+- [ ] Logging in with clues already in the inventory: no alert.
+- [ ] Login on a member with an uncollected daily (e.g. Zaff's battlestaves after the Varrock easy diary): one
+  "Dailies to collect" line; collected ones aren't listed; each daily's switch removes it.
+- [ ] With two of Snuffy's plugins installed, clue and daily alerts are said once.
 
 ## Track for goal: specific methods
 - [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,
@@ -218,3 +297,6 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tick Boxes > Tick Pattern: 1-tick two halves (box 1 first half, box 2 second), each movable with Move Boxes Separately; Custom = Ticks Per Cycle.
 - [ ] Any of Snuffy's plugins with a clashing plugin on (e.g. RuneLite's Mining or Metronome): a yellow warning info box top-left, tooltip lists the clashes; it goes within a few seconds of turning the clash off, and when the plugin stops.
 - [ ] About > Clash Warnings off: no warning icon, no chat line (within a few seconds); on again brings them back.
+- [ ] Agility: Course Card on a rooftop (laps, laps/hr, XP/hr after 2 laps, lap time, laps to level/goal, marks); Brimhaven Arena Card (countdown from the first pillar move, red near the end, Pillar About to Move voice at 10 s, tickets/hr); Run Energy alert below 15% while training Agility.
+- [ ] Brimhaven Arena: obstacles green/yellow/red by level (floor spikes yellow below 50; ones RuneLite's Agility Show Clickboxes outlines are left to it, clash warning says so); hover one for XP/time/chance; cyan route line to the hint-arrow pillar; Arena Route Readout shows pillars/obstacles/links; Chat: Pillar About to Move now on. Route starts at you, follows you every tick, and goes through the middle pillars (no dispenser) instead of around the edge. Jump floor spikes back and forth: after 3 reps the card shows Training/Reps/Reps/hr/XP/hr/reps to level, route and pillar warning hidden. Same card for an Agility shortcut crossed 3 times in a row outside the arena.
+- [ ] Agility Method list: Rope swing, Pressure pad, Floor spikes, Spinning blades, Darts (Brimhaven Agility Arena) from their level to 99 with XP/hr, outlined when picked.

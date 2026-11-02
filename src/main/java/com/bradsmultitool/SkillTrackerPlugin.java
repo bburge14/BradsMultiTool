@@ -9,8 +9,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 /** Snuffy's Skilling Helper on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
 @PluginDescriptor(
     name = "Snuffy's Skilling Helper",
-    description = "XP tracker with goals and suggested training, a pinned skill overlay, skilling hover cards, timer pies and skilling alerts",
-    tags = {"snuffy", "xp", "skills", "tracker", "goals", "skilling", "timers"}
+    description = "XP tracker with goals and training suggestions, skilling hover cards, resource timers, farming patch list, Brimhaven arena route, minigame and skilling voice alerts",
+    tags = {"snuffy", "xp", "skills", "tracker", "goals", "skilling", "timers", "farming", "agility", "wintertodt", "tempoross"}
 )
 public class SkillTrackerPlugin extends Plugin {
 

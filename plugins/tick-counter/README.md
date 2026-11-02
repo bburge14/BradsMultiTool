@@ -1,21 +1,24 @@
 # Snuffy's Tick Counter
 
-Game tick counter over your head, as tick boxes or a smooth tick bar, with a metronome and click timing for tick skilling.
+Game tick counter as boxes or a smooth bar, a metronome, an attack timer and click timing for tick skilling.
+
+## Features
+
+- **Tick count** over your head, as numbered tick boxes or a smooth tick bar
+- **Metronome** with a play-ahead option, and hotkeys to reset, hide and change the cycle
+- **Attack timer** that follows your weapon's speed, counting up or down to your next attack
+- **Click timing**: how far into the tick each click lands, for tick skilling practice
+
 
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
-**Snuffy's Tick Counter** and click **Install**. Its settings are under its name in the configuration panel.
+**Snuffy's Tick Counter** and click **Install**. Its settings are under its name in the configuration panel, and **Open the
+Guide** in them links to the full feature guide.
 
-It's one of Snuffy's plugins: **Snuffy's Toolbelt** has all of them in one, or install just the ones you want
-(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them). Don't install
-the Toolbelt together with the separate ones.
+It's one of Snuffy's plugins: install just the ones you want (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** has all of them in one; don't install it together with the separate ones.
 
-Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).
+## Source and issues
 
-## About this folder
-
-This folder holds just this plugin, the way the Plugin Hub builds it (`gradlew build` here makes its jar). It's
-generated from the code in [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool) by
-`scripts/split_plugins.py`; changes made here directly are overwritten. Issues and ideas:
-[open an issue](https://github.com/bburge14/bradsmultitool/issues).
+Made by SgtSnufffy. Source: [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool); ideas and
+problems: [open an issue](https://github.com/bburge14/bradsmultitool/issues).

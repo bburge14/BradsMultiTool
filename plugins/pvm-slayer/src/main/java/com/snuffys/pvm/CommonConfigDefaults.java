@@ -15,6 +15,7 @@ final class CommonConfigDefaults {
         defaults.store("voiceEnabled", config.voiceEnabled());
         defaults.store("syncVoice", config.syncVoice());
         defaults.store("sendChatMessages", config.sendChatMessages());
+        defaults.store("voiceOnlyUnfocused", config.voiceOnlyUnfocused());
         defaults.store("characterIdleAlert", config.characterIdleAlert());
         defaults.store("characterIdleSeconds", config.characterIdleSeconds());
         defaults.store("idleWarningSeconds", config.idleWarningSeconds());
@@ -25,5 +26,29 @@ final class CommonConfigDefaults {
         defaults.store("chatCharacterIdle", config.chatCharacterIdle());
         defaults.store("voiceIdleLogout", config.voiceIdleLogout());
         defaults.store("chatIdleLogout", config.chatIdleLogout());
+        defaults.store("sixHourWarning", config.sixHourWarning());
+        defaults.store("voiceSixHour", config.voiceSixHour());
+        defaults.store("chatSixHour", config.chatSixHour());
+        defaults.store("runEnergyLowAt", config.runEnergyLowAt());
+        defaults.store("voiceRunLow", config.voiceRunLow());
+        defaults.store("chatRunLow", config.chatRunLow());
+        defaults.store("runEnergyRestoredAt", config.runEnergyRestoredAt());
+        defaults.store("voiceRunRestored", config.voiceRunRestored());
+        defaults.store("chatRunRestored", config.chatRunRestored());
+        defaults.store("clueDropAlert", config.clueDropAlert());
+        defaults.store("voiceClueDrop", config.voiceClueDrop());
+        defaults.store("chatClueDrop", config.chatClueDrop());
+        defaults.store("dailyReminders", config.dailyReminders());
+        defaults.store("voiceDailies", config.voiceDailies());
+        defaults.store("chatDailies", config.chatDailies());
+        defaults.store("dailyStaves", config.dailyStaves());
+        defaults.store("dailyHerbBoxes", config.dailyHerbBoxes());
+        defaults.store("dailyEssence", config.dailyEssence());
+        defaults.store("dailyRunes", config.dailyRunes());
+        defaults.store("dailySand", config.dailySand());
+        defaults.store("dailyFlax", config.dailyFlax());
+        defaults.store("dailyBonemeal", config.dailyBonemeal());
+        defaults.store("dailyDynamite", config.dailyDynamite());
+        defaults.store("dailyArrows", config.dailyArrows());
     }
 }

@@ -31,12 +31,55 @@ class SkillHelperData {
         final int level;
         final double xp;
         final String trap;
+        /** For XP that depends on your level (Herbiboar, Wyrmscraig goats): the most it gives; else 0. */
+        final double xpMax;
 
         Creature(JsonObject o) {
             name = o.get("name").getAsString();
             level = o.get("level").getAsInt();
             xp = number(o, "xp");
             trap = text(o, "trap");
+            xpMax = number(o, "xpMax");
+        }
+    }
+
+    /**
+     * A Hunters' Rumours creature (the wiki's list): its level, where to find it, the method, which guild hunters
+     * give it, and the catch its rare part is guaranteed by (the pity threshold, lower in the guild hunter outfit).
+     */
+    static final class Rumour {
+        final String name;
+        /** Its wiki page, when the list calls it something else ("Carnivorous chinchompa" for Red chinchompa). */
+        final String page;
+        final int level;
+        final List<String> places = new ArrayList<>();
+        final String trap;
+        final List<String> hunters = new ArrayList<>();
+        /** Catches until the rare part is guaranteed, without and with the whole guild hunter outfit (0: unknown). */
+        final int pity;
+        final int pityOutfit;
+
+        Rumour(JsonObject o) {
+            name = o.get("name").getAsString();
+            page = text(o, "page");
+            level = o.get("level").getAsInt();
+            o.getAsJsonArray("places").forEach(e -> places.add(e.getAsString()));
+            trap = text(o, "trap");
+            o.getAsJsonArray("hunters").forEach(e -> hunters.add(e.getAsString()));
+            pity = (int) number(o, "pity");
+            pityOutfit = (int) number(o, "pityOutfit");
+        }
+
+        /**
+         * The pity threshold with this many guild hunter outfit pieces worn: each piece takes off a quarter of the
+         * outfit's difference, rounded down (as the Hunter Rumours plugin, BSD-2-Clause, works it out).
+         */
+        int pityWith(int pieces) {
+            if (pity <= 0) {
+                return 0;
+            }
+            int clamped = Math.max(0, Math.min(4, pieces));
+            return (int) Math.floor(pity - (pity - pityOutfit) / 4.0 * clamped);
         }
     }
 
@@ -102,6 +145,53 @@ class SkillHelperData {
             name = o.get("name").getAsString();
             level = (int) number(o, "level");
             xpPerLap = number(o, "xpPerLap");
+        }
+    }
+
+    /** A Brimhaven Agility Arena obstacle: its level, XP, time and how often it fails. */
+    static final class ArenaObstacle {
+        final String name;
+        final int level;
+        final double xp;
+        final int ticks;
+        final int noFailLevel;
+        final int low;
+        final int high;
+        final String note;
+
+        ArenaObstacle(JsonObject o) {
+            name = o.get("name").getAsString();
+            level = (int) number(o, "level");
+            xp = number(o, "xp");
+            ticks = (int) number(o, "ticks");
+            noFailLevel = (int) number(o, "noFailLevel");
+            low = (int) number(o, "low");
+            high = (int) number(o, "high");
+            note = text(o, "note");
+        }
+
+        /** XP per game tick spent on it. */
+        double xpPerTick() {
+            return ticks <= 0 ? 0 : xp / ticks;
+        }
+
+        /**
+         * Your chance to get across at this Agility level: the game's roll from its success chart when the wiki has
+         * one, else certain from its no-fail level up, else -1 (the wiki doesn't say).
+         */
+        double successChance(int agility) {
+            if (agility < level) {
+                return 0;
+            }
+            if (noFailLevel > 0 && agility >= noFailLevel) {
+                return 1;
+            }
+            if (high > 0) {
+                int lvl = Math.min(99, agility);
+                double roll = Math.floor(low * (99 - lvl) / 98.0 + high * (lvl - 1) / 98.0 + 0.5);
+                return Math.min(1, (1 + roll) / 256.0);
+            }
+            return noFailLevel > 0 ? -1 : 1;
         }
     }
 
@@ -297,14 +387,23 @@ class SkillHelperData {
     private final Map<String, SeaMonster> seaMonsters = new HashMap<>();
     private final Map<Integer, FishingSpot> fishingSpots = new HashMap<>();
     private final Map<String, Creature> creatures = new HashMap<>();
+    private final List<Rumour> rumours = new ArrayList<>();
     private final Map<String, Rune> runes = new HashMap<>();
     private final Map<Integer, Rune> altars = new HashMap<>();
     private final Map<String, Food> foods = new HashMap<>();
     private final Map<Integer, Course> obstacles = new HashMap<>();
     private final Map<Integer, Shortcut> shortcuts = new HashMap<>();
+    private final Map<Integer, ArenaObstacle> arenaObstacles = new HashMap<>();
+    private final java.util.Set<Integer> arenaDispensers = new java.util.HashSet<>();
+    // The arena's pillar grid: x, y of its south-west pillar, spacing, columns, rows (empty when not loaded)
+    private int[] arenaGrid = new int[0];
+    // The plank's middle pieces and the broken pieces the bad planks show
+    private final java.util.Set<Integer> plankMiddles = new java.util.HashSet<>();
+    private final java.util.Set<Integer> brokenPlanks = new java.util.HashSet<>();
 
     void load(Gson gson) {
         creatures.clear();
+        rumours.clear();
         cooking.clear();
         anvil.clear();
         furnace.clear();
@@ -321,6 +420,10 @@ class SkillHelperData {
         foods.clear();
         obstacles.clear();
         shortcuts.clear();
+        arenaObstacles.clear();
+        arenaDispensers.clear();
+        plankMiddles.clear();
+        brokenPlanks.clear();
         try (InputStream in = SkillHelperData.class.getResourceAsStream(RESOURCE)) {
             if (in == null) {
                 log.warn("{} not found; Hunter/Runecraft/Cooking/Agility hover info disabled", RESOURCE);
@@ -330,6 +433,11 @@ class SkillHelperData {
                 JsonObject root = gson.fromJson(reader, JsonObject.class);
                 for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("hunter").entrySet()) {
                     creatures.put(e.getKey(), new Creature(e.getValue().getAsJsonObject()));
+                }
+                if (root.has("rumours")) {
+                    for (JsonElement e : root.getAsJsonArray("rumours")) {
+                        rumours.add(new Rumour(e.getAsJsonObject()));
+                    }
                 }
                 JsonObject runecraft = root.getAsJsonObject("runecraft");
                 for (Map.Entry<String, JsonElement> e : runecraft.getAsJsonObject("runes").entrySet()) {
@@ -353,6 +461,27 @@ class SkillHelperData {
                     Course course = courses.get(e.getValue().getAsString());
                     if (course != null) {
                         obstacles.put(Integer.parseInt(e.getKey()), course);
+                    }
+                }
+                JsonObject arena = root.getAsJsonObject("arena");
+                if (arena != null) {
+                    for (JsonElement e : arena.getAsJsonArray("obstacles")) {
+                        ArenaObstacle obstacle = new ArenaObstacle(e.getAsJsonObject());
+                        for (JsonElement id : e.getAsJsonObject().getAsJsonArray("ids")) {
+                            arenaObstacles.put(id.getAsInt(), obstacle);
+                        }
+                    }
+                    for (JsonElement id : arena.getAsJsonArray("dispensers")) {
+                        arenaDispensers.add(id.getAsInt());
+                    }
+                    if (arena.has("plankMiddles")) {
+                        arena.getAsJsonArray("plankMiddles").forEach(id -> plankMiddles.add(id.getAsInt()));
+                        arena.getAsJsonArray("brokenPlanks").forEach(id -> brokenPlanks.add(id.getAsInt()));
+                    }
+                    JsonObject grid = arena.getAsJsonObject("grid");
+                    if (grid != null) {
+                        arenaGrid = new int[] {grid.get("x").getAsInt(), grid.get("y").getAsInt(), grid.get("step").getAsInt(),
+                            grid.get("columns").getAsInt(), grid.get("rows").getAsInt()};
                     }
                 }
                 JsonObject sailing = root.getAsJsonObject("sailing");
@@ -431,6 +560,17 @@ class SkillHelperData {
 
     Creature creature(String npcName) {
         return npcName == null ? null : creatures.get(npcName.toLowerCase());
+    }
+
+    /** Every Hunters' Rumours creature, lowest level first. */
+    List<Rumour> rumours() {
+        return rumours;
+    }
+
+    /** A rumour creature's Hunter data (its XP per catch), by its wiki page or name; null if not known. */
+    Creature creature(Rumour rumour) {
+        Creature creature = rumour.page != null ? creature(rumour.page) : null;
+        return creature != null ? creature : creature(rumour.name);
     }
 
     Rune altar(int objectId) {
@@ -542,6 +682,32 @@ class SkillHelperData {
             }
         }
         return best;
+    }
+
+    /** The Brimhaven Agility Arena obstacle with this object id, or null. */
+    ArenaObstacle arenaObstacle(int objectId) {
+        return arenaObstacles.get(objectId);
+    }
+
+    /** Whether this object is one of the arena's ticket dispensers (the pillars you tag). */
+    boolean isArenaDispenser(int objectId) {
+        return arenaDispensers.contains(objectId);
+    }
+
+    /** Whether this object is a piece of an arena plank (an end, a middle or a broken piece). */
+    boolean isPlankPiece(int objectId) {
+        ArenaObstacle obstacle = arenaObstacles.get(objectId);
+        return obstacle != null && obstacle.name.equals("Plank") || plankMiddles.contains(objectId) || brokenPlanks.contains(objectId);
+    }
+
+    /** Whether this is a broken plank piece (the bad planks show them). */
+    boolean isBrokenPlank(int objectId) {
+        return brokenPlanks.contains(objectId);
+    }
+
+    /** The arena's pillar grid: x, y of its south-west pillar, spacing, columns, rows (empty when not loaded). */
+    int[] arenaGrid() {
+        return arenaGrid;
     }
 
     Shortcut shortcut(int objectId) {

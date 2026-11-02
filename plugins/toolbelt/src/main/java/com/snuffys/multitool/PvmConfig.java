@@ -33,7 +33,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigSection(
         name = "Slayer Alerts",
-        description = "Alerts for your Slayer task: missing item, superiors, halfway, nearly done and complete",
+        description = "<div width='300'>Alerts for your Slayer task: missing item, superiors, halfway, nearly done, complete, next task a milestone, and kill goals reached",
         position = 19,
         closedByDefault = true
     )
@@ -41,7 +41,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigSection(
         name = "Slayer Monsters",
-        description = "Slayer details on monsters, and outlines on your task's monsters",
+        description = "<div width='300'>Slayer details on monsters, outlines on your task's monsters, and the finish-off marker",
         position = 18,
         closedByDefault = true
     )
@@ -81,11 +81,19 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigSection(
         name = "Idle",
-        description = "Idle character and idle logout warnings",
+        description = "Idle character, idle and six-hour logout warnings, and run energy alerts",
         position = 5,
         closedByDefault = true
     )
     String idleSection = "idleSection";
+
+    @ConfigSection(
+        name = "Reminders",
+        description = "Clue drops and daily rewards to collect",
+        position = 6,
+        closedByDefault = true
+    )
+    String remindersSection = "remindersSection";
 
     enum BarLayout {
         HORIZONTAL("Horizontal"),
@@ -344,7 +352,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigSection(
         name = "Combat Alerts",
-        description = "<div width='300'>Special attack, antifire, poison, stamina, ammo, runes and cannon alerts",
+        description = "<div width='300'>Special attack, antifire, poison, stamina, wrong protection prayer and unpotted alerts",
         position = 15,
         closedByDefault = true
     )
@@ -734,7 +742,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigSection(
         name = "Slayer Card",
-        description = "The Slayer card: your task, kills left, where to go and how to get there, or the master to visit without a task",
+        description = "<div width='300'>The Slayer card: your task, kills left, points and streak, supplies used, kill goals, where to go and how to get there, or the master to visit without a task",
         position = 17,
         closedByDefault = true
     )
@@ -1077,9 +1085,213 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     }
 
     @ConfigItem(
+        keyName = "slayerPointsStreak",
+        name = "Points and Streak",
+        description = "<div width='300'>Your Slayer points and task streak on the card, and a note when your next task is a milestone (10th, 50th, 100th, 250th, 1000th) so you can pick the master that gives the most points",
+        section = slayerSection,
+        position = 12
+    )
+    default boolean slayerPointsStreak() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerSupplies",
+        name = "Supplies Used",
+        description = "<div width='300'>Food eaten and potion doses drunk on this task (kept if you log out and back in on the same task)",
+        section = slayerSection,
+        position = 13
+    )
+    default boolean slayerSupplies() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "killGoals",
+        name = "Kill Goals",
+        description = "<div width='300'>Right-click a monster > Set kill goal and type how many to kill. Progress shows on the monster hover card and under Kill Goals on this card; the card's right-click menu clears finished ones. Saved with your RuneScape profile",
+        section = slayerSection,
+        position = 14
+    )
+    default boolean killGoals() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "finishOffMarker",
+        name = "Finish-Off Marker",
+        description = "<div width='300'>The item's picture over a lizard, gargoyle, rockslug or zygomite once it's low enough to finish with an ice cooler, rock hammer, bag of salt or fungicide. While RuneLite's Slayer plugin marks your task monsters itself (its Show Monster Weakness), it's left to that one",
+        section = slayerMonstersSection,
+        position = 3
+    )
+    default boolean finishOffMarker() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "slayerMilestoneAlert",
+        name = "Next Task Is a Milestone",
+        description = "<div width='300'>Alert when you finish a task and the next one is a 10th, 50th, 100th, 250th or 1000th (bonus points), so you can pick your master",
+        section = slayerAlertsSection,
+        position = 15
+    )
+    default boolean slayerMilestoneAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSlayerMilestone",
+        name = "Voice: Next Task Milestone",
+        description = "<div width='300'>When your next slayer task is a milestone (turning it on plays a preview)",
+        section = slayerAlertsSection,
+        position = 16
+    )
+    default boolean voiceSlayerMilestone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSlayerMilestone",
+        name = "Chat: Next Task Milestone",
+        description = "Chat message when your next slayer task is a milestone",
+        section = slayerAlertsSection,
+        position = 17
+    )
+    default boolean chatSlayerMilestone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceKillGoal",
+        name = "Voice: Kill Goal Reached",
+        description = "<div width='300'>When you reach a kill goal you set on a monster (turning it on plays a preview)",
+        section = slayerAlertsSection,
+        position = 18
+    )
+    default boolean voiceKillGoal() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatKillGoal",
+        name = "Chat: Kill Goal Reached",
+        description = "Chat message when you reach a kill goal",
+        section = slayerAlertsSection,
+        position = 19
+    )
+    default boolean chatKillGoal() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "wrongPrayerAlert",
+        name = "Wrong Protection Prayer",
+        description = "<div width='300'>Alert when a monster attacking you only attacks one way (from the wiki) and your protection prayer is a different one. Once per monster; nothing about when it attacks next. With no protection prayer on it stays quiet",
+        section = combatAlertsSection,
+        position = 13
+    )
+    default boolean wrongPrayerAlert() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWrongPrayer",
+        name = "Voice: Wrong Prayer",
+        description = "<div width='300'>When your protection prayer doesn't cover a monster's attacks (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 14
+    )
+    default boolean voiceWrongPrayer() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWrongPrayer",
+        name = "Chat: Wrong Prayer",
+        description = "<div width='300'>Chat message when your protection prayer doesn't cover a monster's attacks",
+        section = combatAlertsSection,
+        position = 15
+    )
+    default boolean chatWrongPrayer() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "unpottedAlert",
+        name = "Unpotted Reminder",
+        description = "<div width='300'>Alert when you start a fight with no combat boost (see Boosts That Count); at most once every two minutes",
+        section = combatAlertsSection,
+        position = 16
+    )
+    default boolean unpottedAlert() {
+        return false;
+    }
+
+    @ConfigItem(
+        keyName = "unpottedBoosts",
+        name = "Boosts That Count",
+        description = "<div width='300'>Any Combat Stat: any of Attack, Strength, Defence, Ranged or Magic above your level. Your Style's: Attack or Strength for melee, Ranged for ranged, Magic for magic",
+        section = combatAlertsSection,
+        position = 17
+    )
+    default UnpottedBoosts unpottedBoosts() {
+        return UnpottedBoosts.ANY_COMBAT;
+    }
+
+    @ConfigItem(
+        keyName = "voiceUnpotted",
+        name = "Voice: Unpotted",
+        description = "<div width='300'>When you start a fight with no combat boost (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 18
+    )
+    default boolean voiceUnpotted() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatUnpotted",
+        name = "Chat: Unpotted",
+        description = "Chat message when you start a fight with no combat boost",
+        section = combatAlertsSection,
+        position = 19
+    )
+    default boolean chatUnpotted() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showMonsterMaxHit",
+        name = "Show Max Hit and Speed",
+        description = "<div width='300'>On the monster hover card: the wiki's max hit for each of its attacks and how often it attacks (game ticks and seconds)",
+        section = pvmSection,
+        position = 10
+    )
+    default boolean showMonsterMaxHit() {
+        return true;
+    }
+
+    /** Which boosts count for the unpotted reminder. */
+    enum UnpottedBoosts {
+        ANY_COMBAT("Any Combat Stat"),
+        YOUR_STYLE("Your Style's");
+
+        private final String label;
+
+        UnpottedBoosts(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    @ConfigItem(
         keyName = "showBuffBar",
         name = "Show Buff Bar",
-        description = "<div width='300'>Your buffs (potion boosts, antifire, stamina, poison protection, boosted stats) and debuffs (poison, venom, drained stats) as icons with timers; hover one for its name. Move it with Alt + drag. With it on, the PvM HUD leaves the potion rows to it",
+        description = "<div width='300'>Your buffs (potion boosts, overload, antifire, stamina, poison protection, prayer regeneration, vengeance, staff of the dead's special, the imbued heart's cooldown, boosted stats) and debuffs (poison, venom, frozen, teleblocked, drained stats) as icons with timers; hover one for its name. Move it with Alt + drag. With it on, the PvM HUD leaves the potion rows to it",
         section = buffBarSection,
         position = 0
     )
@@ -1134,6 +1346,61 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
         position = 9
     )
     default boolean showMonsterEffects() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showPvmLoot",
+        name = "Show Loot Value",
+        description = "<div width='300'>On the HUD: the Grand Exchange value of what your kills dropped this session, and per hour (from your first hit). The HUD's Reset clears it",
+        section = pvmSection,
+        position = 10
+    )
+    default boolean showPvmLoot() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "deathAlert",
+        name = "Death Alert",
+        description = "<div width='300'>When you die: say where (coordinates; in the Wilderness or an instance, it says so), and count down the 15 minutes your gravestone keeps your items (only while you're logged in, as the game does)",
+        section = combatAlertsSection,
+        position = 13
+    )
+    default boolean deathAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceDeath",
+        name = "Voice: Death",
+        description = "Voice line when you die (turning it on plays a preview)",
+        section = combatAlertsSection,
+        position = 14
+    )
+    default boolean voiceDeath() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatDeath",
+        name = "Chat: Death",
+        description = "Chat message when you die, with where",
+        section = combatAlertsSection,
+        position = 15
+    )
+    default boolean chatDeath() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "deathTimer",
+        name = "Gravestone Timer",
+        description = "<div width='300'>An info box counting down until your gravestone's items are gone (15 minutes of logged-in time). Not shown for deaths in instances or the Wilderness, where there's no gravestone. It goes once you're back at the spot",
+        section = combatAlertsSection,
+        position = 16
+    )
+    default boolean deathTimer() {
         return true;
     }
 
@@ -1199,6 +1466,18 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @Override
     default boolean sendChatMessages() {
         return CommonConfig.super.sendChatMessages();
+    }
+
+    @ConfigItem(
+        keyName = "voiceOnlyUnfocused",
+        name = "Speak Only When Unfocused",
+        description = "<div width='300'>Only speak alerts while the RuneLite window isn't the one you're using (you're in another window); chat messages still post. Like RuneLite's own notifications, which by default don't show while you're in the client",
+        section = generalSection,
+        position = 5
+    )
+    @Override
+    default boolean voiceOnlyUnfocused() {
+        return CommonConfig.super.voiceOnlyUnfocused();
     }
 
     @ConfigItem(
@@ -1334,6 +1613,302 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @Override
     default boolean chatIdleLogout() {
         return CommonConfig.super.chatIdleLogout();
+    }
+
+    @ConfigItem(
+        keyName = "sixHourWarning",
+        name = "Six-Hour Logout Warning",
+        description = "<div width='300'>The game logs you out after six hours online: warn twenty minutes before (from when you logged in or hopped)",
+        section = idleSection,
+        position = 10
+    )
+    @Override
+    default boolean sixHourWarning() {
+        return CommonConfig.super.sixHourWarning();
+    }
+
+    @ConfigItem(
+        keyName = "voiceSixHour",
+        name = "Voice: Six-Hour Logout",
+        description = "<div width='300'>Voice line twenty minutes before the six-hour logout (turning it on plays a preview)",
+        section = idleSection,
+        position = 11
+    )
+    @Override
+    default boolean voiceSixHour() {
+        return CommonConfig.super.voiceSixHour();
+    }
+
+    @ConfigItem(
+        keyName = "chatSixHour",
+        name = "Chat: Six-Hour Logout",
+        description = "<div width='300'>Chat message twenty minutes before the six-hour logout",
+        section = idleSection,
+        position = 12
+    )
+    @Override
+    default boolean chatSixHour() {
+        return CommonConfig.super.chatSixHour();
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyLowAt",
+        name = "Run Energy Low Below",
+        description = "<div width='300'>Alert anywhere when your run energy drops below this (0: off). While it's on, the Agility section's own run energy alert stays quiet so you don't hear both",
+        section = idleSection,
+        position = 13
+    )
+    @Override
+    default int runEnergyLowAt() {
+        return CommonConfig.super.runEnergyLowAt();
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunLow",
+        name = "Voice: Run Energy Low",
+        description = "<div width='300'>Says when your run energy drops below Run Energy Low Below (turning it on plays a preview)",
+        section = idleSection,
+        position = 14
+    )
+    @Override
+    default boolean voiceRunLow() {
+        return CommonConfig.super.voiceRunLow();
+    }
+
+    @ConfigItem(
+        keyName = "chatRunLow",
+        name = "Chat: Run Energy Low",
+        description = "<div width='300'>Chat message when your run energy drops below Run Energy Low Below",
+        section = idleSection,
+        position = 15
+    )
+    @Override
+    default boolean chatRunLow() {
+        return CommonConfig.super.chatRunLow();
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyRestoredAt",
+        name = "Run Energy Restored At",
+        description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
+        section = idleSection,
+        position = 16
+    )
+    @Override
+    default int runEnergyRestoredAt() {
+        return CommonConfig.super.runEnergyRestoredAt();
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunRestored",
+        name = "Voice: Run Energy Restored",
+        description = "<div width='300'>Says when your run energy is back up to Run Energy Restored At (turning it on plays a preview)",
+        section = idleSection,
+        position = 17
+    )
+    @Override
+    default boolean voiceRunRestored() {
+        return CommonConfig.super.voiceRunRestored();
+    }
+
+    @ConfigItem(
+        keyName = "chatRunRestored",
+        name = "Chat: Run Energy Restored",
+        description = "<div width='300'>Chat message when your run energy is back up to Run Energy Restored At",
+        section = idleSection,
+        position = 18
+    )
+    @Override
+    default boolean chatRunRestored() {
+        return CommonConfig.super.chatRunRestored();
+    }
+
+    @ConfigItem(
+        keyName = "clueDropAlert",
+        name = "Clue Drop Alert",
+        description = "<div width='300'>When a clue lands for you: a clue scroll in a monster's drop, or a clue bottle, geode, nest or scroll box from skilling going into your inventory. Chat says which tier",
+        section = remindersSection,
+        position = 0
+    )
+    @Override
+    default boolean clueDropAlert() {
+        return CommonConfig.super.clueDropAlert();
+    }
+
+    @ConfigItem(
+        keyName = "voiceClueDrop",
+        name = "Voice: Clue Drop",
+        description = "Voice line when a clue drops (turning it on plays a preview)",
+        section = remindersSection,
+        position = 1
+    )
+    @Override
+    default boolean voiceClueDrop() {
+        return CommonConfig.super.voiceClueDrop();
+    }
+
+    @ConfigItem(
+        keyName = "chatClueDrop",
+        name = "Chat: Clue Drop",
+        description = "Chat message when a clue drops, with its tier",
+        section = remindersSection,
+        position = 2
+    )
+    @Override
+    default boolean chatClueDrop() {
+        return CommonConfig.super.chatClueDrop();
+    }
+
+    @ConfigItem(
+        keyName = "dailyReminders",
+        name = "Daily Reminders",
+        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
+        section = remindersSection,
+        position = 3
+    )
+    @Override
+    default boolean dailyReminders() {
+        return CommonConfig.super.dailyReminders();
+    }
+
+    @ConfigItem(
+        keyName = "voiceDailies",
+        name = "Voice: Dailies",
+        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
+        section = remindersSection,
+        position = 4
+    )
+    @Override
+    default boolean voiceDailies() {
+        return CommonConfig.super.voiceDailies();
+    }
+
+    @ConfigItem(
+        keyName = "chatDailies",
+        name = "Chat: Dailies",
+        description = "Chat message listing the dailies to collect",
+        section = remindersSection,
+        position = 5
+    )
+    @Override
+    default boolean chatDailies() {
+        return CommonConfig.super.chatDailies();
+    }
+
+    @ConfigItem(
+        keyName = "dailyStaves",
+        name = "Daily: Battlestaves",
+        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
+        section = remindersSection,
+        position = 6
+    )
+    @Override
+    default boolean dailyStaves() {
+        return CommonConfig.super.dailyStaves();
+    }
+
+    @ConfigItem(
+        keyName = "dailyHerbBoxes",
+        name = "Daily: Herb Boxes",
+        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
+        section = remindersSection,
+        position = 7
+    )
+    @Override
+    default boolean dailyHerbBoxes() {
+        return CommonConfig.super.dailyHerbBoxes();
+    }
+
+    @ConfigItem(
+        keyName = "dailyEssence",
+        name = "Daily: Pure Essence",
+        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
+        section = remindersSection,
+        position = 8
+    )
+    @Override
+    default boolean dailyEssence() {
+        return CommonConfig.super.dailyEssence();
+    }
+
+    @ConfigItem(
+        keyName = "dailyRunes",
+        name = "Daily: Random Runes",
+        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
+        section = remindersSection,
+        position = 9
+    )
+    @Override
+    default boolean dailyRunes() {
+        return CommonConfig.super.dailyRunes();
+    }
+
+    @ConfigItem(
+        keyName = "dailySand",
+        name = "Daily: Sand",
+        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
+        section = remindersSection,
+        position = 10
+    )
+    @Override
+    default boolean dailySand() {
+        return CommonConfig.super.dailySand();
+    }
+
+    @ConfigItem(
+        keyName = "dailyFlax",
+        name = "Daily: Bowstrings",
+        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
+        section = remindersSection,
+        position = 11
+    )
+    @Override
+    default boolean dailyFlax() {
+        return CommonConfig.super.dailyFlax();
+    }
+
+    @ConfigItem(
+        keyName = "dailyBonemeal",
+        name = "Daily: Bonemeal",
+        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
+        section = remindersSection,
+        position = 12
+    )
+    @Override
+    default boolean dailyBonemeal() {
+        return CommonConfig.super.dailyBonemeal();
+    }
+
+    @ConfigItem(
+        keyName = "dailyDynamite",
+        name = "Daily: Dynamite",
+        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
+        section = remindersSection,
+        position = 13
+    )
+    @Override
+    default boolean dailyDynamite() {
+        return CommonConfig.super.dailyDynamite();
+    }
+
+    @ConfigItem(
+        keyName = "dailyArrows",
+        name = "Daily: Ogre Arrows",
+        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
+        section = remindersSection,
+        position = 14
+    )
+    @Override
+    default boolean dailyArrows() {
+        return CommonConfig.super.dailyArrows();
     }
     // ---- End of CommonConfig's settings ----
 

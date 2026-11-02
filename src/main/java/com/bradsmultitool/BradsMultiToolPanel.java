@@ -84,6 +84,8 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final JPanel cardsContainer = new JPanel();
     private final JLabel goalsHeading = foldingHeading("GOALS", "goals");
     private final JLabel sessionHeading = foldingHeading("THIS SESSION", "session");
+    private final JLabel farmingHeading = foldingHeading("FARMING", "farming");
+    private final JLabel rumourHeading = foldingHeading("HUNTER RUMOUR", "rumour");
     // What's laid out now (goal skills, then session skills), so the list is only rebuilt when it changes
     private String cardOrder = "";
     private final Map<Skill, SkillCard> cards = new EnumMap<>(Skill.class);
@@ -232,7 +234,23 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         boolean goalsFolded = plugin.isListCollapsed("goals");
         boolean sessionFolded = plugin.isListCollapsed("session");
-        String order = goals + "|" + session + "|" + goalsFolded + sessionFolded;
+        boolean farmingFolded = plugin.isListCollapsed("farming");
+        List<FarmingTracker.Record> patches = config.farmingPatchList() ? plugin.getFarmingTracker().records()
+            : Collections.emptyList();
+        long now = System.currentTimeMillis() / 1000;
+        StringBuilder farmingText = new StringBuilder();
+        for (FarmingTracker.Record patch : patches) {
+            farmingText.append(patch.title).append(patch.crop).append(patchStatus(patch, now)).append(';');
+        }
+        // Your Hunters' Rumour, if you have one
+        boolean rumourFolded = plugin.isListCollapsed("rumour");
+        List<String[]> rumour = plugin.getHunterRumours().lines();
+        StringBuilder rumourText = new StringBuilder();
+        for (String[] line : rumour) {
+            rumourText.append(line[0]).append(line[1]).append(';');
+        }
+        String order = goals + "|" + session + "|" + goalsFolded + sessionFolded + farmingFolded + rumourFolded + "|" + farmingText
+            + "|" + rumourText;
         if (!order.equals(cardOrder)) {
             cardOrder = order;
             cardsContainer.removeAll();
@@ -256,9 +274,104 @@ public class BradsMultiToolPanel extends PluginPanel {
                     session.forEach(skill -> cardsContainer.add(cards.get(skill)));
                 }
             }
+            if (!rumour.isEmpty()) {
+                setHeading(rumourHeading, "HUNTER RUMOUR", rumourFolded, 1);
+                rumourHeading.setToolTipText(rumourFolded ? "Click to show your Hunters' Rumour" : "Click to hide your Hunters' Rumour");
+                cardsContainer.add(rumourHeading);
+                if (!rumourFolded) {
+                    cardsContainer.add(rumourRow(rumour, plugin.getHunterRumours().places()));
+                }
+            }
+            // Farming patches you've been to, soonest grown first
+            if (!patches.isEmpty()) {
+                setHeading(farmingHeading, "FARMING", farmingFolded, patches.size());
+                farmingHeading.setToolTipText(farmingFolded ? "Click to show your farming patches" : "Click to hide your farming patches");
+                cardsContainer.add(farmingHeading);
+                if (!farmingFolded) {
+                    patches.forEach(patch -> cardsContainer.add(patchRow(patch, now)));
+                }
+            }
             cardsContainer.revalidate();
             cardsContainer.repaint();
         }
+    }
+
+    // "ready", "in 1h 20m", "diseased", "dead"
+    static String patchStatus(FarmingTracker.Record patch, long now) {
+        if (patch.ready(now)) {
+            return "ready";
+        }
+        if (FarmingData.DISEASED.equals(patch.state)) {
+            return "diseased";
+        }
+        if (FarmingData.DEAD.equals(patch.state)) {
+            return "dead";
+        }
+        if (FarmingData.GROWING.equals(patch.state) && patch.grownAt > 0) {
+            // To the minute (the list refreshes once a minute)
+            long minutes = (patch.grownAt - now + 59) / 60;
+            return minutes >= 60 ? "in " + minutes / 60 + "h " + minutes % 60 + "m" : "in " + minutes + "m";
+        }
+        return patch.state.toLowerCase();
+    }
+
+    // One patch: where on the left, crop and when on the right; right-click to forget it
+    private JPanel patchRow(FarmingTracker.Record patch, long now) {
+        JPanel row = new JPanel(new BorderLayout(4, 0));
+        row.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        row.setBorder(new EmptyBorder(3, 6, 3, 6));
+        row.setAlignmentX(Component.CENTER_ALIGNMENT);
+        String status = patchStatus(patch, now);
+        JLabel where = new JLabel("<html>" + patch.title + "<br><font color='#b4b4b4'>" + patch.crop + "</font></html>");
+        where.setFont(FontManager.getRunescapeSmallFont());
+        where.setForeground(Color.WHITE);
+        JLabel when = new JLabel(status, SwingConstants.RIGHT);
+        when.setFont(FontManager.getRunescapeSmallFont());
+        when.setForeground("ready".equals(status) ? HudColors.GOOD : "dead".equals(status) ? HudColors.BAD
+            : "diseased".equals(status) ? HudColors.WARN : Color.LIGHT_GRAY);
+        row.add(where, BorderLayout.CENTER);
+        row.add(when, BorderLayout.EAST);
+        row.setToolTipText(patch.title + ": " + patch.crop + " (as you last saw it)");
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem forget = new JMenuItem("Forget this patch");
+        forget.addActionListener(e -> plugin.getFarmingTracker().forget(patch.key));
+        menu.add(forget);
+        row.setComponentPopupMenu(menu);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+        JPanel wrap = new JPanel(new BorderLayout());
+        wrap.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        wrap.setBorder(new EmptyBorder(0, 0, 3, 0));
+        wrap.add(row);
+        wrap.setAlignmentX(Component.CENTER_ALIGNMENT);
+        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height + 3));
+        return wrap;
+    }
+
+    // The rumour card: a line each (creature, catches, where), hover for every place the creature lives
+    private JPanel rumourRow(List<String[]> lines, List<String> places) {
+        StringBuilder html = new StringBuilder("<html>");
+        for (String[] line : lines) {
+            html.append(html.length() > 6 ? "<br>" : "").append("<font color='#bebebe'>").append(line[0]).append("</font> ")
+                .append(line[1]);
+        }
+        JLabel text = new JLabel(html.append("</html>").toString());
+        text.setFont(FontManager.getRunescapeSmallFont());
+        text.setForeground(Color.WHITE);
+        JPanel row = new JPanel(new BorderLayout());
+        row.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        row.setBorder(new EmptyBorder(4, 6, 4, 6));
+        row.add(text, BorderLayout.CENTER);
+        if (!places.isEmpty()) {
+            row.setToolTipText("<html><b>Where to find it</b><br>" + String.join("<br>", places) + "</html>");
+        }
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+        JPanel wrap = new JPanel(new BorderLayout());
+        wrap.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        wrap.setBorder(new EmptyBorder(0, 0, 6, 0));
+        wrap.add(row);
+        wrap.setAlignmentX(Component.CENTER_ALIGNMENT);
+        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height + 6));
+        return wrap;
     }
 
     // "- GOALS" when open, "+ GOALS (3)" when folded (plain signs: the game font has no arrows)
@@ -459,6 +572,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JPanel stats = new JPanel(new GridLayout(0, 2, 6, 2));
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
+        // Logs, fish, ore, food cooked this session and how many an hour ("Logs: 342 (1,050/hr)")
+        private final JLabel items = stat();
         private final JLabel suggestion = stat();
         // "You're training on ...: track it for your goal?" with Track / Dismiss (see MethodDetector)
         private final JPanel offerRow = new JPanel(new BorderLayout(4, 2));
@@ -515,9 +630,10 @@ public class BradsMultiToolPanel extends PluginPanel {
             offerButtons.add(offerButton("Dismiss", () -> plugin.getMethodDetector().dismiss(skill)));
             offerRow.add(offerButtons, BorderLayout.SOUTH);
             offerRow.setVisible(false);
-            for (JComponent row : new JComponent[]{levelBar, goalBar, suggestion, offerRow}) {
+            items.setVisible(false);
+            for (JComponent row : new JComponent[]{levelBar, goalBar, items, suggestion, offerRow}) {
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
-                row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion || row == offerRow
+                row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion || row == offerRow || row == items
                     ? Integer.MAX_VALUE : row.getPreferredSize().height));
                 bars.add(row);
                 bars.add(Box.createVerticalStrut(3));
@@ -744,6 +860,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             setStat(perHour, "XP/hr", plugin.isSkillAutoPaused(skill) ? "Idle" : paused ? "Paused" : shortNumber(xpPerHour));
             setStat(perMinute, "XP/min", shortNumber(plugin.getSkillXpPerMinute(skill)));
             int goalXp = plugin.getSkillGoal(skill);
+            updateItems();
             // First, as it finds where the current step ends (for the actions count)
             updateSuggestion(level, goalXp, xp);
             updateOffer();
@@ -802,6 +919,19 @@ public class BradsMultiToolPanel extends PluginPanel {
                 actions.setToolTipText(count.tip);
             }
             setStat(actions, count.name, count.value);
+        }
+
+        // "Logs: 342 (1,050/hr)" for each kind of item counted (Show Items Gathered)
+        private void updateItems() {
+            List<String[]> lines = config.showTrackerItems() ? plugin.itemLines(skill) : Collections.emptyList();
+            if (items.isVisible() != !lines.isEmpty()) {
+                items.setVisible(!lines.isEmpty());
+            }
+            List<String> parts = new ArrayList<>();
+            for (String[] line : lines) {
+                parts.add(label(line[0] + ":") + line[1]);
+            }
+            setText(items, "<html>" + String.join("<br>", parts) + "</html>");
         }
 
         // The wiki guide's method for this level, and what to switch to before the goal
@@ -863,6 +993,14 @@ public class BradsMultiToolPanel extends PluginPanel {
                 GoalLines.ItemLine item = GoalLines.itemLine(plugin, skill);
                 if (item != null) {
                     lines.add(label(item.label) + item.item + " " + label(item.have));
+                }
+                double banked = plugin.getGoalItems().bankedXp(skill);
+                if (banked >= 1 && config.showBankedXp()) {
+                    lines.add(label("Banked:") + shortNumber((long) banked) + " XP");
+                }
+                long materials = plugin.getGoalItems().materialsValue(skill);
+                if (materials > 0 && config.showMaterialsValue()) {
+                    lines.add(label("Materials:") + shortNumber(materials) + " gp");
                 }
                 // Combat goals: how fast you're killing (faster with potions and better gear)
                 String killRate = GoalLines.killRate(plugin, skill);

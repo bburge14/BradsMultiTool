@@ -5,7 +5,7 @@ configuration panel (the wrench icon) under **Snuffy's Toolbelt**; each section 
 section to open. In the Toolbelt, sections are named after their plugin and
 grouped in order: About, General, Idle, then **PvM:** (HUD, Buff Bar, Potion Buffs, Health, Prayer, Combat Alerts,
 Supply Alerts), **Slayer:** (Card, Monsters, Alerts), **GemCrab:** (Crab, Colours), **Skilling:** (Tracker, Goals,
-Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, and Other Skills for the rest), and
+Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, Other Skills for the rest, and Minigames), and
 **Tick:** (Counter, Boxes, Bar, Metronome, Click Timing). Each separate plugin has the same sections without the
 plugin's name, and the Skilling Helper gives every skill its own. All start collapsed except About and General.
 
@@ -21,10 +21,13 @@ plugin's name, and the Skilling Helper gives every skill its own. All start coll
 - [Skilling hover cards](#skilling-hover-cards)
 - [Resource timers](#resource-timers)
 - [Skilling alerts](#skilling-alerts)
+- [Hunters' Rumours card](#hunters-rumours-card)
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
 - [Tick counter and metronome](#tick-counter-and-metronome)
 - [Idle alerts](#idle-alerts)
+- [Agility](#agility)
+- [Minigames: Wintertodt, Tempoross, Guardians of the Rift](#minigames-wintertodt-tempoross-guardians-of-the-rift)
 - [Issues? button](#issues-button)
 
 ---
@@ -43,6 +46,10 @@ message uses the same words as the voice line, with details in brackets.
 - **General > Same Voice For All** (on by default): with several of Snuffy's plugins installed, changing the
   voice or volume in one changes it in the others too, and one you install later picks it up. Turn it off in a
   plugin to give that plugin its own voice.
+- **General > Speak Only When Unfocused** (off by default): alerts are only spoken while the RuneLite window
+  isn't the one you're using (you're in a browser, say); chat messages still post. Like RuneLite's own
+  notifications, which by default don't show while the client is focused. The preview a Voice switch plays still
+  speaks.
 
 **Good to know:** No alert fires before you click "Click here to play", and anything already true when
 you log in (low prayer, poisoned...) isn't announced.
@@ -58,12 +65,15 @@ style, DPS, and your last and max hit. It stays up for a few seconds after the f
   time left (a freeze spell's impact), and its Defence after your special attacks lower it (Dragon warhammer
   30%, Elder maul 35%, Bandos godsword by the damage, Arclight/Emberlight), e.g. "Defence: 112 (-48)",
   estimated from the wiki's Defence level.
+- **Loot value:** "Loot: 1.25M (850K/h)": the Grand Exchange value of what the monsters you killed dropped this
+  session (RuneLite's kill loot, priced as its Loot Tracker does), and per hour from your first hit (shown after a
+  minute). Kill drops only: chests, raids and clue caskets aren't counted.
 
 **How to use:** Attack anything. The HUD can be moved like any RuneLite overlay (hold Alt and drag).
-Right-click the HUD > **Reset** clears this session's damage and DPS.
+Right-click the HUD > **Reset** clears this session's damage, DPS and loot.
 
 **Settings (PvM HUD):** Show PvM HUD; Show Monster Effects; DPS Mode (Per Monster, Per Type, or the whole
-session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status.
+session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status; Show Loot Value.
 
 ---
 
@@ -72,12 +82,15 @@ session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro 
 **What it does:** Hover an attackable monster to see its HP, weakness (green if your current style hits it,
 red if not), what it attacks with, and whether it will be aggressive to you. Aggression follows the
 game's rules: monsters ignore players over twice their level (except in the Wilderness), God Wars
-followers go by your god items, vyre noble clothing and greegrees protect you.
+followers go by your god items, vyre noble clothing and greegrees protect you. It also shows the wiki's
+**max hit** for each of its attacks (up to three, e.g. "60 (melee), 35 (ranged)") and its **attack speed**
+("4 ticks (2.4s)"): how often it attacks, never a countdown to its next attack. With a kill goal set on that
+monster, a **Kill Goal** line shows your progress ("37 / 200").
 
 **How to use:** Hover a monster. The card follows the game's left-click option, so it only shows when
 the top-left tooltip names the monster.
 
-**Settings:** PvM HUD > Monster Hover Card. With **Skilling Hover Cards > Skill Cards With Auto Retaliate Off** on
+**Settings:** PvM HUD > Monster Hover Card, Show Max Hit and Speed. With **Skilling Hover Cards > Skill Cards With Auto Retaliate Off** on
 and auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 
 ---
@@ -98,8 +111,12 @@ Repeat Expired Alert, Repeat Every, Max Repeats; Voice/Chat switches.
 
 **What it does:** Your buffs and debuffs as a row of icons, like RS3's: each potion boost (super combat,
 divine, ranging...) with its boost and time left, antifire / super antifire, stamina, antipoison / antivenom,
-and any other stat boosted above your level (Hitpoints from an anglerfish) in green; poisoned, venomed and stats
-drained below your level in red. Hover an icon for its name. With it on, the PvM HUD leaves the potion rows to
+overload (one icon for all its boosts; smelling salts in the Tombs of Amascut), prayer regeneration potion,
+staff of the dead's special (a minute, gone when you take the staff off), vengeance (ready to rebound, and its
+30-second cooldown), the imbued / saturated heart's cooldown, and any other stat boosted above your level
+(Hitpoints from an anglerfish) in green; poisoned, venomed, **frozen** (the spell's full length, "~", gone as soon
+as you move) and **teleblocked** with time left, and stats drained below your level in red. Timers read the same
+game values as RuneLite's Timers and Buffs plugin (overload is to about 15 seconds, so it has a "~"). Hover an icon for its name. With it on, the PvM HUD leaves the potion rows to
 it (the running-out and expired alerts carry on).
 
 **How to use:** It sits above the chat box on the right; move it with Alt + drag.
@@ -122,9 +139,24 @@ Prayer' Flash; Repeat Voice Alert, Repeat Every, Max Repeats; Voice/Chat switche
 ## Combat alerts
 
 **What it does:** Special attack ready (only after you've used it), antifire running out, poisoned or
-venomed (and poison protection ending), stamina worn off, low ammo, out of runes, cannon low.
+venomed (and poison protection ending), stamina worn off, low ammo, out of runes, cannon low. Two more, off by
+default:
+- **Wrong Protection Prayer:** a monster attacking you only attacks one way (every attack style the wiki lists
+  is stopped by the same prayer, e.g. a gargoyle: melee) and the protection prayer you have on is a different
+  one. Said once per monster (again if you switch to another wrong one). With no protection prayer on it stays
+  quiet, and monsters with more than one style (or dragonfire, typeless hits) never count: it never guesses what
+  a monster does next.
+- **Unpotted Reminder:** you start a fight (after a minute without one) with no combat boost. **Boosts That
+  Count:** Any Combat Stat (Attack, Strength, Defence, Ranged or Magic above your level) or Your Style's (Attack
+  or Strength for melee, Ranged, Magic). At most once every two minutes.
+- **Death alert:** when you die, a voice line and a chat message saying where (coordinates; "in the Wilderness" or
+  "in an instance" when so). **Gravestone Timer:** an info box (bones icon) counting down the 15 minutes your
+  gravestone keeps your items; like the game, it only counts while you're logged in. Only after a death where you
+  lost items, and not in instances (Death's Office or the boss's reclaim) or the Wilderness (no gravestone); it goes
+  when the time's up or you're back at the spot. With a Death Indicator plugin on, the clash note says so.
 
-**Settings (Combat Alerts):** A switch for each, plus Spec Alert At, Low Ammo At and Cannon Low At.
+**Settings (Combat Alerts):** A switch for each, plus Spec Alert At, Low Ammo At and Cannon Low At, Boosts That
+Count; Death Alert, Gravestone Timer; Voice/Chat switches.
 
 ---
 
@@ -136,6 +168,18 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
   way), the item the task needs (red if you don't have it) and **Where To Go**: the wiki's places to kill it,
   each marked Multi / Cannon / Safespot (Wilderness places last), and the fastest ways to get to the first
   one. Right-click the card > **Show all / fewer places** to list every place instead of Places Shown.
+- **Points and streak** (on a task and without one): your Slayer points and task streak, read like RuneLite's
+  Slayer plugin (Krystilia and Mortimer keep their own streak). When the next task is a 10th, 50th, 100th, 250th or
+  1000th it says so in gold with its bonus ("15x points, pick your master"), and the **Next Task Is a Milestone**
+  alert says it the moment you finish the task before, so you can get the milestone from the master that gives the
+  most points.
+- **Supplies Used:** food eaten and potion doses drunk since the task started (from the game's "You eat" / "You
+  drink some of your" messages), kept if you log out and back in on the same task.
+- **Kill Goals:** right-click any monster > **Set kill goal** and type how many to kill (in the chat box). Each
+  kill (a monster you hit that dies) counts; the card lists your goals with their progress (unfinished first),
+  the monster's hover card shows its own, and **Kill Goal Reached** says when you get there. **Clear kill goal**
+  on the monster's menu removes one; the card's right-click > **Clear finished kill goals** removes the done ones.
+  Saved with your RuneScape profile. Works on and off task.
 - **No task:** the best Slayer master for your combat and Slayer level, any quest they need, where they
   are and the fastest ways there, and the next master you'll unlock (and what it needs).
 
@@ -149,14 +193,20 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
   shield...; red "missing" if you don't have it), which task it counts for ("on task" in green), and its
   Slayer XP. Hover one in the wrong place on a Konar task and it says "Wrong place: Konar wants these in
   ..., kills here won't count"; hover a Slayer monster that isn't your task and it shows your task.
+- **Finish-off marker:** a lizard, small or desert lizard (ice cooler, at 4 HP or less), gargoyle (rock hammer,
+  9), rockslug (bag of salt, 4) or mutated / ancient zygomite (fungicide spray, 7) gets the item's picture over its
+  head once it's low enough to finish, worked out from its health bar and the wiki's hitpoints (so only once the
+  bar shows). RuneLite's Slayer plugin marks its task monsters the same way (Show Monster Weakness, on by
+  default; not lizards): while it does, ours leaves those to it and still marks lizards and off-task ones.
 
 **How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which); it stays that
 way after a restart.
 
 **Settings (Slayer):** Show Slayer Card; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
 Prayer; Required Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
-Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned,
-Task Complete, Task Halfway and Task Nearly Done (at 10 left by default, 0 off) alerts with Voice/Chat switches.
+Master; Points and Streak; Supplies Used; Kill Goals; Slayer Info on Monsters; Highlight Task Monsters and its
+colour; Finish-Off Marker; Missing Item Warning; Superior Spawned, Task Complete, Task Halfway, Task Nearly Done (at
+10 left by default, 0 off) and Next Task Is a Milestone alerts, and Kill Goal Reached, with Voice/Chat switches.
 
 ---
 
@@ -229,7 +279,7 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 | Depleted rocks (any rock you mine out while you're there: copper to runite, lead, nickel, gem rocks, amethyst...) | Time until the ore is back, exactly: the game announces each rock's respawn time to the client, and that's what it counts down (as RuneLite's Mining plugin does): a pie on the rock that empties as the ore comes back (red, yellow, then green), like RuneLite's Mining plugin | Mining > Mining Timers |
 | Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timers |
 | Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | Spots move at a random time 2.5-5 minutes after they appear, so this shows the window: green until the earliest it can move, then a red ring filling up to the latest; hover for the times. Above it, how long ago it appeared ("1:42") and the Fishing icon, ringed in gold on the newest spot (the least likely to move soon) with **Mark Newest Spot** on (off by default); and the spot you fish is outlined in **Your Spot Colour**. A spot that outlives 5 minutes without being seen to move starts over | Fishing > Fishing Spot Timers, Mark Newest Spot, Your Spot Colour |
-| Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timers |
+| Your traps | Time until it collapses (green once something's caught; a full pie in **Failed Trap Colour**, purple, saying "Empty" once it springs with nothing in it, so you reset it; as RuneLite's Hunter plugin colours an empty trap) | Hunter > Trap Timers, Failed Trap Colour |
 | Fires you cook on (lit while you were nearby) | Fires go out at a random time 60-119 s after lighting: green until the earliest, then a red ring filling up to the latest; hover for the times. Off by default | Firemaking > Fire Timers |
 | Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Campfire Timers |
 | Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Timers |
@@ -265,9 +315,52 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 |---|---|---|
 | Tree fallen / rock depleted / fishing spot moved | Your resource is gone ("The tree has fallen."); not for level 1 trees and rocks, which go after one log or ore | Skilling Alerts > Resource Gone |
 | Inventory full | Your inventory fills while skilling | Skilling Alerts > Inventory Full |
+| Forestry event | An event starts near you while you're chopping (Rising Roots, Struggling Sapling, Flowering Tree, Leprechaun, Poachers, Pheasant Control, Bee Hive, Enchantment Ritual, Friendly Ent; chat names it). RuneLite's Woodcutting plugin outlines what each event needs | Woodcutting > Voice/Chat: Forestry Event |
+| Motherlode sack full | The pay-dirt you carry fills the sack (what's in it plus yours reaches 108, or 189 upgraded): empty it before mining more. RuneLite's Motherlode plugin turns the sack numbers red at the same point | Mining > Voice/Chat: Motherlode Sack Full |
+| Boat health low | On your own boat, its hitpoints drop below **Boat Health Low At** (30% of its most); once until it's repaired above that | Sailing > Voice/Chat: Boat Health Low |
+| Trim sails | On your own boat, a gust opens the window to trim the sails for a burst of speed (the game's buff bar times the same window) | Sailing > Voice/Chat: Trim Sails |
+| Bird nest | A bird's nest falls out of the tree (chat says when it's a clue nest) | Woodcutting > Voice/Chat: Bird Nest |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
+| Farming patches ready | Patches you've planted are grown (chat names them; once per crop). Uses each patch as you last saw it | Farming > Patches Ready Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
+| Rumour complete | Your Hunters' Rumour creature's rare part drops ("take the part to the Hunter Guild"; chat says how many you caught) | Hunter > Voice/Chat: Rumour Complete |
 | Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling Alerts > Batch Complete |
+
+---
+
+## Farming patch list
+
+**What it does:** A **FARMING** list at the bottom of the sidebar: every patch you've been to with something in it,
+what's growing and when it's grown ("ready" in green, "in 1h 20m", "diseased", "dead"), soonest first.
+
+**How to use:** Just farm: the game only tells us a patch's state while you're near it, so each patch is saved as you
+last saw it (kept between logins, per account). Click the heading to fold the list; right-click a patch to forget it.
+**Farming > Patches Ready Alert** says when patches you've planted are grown. Settings: Farming Patch List, Patches
+Ready Alert, Voice/Chat: Patches Ready.
+
+**Good to know:** Grown times are estimates to within a growth cycle (crops grow on the game's clock). Disease can
+strike after you leave; the list only knows what it last saw. RuneLite's Time Tracking plugin keeps a similar list
+in its own panel.
+
+---
+
+## Hunters' Rumours card
+
+**What it does:** A **HUNTER RUMOUR** card in the sidebar (and on the pinned skill when Hunter is pinned) while you
+have a rumour: the creature and its method ("Pyre fox (Deadfall), for Gilman"), **Caught:** how many you've caught
+since and the catch the rare part is guaranteed by ("12 (rare part by 30)"; lower with each guild hunter outfit
+piece you wear), and **Where:** the first place to find it (hover the card for all of them). Once the rare part
+drops it says so, with a voice/chat alert; handing the rumour in clears the card.
+
+**How to use:** Take a rumour from a guild hunter, or use the Quetzal whistle's **Rumour** option, and the card
+appears. Click the heading to fold it. Settings: **Hunter > Rumour Card**, Voice/Chat: Rumour Complete.
+
+**Good to know:** The game keeps no variable for the rumour, so it's read the way the Hunter Rumours plugin reads
+it: from the hunters' dialogue and the whistle message (kept with your profile). Catches are counted from Hunter XP
+drops matching the creature's XP, so two catches in the same tick count as one, and catches made before the card
+knew your rumour (or before this feature) aren't in the count. Locations, methods and pity thresholds are the wiki's
+Hunters' Rumours page. Only information: nothing is clicked, scrolled or changed. With the Hunter Rumours plugin on
+too, you'll see both (clash note).
 
 ---
 
@@ -290,13 +383,22 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
   right-click the overlay > Unpin, or the card > Unpin from screen to remove it. It stays pinned after a
   restart, and its card stays in the sidebar the whole time, even before you've trained it this session or
   after a Reset.
-- A skill's rate clock **auto-pauses** after a while without XP (**Auto-Pause After**: 10 seconds to an hour, 5 minutes by default) and
+- A skill's rate clock **auto-pauses** after a while without XP (**Auto-Pause After**: 10 seconds to an hour, 10 seconds by default) and
   resumes on your next XP.
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
+- **Items gathered**: Woodcutting, Fishing, Mining and Cooking cards (and the pinned skill) count what you got
+  this session and how many an hour on the skill's XP/hr clock: "Logs: 342 (1,050/hr)", "Fish:", "Ore:" and
+  "Gems:", "Cooked: 120 (1,400/hr), 4 burnt (3%)". Counted from the game's chat messages (as RuneLite's
+  Woodcutting, Fishing and Cooking plugins do), one per message, so a double catch counts once. Reset rate
+  or Reset clears them (**Show Items Gathered**).
+- **Keep Session After Restart** (30 minutes by default; 0 turns it off): close the client and log back in to the
+  same account within that time of logging out (or of your last XP, if the client closed without logging out) and
+  the tracker carries on with that session's XP, rates, actions and items; chat says so. XP gained elsewhere in
+  between (mobile) isn't added. Reset all skills starts afresh. Like RuneLite's XP Tracker keeping its session.
 
 **Settings (Skill Tracker):** a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
 Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
-(minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up.
+(minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up; Show Items Gathered; Keep Session After Restart.
 
 ---
 
@@ -398,6 +500,10 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
    clears itself, with a chat line ("Fishing goal reached (level 53): cleared"); turn off **Clear Goals When
    Reached** to keep reached goals (they show Done!).
 
+**Skills tab goal bars:** on the game's Skills tab, each skill with a goal gets a thin gold bar along its bottom,
+filled as far as the card's goal bar (**Goals > Skills Tab Goal Bars**). It's drawn over the tab; the tab itself
+isn't changed. The Skills Progress plugin draws its own bars there too (clash note).
+
 Goals are saved with your RuneScape profile, so they stay after a relaunch. The Toolbelt and the Skilling Helper
 share them (and your Track for goal picks, Suggest choices and pinned skill), so switching between them keeps
 your goals. To have them on another PC,
@@ -414,9 +520,10 @@ Actions Until Goal (the actions field counts to the goal instead of the next lev
 method changes before the goal it counts to the end of the step you're on). Hover the count: it says what it
 counts to, and with a goal shows both, "Next level: 120 actions" and "Your goal: 4,300 actions", marking the
 one shown.
-Once you're getting XP, the count uses the average of your last 30 XP drops in the skill (shown with a "~";
-hover for the XP each), so a method that gives different XP each time (trout and salmon, 17 and 18 XP for a
-17.5 XP action) doesn't make it jump around.
+Once you're getting XP, Fishing's count uses the average of your last 30 XP drops (shown with a "~"; hover for
+the XP each), since one spot catches different fish (trout and salmon). Every other skill uses your usual XP drop
+(the most common of your last 30), so a one-off, like tagging an arena pillar between floor spikes, doesn't throw
+it off.
 Before your first XP drop in the skill, the count uses the XP per action of what you're suggested (or
 picked with Track for goal, or can make from your items), shown with a "~" (a method catching several fish, like fly fishing's trout and salmon, counts the average
 XP of those you can catch). Attack, Strength, Defence,
@@ -430,6 +537,12 @@ Combat goal cards (and the pinned overlay) also show your **Kill rate** on your 
 you killed last), e.g. "Kill rate: Sand Crab: 52/hr (1:09 each)", over your kills in the last hour once you've
 killed it twice. Potions and better gear show up here as faster kills; they don't change the kills a goal needs
 (combat XP comes from damage, and a kill can only take its hitpoints).
+
+- **Banked XP** (Goals > Show Banked XP): on a production skill's goal (Cooking, Herblore, Prayer, Fletching...), a
+  "Banked: 1.2M XP" line: the XP in what's in your bank and inventory at your level, the most XP things first, each
+  material counted once. Just a figure; it doesn't change what's suggested. Shows once you've opened your bank.
+- **Materials value** (Goals > Show Materials Value): under it, "Materials: 1.2M gp", the Grand Exchange value of
+  the materials counted in Banked XP. Just a figure.
 
 ---
 
@@ -462,8 +575,32 @@ clicks; it never clicks, changes a menu or does anything for you.
 - The first tick of each cycle is in its own colour (green by default).
 - **Metronome:** a game sound on every tick, and a different one on the first tick of the cycle. The **Tone**
   is Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, or Tinderbox. It can play on the first tick only.
-- **Follow Attack Speed:** the cycle becomes your weapon's attack speed (one tick faster on Rapid), and the
-  count starts again at 1 each time you attack, so 1 is your attack tick.
+- **Follow Attack Speed:** an attack timer for your own attacks (never a monster's). The cycle becomes your
+  attack speed (the weapon's, one tick faster on Rapid, 5 for spells: 6 on the Twinflame staff, 4 on the
+  harmonised nightmare staff), and the count starts again at 1 each time you attack, so 1 is your attack tick.
+  - An attack only counts once your last one's delay has run out, and eating, blocking a hit, alching or
+    pickpocketing never count as one (nor does fishing or talking to an NPC: only something you can fight).
+  - The cycle is the speed of the attack you made: swapping weapon afterwards changes the next one, not this one
+    (a swap on the attack tick itself counts for that attack).
+  - **Eating** delays your next attack, as in the game: 3 ticks, 2 for karambwans, halibut and gnome foods, 4
+    for the Stymphike tartare; wine and lumpy barbarian potions count as food. While the extra ticks pass the
+    count stays on 1 (and Count Down shows the real number of ticks left).
+  - **Count Down To Attack:** the count over your head counts down the ticks to your next possible attack (4,
+    3, 2, 1, then you can attack), and the box numbers run 4, 3, 2, 1 too (half boxes 3.5, 2.5...). When
+    you're not fighting it loops like the normal count.
+  - **Late Ticks** (5 by default, 0 off): after an attack, once you could attack again but haven't, the count
+    over your head shows how many ticks late you are in red (-1, -2...), up to that many; then it goes back to
+    counting. Works with counting up or down.
+  - The cases come from the Plugin Hub's Attack Timer Metronome (BSD-2, credited in the README). It also knows
+    boss-specific speed changes (Scurrius, ToA, Yama...), spell-sound casts without an animation and special
+    weapons; ours doesn't.
+- **Hotkeys** (Hotkeys section; none set at first):
+  - **Reset Count:** press on the tick you want as 1: the cycle starts again from 1 there (with Follow Attack
+    Speed it also forgets your last attack, so the late count stops).
+  - **Show/Hide:** hides or shows the tick count, boxes and bar (says which in chat); the metronome and click
+    sounds keep playing. Turning the plugin off and on shows them again.
+  - **Ticks Per Cycle Up / Down:** one more or one less (1-10), saved like changing the setting, with a chat
+    line saying the new number (and when Follow Attack Speed or a Tick Pattern sets the cycle instead).
 - **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head: green
   in the ideal zone, white elsewhere before Late After, red when late. The tick bar shades the **ideal zone**
   green (**Ideal From** to **Ideal To**, 100-350ms by default) and the late part orange, and marks your last
@@ -481,10 +618,11 @@ clicks; it never clicks, changes a menu or does anything for you.
 3-tick skilling), or turn on **Follow Attack Speed** for combat. Turn on **Metronome** to hear it. For 1-ticking, set Ticks Per Cycle to 1 and
 turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 
-**Settings (Tick Counter, Tick Boxes, Tick Bar, Metronome, Click Timing):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
-Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
+**Settings (Tick Counter, Tick Boxes, Tick Bar, Metronome, Click Timing, Hotkeys):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
+Ticks Per Cycle (1-10); Follow Attack Speed, Count Down To Attack, Late Ticks (0-20); Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
-volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.
+volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick; Reset Count,
+Show/Hide, Ticks Per Cycle Up and Ticks Per Cycle Down hotkeys.
 
 ---
 
@@ -495,11 +633,117 @@ volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Idea
   since. Banking, shops, the GE and menus never set it off.
 - **Idle logout warning:** before the game logs you out for inactivity (follows RuneLite's Logout Timer
   setting; in combat the game's 20-minute rule).
+- **Six-hour logout warning:** the game logs you out after six hours online; this warns twenty minutes before
+  (counted from when you logged in or hopped worlds), with a RuneLite notification too. RuneLite's Idle Notifier has
+  the same notification.
+- **Run energy low** (off at first): "Your run energy is low" anywhere when your run energy drops below **Run
+  Energy Low Below**; it can go again once energy is 10 above that. While it's on, the Agility section's own
+  run energy alert (only while training Agility) stays quiet, so you never hear both.
+- **Run energy restored** (off at first): "Your run energy is restored" when your energy is back up to **Run
+  Energy Restored At** (100 for full), after it had dropped at least 10 below it, so a step or two of running
+  doesn't set it off. Not at login.
+- With several of Snuffy's plugins installed these are said once, like the idle warnings.
 
 **Settings (Idle):** AFK Alert and Idle Alert After (seconds); Warn Before Logout (seconds); Repeat
-Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
+Logout Warning, Repeat Every, Max Repeats; Six-Hour Logout Warning; Run Energy Low Below and Run Energy Restored
+At (%, 0 off); Voice/Chat switches.
 
 ---
+
+## Reminders (clue drops and dailies)
+
+Every plugin but the Tick Counter has these; with several installed only one says them.
+
+**What it does:**
+- **Clue drop alert:** a clue scroll in the drop of a monster you killed, or a clue bottle, clue geode, clue nest or
+  scroll box from skilling arriving in your inventory: "Clue: a hard clue scroll from Abyssal demon!" (the tier from
+  the item's name). Taking one out of the bank, the GE or a deposit box doesn't count, and picking up a dropped one
+  isn't said twice.
+- **Daily reminders:** at login (and at the daily reset, 00:00 UTC), one chat line listing the daily rewards you've
+  unlocked but not collected, as RuneLite's Daily Task Indicator does: battlestaves (Zaff, Varrock easy diary), herb
+  boxes (Nightmare Zone, 9,500 points; not Ironmen), pure essence (Wizard Cromperty, Ardougne medium), random runes
+  (Lundail, Wilderness easy), sand (Bert, The Hand in the Sand; not Ultimate Ironmen), bowstrings (Flax keeper,
+  Kandarin easy), bonemeal and slime (Robin, Morytania medium and up), dynamite (Thirus, Kourend & Kebos medium),
+  ogre arrows (Rantz, Western Provinces easy). Members only. Kingdom of Miscellania isn't in it: its favour and
+  coffers aren't a daily collection, and RuneLite's plugin doesn't track them either. With RuneLite's Daily Task
+  Indicator on too, the clash note says so.
+
+**Settings (Reminders):** Clue Drop Alert; Daily Reminders and a switch for each daily; Voice/Chat switches.
+
+---
+
+## Agility
+
+**What it does:**
+- **Course Card:** while you run a course, its card shows your laps this session (from the game's lap count message),
+  laps and XP per hour (XP per lap is worked out from your own laps), average lap time, laps to your next level and
+  to your goal, and marks of grace picked up. It stays five minutes after your last lap.
+- **Brimhaven Arena Card:** in the Brimhaven Agility Arena, a bar counting down to the ticket pillar moving (every
+  minute; it starts once the pillar's arrow first moves), yellow then red near the end, plus your tickets this
+  session and per hour. **Voice/Chat: Pillar About to Move** warns you **Pillar Warning At** seconds before (10).
+- **Arena Obstacle Colours:** in the arena, each obstacle is outlined by your Agility level: **green** you can do it
+  and won't fail, **yellow** you can do it but may fail (floor spikes until 50, spinning blades and darts until 99,
+  the wrong plank), **red** your level is too low. Planks: of each gap's three, the two broken ones are red and the
+  smooth one green, told apart by their broken pieces (until it can tell, all three are yellow). Hover one (Obstacle Hover; it works on the ones you can't click
+  too, like floor spikes and pressure pads) for its level, XP, time, XP per tick,
+  your chance to get across, and whether it's the best XP per tick you can do safely.
+- **Arena Route:** the quickest way to the tagged pillar, drawn as a line from you across the pillars with its obstacles
+  outlined thicker and the pillar's tile marked. It only uses obstacles your level allows (and leaves out any you'd fail more often than not) and counts each one's time,
+  the walk across each pillar and the time a fall would cost you. The arena card shows how many obstacles and about
+  how long. It's worked out from the obstacles loaded around you, so it can only route through what the game has
+  loaded. The arena's pillars stand on a 5 by 5 grid (not every pillar has a ticket dispenser, but they all count),
+  and the route is worked out again every game tick from the pillar nearest you, so it follows you as you go.
+  **Arena Route on Minimap** draws it on the minimap too, with a dot on the tagged pillar.
+  **Arena Route Readout** adds what it found to the card (obstacles, links, the pillar nearest you, each step), for
+  checking.
+- **One Obstacle Training:** cross the same obstacle over and over instead of running a course (the arena's floor
+  spikes back and forth, or any Agility shortcut anywhere), and after three reps in a row a card shows it: reps, reps
+  and XP per hour, reps to your next level and goal. In the arena it's on the arena card, that obstacle is outlined
+  thicker, and the route and the pillar warning step aside until you stop (a minute without a rep), tag a pillar or move
+  on to another obstacle. Laps on a course count on the Course Card instead.
+- **Single obstacles as your method:** the arena obstacles worth repeating (rope swing, pressure pad, floor spikes,
+  spinning blades, darts) are each in the Agility card's **Method** list from their level to 99, with their best XP
+  per hour; pick one and it's your suggestion and gets outlined. Right-click one in the arena and **Track for goal**
+  picks it too (while Agility has a goal).
+- **Run Energy Alert Below:** while you're training Agility, an alert ("Your run energy is low") when your run
+  energy drops below this (15%; 0 turns it off).
+- **Obstacle Hover:** hovering an obstacle or shortcut shows its level, the course XP per lap and laps to level.
+
+RuneLite's own Agility plugin has an arena timer and a lap counter too, and its Show Clickboxes outlines most arena
+obstacles (Snuffy's colours leave those to it); with any of them on, Snuffy's clash warning says so.
+**Settings (Agility):** Obstacle Hover, Course Card, Brimhaven Arena Card, Pillar Warning At, Voice/Chat: Pillar
+About to Move (both on), Arena Obstacle Colours, Arena Route, Arena Route on Minimap, Arena Route Readout, One Obstacle Training, Run Energy Alert Below,
+Voice/Chat: Run Energy Low.
+
+## Minigames: Wintertodt, Tempoross, Guardians of the Rift
+
+**What it does:** a small card (top left) and voice/chat alerts in each of these minigames, only while you're in it.
+Everything comes from the game's own boxes, chat and your inventory: information only, nothing is clicked, outlined,
+hidden or reordered for you.
+
+- **Wintertodt** (in its room): the card shows your **warmth** (red below Warmth Low At), the Wintertodt's
+  **energy**, your **points** this round (green from 500, a reward crate), the **roots / kindling** you carry, and
+  between rounds when the next one starts. Alerts: **Round Starting** (5 seconds before), **Brazier Out / Broken**
+  (your brazier goes out, or breaks and hits you), **Out of Roots** (you run out while fletching or feeding),
+  **Cold Stopped You** (the cold or snowfall hit you and stopped fletching, feeding, lighting or fixing; chopping
+  carries on, so it says nothing then), **Warmth Low** (below **Warmth Low At**, 30%; once until it's back 10 above).
+- **Tempoross** (while its box shows): the card shows its **energy** and **essence**, the **storm** (orange from
+  70%, red from 90%: the game is lost when it fills), your **points** (green from 2,000, a reward permit), the raw
+  and cooked fish you carry and the **damage** they'd do in the cannon (raw 10, cooked 15). Alerts: **Wave
+  Incoming** (tether to a mast or totem), **Fire Near You** (lightning about to strike within 6 tiles of you; at
+  most once every 20 seconds), **Double Fishing Spot**, **Vulnerable** (attack it; the next phase starts).
+- **Guardians of the Rift** (while its box shows): the card shows the Great Guardian's **power**, your elemental /
+  catalytic **energy**, guardians built, the **two altars open now** with the Runecraft level each needs (green you
+  can use it, red your level is too low; boosts count), and where the **portal** is while it's open. Alerts: **Game
+  Starting** (10 seconds before the rift opens), **Portal Opened** (chat says where, like "south west"; not while
+  you're in the huge guardian remains yourself).
+
+**Good to know:** RuneLite's own Wintertodt plugin can notify you of the same things, and the Tempoross and Guardians
+of the Rift Helper Plugin Hub plugins have their own notifications; with any of them on, Snuffy's clash warning says
+so. Those plugins also outline things (fires, totems, guardians) that these cards leave to them.
+**Settings (Minigames):** Wintertodt Card, Voice/Chat: Round Starting, Brazier Out / Broken, Out of Roots, Cold
+Stopped You, Warmth Low, Warmth Low At; Tempoross Card, Voice/Chat: Wave Incoming, Fire Near You, Double Fishing
+Spot, Vulnerable; Guardians of the Rift Card, Voice/Chat: Game Starting, Portal Opened (all on).
 
 ## Issues? button
 

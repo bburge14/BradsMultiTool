@@ -28,7 +28,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 
 | File | Script | Source |
 |---|---|---|
-| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions, Slayer level, XP and task; monsters the wiki has no NPC id for yet are kept by name ("unlisted") |
+| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions, Slayer level, XP and task, max hits and attack speed (`fields` names each column); monsters the wiki has no NPC id for yet are kept by name ("unlisted") |
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
@@ -36,7 +36,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `money.json` | `update_money_data.py` | Wiki: money making guides (skill, requirements, profit) |
 | `training.json` | `update_training_data.py` | Wiki: training guides' methods by level, each with what it trains on (its section's Main links), the guide's first sentences about it, and its table by level (level, item, ingredients, XP) where it has one; where the guide says to do it (links to the wiki's location pages in its list of spots or in "located in"/"at the" sentences, not ones about buying, rewards or requirements); the quests each method and row needs (finished, or "started" where the guide says partial completion; a row's from the item's infobox quest) |
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
-| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter, Runecraft, burn levels, cooking and smithing recipes, Agility, Sailing, fishing spots (every spot type by NPC id) |
+| `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter (and Hunters' Rumours: locations, method, pity threshold; `--only hunter rumours` refreshes just those), Runecraft, burn levels, cooking and smithing recipes, Agility (and the Brimhaven Arena's obstacles), Sailing, fishing spots (every spot type by NPC id) |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](../VOICE_CREDITS.md)) |
 | `icons/skilltracker.png` (the tracker's sidebar tab: the Skilling logo, in the all-in-one too), `assets/hub/` and `icon.png` (Plugin Hub icons) | `update_icons.py` (needs Pillow) | The logos in `assets/` (MultiTool, Skilling, PvM, GemCrab, Alerts) |
 
@@ -49,8 +49,8 @@ below).
 
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
-| **Snuffy's Skilling Helper** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
-| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
+| **Snuffy's Skilling Helper** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, rumour complete, batch complete) + `shared` |
+| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, wrong prayer, unpotted, Slayer task/superior/item/milestone, kill goal) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
 | **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts, potion buffs and their alerts | `gemcrab` (crab moved, about to burrow) + `potions` + `shared` |
 | **Snuffy's Tick Counter** | Tick count over head, tick boxes, tick bar, metronome, click timing (its own plugin so neither the skilling nor the PvM side carries a second copy) | none (game sounds only) |
 | **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
@@ -106,7 +106,7 @@ Rules that keep the split working:
 ### Voice lines
 
 Every plugin ships its own clips (only its folder under `voices/<voice>/`, plus `shared` for the idle and
-logout warnings) and keeps the switches for its lines in its own settings sections, so it works alone.
+logout warnings and the run energy alerts, which Agility's own run energy alert also uses) and keeps the switches for its lines in its own settings sections, so it works alone.
 `VoiceAlertService.VoicePlugin` (and `plugin_of()` in `generate_voice_clips.py`) says which folder a clip
 belongs to; add new lines there too.
 
@@ -146,6 +146,15 @@ The Plugin Hub builds a plugin from the root of a repository, at a commit named 
 `runelite/plugin-hub`'s `plugins/` folder (`repository=...` and `commit=...`). A `plugins/<folder>` here is
 already laid out that way, so publishing one means making that folder the root of a repository (its own, or a
 copy of it) and submitting that file. Settle the open questions in docs/PLUGIN_HUB_COMPLIANCE.md first.
+
+`Publish-Plugins.bat` (`scripts/publish_plugins.py`, repositories in `publish.json`) does that: it copies each
+folder to its own repository, pushes, and prepares the plugin-hub pull request. The full plan, setup and
+checklist are in docs/ROLLOUT.md.
+
+## Plugin audit
+
+`docs/PLUGIN_AUDIT.md` compares RuneLite's own and popular Plugin Hub plugins with ours, feature by feature, with a
+pick list of what to add. Check it (and the compliance doc) before borrowing a feature from another plugin.
 
 ## Saved data shared between plugins
 

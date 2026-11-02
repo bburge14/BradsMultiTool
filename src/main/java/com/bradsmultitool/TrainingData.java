@@ -284,6 +284,16 @@ class TrainingData {
         return out;
     }
 
+    /** The skill's method with this name, or null. */
+    Method named(Skill skill, String name) {
+        for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
+            if (method.name.equals(name)) {
+                return method;
+            }
+        }
+        return null;
+    }
+
     /** The guide's methods that start above this level (not questing), latest-starting last. */
     List<Method> later(Skill skill, int level) {
         List<Method> out = new ArrayList<>();

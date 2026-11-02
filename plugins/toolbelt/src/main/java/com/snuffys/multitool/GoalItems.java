@@ -45,6 +45,11 @@ class GoalItems {
     private volatile Map<Skill, RecipeData.Recipe> suggestions = Collections.emptyMap();
     // How many times each suggestion can be made from what you have
     private volatile Map<Skill, Integer> counts = Collections.emptyMap();
+    // The XP in your bank and inventory per goal skill (once the bank's been opened)
+    private volatile Map<Skill, Double> banked = Collections.emptyMap();
+    // The GE value of the materials counted in banked, per goal skill
+    private volatile Map<Skill, Long> materialsValue = Collections.emptyMap();
+    private boolean bankSeen;
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
     // Gathering goals (Fishing, Mining, Woodcutting, Hunter...): lower-case tool or bait -> "Needed for your
@@ -76,6 +81,16 @@ class GoalItems {
     /** How many of this skill's suggestion you can make from your inventory and bank, 0 if none. */
     int count(Skill skill) {
         return counts.getOrDefault(skill, 0);
+    }
+
+    /** The XP in your bank and inventory for this goal skill at your level (0 before the bank's opened). */
+    double bankedXp(Skill skill) {
+        return banked.getOrDefault(skill, 0.0);
+    }
+
+    /** The GE value of the materials counted in {@link #bankedXp} (0 before the bank's opened, or unpriced). */
+    long materialsValue(Skill skill) {
+        return materialsValue.getOrDefault(skill, 0L);
     }
 
     /** How many of an item you carry or bank (the bank as last opened). */
@@ -216,6 +231,7 @@ class GoalItems {
         if (event.getContainerId() == InventoryID.BANK) {
             bank.clear();
             count(event.getItemContainer(), bank);
+            bankSeen = true;
         }
         if (event.getContainerId() == InventoryID.BANK || event.getContainerId() == InventoryID.INV
             || event.getContainerId() == InventoryID.WORN) {
@@ -254,6 +270,8 @@ class GoalItems {
         Map<Skill, RecipeData.Recipe> suggestions = new HashMap<>();
         Map<String, String> highlighted = new HashMap<>();
         Map<Skill, Integer> counts = new HashMap<>();
+        Map<Skill, Double> banked = new HashMap<>();
+        Map<Skill, Long> materialsValue = new HashMap<>();
         Map<String, String> tools = new HashMap<>();
         for (Skill skill : plugin.getGoalSkills()) {
             if (plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
@@ -288,6 +306,16 @@ class GoalItems {
             Predicate<RecipeData.Recipe> allowed = item == null ? r -> true
                 : r -> uses(r, item) && (recipe == null || r.name.equalsIgnoreCase(recipe));
             int level = client.getRealSkillLevel(skill);
+            if (bankSeen) {
+                banked.put(skill, recipes.bankedXp(skill, level, have, this::xp));
+                if (config.showMaterialsValue()) {
+                    long value = 0;
+                    for (Map.Entry<String, Integer> material : recipes.bankedMaterials(skill, level, have, this::xp).entrySet()) {
+                        value += (long) prices.price(material.getKey()) * material.getValue();
+                    }
+                    materialsValue.put(skill, value);
+                }
+            }
             RecipeData.Recipe best = recipes.best(skill, level, have, score, allowed);
             if (best == null && item != null) {
                 best = recipes.best(skill, level, null, score, allowed);
@@ -303,6 +331,8 @@ class GoalItems {
         }
         this.suggestions = suggestions;
         this.counts = counts;
+        this.banked = banked;
+        this.materialsValue = materialsValue;
         this.highlighted = highlighted;
         this.tools = tools;
     }

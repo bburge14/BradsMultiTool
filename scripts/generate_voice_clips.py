@@ -58,6 +58,10 @@ LINES = {
     "out_of_prayer": "Out of prayer points.",
     "crab_moved": "The crab has moved!",
     "idle_logout": "You are about to be logged out.",
+    "six_hour_logout": "Six hour logout in twenty minutes.",
+    "clue_drop": "You got a clue.",
+    "dailies": "You have dailies to collect.",
+    "death": "You have died.",
     "crab_low_health": "The crab is about to burrow.",
     "character_idle": "You are idle.",
     "buff_low": "Buff is running out.",
@@ -84,6 +88,10 @@ LINES = {
     "task_halfway": "Slayer task halfway done.",
     "task_nearly_done": "Slayer task nearly done.",
     "slayer_item_missing": "You are missing your slayer item.",
+    "slayer_milestone": "Your next slayer task is a milestone.",
+    "kill_goal_reached": "Kill goal reached.",
+    "wrong_prayer": "Wrong protection prayer.",
+    "unpotted": "No combat boost active.",
     "inventory_full": "Inventory is full.",
     "tree_gone": "The tree has fallen.",
     "rock_depleted": "The rock is depleted.",
@@ -123,7 +131,29 @@ LINES = {
     "potion_divine_magic_low": "Divine magic is running out.",
     "potion_divine_magic_expired": "Divine magic has run out.",
     "coin_pouch_full": "Your coin pouches are full.",
+    "arena_pillar_moving": "The pillar is about to move.",
+    "run_energy_low": "Your run energy is low.",
+    "run_energy_restored": "Your run energy is restored.",
+    "forestry_event": "A forestry event has started.",
+    "sack_full": "The sack is full. Empty it before mining more.",
+    "wintertodt_round": "The Wintertodt round is about to start.",
+    "brazier_out": "Your brazier has gone out.",
+    "brazier_broken": "Your brazier is broken.",
+    "out_of_roots": "You're out of roots.",
+    "wintertodt_hit": "The cold stopped you. Start again.",
+    "warmth_low": "Your warmth is low.",
+    "tempoross_wave": "A wave is coming. Tether yourself.",
+    "tempoross_fire": "A fire is about to start near you.",
+    "tempoross_double_spot": "A double fishing spot has appeared.",
+    "tempoross_vulnerable": "Tempoross is vulnerable. Attack now.",
+    "rift_starting": "The rift opens in ten seconds.",
+    "rift_portal": "A portal has opened.",
+    "boat_health_low": "Your boat's health is low.",
+    "trim_sails": "Trim the sails now.",
+    "bird_nest": "A bird's nest has fallen.",
+    "farming_ready": "Your farming patches are ready.",
     "birdhouses_ready": "Your bird houses are ready.",
+    "rumour_complete": "Rumour complete. Take the part to the Hunter Guild.",
     "batch_complete": "Batch complete.",
 }
 
@@ -301,7 +331,8 @@ def compact_existing():
 # Which separate plugin each clip ships with: voices/<persona>/<plugin>/<clip>.wav, so each plugin's build
 # takes just its folder. Keep in step with VoiceAlertService.VoicePlugin.of()
 SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_moved", "coin_pouch_full",
-                  "birdhouses_ready", "batch_complete"}
+                  "arena_pillar_moving", "forestry_event", "sack_full",
+                  "wintertodt_round", "brazier_out", "brazier_broken", "out_of_roots", "wintertodt_hit", "warmth_low", "tempoross_wave", "tempoross_fire", "tempoross_double_spot", "tempoross_vulnerable", "rift_starting", "rift_portal", "boat_health_low", "trim_sails", "bird_nest", "farming_ready", "birdhouses_ready", "rumour_complete", "batch_complete"}
 
 
 def plugin_of(key):
@@ -311,7 +342,7 @@ def plugin_of(key):
         return "potions"
     if key in ("crab_moved", "crab_low_health"):
         return "gemcrab"
-    if key in ("character_idle", "idle_logout"):
+    if key in ("character_idle", "idle_logout", "six_hour_logout", "run_energy_low", "run_energy_restored", "clue_drop", "dailies"):
         return "shared"
     return "pvm"
 

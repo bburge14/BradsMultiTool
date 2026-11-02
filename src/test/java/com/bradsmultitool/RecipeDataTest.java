@@ -20,6 +20,30 @@ public class RecipeDataTest {
     }
 
     @Test
+    public void bankedXpCountsEachMaterialOnce() {
+        Map<String, Integer> have = new HashMap<>();
+        have.put("raw shrimps", 10);
+        have.put("raw lobster", 5);
+        double shrimp = DATA.best(Skill.COOKING, 30, have, r -> r.xp).xp;
+        double lobster = DATA.best(Skill.COOKING, 40, have, r -> r.xp).xp;
+        // At 40 both cook; at 30 the shrimps cook and the lobsters only make fish offcuts (2 XP each)
+        assertEquals(10 * shrimp + 5 * lobster, DATA.bankedXp(Skill.COOKING, 40, have, r -> r.xp), 0.01);
+        assertEquals(10 * shrimp + 5 * 2, DATA.bankedXp(Skill.COOKING, 30, have, r -> r.xp), 0.01);
+    }
+
+    @Test
+    public void bankedMaterialsAreWhatBankedXpUses() {
+        Map<String, Integer> have = new HashMap<>();
+        have.put("raw shrimps", 10);
+        have.put("raw lobster", 5);
+        have.put("logs", 3);
+        Map<String, Integer> used = DATA.bankedMaterials(Skill.COOKING, 40, have, r -> r.xp);
+        assertEquals(Integer.valueOf(10), used.get("raw shrimps"));
+        assertEquals(Integer.valueOf(5), used.get("raw lobster"));
+        assertNull(used.get("logs"));
+    }
+
+    @Test
     public void bestThingToMakeFromWhatYouHave() {
         Map<String, Integer> have = new HashMap<>();
         have.put("raw shrimps", 10);
