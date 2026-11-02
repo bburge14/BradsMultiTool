@@ -151,6 +151,26 @@ public class CalculatorTest {
     }
 
     @Test
+    public void actionsSortOrders() {
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        List<PlannerCalculator.Row> rows = PlannerCalculator.rows(Skill.COOKING, cooking, Collections.emptyList(),
+            Experience.getXpForLevel(40), Experience.getXpForLevel(41), RECIPES, TRAINING, new HashMap<>(), name -> 0);
+        List<PlannerCalculator.Row> up = PlannerCalculator.sorted(rows, PlannerCalculator.Sort.LEVEL_UP);
+        for (int i = 1; i < up.size(); i++) {
+            assertTrue(up.get(i - 1).action.level <= up.get(i).action.level);
+        }
+        List<PlannerCalculator.Row> down = PlannerCalculator.sorted(rows, PlannerCalculator.Sort.LEVEL_DOWN);
+        assertTrue(down.get(0).action.level >= down.get(down.size() - 1).action.level);
+        // Other orders: what you can do first, best first
+        List<PlannerCalculator.Row> xp = PlannerCalculator.sorted(rows, PlannerCalculator.Sort.XP_EACH);
+        assertFalse(xp.get(0).locked);
+        assertTrue(xp.get(xp.size() - 1).locked);
+        for (int i = 1; i < xp.size() && !xp.get(i).locked; i++) {
+            assertTrue(xp.get(i - 1).xpEach >= xp.get(i).xpEach);
+        }
+    }
+
+    @Test
     public void bankedLevel() {
         Map<String, Integer> have = new HashMap<>();
         have.put("raw lobster", 1000);

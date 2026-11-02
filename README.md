@@ -239,8 +239,9 @@ each can be hidden in the settings; everything is saved per account.
     "Mats 254K · Sells 226K" is what the materials and the products are worth on the Grand Exchange (neither is
     profit), and the net beside it, with a **green plus** for a gain or a **red minus** for a loss ("-28K"), plus the
     net gp per XP. Hover a card for all of it in words. Darts, arrows and bolts count per item (10 darts a go, each
-    with its share of the materials). What you can do is listed first, highest level first; the guide's method at
-    your level is marked in green; search to filter; on a free world members-only actions are left out.
+    with its share of the materials). **Sort** (next to the search) orders them: by level (low to high, at first, or
+    high to low), what you can do first, most XP each, fastest, cheapest per XP, most profit or name; the guide's
+    method at your level is marked in green; search to filter; on a free world members-only actions are left out.
   - **Banked**: what you own instead. The tiles show the XP in it all, your level now and after ("Level · aim 67":
     your target beside it), what the materials are worth and the **Net** of making it all. Each card is one thing you
     can make, and the cards **stack**: each shows the levels it takes you through on top of the ones above it

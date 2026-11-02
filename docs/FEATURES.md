@@ -740,7 +740,7 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   sell for ("Sells 2.10M": what you make, or the logs, ore, fish or catch you gather, priced by the item's id); neither
   is profit. The net beside them is: a green plus badge and "+860K" for a gain, a red minus and "-28K" for a loss
   (what it sells for less what the materials are worth), with the net gp per XP above it. Hover for it in words. The training guide's method at your level is marked in
-  green. What you can do comes first, the highest level first; then what you can't yet. **Search** to filter by name.
+  green. **Sort** (beside the search, remembered) orders them: **Level** low to high (at first) or high to low, **What you can do first** (then what you can't yet, each lowest first), **Most XP each**, **Fastest** (the guide's XP an hour), **Cheapest per XP**, **Most profit** or **Name**; all but the level and name orders put what you can do first. **Search** to filter by name.
   Hover a card for all of it in words; right-click it to **Add to plan**.
 - **Members-only actions** (marked in each action's data, from RuneLite's Skill Calculator and the item's members
   flag) are left out on a free world, as RuneLite's calculator does, with a note "Members-only actions hidden on

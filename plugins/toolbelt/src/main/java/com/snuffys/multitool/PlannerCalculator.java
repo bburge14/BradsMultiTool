@@ -51,6 +51,27 @@ class PlannerCalculator {
     private static final String PLAN_VIEW_KEY = "plannerCalcPlan";
     private static final String TARGET_KEY = "plannerCalcTarget.";
     private static final String DOCK_KEY = "plannerCalcDockOpen";
+    private static final String SORT_KEY = "plannerCalcSort";
+
+    /** How the Actions list is ordered (picked from its Sort menu, remembered). */
+    enum Sort {
+        LEVEL_UP("Level (low to high)", "Level ↑"),
+        LEVEL_DOWN("Level (high to low)", "Level ↓"),
+        CAN_DO("What you can do first", "Can do"),
+        XP_EACH("Most XP each", "XP each"),
+        XP_HOUR("Fastest (XP an hour)", "XP/hr"),
+        CHEAPEST("Cheapest per XP", "Cheapest"),
+        PROFIT("Most profit", "Profit"),
+        NAME("Name", "Name");
+
+        final String label;
+        final String shortLabel;
+
+        Sort(String label, String shortLabel) {
+            this.label = label;
+            this.shortLabel = shortLabel;
+        }
+    }
 
     /** The list's three views. */
     enum Mode { ACTIONS, BANKED, PLAN }
@@ -307,6 +328,70 @@ class PlannerCalculator {
         if (configManager.getRSProfileKey() != null) {
             SkillGoals.setGoal(configManager, skill, goalXp, xpNow);
         }
+    }
+
+    /** The Actions list's order (level, low to high, at first). */
+    Sort sort() {
+        String saved = configManager.getConfiguration(GROUP, SORT_KEY);
+        for (Sort sort : Sort.values()) {
+            if (sort.name().equals(saved)) {
+                return sort;
+            }
+        }
+        return Sort.LEVEL_UP;
+    }
+
+    void setSort(Sort sort) {
+        configManager.setConfiguration(GROUP, SORT_KEY, sort.name());
+    }
+
+    /**
+     * Rows in this order. By level they're in level order whatever you can do; otherwise what you can do comes
+     * first (in that order), then what you can't yet, lowest level first. Ties go by level, then name.
+     */
+    static List<Row> sorted(List<Row> rows, Sort sort) {
+        List<Row> out = new ArrayList<>(rows);
+        java.util.Comparator<Row> byLevel = java.util.Comparator.comparingInt((Row r) -> r.action.level)
+            .thenComparing(r -> r.action.name);
+        java.util.Comparator<Row> order;
+        switch (sort) {
+            case LEVEL_UP:
+                order = byLevel;
+                break;
+            case LEVEL_DOWN:
+                order = byLevel.reversed();
+                break;
+            case XP_EACH:
+                order = java.util.Comparator.comparingDouble((Row r) -> -r.xpEach).thenComparing(byLevel);
+                break;
+            case XP_HOUR:
+                // (no guide rate last)
+                order = java.util.Comparator.comparingInt((Row r) -> -r.xpHour).thenComparing(byLevel);
+                break;
+            case CHEAPEST:
+                // Most gp per XP back (a smaller cost) first; no price last
+                order = java.util.Comparator.comparingDouble((Row r) -> r.perXp() == null ? Double.MAX_VALUE : -r.perXp())
+                    .thenComparing(byLevel);
+                break;
+            case PROFIT:
+                order = java.util.Comparator.comparingDouble((Row r) -> r.profit == null ? Double.MAX_VALUE : -r.profit)
+                    .thenComparing(byLevel);
+                break;
+            case NAME:
+                order = java.util.Comparator.comparing((Row r) -> r.action.name.toLowerCase(Locale.ROOT));
+                break;
+            case CAN_DO:
+            default:
+                // What you can do, then what you can't yet: each lowest level first
+                order = byLevel;
+                break;
+        }
+        if (sort != Sort.LEVEL_UP && sort != Sort.LEVEL_DOWN && sort != Sort.NAME) {
+            java.util.Comparator<Row> inner = order;
+            order = (a, b) -> a.locked != b.locked ? (a.locked ? 1 : -1) : a.locked ? byLevel.compare(a, b) : inner.compare(a, b);
+        }
+        out.sort(order);
+        return out;
     }
 
     /** Whether the open plan is unfolded in the Plan view (it starts unfolded). */

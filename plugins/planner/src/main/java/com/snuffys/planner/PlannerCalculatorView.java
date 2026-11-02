@@ -287,6 +287,8 @@ final class PlannerCalculatorView {
         updateDock(shown, mode, planXp(), goal);
         // (no search in Plan view)
         searchSlot.setVisible(mode != PlannerCalculator.Mode.PLAN);
+        sortLink.setVisible(mode == PlannerCalculator.Mode.ACTIONS);
+        sortLink.setText("Sort: " + calc.sort().shortLabel);
         if (listHeader.changed(mode + shown.name() + picking)) {
             listHeader.add(modeTabs(mode), BorderLayout.CENTER);
         }
@@ -745,6 +747,25 @@ final class PlannerCalculatorView {
         });
         PlannerPanel.focusBorder(search, searchRow);
         searchRow.add(search, BorderLayout.CENTER);
+        // Sort: a menu of orders for the Actions list
+        sortLink.setBorder(new EmptyBorder(0, 4, 0, 8));
+        searchRow.add(sortLink, BorderLayout.EAST);
+    }
+
+    private final JLabel sortLink = PlannerUi.linkLabel("Sort", "How the actions are ordered", this::sortMenu);
+
+    private void sortMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        PlannerCalculator.Sort current = calc.sort();
+        for (PlannerCalculator.Sort sort : PlannerCalculator.Sort.values()) {
+            javax.swing.JMenuItem item = new javax.swing.JCheckBoxMenuItem(sort.label, sort == current);
+            item.addActionListener(e -> {
+                calc.setSort(sort);
+                redraw.run();
+            });
+            menu.add(item);
+        }
+        menu.show(sortLink, 0, sortLink.getHeight());
     }
 
     // ---- The list ----
@@ -759,7 +780,8 @@ final class PlannerCalculatorView {
             .append('|').append(calc.mode()).append('|').append(search.getText().trim().toLowerCase(Locale.ROOT))
             .append('|').append(String.join(",", calc.bonuses(shown))).append('|').append(calc.bankSeen())
             .append('|').append(calc.showMembers()).append(calc.showPrices()).append('|').append(calc.priceVersion())
-            .append('|').append(calc.trackerInstalled()).append('|').append(picking).append('|').append(calc.canPlan());
+            .append('|').append(calc.trackerInstalled()).append('|').append(picking).append('|').append(calc.canPlan())
+            .append('|').append(calc.sort());
         key.append('|').append(calc.owned().hashCode());
         SkillPlans.Plan plan = calc.plan(shown);
         key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen)
@@ -801,7 +823,7 @@ final class PlannerCalculatorView {
             if (mode == PlannerCalculator.Mode.BANKED) {
                 fillBanked(shown, skillCalc, on, now, target, rows, owned, filter);
             } else {
-                fillActions(shown, on, now, target, rows, filter);
+                fillActions(shown, on, now, target, PlannerCalculator.sorted(rows, calc.sort()), filter);
             }
         }
         list.add(PlannerUi.empty("From RuneLite's Skill Calculator. Times are from the wiki's training guides; costs at "
