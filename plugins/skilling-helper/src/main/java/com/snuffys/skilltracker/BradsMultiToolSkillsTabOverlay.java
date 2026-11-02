@@ -74,6 +74,15 @@ public class BradsMultiToolSkillsTabOverlay extends Overlay {
         }
         // Skills Tab Progress Bars draws level progress along the bottom: ours steps aside for it
         boolean ownLevels = levels && theirHeight == 0;
+        // The game's skill tooltip (hovering a skill) stays on top: nothing of ours is drawn where it is
+        Widget tip = client.getWidget(InterfaceID.Stats.TOOLTIP);
+        Rectangle tipAt = tip != null && !tip.isHidden() ? visibleBounds(tip) : null;
+        java.awt.Shape oldClip = graphics.getClip();
+        if (tipAt != null && tipAt.width > 0 && tipAt.height > 0) {
+            java.awt.geom.Area clip = new java.awt.geom.Area(new Rectangle(0, 0, client.getCanvasWidth(), client.getCanvasHeight()));
+            clip.subtract(new java.awt.geom.Area(tipAt));
+            graphics.setClip(clip);
+        }
         for (Skill skill : Skill.values()) {
             int component = component(skill);
             Widget stone = component == -1 ? null : client.getWidget(component);
@@ -112,7 +121,24 @@ public class BradsMultiToolSkillsTabOverlay extends Overlay {
                 graphics.fillRect(x, top + height - filled, GOAL_WIDTH, filled);
             }
         }
+        graphics.setClip(oldClip);
         return null;
+    }
+
+    // The area the tooltip's visible parts (its box and lines) cover; its own bounds if it has none showing
+    private static Rectangle visibleBounds(Widget widget) {
+        Rectangle out = null;
+        for (Widget[] children : new Widget[][] {widget.getStaticChildren(), widget.getDynamicChildren(), widget.getNestedChildren()}) {
+            if (children == null) {
+                continue;
+            }
+            for (Widget child : children) {
+                if (child != null && !child.isHidden() && child.getBounds() != null && child.getBounds().width > 0) {
+                    out = out == null ? new Rectangle(child.getBounds()) : out.union(child.getBounds());
+                }
+            }
+        }
+        return out != null ? out : widget.getBounds();
     }
 
     /** How far through the current level this much XP is, 0 to 1. */
