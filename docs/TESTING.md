@@ -319,7 +319,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Members-only: on a free world the Calculator leaves out Teak logs, agility courses and so on, with the note
       "Members-only actions hidden on this free world"; on a members world and logged out everything shows; Hide
       Members On Free Worlds off shows all.
-- [ ] Plan view: Start from suggestions fills milestones from your level to the goal; right-click an action > Add to
+- [ ] Plan view: Wiki suggestions fills milestones from your level to the goal; right-click an action > Add to
       plan adds one (the last milestone stretches or shortens to meet it); a milestone's Edit..., Change method (pick
       an action: the Actions list with a banner, click one), Move up/down, Delete; Goal: level N changes the goal;
       totals follow; kept after a restart and per account.

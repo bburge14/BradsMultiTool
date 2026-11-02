@@ -251,7 +251,7 @@ each can be hidden in the settings; everything is saved per account.
   - **Plan**: the skill's **goal** comes first, as a card like a plan's (gold): its levels, what it's set to train
     (your Track for goal pick, the plan the tracker follows, or the wiki's suggestion) and how far along you are.
     It's the same goal as the Skilling Helper's: click it (or right-click) to **Change goal**, **Remove goal** or
-    **Make a plan for it** (a new plan to that level, starting with what the goal trains). Then
+    **Make a plan** (a new plan to that level, starting with what the goal trains). Then
     as many **plans** per skill as you like, each with a name. **+** makes a new one; each plan's card
     shows its levels, your level and how far along it you are (a bar and a percentage); click one to open it (it
     unfolds under its card), click it again to fold it away; right-click to rename, duplicate or delete. Under the

@@ -1346,12 +1346,12 @@ final class PlannerCalculatorView {
         int level = levelNow();
         if (plan == null) {
             fillPlanList(shown, null);
-            list.add(PlannerUi.empty((calc.goal(shown) > planXp() ? "No plans for your goal yet: Make a plan for it (click the "
+            list.add(PlannerUi.empty((calc.goal(shown) > planXp() ? "No plans for your goal yet: Make a plan (click the "
                 + "goal), or start one here. " : "No plans for " + shown.getName() + " yet. ") + "A plan is a goal and milestones on the way, "
                 + "each with its own method (\"1-20 Logs, 20-50 Willow logs\"). Make as many as you like and export the "
                 + "one you follow to the tracker."));
             int goal = newGoal();
-            list.add(linkRow(PlannerUi.linkLabel("Start from suggestions", "A new plan from the wiki's training guides, from "
+            list.add(linkRow(PlannerUi.linkLabel("Wiki suggestions", "A new plan from the wiki's training guides, from "
                 + "your level to " + goal + "; then change any of it", () -> suggest(shown, actions, on, goal)),
                 PlannerUi.linkLabel("New plan", "An empty plan: add milestones by right-clicking actions, or +",
                     () -> newPlan(shown))));
@@ -1370,7 +1370,7 @@ final class PlannerCalculatorView {
                 "Change the plan's final goal", () -> changeGoal(shown))));
             list.add(PlannerUi.empty("No milestones yet: right-click an action > Add to plan, or start from the wiki's "
                 + "suggestions."));
-            list.add(linkRow(PlannerUi.linkLabel("Start from suggestions", "Fill this plan from the wiki's training "
+            list.add(linkRow(PlannerUi.linkLabel("Wiki suggestions", "Fill this plan from the wiki's training "
                 + "guides, from your level to " + goal + "; then change any of it", () -> suggest(shown, actions, on, goal)),
                 PlannerUi.linkLabel("Add a milestone", "Pick its method and levels", () -> stepDialog(shown, -1, goal))));
             return;
@@ -1430,7 +1430,7 @@ final class PlannerCalculatorView {
             list.add(PlannerUi.spaced(planSummary(steps, totals, level, endLevel)));
         }
         fillMaterials(shown, steps);
-        list.add(linkRow(PlannerUi.linkLabel("Start from suggestions", "Replace the milestones with the wiki's training "
+        list.add(linkRow(PlannerUi.linkLabel("Wiki suggestions", "Replace the milestones with the wiki's training "
                 + "guides' methods from your level to " + plan.goal, () -> suggest(shown, actions, on, plan.goal)),
             PlannerUi.linkLabel("Delete plan", "Delete this plan (the tracker keeps it if you exported it)", () -> {
                 if (confirm("Delete the plan \"" + planName(plan, calc.openIndex(shown)) + "\"?")) {
@@ -1665,7 +1665,7 @@ final class PlannerCalculatorView {
             + "remove it</html>")));
         if (goalOpen) {
             list.add(linkRow(PlannerUi.linkLabel("Change goal", "Set a new level or XP for it", () -> changeSkillGoal(shown)),
-                PlannerUi.linkLabel("Make a plan for it", "A new plan to this goal, with milestones you can change",
+                PlannerUi.linkLabel("Make a plan", "A new plan to this goal, with milestones you can change",
                     () -> planFromGoal(shown, goal, pick)),
                 PlannerUi.linkLabel("Remove goal", "Clear the goal (in the Skilling Helper too)", () -> removeSkillGoal(shown))));
         }
@@ -1745,18 +1745,35 @@ final class PlannerCalculatorView {
             + "levels; the Skilling Helper suggests the wiki's method there");
     }
 
-    // Links side by side at the right
+    // Buttons side by side, sharing the width: each link drawn as a button (a card with its text centred, lighter
+    // when the mouse is over it)
     private static JComponent linkRow(JComponent... links) {
-        JPanel row = new JPanel();
-        row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+        JPanel row = new JPanel(new GridLayout(1, links.length, PlannerUi.GAP, 0));
         row.setBackground(PlannerUi.BACKGROUND);
-        row.setBorder(new EmptyBorder(2, 0, 6, 2));
-        row.add(javax.swing.Box.createHorizontalGlue());
-        for (int i = 0; i < links.length; i++) {
-            if (i > 0) {
-                row.add(PlannerUi.label("  ·  ", PlannerUi.FAINT));
+        row.setBorder(new EmptyBorder(2, 0, 6, 0));
+        for (JComponent link : links) {
+            if (link instanceof JLabel) {
+                JLabel button = (JLabel) link;
+                button.setHorizontalAlignment(SwingConstants.CENTER);
+                button.setOpaque(true);
+                button.setBackground(PlannerUi.CARD);
+                button.setForeground(new Color(220, 220, 220));
+                button.setBorder(new EmptyBorder(6, 4, 6, 4));
+                button.setMinimumSize(new Dimension(0, 0));
+                button.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        button.setBackground(PlannerUi.CARD_HOVER);
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        button.setBackground(PlannerUi.CARD);
+                        button.setForeground(new Color(220, 220, 220));
+                    }
+                });
             }
-            row.add(links[i]);
+            row.add(link);
         }
         return PlannerUi.fullWidth(row);
     }
@@ -1960,7 +1977,7 @@ final class PlannerCalculatorView {
             calc.otherMethods(shown));
         if (plan.steps.isEmpty()) {
             JOptionPane.showMessageDialog(list, "The wiki's training guides have nothing to suggest for " + shown.getName()
-                + " here: add milestones from the actions instead.", "Start from suggestions", JOptionPane.INFORMATION_MESSAGE);
+                + " here: add milestones from the actions instead.", "Wiki suggestions", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         plan.name = old != null ? old.name : "Wiki suggestions";

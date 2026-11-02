@@ -770,7 +770,7 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
 - **The goal** (when the skill has one, set here or in the Skilling Helper): a gold card at the top of the Plan view
   with its levels, what it trains (Track for goal pick, the method picked on the tracker card, the exported plan, or
   the wiki's suggestion), your level and how far along it is. Click it to unfold **Change goal** (a level or XP),
-  **Make a plan for it** (a new plan named "Goal to 70", with one milestone of what it trains when that's a
+  **Make a plan** (a new plan named "Goal to 70", with one milestone of what it trains when that's a
   Calculator action) and **Remove goal** (asks first: it's the Skilling Helper's goal too); right-click for the same.
 - **Plans**: the Plan view starts with the skill's saved plans: as many as you like, each with a name ("Darts to
   99", "AFK teaks"), its levels and how many milestones, **In tracker** on the one exported. **+** makes a new one
@@ -780,7 +780,7 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   **Delete...**. Under them, links to other skills' plans ("Other skills: Fletching (2)"). Plans made before there
   could be several become the first, unnamed ("Plan 1").
 - **Plan**: the open plan: a final goal (level 99, or your target) and milestones on the way, each with its
-  own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Start from suggestions** fills the milestones from
+  own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Wiki suggestions** fills the milestones from
   the wiki's training guides from your level to the goal (the skill's AFK / Other focus if you picked it in the
   Skilling Helper, else the fastest), each guide method as the Calculator action it means at that level; or build it
   by hand: right-click an action > **Add to plan** (it starts where the last milestone ends, or at its own level, and
