@@ -49,6 +49,7 @@ class PlannerCalculator {
     private static final String BONUS_KEY = "plannerCalcBonus.";
     private static final String BANKED_KEY = "plannerCalcBanked";
     private static final String PLAN_VIEW_KEY = "plannerCalcPlan";
+    private static final String TARGET_KEY = "plannerCalcTarget.";
 
     /** The list's three views. */
     enum Mode { ACTIONS, BANKED, PLAN }
@@ -75,6 +76,8 @@ class PlannerCalculator {
     private boolean bankLoaded;
     // For the preview: whether the Skilling Helper is "installed"
     private Boolean sampleTracker;
+    // Typed targets when there's no profile to keep them in (the preview, logged out)
+    private final Map<Skill, Integer> sampleTargets = new EnumMap<>(Skill.class);
 
     @Inject
     PlannerCalculator(Client client, ConfigManager configManager, ItemManager itemManager, PlannerView view,
@@ -284,6 +287,34 @@ class PlannerCalculator {
     void setGoal(Skill skill, int goalXp, int xpNow) {
         if (configManager.getRSProfileKey() != null) {
             SkillGoals.setGoal(configManager, skill, goalXp, xpNow);
+        }
+    }
+
+    /** The target you typed for this skill (kept until you reset it or set it as the goal), or 0 for none. */
+    int savedTarget(Skill skill) {
+        if (configManager.getRSProfileKey() == null) {
+            return sampleTargets.getOrDefault(skill, 0);
+        }
+        try {
+            String saved = configManager.getRSProfileConfiguration(GROUP, TARGET_KEY + skill.name());
+            return saved == null ? 0 : Math.max(0, Integer.parseInt(saved));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** Keeps this target for the skill (0 forgets it). */
+    void setSavedTarget(Skill skill, int xp) {
+        if (configManager.getRSProfileKey() == null) {
+            if (xp > 0) {
+                sampleTargets.put(skill, xp);
+            } else {
+                sampleTargets.remove(skill);
+            }
+        } else if (xp > 0) {
+            configManager.setRSProfileConfiguration(GROUP, TARGET_KEY + skill.name(), xp);
+        } else {
+            configManager.unsetRSProfileConfiguration(GROUP, TARGET_KEY + skill.name());
         }
     }
 
@@ -602,6 +633,28 @@ class PlannerCalculator {
     static double bankedXp(Skill skill, CalculatorData.Calc calc, Collection<CalculatorData.Bonus> on, int level,
                            RecipeData recipes, Map<String, Integer> have) {
         return recipes.bankedXp(skill, level, have, xpOf(skill, calc, on, recipes));
+    }
+
+    /**
+     * How many of each action {@link #bankedXp} counts (materials shared between actions used once, as there), or
+     * null for an action without recipes.
+     */
+    static Integer bankedTimes(Skill skill, CalculatorData.Action action, RecipeData recipes, Map<String, Integer> made) {
+        List<RecipeData.Recipe> mine = recipesFor(skill, action, recipes);
+        if (mine.isEmpty()) {
+            return null;
+        }
+        int times = 0;
+        for (RecipeData.Recipe recipe : mine) {
+            times += made.getOrDefault(recipe.name.toLowerCase(), 0);
+        }
+        return times;
+    }
+
+    /** Lower-case recipe name -> how many {@link #bankedXp} makes. */
+    static Map<String, Integer> bankedMade(Skill skill, CalculatorData.Calc calc, Collection<CalculatorData.Bonus> on, int level,
+                                           RecipeData recipes, Map<String, Integer> have) {
+        return recipes.bankedTimes(skill, level, have, xpOf(skill, calc, on, recipes));
     }
 
     /** The GE value of what {@link #bankedXp} uses up (each item counted once, as there); 0 when nothing's priced. */

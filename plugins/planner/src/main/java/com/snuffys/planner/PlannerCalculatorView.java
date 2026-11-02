@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -98,13 +99,13 @@ final class PlannerCalculatorView {
     private final JTextField targetXp = field("The XP to aim for");
     private final JLabel goalText = PlannerUi.label("", PlannerUi.MUTED);
     private final JLabel goalLink;
+    private final JLabel resetLink;
     private final PlannerUi.Bar goalBar = new PlannerUi.Bar(0, PlannerUi.GROWING);
     private final PlannerPanel.Hinted search = new PlannerPanel.Hinted("Search actions");
 
     private Skill skill;
-    // What you typed over the game's numbers (null: from the game, or the goal / next level)
+    // What you typed over the game's XP (null: from the game). A typed target is kept per skill (PlannerCalculator)
     private Integer currentOverride;
-    private Integer targetOverride;
     private boolean adjusting;
     // A plan's milestone waiting for a method picked from the actions (its index), or null
     private Integer picking;
@@ -126,6 +127,8 @@ final class PlannerCalculatorView {
         list.setAlignmentX(JComponent.LEFT_ALIGNMENT);
         goalLink = PlannerUi.linkLabel("Set as goal", "Make this target the skill's goal (as the Skilling Helper's Set Goal "
             + "does): its goal bar, suggestions and banked XP follow it", this::setAsGoal);
+        resetLink = PlannerUi.linkLabel("Reset", "Forget the target you typed: back to your goal, else the next level",
+            this::resetTarget);
         buildInputs();
         buildSearch();
     }
@@ -154,7 +157,6 @@ final class PlannerCalculatorView {
         calc.setSkill(picked);
         skill = picked;
         currentOverride = null;
-        targetOverride = null;
         search.setText(text);
         typed.stop();
     }
@@ -180,8 +182,9 @@ final class PlannerCalculatorView {
     }
 
     private int target() {
-        if (targetOverride != null) {
-            return targetOverride;
+        int saved = skill() == null ? 0 : calc.savedTarget(skill());
+        if (saved > 0) {
+            return saved;
         }
         int now = current();
         int goal = calc.goal(skill());
@@ -195,7 +198,6 @@ final class PlannerCalculatorView {
     private void pick(Skill picked) {
         skill = picked;
         currentOverride = null;
-        targetOverride = null;
         calc.setSkill(picked);
         search.setText("");
         redraw.run();
@@ -260,6 +262,7 @@ final class PlannerCalculatorView {
             goalText.setForeground(PlannerUi.MUTED);
         }
         goalLink.setVisible(!isGoal && target > Math.max(0, game));
+        resetLink.setVisible(calc.savedTarget(shown) > 0);
         int start = isGoal && calc.goalStart(shown) > 0 ? calc.goalStart(shown) : Experience.getXpForLevel(CalculatorData.level(now, false));
         double done = target > start ? (double) (now - start) / (target - start) : 1;
         goalBar.set(Math.max(0, Math.min(1, done)), done >= 1 ? PlannerUi.READY : PlannerUi.GROWING);
@@ -411,7 +414,11 @@ final class PlannerCalculatorView {
         goal.setOpaque(false);
         goalText.setMinimumSize(new Dimension(0, 0));
         goal.add(goalText, BorderLayout.CENTER);
-        goal.add(goalLink, BorderLayout.EAST);
+        JPanel links = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        links.setOpaque(false);
+        links.add(resetLink);
+        links.add(goalLink);
+        goal.add(links, BorderLayout.EAST);
         body.add(goal, BorderLayout.SOUTH);
 
         inputs.add(body, BorderLayout.CENTER);
@@ -434,14 +441,15 @@ final class PlannerCalculatorView {
         listen(targetLevel, text -> {
             int level = parse(text);
             if (level >= 1 && level <= 126) {
-                targetOverride = Experience.getXpForLevel(level);
-                mirror(targetXp, String.format("%,d", targetOverride));
+                int xp = Experience.getXpForLevel(level);
+                keepTarget(xp);
+                mirror(targetXp, String.format("%,d", xp));
             }
         });
         listen(targetXp, text -> {
             int xp = parse(text);
             if (xp >= 0 && xp <= Experience.MAX_SKILL_XP) {
-                targetOverride = xp;
+                keepTarget(xp);
                 mirror(targetLevel, String.valueOf(CalculatorData.level(xp, true)));
             }
         });
@@ -534,7 +542,21 @@ final class PlannerCalculatorView {
         int game = calc.xp(shown);
         if (shown != null && target > 0) {
             calc.setGoal(shown, target, game >= 0 ? game : current());
-            targetOverride = null;
+            calc.setSavedTarget(shown, 0);
+            redraw.run();
+        }
+    }
+
+    // A typed target stays for the skill (across skills and logins) until Reset or Set as goal
+    private void keepTarget(int xp) {
+        if (skill() != null) {
+            calc.setSavedTarget(skill(), xp);
+        }
+    }
+
+    private void resetTarget() {
+        if (skill() != null) {
+            calc.setSavedTarget(skill(), 0);
             redraw.run();
         }
     }
@@ -740,9 +762,12 @@ final class PlannerCalculatorView {
             tiles.setBackground(PlannerUi.BACKGROUND);
             tiles.add(tile("Banked XP", PlannerPanel.gp((long) all) + " xp", String.format("%,d", (long) all) + " XP from "
                 + "what you own at your level: the most XP each first, each item used once", Color.WHITE));
-            JComponent levelTile = tile("Level after", level + " → " + after, "Your level with all of it: "
-                + (now + (long) all >= target ? "past your target" : PlannerPanel.gp(target - now - (long) all) + " xp short of your target"),
-                Color.WHITE);
+            int targetLvl = CalculatorData.level(target, true);
+            boolean reaches = now + (long) all >= target;
+            JComponent levelTile = tile("Level · aim " + targetLvl, level + " → " + after, "Your level with all of it: "
+                + (reaches ? "past your target (level " + targetLvl + ")"
+                : PlannerPanel.gp(target - now - (long) all) + " xp short of your target (level " + targetLvl + ")"),
+                reaches ? PlannerUi.READY : Color.WHITE);
             tiles.add(levelTile);
             list.add(PlannerUi.spaced(tiles));
             long value = calc.showPrices() ? PlannerCalculator.bankedValue(shown, skillCalc, on, level, recipes, owned, icons::price) : 0;
@@ -755,12 +780,19 @@ final class PlannerCalculatorView {
             list.add(PlannerUi.empty("Open your bank once so the Planner can see what's in it; until then this counts your "
                 + "inventory."));
         }
+        // The cards stack up: each starts from the level the ones above it got you to, so the last one ends at the
+        // total (not each from your level on its own)
+        Map<String, Integer> made = PlannerCalculator.bankedMade(shown, skillCalc, on, level, recipes, owned);
         int count = 0;
+        double running = now;
         for (PlannerCalculator.Row row : rows) {
             if (row.have <= 0 || !(filter.isEmpty() || row.action.name.toLowerCase(Locale.ROOT).contains(filter))) {
                 continue;
             }
-            list.add(PlannerUi.spaced(bankedCard(row, now, target)));
+            Integer times = PlannerCalculator.bankedTimes(shown, row.action, recipes, made);
+            int used = row.locked ? 0 : times == null ? row.have : times;
+            list.add(PlannerUi.spaced(bankedCard(row, used, running, target)));
+            running += used * row.xpEach;
             count++;
         }
         if (count == 0) {
@@ -932,27 +964,37 @@ final class PlannerCalculatorView {
     }
 
     // In Banked view: how many you own, the XP in them, the level that gets you to, and what they're worth
-    private JComponent bankedCard(PlannerCalculator.Row row, int now, int target) {
+    private JComponent bankedCard(PlannerCalculator.Row row, int used, double from, int target) {
         CalculatorData.Action action = row.action;
-        double gained = row.have * row.xpEach;
+        double gained = (row.locked ? row.have : used) * row.xpEach;
+        // Its materials all went to the ones above it (they share them and give more XP)
+        boolean usedUp = !row.locked && used <= 0;
+        int now = (int) Math.min(Experience.MAX_SKILL_XP, from);
+        int before = CalculatorData.level(now, false);
         int after = PlannerCalculator.bankedLevel(now, gained);
-        PlannerUi.Card card = new PlannerUi.Card(action.name, "x " + String.format("%,d", row.have) + " · "
-            + PlannerPanel.gp((long) gained) + " xp", "→ " + after);
-        card.corner.setText("Lvl " + action.level);
-        boolean reaches = now + gained >= target;
+        int count = row.locked ? row.have : used;
+        String owned = count == row.have ? String.format("%,d", row.have) : String.format("%,d of %,d", count, row.have);
+        PlannerUi.Card card = new PlannerUi.Card(action.name, "x " + owned + " · "
+            + PlannerPanel.gp((long) gained) + " xp", row.locked ? "" : usedUp ? "used above" : "lvl " + before + " → " + after);
+        // Its level only when you're not there yet: the rest you can already make
+        card.corner.setText(row.locked ? "needs lvl " + action.level : "");
+        boolean reaches = !row.locked && !usedUp && now + gained >= target;
         card.right.setForeground(reaches ? PlannerUi.READY : Color.WHITE);
-        String money = calc.showPrices() ? money(row.cost(row.have), row.earn(row.have), "", !row.locked) : null;
+        String money = calc.showPrices() ? money(row.cost(count), row.earn(count), "", !row.locked) : null;
         if (money != null) {
             card.third(money.replace("Costs ", "Uses ").replace("Earns ", "Makes "), "");
         }
         picture(card.icon, action);
-        if (row.locked) {
+        if (row.locked || usedUp) {
             card.dim();
         }
         return card.interactive(null, null, "<html><b>" + PlannerUi.esc(action.name) + "</b>: you have "
-            + String.format("%,d", row.have) + " (bank as last seen and inventory)<br>" + String.format("%,d", (long) gained)
-            + " xp, to level " + after + (reaches ? " (past your target)" : ", " + String.format("%,d", (long) (target - now - gained))
-            + " xp short of your target")
+            + String.format("%,d", row.have) + " (bank as last seen and inventory)<br>"
+            + (count < row.have && !row.locked ? (usedUp ? "Its materials go to the ones above it (more XP each)<br>"
+            : "Makes " + String.format("%,d", count) + ": the rest of its materials go to the ones above it<br>") : "") + String.format("%,d", (long) gained)
+            + " xp" + (row.locked ? "" : ": with the ones above it, level " + before + " → " + after
+            + (reaches ? " (reaches your target)" : ", " + String.format("%,d", (long) (target - now - gained))
+            + " xp short of your target"))
             + (calc.showPrices() && row.costEach != null ? "<br>Uses " + String.format("%,.0f", row.costEach * row.have)
             + " gp of materials" : "")
             + (calc.showPrices() && row.earnEach != null ? "<br>Makes " + String.format("%,.0f", row.earnEach * row.have)

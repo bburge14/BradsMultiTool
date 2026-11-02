@@ -62,6 +62,18 @@ public class RecipeDataTest {
     }
 
     @Test
+    public void bankedTimesAddUpToBankedXp() {
+        Map<String, Integer> have = new HashMap<>();
+        have.put("raw shrimps", 10);
+        have.put("raw lobster", 5);
+        Map<String, Integer> made = DATA.bankedTimes(Skill.COOKING, 40, have, r -> r.xp);
+        // Each raw fish is cooked once: the lobsters go to lobster (more XP), none left for offcuts
+        assertEquals(Integer.valueOf(10), made.get("shrimps"));
+        assertEquals(Integer.valueOf(5), made.get("lobster"));
+        assertNull(made.get("fish offcuts"));
+    }
+
+    @Test
     public void bestThingToMakeFromWhatYouHave() {
         Map<String, Integer> have = new HashMap<>();
         have.put("raw shrimps", 10);

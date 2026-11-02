@@ -716,7 +716,8 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   remembered.
 - **Current and target**: your level and XP fill in from the game (logged out, the last you had); type over any of the
   four boxes to plan ahead (a level fills in its XP and the other way round). The target starts at the skill's goal if
-  it has one ahead of you, else the next level. The line under them says the goal, and **Set as goal** makes the target
+  it has one ahead of you, else the next level. A target you type is kept for that skill (switching skills, logging out)
+  until **Reset** (back to the goal or next level) or **Set as goal**. The line under them says the goal, and **Set as goal** makes the target
   the skill's goal exactly as the Skilling Helper's Set Goal does (a goal still underway keeps where its bar started);
   the bar shows how far you are toward it.
 - **XP bonuses** (where the skill has them: skilling outfits, achievement diaries, the Felling axe, altars and the
@@ -737,9 +738,12 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   this free world"; logged out, everything shows (setting: Hide Members On Free Worlds).
 - **Actions · Banked · Plan** (the tabs above the list; the one you pick is remembered).
 - **Banked**: what you own instead: the XP in all of it for the skill at your level (the most
-  XP each first, each item used once, as the Skilling Helper's banked XP), the level that gets you to, the GE value of
-  what that uses up (**Value used**), and each action you have the makings of, with how many, the XP and the level it
-  alone gets you to (green when it reaches the target) and what its materials and products are worth. The bank counts
+  XP each first, each item used once, as the Skilling Helper's banked XP), the level that gets you to (with your target
+  beside it: "Level · aim 67"), the GE value of what that uses up (**Value used**), and each action you have the
+  makings of, with how many, the XP and the levels it takes you through stacked on the ones above it ("lvl 59 → 61",
+  then "lvl 61 → 63"... so the last ends at the total; green once it reaches the target) and what its materials and
+  products are worth. Two actions sharing materials split them as the total does (most XP first): "x 0 of 620 · used
+  above". One above your level says what it needs ("needs lvl 80") and isn't counted. The bank counts
   once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
 - **Plan**: a plan for the skill: a final goal (level 99, or your target) and milestones on the way, each with its
   own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Start from suggestions** fills the milestones from
