@@ -44,6 +44,9 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | PvM HUD, monster hover (HP, weakness, aggression to you) | OK. Information-only; aggression follows the game's documented rule |
 | Buff / health / prayer / spec / poison / antifire alerts | OK. Notifications only, like core plugins |
 | Idle logout warning, AFK alert | OK. Notifications only (core Idle Notifier / Logout Timer do the same); nothing prevents logout |
+| Loot value on the PvM HUD, materials value on goal cards | OK. RuneLite's `NpcLootReceived` and ItemManager GE prices, as the core Loot Tracker; figures only |
+| Death alert and gravestone timer | OK. Same as the old core Death Indicator: reads your death (`ActorDeath`), location and item counts; an InfoBox of our own; nothing acts for the player |
+| Clue drop alert, daily reminders | OK. Clue items by name from kill loot and your inventory; dailies from the same varbits as core Daily Task Indicator; notifications only |
 | Gemstone Crab HUD and radar | OK. Plugin Hub has gemstone-crab-timer |
 | Slayer task card, missing item warning | OK |
 | Task monster outlines (Konar area aware), Slayer info on monster hover/HUD | OK. Core Slayer plugin highlights task monsters too; information only |

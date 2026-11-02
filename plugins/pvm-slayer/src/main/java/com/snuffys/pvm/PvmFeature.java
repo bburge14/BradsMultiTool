@@ -18,6 +18,8 @@ class PvmFeature {
     @Inject private PotionBuffs potionBuffs;
     @Inject private PotionAlerts potionAlerts;
     @Inject private StatusEffects statusEffects;
+    @Inject private PvmLoot loot;
+    @Inject private DeathAlerts deathAlerts;
     @Inject private MonsterEffects monsterEffects;
     @Inject private BradsMultiToolBuffBarOverlay buffBarOverlay;
     @Inject private BradsMultiToolOverlay hudOverlay;
@@ -50,10 +52,11 @@ class PvmFeature {
         lifecycle.load(monsterData, monsterData::load);
         lifecycle.load(slayerData, slayerData::load);
         lifecycle.subscribe(pvm, potionBuffs, potionAlerts, statusEffects, monsterEffects, combatStyle, combatAlerts,
-            killGoals, combatChecks);
+            killGoals, combatChecks, loot, deathAlerts);
         lifecycle.overlay(hudOverlay, prayerOverlay, hoverOverlay, orbOverlay, slayerOverlay, slayerHighlightOverlay, buffBarOverlay,
             finishOffOverlay);
         pvm.startUp();
         lifecycle.onStop(pvm::shutDown);
+        lifecycle.onStop(deathAlerts::stop);
     }
 }

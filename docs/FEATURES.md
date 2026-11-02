@@ -65,12 +65,15 @@ style, DPS, and your last and max hit. It stays up for a few seconds after the f
   time left (a freeze spell's impact), and its Defence after your special attacks lower it (Dragon warhammer
   30%, Elder maul 35%, Bandos godsword by the damage, Arclight/Emberlight), e.g. "Defence: 112 (-48)",
   estimated from the wiki's Defence level.
+- **Loot value:** "Loot: 1.25M (850K/h)": the Grand Exchange value of what the monsters you killed dropped this
+  session (RuneLite's kill loot, priced as its Loot Tracker does), and per hour from your first hit (shown after a
+  minute). Kill drops only: chests, raids and clue caskets aren't counted.
 
 **How to use:** Attack anything. The HUD can be moved like any RuneLite overlay (hold Alt and drag).
-Right-click the HUD > **Reset** clears this session's damage and DPS.
+Right-click the HUD > **Reset** clears this session's damage, DPS and loot.
 
 **Settings (PvM HUD):** Show PvM HUD; Show Monster Effects; DPS Mode (Per Monster, Per Type, or the whole
-session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status.
+session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro Status; Show Loot Value.
 
 ---
 
@@ -146,9 +149,14 @@ default:
 - **Unpotted Reminder:** you start a fight (after a minute without one) with no combat boost. **Boosts That
   Count:** Any Combat Stat (Attack, Strength, Defence, Ranged or Magic above your level) or Your Style's (Attack
   or Strength for melee, Ranged, Magic). At most once every two minutes.
+- **Death alert:** when you die, a voice line and a chat message saying where (coordinates; "in the Wilderness" or
+  "in an instance" when so). **Gravestone Timer:** an info box (bones icon) counting down the 15 minutes your
+  gravestone keeps your items; like the game, it only counts while you're logged in. Only after a death where you
+  lost items, and not in instances (Death's Office or the boss's reclaim) or the Wilderness (no gravestone); it goes
+  when the time's up or you're back at the spot. With a Death Indicator plugin on, the clash note says so.
 
 **Settings (Combat Alerts):** A switch for each, plus Spec Alert At, Low Ammo At and Cannon Low At, Boosts That
-Count; Voice/Chat switches.
+Count; Death Alert, Gravestone Timer; Voice/Chat switches.
 
 ---
 
@@ -533,6 +541,8 @@ killed it twice. Potions and better gear show up here as faster kills; they don'
 - **Banked XP** (Goals > Show Banked XP): on a production skill's goal (Cooking, Herblore, Prayer, Fletching...), a
   "Banked: 1.2M XP" line: the XP in what's in your bank and inventory at your level, the most XP things first, each
   material counted once. Just a figure; it doesn't change what's suggested. Shows once you've opened your bank.
+- **Materials value** (Goals > Show Materials Value): under it, "Materials: 1.2M gp", the Grand Exchange value of
+  the materials counted in Banked XP. Just a figure.
 
 ---
 
@@ -637,6 +647,28 @@ Show/Hide, Ticks Per Cycle Up and Ticks Per Cycle Down hotkeys.
 **Settings (Idle):** AFK Alert and Idle Alert After (seconds); Warn Before Logout (seconds); Repeat
 Logout Warning, Repeat Every, Max Repeats; Six-Hour Logout Warning; Run Energy Low Below and Run Energy Restored
 At (%, 0 off); Voice/Chat switches.
+
+---
+
+## Reminders (clue drops and dailies)
+
+Every plugin but the Tick Counter has these; with several installed only one says them.
+
+**What it does:**
+- **Clue drop alert:** a clue scroll in the drop of a monster you killed, or a clue bottle, clue geode, clue nest or
+  scroll box from skilling arriving in your inventory: "Clue: a hard clue scroll from Abyssal demon!" (the tier from
+  the item's name). Taking one out of the bank, the GE or a deposit box doesn't count, and picking up a dropped one
+  isn't said twice.
+- **Daily reminders:** at login (and at the daily reset, 00:00 UTC), one chat line listing the daily rewards you've
+  unlocked but not collected, as RuneLite's Daily Task Indicator does: battlestaves (Zaff, Varrock easy diary), herb
+  boxes (Nightmare Zone, 9,500 points; not Ironmen), pure essence (Wizard Cromperty, Ardougne medium), random runes
+  (Lundail, Wilderness easy), sand (Bert, The Hand in the Sand; not Ultimate Ironmen), bowstrings (Flax keeper,
+  Kandarin easy), bonemeal and slime (Robin, Morytania medium and up), dynamite (Thirus, Kourend & Kebos medium),
+  ogre arrows (Rantz, Western Provinces easy). Members only. Kingdom of Miscellania isn't in it: its favour and
+  coffers aren't a daily collection, and RuneLite's plugin doesn't track them either. With RuneLite's Daily Task
+  Indicator on too, the clash note says so.
+
+**Settings (Reminders):** Clue Drop Alert; Daily Reminders and a switch for each daily; Voice/Chat switches.
 
 ---
 

@@ -330,4 +330,177 @@ public interface CommonConfig extends Config {
     default boolean chatRunRestored() {
         return true;
     }
+
+    @ConfigSection(
+        name = "Reminders",
+        description = "Clue drops and daily rewards to collect",
+        position = 6,
+        closedByDefault = true
+    )
+    String remindersSection = "remindersSection";
+
+    @ConfigItem(
+        keyName = "clueDropAlert",
+        name = "Clue Drop Alert",
+        description = "<div width='300'>When a clue lands for you: a clue scroll in a monster's drop, or a clue bottle, geode, nest or scroll box from skilling going into your inventory. Chat says which tier",
+        section = remindersSection,
+        position = 0
+    )
+    default boolean clueDropAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceClueDrop",
+        name = "Voice: Clue Drop",
+        description = "Voice line when a clue drops (turning it on plays a preview)",
+        section = remindersSection,
+        position = 1
+    )
+    default boolean voiceClueDrop() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatClueDrop",
+        name = "Chat: Clue Drop",
+        description = "Chat message when a clue drops, with its tier",
+        section = remindersSection,
+        position = 2
+    )
+    default boolean chatClueDrop() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyReminders",
+        name = "Daily Reminders",
+        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
+        section = remindersSection,
+        position = 3
+    )
+    default boolean dailyReminders() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceDailies",
+        name = "Voice: Dailies",
+        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
+        section = remindersSection,
+        position = 4
+    )
+    default boolean voiceDailies() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatDailies",
+        name = "Chat: Dailies",
+        description = "Chat message listing the dailies to collect",
+        section = remindersSection,
+        position = 5
+    )
+    default boolean chatDailies() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyStaves",
+        name = "Daily: Battlestaves",
+        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
+        section = remindersSection,
+        position = 6
+    )
+    default boolean dailyStaves() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyHerbBoxes",
+        name = "Daily: Herb Boxes",
+        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
+        section = remindersSection,
+        position = 7
+    )
+    default boolean dailyHerbBoxes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyEssence",
+        name = "Daily: Pure Essence",
+        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
+        section = remindersSection,
+        position = 8
+    )
+    default boolean dailyEssence() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyRunes",
+        name = "Daily: Random Runes",
+        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
+        section = remindersSection,
+        position = 9
+    )
+    default boolean dailyRunes() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailySand",
+        name = "Daily: Sand",
+        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
+        section = remindersSection,
+        position = 10
+    )
+    default boolean dailySand() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyFlax",
+        name = "Daily: Bowstrings",
+        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
+        section = remindersSection,
+        position = 11
+    )
+    default boolean dailyFlax() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyBonemeal",
+        name = "Daily: Bonemeal",
+        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
+        section = remindersSection,
+        position = 12
+    )
+    default boolean dailyBonemeal() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyDynamite",
+        name = "Daily: Dynamite",
+        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
+        section = remindersSection,
+        position = 13
+    )
+    default boolean dailyDynamite() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "dailyArrows",
+        name = "Daily: Ogre Arrows",
+        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
+        section = remindersSection,
+        position = 14
+    )
+    default boolean dailyArrows() {
+        return true;
+    }
 }

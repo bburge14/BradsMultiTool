@@ -1,13 +1,13 @@
 # Snuffy's PvM/Slayer
 
-PvM HUD, monster hover card with weaknesses and max hits, buff bar, health and prayer warnings, Slayer card with points, streak and kill goals, voice alerts.
+PvM HUD with loot per hour, monster hover card with weaknesses and max hits, buff bar, health, prayer and death alerts, Slayer card with points, streak and kill goals.
 
 ## Features
 
-- **PvM HUD**: your target's health, weaknesses and what you're dealing
+- **PvM HUD**: your target's health, weaknesses, what you're dealing and loot per hour
 - **Monster hover card**: hitpoints, defences, weakness, max hit and attack speed
 - **Buff bar**: potions, antifire, stamina, overload, vengeance, freezes and more, with low and expired alerts
-- **Health and prayer warnings**, special attack ready, cannon, ammo and rune alerts
+- **Health and prayer warnings**, special attack ready, cannon, ammo and rune alerts, a death alert with a gravestone timer
 - **Slayer card**: task, kills left and kill rate, where to go, points and streak with milestone warnings, supplies used, kill goals; task monster outlines and finish-off markers
 
 

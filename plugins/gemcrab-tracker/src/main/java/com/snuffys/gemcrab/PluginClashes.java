@@ -149,7 +149,13 @@ class PluginClashes {
         plugin(CORE + "metronome.MetronomePlugin", "RuneLite's Metronome",
             "RuneLite's Metronome is on; with Snuffy's Metronome on too, you'll hear both", "tickcounter"),
         plugin(CORE + "idlenotifier.IdleNotifierPlugin", "RuneLite's Idle Notifier",
-            "RuneLite's Idle Notifier is on, so it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab", "voices"));
+            "RuneLite's Idle Notifier is on, so it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab", "voices"),
+        plugin(CORE + "dailytaskindicators.DailyTasksPlugin", "RuneLite's Daily Task Indicator",
+            "RuneLite's Daily Task Indicator is on, so it and Snuffy's Daily Reminders both list your dailies at login; turn off one or the other",
+            "skilltracker", "pvm", "gemcrab", "voices"),
+        // RuneLite's own Death Indicator left the core client; a plugin by that class name (from the Plugin Hub) does the same
+        plugin("DeathIndicatorPlugin", "Death Indicator",
+            "Death Indicator is on and also marks your death; turn off its info box or Snuffy's Gravestone Timer to see just one", "pvm"));
 
     private final Client client;
     private final ClientThread clientThread;

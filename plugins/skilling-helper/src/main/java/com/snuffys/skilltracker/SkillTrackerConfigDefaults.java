@@ -139,6 +139,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("skillsTabGoalBars", config.skillsTabGoalBars());
         defaults.store("showTrackerItems", config.showTrackerItems());
         defaults.store("keepSessionMinutes", config.keepSessionMinutes());
+        defaults.store("showMaterialsValue", config.showMaterialsValue());
         defaults.store("ignoredSkills", config.ignoredSkills());
         defaults.store("voiceLevelUp", config.voiceLevelUp());
         defaults.store("chatLevelUp", config.chatLevelUp());

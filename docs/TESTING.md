@@ -27,6 +27,10 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       monster (Graardor) never sets it off.
 - [ ] Unpotted Reminder on: attacking with no boost says "No combat boost active", not again within 2 minutes;
       after a super combat it stays quiet. Your Style's: a Magic boost doesn't count while meleeing.
+- [ ] Loot line: after a kill with drops, "Loot:" shows their GE value; "/h" appears after a minute; HUD Reset clears it.
+- [ ] Death (e.g. somewhere safe-ish with cheap items): chat/voice says where; the gravestone info box counts down from
+  15:00, pauses while logged out, and goes when you're back at the spot. No box after a death in an instance, the
+  Wilderness, or a safe minigame (nothing lost).
 
 ## Buff bar and monster effects
 - [ ] Buff bar: a potion shows its icon, +boost and time left (divine exact, regular "~" until synced); antifire,
@@ -164,6 +168,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       goal bar; none with the setting off or on other tabs.
 - [ ] Training combat (e.g. Gemstone Crab): cards stay still, no field wraps onto two lines; GOALS / THIS SESSION headings centred.
 - [x] Actions left hidden for combat skills.
+- [ ] Production goal (e.g. Cooking) after opening the bank: "Materials: ... gp" under Banked on the card and the pinned skill; Show Materials Value off hides it.
 - [x] Set Goal dialog: the skill list shows your levels; picking one shows your level, XP and current goal.
 - [x] Monsters with no Slayer level (cows, goblins) have no Slayer section.
 - [x] Set Goal button: pick a skill, enter a level (e.g. 80) or XP (e.g. 2000000); the skill appears under GOALS.
@@ -248,6 +253,14 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] With two of Snuffy's plugins running separately, each run energy alert is said once.
 - [ ] Speak Only When Unfocused: with RuneLite focused alerts post in chat but aren't spoken; click another
       window and they're spoken; Voice switch previews still play.
+
+## Reminders
+- [ ] A monster's clue scroll drop: "Clue: a <tier> clue scroll from <monster>!" once; picking it up says nothing more.
+- [ ] A clue geode / bottle / nest / scroll box from skilling: alert with its tier. Withdrawing one from the bank: no alert.
+- [ ] Logging in with clues already in the inventory: no alert.
+- [ ] Login on a member with an uncollected daily (e.g. Zaff's battlestaves after the Varrock easy diary): one
+  "Dailies to collect" line; collected ones aren't listed; each daily's switch removes it.
+- [ ] With two of Snuffy's plugins installed, clue and daily alerts are said once.
 
 ## Track for goal: specific methods
 - [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,

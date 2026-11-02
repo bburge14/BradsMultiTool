@@ -204,6 +204,14 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String idleSection = "idleSection";
 
     @ConfigSection(
+        name = "Reminders",
+        description = "Clue drops and daily rewards to collect",
+        position = 6,
+        closedByDefault = true
+    )
+    String remindersSection = "remindersSection";
+
+    @ConfigSection(
         name = "PvM: Buff Bar",
         description = "<div width='300'>Your buffs and debuffs as a row of icons with timers, like RS3's",
         position = 11,
@@ -640,6 +648,186 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @Override
     default boolean chatRunRestored() {
         return SkillTrackerConfig.super.chatRunRestored();
+    }
+
+    @ConfigItem(
+        keyName = "clueDropAlert",
+        name = "Clue Drop Alert",
+        description = "<div width='300'>When a clue lands for you: a clue scroll in a monster's drop, or a clue bottle, geode, nest or scroll box from skilling going into your inventory. Chat says which tier",
+        section = remindersSection,
+        position = 0
+    )
+    @Override
+    default boolean clueDropAlert() {
+        return SkillTrackerConfig.super.clueDropAlert();
+    }
+
+    @ConfigItem(
+        keyName = "voiceClueDrop",
+        name = "Voice: Clue Drop",
+        description = "Voice line when a clue drops (turning it on plays a preview)",
+        section = remindersSection,
+        position = 1
+    )
+    @Override
+    default boolean voiceClueDrop() {
+        return SkillTrackerConfig.super.voiceClueDrop();
+    }
+
+    @ConfigItem(
+        keyName = "chatClueDrop",
+        name = "Chat: Clue Drop",
+        description = "Chat message when a clue drops, with its tier",
+        section = remindersSection,
+        position = 2
+    )
+    @Override
+    default boolean chatClueDrop() {
+        return SkillTrackerConfig.super.chatClueDrop();
+    }
+
+    @ConfigItem(
+        keyName = "dailyReminders",
+        name = "Daily Reminders",
+        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
+        section = remindersSection,
+        position = 3
+    )
+    @Override
+    default boolean dailyReminders() {
+        return SkillTrackerConfig.super.dailyReminders();
+    }
+
+    @ConfigItem(
+        keyName = "voiceDailies",
+        name = "Voice: Dailies",
+        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
+        section = remindersSection,
+        position = 4
+    )
+    @Override
+    default boolean voiceDailies() {
+        return SkillTrackerConfig.super.voiceDailies();
+    }
+
+    @ConfigItem(
+        keyName = "chatDailies",
+        name = "Chat: Dailies",
+        description = "Chat message listing the dailies to collect",
+        section = remindersSection,
+        position = 5
+    )
+    @Override
+    default boolean chatDailies() {
+        return SkillTrackerConfig.super.chatDailies();
+    }
+
+    @ConfigItem(
+        keyName = "dailyStaves",
+        name = "Daily: Battlestaves",
+        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
+        section = remindersSection,
+        position = 6
+    )
+    @Override
+    default boolean dailyStaves() {
+        return SkillTrackerConfig.super.dailyStaves();
+    }
+
+    @ConfigItem(
+        keyName = "dailyHerbBoxes",
+        name = "Daily: Herb Boxes",
+        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
+        section = remindersSection,
+        position = 7
+    )
+    @Override
+    default boolean dailyHerbBoxes() {
+        return SkillTrackerConfig.super.dailyHerbBoxes();
+    }
+
+    @ConfigItem(
+        keyName = "dailyEssence",
+        name = "Daily: Pure Essence",
+        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
+        section = remindersSection,
+        position = 8
+    )
+    @Override
+    default boolean dailyEssence() {
+        return SkillTrackerConfig.super.dailyEssence();
+    }
+
+    @ConfigItem(
+        keyName = "dailyRunes",
+        name = "Daily: Random Runes",
+        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
+        section = remindersSection,
+        position = 9
+    )
+    @Override
+    default boolean dailyRunes() {
+        return SkillTrackerConfig.super.dailyRunes();
+    }
+
+    @ConfigItem(
+        keyName = "dailySand",
+        name = "Daily: Sand",
+        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
+        section = remindersSection,
+        position = 10
+    )
+    @Override
+    default boolean dailySand() {
+        return SkillTrackerConfig.super.dailySand();
+    }
+
+    @ConfigItem(
+        keyName = "dailyFlax",
+        name = "Daily: Bowstrings",
+        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
+        section = remindersSection,
+        position = 11
+    )
+    @Override
+    default boolean dailyFlax() {
+        return SkillTrackerConfig.super.dailyFlax();
+    }
+
+    @ConfigItem(
+        keyName = "dailyBonemeal",
+        name = "Daily: Bonemeal",
+        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
+        section = remindersSection,
+        position = 12
+    )
+    @Override
+    default boolean dailyBonemeal() {
+        return SkillTrackerConfig.super.dailyBonemeal();
+    }
+
+    @ConfigItem(
+        keyName = "dailyDynamite",
+        name = "Daily: Dynamite",
+        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
+        section = remindersSection,
+        position = 13
+    )
+    @Override
+    default boolean dailyDynamite() {
+        return SkillTrackerConfig.super.dailyDynamite();
+    }
+
+    @ConfigItem(
+        keyName = "dailyArrows",
+        name = "Daily: Ogre Arrows",
+        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
+        section = remindersSection,
+        position = 14
+    )
+    @Override
+    default boolean dailyArrows() {
+        return SkillTrackerConfig.super.dailyArrows();
     }
     // ---- End of CommonConfig's settings ----
 

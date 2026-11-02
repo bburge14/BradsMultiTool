@@ -108,22 +108,25 @@ problems: [open an issue](https://github.com/bburge14/bradsmultitool/issues).
 # The features each plugin's README lists (the Plugin Hub page players see); the Toolbelt lists every plugin's
 FEATURES = {
     "skilltracker": [
-        "**XP tracker** in the sidebar: XP/hr, time to level, actions left, auto-pause, a pinned skill on screen",
-        "**Goals** with the wiki's training method for your level, outlined in the world, banked XP, and Track for goal",
+        "**XP tracker** in the sidebar: XP/hr, time to level, actions left, items gathered per hour, auto-pause, a pinned "
+        "skill on screen, and it keeps your session through a quick restart",
+        "**Goals** with the wiki's training method for your level, outlined in the world, banked XP and materials value, "
+        "Track for goal, and goal bars on the Skills tab",
         "**Hover cards** for trees, rocks, fishing spots, stalls, pickpocketing, farming patches, Hunter, Runecraft, "
         "Agility, Cooking, Smithing and Sailing",
         "**Resource timers**: tree, rock, fishing spot, trap, fire and shipwreck timers",
-        "**Farming patch list** with \"ready\" alerts",
+        "**Farming patch list** with \"ready\" alerts, and a **Hunters' Rumours** card",
         "**Agility**: course and Brimhaven arena cards, the quickest route to the tagged pillar, one-obstacle training",
         "**Minigames**: Wintertodt, Tempoross and Guardians of the Rift cards and alerts",
         "**Voice alerts**: inventory full, resource gone, Forestry events, bird nests, Motherlode sack full, boat "
         "health, level-ups and more",
     ],
     "pvm": [
-        "**PvM HUD**: your target's health, weaknesses and what you're dealing",
+        "**PvM HUD**: your target's health, weaknesses, what you're dealing and loot per hour",
         "**Monster hover card**: hitpoints, defences, weakness, max hit and attack speed",
         "**Buff bar**: potions, antifire, stamina, overload, vengeance, freezes and more, with low and expired alerts",
-        "**Health and prayer warnings**, special attack ready, cannon, ammo and rune alerts",
+        "**Health and prayer warnings**, special attack ready, cannon, ammo and rune alerts, a death alert with a "
+        "gravestone timer",
         "**Slayer card**: task, kills left and kill rate, where to go, points and streak with milestone warnings, "
         "supplies used, kill goals; task monster outlines and finish-off markers",
     ],
@@ -134,7 +137,7 @@ FEATURES = {
     ],
     "tickcounter": [
         "**Tick count** over your head, as numbered tick boxes or a smooth tick bar",
-        "**Metronome** with a play-ahead option, and hotkeys",
+        "**Metronome** with a play-ahead option, and hotkeys to reset, hide and change the cycle",
         "**Attack timer** that follows your weapon's speed, counting up or down to your next attack",
         "**Click timing**: how far into the tick each click lands, for tick skilling practice",
     ],
@@ -142,6 +145,7 @@ FEATURES = {
         "**One voice and volume** for all of Snuffy's plugins (10 voices)",
         "**Idle alerts**: AFK, about to be logged out, six-hour logout",
         "**Run energy** low and restored alerts",
+        "**Clue drops** from monsters and skilling, and **daily reminders** of what to collect",
     ],
 }
 FEATURE_TITLES = {"skilltracker": "Skilling Helper", "pvm": "PvM/Slayer", "gemcrab": "GemCrab Tracker",

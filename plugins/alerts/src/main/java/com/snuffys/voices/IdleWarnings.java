@@ -35,7 +35,7 @@ class IdleWarnings {
     private static final int DEFAULT_IDLE_LOGOUT_CYCLES = 15000;
     private static final int COMBAT_IDLE_LOGOUT_CYCLES = 60000;
     // Bank, bank side panel, deposit box, bank PIN, shop, collection box, GE, GE side panel
-    private static final int[] BANKING_INTERFACES = {12, 15, 192, 213, 300, 402, 465, 631};
+    static final int[] BANKING_INTERFACES = {12, 15, 192, 213, 300, 402, 465, 631};
     // Talking or choosing: NPC and player dialogue, options, sprite and message boxes, double item box,
     // Make-X; you're busy with the game, not idle, while one is open
     private static final int[] DIALOGUE_INTERFACES = {231, 217, 219, 193, 229, 11, 270};
