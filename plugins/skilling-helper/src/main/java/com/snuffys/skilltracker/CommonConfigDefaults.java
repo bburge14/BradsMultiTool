@@ -38,17 +38,5 @@ final class CommonConfigDefaults {
         defaults.store("clueDropAlert", config.clueDropAlert());
         defaults.store("voiceClueDrop", config.voiceClueDrop());
         defaults.store("chatClueDrop", config.chatClueDrop());
-        defaults.store("dailyReminders", config.dailyReminders());
-        defaults.store("voiceDailies", config.voiceDailies());
-        defaults.store("chatDailies", config.chatDailies());
-        defaults.store("dailyStaves", config.dailyStaves());
-        defaults.store("dailyHerbBoxes", config.dailyHerbBoxes());
-        defaults.store("dailyEssence", config.dailyEssence());
-        defaults.store("dailyRunes", config.dailyRunes());
-        defaults.store("dailySand", config.dailySand());
-        defaults.store("dailyFlax", config.dailyFlax());
-        defaults.store("dailyBonemeal", config.dailyBonemeal());
-        defaults.store("dailyDynamite", config.dailyDynamite());
-        defaults.store("dailyArrows", config.dailyArrows());
     }
 }

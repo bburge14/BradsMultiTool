@@ -26,6 +26,7 @@ public class BradsMultiToolPluginTest {
         PLUGINS.put("pvm", PvmPlugin.class);
         PLUGINS.put("gemcrab", GemCrabPlugin.class);
         PLUGINS.put("tick", TickCounterPlugin.class);
+        PLUGINS.put("planner", PlannerPlugin.class);
         PLUGINS.put("alerts", VoicesPlugin.class);
     }
 

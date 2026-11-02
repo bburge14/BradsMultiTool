@@ -84,7 +84,6 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final JPanel cardsContainer = new JPanel();
     private final JLabel goalsHeading = foldingHeading("GOALS", "goals");
     private final JLabel sessionHeading = foldingHeading("THIS SESSION", "session");
-    private final JLabel farmingHeading = foldingHeading("FARMING", "farming");
     private final JLabel rumourHeading = foldingHeading("HUNTER RUMOUR", "rumour");
     // What's laid out now (goal skills, then session skills), so the list is only rebuilt when it changes
     private String cardOrder = "";
@@ -234,14 +233,6 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         boolean goalsFolded = plugin.isListCollapsed("goals");
         boolean sessionFolded = plugin.isListCollapsed("session");
-        boolean farmingFolded = plugin.isListCollapsed("farming");
-        List<FarmingTracker.Record> patches = config.farmingPatchList() ? plugin.getFarmingTracker().records()
-            : Collections.emptyList();
-        long now = System.currentTimeMillis() / 1000;
-        StringBuilder farmingText = new StringBuilder();
-        for (FarmingTracker.Record patch : patches) {
-            farmingText.append(patch.title).append(patch.crop).append(patchStatus(patch, now)).append(';');
-        }
         // Your Hunters' Rumour, if you have one
         boolean rumourFolded = plugin.isListCollapsed("rumour");
         List<String[]> rumour = plugin.getHunterRumours().lines();
@@ -249,8 +240,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         for (String[] line : rumour) {
             rumourText.append(line[0]).append(line[1]).append(';');
         }
-        String order = goals + "|" + session + "|" + goalsFolded + sessionFolded + farmingFolded + rumourFolded + "|" + farmingText
-            + "|" + rumourText;
+        String order = goals + "|" + session + "|" + goalsFolded + sessionFolded + rumourFolded + "|" + rumourText;
         if (!order.equals(cardOrder)) {
             cardOrder = order;
             cardsContainer.removeAll();
@@ -282,69 +272,9 @@ public class BradsMultiToolPanel extends PluginPanel {
                     cardsContainer.add(rumourRow(rumour, plugin.getHunterRumours().places()));
                 }
             }
-            // Farming patches you've been to, soonest grown first
-            if (!patches.isEmpty()) {
-                setHeading(farmingHeading, "FARMING", farmingFolded, patches.size());
-                farmingHeading.setToolTipText(farmingFolded ? "Click to show your farming patches" : "Click to hide your farming patches");
-                cardsContainer.add(farmingHeading);
-                if (!farmingFolded) {
-                    patches.forEach(patch -> cardsContainer.add(patchRow(patch, now)));
-                }
-            }
             cardsContainer.revalidate();
             cardsContainer.repaint();
         }
-    }
-
-    // "ready", "in 1h 20m", "diseased", "dead"
-    static String patchStatus(FarmingTracker.Record patch, long now) {
-        if (patch.ready(now)) {
-            return "ready";
-        }
-        if (FarmingData.DISEASED.equals(patch.state)) {
-            return "diseased";
-        }
-        if (FarmingData.DEAD.equals(patch.state)) {
-            return "dead";
-        }
-        if (FarmingData.GROWING.equals(patch.state) && patch.grownAt > 0) {
-            // To the minute (the list refreshes once a minute)
-            long minutes = (patch.grownAt - now + 59) / 60;
-            return minutes >= 60 ? "in " + minutes / 60 + "h " + minutes % 60 + "m" : "in " + minutes + "m";
-        }
-        return patch.state.toLowerCase();
-    }
-
-    // One patch: where on the left, crop and when on the right; right-click to forget it
-    private JPanel patchRow(FarmingTracker.Record patch, long now) {
-        JPanel row = new JPanel(new BorderLayout(4, 0));
-        row.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        row.setBorder(new EmptyBorder(3, 6, 3, 6));
-        row.setAlignmentX(Component.CENTER_ALIGNMENT);
-        String status = patchStatus(patch, now);
-        JLabel where = new JLabel("<html>" + patch.title + "<br><font color='#b4b4b4'>" + patch.crop + "</font></html>");
-        where.setFont(FontManager.getRunescapeSmallFont());
-        where.setForeground(Color.WHITE);
-        JLabel when = new JLabel(status, SwingConstants.RIGHT);
-        when.setFont(FontManager.getRunescapeSmallFont());
-        when.setForeground("ready".equals(status) ? HudColors.GOOD : "dead".equals(status) ? HudColors.BAD
-            : "diseased".equals(status) ? HudColors.WARN : Color.LIGHT_GRAY);
-        row.add(where, BorderLayout.CENTER);
-        row.add(when, BorderLayout.EAST);
-        row.setToolTipText(patch.title + ": " + patch.crop + " (as you last saw it)");
-        JPopupMenu menu = new JPopupMenu();
-        JMenuItem forget = new JMenuItem("Forget this patch");
-        forget.addActionListener(e -> plugin.getFarmingTracker().forget(patch.key));
-        menu.add(forget);
-        row.setComponentPopupMenu(menu);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
-        JPanel wrap = new JPanel(new BorderLayout());
-        wrap.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        wrap.setBorder(new EmptyBorder(0, 0, 3, 0));
-        wrap.add(row);
-        wrap.setAlignmentX(Component.CENTER_ALIGNMENT);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height + 3));
-        return wrap;
     }
 
     // The rumour card: a line each (creature, catches, where), hover for every place the creature lives

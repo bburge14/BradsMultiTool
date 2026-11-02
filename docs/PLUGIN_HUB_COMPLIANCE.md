@@ -14,7 +14,7 @@ Last checked: 2026-10-28.
 ## Planned split
 
 The Toolbelt will also be published as separate plugins (Snuffy's Skilling Helper, PvM/Slayer, GemCrab
-Tracker, Tick Counter and an optional Alerts plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
+Tracker, Tick Counter, Planner and an optional Alerts plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
 its own data files, overlay(s) and config section, talking to the rest only through small shared helpers
 (voice alerts, chat messages, cursor tooltip).
 
@@ -29,7 +29,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | No `Desktop.browse` / `LinkBrowser.open` (`LinkBrowser.browse` is allowed) | OK. The Issues? button uses `LinkBrowser.browse` |
 | No `java.io` file APIs (resources via `getResourceAsStream` are fine) | OK |
 | No `Runtime`, `KeyboardFocusManager`, non-OkHttp network clients | OK (no network use at all) |
-| Don't create your own `Gson` / `OkHttpClient` (inject them) | OK. Plugin code uses the injected `Gson` (tests create their own, which isn't shipped) |
+| Don't create your own `Gson` / `OkHttpClient` (inject them) | OK. Plugin code uses the injected `Gson` (tests create their own, which isn't shipped); the Planner saves its lists as JSON with it, into ConfigManager (no `TypeToken`: plain holder classes) |
 | No `Client.menuAction`, `hopToWorld` | OK |
 | `Client.runScript` is a "sensitive API": allowed, with extra review when code around it changes | Only through RuneLite's own `Quest.getState` (a read-only quest-status script), on the client thread, after login, after a quest completes and every 5 minutes (`QuestProgress`), to leave out training methods whose quests you haven't done. Nothing that sends anything to the server |
 | Don't modify other plugins' configs | OK. Reads the client's idle timeout, and reads (never changes) which plugins are enabled via `PluginManager.getPlugins()` / `isPluginEnabled()` so our resource timers can step aside for a dedicated timer plugin, and reads (never writes) settings of RuneLite's own Fishing and Motherlode Mine plugins (`fishing.showIcons`, `fishing.showTiles`, `fishing.onlyCurrent`, `fishing.showMinnowOverlay`, `motherlode.showVeins`), and whether its Mining plugin is on (it always times depleted rocks and Daeyalt), through `ConfigManager.getConfiguration` so our tile style leaves out an icon or outline those already draw. Matched by class name, no reflection/annotations. Each plugin saves the defaults of its own settings (its own config group only) where nothing is saved yet (`ConfigDefaults`), through generated plain calls rather than reflection |
@@ -46,7 +46,13 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Idle logout warning, AFK alert | OK. Notifications only (core Idle Notifier / Logout Timer do the same); nothing prevents logout |
 | Loot value on the PvM HUD, materials value on goal cards | OK. RuneLite's `NpcLootReceived` and ItemManager GE prices, as the core Loot Tracker; figures only |
 | Death alert and gravestone timer | OK. Same as the old core Death Indicator: reads your death (`ActorDeath`), location and item counts; an InfoBox of our own; nothing acts for the player |
-| Clue drop alert, daily reminders | OK. Clue items by name from kill loot and your inventory; dailies from the same varbits as core Daily Task Indicator; notifications only |
+| Clue drop alert | OK. Clue items by name from kill loot and your inventory; notifications only |
+| Planner: TODAY dailies checklist | OK. The same varbits as core Daily Task Indicator; one generic voice line at login/reset (no chat line unless turned on), never one per item; ticking a line only changes our list |
+| Planner: WEEKLY (Tears of Guthix, Kingdom of Miscellania, farming contract) | OK. Tears of Guthix from the game's own collecting varbit going back to 0 (when your game ends) plus the wiki's "start of the seventh day after" rule; kingdom approval/coffer the way core Kingdom of Miscellania reads them; the contract the way core Time Tracking reads it. Information only |
+| Planner: TIMERS (farming patches incl. compost bins and Hespori, bird houses, your own timers) | OK. Same information as core Time Tracking (patch varbits read with its guards: two ticks in one region, no modal interface open; the growth tick offset learnt the same way); own timers are a countdown the player starts, with a notification |
+| Planner: SLAYER | OK. The varps/varbits and game tables core Slayer reads; information only |
+| Planner: DROPS (drop tracker) | OK. Like core Loot Tracker: `NpcLootReceived`, and `LootReceived` for chests/caskets/raids (posted by core Loot Tracker; its NPC and player records are skipped so kills aren't counted twice); GE prices via ItemManager; saved with ConfigManager (RS profile). Clash note while core Loot Tracker is on |
+| Planner: NOTES & TO-DO | OK. Text the player types, saved with ConfigManager (RS profile); no files |
 | Gemstone Crab HUD and radar | OK. Plugin Hub has gemstone-crab-timer |
 | Slayer task card, missing item warning | OK |
 | Task monster outlines (Konar area aware), Slayer info on monster hover/HUD | OK. Core Slayer plugin highlights task monsters too; information only |

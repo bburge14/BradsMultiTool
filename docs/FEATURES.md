@@ -6,7 +6,8 @@ section to open. In the Toolbelt, sections are named after their plugin and
 grouped in order: About, General, Idle, then **PvM:** (HUD, Buff Bar, Potion Buffs, Health, Prayer, Combat Alerts,
 Supply Alerts), **Slayer:** (Card, Monsters, Alerts), **GemCrab:** (Crab, Colours), **Skilling:** (Tracker, Goals,
 Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, Other Skills for the rest, and Minigames), and
-**Tick:** (Counter, Boxes, Bar, Metronome, Click Timing). Each separate plugin has the same sections without the
+**Tick:** (Counter, Boxes, Bar, Metronome, Click Timing), and **Planner:** (Today, Weekly, Timers, Slayer, Drops,
+Notes & To-Do). Each separate plugin has the same sections without the
 plugin's name, and the Skilling Helper gives every skill its own. All start collapsed except About and General.
 
 - [Alerts (all of them)](#alerts-all-of-them)
@@ -25,7 +26,9 @@ plugin's name, and the Skilling Helper gives every skill its own. All start coll
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
 - [Tick counter and metronome](#tick-counter-and-metronome)
+- [Planner](#planner)
 - [Idle alerts](#idle-alerts)
+- [Clue drops](#clue-drops)
 - [Agility](#agility)
 - [Minigames: Wintertodt, Tempoross, Guardians of the Rift](#minigames-wintertodt-tempoross-guardians-of-the-rift)
 - [Issues? button](#issues-button)
@@ -309,7 +312,8 @@ Daeyalt, RuneLite's Fishing plugin's Minnow overlay for minnow spots...), our pi
 
 ## Skilling alerts
 
-All only for the resource you're working, and each with Voice/Chat switches in its skill's section.
+All only for the resource you're working, and each with Voice/Chat switches in its skill's section. (The farming
+patches and bird houses ready alerts are in the [Planner](#planner) now.)
 
 | Alert | When | Setting |
 |---|---|---|
@@ -321,26 +325,8 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 | Trim sails | On your own boat, a gust opens the window to trim the sails for a burst of speed (the game's buff bar times the same window) | Sailing > Voice/Chat: Trim Sails |
 | Bird nest | A bird's nest falls out of the tree (chat says when it's a clue nest) | Woodcutting > Voice/Chat: Bird Nest |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
-| Farming patches ready | Patches you've planted are grown (chat names them; once per crop). Uses each patch as you last saw it | Farming > Patches Ready Alert |
-| Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
 | Rumour complete | Your Hunters' Rumour creature's rare part drops ("take the part to the Hunter Guild"; chat says how many you caught) | Hunter > Voice/Chat: Rumour Complete |
 | Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling Alerts > Batch Complete |
-
----
-
-## Farming patch list
-
-**What it does:** A **FARMING** list at the bottom of the sidebar: every patch you've been to with something in it,
-what's growing and when it's grown ("ready" in green, "in 1h 20m", "diseased", "dead"), soonest first.
-
-**How to use:** Just farm: the game only tells us a patch's state while you're near it, so each patch is saved as you
-last saw it (kept between logins, per account). Click the heading to fold the list; right-click a patch to forget it.
-**Farming > Patches Ready Alert** says when patches you've planted are grown. Settings: Farming Patch List, Patches
-Ready Alert, Voice/Chat: Patches Ready.
-
-**Good to know:** Grown times are estimates to within a growth cycle (crops grow on the game's clock). Disease can
-strike after you leave; the list only knows what it last saw. RuneLite's Time Tracking plugin keeps a similar list
-in its own panel.
 
 ---
 
@@ -626,6 +612,70 @@ Show/Hide, Ticks Per Cycle Up and Ticks Per Cycle Down hotkeys.
 
 ---
 
+## Planner
+
+**Snuffy's Planner** (in the Toolbelt too): its own sidebar tab (the calendar icon) for things on a clock and your
+account's to-do list. Six lists, each under a heading you click to fold it (like the tracker's GOALS), and each with
+a **Show ...** setting to hide it. What you add is saved per account (RuneScape profile), and the Toolbelt and the
+separate Planner show the same. Skill goals aren't here: they stay in the Skilling Helper.
+
+**TODAY** (with the time to the daily reset, 00:00 UTC):
+- The daily rewards you've unlocked, ticked off by the game as you collect them, the same checks as RuneLite's Daily
+  Task Indicator: battlestaves (Zaff, Varrock easy diary), herb boxes (Nightmare Zone, 9,500 points each, up to 15;
+  not Ironmen; "3 of 15 bought"), pure essence (Wizard Cromperty, Ardougne medium), random runes (Lundail,
+  Wilderness easy), sand (Bert, The Hand in the Sand; not Ultimate Ironmen), bowstrings (Flax keeper, Kandarin easy),
+  bonemeal and slime (Robin, Morytania medium and up), dynamite (Thirus, Kourend & Kebos medium), ogre arrows (Rantz,
+  Western Provinces easy). Members only; ones you haven't unlocked don't show. Hover one for where to get it.
+- **Your own:** **Add...** a daily or weekly with a name and an optional note; tick it by hand and it unticks at its
+  reset. Right-click any line to **Edit...** (rename it, change its note) or **Delete** it; presets are **Hidden**
+  instead (**Show hidden** brings them back). Presets can be ticked by hand too.
+- At login and at the reset, if anything's left: one voice line, "You have dailies to do." Nothing in chat unless
+  **Chat: Dailies** is on (off at first). Never a line per item.
+
+**WEEKLY** (with the time to the weekly reset, Wednesday 00:00 UTC):
+- **Tears of Guthix:** noticed when a game there ends; Juna lets you back at the start of the seventh day after
+  ("back in 3d 4h"). Before your first game with the plugin on it says "not seen yet": tick it by hand when you play
+  it elsewhere. (It also needs a quest point or 100,000 XP since your last visit, which the game doesn't tell us.)
+- Your own weeklies, as above. "You have weeklies to do." at login and the weekly reset (Chat: Weeklies off at first).
+- **Kingdom of Miscellania:** approval and coffer as last seen, as RuneLite's Kingdom plugin reads them (the game
+  sends them while you're in the kingdom, or once they've changed), after Throne of Miscellania. Approval under 50%
+  shows orange.
+- **Farming contract:** Guinevere's contract (the crop), how its Farming Guild patch is doing (from TIMERS), or "done:
+  claim from Guinevere".
+
+**TIMERS:**
+- **Farming patches** (moved here from the Skilling Helper's sidebar; nothing saved is lost): every patch, compost bin
+  and Hespori patch you've been to with something in it, what's in it and when it's grown ("ready" in green, "in 1h
+  20m", "diseased", "dead"), soonest first. The game only tells us a patch's state while you're near it, so each is as
+  you last saw it; right-click one to forget it. Like RuneLite's Time Tracking, a patch is only read after two ticks in
+  the same area and not while a full-screen interface is open, and the account's growth tick offset is learnt the
+  first time a patch is seen growing a stage while you stand there; until then times show with a **~** (they may be out
+  by one growth cycle) and the ready alert waits a cycle longer.
+- **Bird houses:** when your Fossil Island bird houses are full (50 minutes after seeding).
+- **Your own timers:** **Add timer...** with a name and a length (minutes, or h:mm); Start, Stop, Again; right-click to
+  edit or delete. They keep running through a logout; one that ends while you're away is said when you're back.
+- Alerts: Patches Ready (chat names them; once per crop), Bird Houses Ready, Timer Done ("Your timer is done.", chat
+  names it), each with Voice/Chat switches.
+
+**SLAYER:** your task and kills left (of how many), Konar's area, Slayer points and streak, read straight from the
+game (as RuneLite's Slayer plugin does), so it works without the PvM/Slayer plugin; kept for when you're logged out.
+
+**DROPS:** for each monster (and chest, clue casket, raid... with **Count Other Loot**): kills or opens, the Grand
+Exchange value and, clicked open, the items; then your latest drops (**Recent Drops Shown**), the valuable ones
+(**Valuable Drop From**, 100K at first) in **Valuable Drop Colour**. Right-click a monster to reset it; **Reset all**
+clears the lot. Monster drops are RuneLite's own kill loot (as the PvM HUD's loot per hour counts it, which stays in
+PvM); other loot comes from RuneLite's Loot Tracker, so it's only counted while that plugin is on (its monster kills
+aren't counted twice). With the Loot Tracker on, the clash note says the two lists overlap.
+
+**NOTES & TO-DO:** a to-do list (type and press Enter or **Add**; tick, right-click to edit, move up or down, delete;
+**Clear ticked**) and a notes box, saved as you type, for each account.
+
+**Settings (Planner: Today, Weekly, Timers, Slayer, Drops, Notes & To-Do):** a Show switch for each list; Dailies To Do
+Alert, Weeklies To Do Alert; Kingdom of Miscellania, Farming Contract; Farming Patch List, Patches Ready Alert, Bird
+Houses Ready Alert; Count Other Loot, Valuable Drop From, Valuable Drop Colour, Recent Drops Shown; Voice/Chat switches.
+
+---
+
 ## Idle alerts
 
 **What it does:**
@@ -650,25 +700,16 @@ At (%, 0 off); Voice/Chat switches.
 
 ---
 
-## Reminders (clue drops and dailies)
+## Clue drops
 
-Every plugin but the Tick Counter has these; with several installed only one says them.
+Every plugin but the Tick Counter has this; with several installed only one says it.
 
-**What it does:**
-- **Clue drop alert:** a clue scroll in the drop of a monster you killed, or a clue bottle, clue geode, clue nest or
-  scroll box from skilling arriving in your inventory: "Clue: a hard clue scroll from Abyssal demon!" (the tier from
-  the item's name). Taking one out of the bank, the GE or a deposit box doesn't count, and picking up a dropped one
-  isn't said twice.
-- **Daily reminders:** at login (and at the daily reset, 00:00 UTC), one chat line listing the daily rewards you've
-  unlocked but not collected, as RuneLite's Daily Task Indicator does: battlestaves (Zaff, Varrock easy diary), herb
-  boxes (Nightmare Zone, 9,500 points; not Ironmen), pure essence (Wizard Cromperty, Ardougne medium), random runes
-  (Lundail, Wilderness easy), sand (Bert, The Hand in the Sand; not Ultimate Ironmen), bowstrings (Flax keeper,
-  Kandarin easy), bonemeal and slime (Robin, Morytania medium and up), dynamite (Thirus, Kourend & Kebos medium),
-  ogre arrows (Rantz, Western Provinces easy). Members only. Kingdom of Miscellania isn't in it: its favour and
-  coffers aren't a daily collection, and RuneLite's plugin doesn't track them either. With RuneLite's Daily Task
-  Indicator on too, the clash note says so.
+**What it does:** a clue scroll in the drop of a monster you killed, or a clue bottle, clue geode, clue nest or
+scroll box from skilling arriving in your inventory: "Clue: a hard clue scroll from Abyssal demon!" (the tier from
+the item's name). Taking one out of the bank, the GE or a deposit box doesn't count, and picking up a dropped one
+isn't said twice. (The daily reminders that used to be here are the Planner's TODAY list now, without the chat line.)
 
-**Settings (Reminders):** Clue Drop Alert; Daily Reminders and a switch for each daily; Voice/Chat switches.
+**Settings (Reminders):** Clue Drop Alert; Voice/Chat: Clue Drop.
 
 ---
 

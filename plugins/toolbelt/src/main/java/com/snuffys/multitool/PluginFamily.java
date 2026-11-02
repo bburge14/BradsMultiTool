@@ -47,7 +47,7 @@ class PluginFamily {
     }
 
     private final EventBus eventBus;
-    // This build's id ("multitool", "skilltracker", "pvm", "gemcrab", "voices")
+    // This build's id ("multitool", "skilltracker", "pvm", "gemcrab", "planner", "voices")
     private final String self;
     private final Set<String> others = ConcurrentHashMap.newKeySet();
     private volatile VoiceSettings voiceSettings;
@@ -82,7 +82,7 @@ class PluginFamily {
     // Who runs the warnings every plugin has (idle, logout) when several are installed, so they're said once
     // (and tagged with its name in chat): the first of these that's running. The all-in-one comes first, so
     // with it installed every message says Snuffy's Toolbelt (in the Alerts plugin's voice, if that runs)
-    private static final List<String> SHARED_ORDER = Arrays.asList("multitool", VOICES, "skilltracker", "pvm", "gemcrab");
+    private static final List<String> SHARED_ORDER = Arrays.asList("multitool", VOICES, "skilltracker", "pvm", "gemcrab", "planner");
 
     /** Whether this plugin should run the shared idle and logout warnings (no other of ours ahead of it is running). */
     boolean handlesShared() {

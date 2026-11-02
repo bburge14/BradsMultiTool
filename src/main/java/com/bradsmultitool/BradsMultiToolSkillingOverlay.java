@@ -853,7 +853,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         line("Status:", statusText(state), statusColor(state));
         if (FarmingData.GROWING.equals(state.cropState)) {
             line("Stage:", (state.stage + 1) + " of " + state.produce.stages, Color.WHITE);
-            long seconds = FarmingData.secondsUntilGrown(state, System.currentTimeMillis() / 1000);
+            long seconds = farming.untilGrown(state, System.currentTimeMillis() / 1000);
             line("Ready In:", "~" + duration(seconds), Color.WHITE);
             if (FarmingData.WATERABLE.contains(patch.implementation)) {
                 line("Watered:", state.watered ? "Yes" : "No", state.watered ? HudColors.GOOD : HudColors.WARN);

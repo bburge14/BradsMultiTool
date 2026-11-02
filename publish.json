@@ -22,6 +22,11 @@
       "hubName": "snuffys-tick-counter",
       "publish": true
     },
+    "planner": {
+      "repo": "https://github.com/bburge14/snuffys-planner.git",
+      "hubName": "snuffys-planner",
+      "publish": true
+    },
     "alerts": {
       "repo": "https://github.com/bburge14/snuffys-alerts.git",
       "hubName": "snuffys-alerts",

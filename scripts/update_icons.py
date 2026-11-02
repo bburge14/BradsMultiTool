@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Make the plugins' icons from the logos in assets/ (Alerts, GemCrab, MultiTool, PvM, Skilling, TickCounter).
+"""Make the plugins' icons from the logos in assets/ (Alerts, GemCrab, MultiTool, PvM, Skilling, TickCounter,
+Planner).
 
 Usage: python3 scripts/update_icons.py   (needs Pillow: pip install pillow)
 
 - assets/hub/<plugin>.png: each plugin's Plugin Hub icon (within the Hub's 48x72 limit); split_plugins.py puts
   it at the root of the plugin's folder under plugins/ as icon.png. The Toolbelt's is also icon.png here.
 - src/main/resources/com/bradsmultitool/icons/skilltracker.png: the Skill Tracker's sidebar tab icon (16x16),
-  the Skilling logo, in the all-in-one too.
+  the Skilling logo, in the all-in-one too; icons/planner.png likewise, the Planner's tab (the Planner logo).
 """
 import os
 
@@ -17,7 +18,7 @@ ASSETS = os.path.join(ROOT, "assets")
 TAB_DIR = os.path.join(ROOT, "src", "main", "resources", "com", "bradsmultitool", "icons")
 # plugin id -> logo in assets/
 LOGOS = {"multitool": "MultiTool", "skilltracker": "Skilling", "pvm": "PvM", "gemcrab": "GemCrab", "voices": "Alerts",
-         "tickcounter": "TickCounter"}
+         "tickcounter": "TickCounter", "planner": "Planner"}
 HUB_WIDTH, HUB_HEIGHT = 48, 72
 TAB_SIZE = 16
 # RuneLite's own tab icons leave a pixel or so of space around them
@@ -74,11 +75,12 @@ def main():
     for plugin, name in LOGOS.items():
         logo = badge(name)
         hub_icon(brighter(logo)).save(os.path.join(ASSETS, "hub", plugin + ".png"), optimize=True)
-    # The only sidebar tab is the Skill Tracker's
-    tab = Image.new("RGBA", (TAB_SIZE, TAB_SIZE), (0, 0, 0, 0))
-    art = fit(glyph(badge(LOGOS["skilltracker"])), TAB_ART, TAB_ART)
-    tab.paste(art, ((TAB_SIZE - TAB_ART) // 2 + 1, (TAB_SIZE - TAB_ART) // 2 + 1), art)
-    tab.save(os.path.join(TAB_DIR, "skilltracker.png"), optimize=True)
+    # The sidebar tabs: the Skill Tracker's and the Planner's
+    for plugin in ("skilltracker", "planner"):
+        tab = Image.new("RGBA", (TAB_SIZE, TAB_SIZE), (0, 0, 0, 0))
+        art = fit(glyph(badge(LOGOS[plugin])), TAB_ART, TAB_ART)
+        tab.paste(art, ((TAB_SIZE - TAB_ART) // 2 + 1, (TAB_SIZE - TAB_ART) // 2 + 1), art)
+        tab.save(os.path.join(TAB_DIR, plugin + ".png"), optimize=True)
     hub_icon(brighter(badge(LOGOS["multitool"]))).save(os.path.join(ROOT, "icon.png"), optimize=True)
     print("Wrote Hub icons to assets/hub/, icon.png, and tab icons to %s" % os.path.relpath(TAB_DIR, ROOT))
 

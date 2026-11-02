@@ -1,0 +1,43 @@
+package com.snuffys.multitool;
+
+/**
+ * Saves the default of every setting PlannerConfig declares, where nothing is saved yet (see ConfigDefaults).
+ * Generated from PlannerConfig.java by scripts/generate_config_defaults.py: regenerate rather than editing.
+ */
+final class PlannerConfigDefaults {
+
+    private PlannerConfigDefaults() {
+    }
+
+    static void store(ConfigDefaults defaults, PlannerConfig config) {
+        defaults.store("openGuide", config.openGuide());
+        defaults.store("showClashes", config.showClashes());
+        defaults.store("plannerShowToday", config.plannerShowToday());
+        defaults.store("plannerDailiesAlert", config.plannerDailiesAlert());
+        defaults.store("voiceDailies", config.voiceDailies());
+        defaults.store("chatDailies", config.chatDailies());
+        defaults.store("plannerShowWeekly", config.plannerShowWeekly());
+        defaults.store("plannerWeekliesAlert", config.plannerWeekliesAlert());
+        defaults.store("voiceWeeklies", config.voiceWeeklies());
+        defaults.store("chatWeeklies", config.chatWeeklies());
+        defaults.store("plannerShowKingdom", config.plannerShowKingdom());
+        defaults.store("plannerShowContract", config.plannerShowContract());
+        defaults.store("plannerShowTimers", config.plannerShowTimers());
+        defaults.store("farmingPatchList", config.farmingPatchList());
+        defaults.store("farmingReadyAlert", config.farmingReadyAlert());
+        defaults.store("voiceFarmingReady", config.voiceFarmingReady());
+        defaults.store("chatFarmingReady", config.chatFarmingReady());
+        defaults.store("birdhouseAlert", config.birdhouseAlert());
+        defaults.store("voiceBirdhouses", config.voiceBirdhouses());
+        defaults.store("chatBirdhouses", config.chatBirdhouses());
+        defaults.store("voiceTimerDone", config.voiceTimerDone());
+        defaults.store("chatTimerDone", config.chatTimerDone());
+        defaults.store("plannerShowSlayer", config.plannerShowSlayer());
+        defaults.store("plannerShowDrops", config.plannerShowDrops());
+        defaults.store("plannerOtherLoot", config.plannerOtherLoot());
+        defaults.store("plannerValuableDrop", config.plannerValuableDrop());
+        defaults.store("plannerValuableColor", config.plannerValuableColor());
+        defaults.store("plannerRecentDrops", config.plannerRecentDrops());
+        defaults.store("plannerShowNotes", config.plannerShowNotes());
+    }
+}

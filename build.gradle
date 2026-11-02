@@ -52,7 +52,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 // Launches a RuneLite developer client with Snuffy's plugins side-loaded: the Toolbelt, or the separate ones
-// with -Pload=skilling,pvm,gemcrab,tick,alerts (any of them) or -Pload=separate (all of them)
+// with -Pload=skilling,pvm,gemcrab,tick,planner,alerts (any of them) or -Pload=separate (all of them)
 tasks.register('runBrad', JavaExec) {
     group = 'application'
     description = "Run RuneLite with Snuffy's Toolbelt (or -Pload=...) loaded"

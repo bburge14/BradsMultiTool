@@ -6,7 +6,7 @@ Usage:
     python3 scripts/split_plugins.py --verify     # ...and check each compiles on its own
     python3 scripts/split_plugins.py --build      # ...and build each one's jar into releases/
     python3 scripts/split_plugins.py --check      # are the plugins/ folders up to date? (changes nothing)
-    python3 scripts/split_plugins.py pvm          # just one (multitool, skilltracker, pvm, gemcrab, tickcounter, voices)
+    python3 scripts/split_plugins.py pvm          # just one (multitool, skilltracker, pvm, gemcrab, tickcounter, planner, voices)
 
 The code is written once, in src/ (which is also Snuffy's Toolbelt, the all-in-one). Each plugin's folder gets
 only what that plugin uses: starting from its plugin class, every class it refers to (and so on), the data
@@ -32,7 +32,7 @@ OLD_PACKAGE = "com.bradsmultitool"
 PLUGINS = {
     "multitool": {
         "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "name": "snuffys-toolbelt", "folder": "toolbelt",
-        "voices": ["skilling", "pvm", "potions", "gemcrab", "shared"],
+        "voices": ["skilling", "pvm", "potions", "gemcrab", "planner", "shared"],
     },
     "skilltracker": {
         "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "name": "snuffys-skilling-helper", "folder": "skilling-helper",
@@ -49,6 +49,10 @@ PLUGINS = {
     "tickcounter": {
         "class": "TickCounterPlugin", "package": "com.snuffys.tickcounter", "name": "snuffys-tick-counter", "folder": "tick-counter",
         "voices": [],
+    },
+    "planner": {
+        "class": "PlannerPlugin", "package": "com.snuffys.planner", "name": "snuffys-planner", "folder": "planner",
+        "voices": ["planner", "shared"],
     },
     "voices": {
         "class": "VoicesPlugin", "package": "com.snuffys.voices", "name": "snuffys-alerts", "folder": "alerts",
@@ -115,7 +119,7 @@ FEATURES = {
         "**Hover cards** for trees, rocks, fishing spots, stalls, pickpocketing, farming patches, Hunter, Runecraft, "
         "Agility, Cooking, Smithing and Sailing",
         "**Resource timers**: tree, rock, fishing spot, trap, fire and shipwreck timers",
-        "**Farming patch list** with \"ready\" alerts, and a **Hunters' Rumours** card",
+        "**Hunters' Rumours** card: the creature, catches toward the rare part and where to find it",
         "**Agility**: course and Brimhaven arena cards, the quickest route to the tagged pillar, one-obstacle training",
         "**Minigames**: Wintertodt, Tempoross and Guardians of the Rift cards and alerts",
         "**Voice alerts**: inventory full, resource gone, Forestry events, bird nests, Motherlode sack full, boat "
@@ -145,18 +149,29 @@ FEATURES = {
         "**One voice and volume** for all of Snuffy's plugins (10 voices)",
         "**Idle alerts**: AFK, about to be logged out, six-hour logout",
         "**Run energy** low and restored alerts",
-        "**Clue drops** from monsters and skilling, and **daily reminders** of what to collect",
+        "**Clue drops** from monsters and skilling",
+    ],
+    "planner": [
+        "**Today**: the daily rewards you've unlocked (battlestaves, herb boxes, essence, runes, sand, flax, bonemeal, "
+        "dynamite, ogre arrows), ticked off as you collect them, plus your own dailies, with the time to the reset",
+        "**Weekly**: Tears of Guthix, your own weeklies, the Kingdom of Miscellania's approval and coffer, and your "
+        "farming contract",
+        "**Timers**: every farming patch, compost bin and Hespori you've been to, bird houses and timers of your own, "
+        "with ready alerts",
+        "**Slayer**: your task, kills left, points and streak",
+        "**Drops**: kills and loot per monster or chest with their Grand Exchange value, and your latest drops",
+        "**Notes & to-do**: a to-do list and a notes box for each account",
     ],
 }
 FEATURE_TITLES = {"skilltracker": "Skilling Helper", "pvm": "PvM/Slayer", "gemcrab": "GemCrab Tracker",
-                  "tickcounter": "Tick Counter", "voices": "Alerts"}
+                  "tickcounter": "Tick Counter", "planner": "Planner", "voices": "Alerts"}
 
 
 def features(plugin_id):
     """The README's feature list: the plugin's own, or for the Toolbelt every plugin's under its name."""
     if plugin_id != "multitool":
         return "## Features\n\n" + "".join("- %s\n" % f for f in FEATURES[plugin_id]) + "\n"
-    out = "## Features\n\nEverything in Snuffy's five separate plugins, in one plugin:\n\n"
+    out = "## Features\n\nEverything in Snuffy's six separate plugins, in one plugin:\n\n"
     for pid, title in FEATURE_TITLES.items():
         out += "**Snuffy's %s**\n\n" % title + "".join("- %s\n" % f for f in FEATURES[pid]) + "\n"
     return out
@@ -165,9 +180,9 @@ def features(plugin_id):
 def family(plugin_id):
     if plugin_id == "multitool":
         return ("This is all of Snuffy's plugins together. Install either the Toolbelt or the separate ones you want "
-                "(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Alerts), not both.\n")
+                "(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Planner, Alerts), not both.\n")
     return ("It's one of Snuffy's plugins: install just the ones you want (Skilling Helper, PvM/Slayer, GemCrab Tracker, "
-            "Tick Counter, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** "
+            "Tick Counter, Planner, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** "
             "has all of them in one; don't install it together with the separate ones.\n")
 
 
@@ -208,7 +223,8 @@ def closure(start, known):
 
 
 def data_files(names):
-    """The data files the included classes load (their RESOURCE constants), plus the Slayer pictures."""
+    """The data files the included classes load (their RESOURCE constants), plus the Slayer pictures and the sidebar
+    tab icons they load (icons/<name>.png)."""
     files = set()
     for name in names:
         with open(os.path.join(SRC, name + ".java"), encoding="utf-8") as f:
@@ -216,8 +232,7 @@ def data_files(names):
         files.update(re.findall(r'RESOURCE = "([^"]+)"', text))
         if 'loadImageResource(SlayerData.class, "slayer/"' in text:
             files.add("slayer/")
-        if 'loadImageResource(SkillTracker.class, "icons/' in text:
-            files.add("icons/")
+        files.update(re.findall(r'loadImageResource\(\w+\.class, "(icons/[\w.-]+)"\)', text))
     return files
 
 
@@ -254,6 +269,7 @@ def build(plugin_id, out_root=OUT, quiet=False):
         if data.endswith("/"):
             shutil.copytree(source, os.path.join(res_out, data))
         else:
+            os.makedirs(os.path.dirname(os.path.join(res_out, data)), exist_ok=True)
             shutil.copy2(source, os.path.join(res_out, data))
     # Voice clips: voices/<persona>/<folder>/ for this plugin's folders
     voices = os.path.join(RES, "voices")

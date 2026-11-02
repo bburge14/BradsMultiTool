@@ -3,7 +3,6 @@ package com.snuffys.multitool;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
-import net.runelite.api.events.GameTick;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.client.config.ConfigManager;
@@ -12,7 +11,9 @@ import net.runelite.client.eventbus.Subscribe;
 /**
  * Fossil Island bird houses, as RuneLite's Time Tracking reads them: each of the four spots is a player
  * variable (0 = empty; type = (value - 1) / 3; divisible by 3 = seeded), and a seeded bird house is full
- * 50 minutes later. The seeding time is noted when the variable changes and kept with your profile.
+ * 50 minutes later. The seeding time is noted when the variable changes and kept with your profile. The Skilling
+ * Helper's hover card and the Planner's TIMERS list (and its ready alert, PlannerTimers) both read it, so each
+ * of them records it (in the shared group, so either sees the other's).
  */
 @Singleton
 class BirdhouseTracker {
@@ -31,13 +32,11 @@ class BirdhouseTracker {
 
     private final Client client;
     private final ConfigManager configManager;
-    private final SkillTrackerConfig config;
 
     @Inject
-    BirdhouseTracker(Client client, ConfigManager configManager, SkillTrackerConfig config) {
+    BirdhouseTracker(Client client, ConfigManager configManager) {
         this.client = client;
         this.configManager = configManager;
-        this.config = config;
     }
 
     /** Index into {@link #SPOTS} for a player variable, or -1. */
@@ -89,32 +88,22 @@ class BirdhouseTracker {
         } else if (seededAt(spot) == 0 && alerts.ready()) {
             // Just seeded now (at login the value arrives too, but then we don't know when it was seeded)
             configManager.setRSProfileConfiguration(CONFIG_GROUP, "birdhouse." + spot, System.currentTimeMillis() / 1000);
-            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "birdhousesAlerted");
+            configManager.unsetRSProfileConfiguration(CONFIG_GROUP, ALERTED_KEY);
         }
     }
 
-    // Once every seeded bird house with a known time is full, say so once
-    @Subscribe
-    public void onGameTick(GameTick event) {
-        if (!config.birdhouseAlert() || !alerts.ready()
-            || configManager.getRSProfileConfiguration(CONFIG_GROUP, "birdhousesAlerted") != null) {
-            return;
-        }
-        long now = System.currentTimeMillis() / 1000;
-        boolean any = false;
+    /** Set once the Planner has said the bird houses are ready; cleared when one is seeded again. */
+    static final String ALERTED_KEY = "birdhousesAlerted";
+
+    /** When every seeded bird house with a known time is full (epoch seconds), or 0 if none is seeded. */
+    long allFullAt() {
+        long latest = 0;
         for (int spot = 0; spot < SPOTS.length; spot++) {
             long seeded = seededAt(spot);
-            if (seeded == 0) {
-                continue;
+            if (seeded > 0) {
+                latest = Math.max(latest, seeded + FULL_AFTER_SECONDS);
             }
-            if (now < seeded + FULL_AFTER_SECONDS) {
-                return;
-            }
-            any = true;
         }
-        if (any) {
-            configManager.setRSProfileConfiguration(CONFIG_GROUP, "birdhousesAlerted", "true");
-            alerts.alert(VoiceAlertService.VoiceLine.BIRDHOUSES_READY, null);
-        }
+        return latest;
     }
 }

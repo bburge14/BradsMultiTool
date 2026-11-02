@@ -30,6 +30,8 @@ enum AlertType {
     SIX_HOUR("SixHour", VoiceAlertService.VoiceLine.SIX_HOUR_LOGOUT),
     CLUE_DROP("ClueDrop", VoiceAlertService.VoiceLine.CLUE_DROP),
     DAILIES("Dailies", VoiceAlertService.VoiceLine.DAILIES),
+    WEEKLIES("Weeklies", VoiceAlertService.VoiceLine.WEEKLIES),
+    TIMER_DONE("TimerDone", VoiceAlertService.VoiceLine.TIMER_DONE),
     DEATH("Death", VoiceAlertService.VoiceLine.DEATH),
     CRAB_MOVED("CrabMoved", VoiceAlertService.VoiceLine.CRAB_MOVED),
     CRAB_LOW_HEALTH("CrabLowHealth", VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH),
@@ -116,6 +118,8 @@ enum AlertType {
             case SIX_HOUR_LOGOUT: return SIX_HOUR;
             case CLUE_DROP: return CLUE_DROP;
             case DAILIES: return DAILIES;
+            case WEEKLIES: return WEEKLIES;
+            case TIMER_DONE: return TIMER_DONE;
             case DEATH: return DEATH;
             case CRAB_MOVED: return CRAB_MOVED;
             case CRAB_LOW_HEALTH: return CRAB_LOW_HEALTH;
