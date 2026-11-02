@@ -728,9 +728,10 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   many to your target. Underneath where it applies: the time at the XP rate the wiki's training guide gives for a
   matching method (Teak trees for Teak logs), how many you have (bank as last opened plus inventory: of the item, or
   how many you can make from your materials), and with **Show GE Prices** one line of money at Grand Exchange prices:
-  what the materials cost to your target in red ("Costs 1.24M gp", for what you make, burn or bury) and what the
-  products are worth in green ("Earns 2.10M gp": what you make, or the logs, ore, fish or catch you gather, priced by
-  the item's id), with the net gp per XP where there's a cost. The training guide's method at your level is marked in
+  what the materials to your target are worth ("Mats 1.24M", for what you make, burn or bury) and what the products
+  sell for ("Sells 2.10M": what you make, or the logs, ore, fish or catch you gather, priced by the item's id); neither
+  is profit. The net beside them is: a green plus badge and "+860K" for a gain, a red minus and "-28K" for a loss
+  (what it sells for less what the materials are worth), with the net gp per XP above it. Hover for it in words. The training guide's method at your level is marked in
   green. What you can do comes first, the highest level first; then what you can't yet. **Search** to filter by name.
   Hover a card for all of it in words; right-click it to **Add to plan**.
 - **Members-only actions** (marked in each action's data, from RuneLite's Skill Calculator and the item's members
@@ -739,10 +740,10 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
 - **Actions · Banked · Plan** (the tabs above the list; the one you pick is remembered).
 - **Banked**: what you own instead: the XP in all of it for the skill at your level (the most
   XP each first, each item used once, as the Skilling Helper's banked XP), the level that gets you to (with your target
-  beside it: "Level · aim 67"), the GE value of what that uses up (**Value used**), and each action you have the
+  beside it: "Level · aim 67"), what the materials it uses up are worth (**Materials**) and the **Net** of making it all (red for a loss), and each action you have the
   makings of, with how many, the XP and the levels it takes you through stacked on the ones above it ("lvl 59 → 61",
-  then "lvl 61 → 63"... so the last ends at the total; green once it reaches the target) and what its materials and
-  products are worth. Two actions sharing materials split them as the total does (most XP first): "x 0 of 620 · used
+  then "lvl 61 → 63"... so the last ends at the total; green once it reaches the target), what its materials are
+  worth and what it sells for, and its net with the plus or minus badge. Two actions sharing materials split them as the total does (most XP first): "x 0 of 620 · used
   above". One above your level says what it needs ("needs lvl 80") and isn't counted. The bank counts
   once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
 - **Plan**: a plan for the skill: a final goal (level 99, or your target) and milestones on the way, each with its
@@ -750,7 +751,8 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   the wiki's training guides from your level to the goal (the skill's AFK / Other focus if you picked it in the
   Skilling Helper, else the fastest), each guide method as the Calculator action it means at that level; or build it
   by hand: right-click an action > **Add to plan** (it starts where the last milestone ends, or at its own level, and
-  the last one stretches or shortens to meet it), or **+** to pick a method and levels. Right-click a milestone to
+  the last one stretches or shortens to meet it; when the plan already ends at its goal, it asks to raise the goal
+  so the new one goes on after it). A new plan's goal is the target you typed or the skill's goal, else 99, or **+** to pick a method and levels. Right-click a milestone to
   **Edit...** its method and levels, **Change method (pick an action)** from the Actions list, **Move up**/**Move down**
   (swaps the methods; the levels stay in order) or **Delete** it. Each milestone shows what's left of it: XP, how many
   actions, the time at the guide's XP rate, the net gp per XP and its cost and earnings; the one you're on is marked,

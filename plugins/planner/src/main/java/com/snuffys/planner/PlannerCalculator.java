@@ -802,6 +802,27 @@ class PlannerCalculator {
         return true;
     }
 
+    /**
+     * Changes the plan's final goal: milestones past it go, the rest stop at it; when it's raised, the last milestone
+     * that ended at the old goal doesn't stretch (raiseGoal leaves room for a new one after it).
+     */
+    static void setGoal(SkillPlans.Plan plan, int goal) {
+        int old = plan.goal;
+        raiseGoal(plan, goal);
+        if (!plan.steps.isEmpty() && goal > old && plan.steps.get(plan.steps.size() - 1).to == old) {
+            plan.steps.get(plan.steps.size() - 1).to = goal;
+        }
+    }
+
+    /** Sets the plan's goal, leaving the milestones' levels as they are (cut to it when it's lower). */
+    static void raiseGoal(SkillPlans.Plan plan, int goal) {
+        plan.goal = goal;
+        plan.steps.removeIf(step -> step.from >= goal);
+        for (SkillPlans.Step step : plan.steps) {
+            step.to = Math.min(step.to, goal);
+        }
+    }
+
     /** Removes a milestone: the one before stretches over its levels, else the one after starts where it did. */
     static void removeStep(SkillPlans.Plan plan, int index) {
         SkillPlans.Step gone = plan.steps.remove(index);

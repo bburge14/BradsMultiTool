@@ -106,6 +106,16 @@ public class SkillPlanTest {
         SkillPlans.Plan low = new SkillPlans.Plan(40);
         assertFalse(PlannerCalculator.addStep(low, action(Skill.WOODCUTTING, "Yew logs"), 175, null, 1));
 
+        // A plan to the next level is full after one milestone: raising its goal makes room after it
+        SkillPlans.Plan next = new SkillPlans.Plan(60);
+        assertTrue(PlannerCalculator.addStep(next, action(Skill.WOODCUTTING, "Willow logs"), 67.5, null, 59));
+        assertFalse(PlannerCalculator.addStep(next, action(Skill.WOODCUTTING, "Teak logs"), 85, null, 59));
+        PlannerCalculator.raiseGoal(next, 99);
+        assertEquals(60, next.steps.get(0).to);
+        assertTrue(PlannerCalculator.addStep(next, action(Skill.WOODCUTTING, "Teak logs"), 85, null, 59));
+        assertEquals(60, next.steps.get(1).from);
+        assertEquals(99, next.steps.get(1).to);
+
         PlannerCalculator.swapSteps(plan, 1, 2);
         assertEquals("Teak logs", plan.steps.get(1).action);
         assertEquals(30, plan.steps.get(1).from);
@@ -161,14 +171,17 @@ public class SkillPlanTest {
         assertNull(row.costEach);
         // Earnings alone give no net gp/xp (that needs a cost)
         assertNull(row.perXp());
-        assertEquals("<html><font color='#e66e64'>Costs 1.24M</font> · <font color='#0fa569'>Earns 2.10M</font></html>"
-            .replace("#0fa569", hex(PlannerUi.READY)), PlannerCalculatorView.money(1_240_000.0, 2_100_000.0, "", true));
-        assertEquals("<html>Earns 950 gp each</html>", PlannerCalculatorView.money(null, 950.0, " each", false));
-        assertNull(PlannerCalculatorView.money(null, null, "", true));
-    }
-
-    private static String hex(java.awt.Color c) {
-        return String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
+        // Neither side is profit, so neither is coloured: the net badge beside them says which way it goes
+        assertEquals("Mats 1.24M · Sells 2.10M", PlannerCalculatorView.money(1_240_000.0, 2_100_000.0, ""));
+        assertEquals("Sells 950 each", PlannerCalculatorView.money(null, 950.0, " each"));
+        javax.swing.JLabel loss = new javax.swing.JLabel();
+        PlannerCalculatorView.net(loss, 254_000.0, 226_000.0, true);
+        assertEquals("-28.0K", loss.getText());
+        assertEquals(PlannerCalculatorView.COSTS, loss.getForeground());
+        javax.swing.JLabel gain = new javax.swing.JLabel();
+        PlannerCalculatorView.net(gain, null, 950.0, true);
+        assertEquals("+950", gain.getText());
+        assertNull(PlannerCalculatorView.money(null, null, ""));
     }
 
     @Test
