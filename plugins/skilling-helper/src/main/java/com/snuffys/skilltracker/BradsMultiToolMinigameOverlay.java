@@ -97,8 +97,11 @@ class BradsMultiToolMinigameOverlay extends Overlay {
             // 500 points earns a reward crate (the game turns them white there too)
             line("Points", String.valueOf(points), points >= 500 ? HudColors.GOOD : Color.WHITE);
         }
-        int[] carried = wintertodt.carried();
-        line("Roots / kindling", carried[0] + " / " + carried[1], Color.WHITE);
+        // (Compact Overlays: the round, warmth, energy and points only)
+        if (!config.compactOverlays()) {
+            int[] carried = wintertodt.carried();
+            line("Roots / kindling", carried[0] + " / " + carried[1], Color.WHITE);
+        }
     }
 
     private void temporossCard() {
@@ -121,9 +124,12 @@ class BradsMultiToolMinigameOverlay extends Overlay {
             // 2,000 points earns a reward permit
             line("Points", String.format("%,d", points), points >= 2000 ? HudColors.GOOD : Color.WHITE);
         }
-        int[] fish = tempoross.fish();
-        line("Raw / cooked fish", fish[0] + " / " + fish[1], Color.WHITE);
-        line("Fish damage", String.valueOf(fish[2]), Color.WHITE);
+        // (Compact Overlays: energy, essence, the storm and points only)
+        if (!config.compactOverlays()) {
+            int[] fish = tempoross.fish();
+            line("Raw / cooked fish", fish[0] + " / " + fish[1], Color.WHITE);
+            line("Fish damage", String.valueOf(fish[2]), Color.WHITE);
+        }
     }
 
     private void riftCard() {
@@ -132,13 +138,15 @@ class BradsMultiToolMinigameOverlay extends Overlay {
         if (power >= 0) {
             line("Guardian's power", power + "%", Color.WHITE);
         }
+        // (Compact Overlays: the power, the open altars and the portal only)
+        boolean full = !config.compactOverlays();
         int elemental = rift.elementalEnergy();
         int catalytic = rift.catalyticEnergy();
-        if (elemental >= 0 && catalytic >= 0) {
+        if (full && elemental >= 0 && catalytic >= 0) {
             line("Elemental / catalytic", String.format("%,d / %,d", elemental, catalytic), Color.WHITE);
         }
         String built = rift.guardiansBuilt();
-        if (built != null && !built.isEmpty()) {
+        if (full && built != null && !built.isEmpty()) {
             line("Guardians built", built, Color.WHITE);
         }
         int level = rift.level();

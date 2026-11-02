@@ -78,6 +78,17 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     String generalSection = "generalSection";
 
+    @ConfigItem(
+        keyName = "compactOverlays",
+        name = "Compact Overlays",
+        description = "<div width='300'>The skill cards (sidebar and pinned), hover cards, Agility and minigame cards show only the essentials. Off: everything the other settings turn on</div>",
+        section = generalSection,
+        position = 90
+    )
+    default boolean compactOverlays() {
+        return false;
+    }
+
     @ConfigSection(
         name = "Idle",
         description = "Idle character, idle and six-hour logout warnings, and run energy alerts",
@@ -1345,18 +1356,6 @@ public interface SkillTrackerConfig extends CommonConfig {
         closedByDefault = true
     )
     String trackerSection = "trackerSection";
-
-    @ConfigItem(
-        keyName = "compactCards",
-        name = "Compact Cards",
-        description = "<div width='300'>Skill cards (sidebar and pinned) show less: the level, goal and step bars, XP/hr "
-            + "and time to level. Off: everything the settings below turn on</div>",
-        section = trackerSection,
-        position = -1
-    )
-    default boolean compactCards() {
-        return false;
-    }
 
     @ConfigItem(
         keyName = "showTrackerProgressBar",

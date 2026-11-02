@@ -98,18 +98,22 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         panel.getChildren().add(new PortraitHeaderComponent(picture(task != null ? task.icon : null),
             tracker.getTaskName(), TITLE_COLOR, subtitle));
 
+        // Compact Overlays: the task, how long it'll take, the prayer and the item it needs only
+        boolean full = !config.compactOverlays();
         if (config.slayerKillRate()) {
             double rate = tracker.killsPerHour();
-            line("Kill Rate:", rate > 0 ? Math.round(rate) + " /hr" : "--", Color.WHITE);
+            if (full) {
+                line("Kill Rate:", rate > 0 ? Math.round(rate) + " /hr" : "--", Color.WHITE);
+            }
             if (rate > 0) {
                 long minutes = Math.round(tracker.getRemaining() / rate * 60);
                 line("Done In:", minutes >= 60 ? (minutes / 60) + "h " + (minutes % 60) + "m" : minutes + "m", Color.WHITE);
             }
         }
-        if (config.slayerPointsStreak()) {
+        if (full && config.slayerPointsStreak()) {
             addPointsAndStreak(tracker, true);
         }
-        if (config.slayerSupplies()) {
+        if (full && config.slayerSupplies()) {
             int food = tracker.getFoodEaten();
             int doses = tracker.getDosesDrunk();
             line("Supplies Used:", food + " food, " + doses + (doses == 1 ? " dose" : " doses"), SOFT);
@@ -127,10 +131,12 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
             boolean has = tracker.isHasRequiredItem();
             line("Needs:", requirement.display + (has ? "" : " (missing)"), has ? HudColors.GOOD : HudColors.BAD);
         }
-        if (config.showSlayerDirections() && task != null && !task.places.isEmpty()) {
+        if (full && config.showSlayerDirections() && task != null && !task.places.isEmpty()) {
             addPlaces(task, area);
         }
-        addKillGoals();
+        if (full) {
+            addKillGoals();
+        }
     }
 
     // "Points: 1,234   Streak: 49", and a gold note when a milestone is coming: on a task, the streak counts the tasks
@@ -203,22 +209,26 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         }
         panel.getChildren().add(new PortraitHeaderComponent(picture(master.icon), master.name, HudColors.GOOD,
             "No task: get one here" + (master.area != null ? "\n" + master.area : "")));
+        // Compact Overlays: who and where only
+        boolean full = !config.compactOverlays();
         if (master.quest != null) {
             line("Quest:", master.quest, SOFT);
         }
-        if (config.slayerPointsStreak()) {
+        if (full && config.slayerPointsStreak()) {
             addPointsAndStreak(plugin.getSlayerTracker(), false);
         }
-        if (config.slayerTravelRoutes() && !master.routes.isEmpty()) {
+        if (full && config.slayerTravelRoutes() && !master.routes.isEmpty()) {
             heading("Getting There");
             bullets(master.routes);
         }
         SlayerData.Master next = slayerData.nextMaster(master);
-        if (config.slayerNextMaster() && next != null) {
+        if (full && config.slayerNextMaster() && next != null) {
             String needs = "Combat " + next.combat + (next.slayer > 0 ? ", Slayer " + next.slayer : "");
             panel.getChildren().add(TextBlockComponent.heading("Next: " + next.name + " (" + needs + ")", SOFT));
         }
-        addKillGoals();
+        if (full) {
+            addKillGoals();
+        }
     }
 
     // The bundled picture, else the Slayer gem (or nothing with pictures off)

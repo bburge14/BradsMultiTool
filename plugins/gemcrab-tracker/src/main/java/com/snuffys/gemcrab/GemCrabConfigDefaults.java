@@ -12,6 +12,7 @@ final class GemCrabConfigDefaults {
     static void store(ConfigDefaults defaults, GemCrabConfig config) {
         defaults.store("openGuide", config.openGuide());
         defaults.store("showClashes", config.showClashes());
+        defaults.store("compactOverlays", config.compactOverlays());
         defaults.store("enableCrabFeatures", config.enableCrabFeatures());
         defaults.store("crabLowHealthPercent", config.crabLowHealthPercent());
         defaults.store("crabLowStatsPercent", config.crabLowStatsPercent());

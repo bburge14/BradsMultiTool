@@ -119,6 +119,8 @@ public class BradsMultiToolOverlay extends Overlay {
                     .build());
             }
 
+            // Compact Overlays: the target, its health, its weakness and the LOW warnings only
+            boolean full = !config.compactOverlays();
             if (config.showPvmWeakness()) {
                 MonsterWeakness weakness = plugin.getPvmTargetWeakness();
                 panelComponent.getChildren().add(new IconLineComponent(
@@ -129,7 +131,7 @@ public class BradsMultiToolOverlay extends Overlay {
                     weakness.label(),
                     weaknessColor(weakness)));
 
-                if (weakness.hasSeparateElement()) {
+                if (full && weakness.hasSeparateElement()) {
                     panelComponent.getChildren().add(new IconLineComponent(
                         "Elemental:",
                         icon(CombatStyle.elementSpellIcon(weakness.element)),
@@ -137,7 +139,7 @@ public class BradsMultiToolOverlay extends Overlay {
                         Color.WHITE));
                 }
 
-                if (weakness.note != null) {
+                if (full && weakness.note != null) {
                     panelComponent.getChildren().add(LineComponent.builder()
                         .left("Bane:")
                         .right(weakness.note)
@@ -145,7 +147,7 @@ public class BradsMultiToolOverlay extends Overlay {
                 }
             }
 
-            if (config.showMonsterEffects() && target != null) {
+            if (full && config.showMonsterEffects() && target != null) {
                 List<String> statuses = monsterEffects.statuses(target);
                 if (!statuses.isEmpty()) {
                     panelComponent.getChildren().add(LineComponent.builder()
@@ -158,17 +160,19 @@ public class BradsMultiToolOverlay extends Overlay {
                 }
             }
 
-            if (config.showSlayerMonsterInfo() && target != null) {
+            if (full && config.showSlayerMonsterInfo() && target != null) {
                 slayerInfo.addTo(panelComponent, target, plugin.statsFor(target));
             }
 
-            panelComponent.getChildren().add(new IconLineComponent(
-                "Style:",
-                icon(combatStyle.getCombatMethodIcon()),
-                combatStyle.getCombatMethod(),
-                plugin.getCombatMethodColor()));
+            if (full) {
+                panelComponent.getChildren().add(new IconLineComponent(
+                    "Style:",
+                    icon(combatStyle.getCombatMethodIcon()),
+                    combatStyle.getCombatMethod(),
+                    plugin.getCombatMethodColor()));
+            }
 
-            if (config.showPvmDps()) {
+            if (full && config.showPvmDps()) {
                 String dpsLabel = "Encounter DPS:";
                 if (config.dpsMode() == PvmConfig.DpsTrackingMode.CONTINUOUS_SESSION) {
                     dpsLabel = "Session DPS:";
@@ -181,14 +185,14 @@ public class BradsMultiToolOverlay extends Overlay {
                     .build());
             }
 
-            if (config.showPvmLastHit() && plugin.getPvmLastHit() > 0) {
+            if (full && config.showPvmLastHit() && plugin.getPvmLastHit() > 0) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Last Hit:")
                     .right(String.valueOf(plugin.getPvmLastHit()))
                     .build());
             }
 
-            if (config.showPvmMaxHit() && plugin.getPvmMaxHit() > 0) {
+            if (full && config.showPvmMaxHit() && plugin.getPvmMaxHit() > 0) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Max Hit:")
                     .right(String.valueOf(plugin.getPvmMaxHit()))
@@ -196,7 +200,7 @@ public class BradsMultiToolOverlay extends Overlay {
             }
 
             // The GE value of this session's kill drops, and per hour once there's a minute to go on
-            if (config.showPvmLoot() && loot.value() > 0) {
+            if (full && config.showPvmLoot() && loot.value() > 0) {
                 long perHour = loot.perHour();
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Loot:")

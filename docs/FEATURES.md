@@ -384,8 +384,7 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
   the tracker carries on with that session's XP, rates, actions and items, quietly. XP gained elsewhere in
   between (mobile) isn't added. Reset all skills starts afresh. Like RuneLite's XP Tracker keeping its session.
 
-**Settings (Skill Tracker):** **Compact Cards** (skill cards, sidebar and pinned, show only the level, goal and step
-bars, XP/hr and time to level; one switch in the Toolbelt, one in the Skilling Helper); a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
+**Settings (Skill Tracker):** a switch for each field; **Compact Overlays** (General) trims the cards (see below); Actions Until Goal; Show Goal; Suggested Method,
 Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
 (minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up; Show Items Gathered; Keep Session After Restart.
 
@@ -907,3 +906,21 @@ Spot, Vulnerable; Guardians of the Rift Card, Voice/Chat: Game Starting, Portal 
 
 The **Issues?** button in the top-right corner of the skill tracker panel opens a new GitHub issue in your browser. Say
 what you did and what you saw; a screenshot helps.
+
+---
+
+## Compact Overlays
+
+One switch in **General** for less on a plugin's cards and HUDs (one in the Toolbelt for all of them; one in each
+separate plugin that has overlays: Skilling Helper, PvM/Slayer, GemCrab Tracker). The other settings still decide
+what shows when it's off.
+- **Skill cards** (sidebar and pinned): the level bar, the goal and step bars, XP/hr and time to level.
+- **Skilling hover cards**: what it is, what it needs and gives; no tools, XP rates or money lines.
+- **Agility**: course laps, laps to your next level and marks; arena pillar and tickets; one-obstacle reps and reps to
+  your next level.
+- **Wintertodt / Tempoross / Guardians of the Rift**: the round, warmth, energy and points / energy, essence, storm
+  and points / the power, open altars and portal.
+- **PvM HUD**: the target, its health, weakness and the LOW warnings. **Monster hover card**: name, health, weakness,
+  aggression and kill goal. **Slayer card**: the task, kills left, time to finish, the prayer and the item it needs
+  (no task: the master and where).
+- **GemCrab HUD**: the crab's health, when it burrows, whether you're attacking and the LOW warnings.

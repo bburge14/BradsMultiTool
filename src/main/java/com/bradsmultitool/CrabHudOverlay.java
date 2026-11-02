@@ -152,42 +152,48 @@ public class CrabHudOverlay extends Overlay {
                     .build());
             }
 
+            // Compact Overlays: the crab's health, when it burrows, whether you're attacking and the LOW warnings only
+            boolean full = !config.compactOverlays();
             // Preserved: Exact XP Type ground truth
             List<Image> skillIcons = new ArrayList<>();
             for (Skill skill : fight.xpSkills) {
                 skillIcons.add(skillIconManager.getSkillImage(skill, true));
             }
-            panelComponent.getChildren().add(new IconLineComponent("XP Type:", skillIcons, fight.xpType, Color.WHITE));
+            if (full) {
+                panelComponent.getChildren().add(new IconLineComponent("XP Type:", skillIcons, fight.xpType, Color.WHITE));
+            }
 
-            if (config.showCrabLastHit() && fight.lastHit > 0) {
+            if (full && config.showCrabLastHit() && fight.lastHit > 0) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Last Hit:")
                     .right(String.valueOf(fight.lastHit))
                     .build());
             }
 
-            if (config.showCrabMaxHit() && fight.maxHit > 0) {
+            if (full && config.showCrabMaxHit() && fight.maxHit > 0) {
                 panelComponent.getChildren().add(LineComponent.builder()
                     .left("Max Hit:")
                     .right(String.valueOf(fight.maxHit))
                     .build());
             }
 
-            if (config.crabGearCheck()) {
+            if (full && config.crabGearCheck()) {
                 addGearRows();
             }
 
             // Your potion buffs (PotionAlerts) and LOW prayer/health: the same in the Toolbelt and on its own
-            if (config.enableBuffStatus()) {
+            if (full && config.enableBuffStatus()) {
                 addBuffRows();
             }
             addLowRows();
 
             // Crab damage reflects only the current (or just-moved) crab
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Crab Dmg:")
-                .right(String.format("%,d (%.1f DPS)", fight.damage, fight.dps))
-                .build());
+            if (full) {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Crab Dmg:")
+                    .right(String.format("%,d (%.1f DPS)", fight.damage, fight.dps))
+                    .build());
+            }
         }
         // Mode B: Crab Radar
         else {
@@ -199,10 +205,12 @@ public class CrabHudOverlay extends Overlay {
                 .build());
 
             boolean shellPresent = gemCrab.getDormantCrabShellNpc() != null || !gemCrab.getTrackedShellObjects().isEmpty();
-            panelComponent.getChildren().add(LineComponent.builder()
-                .left("Crab Status:")
-                .right(shellPresent ? "Burrowed (Shell)" : "In Other Cave")
-                .build());
+            if (!config.compactOverlays()) {
+                panelComponent.getChildren().add(LineComponent.builder()
+                    .left("Crab Status:")
+                    .right(shellPresent ? "Burrowed (Shell)" : "In Other Cave")
+                    .build());
+            }
 
             panelComponent.getChildren().add(LineComponent.builder()
                 .left("Next Action:")

@@ -54,6 +54,9 @@ developer mode.
   your god items, vyre noble clothing and greegrees protect you, and any other wiki condition is shown
   as written. It also shows the wiki's max hit for each attack and how often it attacks. With auto retaliate
   off, NPCs you can pickpocket show the Thieving card instead.
+- **Compact Overlays** (General): less on the PvM HUD (the target, its health, weakness and the LOW warnings), the
+  monster hover card (name, health, weakness, aggression, kill goal) and the Slayer card (the task, kills left, time
+  to finish, the prayer and the item it needs).
 - **Buff timers**: each combat potion boost with its icon and time left, divine potions to the second;
   "running out" and "expired" alerts with optional repeats; a buff's line is red while it's running out. Each potion has its own voice line.
 - **Health and prayer**: low health / low prayer / out of prayer alerts (by percent), flashing orbs, and an
@@ -76,6 +79,8 @@ developer mode.
 - Outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
   tunnels, plus a radar to find it. All of it only near the crab's three mines in the Tlati Rainforest.
 - Alerts when the crab is about to burrow and when it has moved.
+- **Compact Overlays** (General): the HUD shows just the crab's health, when it burrows, whether you're attacking
+  and the LOW warnings.
 
 ### Slayer
 - Task card with kills left, kill rate and time to finish, plus **where to go**: the wiki's places to kill the
@@ -156,7 +161,18 @@ work a resource.
   tools follow your pick ("Offer: Dragon bones (Gilded altar)").
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
-  **Highlight Goal Items** (Goals)).
+  **Highlight Goal Items** (Goals)). Following a plan from the Planner, it's the item of the milestone you're on
+  ("Make: Mithril dart (you have 24,620)", counted in items: 10 darts a go).
+- **Banked** and **Materials worth** (goal cards): "Banked: 335K XP (lvl 68)" is the XP in everything for that
+  skill in your bank and inventory at your level (each item used once, the most XP each first) and the level it
+  would get you to; "Materials worth: 2.74M gp" is what those materials sell for on the Grand Exchange. Both are
+  information only; each has its own switch (**Show Banked XP**, **Show Materials Worth**). The bank counts once
+  you've opened it.
+- **Plans on the card**: with a plan exported from the Planner, a blue **Step** bar ("Step: Lvl 67") under the gold
+  goal bar shows the milestone you're on, and "Plan: Mithril dart (to 67)" says its method.
+- **Compact Overlays** (General): one switch for less on the skill cards and the pinned skill: just the level bar,
+  the goal and step bars, XP/hr and time to level. It also trims the Skilling Helper's other overlays (hover cards
+  lose tools and rates, the Agility and minigame cards keep their key numbers).
 - **Pin to screen**: click the pin in a card's top-right corner (or right-click > **Pin to screen**) to show that skill on the game screen (level
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
   time: the pinned card's pin is solid, the others faint, and clicking a faint one moves the pin there. Click the
@@ -208,19 +224,40 @@ each can be hidden in the settings; everything is saved per account.
   (valuable ones highlighted); reset one or all.
 - **Notes & to-do**: a to-do list and a notes box.
 - **Calculator**: a skill calculator. Pick a skill from the grid; your level and XP fill in from the game (type over
-  them to plan ahead) and the target starts at the skill's goal, or the next level. Tick the XP bonuses you use
-  (skilling outfits, diaries, altars, the bonecrusher...; ones that can't go together untick each other) and every
-  action shows its XP each, how many to your target, the time where the wiki's training guides give an XP rate, the
-  Grand Exchange money to your target (what the materials cost in red, what you make or gather is worth in green,
-  and the net gp per XP), and how many you have (bank as last opened plus inventory). What you can do is listed first,
-  highest level first; the guide's method at your level is marked in green; search to filter; on a free world
-  members-only actions are left out (with a note). **Set as goal** sets the skill's goal just like the Skilling
-  Helper's Set Goal. **Banked** shows what you own instead: the XP in it all, the level that gets you to, what it's
-  worth, and each action's share. **Plan** makes a plan for the skill: a goal and milestones each with their own
-  method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"), from the wiki's suggestions or by hand (right-click an
-  action > Add to plan), with each milestone's XP, actions, time and GE cost and the totals; with the Skilling Helper
-  installed, **Export to tracker** makes its goal card follow it. Made from RuneLite's own Skill Calculator;
-  information only.
+  them to plan ahead). The target starts at the skill's goal, or the next level; a target you type is kept for that
+  skill until **Reset** (next to it) or **Set as goal** (sets the skill's goal just like the Skilling Helper's Set
+  Goal). Tick the XP bonuses you use (skilling outfits, diaries, altars, the bonecrusher...; ones that can't go
+  together untick each other). Three views:
+  - **Actions**: every action with its XP each, how many to your target, the time where the wiki's training guides
+    give an XP rate, and how many you have (bank as last opened plus inventory). With **Show GE Prices**, the money:
+    "Mats 254K · Sells 226K" is what the materials and the products are worth on the Grand Exchange (neither is
+    profit), and the net beside it, with a **green plus** for a gain or a **red minus** for a loss ("-28K"), plus the
+    net gp per XP. Hover a card for all of it in words. Darts, arrows and bolts count per item (10 darts a go, each
+    with its share of the materials). What you can do is listed first, highest level first; the guide's method at
+    your level is marked in green; search to filter; on a free world members-only actions are left out.
+  - **Banked**: what you own instead. The tiles show the XP in it all, your level now and after ("Level · aim 67":
+    your target beside it), what the materials are worth and the **Net** of making it all. Each card is one thing you
+    can make, and the cards **stack**: each shows the levels it takes you through on top of the ones above it
+    ("lvl 59 → 61", then "lvl 61 → 63"...), so the last one ends at the total. Things that share materials split them
+    as the total does ("x 0 of 620 · used above"); something above your level says what it needs ("needs lvl 80")
+    and isn't counted.
+  - **Plan**: as many **plans** per skill as you like, each with a name. **+** makes a new one; each plan's card
+    shows its levels, your level and how far along it you are (a bar and a percentage); click one to open it (it
+    unfolds under its card), click it again to fold it away; right-click to rename, duplicate or delete. Under the
+    list, links to your other skills' plans. A plan is a goal and milestones on the way, each with its own method
+    ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"): start from the wiki's suggestions, or right-click an action >
+    **Add to plan** (it goes in at its own level: Atlatl darts at 74 inside Adamant darts 67-81 makes Adamant 67-74
+    and Atlatl 74-81; when the plan's full it asks to raise its goal), or **+** to add one at levels you type (the
+    milestones it overlaps make room). Each milestone shows its XP, actions, time and money; **Whole plan** adds them
+    up (XP to the goal, time to it, average XP an hour, net); **Materials needed** lists everything the milestones
+    still need in full against what you have ("27,800 / 24,610"), green when you have it all, red when you're
+    short, and the tools. A plan goes by your real XP: typing in Current doesn't mark milestones done. With the
+    Skilling Helper installed, **Export to tracker** makes its goal card follow the plan (one plan per skill at a
+    time).
+  - **Your plan bar**: under the Actions and Banked lists, the open plan's milestones (and the skill's goal) stay in
+    view while you scroll, to compare; click its title to fold it, **Edit** to open the Plan view.
+
+  Made from RuneLite's own Skill Calculator; information only.
 
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key
@@ -375,7 +412,7 @@ All sections except General start collapsed.
 
 | Section | What's in it |
 |---|---|
-| General | Voice on/off, voice, volume, chat messages on/off |
+| General | Voice on/off, voice, volume, chat messages on/off; **Compact Overlays** (less on the plugin's cards and HUDs: one switch in the Toolbelt, one in each separate plugin that has overlays) |
 | Potion Buffs / Health / Prayer | Buff timers and alerts, thresholds, repeats, orb flash, their Voice/Chat switches |
 | Combat Alerts | Spec, antifire, poison, stamina, ammo, runes, cannon |
 | Idle | AFK alert and idle logout warning |

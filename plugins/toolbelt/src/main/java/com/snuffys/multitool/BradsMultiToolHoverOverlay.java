@@ -150,17 +150,19 @@ public class BradsMultiToolHoverOverlay extends Overlay {
                 : CombatIcons.forWeakness(weakness)),
             weakness.label(), weaknessColor(weakness)));
 
-        if (weakness.hasSeparateElement()) {
+        // Compact Overlays: its name, health, weakness, whether it's aggressive and your kill goal only
+        boolean full = !config.compactOverlays();
+        if (full && weakness.hasSeparateElement()) {
             panel.getChildren().add(new IconLineComponent("Elemental:",
                 icon(CombatStyle.elementSpellIcon(weakness.element)), weakness.elementLabel(), Color.WHITE));
         }
 
-        if (stats != null && !stats.attackStyles.isEmpty()) {
+        if (full && stats != null && !stats.attackStyles.isEmpty()) {
             panel.getChildren().add(new IconLineComponent("Attacks With:",
                 icon(CombatIcons.forAttackStyle(stats.attackStyles.get(0))),
                 String.join(", ", stats.attackStyles), Color.WHITE));
         }
-        if (stats != null && config.showMonsterMaxHit()) {
+        if (full && stats != null && config.showMonsterMaxHit()) {
             addMaxHitAndSpeed(stats);
         }
 
@@ -179,7 +181,7 @@ public class BradsMultiToolHoverOverlay extends Overlay {
                 .rightColor(goal.done() ? HudColors.GOOD : Color.WHITE).build());
         }
 
-        if (config.showSlayerMonsterInfo()) {
+        if (full && config.showSlayerMonsterInfo()) {
             slayerInfo.addTo(panel, npc, stats);
         }
     }

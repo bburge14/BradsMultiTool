@@ -27,6 +27,18 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     )
     String aboutSection = "aboutSection";
 
+    // One switch for every plugin's overlays (each separate plugin has its own)
+    @ConfigItem(
+        keyName = "compactOverlays",
+        name = "Compact Overlays",
+        description = "<div width='300'>Snuffy's cards and overlays (skill cards, hover cards, Agility and minigame cards, the Slayer card, the PvM and GemCrab HUDs) show only the essentials. Off: everything the other settings turn on</div>",
+        section = generalSection,
+        position = 90
+    )
+    default boolean compactOverlays() {
+        return false;
+    }
+
     @ConfigSection(
         name = "Planner: Today",
         description = "<div width='300'>The Planner's TODAY list: daily rewards to collect (from the game) and your own daily to-dos, and the voice line when there are some to do",

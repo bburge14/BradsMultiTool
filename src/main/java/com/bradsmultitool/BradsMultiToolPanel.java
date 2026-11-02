@@ -765,7 +765,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         // Only the fields switched on under Skill Tracker, two to a row
         private void layoutStats() {
             // Combat skills count kills instead, once they have a goal (an action is a hit otherwise)
-            boolean full = !config.compactCards();
+            boolean full = !config.compactOverlays();
             boolean showActions = full && config.showTrackerActions() && (!COMBAT_SKILLS.contains(skill) || plugin.getSkillGoal(skill) > 0);
             boolean goal = config.showTrackerGoal() && plugin.getSkillGoal(skill) > 0;
             String wanted = "" + config.showTrackerProgressBar() + config.showTrackerXpGained() + config.showTrackerXpToLevel()
@@ -907,7 +907,7 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         // "Logs: 342 (1,050/hr)" for each kind of item counted (Show Items Gathered)
         private void updateItems() {
-            List<String[]> lines = !config.compactCards() && config.showTrackerItems() ? plugin.itemLines(skill) : Collections.emptyList();
+            List<String[]> lines = !config.compactOverlays() && config.showTrackerItems() ? plugin.itemLines(skill) : Collections.emptyList();
             if (items.isVisible() != !lines.isEmpty()) {
                 items.setVisible(!lines.isEmpty());
             }
@@ -923,7 +923,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             List<String> lines = new ArrayList<>();
             String tooltip = null;
             stepEndLevel = 0;
-            if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion() && !config.compactCards()) {
+            if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion() && !config.compactOverlays()) {
                 String target = plugin.getGoalTarget(skill);
                 if (target != null) {
                     lines.add(label("Tracking:") + plugin.describeGoalTarget(skill) + " " + label("(your pick)"));

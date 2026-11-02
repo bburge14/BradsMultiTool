@@ -74,7 +74,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         }
         line("XP/hr:", plugin.isSkillAutoPaused(skill) ? "Idle" : paused ? "Paused" : BradsMultiToolPanel.shortNumber(rate), Color.WHITE);
         // Compact Cards: the bars, XP/hr and time to level only
-        boolean full = !config.compactCards();
+        boolean full = !config.compactOverlays();
         if (full) {
             line("Gained:", BradsMultiToolPanel.shortNumber(plugin.getSkillGained(skill)), Color.WHITE);
         }
@@ -158,7 +158,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
 
     // Where the plan's current step ends (the suggested method changes there before the goal), or 0
     private int stepEndLevel(Skill skill, int level, int goalXp) {
-        if (goalXp <= 0 || !config.showTrainingSuggestion() || config.compactCards() || plugin.getGoalTarget(skill) != null) {
+        if (goalXp <= 0 || !config.showTrainingSuggestion() || config.compactOverlays() || plugin.getGoalTarget(skill) != null) {
             return 0;
         }
         List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level, Experience.getLevelForXp(goalXp));
@@ -173,7 +173,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
 
     // What to train for the goal: your pick, else the suggestion for your Training Focus
     private String suggestion(Skill skill, int level) {
-        if (!config.showTrainingSuggestion() || config.compactCards()) {
+        if (!config.showTrainingSuggestion() || config.compactOverlays()) {
             return null;
         }
         String target = plugin.getGoalTarget(skill);

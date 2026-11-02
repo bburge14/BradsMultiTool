@@ -70,6 +70,17 @@ public interface GemCrabConfig extends CommonConfig, BuffConfig {
     )
     String generalSection = "generalSection";
 
+    @ConfigItem(
+        keyName = "compactOverlays",
+        name = "Compact Overlays",
+        description = "<div width='300'>The GemCrab HUD show only the essentials. Off: everything the other settings turn on</div>",
+        section = generalSection,
+        position = 90
+    )
+    default boolean compactOverlays() {
+        return false;
+    }
+
     @ConfigSection(
         name = "Idle",
         description = "Idle character, idle and six-hour logout warnings, and run energy alerts",

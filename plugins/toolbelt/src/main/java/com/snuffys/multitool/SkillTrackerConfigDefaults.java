@@ -12,6 +12,7 @@ final class SkillTrackerConfigDefaults {
     static void store(ConfigDefaults defaults, SkillTrackerConfig config) {
         defaults.store("openGuide", config.openGuide());
         defaults.store("showClashes", config.showClashes());
+        defaults.store("compactOverlays", config.compactOverlays());
         defaults.store("showSkillingHover", config.showSkillingHover());
         defaults.store("showSkillingRates", config.showSkillingRates());
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());
@@ -109,7 +110,6 @@ final class SkillTrackerConfigDefaults {
         defaults.store("chatRiftStarting", config.chatRiftStarting());
         defaults.store("voiceRiftPortal", config.voiceRiftPortal());
         defaults.store("chatRiftPortal", config.chatRiftPortal());
-        defaults.store("compactCards", config.compactCards());
         defaults.store("showTrackerProgressBar", config.showTrackerProgressBar());
         defaults.store("showTrackerXpGained", config.showTrackerXpGained());
         defaults.store("showTrackerXpToLevel", config.showTrackerXpToLevel());
