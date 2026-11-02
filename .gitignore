@@ -16,3 +16,4 @@ plugins/*/.gradle/
 .launch-choice
 .launch-runelite
 .running-commit
+.claude/worktrees/
