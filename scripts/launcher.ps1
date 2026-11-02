@@ -13,7 +13,13 @@ Add-Type -Namespace Snuffys -Name Win -MemberDefinition @'
 [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowEx(IntPtr parent, IntPtr after, string cls, string title);
 [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
 [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
+[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hwnd, int show);
+[DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
 '@
+# No console window behind the launcher, however it was started (the .bat, the shortcut): only the launcher shows.
+# Everything it runs (the build, git, Python) runs hidden too.
+$consoleWindow = [Snuffys.Win]::GetConsoleWindow()
+if ($consoleWindow -ne [IntPtr]::Zero) { [void][Snuffys.Win]::ShowWindow($consoleWindow, 0) }
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $root = Split-Path $PSScriptRoot -Parent
@@ -657,15 +663,27 @@ $autoUpdate.Add_Tick({
 })
 $autoUpdate.Start()
 
-# Desktop shortcut: make (or fix) one with the Toolbelt's icon; shortcuts already pointing here get the icon too
+# Desktop shortcut: opens the launcher straight through PowerShell, minimised and hidden (no cmd window, unlike the
+# .bat); made with the Toolbelt's icon. Shortcuts to the .bat (or to this) are brought up to date when the launcher runs
 $bat = Join-Path $root 'Launch-BradsMultiTool.bat'
+$launcherScript = Join-Path $root 'scripts\launcher.ps1'
+$powershellExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+$launcherArgs = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcherScript`""
 $desktop = [Environment]::GetFolderPath('Desktop')
+function Set-LauncherShortcut($link) {
+    $link.TargetPath = $powershellExe
+    $link.Arguments = $launcherArgs
+    $link.WorkingDirectory = $root
+    $link.WindowStyle = 7
+    $link.IconLocation = "$icon,0"
+    $link.Save()
+}
 function Set-ShortcutIcons {
     Get-ChildItem $desktop -Filter '*.lnk' -ErrorAction SilentlyContinue | ForEach-Object {
         $link = $shell.CreateShortcut($_.FullName)
-        if ($link.TargetPath -ieq $bat -and $link.IconLocation -notlike "$icon*") {
-            $link.IconLocation = "$icon,0"
-            $link.Save()
+        $ours = ($link.TargetPath -ieq $bat) -or ($link.TargetPath -ieq $powershellExe -and $link.Arguments -like "*$launcherScript*")
+        if ($ours -and ($link.TargetPath -ine $powershellExe -or $link.Arguments -ne $launcherArgs -or $link.WindowStyle -ne 7 -or $link.IconLocation -notlike "$icon*")) {
+            Set-LauncherShortcut $link
         }
     }
 }
@@ -675,11 +693,7 @@ $shortcut.Location = New-Object System.Drawing.Point(14, 644)
 $shortcut.AutoSize = $true
 $playTab.Controls.Add($shortcut)
 $shortcut.Add_LinkClicked({
-    $link = $shell.CreateShortcut((Join-Path $desktop "Snuffy's Launcher.lnk"))
-    $link.TargetPath = $bat
-    $link.WorkingDirectory = $root
-    $link.IconLocation = "$icon,0"
-    $link.Save()
+    Set-LauncherShortcut ($shell.CreateShortcut((Join-Path $desktop "Snuffy's Launcher.lnk")))
     [System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher is on your desktop.", "Snuffy's") | Out-Null
 })
 
