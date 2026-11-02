@@ -372,6 +372,50 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceForestryEvent",
+        name = "Voice: Forestry Event",
+        description = "<div width='300'>When a Forestry event starts near you while you're chopping (turning it on plays a preview)",
+        section = woodcuttingSection,
+        position = 3
+    )
+    default boolean voiceForestryEvent() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatForestryEvent",
+        name = "Chat: Forestry Event",
+        description = "<div width='300'>Chat message naming the Forestry event that started near you",
+        section = woodcuttingSection,
+        position = 4
+    )
+    default boolean chatForestryEvent() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceBirdNest",
+        name = "Voice: Bird Nest",
+        description = "<div width='300'>When a bird's nest falls out of the tree (turning it on plays a preview)",
+        section = woodcuttingSection,
+        position = 5
+    )
+    default boolean voiceBirdNest() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBirdNest",
+        name = "Chat: Bird Nest",
+        description = "<div width='300'>Chat message when a bird's nest falls (and when it's a clue nest)",
+        section = woodcuttingSection,
+        position = 6
+    )
+    default boolean chatBirdNest() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Mining",
         description = "Mining timers and alerts",

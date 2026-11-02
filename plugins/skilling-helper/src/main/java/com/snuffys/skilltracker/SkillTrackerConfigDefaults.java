@@ -32,6 +32,10 @@ final class SkillTrackerConfigDefaults {
         defaults.store("treeTimers", config.showTreeTimer());
         defaults.store("voiceTreeGone", config.voiceTreeGone());
         defaults.store("chatTreeGone", config.chatTreeGone());
+        defaults.store("voiceForestryEvent", config.voiceForestryEvent());
+        defaults.store("chatForestryEvent", config.chatForestryEvent());
+        defaults.store("voiceBirdNest", config.voiceBirdNest());
+        defaults.store("chatBirdNest", config.chatBirdNest());
         defaults.store("miningTimers", config.showMiningTimer());
         defaults.store("voiceRockDepletedEach", config.voiceRockDepletedEach());
         defaults.store("chatRockDepleted", config.chatRockDepleted());

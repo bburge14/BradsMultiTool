@@ -62,6 +62,8 @@ public class VoiceAlertService {
         COIN_POUCH_FULL("coin_pouch_full", "Your coin pouches are full."),
         ARENA_PILLAR_MOVING("arena_pillar_moving", "The pillar is about to move."),
         RUN_ENERGY_LOW("run_energy_low", "Your run energy is low."),
+        FORESTRY_EVENT("forestry_event", "A forestry event has started."),
+        BIRD_NEST("bird_nest", "A bird's nest has fallen."),
         BIRDHOUSES_READY("birdhouses_ready", "Your bird houses are ready."),
         BATCH_COMPLETE("batch_complete", "Batch complete."),
         // Per-potion buff lines, named after ActiveBuffs kinds: POTION_<NAME>_LOW / _EXPIRED
@@ -156,6 +158,8 @@ public class VoiceAlertService {
                 case "coin_pouch_full":
                 case "arena_pillar_moving":
                 case "run_energy_low":
+                case "forestry_event":
+                case "bird_nest":
                 case "birdhouses_ready":
                 case "batch_complete":
                     return SKILLING;

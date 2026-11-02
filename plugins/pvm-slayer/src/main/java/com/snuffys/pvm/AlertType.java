@@ -33,6 +33,8 @@ enum AlertType {
     COIN_POUCH("CoinPouch", VoiceAlertService.VoiceLine.COIN_POUCH_FULL),
     ARENA_PILLAR("ArenaPillar", VoiceAlertService.VoiceLine.ARENA_PILLAR_MOVING),
     RUN_ENERGY("RunEnergy", VoiceAlertService.VoiceLine.RUN_ENERGY_LOW),
+    FORESTRY_EVENT("ForestryEvent", VoiceAlertService.VoiceLine.FORESTRY_EVENT),
+    BIRD_NEST("BirdNest", VoiceAlertService.VoiceLine.BIRD_NEST),
     BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
     BATCH_COMPLETE("BatchComplete", VoiceAlertService.VoiceLine.BATCH_COMPLETE),
     LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
@@ -89,6 +91,8 @@ enum AlertType {
             case COIN_POUCH_FULL: return COIN_POUCH;
             case ARENA_PILLAR_MOVING: return ARENA_PILLAR;
             case RUN_ENERGY_LOW: return RUN_ENERGY;
+            case FORESTRY_EVENT: return FORESTRY_EVENT;
+            case BIRD_NEST: return BIRD_NEST;
             case BIRDHOUSES_READY: return BIRDHOUSES;
             case BATCH_COMPLETE: return BATCH_COMPLETE;
             default:
