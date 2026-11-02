@@ -115,7 +115,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             }
             long materials = plugin.getGoalItems().materialsValue(skill);
             if (materials > 0 && config.showMaterialsValue()) {
-                line("Materials:", BradsMultiToolPanel.shortNumber(materials) + " gp", Color.WHITE);
+                line("Materials worth:", BradsMultiToolPanel.shortNumber(materials) + " gp", Color.WHITE);
             }
             String killRate = GoalLines.killRate(plugin, skill);
             if (killRate != null) {

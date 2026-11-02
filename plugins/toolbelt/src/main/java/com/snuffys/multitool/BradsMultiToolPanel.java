@@ -930,7 +930,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 }
                 long materials = plugin.getGoalItems().materialsValue(skill);
                 if (materials > 0 && config.showMaterialsValue()) {
-                    lines.add(label("Materials:") + shortNumber(materials) + " gp");
+                    lines.add(label("Materials worth:") + shortNumber(materials) + " gp");
                 }
                 // Combat goals: how fast you're killing (faster with potions and better gear)
                 String killRate = GoalLines.killRate(plugin, skill);
