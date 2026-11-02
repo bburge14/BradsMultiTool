@@ -99,7 +99,7 @@ fishing spot gets its tile outlined with a picture of what it gives, the outline
 | Fishing | Spot card for every kind of spot (net, bait, lure, cage, harpoon, karambwan, anglerfish, dark crab, eels, minnows, aerial, boat spots...): what each way of fishing it catches, level, XP, tool needed; timers on spots showing the window they move in (per spot type), how long ago each appeared, (optionally) a gold ring on the newest spot (the best one to fish) and your spot highlighted; fishing spot moved alert |
 | Thieving | Stall and pickpocket cards (level, XP, never-fail level with the Ardougne cloak, stun damage); coin pouches full alert |
 | Farming | Patch card: crop, stage, roughly when it's grown, diseased/dead, compost, watered, the farmer's protection payment, and what you can plant |
-| Hunter | Creature card (level, XP, trap); trap spot card (young tree, boulder, pit: what you can catch there, with levels); a pie on each trap you lay (green when something's caught); bird house card and a "bird houses ready" alert |
+| Hunter | Creature card (level, XP, trap); trap spot card (young tree, boulder, pit: what you can catch there, with levels); a pie on each trap you lay (green when something's caught, purple when it springs empty); bird house card and a "bird houses ready" alert; a Hunters' Rumour card (creature, catches toward the guaranteed rare part, where to find it) with a "rumour complete" alert |
 | Firemaking | Timers on Forester's Campfires showing how long they have left, and (off by default) on fires you cook on showing the window they go out in |
 | Runecraft | Altar card: level, XP, runes per essence at your level, next multiple |
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level); Brimhaven Arena obstacles coloured by your level with the quickest route to the tagged pillar |
@@ -159,6 +159,9 @@ work a resource.
   or open it again, which it remembers.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
+- **Items gathered**: logs, fish, ore and gems, food cooked and burnt this session, with how many an hour, on the card and the pinned skill.
+- **Keeps your session** after a restart: log back in within 30 minutes (**Keep Session After Restart**) and the tracker carries on.
+- **Skills tab goal bars**: a thin gold bar on the game's Skills tab under each skill with a goal.
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.
 
 ### Tick counter and metronome
@@ -342,6 +345,9 @@ All sections except General start collapsed.
   [Salvaging AFK Timer](https://github.com/silly-build/salvaging-afk-timer) and
   [Fire Timer](https://github.com/autumn-smellegy/fire-timer).
 - Farming patch data, Hunter trap IDs, Agility courses and shortcuts are converted from RuneLite's own
-  plugins (BSD-2-Clause).
+  plugins (BSD-2-Clause), and the items gathered counts use the chat messages its Woodcutting, Fishing and Cooking
+  plugins read.
+- The Hunters' Rumours card reads your rumour the way [Hunter Rumours](https://github.com/geel9/runelite-hunter-rumours)
+  (BSD-2) does: from the guild hunters' dialogue, the Quetzal whistle and the rare part's message.
 - Game information, Slayer master chatheads and task icons are from the [Old School RuneScape Wiki](https://oldschool.runescape.wiki).
 - Voices are generated with [Piper](https://github.com/rhasspy/piper) (see [VOICE_CREDITS.md](VOICE_CREDITS.md)).

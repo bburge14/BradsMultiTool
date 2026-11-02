@@ -26,7 +26,7 @@ Tick what you want built.
   event wants, bark and leaves per hour. Skilling.
 - [ ] **Motherlode sack warning**: when the pay-dirt you carry won't fit in the sack. Skilling.
 - [ ] **Farming patch list with "ready" alerts** for every patch you've visited. Skilling.
-- [ ] **Items per hour on the cards**: logs, fish, ore, cooked and burnt. Skilling.
+- [x] **Items per hour on the cards**: logs, fish, ore, cooked and burnt. Skilling.
 - [ ] **Gem crab stats**: crabs killed, gems by type, mining success/fail, XP, fight length, kept between sessions. GemCrab.
 - [ ] **Slayer points and streak**, with a warning before a milestone task; task history; kill rate kept per task with
   a "done at" time. PvM/Slayer.
@@ -37,11 +37,11 @@ Tick what you want built.
 - [ ] **Attack timer that counts down** to your next attack (shows when you're late; handles eating and weapon
   speed changes). Tick Counter.
 - [ ] **Tick Counter hotkeys**: reset, show/hide, change ticks per cycle. Tick Counter.
-- [ ] **Hunter rumour card**: catches left to the guaranteed drop, where to go, alerts. Skilling.
-- [ ] **Progress and goal bars on the in-game Skills tab**. Skilling.
+- [x] **Hunter rumour card**: catches left to the guaranteed drop, where to go, alerts. Skilling.
+- [x] **Progress and goal bars on the in-game Skills tab**. Skilling.
 - [ ] **Agility: outline marks of grace and course traps**. Skilling.
-- [ ] **XP tracker keeps your session after a restart**, more than one pinned skill, actions per hour. Skilling.
-- [ ] **Hunter trap states**: a failed trap coloured too, not only caught ones. Skilling.
+- [ ] **XP tracker keeps your session after a restart** (done), more than one pinned skill, actions per hour. Skilling.
+- [x] **Hunter trap states**: a failed trap coloured too, not only caught ones. Skilling.
 - [ ] **Unpotted reminder**: warn when attacking without a combat boost. PvM/Slayer.
 - [ ] **Wrong attack prayer alert**. PvM/Slayer.
 - [ ] **Run energy low/restored everywhere**, not only in Agility. Alerts.

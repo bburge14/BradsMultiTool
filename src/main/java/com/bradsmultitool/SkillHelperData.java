@@ -31,12 +31,55 @@ class SkillHelperData {
         final int level;
         final double xp;
         final String trap;
+        /** For XP that depends on your level (Herbiboar, Wyrmscraig goats): the most it gives; else 0. */
+        final double xpMax;
 
         Creature(JsonObject o) {
             name = o.get("name").getAsString();
             level = o.get("level").getAsInt();
             xp = number(o, "xp");
             trap = text(o, "trap");
+            xpMax = number(o, "xpMax");
+        }
+    }
+
+    /**
+     * A Hunters' Rumours creature (the wiki's list): its level, where to find it, the method, which guild hunters
+     * give it, and the catch its rare part is guaranteed by (the pity threshold, lower in the guild hunter outfit).
+     */
+    static final class Rumour {
+        final String name;
+        /** Its wiki page, when the list calls it something else ("Carnivorous chinchompa" for Red chinchompa). */
+        final String page;
+        final int level;
+        final List<String> places = new ArrayList<>();
+        final String trap;
+        final List<String> hunters = new ArrayList<>();
+        /** Catches until the rare part is guaranteed, without and with the whole guild hunter outfit (0: unknown). */
+        final int pity;
+        final int pityOutfit;
+
+        Rumour(JsonObject o) {
+            name = o.get("name").getAsString();
+            page = text(o, "page");
+            level = o.get("level").getAsInt();
+            o.getAsJsonArray("places").forEach(e -> places.add(e.getAsString()));
+            trap = text(o, "trap");
+            o.getAsJsonArray("hunters").forEach(e -> hunters.add(e.getAsString()));
+            pity = (int) number(o, "pity");
+            pityOutfit = (int) number(o, "pityOutfit");
+        }
+
+        /**
+         * The pity threshold with this many guild hunter outfit pieces worn: each piece takes off a quarter of the
+         * outfit's difference, rounded down (as the Hunter Rumours plugin, BSD-2-Clause, works it out).
+         */
+        int pityWith(int pieces) {
+            if (pity <= 0) {
+                return 0;
+            }
+            int clamped = Math.max(0, Math.min(4, pieces));
+            return (int) Math.floor(pity - (pity - pityOutfit) / 4.0 * clamped);
         }
     }
 
@@ -344,6 +387,7 @@ class SkillHelperData {
     private final Map<String, SeaMonster> seaMonsters = new HashMap<>();
     private final Map<Integer, FishingSpot> fishingSpots = new HashMap<>();
     private final Map<String, Creature> creatures = new HashMap<>();
+    private final List<Rumour> rumours = new ArrayList<>();
     private final Map<String, Rune> runes = new HashMap<>();
     private final Map<Integer, Rune> altars = new HashMap<>();
     private final Map<String, Food> foods = new HashMap<>();
@@ -359,6 +403,7 @@ class SkillHelperData {
 
     void load(Gson gson) {
         creatures.clear();
+        rumours.clear();
         cooking.clear();
         anvil.clear();
         furnace.clear();
@@ -388,6 +433,11 @@ class SkillHelperData {
                 JsonObject root = gson.fromJson(reader, JsonObject.class);
                 for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("hunter").entrySet()) {
                     creatures.put(e.getKey(), new Creature(e.getValue().getAsJsonObject()));
+                }
+                if (root.has("rumours")) {
+                    for (JsonElement e : root.getAsJsonArray("rumours")) {
+                        rumours.add(new Rumour(e.getAsJsonObject()));
+                    }
                 }
                 JsonObject runecraft = root.getAsJsonObject("runecraft");
                 for (Map.Entry<String, JsonElement> e : runecraft.getAsJsonObject("runes").entrySet()) {
@@ -510,6 +560,17 @@ class SkillHelperData {
 
     Creature creature(String npcName) {
         return npcName == null ? null : creatures.get(npcName.toLowerCase());
+    }
+
+    /** Every Hunters' Rumours creature, lowest level first. */
+    List<Rumour> rumours() {
+        return rumours;
+    }
+
+    /** A rumour creature's Hunter data (its XP per catch), by its wiki page or name; null if not known. */
+    Creature creature(Rumour rumour) {
+        Creature creature = rumour.page != null ? creature(rumour.page) : null;
+        return creature != null ? creature : creature(rumour.name);
     }
 
     Rune altar(int objectId) {

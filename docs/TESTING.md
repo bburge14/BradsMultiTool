@@ -100,7 +100,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
   or came into view as you walked up, until it moves; a full timer again after each move (minnow spots included).
 - [ ] Fishing spot moved: the voice line plays when the spot you're fishing moves, even after fishing it 3+ minutes.
 - [ ] Timer Style: Tile and icon (no pie: the outline goes green/yellow/red, pulsing red when due; traps, fires and campfires keep a pie; hover a fishing spot for its times) and Floating timer (pies).
-- [ ] Hunter: pie on traps you lay, green when caught.
+- [ ] Hunter: pie on traps you lay, green when caught; a trap that springs empty turns a full pie in Failed Trap Colour (purple) saying "Empty", and back to a fresh timer once you reset it.
 - [ ] Fires: a pie only on a fire you cook on (Use food on it), none on fires you just light or walk past; it
       runs out at about 60 s, then pulses red until the fire goes; it sits still, not bouncing with the flames.
 - [ ] "The tree has fallen." (new wording) on oaks and up; no tree/rock alert on regular trees, copper or tin.
@@ -113,9 +113,19 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Coin pouches full (at 28, or your Ardougne diary cap).
 - [ ] Bird houses ready 50 minutes after seeding.
 - [ ] Batch complete after a run of cooking / smithing / crafting / fletching / herblore.
+- [ ] Hunters' Rumours: take a rumour from a guild hunter (or use the Quetzal whistle's Rumour): HUNTER RUMOUR in the
+      tracker names the creature, method and hunter, Where: (hover for every place); each catch adds to Caught (the
+      pity number drops with guild hunter outfit pieces on); the rare part plays "Rumour complete" and the card says
+      to take it back; handing it in clears the card.
 
 ## Skill tracker
 - [x] Cards, fields switch on/off without gaps, progress bar colours.
+- [ ] Items: chop, fish, mine, cook: the card (and pinned skill) shows "Logs: 342 (1,050/hr)", "Fish:", "Ore:"/"Gems:",
+      "Cooked: ..., 4 burnt (3%)"; Reset rate / Reset clears them; Show Items Gathered off hides them.
+- [ ] Keep Session After Restart: train, close the client, reopen and log in within 30 minutes: the cards carry on
+      (chat says so), XP/hr about the same; after longer (or with it at 0), a fresh session. Reset all skills, restart: fresh.
+- [ ] Skills Tab Goal Bars: a thin gold bar along the bottom of each goal skill on the Skills tab, matching the card's
+      goal bar; none with the setting off or on other tabs.
 - [ ] Training combat (e.g. Gemstone Crab): cards stay still, no field wraps onto two lines; GOALS / THIS SESSION headings centred.
 - [x] Actions left hidden for combat skills.
 - [x] Set Goal dialog: the skill list shows your levels; picking one shows your level, XP and current goal.
