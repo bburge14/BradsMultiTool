@@ -683,7 +683,7 @@ final class PlannerCalculatorView {
             .append('|').append(calc.trackerInstalled()).append('|').append(picking).append('|').append(calc.canPlan());
         key.append('|').append(calc.owned().hashCode());
         SkillPlans.Plan plan = calc.plan(shown);
-        key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown))
+        key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded())
             .append(calc.planCounts(skills()).keySet())
             .append('|').append(plan == null ? "" : SkillPlans.encode(plan)).append(calc.isTracked(shown, plan))
             .append(calc.trackedPlan(shown) != null);
