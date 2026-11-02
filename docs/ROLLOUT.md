@@ -72,6 +72,15 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
    repositories and the pull request branch), and reply.
 4. Once merged, the plugins appear in RuneLite's Plugin Hub within a few hours.
 
+## Checking on it
+
+Launcher, Dev tab, **Check status** (or `Publish-Plugins.bat status` / `python3 scripts/publish_plugins.py status`):
+your Plugin Hub pull request's link and whether it's **OPEN** (waiting for review), **PUBLISHED** (merged: players get
+it within a few hours) or **CLOSED**; RuneLite's build checks on it (a failed one with its link); and reviewers'
+verdicts and their latest comment. It reads GitHub's public API, so no login is needed (GitHub allows 60 such requests
+an hour; one check uses a handful). While the pull request is open, **Publish to RuneLite** updates it (same branch)
+instead of needing a new one.
+
 ## Updating a live plugin
 
 1. Develop and test here as usual (regenerate `plugins/`, commit and push).

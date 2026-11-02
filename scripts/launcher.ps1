@@ -708,7 +708,7 @@ function Find-Python {
     return $null
 }
 
-$devAbout = New-Label "1. Push to repos: copies each ticked plugin, as committed here, to its own GitHub repository; the ones that changed get a new version. Check first to see what would change.`n2. Publish to RuneLite: gets the Plugin Hub pull request ready, so players get what's in the repositories." 12 10 440 66
+$devAbout = New-Label "1. Push to repos: copies each ticked plugin, as committed here, to its own GitHub repository; the ones that changed get a new version. Check first to see what would change.`n2. Publish to RuneLite: the Plugin Hub pull request (updates it while open). Check status: published? build OK? comments?" 12 10 440 66
 $devTab.Controls.Add($devAbout)
 
 $publishConfig = Join-Path $root 'publish.json'
@@ -744,19 +744,25 @@ $devTab.Controls.Add($bump)
 $devCheck = New-Object System.Windows.Forms.Button
 $devCheck.Text = 'Check (dry run)'
 $devCheck.Location = New-Object System.Drawing.Point(12, 184)
-$devCheck.Size = New-Object System.Drawing.Size(120, 30)
+$devCheck.Size = New-Object System.Drawing.Size(100, 30)
 $devTab.Controls.Add($devCheck)
 $devPush = New-Object System.Windows.Forms.Button
 $devPush.Text = 'Push to repos'
-$devPush.Location = New-Object System.Drawing.Point(140, 184)
-$devPush.Size = New-Object System.Drawing.Size(120, 30)
+$devPush.Location = New-Object System.Drawing.Point(118, 184)
+$devPush.Size = New-Object System.Drawing.Size(100, 30)
 $devTab.Controls.Add($devPush)
 $devPublish = New-Object System.Windows.Forms.Button
 $devPublish.Text = 'Publish to RuneLite'
-$devPublish.Location = New-Object System.Drawing.Point(268, 184)
-$devPublish.Size = New-Object System.Drawing.Size(140, 30)
+$devPublish.Location = New-Object System.Drawing.Point(224, 184)
+$devPublish.Size = New-Object System.Drawing.Size(132, 30)
 $devPublish.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
 $devTab.Controls.Add($devPublish)
+# Where the Plugin Hub pull request is: open, published (merged) or closed, its build checks, reviewers' comments
+$devStatusButton = New-Object System.Windows.Forms.Button
+$devStatusButton.Text = 'Check status'
+$devStatusButton.Location = New-Object System.Drawing.Point(362, 184)
+$devStatusButton.Size = New-Object System.Drawing.Size(88, 30)
+$devTab.Controls.Add($devStatusButton)
 $devStatus = New-Label '' 12 220 440
 $devTab.Controls.Add($devStatus)
 
@@ -800,7 +806,7 @@ $devPoll.Add_Tick({
                 $devOut.SelectionStart = $devOut.Text.Length
                 $devOut.ScrollToCaret()
             }
-            $match = [regex]::Match($text, 'https://github\.com/runelite/plugin-hub/compare/\S+')
+            $match = [regex]::Match($text, 'https://github\.com/runelite/plugin-hub/(compare|pull)/\S+')
             if ($match.Success) {
                 $script:prUrl = $match.Value
                 $prLink.Visible = $true
@@ -812,6 +818,7 @@ $devPoll.Add_Tick({
         $devCheck.Enabled = $true
         $devPush.Enabled = $true
         $devPublish.Enabled = $true
+        $devStatusButton.Enabled = $true
         if ($script:publishRun.ExitCode -eq 0) {
             $devStatus.Text = 'Done.'
             $devStatus.ForeColor = $green
@@ -832,12 +839,14 @@ function Start-DevStep($step, $dryRun) {
         return
     }
     $chosen = @($devTicks.Keys | Where-Object { $devTicks[$_].Checked })
-    if (-not $chosen) {
+    # (the status check is for the pull request, not the ticked plugins)
+    if ($step -eq 'status') { $chosen = @() }
+    elseif (-not $chosen) {
         [System.Windows.Forms.MessageBox]::Show('Tick at least one plugin.', "Snuffy's") | Out-Null
         return
     }
     $level = @('patch', 'minor', 'major')[$bump.SelectedIndex]
-    if (-not $dryRun) {
+    if (-not $dryRun -and $step -ne 'status') {
         $what = $(if ($step -eq 'push') { "Push " + ($chosen -join ', ') + " to their repositories (changed ones get a new $level version)?" }
                   else { "Get the Plugin Hub pull request ready for " + ($chosen -join ', ') + "?" })
         $answer = [System.Windows.Forms.MessageBox]::Show($what, "Snuffy's", 'YesNo')
@@ -850,7 +859,8 @@ function Start-DevStep($step, $dryRun) {
     $devCheck.Enabled = $false
     $devPush.Enabled = $false
     $devPublish.Enabled = $false
-    $devStatus.Text = $(if ($dryRun) { 'Checking...' } elseif ($step -eq 'push') { 'Pushing...' } else { 'Publishing...' })
+    $devStatusButton.Enabled = $false
+    $devStatus.Text = $(if ($dryRun) { 'Checking...' } elseif ($step -eq 'push') { 'Pushing...' } elseif ($step -eq 'status') { 'Asking GitHub...' } else { 'Publishing...' })
     $devStatus.ForeColor = [System.Drawing.SystemColors]::ControlText
     $pyArgs = @($python | Select-Object -Skip 1) + @('-u', 'scripts\publish_plugins.py', $step) + $chosen
     if ($step -eq 'push') { $pyArgs += @('--bump', $level) }
@@ -865,12 +875,14 @@ function Start-DevStep($step, $dryRun) {
 $devCheck.Add_Click({ Start-DevStep 'push' $true })
 $devPush.Add_Click({ Start-DevStep 'push' $false })
 $devPublish.Add_Click({ Start-DevStep 'hub' $false })
+$devStatusButton.Add_Click({ Start-DevStep 'status' $false })
 if (-not (Test-Path $publishConfig)) {
     $devStatus.Text = 'publish.json is missing: update the launcher.'
     $devStatus.ForeColor = $red
     $devCheck.Enabled = $false
     $devPush.Enabled = $false
     $devPublish.Enabled = $false
+    $devStatusButton.Enabled = $false
 }
 
 
