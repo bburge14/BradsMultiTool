@@ -34,6 +34,9 @@ enum AlertType {
     COIN_POUCH("CoinPouch", VoiceAlertService.VoiceLine.COIN_POUCH_FULL),
     ARENA_PILLAR("ArenaPillar", VoiceAlertService.VoiceLine.ARENA_PILLAR_MOVING),
     RUN_ENERGY("RunEnergy", VoiceAlertService.VoiceLine.RUN_ENERGY_LOW),
+    // Run energy anywhere (the Idle section, every plugin); Agility's own alert above uses the same line
+    RUN_LOW("RunLow", VoiceAlertService.VoiceLine.RUN_ENERGY_LOW),
+    RUN_RESTORED("RunRestored", VoiceAlertService.VoiceLine.RUN_ENERGY_RESTORED),
     FORESTRY_EVENT("ForestryEvent", VoiceAlertService.VoiceLine.FORESTRY_EVENT),
     SACK_FULL("SackFull", VoiceAlertService.VoiceLine.SACK_FULL),
     WINTERTODT_ROUND("WintertodtRound", VoiceAlertService.VoiceLine.WINTERTODT_ROUND),
@@ -108,6 +111,7 @@ enum AlertType {
             case COIN_POUCH_FULL: return COIN_POUCH;
             case ARENA_PILLAR_MOVING: return ARENA_PILLAR;
             case RUN_ENERGY_LOW: return RUN_ENERGY;
+            case RUN_ENERGY_RESTORED: return RUN_RESTORED;
             case FORESTRY_EVENT: return FORESTRY_EVENT;
             case SACK_FULL: return SACK_FULL;
             case WINTERTODT_ROUND: return WINTERTODT_ROUND;

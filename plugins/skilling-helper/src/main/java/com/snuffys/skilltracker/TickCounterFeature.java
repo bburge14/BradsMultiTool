@@ -3,7 +3,7 @@ package com.snuffys.skilltracker;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-/** Snuffy's Tick Counter: the tick count over your head, the tick boxes and bar, the metronome and click timing. */
+/** Snuffy's Tick Counter: the tick count over your head, the tick boxes and bar, the metronome, click timing and its hotkeys. */
 @Singleton
 class TickCounterFeature {
 
@@ -17,6 +17,7 @@ class TickCounterFeature {
     @Inject private BradsMultiToolTickBoxOverlay boxOverlay;
     @Inject private BradsMultiToolTickBarOverlay barOverlay;
     @Inject private TickSingleBoxes singleBoxes;
+    @Inject private TickHotkeys hotkeys;
 
     void start(Lifecycle lifecycle) {
         configDefaults.add(() -> TickConfigDefaults.store(configDefaults, config));
@@ -24,6 +25,9 @@ class TickCounterFeature {
         lifecycle.subscribe(inGame, combatStyle, tickCounter, configDefaults, clashes);
         lifecycle.overlay(headOverlay, boxOverlay, barOverlay);
         singleBoxes.overlays.forEach(lifecycle::overlay);
+        hotkeys.start();
+        lifecycle.onStop(hotkeys::stop);
+        lifecycle.onStop(tickCounter::show);
         lifecycle.onStop(configDefaults::clear);
         lifecycle.onStop(clashes::stop);
     }

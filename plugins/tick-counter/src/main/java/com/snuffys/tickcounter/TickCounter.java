@@ -8,14 +8,20 @@ import lombok.Getter;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.MenuAction;
 import net.runelite.api.NPC;
+import net.runelite.api.NPCComposition;
 import net.runelite.api.Player;
 import net.runelite.api.Preferences;
 import net.runelite.api.SoundEffectID;
 import net.runelite.api.events.AnimationChanged;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStats;
@@ -29,6 +35,8 @@ import net.runelite.client.game.ItemStats;
 class TickCounter {
 
     private static final int UNARMED_SPEED = 4;
+    /** Spells take 5 ticks whatever the weapon, except on these staves. */
+    private static final int SPELL_SPEED = 5;
     /** How many recent clicks (and missed ticks) the summary covers. */
     static final int RECENT = 50;
     private static final int DING = SoundEffectID.TOWN_CRIER_BELL_DING;
@@ -58,9 +66,16 @@ class TickCounter {
     private long lastClickMillis;
     private int clicksThisTick;
     private boolean clickedLastTick;
+    /** An attack animation started since the last tick (Follow Attack Speed). */
     private boolean attacked;
     private int speedWeaponId = Integer.MIN_VALUE;
     private int weaponSpeed = UNARMED_SPEED;
+    /** Your attack delay and late ticks, for Follow Attack Speed. */
+    private final AttackTimer attackTimer = new AttackTimer();
+    private int attackTick = -1;
+    /** Hidden by the Show/Hide hotkey (the overlays only; sounds keep playing). */
+    @Getter
+    private boolean hidden;
 
     @Inject
     TickCounter(Client client, TickConfig config, ItemManager itemManager, CombatStyle combatStyle, InGame inGame) {
@@ -112,11 +127,112 @@ class TickCounter {
         if (event.getActor() != player || player == null || player.getAnimation() == -1) {
             return;
         }
-        // Starting an animation while fighting something is (near enough) an attack
+        // Starting an animation while fighting something is (near enough) an attack, unless it's one that never
+        // is (eating, blocking a hit, alching)
+        if (AttackTimer.NOT_ATTACKS.contains(player.getAnimation())) {
+            return;
+        }
         Actor target = player.getInteracting();
-        if (target instanceof NPC || target instanceof Player) {
+        if (target instanceof Player || target instanceof NPC && attackable((NPC) target)) {
             attacked = true;
         }
+    }
+
+    // Something you can fight: it has a combat level or an Attack option (not a fishing spot or a banker)
+    private static boolean attackable(NPC npc) {
+        if (npc.getCombatLevel() > 0) {
+            return true;
+        }
+        NPCComposition composition = npc.getTransformedComposition();
+        if (composition == null) {
+            composition = npc.getComposition();
+        }
+        if (composition == null || composition.getActions() == null) {
+            return false;
+        }
+        for (String action : composition.getActions()) {
+            if ("Attack".equals(action)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Eating delays your next attack
+    @Subscribe
+    public void onChatMessage(ChatMessage event) {
+        if (!config.tickFollowWeapon()
+            || event.getType() != ChatMessageType.SPAM && event.getType() != ChatMessageType.GAMEMESSAGE) {
+            return;
+        }
+        int delay = AttackTimer.foodDelay(event.getMessage());
+        if (delay > 0) {
+            attackTimer.ate(delay);
+        }
+    }
+
+    // A weapon swapped on the attack tick itself: that attack goes at the new weapon's speed
+    @Subscribe
+    public void onItemContainerChanged(ItemContainerChanged event) {
+        if (event.getContainerId() == InventoryID.WORN && config.tickFollowWeapon()
+            && attackTick == client.getTickCount() && attackTimer.tracking()) {
+            int speed = attackSpeed();
+            if (speed != attackTimer.speed()) {
+                attackTimer.respeed(speed);
+                cycle = speed;
+            }
+        }
+    }
+
+    /** The Show/Hide hotkey. */
+    void toggleHidden() {
+        hidden = !hidden;
+    }
+
+    /** Shown again (the plugin stopping). */
+    void show() {
+        hidden = false;
+    }
+
+    /** The Reset Count hotkey: this tick becomes 1 of the cycle (and with Follow Attack Speed, no attack is remembered). */
+    void resetCycle() {
+        if (count > 0) {
+            count = 1;
+        }
+        attackTimer.reset();
+    }
+
+    /**
+     * The number over your head: the count, counting down to your next attack with Count Down To Attack, or how late
+     * you are ("-2") once you could have attacked again but haven't.
+     */
+    String headText() {
+        int late = lateTicks();
+        if (late > 0) {
+            return "-" + late;
+        }
+        if (countingDown() && attackTimer.tracking() && attackTimer.delay() > 0) {
+            return String.valueOf(attackTimer.delay());
+        }
+        return String.valueOf(boxNumber(count));
+    }
+
+    /** How many ticks late your next attack is (Late Ticks), 0 when not late or not shown. */
+    int lateTicks() {
+        if (!config.tickFollowWeapon() || config.attackLateTicks() <= 0 || !attackTimer.tracking()) {
+            return 0;
+        }
+        return attackTimer.late();
+    }
+
+    /** The number a tick's box shows: its place in the cycle, or the ticks left to your attack with Count Down To Attack. */
+    int boxNumber(int tick) {
+        return countingDown() ? Math.max(1, cycle) - tick + 1 : tick;
+    }
+
+    /** Count Down To Attack is in use (with Follow Attack Speed). */
+    boolean countingDown() {
+        return config.tickFollowWeapon() && config.attackCountDown();
     }
 
     @Subscribe
@@ -148,6 +264,7 @@ class TickCounter {
         if (client.getGameState() != GameState.LOGGED_IN || !active() || !inGame.ready()) {
             count = 0;
             attacked = false;
+            attackTimer.reset();
             lastTickMillis = 0;
             clicksThisTick = 0;
             clickedLastTick = false;
@@ -166,9 +283,14 @@ class TickCounter {
         }
 
         boolean follow = config.tickFollowWeapon();
-        int methodCycle = TickMethods.cycle(config.tickMethod());
-        cycle = follow ? attackSpeed() : methodCycle > 0 ? methodCycle : config.tickCycle();
-        count = next(count, cycle, follow && attacked);
+        if (follow) {
+            followAttacks();
+        } else {
+            int methodCycle = TickMethods.cycle(config.tickMethod());
+            cycle = methodCycle > 0 ? methodCycle : config.tickCycle();
+            count = next(count, cycle, false);
+            attackTimer.reset();
+        }
         attacked = false;
         lastTickMillis = System.currentTimeMillis();
 
@@ -204,9 +326,34 @@ class TickCounter {
         }
     }
 
-    /** Your weapon's attack speed in ticks, one faster on Rapid. */
+    // Follow Attack Speed: an attack (once the last one's delay has run out) starts the cycle at 1; the cycle is the
+    // speed of that attack, so a weapon swapped later doesn't change it. Food delays hold the count on 1
+    private void followAttacks() {
+        int speedNow = attackSpeed();
+        if (attackTimer.tick(attacked, speedNow, config.attackLateTicks())) {
+            attackTick = client.getTickCount();
+            cycle = attackTimer.speed();
+            count = 1;
+        } else if (attackTimer.tracking() && attackTimer.delay() > 0) {
+            cycle = attackTimer.speed();
+            count = followCount(cycle, attackTimer.delay());
+        } else {
+            cycle = attackTimer.tracking() ? attackTimer.speed() : speedNow;
+            count = next(count, cycle, false);
+        }
+    }
+
+    /** Where in the cycle you are with this many ticks to your next attack: 1 on the attack tick, held on 1 while food adds more. */
+    static int followCount(int speed, int delay) {
+        return Math.max(1, Math.min(speed, speed - delay + 1));
+    }
+
+    /** Your attack speed in ticks: the weapon's, one faster on Rapid, 5 for spells (6 on the Twinflame staff, 4 on the harmonised nightmare staff). */
     private int attackSpeed() {
         int weaponId = combatStyle.equippedWeaponId();
+        if (combatStyle.isCasting()) {
+            return weaponId == ItemID.TWINFLAME_STAFF ? 6 : weaponId == ItemID.NIGHTMARE_STAFF_HARMONISED ? 4 : SPELL_SPEED;
+        }
         if (weaponId != speedWeaponId) {
             speedWeaponId = weaponId;
             ItemStats stats = weaponId > 0 ? itemManager.getItemStats(weaponId) : null;

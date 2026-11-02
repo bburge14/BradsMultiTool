@@ -171,7 +171,10 @@ work a resource.
 - **Click timing** for 1-ticking: how many ms after the tick each click landed, an ideal click zone on the tick
   bar, a ding when on time and a different sound when late or when you miss a tick, and a summary of your last
   50 clicks.
-- **Follow Attack Speed**: the cycle follows your weapon and starts again each time you attack.
+- **Follow Attack Speed**: an attack timer for your own attacks. The cycle follows your weapon (and spells,
+  Rapid, eating delays) and starts again each time you attack; it can **count down** to your next attack and
+  show how many ticks **late** you are (-1, -2).
+- **Hotkeys** (none set at first): reset the count to 1, show/hide the tick overlays, Ticks Per Cycle up/down.
 - **Snuffy's Tick Counter** (also in the Toolbelt); settings under **Tick Counter**.
 
 ### Idle
@@ -179,6 +182,8 @@ work a resource.
   presses since. Banking, shops, the GE and menus never set it off.
 - **Idle logout warning**: before the game logs you out for inactivity (follows RuneLite's Logout Timer
   setting; uses the game's 20-minute rule in combat), with optional repeats.
+- **Run energy low / restored** anywhere (both off at first): below a level you pick, and back up to one (say
+  100%).
 
 ### Alerts in general
 - No alert fires until you're past the welcome screen, and anything already true when you log in isn't
@@ -191,6 +196,8 @@ work a resource.
   Ryan and John (UK and US men), Arctic (a Scottish man), L2 Arctic (a man with a Mandarin Chinese accent), Wise Old Man, TzHaar and Ghost, or **Random** for a different
   one each alert. Changing the voice plays a sample.
 - Chat messages use the same words as the voice line, with details in brackets.
+- **Speak Only When Unfocused** (General, off at first): voice only while you're in another window; chat
+  messages still post.
 
 ## First-time setup (Windows, PowerShell)
 
@@ -345,6 +352,9 @@ All sections except General start collapsed.
   [Star AFK Timer](https://github.com/silly-build/star-afk-timer),
   [Salvaging AFK Timer](https://github.com/silly-build/salvaging-afk-timer) and
   [Fire Timer](https://github.com/autumn-smellegy/fire-timer).
+- The Tick Counter's attack timer (Follow Attack Speed: attacks only once the delay has run out, eating delays,
+  the animations that aren't attacks, late ticks) follows [Attack Timer Metronome](https://github.com/ngraves95/attacktimer)
+  by Nick Graves and contributors (BSD-2 licensed).
 - Farming patch data, Hunter trap IDs, Agility courses and shortcuts, and the Wintertodt messages are converted from
   RuneLite's own plugins (BSD-2-Clause).
 - The minigame and Sailing alerts use what these Plugin Hub plugins (BSD-2-Clause) worked out:

@@ -54,7 +54,7 @@ public class BradsMultiToolTickSingleBoxOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         if (client.getGameState() != GameState.LOGGED_IN || !config.tickBoxes() || !config.tickBoxesSeparate()
-            || ticks.getCount() <= 0) {
+            || ticks.getCount() <= 0 || ticks.isHidden()) {
             return null;
         }
         java.util.List<TickMethods.Step> steps = TickMethods.steps(config.tickMethod());
@@ -77,7 +77,7 @@ public class BradsMultiToolTickSingleBoxOverlay extends Overlay {
         graphics.setFont(FontManager.getRunescapeBoldFont().deriveFont(Font.BOLD, size * 0.55f));
         BradsMultiToolTickBoxOverlay.drawBox(graphics, graphics.getFontMetrics(), config, 0, 0, size, tick,
             BradsMultiToolTickBoxOverlay.isLit(ticks, config, tick, half), BradsMultiToolTickBoxOverlay.halfFade(ticks, config),
-            BACKGROUND, BradsMultiToolTickBoxOverlay.label(tick, half));
+            BACKGROUND, BradsMultiToolTickBoxOverlay.label(ticks.boxNumber(tick), half, ticks.countingDown()));
         return new Dimension(size, size);
     }
 }

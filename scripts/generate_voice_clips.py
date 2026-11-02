@@ -126,6 +126,7 @@ LINES = {
     "coin_pouch_full": "Your coin pouches are full.",
     "arena_pillar_moving": "The pillar is about to move.",
     "run_energy_low": "Your run energy is low.",
+    "run_energy_restored": "Your run energy is restored.",
     "forestry_event": "A forestry event has started.",
     "sack_full": "The sack is full. Empty it before mining more.",
     "wintertodt_round": "The Wintertodt round is about to start.",
@@ -322,7 +323,7 @@ def compact_existing():
 # Which separate plugin each clip ships with: voices/<persona>/<plugin>/<clip>.wav, so each plugin's build
 # takes just its folder. Keep in step with VoiceAlertService.VoicePlugin.of()
 SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_moved", "coin_pouch_full",
-                  "arena_pillar_moving", "run_energy_low", "forestry_event", "sack_full",
+                  "arena_pillar_moving", "forestry_event", "sack_full",
                   "wintertodt_round", "brazier_out", "brazier_broken", "out_of_roots", "wintertodt_hit", "warmth_low", "tempoross_wave", "tempoross_fire", "tempoross_double_spot", "tempoross_vulnerable", "rift_starting", "rift_portal", "boat_health_low", "trim_sails", "bird_nest", "farming_ready", "birdhouses_ready", "batch_complete"}
 
 
@@ -333,7 +334,7 @@ def plugin_of(key):
         return "potions"
     if key in ("crab_moved", "crab_low_health"):
         return "gemcrab"
-    if key in ("character_idle", "idle_logout", "six_hour_logout"):
+    if key in ("character_idle", "idle_logout", "six_hour_logout", "run_energy_low", "run_energy_restored"):
         return "shared"
     return "pvm"
 

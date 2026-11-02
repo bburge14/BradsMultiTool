@@ -15,6 +15,7 @@ final class CommonConfigDefaults {
         defaults.store("voiceEnabled", config.voiceEnabled());
         defaults.store("syncVoice", config.syncVoice());
         defaults.store("sendChatMessages", config.sendChatMessages());
+        defaults.store("voiceOnlyUnfocused", config.voiceOnlyUnfocused());
         defaults.store("characterIdleAlert", config.characterIdleAlert());
         defaults.store("characterIdleSeconds", config.characterIdleSeconds());
         defaults.store("idleWarningSeconds", config.idleWarningSeconds());
@@ -28,5 +29,11 @@ final class CommonConfigDefaults {
         defaults.store("sixHourWarning", config.sixHourWarning());
         defaults.store("voiceSixHour", config.voiceSixHour());
         defaults.store("chatSixHour", config.chatSixHour());
+        defaults.store("runEnergyLowAt", config.runEnergyLowAt());
+        defaults.store("voiceRunLow", config.voiceRunLow());
+        defaults.store("chatRunLow", config.chatRunLow());
+        defaults.store("runEnergyRestoredAt", config.runEnergyRestoredAt());
+        defaults.store("voiceRunRestored", config.voiceRunRestored());
+        defaults.store("chatRunRestored", config.chatRunRestored());
     }
 }

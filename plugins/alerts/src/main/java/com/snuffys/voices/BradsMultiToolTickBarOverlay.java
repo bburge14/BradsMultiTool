@@ -44,7 +44,8 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
     public Dimension render(Graphics2D graphics) {
         boolean bar = config.tickBar();
         boolean summary = config.clickTiming();
-        if (client.getGameState() != GameState.LOGGED_IN || (!bar && !summary) || ticks.getCount() <= 0) {
+        if (client.getGameState() != GameState.LOGGED_IN || (!bar && !summary) || ticks.getCount() <= 0
+            || ticks.isHidden()) {
             return null;
         }
         int width = config.tickBarWidth();

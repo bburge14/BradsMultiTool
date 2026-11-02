@@ -244,6 +244,12 @@ class CombatStyle {
         return xpStyle.contains("rapid");
     }
 
+    /** Whether you're casting spells (autocast, defensive autocast or by hand), not using the weapon itself. */
+    boolean isCasting() {
+        String button = currentStyle != null ? currentStyle.buttonName : null;
+        return "Cast".equals(button) || "Spell Cast".equals(button) || "Defensive Cast".equals(button);
+    }
+
     int equippedWeaponId() {
         ItemContainer equipment = client.getItemContainer(CONTAINER_EQUIPMENT);
         if (equipment == null) {

@@ -45,16 +45,18 @@ public class BradsMultiToolTickHeadOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         Player player = client.getLocalPlayer();
-        if (player == null || ticks.getCount() <= 0) {
+        if (player == null || ticks.getCount() <= 0 || ticks.isHidden()) {
             return null;
         }
         Rectangle top = topOfModel(player);
         if (config.tickOverHead()) {
-            String text = String.valueOf(ticks.getCount());
+            // The count, or how many ticks late your attack is (red)
+            String text = ticks.headText();
+            Color color = ticks.lateTicks() > 0 ? HudColors.BAD : BradsMultiToolTickBoxOverlay.tickColor(config, ticks.getCount());
             graphics.setFont(FontManager.getRunescapeBoldFont().deriveFont(Font.BOLD, (float) config.tickTextSize()));
             Point location = above(graphics, player, top, text);
             if (location != null) {
-                OverlayUtil.renderTextLocation(graphics, location, text, BradsMultiToolTickBoxOverlay.tickColor(config, ticks.getCount()));
+                OverlayUtil.renderTextLocation(graphics, location, text, color);
             }
         }
         long since = System.currentTimeMillis() - ticks.getLastClickMillis();

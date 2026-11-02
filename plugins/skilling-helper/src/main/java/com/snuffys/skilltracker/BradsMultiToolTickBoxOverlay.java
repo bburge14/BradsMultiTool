@@ -53,7 +53,15 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
 
     /** A box's label: the tick's number, or "1.5" for its half box. */
     static String label(int tick, boolean half) {
-        return half ? tick + ".5" : String.valueOf(tick);
+        return label(tick, half, false);
+    }
+
+    /** As above; counting down (4, 3, 2, 1), a half box comes before the next lower number ("3.5" after 4). */
+    static String label(int number, boolean half, boolean countingDown) {
+        if (!half) {
+            return String.valueOf(number);
+        }
+        return (countingDown ? number - 1 : number) + ".5";
     }
 
     /**
@@ -148,7 +156,7 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         if (client.getGameState() != GameState.LOGGED_IN || !config.tickBoxes() || ticks.getCount() <= 0
-            || config.tickBoxesSeparate()) {
+            || config.tickBoxesSeparate() || ticks.isHidden()) {
             return null;
         }
         int size = config.tickBoxSize();
@@ -181,7 +189,7 @@ public class BradsMultiToolTickBoxOverlay extends Overlay {
             int x = horizontal ? slot * (size + GAP) : 0;
             int y = horizontal ? 0 : slot * (size + GAP);
             drawBox(graphics, metrics, config, x, y, size, tick, isLit(ticks, config, tick, half), halfFade(ticks, config),
-                BACKGROUND, label(tick, half));
+                BACKGROUND, label(ticks.boxNumber(tick), half, ticks.countingDown()));
         }
         int length = slots * size + (slots - 1) * GAP;
         return horizontal ? new Dimension(length, size) : new Dimension(size, length);

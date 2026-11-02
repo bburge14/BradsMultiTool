@@ -22,6 +22,8 @@ final class TickConfigDefaults {
         defaults.store("tickBar", config.tickBar());
         defaults.store("tickCycle", config.tickCycle());
         defaults.store("tickFollowWeapon", config.tickFollowWeapon());
+        defaults.store("attackCountDown", config.attackCountDown());
+        defaults.store("attackLateTicks", config.attackLateTicks());
         defaults.store("tickColor", config.tickColor());
         defaults.store("tickFirstColor", config.tickFirstColor());
         defaults.store("tickTextSize", config.tickTextSize());
@@ -41,5 +43,9 @@ final class TickConfigDefaults {
         defaults.store("clickIdealFrom", config.clickIdealFrom());
         defaults.store("clickIdealTo", config.clickIdealTo());
         defaults.store("clickEveryTick", config.clickEveryTick());
+        defaults.store("tickResetKey", config.tickResetKey());
+        defaults.store("tickToggleKey", config.tickToggleKey());
+        defaults.store("tickCycleUpKey", config.tickCycleUpKey());
+        defaults.store("tickCycleDownKey", config.tickCycleDownKey());
     }
 }

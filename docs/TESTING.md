@@ -171,7 +171,19 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       Toolbelt (not two stacked boxes); moves with Alt + drag and keeps its place.
 - [x] Tick Bar: fills smoothly over each tick and snaps back on the tick; Bar Width.
 - [x] Metronome on/off; each Tone plays, with the second sound on the first tick; First Tick Only; Volume.
-- [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3); 1 lands on each attack.
+- [ ] Follow Attack Speed: cycle matches the weapon (whip 4, shortbow on Rapid 3, autocasting 5); 1 lands on each attack.
+- [ ] Follow Attack Speed: being hit while not attacking (block animation), eating, alching or pickpocketing
+      doesn't restart the count; nor does an animation before your attack delay has run out.
+- [ ] Eat a shark mid-cycle: the count holds on 1 for 3 extra ticks and 1 still lands on your next attack; a
+      karambwan adds 2.
+- [ ] Count Down To Attack: over head 4, 3, 2, 1 on a 4-tick weapon, the boxes numbered 4 3 2 1 (half boxes
+      3.5...); eating shows the extra ticks (e.g. 5).
+- [ ] Late Ticks: stop attacking: -1, -2... in red up to Late Ticks, then back to the plain count; 0 never shows it.
+- [ ] Weapon swap: spec with a different-speed weapon then swap back: the cycle after each attack is that
+      attack's weapon's speed.
+- [ ] Hotkeys (bind each in Hotkeys): Reset Count makes this tick 1; Show/Hide hides and shows the count,
+      boxes and bar (chat says which; the metronome keeps playing); Ticks Per Cycle Up/Down change the setting
+      (1-10, chat says the number). Unbound: nothing happens. Also in the Toolbelt (Tick: Hotkeys).
 - [x] Click Timing: "NNNms" rises over your head on each click (green, red past Late After); the bar marks the
       click; the summary counts on time / late / missed. Right-click "Track for goal" isn't counted.
 - [x] Ideal zone: green on the tick bar from Ideal From to Ideal To; clicks in it show green, others white
@@ -195,6 +207,14 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
 - [x] No AFK alert after logging in without doing anything (login's XP report isn't training).
 - [x] Idle logout warning before the logout.
+- [ ] Run Energy Low Below 30: run below 30%: "Your run energy is low" once, again only after it's back above 40.
+- [ ] Training Agility with Run Energy Low Below on: only one run energy alert (the Agility one stays quiet);
+      with it 0, Agility's own alert works as before.
+- [ ] Run Energy Restored At 100: drop below 90, rest: "Your run energy is restored" at 100; a few steps of
+      running at 100 don't set it off; nothing at login.
+- [ ] With two of Snuffy's plugins running separately, each run energy alert is said once.
+- [ ] Speak Only When Unfocused: with RuneLite focused alerts post in chat but aren't spoken; click another
+      window and they're spoken; Voice switch previews still play.
 
 ## Track for goal: specific methods
 - [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,

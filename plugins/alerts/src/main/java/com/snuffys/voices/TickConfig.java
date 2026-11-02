@@ -7,6 +7,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
@@ -52,6 +53,14 @@ public interface TickConfig extends Config {
         closedByDefault = true
     )
     String tickBoxesSection = "tickBoxesSection";
+
+    @ConfigSection(
+        name = "Hotkeys",
+        description = "<div width='300'>Keys to reset the count, show or hide the tick overlays and change Ticks Per Cycle (none set at first)",
+        position = 65,
+        closedByDefault = true
+    )
+    String tickHotkeySection = "tickHotkeySection";
 
     @ConfigItem(
         keyName = "openGuide",
@@ -287,12 +296,37 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "tickFollowWeapon",
         name = "Follow Attack Speed",
-        description = "<div width='300'>Use your weapon's attack speed for the cycle (one faster on Rapid) and start the count again each time you attack, so 1 is your attack tick",
+        description = "<div width='300'>Use the attack speed of your weapon (one faster on Rapid, 5 for spells) for the cycle and start the count again each time you attack, so 1 is your attack tick. Eating adds its delay. Only your own attacks",
         section = tickSection,
         position = 2
     )
     default boolean tickFollowWeapon() {
         return false;
+    }
+
+    @ConfigItem(
+        keyName = "attackCountDown",
+        name = "Count Down To Attack",
+        description = "<div width='300'>With Follow Attack Speed: the count over your head (and the box numbers) counts down the ticks to your next possible attack (4, 3, 2, 1) instead of up. Food delays show as extra ticks",
+        section = tickSection,
+        position = 3
+    )
+    default boolean attackCountDown() {
+        return false;
+    }
+
+    @Range(max
+    =
+    20)
+    @ConfigItem(
+        keyName = "attackLateTicks",
+        name = "Late Ticks",
+        description = "<div width='300'>With Follow Attack Speed: after an attack, once you could attack again but haven't, the count over your head shows how many ticks late you are (-1, -2...) in red, up to this many, then goes back to counting. 0: off",
+        section = tickSection,
+        position = 4
+    )
+    default int attackLateTicks() {
+        return 5;
     }
 
     @Alpha
@@ -301,7 +335,7 @@ public interface TickConfig extends Config {
         name = "Tick Colour",
         description = "Colour of the count on most ticks",
         section = tickSection,
-        position = 3
+        position = 5
     )
     default Color tickColor() {
         return new Color(255, 255, 255, 230);
@@ -313,7 +347,7 @@ public interface TickConfig extends Config {
         name = "First Tick Colour",
         description = "Colour of the count on the first tick of each cycle",
         section = tickSection,
-        position = 4
+        position = 6
     )
     default Color tickFirstColor() {
         return new Color(0, 230, 120, 230);
@@ -330,7 +364,7 @@ public interface TickConfig extends Config {
         name = "Over Head Text Size",
         description = "Size of the count over your head",
         section = tickSection,
-        position = 5
+        position = 7
     )
     default int tickTextSize() {
         return 22;
@@ -553,5 +587,49 @@ public interface TickConfig extends Config {
     )
     default boolean clickEveryTick() {
         return false;
+    }
+
+    @ConfigItem(
+        keyName = "tickResetKey",
+        name = "Reset Count",
+        description = "<div width='300'>Press on the tick you want as 1: the count starts its cycle again from 1 there (with Follow Attack Speed it also forgets your last attack)",
+        section = tickHotkeySection,
+        position = 0
+    )
+    default Keybind tickResetKey() {
+        return Keybind.NOT_SET;
+    }
+
+    @ConfigItem(
+        keyName = "tickToggleKey",
+        name = "Show/Hide",
+        description = "<div width='300'>Press to hide or show the tick count, boxes and bar (the metronome and click sounds keep playing)",
+        section = tickHotkeySection,
+        position = 1
+    )
+    default Keybind tickToggleKey() {
+        return Keybind.NOT_SET;
+    }
+
+    @ConfigItem(
+        keyName = "tickCycleUpKey",
+        name = "Ticks Per Cycle Up",
+        description = "Press to add one to Ticks Per Cycle (up to 10)",
+        section = tickHotkeySection,
+        position = 2
+    )
+    default Keybind tickCycleUpKey() {
+        return Keybind.NOT_SET;
+    }
+
+    @ConfigItem(
+        keyName = "tickCycleDownKey",
+        name = "Ticks Per Cycle Down",
+        description = "Press to take one off Ticks Per Cycle (down to 1)",
+        section = tickHotkeySection,
+        position = 3
+    )
+    default Keybind tickCycleDownKey() {
+        return Keybind.NOT_SET;
     }
 }
