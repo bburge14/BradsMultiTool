@@ -50,6 +50,7 @@ class PlannerCalculator {
     private static final String BANKED_KEY = "plannerCalcBanked";
     private static final String PLAN_VIEW_KEY = "plannerCalcPlan";
     private static final String TARGET_KEY = "plannerCalcTarget.";
+    private static final String DOCK_KEY = "plannerCalcDockOpen";
 
     /** The list's three views. */
     enum Mode { ACTIONS, BANKED, PLAN }
@@ -288,6 +289,15 @@ class PlannerCalculator {
         if (configManager.getRSProfileKey() != null) {
             SkillGoals.setGoal(configManager, skill, goalXp, xpNow);
         }
+    }
+
+    /** Whether the plan bar at the foot of the Calculator is open (it starts open). */
+    boolean dockOpen() {
+        return !"false".equals(configManager.getConfiguration(GROUP, DOCK_KEY));
+    }
+
+    void setDockOpen(boolean open) {
+        configManager.setConfiguration(GROUP, DOCK_KEY, open);
     }
 
     /** The target you typed for this skill (kept until you reset it or set it as the goal), or 0 for none. */

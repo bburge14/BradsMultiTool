@@ -738,6 +738,11 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   flag) are left out on a free world, as RuneLite's calculator does, with a note "Members-only actions hidden on
   this free world"; logged out, everything shows (setting: Hide Members On Free Worlds).
 - **Actions · Banked · Plan** (the tabs above the list; the one you pick is remembered).
+- A plan goes by your real XP (the game's): typing a level into Current to try it out changes Actions and Banked,
+  but doesn't mark the plan's milestones done.
+- **Your plan bar** (under the list, in Actions and Banked): the skill's goal and the plan's milestones (levels,
+  method, XP left; the one you're on marked green) stay in view while you scroll the actions, to compare. Click its
+  title to fold it away or open it again (remembered); **Edit** opens the Plan view. A long plan scrolls inside it.
 - **Banked**: what you own instead: the XP in all of it for the skill at your level (the most
   XP each first, each item used once, as the Skilling Helper's banked XP), the level that gets you to (with your target
   beside it: "Level · aim 67"), what the materials it uses up are worth (**Materials**) and the **Net** of making it all (red for a loss), and each action you have the

@@ -215,7 +215,7 @@ class PlannerPanel extends PluginPanel {
             MaterialTab first = null;
             MaterialTab pick = null;
             for (Page page : shown) {
-                MaterialTab tab = new MaterialTab(tabIcon(page.shape), group, page.scroll);
+                MaterialTab tab = new MaterialTab(tabIcon(page.shape), group, page.body);
                 tab.setPreferredSize(new Dimension(30, 27));
                 tab.setToolTipText(page.name);
                 tab.setOnSelectEvent(() -> {
@@ -309,6 +309,8 @@ class PlannerPanel extends PluginPanel {
         final List<Runnable> live = new ArrayList<>();
         // Where fill() adds (the whole column, but the Notes tab keeps its input and notes box)
         JPanel target = column;
+        // What the tab shows: the scrolling column (the Calculator adds its plan bar under it)
+        JComponent body;
         private String key;
 
         Page(String id, String name, PlannerUi.Shape shape) {
@@ -323,6 +325,7 @@ class PlannerPanel extends PluginPanel {
             scroll.getVerticalScrollBar().setPreferredSize(new Dimension(16, 0));
             scroll.getVerticalScrollBar().setBorder(new EmptyBorder(0, 9, 0, 0));
             scroll.getVerticalScrollBar().setUnitIncrement(16);
+            body = scroll;
         }
 
         abstract boolean shown();
@@ -1456,6 +1459,12 @@ class PlannerPanel extends PluginPanel {
             this.view = view;
             target = view.list;
             view.addTo(column, this::refresh);
+            // The plan bar stays under the scrolling list, so you can compare while you scroll
+            JPanel both = new JPanel(new BorderLayout(0, 6));
+            both.setBackground(PlannerUi.BACKGROUND);
+            both.add(scroll, BorderLayout.CENTER);
+            both.add(view.dock, BorderLayout.SOUTH);
+            body = both;
         }
 
         @Override

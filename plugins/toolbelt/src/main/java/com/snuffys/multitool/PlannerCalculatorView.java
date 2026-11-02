@@ -22,7 +22,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.CompoundBorder;
@@ -99,6 +101,9 @@ final class PlannerCalculatorView {
     private final JTextField targetXp = field("The XP to aim for");
     private final JLabel goalText = PlannerUi.label("", PlannerUi.MUTED);
     private final JLabel goalLink;
+    /** The plan bar under the list (outside its scrolling): your milestones, open or folded, to compare as you scroll. */
+    final JPanel dock = new JPanel(new BorderLayout());
+    private String dockKey;
     private final JLabel resetLink;
     private final PlannerUi.Bar goalBar = new PlannerUi.Bar(0, PlannerUi.GROWING);
     private final PlannerPanel.Hinted search = new PlannerPanel.Hinted("Search actions");
@@ -276,6 +281,7 @@ final class PlannerCalculatorView {
         }
 
         PlannerCalculator.Mode mode = picking != null ? PlannerCalculator.Mode.ACTIONS : calc.mode();
+        updateDock(shown, mode, planXp(), goal);
         // (no search in Plan view)
         searchSlot.setVisible(mode != PlannerCalculator.Mode.PLAN);
         if (listHeader.changed(mode + shown.name() + picking)) {
@@ -705,7 +711,7 @@ final class PlannerCalculatorView {
         }
         PlannerCalculator.Mode mode = picking != null ? PlannerCalculator.Mode.ACTIONS : calc.mode();
         if (mode == PlannerCalculator.Mode.PLAN) {
-            fillPlan(shown, skillCalc, on, now, target, actions);
+            fillPlan(shown, skillCalc, on, planXp(), target, actions);
         } else {
             List<PlannerCalculator.Row> rows = PlannerCalculator.rows(shown, actions, on, now, target, recipes, training, owned,
                 icons::price, calc::itemPrice);
@@ -729,12 +735,6 @@ final class PlannerCalculatorView {
             list.add(banner("Pick the method for " + step.from + " → " + step.to + " (now " + step.action + ")",
                 "Cancel", "Back to the plan without changing it", () -> {
                     picking = null;
-                    redraw.run();
-                }));
-        } else if (plan != null && !plan.steps.isEmpty()) {
-            list.add(banner("Plan: " + plan.steps.size() + (plan.steps.size() == 1 ? " milestone" : " milestones") + " to level "
-                + plan.goal, "Show", "Your plan for " + shown.getName() + " (right-click an action to add it)", () -> {
-                    calc.setMode(PlannerCalculator.Mode.PLAN);
                     redraw.run();
                 }));
         }
@@ -843,6 +843,132 @@ final class PlannerCalculatorView {
         box.setBorder(new EmptyBorder(0, 2, 6, 2));
         box.add(label, BorderLayout.CENTER);
         return PlannerUi.fullWidth(box);
+    }
+
+    // ---- The plan bar (under the list) ----
+
+    // Rebuilt only when what it shows changes; hidden in the Plan view (the plan's already there)
+    private void updateDock(Skill shown, PlannerCalculator.Mode mode, int now, int goal) {
+        SkillPlans.Plan plan = calc.plan(shown);
+        boolean open = calc.dockOpen();
+        boolean hide = mode == PlannerCalculator.Mode.PLAN || !calc.canPlan();
+        String key = hide ? "hidden" : shown.name() + '|' + open + '|' + now / 1000 + '|' + goal + '|'
+            + (plan == null ? "" : SkillPlans.encode(plan));
+        if (key.equals(dockKey)) {
+            return;
+        }
+        dockKey = key;
+        dock.removeAll();
+        dock.setVisible(!hide);
+        if (!hide) {
+            dock.add(dockBody(shown, plan, open, now, goal), BorderLayout.CENTER);
+        }
+        dock.revalidate();
+        dock.repaint();
+    }
+
+    private JComponent dockBody(Skill shown, SkillPlans.Plan plan, boolean open, int now, int goal) {
+        JPanel box = new JPanel(new BorderLayout());
+        box.setBackground(PlannerUi.CARD);
+        box.setBorder(new EmptyBorder(5, 7, 5, 7));
+        boolean any = plan != null && !plan.steps.isEmpty();
+        // The header: fold/unfold, what the plan is, and a link to the Plan view
+        JPanel head = new JPanel(new BorderLayout(6, 0));
+        head.setOpaque(false);
+        String title = (open ? "▾ " : "▸ ") + (any ? "Your plan: " + plan.steps.size() + (plan.steps.size() == 1
+            ? " milestone" : " milestones") + " to " + plan.goal : "Your plan");
+        JLabel toggle = PlannerUi.label(title, Color.WHITE);
+        toggle.setMinimumSize(new Dimension(0, 0));
+        toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        toggle.setToolTipText(open ? "Fold the plan away" : "Show your plan's milestones here, to compare as you scroll");
+        toggle.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                calc.setDockOpen(!open);
+                redraw.run();
+            }
+        });
+        head.add(toggle, BorderLayout.CENTER);
+        head.add(PlannerUi.linkLabel(any ? "Edit" : "Plan", "Open the Plan view for " + shown.getName(), () -> {
+            calc.setMode(PlannerCalculator.Mode.PLAN);
+            redraw.run();
+        }), BorderLayout.EAST);
+        box.add(head, BorderLayout.NORTH);
+        if (!open) {
+            return box;
+        }
+        JPanel rows = new JPanel();
+        rows.setLayout(new BoxLayout(rows, BoxLayout.Y_AXIS));
+        rows.setOpaque(false);
+        int level = CalculatorData.level(now, false);
+        if (goal > now) {
+            int goalLvl = CalculatorData.level(goal, true);
+            rows.add(dockRow("Goal", goal == Experience.getXpForLevel(Math.min(goalLvl, 126)) ? "Level " + goalLvl
+                : String.format("%,d xp", goal), PlannerPanel.gp(goal - now) + " xp", PlannerUi.MUTED, null,
+                "The skill's goal (the Skilling Helper's): " + String.format("%,d", goal - now) + " xp to go"));
+        }
+        if (!any) {
+            JLabel none = PlannerUi.label("No milestones yet: right-click an action > Add to plan", PlannerUi.MUTED);
+            none.setMinimumSize(new Dimension(0, 0));
+            none.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+            rows.add(none);
+        } else {
+            for (SkillPlans.Step step : plan.steps) {
+                boolean done = level >= step.to;
+                boolean current = !done && level >= step.from;
+                String left;
+                if (done) {
+                    left = "done";
+                } else {
+                    int end = Experience.getXpForLevel(Math.min(99, step.to));
+                    int start = Math.max(now, Experience.getXpForLevel(step.from));
+                    left = PlannerPanel.gp(Math.max(0, end - start)) + " xp";
+                }
+                rows.add(dockRow(step.from + "-" + step.to, step.action, left, done ? PlannerUi.MUTED
+                    : current ? Color.WHITE : new Color(200, 200, 200), current ? SUGGESTED : null,
+                    "Levels " + step.from + " to " + step.to + ": " + step.action + (current ? " (you're on this one)" : "")
+                        + (done ? " (done)" : ", " + left + " to go")));
+            }
+        }
+        JComponent body = rows;
+        // A long plan scrolls inside the bar, so the list above keeps its room
+        int max = 6;
+        if (rows.getComponentCount() > max) {
+            JScrollPane scroll = new JScrollPane(rows, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
+            scroll.setOpaque(false);
+            scroll.getViewport().setOpaque(false);
+            scroll.getVerticalScrollBar().setUnitIncrement(16);
+            scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
+            scroll.setPreferredSize(new Dimension(0, max * rows.getComponent(0).getPreferredSize().height));
+            body = scroll;
+        }
+        JPanel under = new JPanel(new BorderLayout());
+        under.setOpaque(false);
+        under.setBorder(new EmptyBorder(4, 0, 0, 0));
+        under.add(body, BorderLayout.CENTER);
+        box.add(under, BorderLayout.CENTER);
+        return box;
+    }
+
+    // One line of the plan bar: levels, method, XP left (the milestone you're on marked green on the left)
+    private static JComponent dockRow(String levels, String method, String left, Color colour, Color mark, String tip) {
+        JPanel row = new JPanel(new BorderLayout(6, 0));
+        row.setOpaque(false);
+        row.setBorder(mark == null ? new EmptyBorder(1, 4, 1, 0) : BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 2, 0, 0, mark), new EmptyBorder(1, 2, 1, 0)));
+        JLabel from = PlannerUi.label(levels, colour);
+        from.setPreferredSize(new Dimension(40, from.getPreferredSize().height));
+        JLabel name = PlannerUi.label(method, colour);
+        name.setMinimumSize(new Dimension(0, 0));
+        row.add(from, BorderLayout.WEST);
+        row.add(name, BorderLayout.CENTER);
+        row.add(PlannerUi.label(left, PlannerUi.MUTED), BorderLayout.EAST);
+        row.setToolTipText(tip);
+        row.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+        return row;
     }
 
     // A one-line card with text and a link on the right ("Plan: 4 milestones to level 99   Show")
@@ -1084,7 +1210,15 @@ final class PlannerCalculatorView {
     // ---- Plan view ----
 
     private int levelNow() {
-        return CalculatorData.level(current(), false);
+        return CalculatorData.level(planXp(), false);
+    }
+
+    // A plan goes by your real XP (the game's, else the boxes'): typing in Current to try a level out doesn't tick its
+    // milestones off as done
+    private int planXp() {
+        Skill shown = skill();
+        int game = shown == null ? -1 : calc.xp(shown);
+        return game >= 0 ? game : current();
     }
 
     // A new plan's goal: the target you typed or the skill's goal (to 99), else 99. Not the next level the target
@@ -1205,7 +1339,7 @@ final class PlannerCalculatorView {
         SkillPlans.Step step = s.step;
         PlannerCalculator.Row row = s.row;
         boolean now = step.covers(level);
-        PlannerUi.Card card = new PlannerUi.Card(step.action, s.done ? "done" : PlannerPanel.gp(s.xp) + " xp"
+        PlannerUi.Card card = new PlannerUi.Card(step.action, s.done ? "done: you're level " + level : PlannerPanel.gp(s.xp) + " xp"
             + (now ? " left" : ""), row != null && !s.done ? String.format("%,d", row.needed) : "");
         card.corner.setText(step.from + " → " + step.to);
         card.corner.setForeground(now ? Color.WHITE : PlannerUi.MUTED);
