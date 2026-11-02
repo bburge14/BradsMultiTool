@@ -1576,13 +1576,24 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "skillsTabGoalBars",
         name = "Skills Tab Goal Bars",
-        description = "<div width='300'>A thin gold bar along the bottom of each skill with a goal on the game's Skills tab, filling up as you get closer to the goal",
+        description = "<div width='300'>On the game's Skills tab, a thin gold bar up the left edge of each skill with a goal, filling up as you get closer to the goal",
         section = goalsSection,
         position = 10
     )
     default boolean skillsTabGoalBars() {
         return true;
     }
+    @ConfigItem(
+        keyName = "skillsTabLevelBars",
+        name = "Skills Tab Level Bars",
+        description = "<div width='300'>On the game's Skills tab, a thin bar along the bottom of each skill showing how far you are to the next level (orange to green). Steps aside while the Skills Tab Progress Bars plugin is on (it draws its own)",
+        section = goalsSection,
+        position = 11
+    )
+    default boolean skillsTabLevelBars() {
+        return true;
+    }
+
 
     @ConfigItem(
         keyName = "showTrackerItems",
@@ -1613,7 +1624,7 @@ public interface SkillTrackerConfig extends CommonConfig {
         name = "Show Materials Value",
         description = "<div width='300'>On a production skill's goal: the Grand Exchange value of the materials counted in Banked XP (in your bank and inventory). Just a figure. Shows once you've opened your bank",
         section = goalsSection,
-        position = 10
+        position = 12
     )
     default boolean showMaterialsValue() {
         return true;

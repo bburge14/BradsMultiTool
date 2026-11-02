@@ -130,6 +130,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("clearReachedGoals", config.clearReachedGoals());
         defaults.store("showBankedXp", config.showBankedXp());
         defaults.store("skillsTabGoalBars", config.skillsTabGoalBars());
+        defaults.store("skillsTabLevelBars", config.skillsTabLevelBars());
         defaults.store("showTrackerItems", config.showTrackerItems());
         defaults.store("keepSessionMinutes", config.keepSessionMinutes());
         defaults.store("showMaterialsValue", config.showMaterialsValue());

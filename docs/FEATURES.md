@@ -486,10 +486,12 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
    clears itself, with a chat line ("Fishing goal reached (level 53): cleared"); turn off **Clear Goals When
    Reached** to keep reached goals (they show Done!).
 
-**Skills tab goal bars:** on the game's Skills tab, each skill with a goal gets a thin gold bar along its bottom,
-filled as far as the card's goal bar (**Goals > Skills Tab Goal Bars**). It's drawn over the tab; the tab itself
-isn't changed. With the Plugin Hub's Skills Tab Progress Bars on (level progress along the bottom), the goal bar sits just
-above its bars, following its bar height and goal settings, so both show.
+**Skills tab bars:** on the game's Skills tab, two separate bars, drawn over the tab (the tab itself isn't changed):
+- **Level bars** (**Goals > Skills Tab Level Bars**): along the bottom of every skill, how far you are to the next
+  level, orange turning green as it fills (none at 99). While the Plugin Hub's Skills Tab Progress Bars is on, ours
+  step aside for its bars (the clash icon says so).
+- **Goal bars** (**Goals > Skills Tab Goal Bars**): up the left edge of each skill with a goal, a gold bar filling
+  from the bottom, as far as the card's goal bar. On the edge, so it never sits on a level bar, ours or theirs.
 
 Goals are saved with your RuneScape profile, so they stay after a relaunch. The Toolbelt and the Skilling Helper
 share them (and your Track for goal picks, Suggest choices and pinned skill), so switching between them keeps
