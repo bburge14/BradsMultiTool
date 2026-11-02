@@ -11,7 +11,7 @@ Gemstone Crab HUD with the burrow countdown, radar between coves, gear check, ou
 
 ## Screenshots
 
-![Crab hud](screenshots/01-crab-hud.png)
+![Crab HUD](screenshots/01-crab-HUD.png)
 ![Crab radar](screenshots/02-crab-radar.png)
 
 ## Installing

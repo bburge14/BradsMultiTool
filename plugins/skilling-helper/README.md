@@ -20,7 +20,7 @@ XP tracker with goals and training suggestions, skilling hover cards, resource t
 ![Sidebar tracker](screenshots/02-sidebar-tracker.png)
 ![Hover card](screenshots/03-hover-card.png)
 ![Resource timers](screenshots/04-resource-timers.png)
-![Brimhaven agility arena route](screenshots/05-brimhaven-agility-arena-route.png)
+![Brimhaven Agility Arena route](screenshots/05-Brimhaven-Agility-Arena-route.png)
 
 ## Installing
 

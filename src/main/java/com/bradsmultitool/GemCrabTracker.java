@@ -112,6 +112,8 @@ class GemCrabTracker {
 
     @Getter
     private boolean inSpawnVicinity = false;
+    // The scene's tunnels and shells need finding again (after a hop or a load: they don't all spawn anew)
+    private boolean rescan = true;
 
     @Getter
     private String currentCoveName = "Cavern Complex";
@@ -172,6 +174,7 @@ class GemCrabTracker {
         if (event.getGameState() != GameState.LOGGED_IN) {
             reset();
             targetCrabHp = "Logged Out";
+            rescan = true;
         }
     }
 
@@ -205,6 +208,10 @@ class GemCrabTracker {
         tickXpChanges.clear();
 
         Player player = client.getLocalPlayer();
+        if (rescan && player != null) {
+            rescan = false;
+            scanScene();
+        }
         if (player != null) {
             WorldPoint wp = player.getWorldLocation();
             scanForCrab();
@@ -434,6 +441,28 @@ class GemCrabTracker {
 
         if (isCavernTunnel && !trackedTunnels.contains(obj)) {
             trackedTunnels.add(obj);
+        }
+    }
+
+    // Every object in the scene that's a crab tunnel or shell (once after a hop or load, so the radar shows when
+    // you're already at a cove)
+    private void scanScene() {
+        net.runelite.api.WorldView view = client.getTopLevelWorldView();
+        if (view == null || view.getScene() == null) {
+            return;
+        }
+        net.runelite.api.Tile[][] tiles = view.getScene().getTiles()[view.getPlane()];
+        for (net.runelite.api.Tile[] column : tiles) {
+            for (net.runelite.api.Tile tile : column) {
+                if (tile == null) {
+                    continue;
+                }
+                for (net.runelite.api.GameObject object : tile.getGameObjects()) {
+                    checkTileObject(object);
+                }
+                checkTileObject(tile.getWallObject());
+                checkTileObject(tile.getGroundObject());
+            }
         }
     }
 
