@@ -329,7 +329,7 @@ def status(fork):
         if others:
             last = others[-1]
             print("  Latest comment, %s (%s): %s" % (last["user"]["login"], last["created_at"][:10],
-                                                     " ".join(last["body"].split())[:400]))
+                                                     " ".join(re.sub(r"<!--.*?-->", "", last["body"], flags=re.S).split())[:400]))
     print("\nA FAILED check or a comment asking for changes: send it to Claude.")
 
 
