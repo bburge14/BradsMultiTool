@@ -232,7 +232,8 @@ final class PlannerCalculatorView {
 
         StringBuilder levels = new StringBuilder(shown.name());
         for (Skill s : skills()) {
-            levels.append(calc.xp(s) >= 0 ? CalculatorData.level(calc.xp(s), false) : 0).append(',');
+            levels.append(calc.xp(s) >= 0 ? CalculatorData.level(calc.xp(s), false) : 0).append(':').append(calc.goal(s))
+                .append(calc.xp(s) / 10_000).append(',');
         }
         if (grid.changed(levels.toString())) {
             grid.add(PlannerUi.spaced(skillGrid(shown)), BorderLayout.CENTER);
@@ -351,18 +352,23 @@ final class PlannerCalculatorView {
         box.setBorder(new EmptyBorder(4, 4, 4, 4));
         for (Skill s : all) {
             boolean picked = s == shown;
+            int skillXp = Math.max(0, calc.xp(s));
+            boolean hasGoal = calc.goal(s) > skillXp;
             JLabel cell = new JLabel();
             cell.setHorizontalAlignment(SwingConstants.CENTER);
             cell.setPreferredSize(new Dimension(20, 22));
             cell.setOpaque(true);
             cell.setBackground(picked ? new Color(70, 70, 70) : PlannerUi.CARD);
-            cell.setBorder(picked ? BorderFactory.createMatteBorder(0, 0, 2, 0, ColorScheme.BRAND_ORANGE) : new EmptyBorder(0, 0, 2, 0));
+            // Picked: an orange line under it; a skill with a goal (set here or in the Skilling Helper): a gold one
+            cell.setBorder(picked ? BorderFactory.createMatteBorder(0, 0, 2, 0, ColorScheme.BRAND_ORANGE)
+                : hasGoal ? BorderFactory.createMatteBorder(0, 0, 2, 0, GOAL_GOLD) : new EmptyBorder(0, 0, 2, 0));
             BufferedImage icon = icons.skill(s, true);
             if (icon != null) {
                 cell.setIcon(new ImageIcon(picked ? icon : fade(icon, 0.7f)));
             }
             int xp = calc.xp(s);
-            cell.setToolTipText(s.getName() + (xp >= 0 ? ": level " + CalculatorData.level(xp, false) : ""));
+            cell.setToolTipText(s.getName() + (xp >= 0 ? ": level " + CalculatorData.level(xp, false) : "")
+                + (hasGoal ? ", goal " + goalText(calc.goal(s)) : ""));
             cell.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             cell.addMouseListener(new MouseAdapter() {
                 @Override
@@ -386,7 +392,78 @@ final class PlannerCalculatorView {
             });
             box.add(cell);
         }
-        return box;
+        JComponent goals = goalsList(shown);
+        if (goals == null) {
+            return box;
+        }
+        JPanel both = new JPanel(new BorderLayout(0, 0));
+        both.setBackground(PlannerUi.CARD);
+        both.add(box, BorderLayout.NORTH);
+        both.add(goals, BorderLayout.CENTER);
+        return both;
+    }
+
+    private static final Color GOAL_GOLD = new Color(220, 180, 50);
+
+    // "level 99", or the XP when it's not a level's
+    private static String goalText(int goal) {
+        int level = CalculatorData.level(goal, true);
+        return goal == Experience.getXpForLevel(Math.min(level, 126)) ? "level " + level : String.format("%,d xp", goal);
+    }
+
+    // Every skill with a goal ahead of you, set here or in the Skilling Helper (they share them): how far along, and a
+    // click goes to that skill; null when there are none
+    private JComponent goalsList(Skill shown) {
+        JPanel rows = new JPanel();
+        rows.setLayout(new BoxLayout(rows, BoxLayout.Y_AXIS));
+        rows.setOpaque(false);
+        rows.setBorder(new EmptyBorder(0, 6, 5, 6));
+        int count = 0;
+        for (Skill s : skills()) {
+            int xp = Math.max(0, calc.xp(s));
+            int goal = calc.goal(s);
+            if (goal <= xp) {
+                continue;
+            }
+            int start = calc.goalStart(s) > 0 ? Math.min(calc.goalStart(s), xp) : Experience.getXpForLevel(CalculatorData.level(xp, false));
+            double done = goal > start ? Math.max(0, Math.min(1, (double) (xp - start) / (goal - start))) : 1;
+            int plans = calc.plans(s).size();
+            JPanel row = new JPanel(new BorderLayout(6, 0));
+            row.setOpaque(false);
+            JLabel name = PlannerUi.label(s.getName() + " → " + goalText(goal).replace("level ", ""), s == shown ? Color.WHITE
+                : new Color(200, 200, 200));
+            name.setMinimumSize(new Dimension(0, 0));
+            BufferedImage icon = icons.skill(s, true);
+            if (icon != null) {
+                name.setIcon(new ImageIcon(icon));
+                name.setIconTextGap(5);
+            }
+            row.add(name, BorderLayout.CENTER);
+            row.add(PlannerUi.label((int) Math.floor(done * 100) + "%", GOAL_GOLD), BorderLayout.EAST);
+            row.setToolTipText("<html>" + s.getName() + ": goal " + goalText(goal) + ", " + String.format("%,d", goal - xp)
+                + " xp to go" + (plans > 0 ? "<br>" + plans + (plans == 1 ? " plan" : " plans") : "")
+                + (s == shown ? "" : "<br>Click to open " + s.getName()) + "</html>");
+            row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            row.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (s != skill) {
+                        pick(s);
+                    }
+                }
+            });
+            row.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+            row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+            if (count == 0) {
+                JLabel heading = PlannerUi.label("Goals", PlannerUi.MUTED);
+                heading.setBorder(new EmptyBorder(2, 0, 2, 0));
+                heading.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                rows.add(heading);
+            }
+            rows.add(row);
+            count++;
+        }
+        return count == 0 ? null : rows;
     }
 
     // The skill's name and level, the four boxes, the goal line and the bar

@@ -714,6 +714,9 @@ A skill calculator in the Planner's last tab (the calculator icon), made from Ru
 same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded down).
 - **Skill**: click one in the grid (the skills the calculator has, in the Skills tab's order); the one you pick is
   remembered.
+- **Goals**: skills with a goal ahead of you (set here or in the Skilling Helper: they share them) have a gold line in
+  the grid, and a **Goals** list under it shows each one ("Fletching → 99", with the percentage from where the goal
+  started; hover for the XP to go and how many plans it has); click one to open that skill.
 - **Current and target**: your level and XP fill in from the game (logged out, the last you had); type over any of the
   four boxes to plan ahead (a level fills in its XP and the other way round). The target starts at the skill's goal if
   it has one ahead of you, else the next level. A target you type is kept for that skill (switching skills, logging out)
