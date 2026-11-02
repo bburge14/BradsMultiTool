@@ -58,14 +58,17 @@ def checkout(name, repo, branch, dry_run):
     path = os.path.join(CACHE, name)
     if not os.path.isdir(os.path.join(path, ".git")):
         os.makedirs(CACHE, exist_ok=True)
-        if subprocess.run(["git", "clone", "--quiet", repo, path]).returncode != 0:
+        if subprocess.run(["git", "clone", "--quiet", repo, path], stderr=subprocess.DEVNULL).returncode != 0:
             sys.exit("Couldn't clone %s. Make the repository on GitHub first (it can be empty)." % repo)
     git("remote", "set-url", "origin", repo, cwd=path)
     git("fetch", "--quiet", "origin", cwd=path, check=False)
     if git("ls-remote", "--heads", "origin", branch, cwd=path):
         git("checkout", "--quiet", "-B", branch, "origin/" + branch, cwd=path)
     else:
-        # A new, empty repository: start the branch
+        # A new, empty repository: start the branch from nothing (dropping anything a dry run committed here)
+        shutil.rmtree(path)
+        if subprocess.run(["git", "clone", "--quiet", repo, path], stderr=subprocess.DEVNULL).returncode != 0:
+            sys.exit("Couldn't clone %s." % repo)
         git("checkout", "--quiet", "--orphan", branch, cwd=path, check=False)
     return path
 
@@ -80,7 +83,10 @@ def replace_contents(folder, path):
     data = subprocess.run(["git", "archive", "--format=tar", "HEAD:plugins/" + folder], cwd=ROOT,
                           stdout=subprocess.PIPE, check=True).stdout
     with tarfile.open(fileobj=io.BytesIO(data)) as tar:
-        tar.extractall(path)
+        if hasattr(tarfile, "data_filter"):
+            tar.extractall(path, filter="data")
+        else:
+            tar.extractall(path)
 
 
 def publish(folder, entry, dry_run, head, subject):
