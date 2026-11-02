@@ -318,8 +318,11 @@ def status(fork):
         print("\nBuild checks:")
         for run in runs:
             result = run.get("conclusion") or run.get("status")
-            mark = {"success": "OK", "failure": "FAILED", "cancelled": "cancelled"}.get(result, result)
+            mark = {"success": "OK", "failure": "FAILED", "cancelled": "cancelled", "in_progress": "running...",
+                    "queued": "waiting to start", "skipped": "skipped"}.get(result, result)
             print("  %-30s %s%s" % (run["name"], mark, ("  " + run["html_url"]) if result == "failure" else ""))
+        if any(run.get("status") != "completed" for run in runs):
+            print("  Still running: check again in 10-20 minutes.")
         if any(run.get("conclusion") == "failure" for run in runs):
             print("  A check FAILED: send its link (or the error in it) to Claude to fix.")
     else:
