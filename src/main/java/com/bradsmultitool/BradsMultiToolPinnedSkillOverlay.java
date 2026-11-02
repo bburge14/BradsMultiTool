@@ -124,8 +124,9 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             Map<String, Boolean> tools = config.showTrainingSuggestion()
                 ? GoalLines.tools(plugin, skill, level) : Collections.emptyMap();
             if (!tools.isEmpty()) {
-                line("Needs:", String.join(", ", tools.keySet()),
-                    tools.containsValue(false) ? HudColors.BAD : HudColors.GOOD);
+                // One line across the card, wrapped like the Tracking line (long item names don't fit the right column)
+                panelComponent.getChildren().add(new TextBlockComponent("Needs: " + String.join(", ", tools.keySet()),
+                    tools.containsValue(false) ? HudColors.BAD : HudColors.GOOD, false));
             }
         }
         // Actions (or kills) left, as on the tracker card
