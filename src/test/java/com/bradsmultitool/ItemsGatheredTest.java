@@ -61,6 +61,10 @@ public class ItemsGatheredTest {
         assertEquals(0.5, BradsMultiToolSkillsTabOverlay.progress(150, 100, 200), 0.001);
         assertEquals(1, BradsMultiToolSkillsTabOverlay.progress(250, 100, 200), 0.001);
         assertEquals(0, BradsMultiToolSkillsTabOverlay.progress(50, 100, 200), 0.001); // start after you: from you
+        // Skills Tab Progress Bars' height at the bottom: its bar, doubled with its goal bars (halved past 15 each)
+        assertEquals(2, BradsMultiToolSkillsTabOverlay.theirHeight(2, false));
+        assertEquals(4, BradsMultiToolSkillsTabOverlay.theirHeight(2, true));
+        assertEquals(20, BradsMultiToolSkillsTabOverlay.theirHeight(20, true));
         assertTrue(BradsMultiToolSkillsTabOverlay.component(Skill.SAILING) > 0);
     }
 }

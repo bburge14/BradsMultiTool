@@ -488,7 +488,8 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
 
 **Skills tab goal bars:** on the game's Skills tab, each skill with a goal gets a thin gold bar along its bottom,
 filled as far as the card's goal bar (**Goals > Skills Tab Goal Bars**). It's drawn over the tab; the tab itself
-isn't changed. The Skills Progress plugin draws its own bars there too (clash note).
+isn't changed. With the Plugin Hub's Skills Tab Progress Bars on (level progress along the bottom), the goal bar sits just
+above its bars, following its bar height and goal settings, so both show.
 
 Goals are saved with your RuneScape profile, so they stay after a relaunch. The Toolbelt and the Skilling Helper
 share them (and your Track for goal picks, Suggest choices and pinned skill), so switching between them keeps
