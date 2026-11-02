@@ -23,6 +23,7 @@ enum AlertType {
     TASK_NEARLY_DONE("TaskNearlyDone", VoiceAlertService.VoiceLine.TASK_NEARLY_DONE),
     CHARACTER_IDLE("CharacterIdle", VoiceAlertService.VoiceLine.CHARACTER_IDLE),
     IDLE_LOGOUT("IdleLogout", VoiceAlertService.VoiceLine.IDLE_LOGOUT),
+    SIX_HOUR("SixHour", VoiceAlertService.VoiceLine.SIX_HOUR_LOGOUT),
     CRAB_MOVED("CrabMoved", VoiceAlertService.VoiceLine.CRAB_MOVED),
     CRAB_LOW_HEALTH("CrabLowHealth", VoiceAlertService.VoiceLine.CRAB_LOW_HEALTH),
     INVENTORY_FULL("InventoryFull", VoiceAlertService.VoiceLine.INVENTORY_FULL),
@@ -84,6 +85,7 @@ enum AlertType {
             case TASK_NEARLY_DONE: return TASK_NEARLY_DONE;
             case CHARACTER_IDLE: return CHARACTER_IDLE;
             case IDLE_LOGOUT: return IDLE_LOGOUT;
+            case SIX_HOUR_LOGOUT: return SIX_HOUR;
             case CRAB_MOVED: return CRAB_MOVED;
             case CRAB_LOW_HEALTH: return CRAB_LOW_HEALTH;
             case INVENTORY_FULL: return INVENTORY_FULL;

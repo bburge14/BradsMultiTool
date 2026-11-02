@@ -58,6 +58,7 @@ LINES = {
     "out_of_prayer": "Out of prayer points.",
     "crab_moved": "The crab has moved!",
     "idle_logout": "You are about to be logged out.",
+    "six_hour_logout": "Six hour logout in twenty minutes.",
     "crab_low_health": "The crab is about to burrow.",
     "character_idle": "You are idle.",
     "buff_low": "Buff is running out.",
@@ -317,7 +318,7 @@ def plugin_of(key):
         return "potions"
     if key in ("crab_moved", "crab_low_health"):
         return "gemcrab"
-    if key in ("character_idle", "idle_logout"):
+    if key in ("character_idle", "idle_logout", "six_hour_logout"):
         return "shared"
     return "pvm"
 

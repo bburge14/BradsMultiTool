@@ -521,9 +521,12 @@ volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Idea
   since. Banking, shops, the GE and menus never set it off.
 - **Idle logout warning:** before the game logs you out for inactivity (follows RuneLite's Logout Timer
   setting; in combat the game's 20-minute rule).
+- **Six-hour logout warning:** the game logs you out after six hours online; this warns twenty minutes before
+  (counted from when you logged in or hopped worlds), with a RuneLite notification too. RuneLite's Idle Notifier has
+  the same notification.
 
 **Settings (Idle):** AFK Alert and Idle Alert After (seconds); Warn Before Logout (seconds); Repeat
-Logout Warning, Repeat Every, Max Repeats; Voice/Chat switches.
+Logout Warning, Repeat Every, Max Repeats; Six-Hour Logout Warning; Voice/Chat switches.
 
 ---
 

@@ -1480,5 +1480,41 @@ public interface SkillTrackerConfig extends CommonConfig {
     default boolean chatIdleLogout() {
         return CommonConfig.super.chatIdleLogout();
     }
+
+    @ConfigItem(
+        keyName = "sixHourWarning",
+        name = "Six-Hour Logout Warning",
+        description = "<div width='300'>The game logs you out after six hours online: warn twenty minutes before (from when you logged in or hopped)",
+        section = idleSection,
+        position = 10
+    )
+    @Override
+    default boolean sixHourWarning() {
+        return CommonConfig.super.sixHourWarning();
+    }
+
+    @ConfigItem(
+        keyName = "voiceSixHour",
+        name = "Voice: Six-Hour Logout",
+        description = "<div width='300'>Voice line twenty minutes before the six-hour logout (turning it on plays a preview)",
+        section = idleSection,
+        position = 11
+    )
+    @Override
+    default boolean voiceSixHour() {
+        return CommonConfig.super.voiceSixHour();
+    }
+
+    @ConfigItem(
+        keyName = "chatSixHour",
+        name = "Chat: Six-Hour Logout",
+        description = "<div width='300'>Chat message twenty minutes before the six-hour logout",
+        section = idleSection,
+        position = 12
+    )
+    @Override
+    default boolean chatSixHour() {
+        return CommonConfig.super.chatSixHour();
+    }
     // ---- End of CommonConfig's settings ----
 }

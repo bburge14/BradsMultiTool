@@ -29,6 +29,7 @@ public class VoiceAlertService {
         OUT_OF_PRAYER("out_of_prayer", "Out of prayer points."),
         CRAB_MOVED("crab_moved", "The crab has moved!"),
         IDLE_LOGOUT("idle_logout", "You are about to be logged out."),
+        SIX_HOUR_LOGOUT("six_hour_logout", "Six hour logout in twenty minutes."),
         CRAB_LOW_HEALTH("crab_low_health", "The crab is about to burrow."),
         CHARACTER_IDLE("character_idle", "You are idle."),
         BUFF_LOW("buff_low", "Buff is running out."),
@@ -172,6 +173,7 @@ public class VoiceAlertService {
                     return GEM_CRAB;
                 case "character_idle":
                 case "idle_logout":
+                case "six_hour_logout":
                     return SHARED;
                 default:
                     return PVM;

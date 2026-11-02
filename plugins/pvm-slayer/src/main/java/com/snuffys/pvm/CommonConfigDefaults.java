@@ -25,5 +25,8 @@ final class CommonConfigDefaults {
         defaults.store("chatCharacterIdle", config.chatCharacterIdle());
         defaults.store("voiceIdleLogout", config.voiceIdleLogout());
         defaults.store("chatIdleLogout", config.chatIdleLogout());
+        defaults.store("sixHourWarning", config.sixHourWarning());
+        defaults.store("voiceSixHour", config.voiceSixHour());
+        defaults.store("chatSixHour", config.chatSixHour());
     }
 }

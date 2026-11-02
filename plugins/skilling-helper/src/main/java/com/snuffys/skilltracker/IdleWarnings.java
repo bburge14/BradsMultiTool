@@ -58,6 +58,11 @@ class IdleWarnings {
 
     @Getter
     private boolean logoutImminent = false;
+    // The six-hour logout: when to warn (twenty minutes before, as RuneLite's Idle Notifier), set on each login
+    // or world hop; null when not logged in
+    static final Duration SIX_HOUR_WARNING_AFTER = Duration.ofMinutes(340);
+    private Instant sixHourWarningAt;
+    private boolean loggingIn;
     @Getter
     private int engineIdleSeconds = 0;
     private int timesIdleAlerted = 0;
@@ -112,10 +117,38 @@ class IdleWarnings {
             updateCharacterIdle(player);
         }
         updateIdleState();
+        // Twenty minutes before the game's six-hour logout, once
+        if (sixHourWarningAt != null && !Instant.now().isBefore(sixHourWarningAt)) {
+            sixHourWarningAt = null;
+            if (config.sixHourWarning()) {
+                if (alerts.ready()) {
+                    notifier.notify(identity.chatName + ": You'll be logged out in 20 minutes (six hours online)");
+                }
+                alerts.alert(VoiceAlertService.VoiceLine.SIX_HOUR_LOGOUT, null);
+            }
+        }
     }
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
+        switch (event.getGameState()) {
+            case LOGIN_SCREEN:
+                sixHourWarningAt = null;
+                break;
+            case LOGGING_IN:
+            case HOPPING:
+            case CONNECTION_LOST:
+                loggingIn = true;
+                break;
+            case LOGGED_IN:
+                if (loggingIn) {
+                    loggingIn = false;
+                    sixHourWarningAt = Instant.now().plus(SIX_HOUR_WARNING_AFTER);
+                }
+                break;
+            default:
+                break;
+        }
         if (event.getGameState() != GameState.LOGGED_IN) {
             characterWasActive = false;
             actionTicks = 0;
