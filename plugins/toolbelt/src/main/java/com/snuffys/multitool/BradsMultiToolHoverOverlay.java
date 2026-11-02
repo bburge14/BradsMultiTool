@@ -37,6 +37,10 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     private CombatStyle combatStyle;
 
     private static final int WIDTH = 205;
+    private static final int MAX_HITS_SHOWN = 3;
+
+    @Inject
+    private KillGoals killGoals;
 
     private final Client client;
     private final PvmTracker plugin;
@@ -156,6 +160,9 @@ public class BradsMultiToolHoverOverlay extends Overlay {
                 icon(CombatIcons.forAttackStyle(stats.attackStyles.get(0))),
                 String.join(", ", stats.attackStyles), Color.WHITE));
         }
+        if (stats != null && config.showMonsterMaxHit()) {
+            addMaxHitAndSpeed(stats);
+        }
 
         // To you specifically: your combat level, the Wilderness and god items / vyre clothing / greegrees
         Aggression.Verdict aggro = plugin.aggressionFor(npc);
@@ -166,9 +173,33 @@ public class BradsMultiToolHoverOverlay extends Overlay {
                 : aggro.state == Aggression.State.NO ? HudColors.GOOD : Color.WHITE)
             .build());
 
+        KillGoals.Goal goal = config.killGoals() ? killGoals.goal(npc.getName()) : null;
+        if (goal != null) {
+            panel.getChildren().add(LineComponent.builder().left("Kill Goal:").right(goal.progress())
+                .rightColor(goal.done() ? HudColors.GOOD : Color.WHITE).build());
+        }
+
         if (config.showSlayerMonsterInfo()) {
             slayerInfo.addTo(panel, npc, stats);
         }
+    }
+
+    // The wiki's max hit (each attack's, up to three) and how often it attacks: static facts, not a countdown
+    private void addMaxHitAndSpeed(MonsterData.Stats stats) {
+        if (!stats.maxHits.isEmpty()) {
+            java.util.List<String> hits = stats.maxHits.subList(0, Math.min(MAX_HITS_SHOWN, stats.maxHits.size()));
+            String text = String.join(", ", hits) + (stats.maxHits.size() > MAX_HITS_SHOWN ? ", ..." : "");
+            panel.getChildren().add(new TextBlockComponent("Max Hit: " + text, Color.WHITE, false));
+        }
+        if (stats.attackSpeed > 0) {
+            panel.getChildren().add(LineComponent.builder().left("Attack Speed:")
+                .right(attackSpeedText(stats.attackSpeed)).build());
+        }
+    }
+
+    /** "4 ticks (2.4s)": game ticks between attacks and the same in seconds. */
+    static String attackSpeedText(int ticks) {
+        return ticks + (ticks == 1 ? " tick (" : " ticks (") + String.format(java.util.Locale.ROOT, "%.1f", ticks * 0.6) + "s)";
     }
 
     // Green/red when your current style does/doesn't hit the weakness, white when it can't be told

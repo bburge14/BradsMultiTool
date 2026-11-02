@@ -21,6 +21,10 @@ enum AlertType {
     TASK_COMPLETE("TaskComplete", VoiceAlertService.VoiceLine.TASK_COMPLETE),
     TASK_HALFWAY("TaskHalfway", VoiceAlertService.VoiceLine.TASK_HALFWAY),
     TASK_NEARLY_DONE("TaskNearlyDone", VoiceAlertService.VoiceLine.TASK_NEARLY_DONE),
+    SLAYER_MILESTONE("SlayerMilestone", VoiceAlertService.VoiceLine.SLAYER_MILESTONE),
+    KILL_GOAL("KillGoal", VoiceAlertService.VoiceLine.KILL_GOAL_REACHED),
+    WRONG_PRAYER("WrongPrayer", VoiceAlertService.VoiceLine.WRONG_PRAYER),
+    UNPOTTED("Unpotted", VoiceAlertService.VoiceLine.UNPOTTED),
     CHARACTER_IDLE("CharacterIdle", VoiceAlertService.VoiceLine.CHARACTER_IDLE),
     IDLE_LOGOUT("IdleLogout", VoiceAlertService.VoiceLine.IDLE_LOGOUT),
     SIX_HOUR("SixHour", VoiceAlertService.VoiceLine.SIX_HOUR_LOGOUT),
@@ -99,6 +103,10 @@ enum AlertType {
             case TASK_COMPLETE: return TASK_COMPLETE;
             case TASK_HALFWAY: return TASK_HALFWAY;
             case TASK_NEARLY_DONE: return TASK_NEARLY_DONE;
+            case SLAYER_MILESTONE: return SLAYER_MILESTONE;
+            case KILL_GOAL_REACHED: return KILL_GOAL;
+            case WRONG_PRAYER: return WRONG_PRAYER;
+            case UNPOTTED: return UNPOTTED;
             case CHARACTER_IDLE: return CHARACTER_IDLE;
             case IDLE_LOGOUT: return IDLE_LOGOUT;
             case SIX_HOUR_LOGOUT: return SIX_HOUR;

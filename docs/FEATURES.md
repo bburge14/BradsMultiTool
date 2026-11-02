@@ -78,12 +78,15 @@ session); Linger After Combat; Show Weakness / DPS / Last Hit / Max Hit / Aggro 
 **What it does:** Hover an attackable monster to see its HP, weakness (green if your current style hits it,
 red if not), what it attacks with, and whether it will be aggressive to you. Aggression follows the
 game's rules: monsters ignore players over twice their level (except in the Wilderness), God Wars
-followers go by your god items, vyre noble clothing and greegrees protect you.
+followers go by your god items, vyre noble clothing and greegrees protect you. It also shows the wiki's
+**max hit** for each of its attacks (up to three, e.g. "60 (melee), 35 (ranged)") and its **attack speed**
+("4 ticks (2.4s)"): how often it attacks, never a countdown to its next attack. With a kill goal set on that
+monster, a **Kill Goal** line shows your progress ("37 / 200").
 
 **How to use:** Hover a monster. The card follows the game's left-click option, so it only shows when
 the top-left tooltip names the monster.
 
-**Settings:** PvM HUD > Monster Hover Card. With **Skilling Hover Cards > Skill Cards With Auto Retaliate Off** on
+**Settings:** PvM HUD > Monster Hover Card, Show Max Hit and Speed. With **Skilling Hover Cards > Skill Cards With Auto Retaliate Off** on
 and auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
 
 ---
@@ -104,8 +107,12 @@ Repeat Expired Alert, Repeat Every, Max Repeats; Voice/Chat switches.
 
 **What it does:** Your buffs and debuffs as a row of icons, like RS3's: each potion boost (super combat,
 divine, ranging...) with its boost and time left, antifire / super antifire, stamina, antipoison / antivenom,
-and any other stat boosted above your level (Hitpoints from an anglerfish) in green; poisoned, venomed and stats
-drained below your level in red. Hover an icon for its name. With it on, the PvM HUD leaves the potion rows to
+overload (one icon for all its boosts; smelling salts in the Tombs of Amascut), prayer regeneration potion,
+staff of the dead's special (a minute, gone when you take the staff off), vengeance (ready to rebound, and its
+30-second cooldown), the imbued / saturated heart's cooldown, and any other stat boosted above your level
+(Hitpoints from an anglerfish) in green; poisoned, venomed, **frozen** (the spell's full length, "~", gone as soon
+as you move) and **teleblocked** with time left, and stats drained below your level in red. Timers read the same
+game values as RuneLite's Timers and Buffs plugin (overload is to about 15 seconds, so it has a "~"). Hover an icon for its name. With it on, the PvM HUD leaves the potion rows to
 it (the running-out and expired alerts carry on).
 
 **How to use:** It sits above the chat box on the right; move it with Alt + drag.
@@ -128,9 +135,19 @@ Prayer' Flash; Repeat Voice Alert, Repeat Every, Max Repeats; Voice/Chat switche
 ## Combat alerts
 
 **What it does:** Special attack ready (only after you've used it), antifire running out, poisoned or
-venomed (and poison protection ending), stamina worn off, low ammo, out of runes, cannon low.
+venomed (and poison protection ending), stamina worn off, low ammo, out of runes, cannon low. Two more, off by
+default:
+- **Wrong Protection Prayer:** a monster attacking you only attacks one way (every attack style the wiki lists
+  is stopped by the same prayer, e.g. a gargoyle: melee) and the protection prayer you have on is a different
+  one. Said once per monster (again if you switch to another wrong one). With no protection prayer on it stays
+  quiet, and monsters with more than one style (or dragonfire, typeless hits) never count: it never guesses what
+  a monster does next.
+- **Unpotted Reminder:** you start a fight (after a minute without one) with no combat boost. **Boosts That
+  Count:** Any Combat Stat (Attack, Strength, Defence, Ranged or Magic above your level) or Your Style's (Attack
+  or Strength for melee, Ranged, Magic). At most once every two minutes.
 
-**Settings (Combat Alerts):** A switch for each, plus Spec Alert At, Low Ammo At and Cannon Low At.
+**Settings (Combat Alerts):** A switch for each, plus Spec Alert At, Low Ammo At and Cannon Low At, Boosts That
+Count; Voice/Chat switches.
 
 ---
 
@@ -142,6 +159,18 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
   way), the item the task needs (red if you don't have it) and **Where To Go**: the wiki's places to kill it,
   each marked Multi / Cannon / Safespot (Wilderness places last), and the fastest ways to get to the first
   one. Right-click the card > **Show all / fewer places** to list every place instead of Places Shown.
+- **Points and streak** (on a task and without one): your Slayer points and task streak, read like RuneLite's
+  Slayer plugin (Krystilia and Mortimer keep their own streak). When the next task is a 10th, 50th, 100th, 250th or
+  1000th it says so in gold with its bonus ("15x points, pick your master"), and the **Next Task Is a Milestone**
+  alert says it the moment you finish the task before, so you can get the milestone from the master that gives the
+  most points.
+- **Supplies Used:** food eaten and potion doses drunk since the task started (from the game's "You eat" / "You
+  drink some of your" messages), kept if you log out and back in on the same task.
+- **Kill Goals:** right-click any monster > **Set kill goal** and type how many to kill (in the chat box). Each
+  kill (a monster you hit that dies) counts; the card lists your goals with their progress (unfinished first),
+  the monster's hover card shows its own, and **Kill Goal Reached** says when you get there. **Clear kill goal**
+  on the monster's menu removes one; the card's right-click > **Clear finished kill goals** removes the done ones.
+  Saved with your RuneScape profile. Works on and off task.
 - **No task:** the best Slayer master for your combat and Slayer level, any quest they need, where they
   are and the fastest ways there, and the next master you'll unlock (and what it needs).
 
@@ -155,14 +184,20 @@ venomed (and poison protection ending), stamina worn off, low ammo, out of runes
   shield...; red "missing" if you don't have it), which task it counts for ("on task" in green), and its
   Slayer XP. Hover one in the wrong place on a Konar task and it says "Wrong place: Konar wants these in
   ..., kills here won't count"; hover a Slayer monster that isn't your task and it shows your task.
+- **Finish-off marker:** a lizard, small or desert lizard (ice cooler, at 4 HP or less), gargoyle (rock hammer,
+  9), rockslug (bag of salt, 4) or mutated / ancient zygomite (fungicide spray, 7) gets the item's picture over its
+  head once it's low enough to finish, worked out from its health bar and the wiki's hitpoints (so only once the
+  bar shows). RuneLite's Slayer plugin marks its task monsters the same way (Show Monster Weakness, on by
+  default; not lizards): while it does, ours leaves those to it and still marks lizards and off-task ones.
 
 **How to use:** It appears in the top-left. **Ctrl+Shift+S** hides or shows it (chat says which); it stays that
 way after a restart.
 
 **Settings (Slayer):** Show Slayer Card; Show/Hide Hotkey; Pictures; Kill Rate and Finish Time; Protection
 Prayer; Required Item; Where To Go and Places Shown; How To Get There and Routes Shown; Master Card Without a Task; Next
-Master; Slayer Info on Monsters; Highlight Task Monsters and its colour; Missing Item Warning; Superior Spawned,
-Task Complete, Task Halfway and Task Nearly Done (at 10 left by default, 0 off) alerts with Voice/Chat switches.
+Master; Points and Streak; Supplies Used; Kill Goals; Slayer Info on Monsters; Highlight Task Monsters and its
+colour; Finish-Off Marker; Missing Item Warning; Superior Spawned, Task Complete, Task Halfway, Task Nearly Done (at
+10 left by default, 0 off) and Next Task Is a Milestone alerts, and Kill Goal Reached, with Voice/Chat switches.
 
 ---
 

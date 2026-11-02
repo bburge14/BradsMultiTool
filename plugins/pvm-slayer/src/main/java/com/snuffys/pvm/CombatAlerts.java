@@ -26,6 +26,7 @@ import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.util.Text;
@@ -116,6 +117,24 @@ class CombatAlerts {
         }
     }
 
+    // Each streak's last value (the usual one, Krystilia's, Mortimer's; -1 until known), for the milestone heads-up
+    private final int[] lastStreak = {-1, -1, -1};
+
+    // A task just finished (its streak went up by one) and the next one is a 10th/50th/100th/250th/1000th: say so
+    // now, while you can still pick which master to get it from. Never on login (the value loading in)
+    private void checkMilestone(int counter, int streak) {
+        int before = lastStreak[counter];
+        lastStreak[counter] = streak;
+        if (before < 0 || streak != before + 1 || !config.slayerMilestoneAlert()) {
+            return;
+        }
+        int milestone = SlayerTracker.nextMilestone(streak);
+        if (milestone > 0) {
+            alert(VoiceAlertService.VoiceLine.SLAYER_MILESTONE, "task " + (streak + 1) + ": "
+                + SlayerTracker.milestoneMultiplier(milestone) + "x points, pick your master");
+        }
+    }
+
     /** Whether going from {@code before} to {@code left} kills left reached {@code mark} (from above it). */
     static boolean crossed(int before, int left, int mark) {
         return mark > 0 && before > mark && left <= mark;
@@ -144,11 +163,20 @@ class CombatAlerts {
                 }
                 checkTaskProgress(value);
                 return;
+            case VarPlayerID.SLAYER_MORTIMER_TASKS_COMPLETED:
+                checkMilestone(2, value);
+                return;
             default:
                 break;
         }
 
         switch (event.getVarbitId()) {
+            case VarbitID.SLAYER_TASKS_COMPLETED:
+                checkMilestone(0, value);
+                break;
+            case VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED:
+                checkMilestone(1, value);
+                break;
             case VARBIT_ANTIFIRE:
                 checkAntifire(value * 30);
                 break;
@@ -244,6 +272,7 @@ class CombatAlerts {
             lastSpecPercent = -1;
             specSpent = false;
             lastPoisonValue = 0;
+            java.util.Arrays.fill(lastStreak, -1);
         }
     }
 
@@ -253,6 +282,12 @@ class CombatAlerts {
             return;
         }
         String message = Text.removeTags(event.getMessage());
+        // Supplies used on the Slayer task: the game's own messages for eating and drinking a dose
+        if (message.startsWith("You eat ")) {
+            plugin.getSlayerTracker().ateFood();
+        } else if (message.startsWith("You drink some of your ")) {
+            plugin.getSlayerTracker().drankDose();
+        }
         if (message.contains("A superior foe has appeared") && config.superiorAlert()) {
             alert(VoiceAlertService.VoiceLine.SUPERIOR_SPAWNED, null);
         } else if (message.contains("do not have enough") && message.contains("runes") && config.runesAlert()

@@ -51,17 +51,20 @@ developer mode.
   it, red when it doesn't), what it attacks with, and aggression. Aggression follows the game's rules:
   monsters ignore players over twice their level (except in the Wilderness), God Wars followers go by
   your god items, vyre noble clothing and greegrees protect you, and any other wiki condition is shown
-  as written. With auto retaliate off, NPCs you can pickpocket show the Thieving card instead.
+  as written. It also shows the wiki's max hit for each attack and how often it attacks. With auto retaliate
+  off, NPCs you can pickpocket show the Thieving card instead.
 - **Buff timers**: each combat potion boost with its icon and time left, divine potions to the second;
   "running out" and "expired" alerts with optional repeats; a buff's line is red while it's running out. Each potion has its own voice line.
 - **Health and prayer**: low health / low prayer / out of prayer alerts (by percent), flashing orbs, and an
   "OUT OF PRAYER" overhead warning.
 - **Combat alerts**: special attack ready (only after you've used it), antifire and poison protection
-  running out, poisoned or venomed, stamina worn off, low ammo, out of runes, cannon low.
+  running out, poisoned or venomed, stamina worn off, low ammo, out of runes, cannon low; and (off by default)
+  a wrong protection prayer for a monster with one attack style, and starting a fight with no combat boost.
 
 ### Buff bar
-- Your buffs and debuffs as icons with timers, like RS3's: potion boosts, antifire, stamina, poison protection,
-  boosted stats; poison, venom, drained stats. Movable; hover for names. The PvM HUD shows the **monster's**
+- Your buffs and debuffs as icons with timers, like RS3's: potion boosts, overload, antifire, stamina, poison
+  protection, prayer regeneration, vengeance, staff of the dead's special, the imbued heart's cooldown, boosted
+  stats; poison, venom, frozen, teleblocked, drained stats. Movable; hover for names. The PvM HUD shows the **monster's**
   effects instead: poisoned, venomed, burning, frozen, and Defence lowered by your special attacks.
 
 ### Gemstone Crab
@@ -85,6 +88,12 @@ developer mode.
   Slayer XP, and "wrong place" when Konar wants them elsewhere.
 - Warns when you fight a task monster without its required item (rock hammer, nose peg, mirror shield...).
 - Superior spawned, task halfway, task nearly done (10 left by default) and task complete alerts.
+- Your Slayer points and streak on the card, with a heads-up when your next task is a 10th/50th/100th/250th/1000th
+  (bonus points) so you can pick your master; food and potion doses used on the task.
+- **Kill goals**: right-click a monster > Set kill goal ("kill 200 gargoyles"); progress on the card and the
+  monster's hover card, and an alert when you reach it.
+- **Finish-off marker**: the ice cooler, rock hammer, bag of salt or fungicide over a lizard, gargoyle, rockslug
+  or zygomite once it's low enough to finish.
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), resource
@@ -356,7 +365,8 @@ All sections except General start collapsed.
   the animations that aren't attacks, late ticks) follows [Attack Timer Metronome](https://github.com/ngraves95/attacktimer)
   by Nick Graves and contributors (BSD-2 licensed).
 - Farming patch data, Hunter trap IDs, Agility courses and shortcuts, and the Wintertodt messages are converted from
-  RuneLite's own plugins (BSD-2-Clause).
+  RuneLite's own plugins (BSD-2-Clause). The Slayer points and streak, the finish-off thresholds and the buff bar's timers read
+  the game the same way as RuneLite's Slayer and Timers and Buffs plugins (BSD-2-Clause).
 - The minigame and Sailing alerts use what these Plugin Hub plugins (BSD-2-Clause) worked out:
   [Tempoross](https://github.com/nmlynch94/runelite-external-plugins) (messages, ids, fish damage),
   [Guardians of the Rift Helper](https://github.com/DatBear/Guardians-of-the-Rift-Helper) by DatBear (messages,

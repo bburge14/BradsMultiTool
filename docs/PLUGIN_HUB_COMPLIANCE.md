@@ -47,6 +47,14 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Gemstone Crab HUD and radar | OK. Plugin Hub has gemstone-crab-timer |
 | Slayer task card, missing item warning | OK |
 | Task monster outlines (Konar area aware), Slayer info on monster hover/HUD | OK. Core Slayer plugin highlights task monsters too; information only |
+| Slayer points and streak on the card, "next task is a milestone" alert | OK. The same varbits core Slayer shows in its infobox tooltip; information only. Nothing hides or reorders masters or NPC Contact options (Slayer Streak's menu hiding is on the never-add list) |
+| Slayer supplies used (food, doses) per task | OK. Counted from the game's own eat/drink chat messages; saved with ConfigManager (RS profile), no files |
+| Kill goals per monster ("Set kill goal" right-click, chat box number input) | OK. RUNELITE-type menu entry like Track for goal and RuneLite's chat box input (ChatboxPanelManager, as Bank Tags uses); only changes what we show; saved with ConfigManager (RS profile) |
+| Finish-off marker on lizards, gargoyles, rockslugs, zygomites | OK. Core Slayer's "Show monster weakness" does the same (its thresholds); only draws the item, never uses it. Steps aside for core's own marks (reads whether core Slayer and that setting are on, never changes them) |
+| Monster max hit and attack speed on the hover card | OK. Static wiki infobox facts (like Slayer Suite / npc-max-hit on the Hub). No countdown to a monster's next attack |
+| Wrong protection prayer alert (off by default) | OK. Only for monsters whose every wiki attack style one prayer stops, compared with the prayer you have on; says nothing about when or how it attacks next (not boss attack prediction) |
+| Unpotted reminder (off by default) | OK. Notification only: reads your boosted stats when you start a fight |
+| Buff bar: overload, prayer regeneration, vengeance, staff of the dead, imbued heart cooldown, frozen, teleblocked | OK. The same varbits and game messages core Timers & Buffs reads; information only. No clash entry: core shows these as infoboxes by default, and the buff bar already overlaps it (antifire, stamina) as an alternative layout |
 | Slayer master card (no task) and task directions (where to kill, how to get there) | OK. Wiki text only; nothing is pathed, clicked or walked for the player |
 | Slayer card pictures (master chatheads, task icons, ~90 small PNGs from the wiki, ~0.3MB) | OK. Game imagery as hosted on the wiki, credited in the README; other Plugin Hub plugins bundle game images the same way. Fallback is an in-game item sprite |
 | Skilling hover cards (trees, rocks, stalls, pickpocket, fishing, farming) | OK. Information from the wiki and visible game state |

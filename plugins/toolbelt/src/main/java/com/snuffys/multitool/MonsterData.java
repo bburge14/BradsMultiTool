@@ -55,6 +55,10 @@ public class MonsterData {
         final double slayerXp;
         /** The Slayer task it counts for ("Banshees"), or null if it isn't a Slayer monster. */
         final String slayerCategory;
+        /** The wiki's max hits as written ("60 (melee)", "35 (ranged)"); empty when unknown. */
+        final List<String> maxHits;
+        /** Game ticks between its attacks (0 when unknown). A static fact, not a countdown to its next attack. */
+        final int attackSpeed;
 
         private Stats(JsonArray a) {
             hitpoints = intAt(a, 0);
@@ -88,6 +92,30 @@ public class MonsterData {
             slayerLevel = intAt(a, 16);
             slayerXp = a.size() > 17 && !a.get(17).isJsonNull() ? a.get(17).getAsDouble() : 0;
             slayerCategory = a.size() > 18 && !a.get(18).isJsonNull() ? a.get(18).getAsString() : null;
+            List<String> hits = new ArrayList<>();
+            if (a.size() > 19 && a.get(19).isJsonArray()) {
+                for (JsonElement e : a.get(19).getAsJsonArray()) {
+                    hits.add(e.getAsString());
+                }
+            }
+            maxHits = Collections.unmodifiableList(hits);
+            attackSpeed = intAt(a, 20);
+        }
+
+        /**
+         * The one protection prayer that stops all its attacks ("Melee", "Missiles", "Magic"), or null when it
+         * attacks with more than one kind, with one that can't be prayed against, or nothing is known.
+         */
+        String onlyProtection() {
+            String only = null;
+            for (String style : attackStyles) {
+                String prayer = protectionFor(style);
+                if (prayer == null || (only != null && !only.equals(prayer))) {
+                    return null;
+                }
+                only = prayer;
+            }
+            return only;
         }
 
         /** Needs a Slayer level to damage (the monster card's Slayer section is only for these). */
