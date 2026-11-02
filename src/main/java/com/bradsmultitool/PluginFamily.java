@@ -79,6 +79,12 @@ class PluginFamily {
         return others.contains(plugin);
     }
 
+    /** Whether the Planner runs: in this build (it or the Toolbelt), or installed alongside. */
+    boolean hasPlanner() {
+        return "planner".equals(self) || "multitool".equals(self) || others.contains("planner")
+            || others.contains("multitool");
+    }
+
     /** Whether the Skilling Helper's tracker runs: in this build (it or the Toolbelt), or installed alongside. */
     boolean hasSkillTracker() {
         return "skilltracker".equals(self) || "multitool".equals(self) || others.contains("skilltracker")

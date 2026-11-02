@@ -229,8 +229,9 @@ each can be hidden in the settings; everything is saved per account.
 - **Notes & to-do**: a to-do list and a notes box.
 - **Calculator**: a skill calculator. Pick a skill from the grid; your level and XP fill in from the game (type over
   them to plan ahead). Skills with a goal have a gold line in the grid, and **Goals** under it lists them all with how
-  far along you are (click one to open it). Goals are shared with the Skilling Helper: one set in either shows in
-  both, and each plugin works on its own. The target starts at the skill's goal, or the next level; a target you type is kept for that
+  far along you are (click one to open it). Goals are the Skilling Helper's: with it running (installed and on),
+  the Planner shows and edits the same goals; without it, the Planner doesn't look at them at all. Likewise the
+  Skilling Helper only follows a plan from the Planner while the Planner runs. The target starts at the skill's goal, or the next level; a target you type is kept for that
   skill until **Reset** (next to it) or **Set as goal** (sets the skill's goal just like the Skilling Helper's Set
   Goal). Tick the XP bonuses you use (skilling outfits, diaries, altars, the bonecrusher...; ones that can't go
   together untick each other). Three views:

@@ -60,6 +60,9 @@ class SkillTracker {
     private Provider<GoalItems> goalItems;
     @Inject
     private KillTracker killTracker;
+    // Which of Snuffy's plugins run alongside (a plan from the Planner is followed only while it runs)
+    @Inject
+    private PluginFamily family;
     @Inject
     private Provider<MethodDetector> methodDetector;
     @Inject
@@ -428,7 +431,9 @@ class SkillTracker {
      * {@link SkillPlans}), or null: none, Follow Skill Plans off, or no goal to follow it to.
      */
     public SkillPlans.Plan getSkillPlan(Skill skill) {
-        if (!config.followSkillPlans() || configManager.getRSProfileKey() == null || getSkillGoal(skill) <= 0) {
+        // Plans are the Planner's: followed only while it runs too (installed and on)
+        if (!config.followSkillPlans() || configManager.getRSProfileKey() == null || getSkillGoal(skill) <= 0
+            || family == null || !family.hasPlanner()) {
             return null;
         }
         return SkillPlans.tracked(configManager, skill);

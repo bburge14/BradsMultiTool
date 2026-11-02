@@ -101,6 +101,10 @@ number the order ("01-dailies-and-weeklies.png"). The Planner's and the Slayer c
 (`plannerPreview`, `calculatorPreview`, `slayerPreview`); the rest are taken in game.
 
 Rules that keep the split working:
+- A plugin only reads or writes another plugin's data while that plugin runs (installed and on: `PluginFamily`
+  `hasSkillTracker()` / `hasPlanner()`), never from what it saved earlier: the Planner leaves goals alone without the
+  Skilling Helper, and the Skilling Helper follows an exported plan only while the Planner runs. Standalone, each
+  plugin acts as if the other had never existed.
 - A separate plugin has every feature its part has in the Toolbelt: nothing it shows may depend on another
   plugin running. When two parts have the same thing (potion buffs and their alerts on the PvM HUD and the crab
   card), each has it itself through shared classes (`PotionBuffs`, `PotionAlerts`, `BuffConfig`); with both

@@ -266,10 +266,11 @@ final class PlannerCalculatorView {
                 : String.format("%,d xp", goal)) + (goal <= now ? " (reached)" : ""));
             goalText.setForeground(PlannerUi.MUTED);
         } else {
-            goalText.setText("No goal set");
+            // (goals are the Skilling Helper's: without it running there are none to show or set)
+            goalText.setText(calc.trackerInstalled() ? "No goal set" : "");
             goalText.setForeground(PlannerUi.MUTED);
         }
-        goalLink.setVisible(!isGoal && target > Math.max(0, game));
+        goalLink.setVisible(calc.trackerInstalled() && !isGoal && target > Math.max(0, game));
         resetLink.setVisible(calc.savedTarget(shown) > 0);
         int start = isGoal && calc.goalStart(shown) > 0 ? calc.goalStart(shown) : Experience.getXpForLevel(CalculatorData.level(now, false));
         double done = target > start ? (double) (now - start) / (target - start) : 1;

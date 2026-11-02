@@ -13,6 +13,8 @@
   PvM/Slayer, Snuffy's GemCrab Tracker, Snuffy's Tick Counter, Snuffy's Planner (dailies/weeklies, timers, drops,
   notes and to-do in its own sidebar tab), and an optional Snuffy's Alerts; the Toolbelt is all of them in one. Each plugin ships its own voice
   lines (voices/<voice>/<plugin>/, VoiceAlertService.VoicePlugin) and their settings sit with its feature.
+- Standalone means standalone: a plugin never reads another plugin's saved data unless that plugin is running
+  right now (PluginFamily); they only work together while both are installed and on.
 - docs/DEVELOPMENT.md "How the code is split" has the rules that keep each plugin standalone. The plugins/
   folders are generated from src/ and committed: after changes, run `python3 scripts/split_plugins.py --verify`
   (rewrites them; each must compile on its own) as well as the tests, and commit plugins/ too.
