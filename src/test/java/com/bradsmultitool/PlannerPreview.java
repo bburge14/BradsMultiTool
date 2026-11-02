@@ -33,7 +33,9 @@ import net.runelite.client.ui.laf.RuneLiteLAF;
 /**
  * Renders Snuffy's Planner's sidebar offline, with sample data in each tab, to check its layout:
  * {@code ./gradlew plannerPreview -Dout=planner} writes planner-today.png, planner-timers.png, planner-slayer.png,
- * planner-drops.png, planner-notes.png, planner-empty.png (each tab of a new account) and planner-loggedout.png, at 2x.
+ * planner-drops.png (the list), planner-drops-monster.png (Vorkath's page), planner-drops-session.png (its items this
+ * session), planner-drops-casket.png (a source saved before drop rates were kept), planner-drops-scrolled.png,
+ * planner-notes.png, planner-empty.png (each tab of a new account) and planner-loggedout.png, at 2x.
  * Item pictures come from the OSRS Wiki (cached in build/planner-icons; without a connection they're left out).
  */
 public class PlannerPreview {
@@ -60,8 +62,15 @@ public class PlannerPreview {
                     panel.showTab(tab);
                     write(render(panel, 0), out + "-" + tab + ".png");
                 }
+                // A monster's own page, its items this session, and a casket saved before drop rates were kept
+                panel.showDropSource("Vorkath");
+                write(render(panel, 0), out + "-drops-monster.png");
+                panel.showDropSessionItems();
+                write(render(panel, 0), out + "-drops-session.png");
+                panel.showDropSource("Reward casket (hard)");
+                write(render(panel, 0), out + "-drops-casket.png");
                 // The sidebar's usual height: the list scrolls
-                panel.showTab("drops");
+                panel.showDropSource(null);
                 write(render(panel, 560), out + "-drops-scrolled.png");
 
                 PlannerPanel empty = fresh.panel(pictures);
@@ -218,22 +227,30 @@ public class PlannerPreview {
             // SLAYER
             set("planner.slayer", new PlannerSlayer.Task("Abyssal demons", 87, 150, null, 1240, 42).encode());
 
-            // DROPS
-            set("planner.drops", "{\"sources\":{"
-                + "\"Vorkath\":{\"count\":45,\"value\":5797500,\"items\":{"
-                + "\"Superior dragon bones\":[90,1215000],\"Dragonbone necklace\":[1,2610000],\"Runite ore\":[60,660000],"
-                + "\"Wrath rune\":[1800,540000],\"Blue dragonhide\":[750,1300500],\"Coins\":[45000,45000],\"Vorkath's head\":[1,0]}},"
-                + "\"Abyssal demon\":{\"count\":210,\"value\":1631350,\"items\":{"
-                + "\"Abyssal whip\":[1,1450000],\"Law rune\":[450,63000],\"Rune med helm\":[2,38700],\"Coins\":[52000,52000],"
-                + "\"Pure essence\":[1650,26400],\"Ensouled abyssal head\":[3,1250]}},"
-                + "\"Reward casket (hard)\":{\"count\":3,\"value\":131200,\"items\":{"
-                + "\"Rune platelegs\":[1,38200],\"Purple sweets\":[18,9000],\"Coins\":[84000,84000]}}},"
-                + "\"recent\":["
-                + recent("Vorkath", "Dragonbone necklace", 1, 2610000, now - 60) + ","
-                + recent("Vorkath", "Superior dragon bones", 2, 27000, now - 60) + ","
-                + recent("Vorkath", "Wrath rune", 40, 12000, now - 200) + ","
-                + recent("Abyssal demon", "Abyssal whip", 1, 1450000, now - 3600) + ","
-                + recent("Abyssal demon", "Law rune", 15, 2100, now - 3700) + "]}");
+            // DROPS: earlier kills as saved (the casket in the format from before drop rates), then this session's
+            DropTracker.Saved saved = new DropTracker.Saved();
+            DropTracker.Source vorkath = source(saved, "Vorkath", "kill", 42, 3, true, now - 2 * PlannerChores.DAY,
+                "Superior dragon bones", 84, 1134000, 42, "Blue dragonhide", 700, 1214000, 28, "Dragonbone necklace", 1, 2610000, 1,
+                "Runite ore", 60, 660000, 6, "Wrath rune", 1500, 450000, 10, "Dragon bolts (unf)", 300, 840000, 4,
+                "Coins", 41000, 41000, 11, "Vorkath's head", 1, 0, 1);
+            vorkath.best = best("Dragonbone necklace", 1, 2610000, now - 2 * PlannerChores.DAY);
+            DropTracker.Source demon = source(saved, "Abyssal demon", "kill", 210, 37, true, now - 3600,
+                "Abyssal whip", 1, 1450000, 1, "Law rune", 450, 63000, 45, "Rune med helm", 2, 38700, 2, "Coins", 52000, 52000, 96,
+                "Pure essence", 1650, 26400, 33, "Ensouled abyssal head", 3, 0, 3);
+            demon.best = best("Abyssal whip", 1, 1450000, now - 4 * 3600);
+            DropTracker.Source casket = new DropTracker.Source();
+            casket.count = 3;
+            casket.items.put("Rune platelegs", new long[]{1, 38200});
+            casket.items.put("Purple sweets", new long[]{18, 9000});
+            casket.items.put("Coins", new long[]{84000, 84000});
+            casket.value = 131200;
+            saved.sources.put("Reward casket (hard)", casket);
+            saved.recent.add(recent("Abyssal demon", "Abyssal whip", 1, 1450000, now - 4 * 3600));
+            saved.recent.add(0, recent("Abyssal demon", "Law rune", 15, 2100, now - 4 * 3600));
+            set("planner.drops", gson.toJson(saved));
+            kill("Vorkath", now - 900, "Superior dragon bones", 2, 27000, "Blue dragonhide", 25, 43000);
+            kill("Vorkath", now - 500, "Superior dragon bones", 2, 27000, "Runite ore", 5, 55000);
+            kill("Vorkath", now - 60, "Superior dragon bones", 2, 27000, "Dragon bolts (unf)", 30, 84000, "Wrath rune", 40, 12000);
 
             // NOTES
             notes.add("Buy 2,000 cannonballs");
@@ -252,9 +269,49 @@ public class PlannerPreview {
             return "\"" + id + "\":{\"state\":" + state + ",\"at\":" + now + ",\"claimValue\":0}";
         }
 
-        private static String recent(String source, String item, long quantity, long value, long at) {
-            return "{\"source\":\"" + source + "\",\"item\":\"" + item + "\",\"quantity\":" + quantity + ",\"value\":" + value
-                + ",\"at\":" + at + "}";
+        // A source as saved: its kills, kills since a valuable drop, when it last dropped, and items as
+        // name, quantity, value, times dropped
+        private static DropTracker.Source source(DropTracker.Saved saved, String name, String kind, int count, int dry,
+                                                 boolean valuableSeen, long last, Object... items) {
+            DropTracker.Source source = new DropTracker.Source();
+            source.count = count;
+            source.rated = count;
+            source.kind = kind;
+            source.dry = dry;
+            source.valuableSeen = valuableSeen;
+            source.last = last;
+            for (int i = 0; i < items.length; i += 4) {
+                long value = ((Number) items[i + 2]).longValue();
+                source.items.put((String) items[i], new long[]{((Number) items[i + 1]).longValue(), value,
+                    ((Number) items[i + 3]).longValue(), 0});
+                source.value += value;
+            }
+            saved.sources.put(name, source);
+            return source;
+        }
+
+        private static DropTracker.Drop best(String item, long quantity, long value, long at) {
+            return recent(null, item, quantity, value, at);
+        }
+
+        private static DropTracker.Drop recent(String source, String item, long quantity, long value, long at) {
+            DropTracker.Drop drop = new DropTracker.Drop();
+            drop.source = source;
+            drop.item = item;
+            drop.quantity = quantity;
+            drop.value = value;
+            drop.at = at;
+            return drop;
+        }
+
+        // One kill this session (items as name, quantity, value), as the tracker records it
+        private void kill(String source, long at, Object... items) {
+            java.util.List<DropTracker.Stack> stacks = new java.util.ArrayList<>();
+            for (int i = 0; i < items.length; i += 3) {
+                stacks.add(new DropTracker.Stack((String) items[i], 0, ((Number) items[i + 1]).longValue(),
+                    ((Number) items[i + 2]).longValue()));
+            }
+            drops.record(source, false, 1, stacks, at);
         }
     }
 
@@ -281,6 +338,7 @@ public class PlannerPreview {
             NAMES.put(ItemID.OGRE_ARROW, "Ogre arrow");
             NAMES.put(ItemID.TOG_BOWL, "Stone bowl");
             NAMES.put(ItemID.BIRDHOUSE_NORMAL, "Bird house");
+            NAMES.put(ItemID.TRAIL_REWARD_CASKET_HARD, "Reward casket (hard)");
         }
 
         WikiIcons(File cache) {
@@ -289,7 +347,7 @@ public class PlannerPreview {
             String[] tradeable = {"Grimy ranarr weed", "Avantoe", "Watermelon", "Palm tree seed", "Snapdragon",
                 "Superior dragon bones", "Dragonbone necklace", "Runite ore", "Wrath rune", "Blue dragonhide",
                 "Abyssal whip", "Law rune", "Rune med helm", "Pure essence", "Ensouled abyssal head", "Rune platelegs",
-                "Purple sweets"};
+                "Purple sweets", "Dragon bolts (unf)", "Vorkath's head"};
             int next = 900_000;
             for (String name : tradeable) {
                 ids.put(name.toLowerCase(), next);

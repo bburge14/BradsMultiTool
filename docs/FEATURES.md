@@ -670,11 +670,23 @@ stay in the Skilling Helper.
 **Slayer:** your task and kills left (of how many, with a bar), Konar's area, and Slayer points and streak tiles, read
 straight from the game (as RuneLite's Slayer plugin does), so it works without the PvM/Slayer plugin; kept for when you're logged out.
 
-**Drops** (the header totals the value): a box for each monster, like the Loot Tracker's (and chest, clue casket,
-raid... with **Count Other Loot**): kills or opens and the Grand Exchange value over a grid of the items' pictures with their amounts (click the box to fold it; valuable ones are
-framed in **Valuable Drop Colour**); then your latest drops (**Recent Drops Shown**), the valuable ones
-(**Valuable Drop From**, 100K at first) in **Valuable Drop Colour**. Right-click a monster to reset it; the bin
-clears the lot. Monster drops are RuneLite's own kill loot (as the PvM HUD's loot per hour counts it, which stays in
+**Drops** (the header totals the value; the bin clears the lot): each monster is tracked on its own (and each chest,
+clue casket, raid... with **Count Other Loot**). The front page lists them, most valuable first, one card each: its
+picture (a clue casket's or key chest's item; a tile with a monster's initials), name, kills or opens, value per kill
+and total Grand Exchange value; under them your latest drops (**Recent Drops Shown**), the valuable ones (**Valuable
+Drop From**, 100K at first) in **Valuable Drop Colour**. Click a card, or one of its recent drops, for that monster's
+own page (the arrow in its header goes back):
+- Tiles: kills, total value, value per kill, and kills since its last valuable drop ("No valuable yet" until one).
+- **Best drop**: its single most valuable drop, and when.
+- **Session vs all time**: kills, value and value per kill since the client started (kept in memory) beside all
+  time (saved).
+- **Items**: every item it has dropped, most valuable first, with its total amount, how many kills it came in, the drop
+  rate you've seen (**1 in 45** = kills / times dropped; "every kill") and its value; ones worth Valuable Drop From a
+  drop are in Valuable Drop Colour with a bar at the side. **Show this session** lists this session's items instead.
+- The bin resets that monster (after asking); right-click a card on the front page for the same.
+
+Drops saved before drop rates were kept still load: those items show **?** for the rate until they drop again, and
+rates count from then (hover says so). Monster drops are RuneLite's own kill loot (as the PvM HUD's loot per hour counts it, which stays in
 PvM); other loot comes from RuneLite's Loot Tracker, so it's only counted while that plugin is on (its monster kills
 aren't counted twice). With the Loot Tracker on, the clash note says the two lists overlap.
 

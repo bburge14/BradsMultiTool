@@ -21,8 +21,9 @@ Three Gradle tasks render parts of the UI offline (no client needed) to check la
 - `./gradlew slayerPreview -Dout=slayer.png`: the Slayer card, with and without a task.
 - `./gradlew headerPreview -Dout=header.png`: the skill tracker's header box.
 - `./gradlew plannerPreview -Dout=planner`: Snuffy's Planner's sidebar with sample data, at 2x: planner-today.png,
-  planner-timers.png, planner-slayer.png, planner-drops.png, planner-notes.png, planner-drops-scrolled.png (at the
-  sidebar's usual height), planner-empty.png (each tab of a new account) and planner-loggedout.png. Item pictures
+  planner-timers.png, planner-slayer.png, planner-drops.png, planner-notes.png, planner-drops-monster.png (a
+  monster's own page), planner-drops-session.png (its items this session), planner-drops-casket.png (drops saved
+  before drop rates were kept), planner-drops-scrolled.png (at the sidebar's usual height), planner-empty.png (each tab of a new account) and planner-loggedout.png. Item pictures
   come from the OSRS Wiki, cached in `build/planner-icons` (left out without a connection).
 
 ## Data files

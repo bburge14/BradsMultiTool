@@ -89,4 +89,120 @@ public class PlannerTest {
         // RuneLite's Produce: cabbage is contract value 42
         assertEquals("Cabbage", data.contractCrop(42));
     }
+
+    private static java.util.List<DropTracker.Stack> loot(Object... items) {
+        java.util.List<DropTracker.Stack> stacks = new java.util.ArrayList<>();
+        for (int i = 0; i < items.length; i += 2) {
+            long value = ((Number) items[i + 1]).longValue();
+            stacks.add(new DropTracker.Stack((String) items[i], 0, 1, value));
+        }
+        return stacks;
+    }
+
+    @Test
+    public void dropsCountTimesDroppedRatesAndDryStreaks() {
+        DropTracker.Source source = new DropTracker.Source();
+        long valuable = 100_000;
+        DropTracker.add(source, false, 1, loot("Bones", 100, "Coins", 50, "Coins", 70), valuable, 10);
+        DropTracker.add(source, false, 1, loot("Bones", 100, "Abyssal whip", 1_450_000), valuable, 20);
+        DropTracker.add(source, false, 1, loot("Bones", 100), valuable, 30);
+        DropTracker.add(source, false, 1, loot("Bones", 100, "Coins", 30), valuable, 40);
+        assertEquals(4, source.count);
+        assertEquals(4, source.rated);
+        // Coins twice in one kill: dropped once that kill, both stacks counted
+        long[] coins = source.items.get("Coins");
+        assertEquals(2, coins[DropTracker.TIMES]);
+        assertEquals(3, coins[DropTracker.QUANTITY]);
+        assertEquals(150, coins[DropTracker.VALUE]);
+        assertEquals("1 in 2", DropTracker.rateText(source, coins, false));
+        assertEquals("every kill", DropTracker.rateText(source, source.items.get("Bones"), false));
+        assertEquals("1 in 4", DropTracker.rateText(source, source.items.get("Abyssal whip"), false));
+        assertEquals(4.0, DropTracker.rate(source, source.items.get("Abyssal whip")), 0.001);
+        // Two kills since the whip; it's the best drop
+        assertEquals(2, source.dry);
+        assertTrue(source.valuableSeen);
+        assertEquals("Abyssal whip", source.best.item);
+        assertEquals(20, source.best.at);
+        assertEquals(40, source.last);
+        assertFalse(source.opened("Abyssal demon"));
+        assertFalse(source.partlyRated());
+    }
+
+    @Test
+    public void dropRatesOverManyKills() {
+        DropTracker.Source source = new DropTracker.Source();
+        for (int kill = 0; kill < 90; kill++) {
+            DropTracker.add(source, true, 1, kill % 2 == 0 ? loot("Rune platelegs", 38_000) : loot("Coins", 900), 100_000, kill);
+        }
+        DropTracker.add(source, true, 1, loot("Coins", 900), 100_000, 99);
+        assertEquals("1 in 2", DropTracker.rateText(source, source.items.get("Rune platelegs"), true));
+        // 91 opens, 46 with coins: 1.98
+        assertEquals("1 in 2", DropTracker.rateText(source, source.items.get("Coins"), true));
+        assertEquals(91, source.dry);
+        assertFalse(source.valuableSeen);
+        assertTrue(source.opened("Anything"));
+        DropTracker.Source rare = new DropTracker.Source();
+        rare.rated = 1234;
+        assertEquals("1 in 1,234", DropTracker.rateText(rare, new long[]{1, 5, 1, 0}, false));
+        assertEquals("1 in 2.5", DropTracker.rateText(rare, new long[]{1, 5, 494, 0}, false));
+    }
+
+    @Test
+    public void dropsSavedBeforeDropRatesStillLoad() {
+        // The format before times dropped, kills since a valuable drop and item ids were kept
+        String old = "{\"sources\":{\"Vorkath\":{\"count\":45,\"value\":2655000,\"items\":{"
+            + "\"Dragonbone necklace\":[1,2610000],\"Coins\":[45000,45000]}},"
+            + "\"Reward casket (hard)\":{\"count\":3,\"value\":9000,\"items\":{\"Purple sweets\":[18,9000]}}},"
+            + "\"recent\":[{\"source\":\"Vorkath\",\"item\":\"Coins\",\"quantity\":1000,\"value\":1000,\"at\":5}]}";
+        Gson gson = new Gson();
+        DropTracker.Saved saved = DropTracker.parse(gson, old);
+        DropTracker.Source vorkath = saved.sources.get("Vorkath");
+        assertEquals(45, vorkath.count);
+        assertEquals(2655000, vorkath.value);
+        long[] necklace = vorkath.items.get("Dragonbone necklace");
+        assertEquals(4, necklace.length);
+        assertEquals(1, necklace[DropTracker.QUANTITY]);
+        assertEquals(2610000, necklace[DropTracker.VALUE]);
+        assertEquals(0, necklace[DropTracker.TIMES]);
+        // How often isn't known for those kills
+        assertEquals("?", DropTracker.rateText(vorkath, necklace, false));
+        assertTrue(vorkath.partlyRated());
+        assertEquals(null, vorkath.best);
+        assertEquals(0, saved.recent.get(0).id);
+        // Kind wasn't saved: guessed from the name
+        assertFalse(vorkath.opened("Vorkath"));
+        assertTrue(saved.sources.get("Reward casket (hard)").opened("Reward casket (hard)"));
+
+        // New kills add to it: rates count from then
+        DropTracker.add(vorkath, false, 1, loot("Coins", 900, "Wrath rune", 9000), 100_000, 50);
+        DropTracker.add(vorkath, false, 1, loot("Coins", 900), 100_000, 60);
+        assertEquals(47, vorkath.count);
+        assertEquals(2, vorkath.rated);
+        assertEquals("every kill", DropTracker.rateText(vorkath, vorkath.items.get("Coins"), false));
+        assertEquals("1 in 2", DropTracker.rateText(vorkath, vorkath.items.get("Wrath rune"), false));
+        assertEquals(45002, vorkath.items.get("Coins")[DropTracker.QUANTITY]);
+
+        // Saved again and read back, the new fields are kept
+        DropTracker.Saved back = DropTracker.parse(gson, gson.toJson(saved));
+        assertEquals(2, back.sources.get("Vorkath").rated);
+        assertEquals("kill", back.sources.get("Vorkath").kind);
+        assertEquals(2, back.sources.get("Vorkath").items.get("Coins")[DropTracker.TIMES]);
+        assertEquals("Wrath rune", back.sources.get("Vorkath").best.item);
+
+        // Unreadable or missing: an empty list
+        assertTrue(DropTracker.parse(gson, "{not json").sources.isEmpty());
+        assertTrue(DropTracker.parse(gson, null).recent.isEmpty());
+    }
+
+    @Test
+    public void dropSourcePictures() {
+        assertEquals("AD", PlannerPanel.sourceInitials("Abyssal demon"));
+        assertEquals("Vo", PlannerPanel.sourceInitials("Vorkath"));
+        assertEquals("RC", PlannerPanel.sourceInitials("Reward casket (hard)"));
+        assertEquals("?", PlannerPanel.sourceInitials(""));
+        assertEquals(net.runelite.api.gameval.ItemID.TRAIL_REWARD_CASKET_HARD, PlannerPanel.sourceItem("Clue Scroll (Hard)"));
+        assertEquals(-1, PlannerPanel.sourceItem("Vorkath"));
+        assertEquals("5m ago", PlannerPanel.ago(1000, 1000 + 5 * 60 + 20));
+        assertEquals("2 days ago", PlannerPanel.ago(1, 1 + 2 * PlannerChores.DAY));
+    }
 }
