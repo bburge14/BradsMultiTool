@@ -30,6 +30,8 @@ final class PlannerConfigDefaults {
         defaults.store("birdhouseAlert", config.birdhouseAlert());
         defaults.store("voiceBirdhouses", config.voiceBirdhouses());
         defaults.store("chatBirdhouses", config.chatBirdhouses());
+        defaults.store("timerSound", config.timerSound());
+        defaults.store("timerSoundRepeats", config.timerSoundRepeats());
         defaults.store("voiceTimerDone", config.voiceTimerDone());
         defaults.store("chatTimerDone", config.chatTimerDone());
         defaults.store("plannerShowSlayer", config.plannerShowSlayer());

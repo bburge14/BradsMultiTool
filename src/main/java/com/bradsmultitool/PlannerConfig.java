@@ -323,12 +323,58 @@ public interface PlannerConfig extends CommonConfig {
         return true;
     }
 
+    /** How your own timers say they're done: the voice line, or a game sound. */
+    enum TimerSound {
+        VOICE("Voice line", -1),
+        BELL("Bell", net.runelite.api.SoundEffectID.TOWN_CRIER_BELL_DING),
+        CHIME("Chime", net.runelite.api.SoundEffectID.GE_ADD_OFFER_DINGALING),
+        ANVIL("Anvil", net.runelite.api.SoundEffectID.SMITH_ANVIL_TINK),
+        BOOP("Boop", net.runelite.api.SoundEffectID.UI_BOOP),
+        DOOR("Door", net.runelite.api.SoundEffectID.CLOSE_DOOR);
+
+        private final String label;
+        final int id;
+
+        TimerSound(String label, int id) {
+            this.label = label;
+            this.id = id;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    @ConfigItem(
+        keyName = "timerSound",
+        name = "Timer Done Sound",
+        description = "<div width='300'>How your own timers tell you they're done: the voice line (\"Your timer is done.\"), or a game sound: Bell, Chime, Anvil, Boop or Door (at the game's Sound Effects volume). Picking one plays it",
+        section = plannerTimersSection,
+        position = 8
+    )
+    default TimerSound timerSound() {
+        return TimerSound.VOICE;
+    }
+
+    @Range(min = 1, max = 5)
+    @ConfigItem(
+        keyName = "timerSoundRepeats",
+        name = "Times",
+        description = "<div width='300'>How many times the Timer Done Sound plays (a sound only; the voice line is said once)",
+        section = plannerTimersSection,
+        position = 9
+    )
+    default int timerSoundRepeats() {
+        return 3;
+    }
+
     @ConfigItem(
         keyName = "voiceTimerDone",
         name = "Voice: Timer Done",
         description = "<div width='300'>Says \"Your timer is done\" when one of your own timers ends (turning it on plays a preview)",
         section = plannerTimersSection,
-        position = 8
+        position = 10
     )
     default boolean voiceTimerDone() {
         return true;
@@ -339,7 +385,7 @@ public interface PlannerConfig extends CommonConfig {
         name = "Chat: Timer Done",
         description = "Chat message naming the timer that ended",
         section = plannerTimersSection,
-        position = 9
+        position = 11
     )
     default boolean chatTimerDone() {
         return true;

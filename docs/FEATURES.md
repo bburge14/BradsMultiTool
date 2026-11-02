@@ -666,6 +666,9 @@ stay in the Skilling Helper.
 - **Your own timers:** **+** with a name and a length (minutes, or h:mm); the play, stop and again buttons on each,
   the time left counting down with a bar; right-click to edit, reset or delete. They keep running through a logout; one that ends while
   you're away is said when you're back.
+- **Timer Done Sound:** how your own timers tell you they're done: the voice line ("Your timer is done.") or a game
+  sound (Bell, Chime, Anvil, Boop, Door) played **Times** times (1-5, 3 at first); picking one plays it. Game sounds
+  follow the game's Sound Effects volume.
 - Alerts: Patches Ready (names them; once per crop), Bird Houses Ready, Timer Done ("Your timer is done.", names it),
   each with Voice/Chat switches. Like the dailies, their lines go to the split private chat and fade, not the chat box.
 
