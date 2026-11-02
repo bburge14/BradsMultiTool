@@ -119,6 +119,18 @@ class PluginClashes {
         setting(CORE + "slayer.SlayerPlugin", "RuneLite's Slayer (task highlight)", "slayer", false,
             "RuneLite's Slayer plugin also highlights your task monsters; turn off its highlight or Snuffy's Highlight Task Monsters to see just one",
             "pvm", "highlightOutline", "highlightHull", "highlightTile"),
+        plugin(CORE + "wintertodt.WintertodtPlugin", "RuneLite's Wintertodt",
+            "RuneLite's Wintertodt plugin is on, so it and Snuffy's Wintertodt alerts can both warn you (round starting, brazier, roots, cold); turn off its notifications or Snuffy's Minigames alerts to hear just one",
+            "skilltracker"),
+        setting("com.tempoross.TemporossPlugin", "Tempoross (notifications)", "tempoross", false,
+            "Tempoross's notifications are on, so it and Snuffy's Tempoross alerts can both warn you (wave, fire, double spot, vulnerable); turn off one of them to hear just one",
+            "skilltracker", "waveNotification", "fireNotification", "doubleSpotNotification", "vulnerableNotification"),
+        setting("com.datbear.GuardiansOfTheRiftHelperPlugin", "Guardians of the Rift Helper (portal)", "guardiansOfTheRiftHelper", true,
+            "Guardians of the Rift Helper's portal notification is on, so it and Snuffy's Portal Opened alert can both warn you; turn off one of them to hear just one",
+            "skilltracker", "portalSpawn"),
+        setting("com.duckblade.osrs.sailing.SailingPlugin", "Sailing (low boat HP)", "sailing", false,
+            "Sailing's low boat HP notification is on, so it and Snuffy's Boat Health Low can both warn you; turn one off to hear just one",
+            "skilltracker", "lowBoatHPNotify"),
         // Snuffy's own: the Toolbelt has every separate plugin in it, so install one or the other
         plugin("com.snuffys.multitool.BradsMultiToolPlugin", "Snuffy's Toolbelt",
             "Snuffy's Toolbelt is on and already has this plugin's features in it; turn off one or the other",
@@ -329,10 +341,15 @@ class PluginClashes {
         }
         for (String key : clash.keys) {
             String value = configManager.getConfiguration(clash.group, key);
-            if (value == null ? clash.keyDefault : Boolean.parseBoolean(value)) {
+            if (value == null ? clash.keyDefault : on(value)) {
                 return true;
             }
         }
         return false;
+    }
+
+    // A switch ("true"), or a notification setting, which RuneLite saves as JSON ({"enabled":true,...})
+    static boolean on(String value) {
+        return Boolean.parseBoolean(value) || value.replace(" ", "").contains("\"enabled\":true");
     }
 }

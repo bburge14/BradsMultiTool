@@ -66,6 +66,20 @@ public class VoiceAlertService {
         FORESTRY_EVENT("forestry_event", "A forestry event has started."),
         SACK_FULL("sack_full", "The sack is full. Empty it before mining more."),
         BIRD_NEST("bird_nest", "A bird's nest has fallen."),
+        WINTERTODT_ROUND("wintertodt_round", "The Wintertodt round is about to start."),
+        BRAZIER_OUT("brazier_out", "Your brazier has gone out."),
+        BRAZIER_BROKEN("brazier_broken", "Your brazier is broken."),
+        OUT_OF_ROOTS("out_of_roots", "You're out of roots."),
+        WINTERTODT_HIT("wintertodt_hit", "The cold stopped you. Start again."),
+        WARMTH_LOW("warmth_low", "Your warmth is low."),
+        TEMPOROSS_WAVE("tempoross_wave", "A wave is coming. Tether yourself."),
+        TEMPOROSS_FIRE("tempoross_fire", "A fire is about to start near you."),
+        TEMPOROSS_DOUBLE_SPOT("tempoross_double_spot", "A double fishing spot has appeared."),
+        TEMPOROSS_VULNERABLE("tempoross_vulnerable", "Tempoross is vulnerable. Attack now."),
+        RIFT_STARTING("rift_starting", "The rift opens in ten seconds."),
+        RIFT_PORTAL("rift_portal", "A portal has opened."),
+        BOAT_HEALTH_LOW("boat_health_low", "Your boat's health is low."),
+        TRIM_SAILS("trim_sails", "Trim the sails now."),
         FARMING_READY("farming_ready", "Your farming patches are ready."),
         BIRDHOUSES_READY("birdhouses_ready", "Your bird houses are ready."),
         BATCH_COMPLETE("batch_complete", "Batch complete."),
@@ -163,6 +177,20 @@ public class VoiceAlertService {
                 case "run_energy_low":
                 case "forestry_event":
                 case "sack_full":
+                case "wintertodt_round":
+                case "brazier_out":
+                case "brazier_broken":
+                case "out_of_roots":
+                case "wintertodt_hit":
+                case "warmth_low":
+                case "tempoross_wave":
+                case "tempoross_fire":
+                case "tempoross_double_spot":
+                case "tempoross_vulnerable":
+                case "rift_starting":
+                case "rift_portal":
+                case "boat_health_low":
+                case "trim_sails":
                 case "bird_nest":
                 case "farming_ready":
                 case "birdhouses_ready":

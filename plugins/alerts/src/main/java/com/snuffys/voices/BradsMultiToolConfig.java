@@ -279,11 +279,19 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Skilling: Other Skills",
-        description = "Thieving, Farming, Firemaking, Runecraft, Cooking, Sailing and Smithing (each has its own section in Snuffy's Skilling Helper)",
+        description = "Thieving, Farming, Firemaking, Runecraft, Cooking, Sailing (with its boat alerts) and Smithing (each has its own section in Snuffy's Skilling Helper)",
         position = 46,
         closedByDefault = true
     )
     String otherSkillsSection = "otherSkillsSection";
+
+    @ConfigSection(
+        name = "Skilling: Minigames",
+        description = "Wintertodt, Tempoross and Guardians of the Rift cards and alerts",
+        position = 47,
+        closedByDefault = true
+    )
+    String minigamesSection = "minigamesSection";
 
 
 
@@ -834,11 +842,73 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     }
 
     @ConfigItem(
+        keyName = "voiceBoatHealth",
+        name = "Sailing: Voice: Boat Health Low",
+        description = "<div width='300'>On your boat, when its hitpoints drop below Boat Health Low At, once until it's repaired (turning it on plays a preview)",
+        section = otherSkillsSection,
+        position = 15
+    )
+    @Override
+    default boolean voiceBoatHealth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBoatHealth",
+        name = "Sailing: Chat: Boat Health Low",
+        description = "Chat message when your boat's hitpoints are low",
+        section = otherSkillsSection,
+        position = 16
+    )
+    @Override
+    default boolean chatBoatHealth() {
+        return true;
+    }
+
+    @Range(min = 1, max = 99)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "boatHealthPercent",
+        name = "Sailing: Boat Health Low At",
+        description = "<div width='300'>Boat hitpoints (percent of its most) below which Boat Health Low warns you",
+        section = otherSkillsSection,
+        position = 17
+    )
+    @Override
+    default int boatHealthPercent() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSailTrim",
+        name = "Sailing: Voice: Trim Sails",
+        description = "<div width='300'>On your boat, when a gust opens the window to trim the sails for a burst of speed (turning it on plays a preview)",
+        section = otherSkillsSection,
+        position = 18
+    )
+    @Override
+    default boolean voiceSailTrim() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSailTrim",
+        name = "Sailing: Chat: Trim Sails",
+        description = "Chat message when you can trim the sails",
+        section = otherSkillsSection,
+        position = 19
+    )
+    @Override
+    default boolean chatSailTrim() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "showSmithingHover",
         name = "Smithing: Anvil / Furnace Hover",
         description = "<div width='300'>Hovering an anvil or furnace shows what you can make from the bars or ores you are carrying",
         section = otherSkillsSection,
-        position = 15
+        position = 20
     )
     @Override
     default boolean showSmithingHover() {

@@ -113,6 +113,19 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Coin pouches full (at 28, or your Ardougne diary cap).
 - [ ] Bird houses ready 50 minutes after seeding.
 - [ ] Batch complete after a run of cooking / smithing / crafting / fletching / herblore.
+- [ ] Sailing: Boat Health Low below 30% on your own boat (once until repaired); Trim Sails when a gust opens the
+      trim window; neither on someone else's boat or ashore.
+
+## Minigames
+- [ ] Wintertodt: card in the room (warmth, energy, points, roots/kindling, next round); Round Starting at 5 s;
+      Brazier Out / Broken; Out of Roots; Cold Stopped You only when hit while fletching/feeding (not chopping);
+      Warmth Low once below 30%.
+- [ ] Tempoross: card (energy, essence, storm, points, fish, damage) only during the game; Wave Incoming; Fire Near
+      You only for strikes close to you; Double Fishing Spot; Vulnerable.
+- [ ] Guardians of the Rift: card (power, energy, guardians built, open altars red above your level, portal);
+      Game Starting at the 10-second message; Portal Opened with its direction, not while in the remains.
+- [ ] With RuneLite's Wintertodt / Tempoross / GOTR Helper notifications / Sailing's low HP notification on, the
+      clash warning names them.
 
 ## Skill tracker
 - [x] Cards, fields switch on/off without gaps, progress bar colours.

@@ -36,6 +36,19 @@ enum AlertType {
     RUN_ENERGY("RunEnergy", VoiceAlertService.VoiceLine.RUN_ENERGY_LOW),
     FORESTRY_EVENT("ForestryEvent", VoiceAlertService.VoiceLine.FORESTRY_EVENT),
     SACK_FULL("SackFull", VoiceAlertService.VoiceLine.SACK_FULL),
+    WINTERTODT_ROUND("WintertodtRound", VoiceAlertService.VoiceLine.WINTERTODT_ROUND),
+    WINTERTODT_BRAZIER("WintertodtBrazier", VoiceAlertService.VoiceLine.BRAZIER_OUT),
+    WINTERTODT_ROOTS("WintertodtRoots", VoiceAlertService.VoiceLine.OUT_OF_ROOTS),
+    WINTERTODT_HIT("WintertodtHit", VoiceAlertService.VoiceLine.WINTERTODT_HIT),
+    WINTERTODT_WARMTH("WintertodtWarmth", VoiceAlertService.VoiceLine.WARMTH_LOW),
+    TEMPOROSS_WAVE("TemporossWave", VoiceAlertService.VoiceLine.TEMPOROSS_WAVE),
+    TEMPOROSS_FIRE("TemporossFire", VoiceAlertService.VoiceLine.TEMPOROSS_FIRE),
+    TEMPOROSS_DOUBLE_SPOT("TemporossDoubleSpot", VoiceAlertService.VoiceLine.TEMPOROSS_DOUBLE_SPOT),
+    TEMPOROSS_VULNERABLE("TemporossVulnerable", VoiceAlertService.VoiceLine.TEMPOROSS_VULNERABLE),
+    RIFT_STARTING("RiftStarting", VoiceAlertService.VoiceLine.RIFT_STARTING),
+    RIFT_PORTAL("RiftPortal", VoiceAlertService.VoiceLine.RIFT_PORTAL),
+    BOAT_HEALTH("BoatHealth", VoiceAlertService.VoiceLine.BOAT_HEALTH_LOW),
+    SAIL_TRIM("SailTrim", VoiceAlertService.VoiceLine.TRIM_SAILS),
     BIRD_NEST("BirdNest", VoiceAlertService.VoiceLine.BIRD_NEST),
     FARMING_READY("FarmingReady", VoiceAlertService.VoiceLine.FARMING_READY),
     BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
@@ -97,6 +110,20 @@ enum AlertType {
             case RUN_ENERGY_LOW: return RUN_ENERGY;
             case FORESTRY_EVENT: return FORESTRY_EVENT;
             case SACK_FULL: return SACK_FULL;
+            case WINTERTODT_ROUND: return WINTERTODT_ROUND;
+            case BRAZIER_OUT: return WINTERTODT_BRAZIER;
+            case BRAZIER_BROKEN: return WINTERTODT_BRAZIER;
+            case OUT_OF_ROOTS: return WINTERTODT_ROOTS;
+            case WINTERTODT_HIT: return WINTERTODT_HIT;
+            case WARMTH_LOW: return WINTERTODT_WARMTH;
+            case TEMPOROSS_WAVE: return TEMPOROSS_WAVE;
+            case TEMPOROSS_FIRE: return TEMPOROSS_FIRE;
+            case TEMPOROSS_DOUBLE_SPOT: return TEMPOROSS_DOUBLE_SPOT;
+            case TEMPOROSS_VULNERABLE: return TEMPOROSS_VULNERABLE;
+            case RIFT_STARTING: return RIFT_STARTING;
+            case RIFT_PORTAL: return RIFT_PORTAL;
+            case BOAT_HEALTH_LOW: return BOAT_HEALTH;
+            case TRIM_SAILS: return SAIL_TRIM;
             case BIRD_NEST: return BIRD_NEST;
             case FARMING_READY: return FARMING_READY;
             case BIRDHOUSES_READY: return BIRDHOUSES;
