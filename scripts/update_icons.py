@@ -75,7 +75,9 @@ def main():
         logo = badge(name)
         hub_icon(brighter(logo)).save(os.path.join(ASSETS, "hub", plugin + ".png"), optimize=True)
     # The sidebar tabs: the Skill Tracker's and the Planner's
-    for plugin in ("skilltracker", "planner"):
+    # The Planner's is drawn by hand at its real size (assets/PlannerTab.png): its logo shrunk to 16px doesn't read
+    Image.open(os.path.join(ASSETS, "PlannerTab.png")).save(os.path.join(TAB_DIR, "planner.png"), optimize=True)
+    for plugin in ("skilltracker",):
         tab = Image.new("RGBA", (TAB_SIZE, TAB_SIZE), (0, 0, 0, 0))
         art = fit(glyph(badge(LOGOS[plugin])), TAB_ART, TAB_ART)
         tab.paste(art, ((TAB_SIZE - TAB_ART) // 2 + 1, (TAB_SIZE - TAB_ART) // 2 + 1), art)
