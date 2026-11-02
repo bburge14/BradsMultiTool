@@ -757,8 +757,9 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
 - **Plans**: the Plan view starts with the skill's saved plans: as many as you like, each with a name ("Darts to
   99", "AFK teaks"), its levels and how many milestones, **In tracker** on the one exported. **+** makes a new one
-  (it asks for a name); click one to open it (the open one has a green edge: it's the one shown below, that **Add to
-  plan** adds to and the plan bar shows); right-click one to **Rename...**, **Duplicate** (to try a variation) or
+  (it asks for a name). Each plan's card shows its levels, your level and how far along it you are (a bar and a
+  percentage, by XP). Click one to open it: it unfolds under its card (a green edge: it's the one **Add to plan** adds to
+  and the plan bar shows); click it again to fold it away (remembered); right-click one to **Rename...**, **Duplicate** (to try a variation) or
   **Delete...**. Under them, links to other skills' plans ("Other skills: Fletching (2)"). Plans made before there
   could be several become the first, unnamed ("Plan 1").
 - **Plan**: the open plan: a final goal (level 99, or your target) and milestones on the way, each with its

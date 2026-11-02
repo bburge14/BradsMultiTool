@@ -1242,8 +1242,8 @@ final class PlannerCalculatorView {
         }
         SkillPlans.Plan plan = calc.plan(shown);
         int level = levelNow();
-        fillPlanList(shown);
         if (plan == null) {
+            fillPlanList(shown, null);
             list.add(PlannerUi.empty("No plans for " + shown.getName() + " yet. A plan is a goal and milestones on the way, "
                 + "each with its own method (\"1-20 Logs, 20-50 Willow logs\"). Make as many as you like and export the "
                 + "one you follow to the tracker."));
@@ -1254,9 +1254,16 @@ final class PlannerCalculatorView {
                     () -> newPlan(shown))));
             return;
         }
+        // The open plan unfolds under its card in the list
+        fillPlanList(shown, () -> fillOpenPlan(shown, skillCalc, on, now, actions, plan, level));
+    }
+
+    // The open plan: totals, each milestone (what's left of it), the gaps, the whole plan, and exporting it
+    private void fillOpenPlan(Skill shown, CalculatorData.Calc skillCalc, List<CalculatorData.Bonus> on, int now,
+                              List<CalculatorData.Action> actions, SkillPlans.Plan plan, int level) {
         if (plan.steps.isEmpty()) {
             int goal = plan.goal > level ? plan.goal : newGoal();
-            list.add(PlannerUi.group(planName(plan, calc.openIndex(shown)), "", PlannerUi.linkLabel("Goal: level " + goal,
+            list.add(PlannerUi.group("Milestones", "", PlannerUi.linkLabel("Goal: level " + goal,
                 "Change the plan's final goal", () -> changeGoal(shown))));
             list.add(PlannerUi.empty("No milestones yet: right-click an action > Add to plan, or start from the wiki's "
                 + "suggestions."));
@@ -1301,7 +1308,7 @@ final class PlannerCalculatorView {
         list.add(PlannerUi.spaced(tiles));
 
         JLabel goalLink = PlannerUi.linkLabel("Goal: level " + plan.goal, "Change the plan's final goal", () -> changeGoal(shown));
-        list.add(PlannerUi.group(planName(plan, calc.openIndex(shown)), "", goalLink,
+        list.add(PlannerUi.group("Milestones", "", goalLink,
             new PlannerUi.IconButton(new PlannerUi.Glyph(PlannerUi.Shape.PLUS, 14, ColorScheme.LIGHT_GRAY_COLOR),
                 "Add a milestone", () -> stepDialog(shown, -1, plan.goal))));
         int expected = level;
@@ -1384,25 +1391,34 @@ final class PlannerCalculatorView {
     }
 
     // The skill's saved plans (click one to open it, right-click for more), New plan, and other skills' plans
-    private void fillPlanList(Skill shown) {
+    private void fillPlanList(Skill shown, Runnable openPlan) {
         List<SkillPlans.Plan> plans = calc.plans(shown);
         int open = calc.openIndex(shown);
         list.add(PlannerUi.group(shown.getName() + " plans", plans.isEmpty() ? "" : String.valueOf(plans.size()),
             new PlannerUi.IconButton(new PlannerUi.Glyph(PlannerUi.Shape.PLUS, 14, ColorScheme.LIGHT_GRAY_COLOR),
                 "New plan", () -> newPlan(shown))));
         int level = levelNow();
+        int xp = planXp();
+        boolean expanded = calc.planExpanded();
         for (int i = 0; i < plans.size(); i++) {
             SkillPlans.Plan plan = plans.get(i);
             int index = i;
             boolean isOpen = i == open;
+            boolean unfolded = isOpen && expanded;
             boolean tracked = calc.isTracked(shown, plan);
             int start = plan.steps.isEmpty() ? level : Math.min(level, plan.steps.get(0).from);
-            PlannerUi.Card card = new PlannerUi.Card(planName(plan, i), start + " → " + plan.goal + " · " + plan.steps.size()
-                + (plan.steps.size() == 1 ? " milestone" : " milestones"), tracked ? "In tracker" : "");
-            card.right.setForeground(PlannerUi.READY);
-            card.corner.setText(isOpen ? "open" : "");
-            card.corner.setForeground(Color.WHITE);
+            // How far you are from where it starts to its goal (by your real XP)
+            int from = Experience.getXpForLevel(Math.max(1, start));
+            int to = plan.goalXp();
+            double done = to > from ? Math.max(0, Math.min(1, (double) (xp - from) / (to - from))) : 1;
+            PlannerUi.Card card = new PlannerUi.Card((unfolded ? "▾ " : "▸ ") + planName(plan, i), start + " → " + plan.goal
+                + " · " + plan.steps.size() + (plan.steps.size() == 1 ? " milestone" : " milestones"),
+                "lvl " + level + " · " + (int) Math.floor(done * 100) + "%");
+            card.right.setForeground(Color.WHITE);
+            card.corner.setText(tracked ? "In tracker" : "");
+            card.corner.setForeground(PlannerUi.READY);
             card.noIcon();
+            card.bar(new PlannerUi.Bar(done, done >= 1 ? PlannerUi.READY : PlannerUi.GROWING));
             if (isOpen) {
                 card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, SUGGESTED));
             } else {
@@ -1425,11 +1441,22 @@ final class PlannerCalculatorView {
                     redraw.run();
                 }
             }));
-            list.add(PlannerUi.spaced(card.interactive(isOpen ? null : () -> openPlan(shown, index), menu, "<html><b>"
+            // A click unfolds it (opening it) or folds it away
+            Runnable click = isOpen ? () -> {
+                calc.setPlanExpanded(!expanded);
+                redraw.run();
+            } : () -> {
+                calc.setPlanExpanded(true);
+                openPlan(shown, index);
+            };
+            list.add(PlannerUi.spaced(card.interactive(click, menu, "<html><b>"
                 + PlannerUi.esc(planName(plan, i)) + "</b>: level " + start + " to " + plan.goal + ", " + plan.steps.size()
-                + (plan.steps.size() == 1 ? " milestone" : " milestones") + (isOpen ? " (open: shown below)"
-                : "<br>Click to open it") + (tracked ? "<br>It's the plan the tracker follows" : "")
-                + "<br>Right-click to rename, duplicate or delete</html>")));
+                + (plan.steps.size() == 1 ? " milestone" : " milestones") + "<br>" + (int) Math.floor(done * 100)
+                + "% of the way (you're level " + level + ")" + (unfolded ? "<br>Click to fold it away" : "<br>Click to open it")
+                + (tracked ? "<br>It's the plan the tracker follows" : "") + "<br>Right-click to rename, duplicate or delete</html>")));
+            if (unfolded && openPlan != null) {
+                openPlan.run();
+            }
         }
         // Other skills' plans: a click goes to that skill's
         Map<Skill, Integer> others = calc.planCounts(skills());

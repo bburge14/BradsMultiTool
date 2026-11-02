@@ -292,6 +292,15 @@ class PlannerCalculator {
         }
     }
 
+    /** Whether the open plan is unfolded in the Plan view (it starts unfolded). */
+    boolean planExpanded() {
+        return !"false".equals(configManager.getConfiguration(GROUP, "plannerCalcPlanExpanded"));
+    }
+
+    void setPlanExpanded(boolean expanded) {
+        configManager.setConfiguration(GROUP, "plannerCalcPlanExpanded", expanded);
+    }
+
     /** Whether the plan bar at the foot of the Calculator is open (it starts open). */
     boolean dockOpen() {
         return !"false".equals(configManager.getConfiguration(GROUP, DOCK_KEY));
