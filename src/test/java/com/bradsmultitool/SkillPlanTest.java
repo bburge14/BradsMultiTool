@@ -88,6 +88,27 @@ public class SkillPlanTest {
     }
 
     @Test
+    public void severalNamedPlansInOneText() {
+        SkillPlans.Plan one = new SkillPlans.Plan(99);
+        one.name = "Darts to 99";
+        one.steps.add(new SkillPlans.Step("Mithril dart", 59, 67, null, 11.2));
+        SkillPlans.Plan two = new SkillPlans.Plan(80);
+        SkillPlans.Plan empty = new SkillPlans.Plan(70);
+        empty.name = "New one";
+        List<SkillPlans.Plan> back = SkillPlans.decodeAll(SkillPlans.encodeAll(java.util.Arrays.asList(one, two, empty)));
+        assertEquals(3, back.size());
+        assertEquals("Darts to 99", back.get(0).name);
+        assertEquals(67, back.get(0).steps.get(0).to);
+        assertNull(back.get(1).name);
+        assertEquals(80, back.get(1).goal);
+        // A plan with no milestones yet is kept
+        assertEquals("New one", back.get(2).name);
+        assertTrue(back.get(2).steps.isEmpty());
+        // The tracker's copy reads the same with the name in it
+        assertEquals(1, SkillPlans.decode(SkillPlans.encode(one)).steps.size());
+    }
+
+    @Test
     public void addingRemovingAndSwappingSteps() {
         SkillPlans.Plan plan = new SkillPlans.Plan(99);
         // From your level; the next starts where the last ends, or at its own level if that's later

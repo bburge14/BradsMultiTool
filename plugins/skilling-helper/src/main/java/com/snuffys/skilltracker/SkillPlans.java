@@ -16,7 +16,8 @@ import net.runelite.client.config.ConfigManager;
  * Skill plans as they're saved in the shared group ("bradsmultitool", RuneScape profile keys), like {@link SkillGoals}:
  * a final goal level and its milestones, each a step from one level to another with its own method ("1-20 Logs,
  * 20-50 Willow logs, 50-99 Teak logs"). The Planner's Calculator keeps the plan you're making under
- * {@code plan.<SKILL>}; Export to tracker copies it to {@code goalPlan.<SKILL>} (and sets the goal), which is what
+ * {@code plans.<SKILL>} (several, each with a name; {@code planOpen.<SKILL>} says which is open, and an older
+ * single {@code plan.<SKILL>} becomes the first); Export to tracker copies one to {@code goalPlan.<SKILL>} (and sets the goal), which is what
  * the Skilling Helper reads, so neither plugin needs the other's classes. Saved as plain text, one line each:
  * {@code goal\t99}, then {@code from\tto\taction\tmethod\txp} for each milestone (the action as the Calculator names
  * it, the training guide's method it matched or empty, the XP of one action with your bonuses).
@@ -24,8 +25,12 @@ import net.runelite.client.config.ConfigManager;
 final class SkillPlans {
 
     static final String GROUP = SkillGoals.GROUP;
-    /** The plan being made in the Planner. */
+    /** The single plan older versions kept (read once, as the first of the list). */
     static final String PLAN_KEY = "plan.";
+    /** The skill's saved plans. */
+    static final String PLANS_KEY = "plans.";
+    /** Which of them is open (its index). */
+    static final String OPEN_KEY = "planOpen.";
     /** The plan exported to the Skilling Helper's tracker. */
     static final String TRACKED_KEY = "goalPlan.";
 
@@ -60,6 +65,8 @@ final class SkillPlans {
     /** A final goal level and the milestones on the way, in order. */
     static final class Plan {
         int goal;
+        /** What you called it ("Darts to 99"), or null for an unnamed one. */
+        String name;
         final List<Step> steps = new ArrayList<>();
 
         Plan(int goal) {
@@ -68,6 +75,7 @@ final class SkillPlans {
 
         Plan copy() {
             Plan out = new Plan(goal);
+            out.name = name;
             for (Step step : steps) {
                 out.steps.add(step.copy());
             }
@@ -119,17 +127,44 @@ final class SkillPlans {
 
     // ---- Saved ----
 
-    /** The plan being made in the Planner for this skill, or null. */
-    static Plan plan(ConfigManager configManager, Skill skill) {
-        return decode(configManager.getRSProfileConfiguration(GROUP, PLAN_KEY + skill.name()));
+    /** The skill's saved plans, in the order made (an older single plan as the first). */
+    static List<Plan> plans(ConfigManager configManager, Skill skill) {
+        String text = configManager.getRSProfileConfiguration(GROUP, PLANS_KEY + skill.name());
+        if (text == null) {
+            List<Plan> out = new ArrayList<>();
+            Plan old = decode(configManager.getRSProfileConfiguration(GROUP, PLAN_KEY + skill.name()));
+            if (old != null) {
+                out.add(old);
+            }
+            return out;
+        }
+        return decodeAll(text);
     }
 
-    static void savePlan(ConfigManager configManager, Skill skill, Plan plan) {
-        if (plan == null) {
-            configManager.unsetRSProfileConfiguration(GROUP, PLAN_KEY + skill.name());
-        } else {
-            configManager.setRSProfileConfiguration(GROUP, PLAN_KEY + skill.name(), encode(plan));
+    /** Which plan is open (an index into {@link #plans}, kept in range; -1 when there are none). */
+    static int open(ConfigManager configManager, Skill skill, int count) {
+        if (count <= 0) {
+            return -1;
         }
+        try {
+            String saved = configManager.getRSProfileConfiguration(GROUP, OPEN_KEY + skill.name());
+            int index = saved == null ? 0 : Integer.parseInt(saved);
+            return Math.max(0, Math.min(count - 1, index));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** Saves the skill's plans and which is open (the older single plan's key goes: it's in the list now). */
+    static void savePlans(ConfigManager configManager, Skill skill, List<Plan> plans, int open) {
+        if (plans.isEmpty()) {
+            configManager.unsetRSProfileConfiguration(GROUP, PLANS_KEY + skill.name());
+            configManager.unsetRSProfileConfiguration(GROUP, OPEN_KEY + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(GROUP, PLANS_KEY + skill.name(), encodeAll(plans));
+            configManager.setRSProfileConfiguration(GROUP, OPEN_KEY + skill.name(), Math.max(0, Math.min(plans.size() - 1, open)));
+        }
+        configManager.unsetRSProfileConfiguration(GROUP, PLAN_KEY + skill.name());
     }
 
     // The tracker reads its plan each frame (the overlays): decoded once per saved text
@@ -189,6 +224,9 @@ final class SkillPlans {
 
     static String encode(Plan plan) {
         StringBuilder out = new StringBuilder("goal\t").append(plan.goal).append('\n');
+        if (plan.name != null && !plan.name.trim().isEmpty()) {
+            out.append("name\t").append(clean(plan.name.trim())).append('\n');
+        }
         for (Step step : plan.steps) {
             out.append(step.from).append('\t').append(step.to).append('\t').append(clean(step.action)).append('\t')
                 .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp).append('\n');
@@ -207,6 +245,8 @@ final class SkillPlans {
             try {
                 if (parts.length >= 2 && parts[0].equals("goal")) {
                     plan.goal = Integer.parseInt(parts[1].trim());
+                } else if (parts.length >= 2 && parts[0].equals("name")) {
+                    plan.name = parts[1].trim().isEmpty() ? null : parts[1].trim();
                 } else if (parts.length >= 3 && !parts[2].isEmpty()) {
                     int from = Integer.parseInt(parts[0].trim());
                     int to = Integer.parseInt(parts[1].trim());
@@ -223,7 +263,33 @@ final class SkillPlans {
         if (plan.goal <= 0) {
             plan.goal = plan.end();
         }
-        return plan.goal <= 0 && plan.steps.isEmpty() ? null : plan;
+        return plan.goal <= 0 && plan.steps.isEmpty() && plan.name == null ? null : plan;
+    }
+
+    // Several plans in one text: each plan's lines, then a line "=" (no plan's line is ever just that)
+    static String encodeAll(List<Plan> plans) {
+        StringBuilder out = new StringBuilder();
+        for (Plan plan : plans) {
+            out.append(encode(plan)).append("=\n");
+        }
+        return out.toString();
+    }
+
+    static List<Plan> decodeAll(String text) {
+        List<Plan> out = new ArrayList<>();
+        StringBuilder one = new StringBuilder();
+        for (String line : text.split("\n", -1)) {
+            if (line.equals("=")) {
+                Plan plan = decode(one.toString());
+                // (a new plan with no milestones yet still counts)
+                out.add(plan != null ? plan : new Plan(0));
+                one.setLength(0);
+            } else {
+                one.append(line).append('\n');
+            }
+        }
+        out.removeIf(plan -> plan.goal <= 0 && plan.steps.isEmpty() && plan.name == null);
+        return out;
     }
 
     private static String clean(String text) {

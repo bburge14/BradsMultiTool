@@ -755,7 +755,13 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   worth and what it sells for, and its net with the plus or minus badge. Two actions sharing materials split them as the total does (most XP first): "x 0 of 620 · used
   above". One above your level says what it needs ("needs lvl 80") and isn't counted. The bank counts
   once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
-- **Plan**: a plan for the skill: a final goal (level 99, or your target) and milestones on the way, each with its
+- **Plans**: the Plan view starts with the skill's saved plans: as many as you like, each with a name ("Darts to
+  99", "AFK teaks"), its levels and how many milestones, **In tracker** on the one exported. **+** makes a new one
+  (it asks for a name); click one to open it (the open one has a green edge: it's the one shown below, that **Add to
+  plan** adds to and the plan bar shows); right-click one to **Rename...**, **Duplicate** (to try a variation) or
+  **Delete...**. Under them, links to other skills' plans ("Other skills: Fletching (2)"). Plans made before there
+  could be several become the first, unnamed ("Plan 1").
+- **Plan**: the open plan: a final goal (level 99, or your target) and milestones on the way, each with its
   own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Start from suggestions** fills the milestones from
   the wiki's training guides from your level to the goal (the skill's AFK / Other focus if you picked it in the
   Skilling Helper, else the fastest), each guide method as the Calculator action it means at that level; or build it

@@ -139,7 +139,8 @@ class PlannerCalculator {
             if (event.getKey().equals(SkillGoals.BANK_KEY)) {
                 bankLoaded = false;
                 dirty = true;
-            } else if (event.getKey().startsWith("goal") || event.getKey().startsWith(SkillPlans.PLAN_KEY)) {
+            } else if (event.getKey().startsWith("goal") || event.getKey().startsWith(SkillPlans.PLAN_KEY)
+                || event.getKey().startsWith(SkillPlans.PLANS_KEY) || event.getKey().startsWith(SkillPlans.OPEN_KEY)) {
                 // A goal set (or plan exported or removed) in the Skilling Helper or here: the target follows it
                 view.update();
             }
@@ -394,15 +395,96 @@ class PlannerCalculator {
         return configManager.getRSProfileKey() != null;
     }
 
-    /** The skill's plan as made here, or null. */
-    SkillPlans.Plan plan(Skill skill) {
-        return canPlan() ? SkillPlans.plan(configManager, skill) : null;
+    /** The skill's saved plans (copies: change them through the methods here). */
+    List<SkillPlans.Plan> plans(Skill skill) {
+        return canPlan() ? SkillPlans.plans(configManager, skill) : new ArrayList<>();
     }
 
+    /** Which of {@link #plans} is open, or -1 when there are none. */
+    int openIndex(Skill skill) {
+        return canPlan() ? SkillPlans.open(configManager, skill, plans(skill).size()) : -1;
+    }
+
+    /** The open plan (the one being edited, that Add to plan adds to), or null when there are none. */
+    SkillPlans.Plan plan(Skill skill) {
+        List<SkillPlans.Plan> plans = plans(skill);
+        int open = canPlan() ? SkillPlans.open(configManager, skill, plans.size()) : -1;
+        return open < 0 ? null : plans.get(open);
+    }
+
+    /** Saves the open plan (a new one when there are none); null deletes it, opening the one before it. */
     void savePlan(Skill skill, SkillPlans.Plan plan) {
-        if (canPlan()) {
-            SkillPlans.savePlan(configManager, skill, plan == null || plan.steps.isEmpty() && plan.goal <= 0 ? null : plan);
+        if (!canPlan()) {
+            return;
         }
+        List<SkillPlans.Plan> plans = plans(skill);
+        int open = SkillPlans.open(configManager, skill, plans.size());
+        if (plan == null) {
+            if (open >= 0) {
+                plans.remove(open);
+            }
+            SkillPlans.savePlans(configManager, skill, plans, Math.max(0, open - 1));
+        } else if (open < 0) {
+            plans.add(plan);
+            SkillPlans.savePlans(configManager, skill, plans, 0);
+        } else {
+            plans.set(open, plan);
+            SkillPlans.savePlans(configManager, skill, plans, open);
+        }
+    }
+
+    /** Adds a plan and opens it. */
+    void newPlan(Skill skill, SkillPlans.Plan plan) {
+        if (canPlan()) {
+            List<SkillPlans.Plan> plans = plans(skill);
+            plans.add(plan);
+            SkillPlans.savePlans(configManager, skill, plans, plans.size() - 1);
+        }
+    }
+
+    /** Opens one of the saved plans. */
+    void openPlan(Skill skill, int index) {
+        if (canPlan()) {
+            SkillPlans.savePlans(configManager, skill, plans(skill), index);
+        }
+    }
+
+    /** Deletes one of the saved plans (the open one stays open, or the one before it if it was this). */
+    void deletePlan(Skill skill, int index) {
+        if (!canPlan()) {
+            return;
+        }
+        List<SkillPlans.Plan> plans = plans(skill);
+        if (index < 0 || index >= plans.size()) {
+            return;
+        }
+        int open = SkillPlans.open(configManager, skill, plans.size());
+        plans.remove(index);
+        SkillPlans.savePlans(configManager, skill, plans, open > index ? open - 1 : open == index ? Math.max(0, index - 1) : open);
+    }
+
+    /** Replaces one of the saved plans (renamed), keeping which is open. */
+    void replacePlan(Skill skill, int index, SkillPlans.Plan plan) {
+        if (!canPlan()) {
+            return;
+        }
+        List<SkillPlans.Plan> plans = plans(skill);
+        if (index >= 0 && index < plans.size()) {
+            plans.set(index, plan);
+            SkillPlans.savePlans(configManager, skill, plans, SkillPlans.open(configManager, skill, plans.size()));
+        }
+    }
+
+    /** The skills with saved plans (for the list of other skills' plans), and how many each has. */
+    Map<Skill, Integer> planCounts(List<Skill> skills) {
+        Map<Skill, Integer> out = new java.util.LinkedHashMap<>();
+        for (Skill skill : skills) {
+            int count = plans(skill).size();
+            if (count > 0) {
+                out.put(skill, count);
+            }
+        }
+        return out;
     }
 
     /** The plan exported to the tracker for this skill, or null. */

@@ -350,7 +350,12 @@ public class PlannerPreview {
             plan.steps.add(new SkillPlans.Step("Yew logs", 65, 75, null, 175));
             plan.steps.add(new SkillPlans.Step("Magic logs", 75, 90, null, 250));
             plan.steps.add(new SkillPlans.Step("Redwood logs", 90, 99, null, 380));
-            SkillPlans.savePlan(configManager, Skill.WOODCUTTING, plan);
+            plan.name = "Redwoods to 99";
+            // A second Woodcutting plan, not exported
+            SkillPlans.Plan afk = new SkillPlans.Plan(90);
+            afk.name = "AFK teaks";
+            afk.steps.add(new SkillPlans.Step("Teak logs", 35, 90, "Teak trees", 85));
+            SkillPlans.savePlans(configManager, Skill.WOODCUTTING, java.util.Arrays.asList(plan, afk), 0);
             SkillPlans.export(configManager, Skill.WOODCUTTING, plan, 302_288);
             // A Cooking plan (not exported): costs and earnings
             SkillPlans.Plan cooking = new SkillPlans.Plan(90);
@@ -359,7 +364,7 @@ public class PlannerPreview {
             cooking.steps.add(new SkillPlans.Step("Manta ray", 91, 92, null, 216.3));
             cooking.steps.get(2).from = 85;
             cooking.steps.get(2).to = 90;
-            SkillPlans.savePlan(configManager, Skill.COOKING, cooking);
+            SkillPlans.savePlans(configManager, Skill.COOKING, java.util.Collections.singletonList(cooking), 0);
         }
 
         private void patch(String key, String title, String crop, String state, long grownAt) {
