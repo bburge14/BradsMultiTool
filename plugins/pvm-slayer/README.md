@@ -11,6 +11,10 @@ PvM HUD with loot per hour, monster hover card with weaknesses and max hits, buf
 - **Slayer card**: task, kills left and kill rate, where to go, points and streak with milestone warnings, supplies used, kill goals; task monster outlines and finish-off markers
 
 
+## Screenshots
+
+![Slayer card with and without a task](screenshots/01-slayer-card-with-and-without-a-task.png)
+
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for

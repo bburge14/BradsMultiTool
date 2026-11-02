@@ -55,6 +55,15 @@ Everything in Snuffy's six separate plugins, in one plugin:
 - **Clue drops** from monsters and skilling
 
 
+## Screenshots
+
+![Slayer card with and without a task](screenshots/pvm-01-slayer-card-with-and-without-a-task.png)
+![Dailies and weeklies](screenshots/planner-01-dailies-and-weeklies.png)
+![Farming and your timers](screenshots/planner-02-farming-and-your-timers.png)
+![Drops for each monster](screenshots/planner-03-drops-for-each-monster.png)
+![Calculator banked XP](screenshots/planner-04-calculator-banked-XP.png)
+![Calculator skill plans](screenshots/planner-05-calculator-skill-plans.png)
+
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for

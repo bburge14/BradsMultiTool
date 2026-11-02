@@ -173,6 +173,15 @@ class PlannerTimers {
 
     /** The sound a timer plays (its own, else the Ready Sound setting). */
     PlannerConfig.TimerSound soundOf(Timer timer) {
+        // (no sound player in the offline preview: the setting's, or the timer's own by name)
+        if (sound == null) {
+            for (PlannerConfig.TimerSound pick : PlannerConfig.TimerSound.values()) {
+                if (pick.name().equals(timer.sound)) {
+                    return pick;
+                }
+            }
+            return config.timerSound();
+        }
         return sound.sound(timer.sound);
     }
 

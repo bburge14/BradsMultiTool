@@ -95,6 +95,11 @@ classes, its settings and the Toolbelt's section) is left out of every `plugins/
 those blocks declare (from the generated `*ConfigDefaults`) and the words about it in descriptions (`DEV_ONLY_TEXT`
 in `split_plugins.py`). Builds from `src/` (the launcher) keep it. The same script ships only `PUBLISHED_VOICES`.
 
+Screenshots for the Plugin Hub pages: PNGs in `assets/screenshots/<plugin id>/` (planner, pvm, skilltracker, gemcrab,
+tickcounter, voices) go into that plugin's README (the Toolbelt's shows them all); the file name is the caption and its
+number the order ("01-dailies-and-weeklies.png"). The Planner's and the Slayer card's come from the previews
+(`plannerPreview`, `calculatorPreview`, `slayerPreview`); the rest are taken in game.
+
 Rules that keep the split working:
 - A separate plugin has every feature its part has in the Toolbelt: nothing it shows may depend on another
   plugin running. When two parts have the same thing (potion buffs and their alerts on the PvM HUD and the crab
