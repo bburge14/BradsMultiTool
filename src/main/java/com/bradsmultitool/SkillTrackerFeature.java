@@ -33,6 +33,7 @@ class SkillTrackerFeature {
     @Inject private BradsMultiToolArenaMinimapOverlay arenaMinimapOverlay;
     @Inject private SkillingAlerts skillingAlerts;
     @Inject private ForestryAlerts forestryAlerts;
+    @Inject private MotherlodeSack motherlodeSack;
     @Inject private ResourceTimers resourceTimers;
     @Inject private BirdhouseTracker birdhouseTracker;
     @Inject private OtherTimerPlugins otherTimerPlugins;
@@ -112,7 +113,7 @@ class SkillTrackerFeature {
         lifecycle.load(trainingData, trainingData::load);
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(moneyData, moneyData::load);
-        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, arenaRoute, obstacleReps, skillingAlerts, forestryAlerts,
+        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, arenaRoute, obstacleReps, skillingAlerts, forestryAlerts, motherlodeSack,
             resourceTimers, farmingData, birdhouseTracker, otherTimerPlugins, skillingOverlay, trainingOverlay);
         otherTimerPlugins.refresh();
         lifecycle.overlay(skillingOverlay, resourceTimerOverlay, agilityOverlay, arenaOverlay, arenaMinimapOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay);

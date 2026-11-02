@@ -63,6 +63,7 @@ public class VoiceAlertService {
         ARENA_PILLAR_MOVING("arena_pillar_moving", "The pillar is about to move."),
         RUN_ENERGY_LOW("run_energy_low", "Your run energy is low."),
         FORESTRY_EVENT("forestry_event", "A forestry event has started."),
+        SACK_FULL("sack_full", "The sack is full. Empty it before mining more."),
         BIRD_NEST("bird_nest", "A bird's nest has fallen."),
         BIRDHOUSES_READY("birdhouses_ready", "Your bird houses are ready."),
         BATCH_COMPLETE("batch_complete", "Batch complete."),
@@ -159,6 +160,7 @@ public class VoiceAlertService {
                 case "arena_pillar_moving":
                 case "run_energy_low":
                 case "forestry_event":
+                case "sack_full":
                 case "bird_nest":
                 case "birdhouses_ready":
                 case "batch_complete":

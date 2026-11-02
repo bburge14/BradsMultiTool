@@ -39,6 +39,8 @@ final class SkillTrackerConfigDefaults {
         defaults.store("miningTimers", config.showMiningTimer());
         defaults.store("voiceRockDepletedEach", config.voiceRockDepletedEach());
         defaults.store("chatRockDepleted", config.chatRockDepleted());
+        defaults.store("voiceSackFull", config.voiceSackFull());
+        defaults.store("chatSackFull", config.chatSackFull());
         defaults.store("fishingSpotTimers", config.showFishingSpotTimer());
         defaults.store("fishingMarkNewest", config.fishingNewestSpot());
         defaults.store("fishingActiveColor", config.fishingActiveColor());

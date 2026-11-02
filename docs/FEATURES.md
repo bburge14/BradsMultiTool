@@ -267,6 +267,7 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 | Tree fallen / rock depleted / fishing spot moved | Your resource is gone ("The tree has fallen."); not for level 1 trees and rocks, which go after one log or ore | Skilling Alerts > Resource Gone |
 | Inventory full | Your inventory fills while skilling | Skilling Alerts > Inventory Full |
 | Forestry event | An event starts near you while you're chopping (Rising Roots, Struggling Sapling, Flowering Tree, Leprechaun, Poachers, Pheasant Control, Bee Hive, Enchantment Ritual, Friendly Ent; chat names it). RuneLite's Woodcutting plugin outlines what each event needs | Woodcutting > Voice/Chat: Forestry Event |
+| Motherlode sack full | The pay-dirt you carry fills the sack (what's in it plus yours reaches 108, or 189 upgraded): empty it before mining more. RuneLite's Motherlode plugin turns the sack numbers red at the same point | Mining > Voice/Chat: Motherlode Sack Full |
 | Bird nest | A bird's nest falls out of the tree (chat says when it's a clue nest) | Woodcutting > Voice/Chat: Bird Nest |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |

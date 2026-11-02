@@ -458,6 +458,28 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceSackFull",
+        name = "Voice: Motherlode Sack Full",
+        description = "<div width='300'>In the Motherlode Mine, when the pay-dirt you carry fills the sack, so you empty it before mining more (turning it on plays a preview)",
+        section = miningSection,
+        position = 3
+    )
+    default boolean voiceSackFull() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSackFull",
+        name = "Chat: Motherlode Sack Full",
+        description = "<div width='300'>Chat message when the pay-dirt you carry fills the Motherlode sack",
+        section = miningSection,
+        position = 4
+    )
+    default boolean chatSackFull() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Fishing",
         description = "Fishing spot timers and alerts",

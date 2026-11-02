@@ -34,6 +34,7 @@ enum AlertType {
     ARENA_PILLAR("ArenaPillar", VoiceAlertService.VoiceLine.ARENA_PILLAR_MOVING),
     RUN_ENERGY("RunEnergy", VoiceAlertService.VoiceLine.RUN_ENERGY_LOW),
     FORESTRY_EVENT("ForestryEvent", VoiceAlertService.VoiceLine.FORESTRY_EVENT),
+    SACK_FULL("SackFull", VoiceAlertService.VoiceLine.SACK_FULL),
     BIRD_NEST("BirdNest", VoiceAlertService.VoiceLine.BIRD_NEST),
     BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
     BATCH_COMPLETE("BatchComplete", VoiceAlertService.VoiceLine.BATCH_COMPLETE),
@@ -92,6 +93,7 @@ enum AlertType {
             case ARENA_PILLAR_MOVING: return ARENA_PILLAR;
             case RUN_ENERGY_LOW: return RUN_ENERGY;
             case FORESTRY_EVENT: return FORESTRY_EVENT;
+            case SACK_FULL: return SACK_FULL;
             case BIRD_NEST: return BIRD_NEST;
             case BIRDHOUSES_READY: return BIRDHOUSES;
             case BATCH_COMPLETE: return BATCH_COMPLETE;
