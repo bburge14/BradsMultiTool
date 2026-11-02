@@ -105,7 +105,8 @@ fishing spot gets its tile outlined with a picture of what it gives, the outline
 | Agility | Course card (level, XP per lap, laps to your next level) and shortcut card (level); Brimhaven Arena obstacles coloured by your level with the quickest route to the tagged pillar |
 | Cooking | Range/fire card: each raw food you carry, what it cooks into, its level and XP, when it stops burning (with gauntlets if worn) and the XP for the lot |
 | Smithing | Anvil card: for each bar you carry, the best item you can make (most XP or most profit: Skilling Hover Cards > Best Choice By), how many, the XP (and profit at GE prices), and the next unlock. Furnace card: the bars your ores make, how many (coal included) and the XP |
-| Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish), sea monster card (HP, safe keel, bounty parts), current duck card (despawn timer); pies on shipwrecks showing how long until they sink |
+| Sailing | Charting spot card (task, what to do, level, XP, the riddle answer for mermaid dives), shipwreck card (level, XP, salvage, best hook for you), shoal card (level, depth, bait, fish), sea monster card (HP, safe keel, bounty parts), current duck card (despawn timer); pies on shipwrecks showing how long until they sink; boat health low and trim sails alerts |
+| Minigames | Wintertodt card (warmth, energy, points, roots/kindling) and alerts (round starting, brazier out, out of roots, the cold stopped you, warmth low); Tempoross card (energy, essence, storm, points, fish and their damage) and alerts (wave incoming, fire near you, double spot, vulnerable); Guardians of the Rift card (guardian's power, energy, the open altars coloured by your Runecraft level, portal) and alerts (game starting, portal opened with where) |
 | Production | "Batch complete" alert when a run of Cooking, Smithing, Crafting, Fletching or Herblore finishes |
 
 If you also run a dedicated timer plugin (Tree Despawn Timer, MLM Despawn Timer, Fishing Spot Tracker,
@@ -311,7 +312,8 @@ setting of it that clashes), every one of Snuffy's plugins shows a small yellow 
 boxes (top left of the game; hover it for the clashes and what they mean), and each plugin says its clashes in chat
 once a login. It's live: turn the clashing plugin or setting off and the icon goes within a few seconds. Don't want
 any of it? Turn off **About > Clash Warnings** in that plugin's settings. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
-minnows), Motherlode Mine (veins), Slayer (task highlight), Metronome and Idle Notifier.
+minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome and Idle Notifier, and the Tempoross,
+Guardians of the Rift Helper and Sailing plugins' notifications.
 
 
 All sections except General start collapsed.
@@ -341,7 +343,11 @@ All sections except General start collapsed.
   [Star AFK Timer](https://github.com/silly-build/star-afk-timer),
   [Salvaging AFK Timer](https://github.com/silly-build/salvaging-afk-timer) and
   [Fire Timer](https://github.com/autumn-smellegy/fire-timer).
-- Farming patch data, Hunter trap IDs, Agility courses and shortcuts are converted from RuneLite's own
-  plugins (BSD-2-Clause).
+- Farming patch data, Hunter trap IDs, Agility courses and shortcuts, and the Wintertodt messages are converted from
+  RuneLite's own plugins (BSD-2-Clause).
+- The minigame and Sailing alerts use what these Plugin Hub plugins (BSD-2-Clause) worked out:
+  [Tempoross](https://github.com/nmlynch94/runelite-external-plugins) (messages, ids, fish damage),
+  [Guardians of the Rift Helper](https://github.com/DatBear/Guardians-of-the-Rift-Helper) by DatBear (messages,
+  altar icons and levels) and [Sailing](https://github.com/LlemonDuck/sailing) by LlemonDuck (low boat HP).
 - Game information, Slayer master chatheads and task icons are from the [Old School RuneScape Wiki](https://oldschool.runescape.wiki).
 - Voices are generated with [Piper](https://github.com/rhasspy/piper) (see [VOICE_CREDITS.md](VOICE_CREDITS.md)).

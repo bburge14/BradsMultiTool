@@ -967,7 +967,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Sailing",
-        description = "Sailing timers",
+        description = "Sailing timers, hover cards and boat alerts",
         position = 50,
         closedByDefault = true
     )
@@ -995,6 +995,63 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "voiceBoatHealth",
+        name = "Voice: Boat Health Low",
+        description = "<div width='300'>On your boat, when its hitpoints drop below Boat Health Low At, once until it's repaired (turning it on plays a preview)",
+        section = sailingSection,
+        position = 2
+    )
+    default boolean voiceBoatHealth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatBoatHealth",
+        name = "Chat: Boat Health Low",
+        description = "Chat message when your boat's hitpoints are low",
+        section = sailingSection,
+        position = 3
+    )
+    default boolean chatBoatHealth() {
+        return true;
+    }
+
+    @Range(min = 1, max = 99)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "boatHealthPercent",
+        name = "Boat Health Low At",
+        description = "<div width='300'>Boat hitpoints (percent of its most) below which Boat Health Low warns you",
+        section = sailingSection,
+        position = 4
+    )
+    default int boatHealthPercent() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "voiceSailTrim",
+        name = "Voice: Trim Sails",
+        description = "<div width='300'>On your boat, when a gust opens the window to trim the sails for a burst of speed (turning it on plays a preview)",
+        section = sailingSection,
+        position = 5
+    )
+    default boolean voiceSailTrim() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatSailTrim",
+        name = "Chat: Trim Sails",
+        description = "Chat message when you can trim the sails",
+        section = sailingSection,
+        position = 6
+    )
+    default boolean chatSailTrim() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Smithing",
         description = "Anvil and furnace cards",
@@ -1011,6 +1068,302 @@ public interface SkillTrackerConfig extends CommonConfig {
         position = 1
     )
     default boolean showSmithingHover() {
+        return true;
+    }
+
+    @ConfigSection(
+        name = "Minigames",
+        description = "Wintertodt, Tempoross and Guardians of the Rift cards and alerts",
+        position = 52,
+        closedByDefault = true
+    )
+    String minigamesSection = "minigamesSection";
+
+    @ConfigItem(
+        keyName = "wintertodtCard",
+        name = "Wintertodt Card",
+        description = "<div width='300'>At the Wintertodt, a small card with your warmth, the Wintertodt's energy, your points this round, the roots and kindling you carry and when the next round starts",
+        section = minigamesSection,
+        position = 0
+    )
+    default boolean wintertodtCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtRound",
+        name = "Voice: Round Starting",
+        description = "<div width='300'>At the Wintertodt, five seconds before the next round starts (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 1
+    )
+    default boolean voiceWintertodtRound() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtRound",
+        name = "Chat: Round Starting",
+        description = "Chat message when the Wintertodt round is about to start",
+        section = minigamesSection,
+        position = 2
+    )
+    default boolean chatWintertodtRound() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtBrazier",
+        name = "Voice: Brazier Out / Broken",
+        description = "<div width='300'>At the Wintertodt, when the brazier you were using goes out or breaks (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 3
+    )
+    default boolean voiceWintertodtBrazier() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtBrazier",
+        name = "Chat: Brazier Out / Broken",
+        description = "Chat message when your Wintertodt brazier goes out or breaks",
+        section = minigamesSection,
+        position = 4
+    )
+    default boolean chatWintertodtBrazier() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtRoots",
+        name = "Voice: Out of Roots",
+        description = "<div width='300'>At the Wintertodt, when you run out of bruma roots while fletching or feeding the brazier (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 5
+    )
+    default boolean voiceWintertodtRoots() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtRoots",
+        name = "Chat: Out of Roots",
+        description = "Chat message when you run out of bruma roots",
+        section = minigamesSection,
+        position = 6
+    )
+    default boolean chatWintertodtRoots() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtHit",
+        name = "Voice: Cold Stopped You",
+        description = "<div width='300'>At the Wintertodt, when the cold or snowfall hits you and stops what you were doing: fletching, feeding, lighting or fixing; chopping carries on (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 7
+    )
+    default boolean voiceWintertodtHit() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtHit",
+        name = "Chat: Cold Stopped You",
+        description = "<div width='300'>Chat message when the cold or snowfall stops what you were doing at the Wintertodt",
+        section = minigamesSection,
+        position = 8
+    )
+    default boolean chatWintertodtHit() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceWintertodtWarmth",
+        name = "Voice: Warmth Low",
+        description = "<div width='300'>At the Wintertodt, when your warmth drops below Warmth Low At, so you eat or step back (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 9
+    )
+    default boolean voiceWintertodtWarmth() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatWintertodtWarmth",
+        name = "Chat: Warmth Low",
+        description = "Chat message when your Wintertodt warmth is low",
+        section = minigamesSection,
+        position = 10
+    )
+    default boolean chatWintertodtWarmth() {
+        return true;
+    }
+
+    @Range(min = 1, max = 99)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "wintertodtWarmthPercent",
+        name = "Warmth Low At",
+        description = "<div width='300'>Warmth (percent) below which Warmth Low warns you, and the card shows your warmth in red",
+        section = minigamesSection,
+        position = 11
+    )
+    default int wintertodtWarmthPercent() {
+        return 30;
+    }
+
+    @ConfigItem(
+        keyName = "temporossCard",
+        name = "Tempoross Card",
+        description = "<div width='300'>During Tempoross, a small card with its energy and essence, the storm, your points, the raw and cooked fish you carry and the damage they'd do",
+        section = minigamesSection,
+        position = 12
+    )
+    default boolean temporossCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTemporossWave",
+        name = "Voice: Wave Incoming",
+        description = "<div width='300'>During Tempoross, when a colossal wave is coming: tether yourself to a mast or totem (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 13
+    )
+    default boolean voiceTemporossWave() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTemporossWave",
+        name = "Chat: Wave Incoming",
+        description = "Chat message when a wave is coming at Tempoross",
+        section = minigamesSection,
+        position = 14
+    )
+    default boolean chatTemporossWave() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTemporossFire",
+        name = "Voice: Fire Near You",
+        description = "<div width='300'>During Tempoross, when lightning is about to start a fire within a few tiles of you (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 15
+    )
+    default boolean voiceTemporossFire() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTemporossFire",
+        name = "Chat: Fire Near You",
+        description = "<div width='300'>Chat message when a fire is about to start near you at Tempoross",
+        section = minigamesSection,
+        position = 16
+    )
+    default boolean chatTemporossFire() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTemporossDoubleSpot",
+        name = "Voice: Double Fishing Spot",
+        description = "<div width='300'>During Tempoross, when the double harpoonfish spot appears (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 17
+    )
+    default boolean voiceTemporossDoubleSpot() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTemporossDoubleSpot",
+        name = "Chat: Double Fishing Spot",
+        description = "<div width='300'>Chat message when the double fishing spot appears at Tempoross",
+        section = minigamesSection,
+        position = 18
+    )
+    default boolean chatTemporossDoubleSpot() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceTemporossVulnerable",
+        name = "Voice: Vulnerable",
+        description = "<div width='300'>During Tempoross, when its energy is gone and it can be attacked, starting the next phase (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 19
+    )
+    default boolean voiceTemporossVulnerable() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatTemporossVulnerable",
+        name = "Chat: Vulnerable",
+        description = "Chat message when Tempoross is vulnerable",
+        section = minigamesSection,
+        position = 20
+    )
+    default boolean chatTemporossVulnerable() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "riftCard",
+        name = "Guardians of the Rift Card",
+        description = "<div width='300'>In Guardians of the Rift, a small card with the Great Guardian's power, your energy, guardians built, the two altars open now with the Runecraft level each needs (red when yours is too low) and where the portal is",
+        section = minigamesSection,
+        position = 21
+    )
+    default boolean riftCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRiftStarting",
+        name = "Voice: Game Starting",
+        description = "<div width='300'>In Guardians of the Rift, ten seconds before the rift opens and the game starts (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 22
+    )
+    default boolean voiceRiftStarting() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRiftStarting",
+        name = "Chat: Game Starting",
+        description = "<div width='300'>Chat message when the Guardians of the Rift game is about to start",
+        section = minigamesSection,
+        position = 23
+    )
+    default boolean chatRiftStarting() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRiftPortal",
+        name = "Voice: Portal Opened",
+        description = "<div width='300'>In Guardians of the Rift, when the portal to the huge guardian remains opens, with where it is in chat; not while you're in the remains (turning it on plays a preview)",
+        section = minigamesSection,
+        position = 24
+    )
+    default boolean voiceRiftPortal() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRiftPortal",
+        name = "Chat: Portal Opened",
+        description = "Chat message when the Guardians of the Rift portal opens",
+        section = minigamesSection,
+        position = 25
+    )
+    default boolean chatRiftPortal() {
         return true;
     }
 

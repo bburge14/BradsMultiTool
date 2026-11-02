@@ -45,7 +45,7 @@ Tick what you want built.
 - [ ] **Unpotted reminder**: warn when attacking without a combat boost. PvM/Slayer.
 - [ ] **Wrong attack prayer alert**. PvM/Slayer.
 - [ ] **Run energy low/restored everywhere**, not only in Agility. Alerts.
-- [ ] **Minigame cards**: Wintertodt, Tempoross, Tithe Farm timers. Skilling.
+- [ ] **Minigame cards**: Wintertodt, Tempoross (done, with Guardians of the Rift and Sailing boat alerts), Tithe Farm timers (not yet). Skilling.
 
 ---
 

@@ -128,6 +128,20 @@ LINES = {
     "run_energy_low": "Your run energy is low.",
     "forestry_event": "A forestry event has started.",
     "sack_full": "The sack is full. Empty it before mining more.",
+    "wintertodt_round": "The Wintertodt round is about to start.",
+    "brazier_out": "Your brazier has gone out.",
+    "brazier_broken": "Your brazier is broken.",
+    "out_of_roots": "You're out of roots.",
+    "wintertodt_hit": "The cold stopped you. Start again.",
+    "warmth_low": "Your warmth is low.",
+    "tempoross_wave": "A wave is coming. Tether yourself.",
+    "tempoross_fire": "A fire is about to start near you.",
+    "tempoross_double_spot": "A double fishing spot has appeared.",
+    "tempoross_vulnerable": "Tempoross is vulnerable. Attack now.",
+    "rift_starting": "The rift opens in ten seconds.",
+    "rift_portal": "A portal has opened.",
+    "boat_health_low": "Your boat's health is low.",
+    "trim_sails": "Trim the sails now.",
     "bird_nest": "A bird's nest has fallen.",
     "farming_ready": "Your farming patches are ready.",
     "birdhouses_ready": "Your bird houses are ready.",
@@ -308,7 +322,8 @@ def compact_existing():
 # Which separate plugin each clip ships with: voices/<persona>/<plugin>/<clip>.wav, so each plugin's build
 # takes just its folder. Keep in step with VoiceAlertService.VoicePlugin.of()
 SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_moved", "coin_pouch_full",
-                  "arena_pillar_moving", "run_energy_low", "forestry_event", "sack_full", "bird_nest", "farming_ready", "birdhouses_ready", "batch_complete"}
+                  "arena_pillar_moving", "run_energy_low", "forestry_event", "sack_full",
+                  "wintertodt_round", "brazier_out", "brazier_broken", "out_of_roots", "wintertodt_hit", "warmth_low", "tempoross_wave", "tempoross_fire", "tempoross_double_spot", "tempoross_vulnerable", "rift_starting", "rift_portal", "boat_health_low", "trim_sails", "bird_nest", "farming_ready", "birdhouses_ready", "batch_complete"}
 
 
 def plugin_of(key):

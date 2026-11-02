@@ -5,7 +5,7 @@ configuration panel (the wrench icon) under **Snuffy's Toolbelt**; each section 
 section to open. In the Toolbelt, sections are named after their plugin and
 grouped in order: About, General, Idle, then **PvM:** (HUD, Buff Bar, Potion Buffs, Health, Prayer, Combat Alerts,
 Supply Alerts), **Slayer:** (Card, Monsters, Alerts), **GemCrab:** (Crab, Colours), **Skilling:** (Tracker, Goals,
-Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, and Other Skills for the rest), and
+Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, Other Skills for the rest, and Minigames), and
 **Tick:** (Counter, Boxes, Bar, Metronome, Click Timing). Each separate plugin has the same sections without the
 plugin's name, and the Skilling Helper gives every skill its own. All start collapsed except About and General.
 
@@ -26,6 +26,7 @@ plugin's name, and the Skilling Helper gives every skill its own. All start coll
 - [Tick counter and metronome](#tick-counter-and-metronome)
 - [Idle alerts](#idle-alerts)
 - [Agility](#agility)
+- [Minigames: Wintertodt, Tempoross, Guardians of the Rift](#minigames-wintertodt-tempoross-guardians-of-the-rift)
 - [Issues? button](#issues-button)
 
 ---
@@ -268,6 +269,8 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 | Inventory full | Your inventory fills while skilling | Skilling Alerts > Inventory Full |
 | Forestry event | An event starts near you while you're chopping (Rising Roots, Struggling Sapling, Flowering Tree, Leprechaun, Poachers, Pheasant Control, Bee Hive, Enchantment Ritual, Friendly Ent; chat names it). RuneLite's Woodcutting plugin outlines what each event needs | Woodcutting > Voice/Chat: Forestry Event |
 | Motherlode sack full | The pay-dirt you carry fills the sack (what's in it plus yours reaches 108, or 189 upgraded): empty it before mining more. RuneLite's Motherlode plugin turns the sack numbers red at the same point | Mining > Voice/Chat: Motherlode Sack Full |
+| Boat health low | On your own boat, its hitpoints drop below **Boat Health Low At** (30% of its most); once until it's repaired above that | Sailing > Voice/Chat: Boat Health Low |
+| Trim sails | On your own boat, a gust opens the window to trim the sails for a burst of speed (the game's buff bar times the same window) | Sailing > Voice/Chat: Trim Sails |
 | Bird nest | A bird's nest falls out of the tree (chat says when it's a clue nest) | Woodcutting > Voice/Chat: Bird Nest |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
 | Farming patches ready | Patches you've planted are grown (chat names them; once per crop). Uses each patch as you last saw it | Farming > Patches Ready Alert |
@@ -572,6 +575,36 @@ obstacles (Snuffy's colours leave those to it); with any of them on, Snuffy's cl
 **Settings (Agility):** Obstacle Hover, Course Card, Brimhaven Arena Card, Pillar Warning At, Voice/Chat: Pillar
 About to Move (both on), Arena Obstacle Colours, Arena Route, Arena Route on Minimap, Arena Route Readout, One Obstacle Training, Run Energy Alert Below,
 Voice/Chat: Run Energy Low.
+
+## Minigames: Wintertodt, Tempoross, Guardians of the Rift
+
+**What it does:** a small card (top left) and voice/chat alerts in each of these minigames, only while you're in it.
+Everything comes from the game's own boxes, chat and your inventory: information only, nothing is clicked, outlined,
+hidden or reordered for you.
+
+- **Wintertodt** (in its room): the card shows your **warmth** (red below Warmth Low At), the Wintertodt's
+  **energy**, your **points** this round (green from 500, a reward crate), the **roots / kindling** you carry, and
+  between rounds when the next one starts. Alerts: **Round Starting** (5 seconds before), **Brazier Out / Broken**
+  (your brazier goes out, or breaks and hits you), **Out of Roots** (you run out while fletching or feeding),
+  **Cold Stopped You** (the cold or snowfall hit you and stopped fletching, feeding, lighting or fixing; chopping
+  carries on, so it says nothing then), **Warmth Low** (below **Warmth Low At**, 30%; once until it's back 10 above).
+- **Tempoross** (while its box shows): the card shows its **energy** and **essence**, the **storm** (orange from
+  70%, red from 90%: the game is lost when it fills), your **points** (green from 2,000, a reward permit), the raw
+  and cooked fish you carry and the **damage** they'd do in the cannon (raw 10, cooked 15). Alerts: **Wave
+  Incoming** (tether to a mast or totem), **Fire Near You** (lightning about to strike within 6 tiles of you; at
+  most once every 20 seconds), **Double Fishing Spot**, **Vulnerable** (attack it; the next phase starts).
+- **Guardians of the Rift** (while its box shows): the card shows the Great Guardian's **power**, your elemental /
+  catalytic **energy**, guardians built, the **two altars open now** with the Runecraft level each needs (green you
+  can use it, red your level is too low; boosts count), and where the **portal** is while it's open. Alerts: **Game
+  Starting** (10 seconds before the rift opens), **Portal Opened** (chat says where, like "south west"; not while
+  you're in the huge guardian remains yourself).
+
+**Good to know:** RuneLite's own Wintertodt plugin can notify you of the same things, and the Tempoross and Guardians
+of the Rift Helper Plugin Hub plugins have their own notifications; with any of them on, Snuffy's clash warning says
+so. Those plugins also outline things (fires, totems, guardians) that these cards leave to them.
+**Settings (Minigames):** Wintertodt Card, Voice/Chat: Round Starting, Brazier Out / Broken, Out of Roots, Cold
+Stopped You, Warmth Low, Warmth Low At; Tempoross Card, Voice/Chat: Wave Incoming, Fire Near You, Double Fishing
+Spot, Vulnerable; Guardians of the Rift Card, Voice/Chat: Game Starting, Portal Opened (all on).
 
 ## Issues? button
 
