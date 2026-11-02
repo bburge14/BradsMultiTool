@@ -28,6 +28,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import tarfile
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -138,6 +139,35 @@ def display_name(path):
         return re.search(r"^displayName=(.+)$", f.read(), re.M).group(1)
 
 
+CHANGELOG = "CHANGELOG.md"
+
+
+def read_changelog(path):
+    """The plugin repository's CHANGELOG.md as it is (kept across pushes: it isn't in plugins/), or None."""
+    full = os.path.join(path, CHANGELOG)
+    if not os.path.isfile(full):
+        return None
+    with open(full, encoding="utf-8", newline="") as f:
+        return f.read()
+
+
+def write_changelog(path, text):
+    with open(os.path.join(path, CHANGELOG), "w", encoding="utf-8", newline="") as f:
+        f.write(text)
+
+
+def changelog_with(history, title, version, notes):
+    """The changelog with this version's entry at the top: "## 1.0.2 (2026-11-02)" and its changes."""
+    entry = "## %s (%s)\n\n%s\n" % (version, time.strftime("%Y-%m-%d"), "\n".join(notes))
+    header = "# %s changelog\n\nEach version's changes, newest first.\n\n" % title
+    old = history or ""
+    if old.startswith("# "):
+        # Keep what's under the header (the versions so far)
+        cut = old.find("\n## ")
+        old = old[cut + 1:] if cut >= 0 else ""
+    return header + entry + ("\n" + old if old else "")
+
+
 def changes_since(folder, last):
     """This repository's commit messages that changed plugins/<folder> since the last push (or the last 20)."""
     span = [last + "..HEAD"] if last and git("cat-file", "-t", last, check=False) == "commit" else ["-20"]
@@ -154,10 +184,13 @@ def push(folder, entry, dry_run, head, level):
     # The last push's source commit, from its message
     last = re.search(r"BradsMultiTool ([0-9a-f]{7,40})",
                      git("log", "-1", "--grep=From BradsMultiTool", "--format=%B", cwd=path, check=False) or "")
+    history = read_changelog(path)
     replace_contents(folder, path)
-    # Compare with the version it had, so a version number alone isn't a change
+    # Compare with the version and changelog it had, so neither alone is a change
     if old:
         write_version(path, old)
+    if history is not None:
+        write_changelog(path, history)
     git("add", "-A", cwd=path)
     if not git("status", "--porcelain", cwd=path):
         print("%-16s %s, no changes since the last push" % (folder, old))
@@ -168,6 +201,8 @@ def push(folder, entry, dry_run, head, level):
     changed = len(git("status", "--porcelain", cwd=path).splitlines())
     title = "%s %s" % (display_name(path), new)
     notes = changes_since(folder, last.group(1) if last else None) if old else ["- First release"]
+    write_changelog(path, changelog_with(history, display_name(path), new, notes))
+    git("add", "-A", cwd=path)
     message = "%s\n\nFrom BradsMultiTool %s.\n\nChanges:\n%s\n" % (title, head[:12], "\n".join(notes))
     git("commit", "--quiet", "-m", message, cwd=path)
     git("tag", "-a", "-f", "v" + new, "-m", title, cwd=path)

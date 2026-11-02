@@ -23,7 +23,9 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
   - **Push to repos** (`push`): checks this repository is clean, pushed and `plugins/` is up to date; copies each
     ticked plugin's folder, exactly as committed, into its repository. A plugin that changed gets its next version
     (patch by default; pick minor or major in the tab), written into its `build.gradle`, a commit named
-    "<plugin> <version>" listing what changed since its last push, and a `v<version>` tag. Unchanged plugins are
+    "<plugin> <version>" listing what changed since its last push, a `v<version>` tag, and a new entry at the top
+    of the repository's `CHANGELOG.md` ("## 1.0.3 (date)" and the same list: the titles of this repository's
+    commits that changed that plugin's folder). Unchanged plugins are
     left alone. You can push as often as you like: players don't get anything until you publish.
   - **Publish to RuneLite** (`hub`): writes each plugin's Plugin Hub entry (its repository and the commit it's at
     now) and puts them on a branch of your `plugin-hub` fork; the tab then shows the link to open the pull request.
