@@ -741,6 +741,10 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
 - Each milestone card is its own levels only (not added up). Under them, **Whole plan** adds them up: the XP to the
   goal, the time to it at the wiki's rates (TTG), the average XP an hour over it, the net gp per XP, and the materials,
   what it sells for and the net (badge). Hover it for all of it in words.
+- **Materials needed** (under Whole plan): everything the milestones still need, in full (each milestone's actions to
+  its end, in goes of its recipe, times its materials; where there are several recipes, the one you have the most
+  goes of), as "have / need": green when your bank and inventory have all of it, red when you're short (hover for how
+  many); tools say "have it" or "missing".
 - Darts, arrows and bolts are made 10 or 15 at a time: each action is one item, with its share of the materials.
 - A plan goes by your real XP (the game's): typing a level into Current to try it out changes Actions and Banked,
   but doesn't mark the plan's milestones done.

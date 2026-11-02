@@ -938,6 +938,75 @@ class PlannerCalculator {
         return true;
     }
 
+    /** A material (or tool) a plan needs: how many in all, and how many you have. */
+    static final class Need {
+        final String name;
+        long needed;
+        final int have;
+        final boolean tool;
+
+        Need(String name, long needed, int have, boolean tool) {
+            this.name = name;
+            this.needed = needed;
+            this.have = have;
+            this.tool = tool;
+        }
+
+        boolean enough() {
+            return have >= needed;
+        }
+    }
+
+    /**
+     * Everything the plan's milestones still need, added up: each milestone's actions to its end, in goes of its
+     * recipe (10 darts a go), times the recipe's materials; and the tools. For an action with several recipes (one per
+     * kind of feather) the one you have the most goes of. Gathering milestones need nothing. {@code owned}: lower-case
+     * names to how many you carry and bank.
+     */
+    static List<Need> planMaterials(Skill skill, List<StepRow> steps, RecipeData recipes, Map<String, Integer> owned) {
+        Map<String, Need> out = new java.util.LinkedHashMap<>();
+        for (StepRow s : steps) {
+            if (s.done || s.row == null || s.action == null || s.row.needed <= 0) {
+                continue;
+            }
+            RecipeData.Recipe best = null;
+            int bestGoes = -1;
+            for (RecipeData.Recipe recipe : recipesFor(skill, s.action, recipes)) {
+                int goes = recipe.makeable(owned);
+                if (goes > bestGoes) {
+                    best = recipe;
+                    bestGoes = goes;
+                }
+            }
+            if (best == null) {
+                continue;
+            }
+            int per = perMake(best, s.action);
+            long goes = (s.row.needed + per - 1) / per;
+            for (Map.Entry<String, Integer> material : best.materials.entrySet()) {
+                String key = material.getKey().toLowerCase(Locale.ROOT);
+                out.computeIfAbsent(key, k -> new Need(material.getKey(), 0, owned.getOrDefault(k, 0), false)).needed
+                    += goes * material.getValue();
+            }
+            for (String tool : best.tools) {
+                String key = "tool:" + tool.toLowerCase(Locale.ROOT);
+                out.computeIfAbsent(key, k -> new Need(tool, 1, ownsTool(owned, tool) ? 1 : 0, true));
+            }
+        }
+        return new ArrayList<>(out.values());
+    }
+
+    // A tool you have: any item named for it ("Hammer" in "Imcando hammer", "Knife")
+    private static boolean ownsTool(Map<String, Integer> owned, String tool) {
+        String t = tool.toLowerCase(Locale.ROOT);
+        for (Map.Entry<String, Integer> item : owned.entrySet()) {
+            if (item.getValue() > 0 && (item.getKey().equals(t) || item.getKey().endsWith(" " + t))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Puts a milestone in at its own levels: the ones it overlaps make room (cut short, cut off at the start, split in
      * two around it, or gone when it covers them). The step may already be in the plan (one being edited).

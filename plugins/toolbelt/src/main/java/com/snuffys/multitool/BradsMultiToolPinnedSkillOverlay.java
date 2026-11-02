@@ -105,7 +105,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
                 int toGo = Math.max(0, to - xp);
                 String when = toGo == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(toGo * 3600L / rate)
                     : BradsMultiToolPanel.shortNumber(toGo) + " left";
-                panelComponent.getChildren().add(bar(done, "Milestone: Lvl " + milestone.to,
+                panelComponent.getChildren().add(bar(done, "Step: Lvl " + milestone.to,
                     String.format("%.1f%%", Math.max(0, Math.min(1, done)) * 100), when, BradsMultiToolPanel.MILESTONE_FILL));
             }
             String suggestion = suggestion(skill, level);

@@ -873,7 +873,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             double progress = end > start ? (double) (xp - start) / (end - start) : 1;
             int left = Math.max(0, end - xp);
             String eta = left == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(left * 3600L / xpPerHour) : shortNumber(left) + " left";
-            milestoneBar.set(progress, "Milestone: Lvl " + step.to, String.format("%.1f%%", Math.max(0, Math.min(1, progress)) * 100), eta);
+            milestoneBar.set(progress, "Step: Lvl " + step.to, String.format("%.1f%%", Math.max(0, Math.min(1, progress)) * 100), eta);
             String tip = "<html>Your plan's milestone: level " + step.to + " with " + step.action + " (from " + step.from + ")"
                 + planTip(plugin.getSkillPlan(skill), level) + "</html>";
             if (!Objects.equals(milestoneBar.getToolTipText(), tip)) {
@@ -1120,9 +1120,15 @@ public class BradsMultiToolPanel extends PluginPanel {
 
             FontMetrics fm = g.getFontMetrics();
             int y = (h - fm.getHeight()) / 2 + fm.getAscent();
+            int leftEnd = 4 + fm.stringWidth(leftText);
+            int rightStart = w - 4 - fm.stringWidth(rightText);
             shadowed(g, leftText, 4, y);
-            shadowed(g, centreText, (w - fm.stringWidth(centreText)) / 2, y);
-            shadowed(g, rightText, w - 4 - fm.stringWidth(rightText), y);
+            // The middle text centred, moved over when it would run into the left (or dropped if there's no room)
+            int centreX = Math.max((w - fm.stringWidth(centreText)) / 2, leftEnd + 6);
+            if (centreX + fm.stringWidth(centreText) <= rightStart - 6) {
+                shadowed(g, centreText, centreX, y);
+            }
+            shadowed(g, rightText, rightStart, y);
         }
 
         private static void shadowed(Graphics g, String text, int x, int y) {

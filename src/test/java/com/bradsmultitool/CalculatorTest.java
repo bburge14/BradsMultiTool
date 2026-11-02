@@ -128,6 +128,29 @@ public class CalculatorTest {
     }
 
     @Test
+    public void planMaterialsInFull() {
+        // Mithril darts 59-67: every dart to 67, in tens: that many tips and feathers
+        SkillPlans.Plan plan = new SkillPlans.Plan(67);
+        plan.steps.add(new SkillPlans.Step("Mithril dart", 59, 67, null, 11.2));
+        CalculatorData.Calc fletching = DATA.calc(Skill.FLETCHING);
+        Map<String, Integer> owned = new HashMap<>();
+        owned.put("mithril dart tip", 5000);
+        owned.put("feather", 100_000);
+        List<PlannerCalculator.StepRow> steps = PlannerCalculator.stepRows(Skill.FLETCHING, fletching, Collections.emptyList(),
+            plan, Experience.getXpForLevel(59), RECIPES, TRAINING, n -> 0, id -> 0);
+        List<PlannerCalculator.Need> needs = PlannerCalculator.planMaterials(Skill.FLETCHING, steps, RECIPES, owned);
+        long darts = steps.get(0).row.needed;
+        long tens = (darts + 9) / 10 * 10;
+        PlannerCalculator.Need tips = needs.stream().filter(n -> n.name.equalsIgnoreCase("Mithril dart tip")).findFirst().orElse(null);
+        assertNotNull(tips);
+        assertEquals(tens, tips.needed);
+        assertFalse(tips.enough());
+        PlannerCalculator.Need feathers = needs.stream().filter(n -> n.name.equalsIgnoreCase("Feather")).findFirst().orElse(null);
+        assertNotNull(feathers);
+        assertTrue(feathers.enough());
+    }
+
+    @Test
     public void bankedLevel() {
         Map<String, Integer> have = new HashMap<>();
         have.put("raw lobster", 1000);

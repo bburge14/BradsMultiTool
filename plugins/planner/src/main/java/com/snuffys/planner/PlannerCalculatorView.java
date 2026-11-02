@@ -1326,6 +1326,7 @@ final class PlannerCalculatorView {
         if (totals.xp > 0) {
             list.add(PlannerUi.spaced(planSummary(steps, totals, level, endLevel)));
         }
+        fillMaterials(shown, steps);
         list.add(linkRow(PlannerUi.linkLabel("Start from suggestions", "Replace the milestones with the wiki's training "
                 + "guides' methods from your level to " + plan.goal, () -> suggest(shown, actions, on, plan.goal)),
             PlannerUi.linkLabel("Delete plan", "Delete this plan (the tracker keeps it if you exported it)", () -> {
@@ -1381,6 +1382,50 @@ final class PlannerCalculatorView {
                 .append("<br>").append(netTip(totals.cost, totals.earn));
         }
         return card.interactive(null, null, tip.append("</html>").toString());
+    }
+
+    // What the plan's milestones still need, in full, green when your bank and inventory have all of it, red when not
+    private void fillMaterials(Skill shown, List<PlannerCalculator.StepRow> steps) {
+        Map<String, Integer> owned = calc.owned();
+        List<PlannerCalculator.Need> needs = PlannerCalculator.planMaterials(shown, steps, recipes, owned);
+        if (needs.isEmpty()) {
+            return;
+        }
+        int short_ = 0;
+        for (PlannerCalculator.Need need : needs) {
+            if (!need.enough()) {
+                short_++;
+            }
+        }
+        list.add(PlannerUi.group("Materials needed", short_ == 0 ? "you have it all" : short_ + " short"));
+        JPanel box = new JPanel();
+        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+        box.setBackground(PlannerUi.CARD);
+        box.setBorder(new EmptyBorder(5, 7, 5, 7));
+        for (PlannerCalculator.Need need : needs) {
+            Color colour = need.enough() ? PlannerUi.READY : COSTS;
+            String amounts = need.tool ? (need.enough() ? "have it" : "missing")
+                : String.format("%,d / %,d", need.have, need.needed);
+            String tip = need.tool ? need.name + ": a tool the plan's methods need" + (need.enough() ? " (you have one)"
+                : " (not in your bank or inventory)")
+                : "<html>" + PlannerUi.esc(need.name) + ": the plan needs " + String.format("%,d", need.needed)
+                + ", you have " + String.format("%,d", need.have) + (need.enough() ? "" : "<br><font color='#e66e64'>"
+                + String.format("%,d", need.needed - need.have) + " short</font>") + "<br>(bank as last opened plus inventory)</html>";
+            JPanel row = new JPanel(new BorderLayout(6, 0));
+            row.setOpaque(false);
+            JLabel name = PlannerUi.label(need.name, Color.WHITE);
+            name.setMinimumSize(new Dimension(0, 0));
+            row.add(name, BorderLayout.CENTER);
+            row.add(PlannerUi.label(amounts, colour), BorderLayout.EAST);
+            row.setToolTipText(tip);
+            row.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+            row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+            box.add(row);
+        }
+        list.add(PlannerUi.spaced(box));
+        if (!calc.bankSeen()) {
+            list.add(PlannerUi.empty("Open your bank once so these count what's in it; until then it's your inventory."));
+        }
     }
 
     // ---- Saved plans ----

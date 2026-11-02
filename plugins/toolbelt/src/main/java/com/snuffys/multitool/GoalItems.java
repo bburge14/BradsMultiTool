@@ -348,9 +348,13 @@ class GoalItems {
             String target = plugin.getGoalTarget(skill);
             String item = GoalTarget.itemName(target);
             String recipe = GoalTarget.recipeName(target);
-            Predicate<RecipeData.Recipe> allowed = item == null ? r -> true
-                : r -> uses(r, item) && (recipe == null || r.name.equalsIgnoreCase(recipe));
             int level = client.getRealSkillLevel(skill);
+            // Following a skill plan: the milestone you're on says what to make (Mithril dart, not the best thing
+            // in your bank); your Track for goal pick still comes first
+            SkillPlans.Step step = item == null ? plugin.getPlanMilestone(skill, level) : null;
+            String stepItem = step != null && step.covers(level) ? step.action : null;
+            Predicate<RecipeData.Recipe> allowed = item != null ? r -> uses(r, item) && (recipe == null || r.name.equalsIgnoreCase(recipe))
+                : stepItem != null ? r -> r.name.equalsIgnoreCase(stepItem) : r -> true;
             if (bankSeen) {
                 banked.put(skill, recipes.bankedXp(skill, level, have, this::xp));
                 if (config.showMaterialsValue()) {
@@ -362,14 +366,16 @@ class GoalItems {
                 }
             }
             RecipeData.Recipe best = recipes.best(skill, level, have, score, allowed);
-            if (best == null && item != null) {
+            if (best == null && (item != null || stepItem != null)) {
                 best = recipes.best(skill, level, null, score, allowed);
             }
             if (best == null) {
                 continue;
             }
             suggestions.put(skill, best);
-            counts.put(skill, best.makeable(have));
+            // How many items: a go of a recipe can make several (10 darts), the milestone's XP is one of them
+            int per = step != null && step.xp > 0 && xp(best) / step.xp >= 1.5 ? (int) Math.round(xp(best) / step.xp) : 1;
+            counts.put(skill, best.makeable(have) * per);
             for (String material : best.materials.keySet()) {
                 highlighted.putIfAbsent(material.toLowerCase(), "Suggested for your " + skill.getName() + " goal: " + best.name);
             }
