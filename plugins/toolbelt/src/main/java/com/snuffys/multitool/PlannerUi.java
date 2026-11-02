@@ -134,17 +134,32 @@ final class PlannerUi {
         return heading(bold(title), 0, 20, summary, actions);
     }
 
+    /**
+     * A page's header with a back arrow before the title (a monster's own page in Drops): the title trims with "..."
+     * when long, so the summary and buttons keep their room.
+     */
+    static JPanel backHeader(String title, String backTip, Runnable back, JLabel summary, JComponent... actions) {
+        JPanel name = new JPanel(new BorderLayout(3, 0));
+        name.setOpaque(false);
+        IconButton arrow = new IconButton(new Glyph(Shape.BACK, 14, ColorScheme.LIGHT_GRAY_COLOR), backTip, back);
+        name.add(arrow, BorderLayout.WEST);
+        JLabel text = bold(title);
+        text.setMinimumSize(new Dimension(0, 0));
+        name.add(text, BorderLayout.CENTER);
+        return heading(name, 0, 20, summary, actions);
+    }
+
     /** A second header further down a tab ("Weeklies", "Notes"). */
     static JPanel section(String title, JLabel summary, JComponent... actions) {
         return heading(bold(title), 10, 20, summary, actions);
     }
 
     /** A small label over a group of cards ("Farming", "Recent"), with a muted count on the right. */
-    static JPanel group(String title, String summary) {
-        return heading(label(title, ColorScheme.LIGHT_GRAY_COLOR), 4, 0, new JLabel(summary));
+    static JPanel group(String title, String summary, JComponent... actions) {
+        return heading(label(title, ColorScheme.LIGHT_GRAY_COLOR), 4, 0, new JLabel(summary), actions);
     }
 
-    private static JPanel heading(JLabel name, int above, int least, JLabel summary, JComponent... actions) {
+    private static JPanel heading(JComponent name, int above, int least, JLabel summary, JComponent... actions) {
         JPanel row = new JPanel(new BorderLayout(6, 0));
         row.setBackground(BACKGROUND);
         row.setBorder(new EmptyBorder(above, 1, 5, 0));
@@ -182,6 +197,8 @@ final class PlannerUi {
         final JLabel title;
         final JLabel left;
         final JLabel right;
+        /** Beside the title, on the right (empty unless set). */
+        final JLabel corner;
         private boolean hovered;
         private boolean clickable;
 
@@ -194,6 +211,8 @@ final class PlannerUi {
             left = label(leftText, MUTED);
             right = label(rightText == null ? "" : rightText, MUTED);
             right.setHorizontalAlignment(SwingConstants.RIGHT);
+            corner = label("", MUTED);
+            corner.setHorizontalAlignment(SwingConstants.RIGHT);
             title.setMinimumSize(new Dimension(0, 0));
             left.setMinimumSize(new Dimension(0, 0));
             JPanel second = new JPanel(new BorderLayout(4, 0));
@@ -203,7 +222,11 @@ final class PlannerUi {
             JPanel info = new JPanel(new java.awt.GridLayout(2, 1));
             info.setOpaque(false);
             info.setBorder(new EmptyBorder(1, 0, 1, 0));
-            info.add(title);
+            JPanel first = new JPanel(new BorderLayout(4, 0));
+            first.setOpaque(false);
+            first.add(title, BorderLayout.CENTER);
+            first.add(corner, BorderLayout.EAST);
+            info.add(first);
             info.add(second);
             icon.setHorizontalAlignment(SwingConstants.CENTER);
             icon.setPreferredSize(new Dimension(ICON_W, ICON_H));
@@ -215,9 +238,10 @@ final class PlannerUi {
         /** One line of text only (no second line). */
         Card single() {
             JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
-            info.remove(1);
+            java.awt.Component first = info.getComponent(0);
+            info.removeAll();
             info.setLayout(new BorderLayout());
-            info.add(title, BorderLayout.CENTER);
+            info.add(first, BorderLayout.CENTER);
             return this;
         }
 
@@ -417,8 +441,17 @@ final class PlannerUi {
         }
     }
 
-    /** A text link ("Show hidden (2)"): muted, white under the mouse. */
+    /** A text link ("Show hidden (2)"): muted, white under the mouse, on its own line at the right. */
     static JComponent link(String text, String tooltip, Runnable action) {
+        JPanel row = new JPanel(new BorderLayout());
+        row.setBackground(BACKGROUND);
+        row.setBorder(new EmptyBorder(2, 0, 4, 2));
+        row.add(linkLabel(text, tooltip, action), BorderLayout.EAST);
+        return fullWidth(row);
+    }
+
+    /** The link's text alone, to put in a header. */
+    static JLabel linkLabel(String text, String tooltip, Runnable action) {
         JLabel label = label(text, MUTED);
         label.setToolTipText(tooltip);
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -440,11 +473,7 @@ final class PlannerUi {
                 }
             }
         });
-        JPanel row = new JPanel(new BorderLayout());
-        row.setBackground(BACKGROUND);
-        row.setBorder(new EmptyBorder(2, 0, 4, 2));
-        row.add(label, BorderLayout.EAST);
-        return fullWidth(row);
+        return label;
     }
 
     // ---- Layout helpers ----
@@ -546,7 +575,7 @@ final class PlannerUi {
 
     /** The drawn icons: the tabs', the header buttons' and the timer buttons'. */
     enum Shape {
-        PLUS, PLAY, STOP, AGAIN, TRASH, CHECKLIST, CLOCK, SKULL, BAG, NOTE
+        PLUS, PLAY, STOP, AGAIN, TRASH, CHECKLIST, CLOCK, SKULL, BAG, NOTE, BACK
     }
 
     static final class Glyph implements Icon {
@@ -665,6 +694,14 @@ final class PlannerUi {
                     g.draw(new Line2D.Double(5.5, 8.2, 10.5, 8.2));
                     g.draw(new Line2D.Double(5.5, 10.9, 8.5, 10.9));
                     break;
+                case BACK: {
+                    Path2D chevron = new Path2D.Double();
+                    chevron.moveTo(10, 3.5);
+                    chevron.lineTo(5.5, 8);
+                    chevron.lineTo(10, 12.5);
+                    g.draw(chevron);
+                    break;
+                }
                 default:
                     break;
             }

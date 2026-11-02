@@ -18,12 +18,9 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -75,7 +72,6 @@ class PlannerPanel extends PluginPanel {
     private static final String GROUP = PlannerChores.GROUP;
     // Which tab was open (plain config, like the old fold switches)
     private static final String TAB_KEY = "plannerTab";
-    private static final int GRID_COLUMNS = 5;
     // A diseased patch's bar (a sicklier yellow than the growing orange)
     private static final Color DISEASED = new Color(190, 175, 50);
 
@@ -113,8 +109,6 @@ class PlannerPanel extends PluginPanel {
     private String tabsLayout;
     private Page selected;
 
-    // Sources whose items are folded away (clicked shut)
-    private final Set<String> closedSources = new HashSet<>();
     private final Map<String, Integer> cropItems = new HashMap<>();
     private final Timer clock = new Timer(1000, e -> refresh());
     private final Timer notesSave = new Timer(1000, e -> saveNotes());
@@ -249,6 +243,18 @@ class PlannerPanel extends PluginPanel {
         configManager.setConfiguration(GROUP, TAB_KEY, id);
         tabsLayout = null;
         refresh();
+    }
+
+    /** Package-private for the preview: opens the Drops tab on this monster's or chest's page (null: the list). */
+    void showDropSource(String source) {
+        showTab("drops");
+        ((DropsPage) dropPage).open(source);
+    }
+
+    /** Package-private for the preview: the open drops page lists this session's items. */
+    void showDropSessionItems() {
+        ((DropsPage) dropPage).sessionItems = true;
+        dropPage.refresh();
     }
 
     // ---- Pages ----
@@ -811,7 +817,17 @@ class PlannerPanel extends PluginPanel {
 
     // ---- Drops ----
 
+    /**
+     * A list of sources (monster or chest cards, most valuable first) over your recent drops; click one (or one of its
+     * recent drops) for its own page: its numbers, this session beside all time, its best drop and every item it has
+     * given with how often.
+     */
     private final class DropsPage extends Page {
+        // The monster or chest whose page is open (null: the list)
+        private String open;
+        // Its page lists this session's items rather than all time's
+        private boolean sessionItems;
+
         DropsPage() {
             super("drops", "Drops: loot by monster", PlannerUi.Shape.BAG);
         }
@@ -821,15 +837,29 @@ class PlannerPanel extends PluginPanel {
             return config.plannerShowDrops();
         }
 
+        void open(String source) {
+            open = source;
+            sessionItems = false;
+            refresh();
+            SwingUtilities.invokeLater(() -> scroll.getVerticalScrollBar().setValue(0));
+        }
+
         @Override
         Built build() {
+            long valuable = config.plannerValuableDrop();
+            Color highlight = config.plannerValuableColor();
+            if (open != null) {
+                DropTracker.Source all = drops.source(open);
+                if (all != null) {
+                    return sourcePage(open, all, drops.sessionSource(open), valuable, highlight);
+                }
+                open = null;
+            }
             List<Map.Entry<String, DropTracker.Source>> sources = drops.sources();
             List<DropTracker.Drop> recent = drops.recent();
             int shownRecent = Math.min(recent.size(), config.plannerRecentDrops());
-            long valuable = config.plannerValuableDrop();
-            Color highlight = config.plannerValuableColor();
             long total = 0;
-            StringBuilder key = new StringBuilder().append(closedSources).append(valuable).append(highlight).append(shownRecent).append('|');
+            StringBuilder key = new StringBuilder("list|").append(valuable).append(highlight).append(shownRecent).append('|');
             for (Map.Entry<String, DropTracker.Source> source : sources) {
                 total += source.getValue().value;
                 key.append(source.getKey()).append(source.getValue().count).append(source.getValue().value).append(';');
@@ -840,7 +870,7 @@ class PlannerPanel extends PluginPanel {
             }
             long sum = total;
             return new Built(key.toString(), () -> {
-                String summary = sources.isEmpty() ? "" : gp(sum) + " gp \u00b7 " + sources.size() + (sources.size() == 1 ? " source" : " sources");
+                String summary = sources.isEmpty() ? "" : gp(sum) + " gp · " + sources.size() + (sources.size() == 1 ? " source" : " sources");
                 JLabel label = tip(new JLabel(summary), "Grand Exchange value of everything tracked");
                 if (sources.isEmpty()) {
                     add(PlannerUi.header("Drops", label));
@@ -851,12 +881,12 @@ class PlannerPanel extends PluginPanel {
                     PlannerUi.MUTED), "Reset all drops", () -> {
                         if (JOptionPane.showConfirmDialog(this.column, "Clear every drop you've tracked on this account?",
                             "Reset all drops", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                            closedSources.clear();
+                            open = null;
                             drops.resetAll();
                         }
                     })));
                 for (Map.Entry<String, DropTracker.Source> entry : sources) {
-                    add(PlannerUi.fullWidth(sourceBox(entry.getKey(), entry.getValue(), valuable, highlight)));
+                    card(sourceCard(entry.getKey(), entry.getValue()));
                 }
                 if (shownRecent > 0) {
                     add(PlannerUi.group("Recent", ""));
@@ -866,121 +896,265 @@ class PlannerPanel extends PluginPanel {
                 }
             });
         }
-    }
 
-    // Like the Loot Tracker's boxes: a title bar (name, kills, value) over a grid of the items; click to fold
-    private JComponent sourceBox(String name, DropTracker.Source source, long valuable, Color highlight) {
-        boolean open = !closedSources.contains(name);
-        JPanel box = new JPanel(new BorderLayout(0, 1));
-        box.setBackground(PlannerUi.BACKGROUND);
-        box.setBorder(new EmptyBorder(0, 0, PlannerUi.GAP + 1, 0));
+        // One monster's or chest's own page
+        private Built sourcePage(String name, DropTracker.Source all, DropTracker.Source now, long valuable, Color highlight) {
+            DropTracker.Source shown = sessionItems ? now : all;
+            long minute = System.currentTimeMillis() / 60_000;
+            StringBuilder key = new StringBuilder("page|").append(name).append(valuable).append(highlight).append(sessionItems)
+                .append(minute).append('|').append(all.count).append(all.value).append(all.dry).append(all.items.size());
+            if (now != null) {
+                key.append('|').append(now.count).append(now.value);
+            }
+            return new Built(key.toString(), () -> {
+                boolean opened = all.opened(name);
+                String kills = opened ? "Opens" : "Kills";
+                // (no summary: the name gets the room, and the value is in the tiles)
+                add(PlannerUi.backHeader(name, "Back to all drops", () -> open(null), new JLabel(""),
+                    new PlannerUi.IconButton(new PlannerUi.Glyph(PlannerUi.Shape.TRASH, 14, PlannerUi.MUTED), "Reset " + name,
+                        () -> resetSource(name))));
 
-        JPanel title = new JPanel();
-        title.setLayout(new BoxLayout(title, BoxLayout.X_AXIS));
-        Color bar = ColorScheme.DARKER_GRAY_COLOR.darker();
-        title.setBackground(bar);
-        title.setBorder(new EmptyBorder(7, 7, 7, 7));
-        JLabel nameLabel = PlannerUi.label(name, open ? Color.WHITE : PlannerUi.MUTED);
-        nameLabel.setMinimumSize(new Dimension(1, nameLabel.getPreferredSize().height));
-        JLabel kills = PlannerUi.label("x " + String.format("%,d", source.count), open ? ColorScheme.LIGHT_GRAY_COLOR : PlannerUi.FAINT);
-        JLabel price = PlannerUi.label(gp(source.value) + " gp", open ? ColorScheme.LIGHT_GRAY_COLOR : PlannerUi.FAINT);
-        title.add(nameLabel);
-        title.add(Box.createRigidArea(new Dimension(5, 0)));
-        title.add(kills);
-        title.add(Box.createHorizontalGlue());
-        title.add(Box.createRigidArea(new Dimension(5, 0)));
-        title.add(price);
-        PlannerUi.tips(title, "<html>" + PlannerUi.esc(name) + ": " + String.format("%,d", source.count)
-            + (source.count == 1 ? " kill or open" : " kills or opens") + ", " + String.format("%,d", source.value) + " gp"
-            + (source.count > 1 ? " (" + gp(source.value / source.count) + " each)" : "")
-            + "<br><font color='#a0a0a0'>Click to " + (open ? "fold" : "show") + " the items; right-click to reset.</font></html>");
-        title.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-        MouseAdapter mouse = new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isLeftMouseButton(e)) {
-                    if (!closedSources.remove(name)) {
-                        closedSources.add(name);
-                    }
-                    refresh();
+                JPanel tiles = new JPanel(new GridLayout(2, 2, PlannerUi.GAP, PlannerUi.GAP));
+                tiles.setBackground(PlannerUi.BACKGROUND);
+                tiles.add(tile(kills, String.format("%,d", all.count), (opened ? "Times opened" : "Kills") + " counted"));
+                tiles.add(tile("Value", gp(all.value) + " gp", String.format("%,d", all.value) + " gp, Grand Exchange"));
+                tiles.add(tile(opened ? "Per open" : "Per kill", gp(all.count > 0 ? all.value / all.count : 0) + " gp",
+                    "Average Grand Exchange value " + (opened ? "an open" : "a kill")));
+                String dryTip = "<html>" + (opened ? "Opens" : "Kills") + " since a drop worth " + gp(valuable) + " or more (Valuable Drop From)"
+                    + (all.partlyRated() ? "<br><font color='#a0a0a0'>Counted from when the Planner began keeping it.</font>" : "")
+                    + "</html>";
+                String unit = opened ? all.dry == 1 ? " open" : " opens" : all.dry == 1 ? " kill" : " kills";
+                // (saved before this was kept and none since: not known)
+                boolean unknown = !all.valuableSeen && all.partlyRated();
+                tiles.add(tile(all.valuableSeen || unknown ? "Since valuable" : "No valuable yet",
+                    unknown ? "-" : String.format("%,d", all.dry) + unit, dryTip));
+                card(tiles);
+
+                if (all.best != null) {
+                    add(PlannerUi.group("Best drop", ""));
+                    card(bestCard(all.best, valuable, highlight));
                 }
-            }
 
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                title.setBackground(PlannerUi.CARD_HOVER);
-            }
+                add(PlannerUi.group("Session vs all time", ""));
+                card(compare(all, now, opened));
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                java.awt.Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), title);
-                if (!new java.awt.Rectangle(title.getSize()).contains(p)) {
-                    title.setBackground(bar);
+                List<Map.Entry<String, long[]>> items = shown == null ? new ArrayList<>() : new ArrayList<>(shown.items.entrySet());
+                items.sort((a, b) -> Long.compare(b.getValue()[DropTracker.VALUE], a.getValue()[DropTracker.VALUE]));
+                JLabel toggle = PlannerUi.linkLabel(sessionItems ? "Show all time" : "Show this session",
+                    sessionItems ? "List every item it has given" : "List what it has given this session", () -> {
+                        sessionItems = !sessionItems;
+                        refresh();
+                    });
+                add(PlannerUi.group(sessionItems ? "Items this session" : "Items", "", toggle));
+                if (items.isEmpty()) {
+                    add(PlannerUi.empty("Nothing from " + name + " yet this session."));
                 }
-            }
-        };
-        JPopupMenu menu = new JPopupMenu();
-        menu.add(item("Reset " + name, () -> {
-            closedSources.remove(name);
-            drops.reset(name);
-        }));
-        PlannerUi.everywhere(title, c -> {
-            c.addMouseListener(mouse);
-            if (c != title) {
-                ((JComponent) c).setInheritsPopupMenu(true);
-            }
-        });
-        title.setComponentPopupMenu(menu);
-        box.add(title, BorderLayout.NORTH);
-
-        if (open) {
-            List<Map.Entry<String, long[]>> items = new ArrayList<>(source.items.entrySet());
-            items.sort((a, b) -> Long.compare(b.getValue()[1], a.getValue()[1]));
-            int rows = (items.size() + GRID_COLUMNS - 1) / GRID_COLUMNS;
-            JPanel grid = new JPanel(new GridLayout(rows, GRID_COLUMNS, 1, 1));
-            grid.setBackground(PlannerUi.BACKGROUND);
-            for (int i = 0; i < rows * GRID_COLUMNS; i++) {
-                JPanel slot = new JPanel(new BorderLayout());
-                slot.setBackground(PlannerUi.CARD);
-                slot.setPreferredSize(new Dimension(PlannerUi.ICON_W, PlannerUi.ICON_H + 4));
-                if (i < items.size()) {
-                    Map.Entry<String, long[]> item = items.get(i);
-                    long quantity = item.getValue()[0];
-                    long value = item.getValue()[1];
-                    JLabel picture = new JLabel();
-                    picture.setHorizontalAlignment(SwingConstants.CENTER);
-                    image(picture, itemPicture(item.getKey(), quantity, true), 1f);
-                    slot.add(picture, BorderLayout.CENTER);
-                    if (value >= valuable) {
-                        slot.setBackground(blend(highlight, PlannerUi.CARD, 0.22));
-                        slot.setBorder(BorderFactory.createLineBorder(blend(highlight, PlannerUi.CARD, 0.7)));
-                    }
-                    PlannerUi.tips(slot, "<html>" + PlannerUi.esc(item.getKey()) + " x " + String.format("%,d", quantity)
-                        + "<br>GE: " + gp(value) + (quantity > 1 && value > 0 ? " (" + gp(value / quantity) + " ea)" : "") + "</html>");
+                for (Map.Entry<String, long[]> item : items) {
+                    card(itemRow(item.getKey(), item.getValue(), shown, opened, valuable, highlight));
                 }
-                grid.add(slot);
-            }
-            box.add(grid, BorderLayout.CENTER);
+            });
         }
-        return box;
+
+        private void resetSource(String name) {
+            if (JOptionPane.showConfirmDialog(this.column, "Clear everything tracked for " + name + "?", "Reset " + name,
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                open = null;
+                drops.reset(name);
+            }
+        }
+
+        // A monster or chest on the list: its picture, kills and value
+        private JComponent sourceCard(String name, DropTracker.Source source) {
+            boolean opened = source.opened(name);
+            String count = String.format("%,d", source.count) + (opened ? source.count == 1 ? " open" : " opens"
+                : source.count == 1 ? " kill" : " kills");
+            PlannerUi.Card card = new PlannerUi.Card(name, count + (source.count > 1 ? " · " + gp(source.value / source.count) + " ea" : ""),
+                gp(source.value) + " gp");
+            card.right.setForeground(Color.WHITE);
+            image(card.icon, sourcePicture(name), 1f);
+            JPopupMenu menu = new JPopupMenu();
+            menu.add(item("Open " + name, () -> open(name)));
+            menu.add(item("Reset " + name + "...", () -> resetSource(name)));
+            return card.interactive(() -> open(name), menu, "<html>" + PlannerUi.esc(name) + ": " + count + ", "
+                + String.format("%,d", source.value) + " gp" + (source.count > 1 ? " (" + gp(source.value / source.count)
+                + (opened ? " an open)" : " a kill)") : "") + "<br><font color='#a0a0a0'>Click for its drops.</font></html>");
+        }
+
+        private JComponent recentCard(DropTracker.Drop drop, long valuable, Color highlight) {
+            boolean big = drop.value >= valuable;
+            PlannerUi.Card card = new PlannerUi.Card(drop.item + (drop.quantity > 1 ? " x " + String.format("%,d", drop.quantity) : ""),
+                drop.source, gp(drop.value) + " gp");
+            if (big) {
+                card.title.setForeground(highlight);
+                card.right.setForeground(highlight);
+            }
+            image(card.icon, itemPicture(drop.item, drop.id, drop.quantity, false), 1f);
+            return card.interactive(() -> open(drop.source), null, "<html>" + PlannerUi.esc(drop.source) + ": "
+                + PlannerUi.esc(drop.item) + " x " + String.format("%,d", drop.quantity) + ", " + String.format("%,d", drop.value)
+                + " gp<br><font color='#a0a0a0'>Click for " + PlannerUi.esc(drop.source) + "'s drops.</font></html>");
+        }
     }
 
-    private JComponent recentCard(DropTracker.Drop drop, long valuable, Color highlight) {
-        boolean big = drop.value >= valuable;
-        PlannerUi.Card card = new PlannerUi.Card(drop.item + (drop.quantity > 1 ? " x " + String.format("%,d", drop.quantity) : ""),
-            drop.source, gp(drop.value) + " gp");
-        if (big) {
+    // Its single most valuable drop, with when
+    private JComponent bestCard(DropTracker.Drop best, long valuable, Color highlight) {
+        PlannerUi.Card card = new PlannerUi.Card(best.item + (best.quantity > 1 ? " x " + String.format("%,d", best.quantity) : ""),
+            ago(best.at, System.currentTimeMillis() / 1000), gp(best.value) + " gp");
+        if (best.value >= valuable) {
             card.title.setForeground(highlight);
             card.right.setForeground(highlight);
         }
-        image(card.icon, itemPicture(drop.item, drop.quantity, false), 1f);
-        return card.interactive(null, null, drop.source + ": " + drop.item + " x " + String.format("%,d", drop.quantity) + ", "
-            + String.format("%,d", drop.value) + " gp");
+        image(card.icon, itemPicture(best.item, best.id, best.quantity, false), 1f);
+        return card.interactive(null, null, best.item + " x " + String.format("%,d", best.quantity) + ": "
+            + String.format("%,d", best.value) + " gp, its most valuable single drop");
     }
 
-    // An item's picture by its name (with the quantity on it), or a plain tile with its initials
-    private BufferedImage itemPicture(String name, long quantity, boolean showQuantity) {
-        int id = "Coins".equalsIgnoreCase(name) ? ItemID.COINS : icons.itemId(name);
+    // This session beside all time: kills, value, per kill
+    private static JComponent compare(DropTracker.Source all, DropTracker.Source session, boolean opened) {
+        JPanel table = new JPanel(new GridLayout(4, 3, 4, 2));
+        table.setBackground(PlannerUi.CARD);
+        table.setBorder(new EmptyBorder(5, 8, 5, 8));
+        long[] now = session == null ? new long[2] : new long[]{session.count, session.value};
+        long[] ever = {all.count, all.value};
+        table.add(PlannerUi.label("", PlannerUi.MUTED));
+        table.add(right(PlannerUi.label("Session", PlannerUi.MUTED)));
+        table.add(right(PlannerUi.label("All time", PlannerUi.MUTED)));
+        String[] rows = {opened ? "Opens" : "Kills", "Value", opened ? "Per open" : "Per kill"};
+        for (int row = 0; row < rows.length; row++) {
+            table.add(PlannerUi.label(rows[row], ColorScheme.LIGHT_GRAY_COLOR));
+            for (long[] figures : new long[][]{now, ever}) {
+                String text = row == 0 ? String.format("%,d", figures[0]) : row == 1 ? gp(figures[1])
+                    : figures[0] > 0 ? gp(figures[1] / figures[0]) : "-";
+                table.add(right(PlannerUi.label(text, Color.WHITE)));
+            }
+        }
+        PlannerUi.tips(table, "<html>This session: since the client started (kept until you close it).<br>All time: saved "
+            + "with this account.</html>");
+        return table;
+    }
+
+    private static JLabel right(JLabel label) {
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        return label;
+    }
+
+    // One item a monster has given: its picture, name, how often (the drop rate seen), how many and its value
+    private JComponent itemRow(String name, long[] item, DropTracker.Source source, boolean opened, long valuable, Color highlight) {
+        long quantity = item[DropTracker.QUANTITY];
+        long value = item[DropTracker.VALUE];
+        long times = item[DropTracker.TIMES];
+        // Valuable as one drop of it is (or, in older saves, as one of it is)
+        long each = times > 0 ? value / times : quantity > 0 ? value / quantity : value;
+        boolean big = each >= valuable;
+        String rate = DropTracker.rateText(source, item, opened);
+        PlannerUi.Card card = new PlannerUi.Card(name, "x " + String.format("%,d", quantity)
+            + (times > 0 ? " · " + String.format("%,d", times) + (times == 1 ? " time" : " times") : ""), gp(value));
+        card.corner.setText(rate);
+        card.corner.setForeground(big ? highlight : ColorScheme.LIGHT_GRAY_COLOR);
+        if (big) {
+            card.title.setForeground(highlight);
+            card.right.setForeground(highlight);
+            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, highlight));
+        }
+        image(card.icon, itemPicture(name, (int) item[DropTracker.ID], quantity, false), 1f);
+        String kills = opened ? "opens" : "kills";
+        String how = times > 0 ? "<br>Dropped in " + String.format("%,d", times) + " of " + String.format("%,d", source.rated) + " " + kills
+            + " (" + rate + ")" + (source.partlyRated() ? "<br><font color='#a0a0a0'>Counted from when the Planner began keeping "
+            + "drop rates.</font>" : "")
+            : "<br><font color='#a0a0a0'>How often isn't known yet: counted before the Planner kept drop rates.</font>";
+        return card.interactive(null, null, "<html>" + PlannerUi.esc(name) + " x " + String.format("%,d", quantity) + how
+            + "<br>GE: " + String.format("%,d", value) + " gp" + (quantity > 1 && value > 0 ? " (" + gp(value / quantity) + " each)" : "")
+            + "</html>");
+    }
+
+    /** "just now", "5m ago", "3h ago", "2 days ago". */
+    static String ago(long at, long now) {
+        if (at <= 0) {
+            return "";
+        }
+        long seconds = Math.max(0, now - at);
+        if (seconds < 60) {
+            return "just now";
+        }
+        if (seconds < 3600) {
+            return seconds / 60 + "m ago";
+        }
+        if (seconds < PlannerChores.DAY) {
+            return seconds / 3600 + "h ago";
+        }
+        long days = seconds / PlannerChores.DAY;
+        return days == 1 ? "yesterday" : days + " days ago";
+    }
+
+    // A chest's or casket's own picture (when it's an item, like clue caskets), or a tile with a monster's initials
+    private BufferedImage sourcePicture(String name) {
+        int id = sourceItem(name);
+        id = id > 0 ? id : icons.itemId(name);
+        BufferedImage picture = id > 0 ? icons.item(id, 1, false) : null;
+        return picture != null ? picture : sourceTile(name);
+    }
+
+    /** The item that pictures a kind of loot that isn't a monster's (clue caskets by tier, key chests), or -1. */
+    static int sourceItem(String name) {
+        String lower = name == null ? "" : name.toLowerCase();
+        if (lower.contains("clue") || lower.contains("casket")) {
+            String[] tiers = {"beginner", "easy", "medium", "hard", "elite", "master"};
+            int[] caskets = {ItemID.TRAIL_REWARD_CASKET_BEGINNER, ItemID.TRAIL_REWARD_CASKET_EASY, ItemID.TRAIL_REWARD_CASKET_MEDIUM,
+                ItemID.TRAIL_REWARD_CASKET_HARD, ItemID.TRAIL_REWARD_CASKET_ELITE, ItemID.TRAIL_REWARD_CASKET_MASTER};
+            for (int i = 0; i < tiers.length; i++) {
+                if (lower.contains(tiers[i])) {
+                    return caskets[i];
+                }
+            }
+        }
+        if (lower.startsWith("crystal chest")) {
+            return ItemID.CRYSTAL_KEY;
+        }
+        if (lower.startsWith("muddy chest")) {
+            return ItemID.MUDDY_KEY;
+        }
+        return -1;
+    }
+
+    // A rounded tile with up to two initials ("AD" for Abyssal demon, "Vo" for Vorkath), tinted from the name
+    static BufferedImage sourceTile(String name) {
+        BufferedImage out = new BufferedImage(PlannerUi.ICON_W, PlannerUi.ICON_H, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = out.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+        float hue = ((name == null ? 0 : name.hashCode()) & 0xffff) / 65535f;
+        g.setColor(Color.getHSBColor(hue, 0.35f, 0.32f));
+        g.fillRoundRect(4, 2, 28, 28, 8, 8);
+        g.setColor(Color.getHSBColor(hue, 0.30f, 0.45f));
+        g.drawRoundRect(4, 2, 27, 27, 8, 8);
+        String text = sourceInitials(name);
+        g.setFont(FontManager.getRunescapeBoldFont());
+        FontMetrics metrics = g.getFontMetrics();
+        int x = 18 - metrics.stringWidth(text) / 2;
+        int y = 16 + (metrics.getAscent() - metrics.getDescent()) / 2;
+        g.setColor(new Color(0, 0, 0, 120));
+        g.drawString(text, x + 1, y + 1);
+        g.setColor(new Color(235, 235, 235));
+        g.drawString(text, x, y);
+        g.dispose();
+        return out;
+    }
+
+    /** "AD" for Abyssal demon, "Vo" for Vorkath, "?" for nothing. */
+    static String sourceInitials(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return "?";
+        }
+        String[] words = name.replaceAll("\\(.*?\\)", " ").trim().split("[\\s-]+");
+        if (words.length > 1 && !words[1].isEmpty() && Character.isLetterOrDigit(words[1].charAt(0))) {
+            return ("" + words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+        }
+        String word = words[0];
+        return word.length() == 1 ? word.toUpperCase() : Character.toUpperCase(word.charAt(0)) + word.substring(1, 2).toLowerCase();
+    }
+
+    // An item's picture (by its id, or by its name in older saves; with the quantity on it), or a tile with its initials
+    private BufferedImage itemPicture(String name, int itemId, long quantity, boolean showQuantity) {
+        int id = itemId > 0 ? itemId : "Coins".equalsIgnoreCase(name) ? ItemID.COINS : icons.itemId(name);
         int amount = (int) Math.min(Integer.MAX_VALUE, Math.max(1, quantity));
         BufferedImage picture = id > 0 ? icons.item(id, amount, showQuantity && amount > 1) : null;
         return picture != null ? picture : initials(name, showQuantity ? amount : 1);
@@ -1003,11 +1177,6 @@ class PlannerPanel extends PluginPanel {
         }
         g.dispose();
         return out;
-    }
-
-    private static Color blend(Color a, Color b, double amount) {
-        return new Color((int) (a.getRed() * amount + b.getRed() * (1 - amount)), (int) (a.getGreen() * amount + b.getGreen() * (1 - amount)),
-            (int) (a.getBlue() * amount + b.getBlue() * (1 - amount)));
     }
 
     // ---- Notes and to-do ----

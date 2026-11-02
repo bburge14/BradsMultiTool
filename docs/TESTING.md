@@ -286,9 +286,16 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       chat when it ends; still there (and running) after relogging; Edit... and Delete work.
 - [ ] SLAYER: task, kills left (of how many), Konar's area, points and streak, without the PvM/Slayer plugin; kept
       while logged out.
-- [ ] DROPS: kill a few monsters: each gets kills and a GE value, its box shows the items (click the box to fold it); Recent lists drops, those over
-      Valuable Drop From in Valuable Drop Colour. With RuneLite's Loot Tracker on, a clue casket or chest is counted
-      once (and a monster kill isn't counted twice); the clash note mentions the Loot Tracker. Reset one; Reset all.
+- [ ] DROPS: kill a few monsters: each gets a card (initials tile; a clue casket shows the casket) with kills, value per
+      kill and total, most valuable first; Recent lists drops, those over Valuable Drop From in Valuable Drop Colour. With
+      RuneLite's Loot Tracker on, a clue casket or chest is counted once (and a monster kill isn't counted twice); the
+      clash note mentions the Loot Tracker.
+- [ ] DROPS monster page: click a card (or a recent drop): back arrow, tiles (kills, value, per kill, since valuable),
+      Best drop, Session vs all time (session counts from the client start, all time survives a restart), Items with
+      "x 12 · 3 times", "1 in 4" (kills / times dropped; check against your kills) and value, valuable ones highlighted;
+      Show this session / Show all time. A drop worth Valuable Drop From resets "Since valuable" to 0. The bin asks, then
+      resets that monster only (and goes back); Reset all clears everything. Drops saved by an older version load:
+      their items show "?" until they drop again.
 - [ ] Notes: add a to-do (Enter or +; the field keeps focus), tick, edit, move up/down, delete, Clear ticked; notes kept after a restart and per
       account; typing in notes isn't interrupted by the list redrawing.
 - [ ] The Skilling Helper's sidebar no longer has the FARMING list; its farming patch and bird house hover cards

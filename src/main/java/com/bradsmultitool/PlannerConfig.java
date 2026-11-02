@@ -363,7 +363,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "plannerShowDrops",
         name = "Show Drops",
-        description = "<div width='300'>The DROPS list in the Planner tab: for each monster or chest, how many kills or opens, the Grand Exchange value and the items, and your recent drops",
+        description = "<div width='300'>The DROPS list in the Planner tab: each monster or chest with its kills or opens and Grand Exchange value, and your recent drops. Click one for its own page: every item it has given with the drop rate you've seen, its best drop, kills since a valuable drop, and this session beside all time",
         section = plannerDropsSection,
         position = 0
     )
@@ -386,7 +386,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "plannerValuableDrop",
         name = "Valuable Drop From",
-        description = "<div width='300'>Recent drops worth at least this much (Grand Exchange) show in Valuable Drop Colour",
+        description = "<div width='300'>Drops worth at least this much (Grand Exchange) show in Valuable Drop Colour, and a monster's page counts its kills since one",
         section = plannerDropsSection,
         position = 2
     )
@@ -397,7 +397,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "plannerValuableColor",
         name = "Valuable Drop Colour",
-        description = "The colour of valuable drops in the recent list",
+        description = "<div width='300'>The colour of valuable drops in the recent list and on a monster's page",
         section = plannerDropsSection,
         position = 3
     )
