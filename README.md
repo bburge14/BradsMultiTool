@@ -266,7 +266,9 @@ each can be hidden in the settings; everything is saved per account.
     Skilling Helper installed, **Export to tracker** makes its goal card follow the plan (one plan per skill at a
     time).
   - **Plan overlay** (without the Skilling Helper installed; its pinned skill card shows the plan otherwise): a
-    card on the game screen for the plan of the skill you're training (the one open in the Calculator): the
+    card on the game screen for the plan of the skill you're training (the one open in the Calculator), or the plan
+    you **pin** (the pin on its card in the Plan view, or right-click > Pin to screen; it stays up whatever you
+    train until you unpin it, there or by right-clicking the overlay): the
     milestone's bar with the XP left, its method, actions left, the next milestone, and your materials for it in
     green or red. **Plan Overlay** (Calculator settings) turns it off; **Compact Overlays** (General) keeps just the
     plan, the bar and the actions left.

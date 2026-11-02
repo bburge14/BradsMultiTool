@@ -56,6 +56,7 @@ class PlannerPlanOverlay extends OverlayPanel {
         this.training = training;
         setPosition(OverlayPosition.TOP_LEFT);
         panelComponent.setPreferredSize(new Dimension(190, 0));
+        addMenuEntry(net.runelite.api.MenuAction.RUNELITE_OVERLAY, "Unpin", "Plan", e -> calc.setPinnedPlanSkill(null));
     }
 
     @Override
@@ -64,7 +65,9 @@ class PlannerPlanOverlay extends OverlayPanel {
             || !calc.canPlan()) {
             return null;
         }
-        Skill skill = calc.lastTrained();
+        // A pinned plan stays up; otherwise the plan of the skill you're training
+        Skill pinned = calc.pinnedPlanSkill();
+        Skill skill = pinned != null ? pinned : calc.lastTrained();
         SkillPlans.Plan plan = skill == null ? null : calc.plan(skill);
         if (plan == null || plan.steps.isEmpty()) {
             return null;

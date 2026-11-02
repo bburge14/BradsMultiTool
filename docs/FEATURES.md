@@ -758,7 +758,9 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   but doesn't mark the plan's milestones done.
 - **Plan overlay** (only when the Skilling Helper isn't installed: its pinned skill card shows the plan then, so
   never in the Toolbelt): a card on the game screen (Alt + drag to move it) for the plan of the skill you last gained
-  XP in, the plan open in the Calculator for it: the title ("Fletching: Darts to 99"), a bar for the milestone
+  XP in, the plan open in the Calculator for it, or the plan you pinned (the pin on a plan's card in the Plan view,
+  or right-click it > Pin to screen: it opens that plan and keeps it on screen whatever you train; click the solid pin,
+  right-click > Unpin from screen, or right-click the overlay > Unpin to go back to following your training): the title ("Fletching: Darts to 99"), a bar for the milestone
   you're on ("Lvl 59 → 67", XP left), its method, actions left, the next milestone, and the materials this milestone
   still needs against what you carry and bank (green when you have it all, red when not; tools "have it"/"missing").
   Before a milestone starts (a gap) it says what's next and at what level; past them all, "Plan done". **Plan

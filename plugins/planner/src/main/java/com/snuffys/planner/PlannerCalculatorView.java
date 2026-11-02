@@ -784,7 +784,7 @@ final class PlannerCalculatorView {
             .append('|').append(calc.sort());
         key.append('|').append(calc.owned().hashCode());
         SkillPlans.Plan plan = calc.plan(shown);
-        key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen)
+        key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen).append(calc.pinnedPlanSkill())
             .append(calc.goalPick(shown))
             .append(calc.planCounts(skills()).keySet())
             .append('|').append(plan == null ? "" : SkillPlans.encode(plan)).append(calc.isTracked(shown, plan))
@@ -1574,9 +1574,36 @@ final class PlannerCalculatorView {
             } else {
                 card.title.setForeground(new Color(200, 200, 200));
             }
+            // Pin to the game screen (the plan overlay, which is only there without the Skilling Helper): solid on the
+            // pinned plan, faint on the others; pinning opens it
+            boolean pinned = isOpen && shown == calc.pinnedPlanSkill();
+            if (!calc.trackerInstalled()) {
+                card.east(new PlannerUi.IconButton(new PlannerUi.Glyph(PlannerUi.Shape.PIN, 13, pinned ? Color.WHITE
+                    : new Color(110, 110, 110)), pinned ? "Unpin it from the game screen" : "Pin it to the game screen "
+                    + "(shown even when you're training something else)", () -> {
+                        if (pinned) {
+                            calc.setPinnedPlanSkill(null);
+                        } else {
+                            calc.openPlan(shown, index);
+                            calc.setPinnedPlanSkill(shown);
+                        }
+                        redraw.run();
+                    }));
+            }
             JPopupMenu menu = new JPopupMenu();
             if (!isOpen) {
                 menu.add(menuItem("Open", () -> openPlan(shown, index)));
+            }
+            if (!calc.trackerInstalled()) {
+                menu.add(menuItem(pinned ? "Unpin from screen" : "Pin to screen", () -> {
+                    if (pinned) {
+                        calc.setPinnedPlanSkill(null);
+                    } else {
+                        calc.openPlan(shown, index);
+                        calc.setPinnedPlanSkill(shown);
+                    }
+                    redraw.run();
+                }));
             }
             menu.add(menuItem("Rename...", () -> renamePlan(shown, index, plan)));
             menu.add(menuItem("Duplicate", () -> {

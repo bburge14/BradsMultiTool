@@ -624,7 +624,7 @@ final class PlannerUi {
 
     /** The drawn icons: the tabs', the header buttons' and the timer buttons'. */
     enum Shape {
-        PLUS, PLAY, STOP, AGAIN, TRASH, CHECKLIST, CLOCK, SKULL, BAG, NOTE, BACK, CALCULATOR, SEARCH
+        PLUS, PLAY, STOP, AGAIN, TRASH, CHECKLIST, CLOCK, SKULL, BAG, NOTE, BACK, CALCULATOR, SEARCH, PIN
     }
 
     static final class Glyph implements Icon {
@@ -752,6 +752,13 @@ final class PlannerUi {
                         }
                     }
                     break;
+                case PIN: {
+                    // A push pin leaning left: its round head, the collar, and the needle
+                    g.fill(new Ellipse2D.Double(8, 2, 6, 6));
+                    g.draw(new Line2D.Double(6, 6.5, 10.5, 11));
+                    g.draw(new Line2D.Double(8, 9, 3, 14));
+                    break;
+                }
                 case SEARCH:
                     g.draw(new Ellipse2D.Double(2.5, 2.5, 8, 8));
                     g.draw(new Line2D.Double(9.4, 9.4, 13.5, 13.5));
