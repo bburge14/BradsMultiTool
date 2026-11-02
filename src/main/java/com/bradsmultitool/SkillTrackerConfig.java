@@ -18,7 +18,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Skilling Helper: the XP tracker in the sidebar (set goals with Set Goal; right-click a skill card for its Method, pin and goal options), skilling hover cards, resource timers and alerts. Clashes (said in chat while they're on): Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, RuneLite's Hunter and Mining plugins (our matching timers hide for them), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Skilling Helper: the XP tracker in the sidebar (set goals with Set Goal; right-click a skill card for its Method, pin and goal options), skilling hover cards, resource timers and alerts. Clashes (said in chat while they're on): Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, RuneLite's Hunter and Mining plugins (our matching timers hide for them), Hunter Rumours and Skills Progress (they show the same rumour and Skills tab bars), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -652,7 +652,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Hunter",
-        description = "Hunter creature info, trap and bird house timers",
+        description = "Hunter creature info, trap and bird house timers, Hunters' Rumours",
         position = 45,
         closedByDefault = true
     )
@@ -672,7 +672,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "trapTimers",
         name = "Trap Timers",
-        description = "<div width='300'>A timer on each trap you lay, showing how long until it collapses (green once something is caught) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
+        description = "<div width='300'>A timer on each trap you lay, showing how long until it collapses (green once something is caught; a full pie in Failed Trap Colour once it springs empty). Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = hunterSection,
         position = 1
     )
@@ -722,6 +722,51 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     default boolean chatBirdhouses() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "rumourCard",
+        name = "Rumour Card",
+        description = "<div width='300'>Your Hunters' Rumour in the tracker (and on the pinned Hunter skill): the creature, the guild hunter, catches so far out of the catch the rare part is guaranteed by (fewer in the guild hunter outfit), and where to find it. Read from the hunters' dialogue and the Quetzal whistle's Rumour message, so talk to your hunter or check the whistle once",
+        section = hunterSection,
+        position = 6
+    )
+    default boolean rumourCard() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceRumourComplete",
+        name = "Voice: Rumour Complete",
+        description = "<div width='300'>When your rumour creature's rare part drops (turning it on plays a preview)",
+        section = hunterSection,
+        position = 7
+    )
+    default boolean voiceRumourComplete() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatRumourComplete",
+        name = "Chat: Rumour Complete",
+        description = "<div width='300'>Chat message when your rumour creature's rare part drops, with how many you caught",
+        section = hunterSection,
+        position = 8
+    )
+    default boolean chatRumourComplete() {
+        return true;
+    }
+
+    @Alpha
+    @ConfigItem(
+        keyName = "failedTrapColor",
+        name = "Failed Trap Colour",
+        description = "<div width='300'>The colour of a trap's timer once it has sprung with nothing in it (it needs resetting), so it stands out from a trap running out",
+        section = hunterSection,
+        position = 9
+    )
+    default Color failedTrapColor() {
+        return new Color(190, 110, 255);
     }
 
     @ConfigSection(
@@ -1600,6 +1645,41 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     default boolean showBankedXp() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "skillsTabGoalBars",
+        name = "Skills Tab Goal Bars",
+        description = "<div width='300'>A thin gold bar along the bottom of each skill with a goal on the game's Skills tab, filling up as you get closer to the goal",
+        section = goalsSection,
+        position = 10
+    )
+    default boolean skillsTabGoalBars() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showTrackerItems",
+        name = "Show Items Gathered",
+        description = "<div width='300'>How many logs, fish and ore you've got and food you've cooked (and burnt) this session, and how many an hour, on the skill's card and the pinned skill. Counted from the game's chat messages",
+        section = trackerSection,
+        position = 13
+    )
+    default boolean showTrackerItems() {
+        return true;
+    }
+
+    @Range(max = 240)
+    @Units(Units.MINUTES)
+    @ConfigItem(
+        keyName = "keepSessionMinutes",
+        name = "Keep Session After Restart",
+        description = "<div width='300'>When you restart the client and log back in to the same account within this long of logging out (or of your last XP, if the client closed without logging out), the tracker carries on with that session's XP, rates and items instead of starting again (0: always start again)",
+        section = trackerSection,
+        position = 14
+    )
+    default int keepSessionMinutes() {
+        return 30;
     }
 
     @ConfigItem(

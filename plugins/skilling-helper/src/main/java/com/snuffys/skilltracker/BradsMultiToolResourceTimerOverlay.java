@@ -112,12 +112,17 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
             if (timer.kind == ResourceTimers.Kind.ROCK) {
                 color = left > 0.5 ? HudColors.BAD : left > 0.2 ? HudColors.WARN : HudColors.GOOD;
             }
-            // A trap goes green once something's caught, red if it sprang empty
-            if (timer.kind == ResourceTimers.Kind.TRAP && timer.trapState != ResourceTimers.TrapState.SET) {
-                color = timer.trapState == ResourceTimers.TrapState.CAUGHT ? HudColors.GOOD : HudColors.BAD;
+            // A trap goes green once something's caught
+            if (timer.kind == ResourceTimers.Kind.TRAP && timer.trapState == ResourceTimers.TrapState.CAUGHT) {
+                color = HudColors.GOOD;
             }
             int alpha = 150;
-            if (timer.due()) {
+            if (failedTrap(timer)) {
+                // Sprung empty: a full pie in its own colour (it needs resetting), not one running out
+                color = config.failedTrapColor();
+                alpha = Math.max(90, Math.min(200, color.getAlpha()));
+                left = 1;
+            } else if (timer.due()) {
                 // Due (a tree falls on the next log): a full red pie pulsing, rather than an empty ring
                 alpha = (int) (60 + 140 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
                 left = 1;
@@ -222,7 +227,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 if (timer.trapState == ResourceTimers.TrapState.CAUGHT) {
                     return "Caught";
                 }
-                return timer.trapState == ResourceTimers.TrapState.FAILED ? "Collapsed" : clock(timer.ticksToLatest());
+                // Sprung with nothing in it: reset it
+                return timer.trapState == ResourceTimers.TrapState.FAILED ? "Empty" : clock(timer.ticksToLatest());
             case TREE:
             case CALCIFIED:
             case CAMPFIRE:
@@ -355,6 +361,11 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
     }
 
+    /** A trap that sprang with nothing caught: it needs resetting (RuneLite's Hunter plugin colours these too). */
+    static boolean failedTrap(ResourceTimers.Timer timer) {
+        return timer.kind == ResourceTimers.Kind.TRAP && timer.trapState == ResourceTimers.TrapState.FAILED;
+    }
+
     /** Traps, fires, campfires and depleted rocks: a pie timer even with the tile style (they go by a set time). */
     static boolean keepsPie(ResourceTimers.Kind kind) {
         return kind == ResourceTimers.Kind.TRAP || kind == ResourceTimers.Kind.FIRE || kind == ResourceTimers.Kind.CAMPFIRE
@@ -362,11 +373,15 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     }
 
     // The tile outline as the timer, at the Timer Opacity setting: windowColor for fishing spots and fires; green,
-    // yellow, red as the others run down (a trap green once caught, red if it sprang empty); pulsing red once due
+    // yellow, red as the others run down (a trap green once caught, Failed Trap Colour if it sprang empty); pulsing
+    // red once due
     private Color outlineColor(ResourceTimers.Timer timer) {
         double scale = config.timerOpacity() / 60.0;
         if (timer.windowed()) {
             return withAlpha(windowColor(timer), 230 * scale);
+        }
+        if (failedTrap(timer)) {
+            return withAlpha(config.failedTrapColor(), 230 * scale);
         }
         double left = timer.progress();
         Color color = left > 0.5 ? HudColors.GOOD : left > 0.2 ? HudColors.WARN : HudColors.BAD;

@@ -59,6 +59,7 @@ enum AlertType {
     BIRD_NEST("BirdNest", VoiceAlertService.VoiceLine.BIRD_NEST),
     FARMING_READY("FarmingReady", VoiceAlertService.VoiceLine.FARMING_READY),
     BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
+    RUMOUR_COMPLETE("RumourComplete", VoiceAlertService.VoiceLine.RUMOUR_COMPLETE),
     BATCH_COMPLETE("BatchComplete", VoiceAlertService.VoiceLine.BATCH_COMPLETE),
     LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
 
@@ -139,6 +140,7 @@ enum AlertType {
             case BIRD_NEST: return BIRD_NEST;
             case FARMING_READY: return FARMING_READY;
             case BIRDHOUSES_READY: return BIRDHOUSES;
+            case RUMOUR_COMPLETE: return RUMOUR_COMPLETE;
             case BATCH_COMPLETE: return BATCH_COMPLETE;
             default:
                 // Per-potion lines: POTION_<NAME>_LOW / _EXPIRED

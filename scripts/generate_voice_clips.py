@@ -150,6 +150,7 @@ LINES = {
     "bird_nest": "A bird's nest has fallen.",
     "farming_ready": "Your farming patches are ready.",
     "birdhouses_ready": "Your bird houses are ready.",
+    "rumour_complete": "Rumour complete. Take the part to the Hunter Guild.",
     "batch_complete": "Batch complete.",
 }
 
@@ -328,7 +329,7 @@ def compact_existing():
 # takes just its folder. Keep in step with VoiceAlertService.VoicePlugin.of()
 SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_moved", "coin_pouch_full",
                   "arena_pillar_moving", "forestry_event", "sack_full",
-                  "wintertodt_round", "brazier_out", "brazier_broken", "out_of_roots", "wintertodt_hit", "warmth_low", "tempoross_wave", "tempoross_fire", "tempoross_double_spot", "tempoross_vulnerable", "rift_starting", "rift_portal", "boat_health_low", "trim_sails", "bird_nest", "farming_ready", "birdhouses_ready", "batch_complete"}
+                  "wintertodt_round", "brazier_out", "brazier_broken", "out_of_roots", "wintertodt_hit", "warmth_low", "tempoross_wave", "tempoross_fire", "tempoross_double_spot", "tempoross_vulnerable", "rift_starting", "rift_portal", "boat_health_low", "trim_sails", "bird_nest", "farming_ready", "birdhouses_ready", "rumour_complete", "batch_complete"}
 
 
 def plugin_of(key):

@@ -21,6 +21,7 @@ plugin's name, and the Skilling Helper gives every skill its own. All start coll
 - [Skilling hover cards](#skilling-hover-cards)
 - [Resource timers](#resource-timers)
 - [Skilling alerts](#skilling-alerts)
+- [Hunters' Rumours card](#hunters-rumours-card)
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
 - [Tick counter and metronome](#tick-counter-and-metronome)
@@ -270,7 +271,7 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 | Depleted rocks (any rock you mine out while you're there: copper to runite, lead, nickel, gem rocks, amethyst...) | Time until the ore is back, exactly: the game announces each rock's respawn time to the client, and that's what it counts down (as RuneLite's Mining plugin does): a pie on the rock that empties as the ore comes back (red, yellow, then green), like RuneLite's Mining plugin | Mining > Mining Timers |
 | Motherlode veins, calcified rocks, Daeyalt essence, shooting stars | Time left (stars exactly, from the layer's health) | Mining > Mining Timers |
 | Fishing spots that moved while you were there (spots that were already there when you arrived, or came into view as you walked up, get one once they move) | Spots move at a random time 2.5-5 minutes after they appear, so this shows the window: green until the earliest it can move, then a red ring filling up to the latest; hover for the times. Above it, how long ago it appeared ("1:42") and the Fishing icon, ringed in gold on the newest spot (the least likely to move soon) with **Mark Newest Spot** on (off by default); and the spot you fish is outlined in **Your Spot Colour**. A spot that outlives 5 minutes without being seen to move starts over | Fishing > Fishing Spot Timers, Mark Newest Spot, Your Spot Colour |
-| Your traps | Time until it collapses (green once something's caught) | Hunter > Trap Timers |
+| Your traps | Time until it collapses (green once something's caught; a full pie in **Failed Trap Colour**, purple, saying "Empty" once it springs with nothing in it, so you reset it; as RuneLite's Hunter plugin colours an empty trap) | Hunter > Trap Timers, Failed Trap Colour |
 | Fires you cook on (lit while you were nearby) | Fires go out at a random time 60-119 s after lighting: green until the earliest, then a red ring filling up to the latest; hover for the times. Off by default | Firemaking > Fire Timers |
 | Forester's Campfires | Time left (up to 3 minutes): set by the log that made it, topped up by each log you add, corrected when you Check it | Firemaking > Campfire Timers |
 | Shipwrecks you saw surface | Time until it sinks | Sailing > Shipwreck Timers |
@@ -314,6 +315,7 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
 | Farming patches ready | Patches you've planted are grown (chat names them; once per crop). Uses each patch as you last saw it | Farming > Patches Ready Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
+| Rumour complete | Your Hunters' Rumour creature's rare part drops ("take the part to the Hunter Guild"; chat says how many you caught) | Hunter > Voice/Chat: Rumour Complete |
 | Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling Alerts > Batch Complete |
 
 ---
@@ -331,6 +333,26 @@ Ready Alert, Voice/Chat: Patches Ready.
 **Good to know:** Grown times are estimates to within a growth cycle (crops grow on the game's clock). Disease can
 strike after you leave; the list only knows what it last saw. RuneLite's Time Tracking plugin keeps a similar list
 in its own panel.
+
+---
+
+## Hunters' Rumours card
+
+**What it does:** A **HUNTER RUMOUR** card in the sidebar (and on the pinned skill when Hunter is pinned) while you
+have a rumour: the creature and its method ("Pyre fox (Deadfall), for Gilman"), **Caught:** how many you've caught
+since and the catch the rare part is guaranteed by ("12 (rare part by 30)"; lower with each guild hunter outfit
+piece you wear), and **Where:** the first place to find it (hover the card for all of them). Once the rare part
+drops it says so, with a voice/chat alert; handing the rumour in clears the card.
+
+**How to use:** Take a rumour from a guild hunter, or use the Quetzal whistle's **Rumour** option, and the card
+appears. Click the heading to fold it. Settings: **Hunter > Rumour Card**, Voice/Chat: Rumour Complete.
+
+**Good to know:** The game keeps no variable for the rumour, so it's read the way the Hunter Rumours plugin reads
+it: from the hunters' dialogue and the whistle message (kept with your profile). Catches are counted from Hunter XP
+drops matching the creature's XP, so two catches in the same tick count as one, and catches made before the card
+knew your rumour (or before this feature) aren't in the count. Locations, methods and pity thresholds are the wiki's
+Hunters' Rumours page. Only information: nothing is clicked, scrolled or changed. With the Hunter Rumours plugin on
+too, you'll see both (clash note).
 
 ---
 
@@ -356,10 +378,19 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 - A skill's rate clock **auto-pauses** after a while without XP (**Auto-Pause After**: 10 seconds to an hour, 10 seconds by default) and
   resumes on your next XP.
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
+- **Items gathered**: Woodcutting, Fishing, Mining and Cooking cards (and the pinned skill) count what you got
+  this session and how many an hour on the skill's XP/hr clock: "Logs: 342 (1,050/hr)", "Fish:", "Ore:" and
+  "Gems:", "Cooked: 120 (1,400/hr), 4 burnt (3%)". Counted from the game's chat messages (as RuneLite's
+  Woodcutting, Fishing and Cooking plugins do), one per message, so a double catch counts once. Reset rate
+  or Reset clears them (**Show Items Gathered**).
+- **Keep Session After Restart** (30 minutes by default; 0 turns it off): close the client and log back in to the
+  same account within that time of logging out (or of your last XP, if the client closed without logging out) and
+  the tracker carries on with that session's XP, rates, actions and items; chat says so. XP gained elsewhere in
+  between (mobile) isn't added. Reset all skills starts afresh. Like RuneLite's XP Tracker keeping its session.
 
 **Settings (Skill Tracker):** a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
 Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
-(minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up.
+(minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up; Show Items Gathered; Keep Session After Restart.
 
 ---
 
@@ -460,6 +491,10 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
 3. Clear it from the card's right-click menu (Clear goal only shows while the skill has a goal). A goal you reach
    clears itself, with a chat line ("Fishing goal reached (level 53): cleared"); turn off **Clear Goals When
    Reached** to keep reached goals (they show Done!).
+
+**Skills tab goal bars:** on the game's Skills tab, each skill with a goal gets a thin gold bar along its bottom,
+filled as far as the card's goal bar (**Goals > Skills Tab Goal Bars**). It's drawn over the tab; the tab itself
+isn't changed. The Skills Progress plugin draws its own bars there too (clash note).
 
 Goals are saved with your RuneScape profile, so they stay after a relaunch. The Toolbelt and the Skilling Helper
 share them (and your Track for goal picks, Suggest choices and pinned skill), so switching between them keeps

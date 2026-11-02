@@ -74,6 +74,18 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         }
         line("XP/hr:", plugin.isSkillAutoPaused(skill) ? "Idle" : paused ? "Paused" : BradsMultiToolPanel.shortNumber(rate), Color.WHITE);
         line("Gained:", BradsMultiToolPanel.shortNumber(plugin.getSkillGained(skill)), Color.WHITE);
+        // Logs, fish, ore or food this session, with how many an hour (Show Items Gathered)
+        if (config.showTrackerItems()) {
+            for (String[] items : plugin.itemLines(skill)) {
+                line(items[0] + ":", items[1], Color.WHITE);
+            }
+        }
+        // Hunter: your Hunters' Rumour (Rumour Card)
+        if (skill == Skill.HUNTER) {
+            for (String[] rumour : plugin.getHunterRumours().lines()) {
+                panelComponent.getChildren().add(new TextBlockComponent(rumour[0] + " " + rumour[1], SOFT, false));
+            }
+        }
 
         int goalXp = plugin.getSkillGoal(skill);
         if (goalXp > 0 && config.showTrackerGoal()) {

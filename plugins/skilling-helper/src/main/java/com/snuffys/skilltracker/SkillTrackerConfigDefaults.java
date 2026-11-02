@@ -60,6 +60,10 @@ final class SkillTrackerConfigDefaults {
         defaults.store("birdhouseAlert", config.birdhouseAlert());
         defaults.store("voiceBirdhouses", config.voiceBirdhouses());
         defaults.store("chatBirdhouses", config.chatBirdhouses());
+        defaults.store("rumourCard", config.rumourCard());
+        defaults.store("voiceRumourComplete", config.voiceRumourComplete());
+        defaults.store("chatRumourComplete", config.chatRumourComplete());
+        defaults.store("failedTrapColor", config.failedTrapColor());
         defaults.store("fireTimers", config.showFireTimer());
         defaults.store("campfireTimers", config.showCampfireTimer());
         defaults.store("showRunecraftHover", config.showRunecraftHover());
@@ -132,6 +136,9 @@ final class SkillTrackerConfigDefaults {
         defaults.store("dropIdleSkillsAfter", config.dropIdleSkillsAfter());
         defaults.store("clearReachedGoals", config.clearReachedGoals());
         defaults.store("showBankedXp", config.showBankedXp());
+        defaults.store("skillsTabGoalBars", config.skillsTabGoalBars());
+        defaults.store("showTrackerItems", config.showTrackerItems());
+        defaults.store("keepSessionMinutes", config.keepSessionMinutes());
         defaults.store("ignoredSkills", config.ignoredSkills());
         defaults.store("voiceLevelUp", config.voiceLevelUp());
         defaults.store("chatLevelUp", config.chatLevelUp());

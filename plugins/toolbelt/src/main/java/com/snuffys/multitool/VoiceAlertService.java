@@ -87,6 +87,7 @@ public class VoiceAlertService {
         TRIM_SAILS("trim_sails", "Trim the sails now."),
         FARMING_READY("farming_ready", "Your farming patches are ready."),
         BIRDHOUSES_READY("birdhouses_ready", "Your bird houses are ready."),
+        RUMOUR_COMPLETE("rumour_complete", "Rumour complete. Take the part to the Hunter Guild."),
         BATCH_COMPLETE("batch_complete", "Batch complete."),
         // Per-potion buff lines, named after ActiveBuffs kinds: POTION_<NAME>_LOW / _EXPIRED
         POTION_SUPER_COMBAT_LOW("potion_super_combat_low", "Super combat is running out."),
@@ -198,6 +199,7 @@ public class VoiceAlertService {
                 case "bird_nest":
                 case "farming_ready":
                 case "birdhouses_ready":
+                case "rumour_complete":
                 case "batch_complete":
                     return SKILLING;
                 case "crab_moved":
