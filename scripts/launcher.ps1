@@ -1,4 +1,5 @@
-# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it): updates the plugins (on opening, then checked every
+# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it). "Publish to RuneLite..." (bottom right) opens a
+# window that publishes the plugins to their repositories for the Plugin Hub (docs/ROLLOUT.md). It updates the plugins (on opening, then checked every
 # minute in the background while it's open, pulled as soon as there's one), warns (red, a bold Relaunch, a Windows
 # notification) when the RuneLite that's open was built from an older version, Relaunch closes and restarts RuneLite with any update, checks the setup (RuneLite
 # installed, session saving on in RuneLite (configure), a Jagex session saved, Java, git) with a button to fix
@@ -655,6 +656,170 @@ $shortcut.Add_LinkClicked({
     $link.Save()
     [System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher is on your desktop.", "Snuffy's") | Out-Null
 })
+
+# ---- Publish to RuneLite: copies each plugin to its own repository and prepares the Plugin Hub pull request
+# (scripts\publish_plugins.py, repositories in publish.json; docs\ROLLOUT.md). In its own window. ----
+$publishLink = New-Object System.Windows.Forms.LinkLabel
+$publishLink.Text = 'Publish to RuneLite...'
+$publishLink.Location = New-Object System.Drawing.Point(300, 644)
+$publishLink.AutoSize = $true
+$form.Controls.Add($publishLink)
+
+# Python 3: "py -3" (the Windows launcher) or "python"
+function Find-Python {
+    if (Get-Command py -ErrorAction SilentlyContinue) { return @('py', '-3') }
+    if (Get-Command python -ErrorAction SilentlyContinue) { return @('python') }
+    return $null
+}
+
+function Show-PublishWindow {
+    $win = New-Object System.Windows.Forms.Form
+    $win.Text = "Publish to RuneLite"
+    $win.StartPosition = 'CenterParent'
+    $win.FormBorderStyle = 'FixedDialog'
+    $win.MaximizeBox = $false
+    $win.ClientSize = New-Object System.Drawing.Size(520, 470)
+    $win.Font = $form.Font
+    if ($form.Icon) { $win.Icon = $form.Icon }
+
+    $about = New-Label "Copies each ticked plugin, as committed here, to its own GitHub repository and gets the Plugin Hub pull request ready. Check first: it shows what would change without pushing anything." 12 10 496 34
+    $win.Controls.Add($about)
+
+    # The plugins in publish.json, ticked if they're set to publish
+    $config = Get-Content (Join-Path $root 'publish.json') -Raw | ConvertFrom-Json
+    $ticks = [ordered]@{}
+    $y = 50
+    $x = 14
+    foreach ($folder in $config.plugins.PSObject.Properties.Name) {
+        $box = New-Object System.Windows.Forms.CheckBox
+        $box.Text = $folder
+        $box.Checked = [bool]$config.plugins.$folder.publish
+        $box.Location = New-Object System.Drawing.Point($x, $y)
+        $box.Size = New-Object System.Drawing.Size(160, 20)
+        $win.Controls.Add($box)
+        $ticks[$folder] = $box
+        if ($x -gt 300) { $x = 14; $y += 22 } else { $x += 165 }
+    }
+
+    $check = New-Object System.Windows.Forms.Button
+    $check.Text = 'Check (dry run)'
+    $check.Location = New-Object System.Drawing.Point(12, 104)
+    $check.Size = New-Object System.Drawing.Size(120, 30)
+    $win.Controls.Add($check)
+    $publish = New-Object System.Windows.Forms.Button
+    $publish.Text = 'Publish'
+    $publish.Location = New-Object System.Drawing.Point(140, 104)
+    $publish.Size = New-Object System.Drawing.Size(100, 30)
+    $publish.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+    $win.Controls.Add($publish)
+    $status = New-Label '' 250 111 260
+    $win.Controls.Add($status)
+
+    $out = New-Object System.Windows.Forms.TextBox
+    $out.Multiline = $true
+    $out.ReadOnly = $true
+    $out.ScrollBars = 'Vertical'
+    $out.Font = New-Object System.Drawing.Font('Consolas', 8.5)
+    $out.Location = New-Object System.Drawing.Point(12, 142)
+    $out.Size = New-Object System.Drawing.Size(496, 284)
+    $win.Controls.Add($out)
+
+    $prLink = New-Object System.Windows.Forms.LinkLabel
+    $prLink.Text = 'Open the Plugin Hub pull request'
+    $prLink.Location = New-Object System.Drawing.Point(12, 438)
+    $prLink.AutoSize = $true
+    $prLink.Visible = $false
+    $win.Controls.Add($prLink)
+    $prLink.Add_LinkClicked({ if ($script:prUrl) { Start-Process $script:prUrl } })
+    $guide = New-Object System.Windows.Forms.LinkLabel
+    $guide.Text = 'How it works (ROLLOUT.md)'
+    $guide.Location = New-Object System.Drawing.Point(340, 438)
+    $guide.AutoSize = $true
+    $win.Controls.Add($guide)
+    $guide.Add_LinkClicked({ Start-Process notepad.exe -ArgumentList "`"$(Join-Path $root 'docs\ROLLOUT.md')`"" })
+
+    $script:publishLog = Join-Path $env:TEMP 'snuffys-publish.log'
+    $script:publishRun = $null
+    $script:prUrl = $null
+    $poll = New-Object System.Windows.Forms.Timer
+    $poll.Interval = 500
+    $poll.Add_Tick({
+        if (Test-Path $script:publishLog) {
+            try {
+                $stream = [System.IO.File]::Open($script:publishLog, 'Open', 'Read', 'ReadWrite')
+                $reader = New-Object System.IO.StreamReader($stream)
+                $text = $reader.ReadToEnd()
+                $stream.Dispose()
+                if ($text -ne $out.Text) {
+                    $out.Text = $text
+                    $out.SelectionStart = $out.Text.Length
+                    $out.ScrollToCaret()
+                }
+                $match = [regex]::Match($text, 'https://github\.com/runelite/plugin-hub/compare/\S+')
+                if ($match.Success) {
+                    $script:prUrl = $match.Value
+                    $prLink.Visible = $true
+                }
+            } catch { }
+        }
+        if ($script:publishRun -and $script:publishRun.HasExited) {
+            $poll.Stop()
+            $check.Enabled = $true
+            $publish.Enabled = $true
+            if ($script:publishRun.ExitCode -eq 0) {
+                $status.Text = 'Done.'
+                $status.ForeColor = $green
+            } else {
+                $status.Text = 'Stopped: see the messages below.'
+                $status.ForeColor = $red
+            }
+            $script:publishRun = $null
+        }
+    })
+
+    $run = {
+        param($dryRun)
+        $python = Find-Python
+        if (-not $python) {
+            $answer = [System.Windows.Forms.MessageBox]::Show("Publishing needs Python 3. Open python.org to get it?", "Snuffy's", 'YesNo')
+            if ($answer -eq 'Yes') { Start-Process 'https://www.python.org/downloads/' }
+            return
+        }
+        $chosen = @($ticks.Keys | Where-Object { $ticks[$_].Checked })
+        if (-not $chosen) {
+            [System.Windows.Forms.MessageBox]::Show('Tick at least one plugin.', "Snuffy's") | Out-Null
+            return
+        }
+        if (-not $dryRun) {
+            $answer = [System.Windows.Forms.MessageBox]::Show("Publish " + ($chosen -join ', ') + " to their repositories now?", "Snuffy's", 'YesNo')
+            if ($answer -ne 'Yes') { return }
+        }
+        Set-Content -Path $script:publishLog -Value ''
+        $out.Text = ''
+        $prLink.Visible = $false
+        $script:prUrl = $null
+        $check.Enabled = $false
+        $publish.Enabled = $false
+        $status.Text = $(if ($dryRun) { 'Checking...' } else { 'Publishing...' })
+        $status.ForeColor = [System.Drawing.SystemColors]::ControlText
+        $pyArgs = @($python | Select-Object -Skip 1) + @('-u', 'scripts\publish_plugins.py') + $chosen
+        if ($dryRun) { $pyArgs += '--dry-run' }
+        $command = "`"$($python[0])`" " + ($pyArgs -join ' ') + " > `"$($script:publishLog)`" 2>&1"
+        $script:publishRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
+        $poll.Start()
+    }
+    $check.Add_Click({ & $run $true })
+    $publish.Add_Click({ & $run $false })
+    $win.Add_FormClosing({
+        if ($script:publishRun -and -not $script:publishRun.HasExited) {
+            $answer = [System.Windows.Forms.MessageBox]::Show('Publishing is still running. Close anyway (it keeps going in the background)?', "Snuffy's", 'YesNo')
+            if ($answer -ne 'Yes') { $_.Cancel = $true }
+        }
+    })
+    [void]$win.ShowDialog($form)
+    $poll.Stop()
+}
+$publishLink.Add_LinkClicked({ Show-PublishWindow })
 
 $form.Add_Shown({
     Set-ShortcutIcons
