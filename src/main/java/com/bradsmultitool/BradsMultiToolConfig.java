@@ -677,11 +677,59 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     }
 
     @ConfigItem(
+        keyName = "farmingPatchList",
+        name = "Farming: Patch List",
+        description = "<div width='300'>A FARMING list in the sidebar: every patch you've been to with something in it, what's growing and when it's grown (the game only tells us a patch's state while you're near it, so each is as you last saw it). Right-click one to forget it",
+        section = otherSkillsSection,
+        position = 4
+    )
+    @Override
+    default boolean farmingPatchList() {
+        return SkillTrackerConfig.super.farmingPatchList();
+    }
+
+    @ConfigItem(
+        keyName = "farmingReadyAlert",
+        name = "Farming: Patches Ready Alert",
+        description = "<div width='300'>Says when patches you've planted are grown, naming them in chat (once per crop)",
+        section = otherSkillsSection,
+        position = 5
+    )
+    @Override
+    default boolean farmingReadyAlert() {
+        return SkillTrackerConfig.super.farmingReadyAlert();
+    }
+
+    @ConfigItem(
+        keyName = "voiceFarmingReady",
+        name = "Farming: Voice: Patches Ready",
+        description = "<div width='300'>Voice line when your farming patches are grown (turning it on plays a preview)",
+        section = otherSkillsSection,
+        position = 6
+    )
+    @Override
+    default boolean voiceFarmingReady() {
+        return SkillTrackerConfig.super.voiceFarmingReady();
+    }
+
+    @ConfigItem(
+        keyName = "chatFarmingReady",
+        name = "Farming: Chat: Patches Ready",
+        description = "<div width='300'>Chat message naming the farming patches that are grown",
+        section = otherSkillsSection,
+        position = 7
+    )
+    @Override
+    default boolean chatFarmingReady() {
+        return SkillTrackerConfig.super.chatFarmingReady();
+    }
+
+    @ConfigItem(
         keyName = "fireTimers",
         name = "Firemaking: Fire Timers",
         description = "<div width='300'>A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = otherSkillsSection,
-        position = 4
+        position = 8
     )
     @Override
     default SkillTrackerConfig.TimerShow showFireTimer() {
@@ -693,7 +741,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Firemaking: Campfire Timers",
         description = "<div width='300'>A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = otherSkillsSection,
-        position = 5
+        position = 9
     )
     @Override
     default SkillTrackerConfig.TimerShow showCampfireTimer() {
@@ -705,7 +753,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Runecraft: Altar Hover",
         description = "<div width='300'>Hovering an altar shows the rune, level, XP and how many runes you make per essence",
         section = otherSkillsSection,
-        position = 6
+        position = 10
     )
     @Override
     default boolean showRunecraftHover() {
@@ -718,7 +766,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Cooking: Range / Fire Hover",
         description = "<div width='300'>Hovering a range or fire shows each raw food you are carrying: its level, XP and burn level",
         section = otherSkillsSection,
-        position = 8
+        position = 12
     )
     @Override
     default boolean showCookingHover() {
@@ -730,7 +778,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Sailing: Hover",
         description = "<div width='300'>Hover cards for sea charting spots (task, level, XP), shipwrecks (level, salvage XP, best hook for you), trawling shoals (Fishing level, fish, depth, bait), sea monsters (HP, safe keel, bounty parts) and your current duck",
         section = otherSkillsSection,
-        position = 9
+        position = 13
     )
     @Override
     default boolean showSailingHover() {
@@ -742,7 +790,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Sailing: Shipwreck Timers",
         description = "<div width='300'>A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = otherSkillsSection,
-        position = 10
+        position = 14
     )
     @Override
     default SkillTrackerConfig.TimerShow showShipwreckTimer() {
@@ -754,7 +802,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         name = "Smithing: Anvil / Furnace Hover",
         description = "<div width='300'>Hovering an anvil or furnace shows what you can make from the bars or ores you are carrying",
         section = otherSkillsSection,
-        position = 11
+        position = 15
     )
     @Override
     default boolean showSmithingHover() {

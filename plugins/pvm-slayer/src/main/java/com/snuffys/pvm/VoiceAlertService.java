@@ -65,6 +65,7 @@ public class VoiceAlertService {
         FORESTRY_EVENT("forestry_event", "A forestry event has started."),
         SACK_FULL("sack_full", "The sack is full. Empty it before mining more."),
         BIRD_NEST("bird_nest", "A bird's nest has fallen."),
+        FARMING_READY("farming_ready", "Your farming patches are ready."),
         BIRDHOUSES_READY("birdhouses_ready", "Your bird houses are ready."),
         BATCH_COMPLETE("batch_complete", "Batch complete."),
         // Per-potion buff lines, named after ActiveBuffs kinds: POTION_<NAME>_LOW / _EXPIRED
@@ -162,6 +163,7 @@ public class VoiceAlertService {
                 case "forestry_event":
                 case "sack_full":
                 case "bird_nest":
+                case "farming_ready":
                 case "birdhouses_ready":
                 case "batch_complete":
                     return SKILLING;

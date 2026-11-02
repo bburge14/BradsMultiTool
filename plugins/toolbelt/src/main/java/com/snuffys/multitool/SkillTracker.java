@@ -59,6 +59,8 @@ class SkillTracker {
     @Inject
     private Provider<GoalItems> goalItems;
     @Inject
+    private Provider<FarmingTracker> farmingTracker;
+    @Inject
     private KillTracker killTracker;
     @Inject
     private Provider<MethodDetector> methodDetector;
@@ -375,6 +377,10 @@ class SkillTracker {
 
     public MethodDetector getMethodDetector() {
         return methodDetector.get();
+    }
+
+    FarmingTracker getFarmingTracker() {
+        return farmingTracker.get();
     }
 
     public GoalItems getGoalItems() {

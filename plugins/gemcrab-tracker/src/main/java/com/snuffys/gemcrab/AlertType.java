@@ -36,6 +36,7 @@ enum AlertType {
     FORESTRY_EVENT("ForestryEvent", VoiceAlertService.VoiceLine.FORESTRY_EVENT),
     SACK_FULL("SackFull", VoiceAlertService.VoiceLine.SACK_FULL),
     BIRD_NEST("BirdNest", VoiceAlertService.VoiceLine.BIRD_NEST),
+    FARMING_READY("FarmingReady", VoiceAlertService.VoiceLine.FARMING_READY),
     BIRDHOUSES("Birdhouses", VoiceAlertService.VoiceLine.BIRDHOUSES_READY),
     BATCH_COMPLETE("BatchComplete", VoiceAlertService.VoiceLine.BATCH_COMPLETE),
     LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
@@ -95,6 +96,7 @@ enum AlertType {
             case FORESTRY_EVENT: return FORESTRY_EVENT;
             case SACK_FULL: return SACK_FULL;
             case BIRD_NEST: return BIRD_NEST;
+            case FARMING_READY: return FARMING_READY;
             case BIRDHOUSES_READY: return BIRDHOUSES;
             case BATCH_COMPLETE: return BATCH_COMPLETE;
             default:

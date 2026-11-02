@@ -128,6 +128,7 @@ LINES = {
     "forestry_event": "A forestry event has started.",
     "sack_full": "The sack is full. Empty it before mining more.",
     "bird_nest": "A bird's nest has fallen.",
+    "farming_ready": "Your farming patches are ready.",
     "birdhouses_ready": "Your bird houses are ready.",
     "batch_complete": "Batch complete.",
 }
@@ -306,7 +307,7 @@ def compact_existing():
 # Which separate plugin each clip ships with: voices/<persona>/<plugin>/<clip>.wav, so each plugin's build
 # takes just its folder. Keep in step with VoiceAlertService.VoicePlugin.of()
 SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_moved", "coin_pouch_full",
-                  "arena_pillar_moving", "run_energy_low", "forestry_event", "sack_full", "bird_nest", "birdhouses_ready", "batch_complete"}
+                  "arena_pillar_moving", "run_energy_low", "forestry_event", "sack_full", "bird_nest", "farming_ready", "birdhouses_ready", "batch_complete"}
 
 
 def plugin_of(key):

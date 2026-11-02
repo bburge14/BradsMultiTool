@@ -283,6 +283,17 @@ class FarmingData {
         return null;
     }
 
+    /** The patches whose state the game gives while you're in this region (its own and its neighbours'). */
+    List<Patch> patchesNear(int region) {
+        List<Patch> out = new ArrayList<>(primary.getOrDefault(region, List.of()));
+        for (Patch patch : nearby.getOrDefault(region, List.of())) {
+            if (!out.contains(patch)) {
+                out.add(patch);
+            }
+        }
+        return out;
+    }
+
     State state(Patch patch) {
         return decode(patch.implementation, client.getVarbitValue(patch.varbit));
     }

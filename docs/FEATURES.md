@@ -270,8 +270,25 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 | Motherlode sack full | The pay-dirt you carry fills the sack (what's in it plus yours reaches 108, or 189 upgraded): empty it before mining more. RuneLite's Motherlode plugin turns the sack numbers red at the same point | Mining > Voice/Chat: Motherlode Sack Full |
 | Bird nest | A bird's nest falls out of the tree (chat says when it's a clue nest) | Woodcutting > Voice/Chat: Bird Nest |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
+| Farming patches ready | Patches you've planted are grown (chat names them; once per crop). Uses each patch as you last saw it | Farming > Patches Ready Alert |
 | Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
 | Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling Alerts > Batch Complete |
+
+---
+
+## Farming patch list
+
+**What it does:** A **FARMING** list at the bottom of the sidebar: every patch you've been to with something in it,
+what's growing and when it's grown ("ready" in green, "in 1h 20m", "diseased", "dead"), soonest first.
+
+**How to use:** Just farm: the game only tells us a patch's state while you're near it, so each patch is saved as you
+last saw it (kept between logins, per account). Click the heading to fold the list; right-click a patch to forget it.
+**Farming > Patches Ready Alert** says when patches you've planted are grown. Settings: Farming Patch List, Patches
+Ready Alert, Voice/Chat: Patches Ready.
+
+**Good to know:** Grown times are estimates to within a growth cycle (crops grow on the game's clock). Disease can
+strike after you leave; the list only knows what it last saw. RuneLite's Time Tracking plugin keeps a similar list
+in its own panel.
 
 ---
 

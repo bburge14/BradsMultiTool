@@ -606,6 +606,50 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "farmingPatchList",
+        name = "Farming Patch List",
+        description = "<div width='300'>A FARMING list in the sidebar: every patch you've been to with something in it, what's growing and when it's grown (the game only tells us a patch's state while you're near it, so each is as you last saw it). Right-click one to forget it",
+        section = farmingSection,
+        position = 2
+    )
+    default boolean farmingPatchList() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "farmingReadyAlert",
+        name = "Patches Ready Alert",
+        description = "<div width='300'>Says when patches you've planted are grown, naming them in chat (once per crop)",
+        section = farmingSection,
+        position = 3
+    )
+    default boolean farmingReadyAlert() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "voiceFarmingReady",
+        name = "Voice: Patches Ready",
+        description = "<div width='300'>Voice line when your farming patches are grown (turning it on plays a preview)",
+        section = farmingSection,
+        position = 4
+    )
+    default boolean voiceFarmingReady() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatFarmingReady",
+        name = "Chat: Patches Ready",
+        description = "<div width='300'>Chat message naming the farming patches that are grown",
+        section = farmingSection,
+        position = 5
+    )
+    default boolean chatFarmingReady() {
+        return true;
+    }
+
     @ConfigSection(
         name = "Hunter",
         description = "Hunter creature info, trap and bird house timers",

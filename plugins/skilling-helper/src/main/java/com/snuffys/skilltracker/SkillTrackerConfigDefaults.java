@@ -50,6 +50,10 @@ final class SkillTrackerConfigDefaults {
         defaults.store("voiceCoinPouch", config.voiceCoinPouch());
         defaults.store("chatCoinPouch", config.chatCoinPouch());
         defaults.store("showFarmingHover", config.showFarmingHover());
+        defaults.store("farmingPatchList", config.farmingPatchList());
+        defaults.store("farmingReadyAlert", config.farmingReadyAlert());
+        defaults.store("voiceFarmingReady", config.voiceFarmingReady());
+        defaults.store("chatFarmingReady", config.chatFarmingReady());
         defaults.store("showHunterHover", config.showHunterHover());
         defaults.store("trapTimers", config.showTrapTimer());
         defaults.store("showBirdhouseHover", config.showBirdhouseHover());
