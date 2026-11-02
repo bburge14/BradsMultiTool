@@ -1301,6 +1301,9 @@ final class PlannerCalculatorView {
         if (expected < plan.goal) {
             list.add(gap(expected, plan.goal));
         }
+        if (totals.xp > 0) {
+            list.add(PlannerUi.spaced(planSummary(steps, totals, level, endLevel)));
+        }
         list.add(linkRow(PlannerUi.linkLabel("Start from suggestions", "Replace the milestones with the wiki's training "
                 + "guides' methods from your level to " + plan.goal, () -> suggest(shown, actions, on, plan.goal)),
             PlannerUi.linkLabel("Clear", "Delete this plan (the tracker keeps any plan you exported)", () -> {
@@ -1310,6 +1313,52 @@ final class PlannerCalculatorView {
                 }
             })));
         list.add(exportRow(shown, plan, on, skillCalc));
+    }
+
+    // The whole plan added up, under its milestones (each card above is its own levels only): XP, time to the goal,
+    // the average XP an hour over it, and the money
+    private JComponent planSummary(List<PlannerCalculator.StepRow> steps, PlannerCalculator.Totals totals, int level, int endLevel) {
+        long timedXp = 0;
+        for (PlannerCalculator.StepRow s : steps) {
+            if (!s.done && s.row != null && s.row.seconds > 0) {
+                timedXp += s.xp;
+            }
+        }
+        long perHour = totals.seconds > 0 ? Math.round(timedXp * 3600.0 / totals.seconds) : 0;
+        String time = totals.seconds > 0 ? "~" + PlannerPanel.formatDuration(totals.seconds) + (totals.untimed > 0 ? "+" : "")
+            + " to goal" : "no XP rate";
+        PlannerUi.Card card = new PlannerUi.Card("Whole plan: " + level + " → " + endLevel, PlannerPanel.gp(totals.xp) + " xp",
+            time);
+        card.right.setForeground(Color.WHITE);
+        card.third(perHour > 0 ? "avg " + PlannerPanel.gp(perHour) + " xp/hr" : "", "");
+        boolean prices = calc.showPrices() && (totals.cost > 0 || totals.earn > 0);
+        double net = totals.earn - totals.cost;
+        if (prices) {
+            card.lowerRight.setText(gpPerXp(net / totals.xp));
+            card.lowerRight.setForeground(net < 0 ? COSTS : PlannerUi.READY);
+            card.fourth(money(totals.cost, totals.earn, ""), "");
+            net(card.lastRight, totals.cost, totals.earn, true);
+        }
+        card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CALCULATOR, 20,
+            new Color(200, 200, 200)))));
+        card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, PlannerUi.GROWING));
+        StringBuilder tip = new StringBuilder("<html><b>The whole plan</b> (the milestones added up; each card above is "
+            + "its own levels only)<br>").append(String.format("%,d", totals.xp)).append(" xp from level ").append(level)
+            .append(" to ").append(endLevel);
+        if (totals.seconds > 0) {
+            tip.append("<br>About ").append(PlannerPanel.formatDuration(totals.seconds)).append(" at the wiki's training guides' "
+                + "rates (").append(String.format("%,d", perHour)).append(" xp an hour on average)");
+        }
+        if (totals.untimed > 0) {
+            tip.append("<br>").append(totals.untimed).append(totals.untimed == 1 ? " milestone has" : " milestones have")
+                .append(" no XP rate, so the time leaves ").append(totals.untimed == 1 ? "it" : "them").append(" out");
+        }
+        if (prices) {
+            tip.append("<br>Materials: worth ").append(String.format("%,.0f", totals.cost)).append(" gp on the GE")
+                .append("<br>Sells for: ").append(String.format("%,.0f", totals.earn)).append(" gp")
+                .append("<br>").append(netTip(totals.cost, totals.earn));
+        }
+        return card.interactive(null, null, tip.append("</html>").toString());
     }
 
     // "Levels 45-50: no milestone (the tracker suggests the wiki's method)"
@@ -1620,11 +1669,12 @@ final class PlannerCalculatorView {
             editing.to = end;
             editing.method = guide == null ? null : guide.name;
             editing.xp = xpEach;
+            // Grown into others: they make room
+            PlannerCalculator.insertStep(plan, editing);
         } else {
-            plan.steps.add(new SkillPlans.Step(name, start, end, guide == null ? null : guide.name, xpEach));
+            // In at its own levels: the milestones it overlaps make room (split around it if it's inside one)
+            PlannerCalculator.insertStep(plan, new SkillPlans.Step(name, start, end, guide == null ? null : guide.name, xpEach));
         }
-        plan.steps.sort((a, b) -> Integer.compare(a.from, b.from));
-        plan.goal = Math.max(plan.goal, end);
         calc.savePlan(shown, plan);
         redraw.run();
     }

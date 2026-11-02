@@ -738,6 +738,10 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   flag) are left out on a free world, as RuneLite's calculator does, with a note "Members-only actions hidden on
   this free world"; logged out, everything shows (setting: Hide Members On Free Worlds).
 - **Actions · Banked · Plan** (the tabs above the list; the one you pick is remembered).
+- Each milestone card is its own levels only (not added up). Under them, **Whole plan** adds them up: the XP to the
+  goal, the time to it at the wiki's rates (TTG), the average XP an hour over it, the net gp per XP, and the materials,
+  what it sells for and the net (badge). Hover it for all of it in words.
+- Darts, arrows and bolts are made 10 or 15 at a time: each action is one item, with its share of the materials.
 - A plan goes by your real XP (the game's): typing a level into Current to try it out changes Actions and Banked,
   but doesn't mark the plan's milestones done.
 - **Your plan bar** (under the list, in Actions and Banked): the skill's goal and the plan's milestones (levels,
@@ -756,8 +760,10 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   the wiki's training guides from your level to the goal (the skill's AFK / Other focus if you picked it in the
   Skilling Helper, else the fastest), each guide method as the Calculator action it means at that level; or build it
   by hand: right-click an action > **Add to plan** (it starts where the last milestone ends, or at its own level, and
-  the last one stretches or shortens to meet it; when the plan already ends at its goal, it asks to raise the goal
-  so the new one goes on after it). A new plan's goal is the target you typed or the skill's goal, else 99, or **+** to pick a method and levels. Right-click a milestone to
+  the last one stretches or shortens to meet it; inside a milestone, it takes over from its own level to where that one ended: Atlatl
+  darts (74) in Adamant darts 67-81 make Adamant 67-74 and Atlatl 74-81; when there's no room before the goal, it
+  asks to raise the goal so the new one goes on after it). **+** with levels you type puts it in at those levels:
+  the milestones it overlaps are cut short, split around it, or removed if it covers them. A new plan's goal is the target you typed or the skill's goal, else 99, or **+** to pick a method and levels. Right-click a milestone to
   **Edit...** its method and levels, **Change method (pick an action)** from the Actions list, **Move up**/**Move down**
   (swaps the methods; the levels stay in order) or **Delete** it. Each milestone shows what's left of it: XP, how many
   actions, the time at the guide's XP rate, the net gp per XP and its cost and earnings; the one you're on is marked,

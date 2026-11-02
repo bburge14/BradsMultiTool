@@ -116,6 +116,37 @@ public class SkillPlanTest {
         assertEquals(60, next.steps.get(1).from);
         assertEquals(99, next.steps.get(1).to);
 
+        // A full plan: an action whose level falls inside a milestone takes over from there to where that one ended
+        SkillPlans.Plan darts = new SkillPlans.Plan(99);
+        darts.steps.add(new SkillPlans.Step("Mithril dart", 59, 67, null, 11.2));
+        darts.steps.add(new SkillPlans.Step("Adamant dart", 67, 81, null, 15));
+        darts.steps.add(new SkillPlans.Step("Rune dart", 81, 90, null, 18.8));
+        darts.steps.add(new SkillPlans.Step("Amethyst dart", 90, 99, null, 21));
+        CalculatorData.Action atlatl = action(Skill.FLETCHING, "Atlatl dart");
+        assertEquals(74, atlatl.level);
+        assertTrue(PlannerCalculator.addStep(darts, atlatl, 19, null, 59));
+        assertEquals(5, darts.steps.size());
+        assertEquals(74, darts.steps.get(1).to);
+        assertEquals("Atlatl dart", darts.steps.get(2).action);
+        assertEquals(74, darts.steps.get(2).from);
+        assertEquals(81, darts.steps.get(2).to);
+        assertEquals(90, darts.steps.get(4).from);
+        // Typed levels go in where they say: 70-85 cuts Adamant to 70, Atlatl goes, Rune starts at 85
+        PlannerCalculator.insertStep(darts, new SkillPlans.Step("Dragon dart", 70, 85, null, 25));
+        assertEquals(70, darts.steps.get(1).to);
+        assertEquals("Dragon dart", darts.steps.get(2).action);
+        assertEquals("Rune dart", darts.steps.get(3).action);
+        assertEquals(85, darts.steps.get(3).from);
+        assertEquals(5, darts.steps.size());
+        // Inside one: it's split around the new one
+        PlannerCalculator.insertStep(darts, new SkillPlans.Step("Steel dart", 60, 62, null, 7.5));
+        assertEquals(59, darts.steps.get(0).from);
+        assertEquals(60, darts.steps.get(0).to);
+        assertEquals("Steel dart", darts.steps.get(1).action);
+        assertEquals("Mithril dart", darts.steps.get(2).action);
+        assertEquals(62, darts.steps.get(2).from);
+        assertEquals(67, darts.steps.get(2).to);
+
         PlannerCalculator.swapSteps(plan, 1, 2);
         assertEquals("Teak logs", plan.steps.get(1).action);
         assertEquals(30, plan.steps.get(1).from);

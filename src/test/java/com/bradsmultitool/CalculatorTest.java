@@ -102,6 +102,32 @@ public class CalculatorTest {
     }
 
     @Test
+    public void dartsComeTenAtATime() {
+        // 10 tips and 10 feathers make 10 darts for 112 XP: each dart is 11.2 XP and a tenth of the materials
+        Map<String, Integer> have = new HashMap<>();
+        have.put("mithril dart tip", 1000);
+        have.put("feather", 1000);
+        CalculatorData.Calc fletching = DATA.calc(Skill.FLETCHING);
+        double banked = PlannerCalculator.bankedXp(Skill.FLETCHING, fletching, Collections.emptyList(), 60, RECIPES, have);
+        assertEquals(11_200, banked, 0.01);
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("mithril dart tip", 50);
+        prices.put("feather", 2);
+        prices.put("mithril dart", 60);
+        List<PlannerCalculator.Row> rows = PlannerCalculator.rows(Skill.FLETCHING, fletching, Collections.emptyList(),
+            Experience.getXpForLevel(60), Experience.getXpForLevel(61), RECIPES, TRAINING, have,
+            name -> prices.getOrDefault(name.toLowerCase(), 0));
+        PlannerCalculator.Row dart = rows.stream().filter(r -> r.action.name.equals("Mithril dart")).findFirst().orElse(null);
+        assertNotNull(dart);
+        assertEquals(1000, dart.have);
+        assertEquals(52, dart.costEach, 0.01);
+        assertEquals(60, dart.earnEach, 0.01);
+        Map<String, Integer> made = PlannerCalculator.bankedMade(Skill.FLETCHING, fletching, Collections.emptyList(), 60,
+            RECIPES, have);
+        assertEquals(Integer.valueOf(1000), PlannerCalculator.bankedTimes(Skill.FLETCHING, dart.action, RECIPES, made));
+    }
+
+    @Test
     public void bankedLevel() {
         Map<String, Integer> have = new HashMap<>();
         have.put("raw lobster", 1000);

@@ -527,11 +527,14 @@ class PlannerCalculator {
         List<RecipeData.Recipe> made = recipes == null ? Collections.emptyList() : recipesFor(skill, action, recipes);
         if (!made.isEmpty()) {
             for (RecipeData.Recipe recipe : made) {
-                row.have = Math.max(row.have, recipe.makeable(have));
+                int per = perMake(recipe, action);
+                row.have = Math.max(row.have, recipe.makeable(have) * per);
                 Double cost = cost(recipe, price);
                 if (cost == null) {
                     continue;
                 }
+                // The action is one item; a recipe can make several at once (10 darts from 10 tips and 10 feathers)
+                cost /= per;
                 double worth = consumed(recipe) ? 0 : price.applyAsInt(recipe.name);
                 double profit = worth - cost;
                 if (row.profit == null || profit > row.profit) {
@@ -556,6 +559,18 @@ class PlannerCalculator {
             row.seconds = (long) Math.ceil((target - xp) * 3600.0 / method.xpHour);
         }
         return row;
+    }
+
+    /**
+     * How many of the action's items one go of the recipe makes: darts, arrows and bolts come 10 or 15 at a time
+     * (the recipe gives the XP of all of them, the Calculator's action one's). 1 for everything else.
+     */
+    static int perMake(RecipeData.Recipe recipe, CalculatorData.Action action) {
+        if (action.xp <= 0 || recipe.xp <= 0) {
+            return 1;
+        }
+        double ratio = recipe.xp / action.xp;
+        return ratio >= 1.5 ? (int) Math.round(ratio) : 1;
     }
 
     // A recipe that uses its item up rather than making something ("Burn logs", "Bury bones", "Scatter ashes")
@@ -655,8 +670,12 @@ class PlannerCalculator {
             return null;
         }
         int times = 0;
+        // (several recipes can share a name, one per kind of feather: count each name once)
+        Set<String> counted = new java.util.HashSet<>();
         for (RecipeData.Recipe recipe : mine) {
-            times += made.getOrDefault(recipe.name.toLowerCase(), 0);
+            if (counted.add(recipe.name.toLowerCase())) {
+                times += made.getOrDefault(recipe.name.toLowerCase(), 0) * perMake(recipe, action);
+            }
         }
         return times;
     }
@@ -682,7 +701,8 @@ class PlannerCalculator {
         Map<String, Double> each = new HashMap<>();
         for (CalculatorData.Action action : calc.actions) {
             for (RecipeData.Recipe recipe : recipesFor(skill, action, recipes)) {
-                each.put(recipe.name.toLowerCase(Locale.ROOT), CalculatorData.xpEach(action, on));
+                // (a go of the recipe: all the items it makes at once)
+                each.put(recipe.name.toLowerCase(Locale.ROOT), CalculatorData.xpEach(action, on) * perMake(recipe, action));
             }
         }
         return r -> each.getOrDefault(r.name.toLowerCase(Locale.ROOT), r.xp);
@@ -788,28 +808,72 @@ class PlannerCalculator {
     }
 
     /**
-     * Adds a milestone for this action at the end of the plan: from where the last one ends (your level for the
-     * first), or from the action's level if that's later, the last milestone stretched or cut to meet it; up to the
-     * plan's goal. False when it can't fit (it would start at or past the goal).
+     * Adds a milestone for this action (right-click > Add to plan) from its own level (or yours, if later): inside a
+     * milestone, it takes over from there to where that one ended (Atlatl darts at 74 in Adamant darts 67-81: Adamant
+     * 67-74, Atlatl 74-81); in a gap, it fills it. One that would start where a milestone starts goes after the
+     * milestones there instead, so nothing is replaced. False when it can't fit before the plan's goal.
      */
     static boolean addStep(SkillPlans.Plan plan, CalculatorData.Action action, double xpEach, String method, int level) {
-        SkillPlans.Step last = plan.steps.isEmpty() ? null : plan.steps.get(plan.steps.size() - 1);
-        int start;
-        if (last == null) {
-            start = Math.max(Math.max(1, level), action.level);
-        } else if (last.to < plan.goal) {
-            start = Math.max(last.to, action.level);
+        int start = Math.max(Math.max(1, level), action.level);
+        SkillPlans.Step covering;
+        while (true) {
+            if (start >= plan.goal) {
+                return false;
+            }
+            covering = null;
+            for (SkillPlans.Step step : plan.steps) {
+                if (step.from <= start && start < step.to) {
+                    covering = step;
+                }
+            }
+            if (covering == null || covering.from < start) {
+                break;
+            }
+            start = covering.to;
+        }
+        int end = plan.goal;
+        if (covering != null) {
+            end = covering.to;
+            covering.to = start;
         } else {
-            start = Math.max(action.level, last.from + 1);
+            for (SkillPlans.Step step : plan.steps) {
+                if (step.from > start) {
+                    end = Math.min(end, step.from);
+                }
+            }
         }
-        if (start >= plan.goal) {
-            return false;
-        }
-        if (last != null) {
-            last.to = start;
-        }
-        plan.steps.add(new SkillPlans.Step(action.name, start, plan.goal, method, xpEach));
+        plan.steps.add(new SkillPlans.Step(action.name, start, end, method, xpEach));
+        plan.steps.sort((x, y) -> Integer.compare(x.from, y.from));
         return true;
+    }
+
+    /**
+     * Puts a milestone in at its own levels: the ones it overlaps make room (cut short, cut off at the start, split in
+     * two around it, or gone when it covers them). The step may already be in the plan (one being edited).
+     */
+    static void insertStep(SkillPlans.Plan plan, SkillPlans.Step step) {
+        List<SkillPlans.Step> after = new ArrayList<>();
+        for (SkillPlans.Step other : plan.steps) {
+            if (other == step || other.to <= step.from || other.from >= step.to) {
+                continue;
+            }
+            if (other.from < step.from && other.to > step.to) {
+                // Around it: split, its second half after the new one
+                after.add(new SkillPlans.Step(other.action, step.to, other.to, other.method, other.xp));
+                other.to = step.from;
+            } else if (other.from < step.from) {
+                other.to = step.from;
+            } else {
+                other.from = step.to;
+            }
+        }
+        plan.steps.removeIf(other -> other != step && other.to <= other.from);
+        if (!plan.steps.contains(step)) {
+            plan.steps.add(step);
+        }
+        plan.steps.addAll(after);
+        plan.steps.sort((a, b) -> Integer.compare(a.from, b.from));
+        plan.goal = Math.max(plan.goal, step.to);
     }
 
     /**
