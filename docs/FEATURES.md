@@ -372,11 +372,13 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 - A skill's rate clock **auto-pauses** after a while without XP (**Auto-Pause After**: 10 seconds to an hour, 10 seconds by default) and
   resumes on your next XP.
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
-- **Items gathered**: Woodcutting, Fishing, Mining and Cooking cards (and the pinned skill) count what you got
-  this session and how many an hour on the skill's XP/hr clock: "Logs: 342 (1,050/hr)", "Fish:", "Ore:" and
-  "Gems:", "Cooked: 120 (1,400/hr), 4 burnt (3%)". Counted from the game's chat messages (as RuneLite's
-  Woodcutting, Fishing and Cooking plugins do), one per message, so a double catch counts once. Reset rate
-  or Reset clears them (**Show Items Gathered**).
+- **Items gathered**: every skill's card (and the pinned skill), goal or not, counts what you did this session and
+  how many an hour: Woodcutting, Fishing, Mining and Cooking count items from the game's chat messages (as
+  RuneLite's Woodcutting, Fishing and Cooking plugins do; one per message, so a double catch counts once): "Logs:
+  342 (1,050/hr)", "Fish:", "Ore:", "Gems:", "Cooked: 120 (1,400/hr), 4 burnt (3%)". Other skills count each action
+  (each XP drop): "Steals:", "Made:", "Crafts:", "Casts:", "Catches:", "Burned:", "Offered:"... Combat skills count
+  kills instead. Per hour is worked out at the skill's XP rate, so it matches the card's XP/hr. Reset rate or Reset
+  clears them (**Show Items Gathered**).
 - **Keep Session After Restart** (30 minutes by default; 0 turns it off): close the client and log back in to the
   same account within that time of logging out (or of your last XP, if the client closed without logging out) and
   the tracker carries on with that session's XP, rates, actions and items; chat says so. XP gained elsewhere in

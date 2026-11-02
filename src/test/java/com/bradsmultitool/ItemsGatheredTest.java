@@ -33,8 +33,11 @@ public class ItemsGatheredTest {
 
     @Test
     public void countsAndRates() {
-        assertEquals("342 (1,026/hr)", ItemsGathered.countAndRate(342, 1200));
-        assertEquals("5", ItemsGathered.countAndRate(5, 30)); // no rate in the first minute
+        // 342 logs for 23,000 XP at 70,000 XP/hr: 1,040 an hour
+        assertEquals("342 (1,040/hr)", ItemsGathered.countAndRate(342, 23_000, 70_000));
+        assertEquals("5", ItemsGathered.countAndRate(5, 0, 0)); // no rate before there's an XP rate
+        assertEquals("Steals", ItemsGathered.actionNoun(net.runelite.api.Skill.THIEVING));
+        assertEquals(null, ItemsGathered.actionNoun(net.runelite.api.Skill.ATTACK));
     }
 
     @Test

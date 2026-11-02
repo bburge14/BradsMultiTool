@@ -1598,7 +1598,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showTrackerItems",
         name = "Show Items Gathered",
-        description = "<div width='300'>How many logs, fish and ore you've got and food you've cooked (and burnt) this session, and how many an hour, on the skill's card and the pinned skill. Counted from the game's chat messages",
+        description = "<div width='300'>How many you've done this session and how many an hour, on the skill's card and the pinned skill: logs, fish, ore and food cooked (and burnt) from the game's messages, and for other skills each action (steals, items made, casts...). Per hour at the skill's XP rate",
         section = trackerSection,
         position = 13
     )
