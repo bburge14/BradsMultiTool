@@ -1068,10 +1068,7 @@ class SkillTracker {
             }
         });
         itemCounts.putAll(saved.items);
-        long minutes = (now - saved.savedAt) / 60_000;
-        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName + "]</col> "
-            + "Carried on your skill tracker session from " + (minutes < 1 ? "just now" : minutes + " min ago")
-            + " (Keep Session After Restart; Reset all skills to start again).", null);
+        // Picked up quietly: no message
         updatePanelUI();
     }
 

@@ -381,7 +381,7 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
   clears them (**Show Items Gathered**).
 - **Keep Session After Restart** (30 minutes by default; 0 turns it off): close the client and log back in to the
   same account within that time of logging out (or of your last XP, if the client closed without logging out) and
-  the tracker carries on with that session's XP, rates, actions and items; chat says so. XP gained elsewhere in
+  the tracker carries on with that session's XP, rates, actions and items, quietly. XP gained elsewhere in
   between (mobile) isn't added. Reset all skills starts afresh. Like RuneLite's XP Tracker keeping its session.
 
 **Settings (Skill Tracker):** a switch for each field; Actions Until Goal; Show Goal; Suggested Method,

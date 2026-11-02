@@ -111,6 +111,13 @@ class PlannerPanel extends PluginPanel {
 
     private final Map<String, Integer> cropItems = new HashMap<>();
     private final Timer clock = new Timer(1000, e -> refresh());
+    // Running countdowns redrawn four times a second from the real clock (cheap: only their numbers and bars), so
+    // each second ticks over when it should instead of drifting against the once-a-second refresh
+    private final Timer countdowns = new Timer(250, e -> {
+        if (selected != null) {
+            selected.live.forEach(Runnable::run);
+        }
+    });
     private final Timer notesSave = new Timer(1000, e -> saveNotes());
     private String notesProfile;
 
@@ -139,11 +146,13 @@ class PlannerPanel extends PluginPanel {
 
         notesSave.setRepeats(false);
         clock.start();
+        countdowns.start();
         refresh();
     }
 
     void stop() {
         clock.stop();
+        countdowns.stop();
         notesSave.stop();
         saveNotes();
     }
@@ -686,8 +695,7 @@ class PlannerPanel extends PluginPanel {
         } else if (running) {
             card.right.setForeground(Color.WHITE);
             page.live.add(() -> {
-                long at = System.currentTimeMillis() / 1000;
-                long left = timer.left(at);
+                long left = timer.leftNow(System.currentTimeMillis());
                 card.right.setText(PlannerTimers.clock(left));
                 bar.set(timer.seconds > 0 ? 1 - (double) left / timer.seconds : 1, PlannerUi.GROWING);
             });

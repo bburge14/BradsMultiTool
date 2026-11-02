@@ -162,7 +162,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Items: chop, fish, mine, cook: the card (and pinned skill) shows "Logs: 342 (1,050/hr)", "Fish:", "Ore:"/"Gems:",
       "Cooked: ..., 4 burnt (3%)"; Reset rate / Reset clears them; Show Items Gathered off hides them.
 - [ ] Keep Session After Restart: train, close the client, reopen and log in within 30 minutes: the cards carry on
-      (chat says so), XP/hr about the same; after longer (or with it at 0), a fresh session. Reset all skills, restart: fresh.
+      (no chat line), XP/hr about the same; after longer (or with it at 0), a fresh session. Reset all skills, restart: fresh.
 - [ ] Skills Tab Goal Bars: a thin gold bar along the bottom of each goal skill on the Skills tab, matching the card's
       goal bar; none with the setting off or on other tabs.
 - [ ] Training combat (e.g. Gemstone Crab): cards stay still, no field wraps onto two lines; GOALS / THIS SESSION headings centred.
