@@ -37,7 +37,24 @@ CACHE = os.path.join(ROOT, ".publish-cache")
 HUB_OUT = os.path.join(ROOT, "releases", "plugin-hub")
 
 
+# Who the plugin repositories' commits and tags are by, when git has no name or email set on this PC (filled in by
+# main() from publish.json); empty: git's own
+IDENTITY = []
+
+
+def identity(config):
+    """git -c options for the author, only where git has none of its own (so your own setting always wins)."""
+    out = []
+    if not git("config", "user.name", check=False):
+        out += ["-c", "user.name=" + config.get("authorName", "SgtSnufffy")]
+    if not git("config", "user.email", check=False):
+        out += ["-c", "user.email=" + config.get("authorEmail", "bburge14@users.noreply.github.com")]
+    return out
+
+
 def git(*args, cwd=ROOT, capture=True, check=True):
+    if args and args[0] in ("commit", "tag"):
+        args = tuple(IDENTITY) + args
     result = subprocess.run(["git", *args], cwd=cwd, check=False, text=True,
                             stdout=subprocess.PIPE if capture else None, stderr=subprocess.PIPE if capture else None)
     if check and result.returncode != 0:
@@ -73,6 +90,8 @@ def checkout(name, repo, branch, dry_run):
         if subprocess.run(["git", "clone", "--quiet", repo, path], stderr=subprocess.DEVNULL).returncode != 0:
             sys.exit("Couldn't clone %s. Make the repository on GitHub first (it can be empty)." % repo)
     git("remote", "set-url", "origin", repo, cwd=path)
+    # (file permissions aren't a change: Windows doesn't keep them)
+    git("config", "core.fileMode", "false", cwd=path)
     git("fetch", "--quiet", "origin", cwd=path, check=False)
     if git("ls-remote", "--heads", "origin", branch, cwd=path):
         git("checkout", "--quiet", "-f", "-B", branch, "origin/" + branch, cwd=path)
@@ -281,6 +300,7 @@ def main():
     dry_run = "--dry-run" in argv
     with open(config_path) as f:
         config = json.load(f)
+    IDENTITY[:] = identity(config)
     plugins = config["plugins"]
     chosen = args or [folder for folder, entry in plugins.items() if entry.get("publish")]
     unknown = [c for c in chosen if c not in plugins]

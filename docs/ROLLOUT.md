@@ -44,7 +44,9 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
    change them there if you pick others). Already made the first six? Just add `snuffys-planner`.
 2. Fork `runelite/plugin-hub` to your account (`bburge14/plugin-hub`, as in `publish.json`).
 3. On your PC: Python 3 (`py` on Windows) and git logged in to GitHub (the same login the launcher's updates use,
-   with permission to push).
+   with permission to push). Git needs no name or email set up: when it has none, the plugin repositories' commits are by
+   `authorName` / `authorEmail` from `publish.json` (SgtSnufffy, with GitHub's private no-reply address so your real
+   email isn't public). How you log in to the GitHub website (Google, say) doesn't matter here.
 4. Launcher, **Dev** tab: **Check (dry run)** once to see it work, then **Push to repos**.
 
 ## Before the first submission (checklist)

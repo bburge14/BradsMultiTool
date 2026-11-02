@@ -1,6 +1,9 @@
 {
   "_about": "Where each plugins/<folder> is published (scripts/publish_plugins.py). Make each repository on GitHub first (empty is fine). hubName is the plugin's file name in runelite/plugin-hub's plugins/ folder.",
   "pluginHubFork": "https://github.com/bburge14/plugin-hub.git",
+  "_aboutAuthor": "The name and email on the plugin repositories' commits when git has none set on this PC (GitHub's private no-reply address, so your real email isn't public).",
+  "authorName": "SgtSnufffy",
+  "authorEmail": "bburge14@users.noreply.github.com",
   "plugins": {
     "skilling-helper": {
       "repo": "https://github.com/bburge14/snuffys-skilling-helper.git",
