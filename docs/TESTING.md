@@ -138,7 +138,6 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Tree fallen / rock depleted / fishing spot moved only for the resource you're working.
 - [x] Inventory full while working a resource.
 - [ ] Coin pouches full (at 28, or your Ardougne diary cap).
-- [ ] Bird houses ready 50 minutes after seeding.
 - [ ] Batch complete after a run of cooking / smithing / crafting / fletching / herblore.
 - [ ] Sailing: Boat Health Low below 30% on your own boat (once until repaired); Trim Sails when a gust opens the
       trim window; neither on someone else's boat or ashore.
@@ -258,9 +257,42 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] A monster's clue scroll drop: "Clue: a <tier> clue scroll from <monster>!" once; picking it up says nothing more.
 - [ ] A clue geode / bottle / nest / scroll box from skilling: alert with its tier. Withdrawing one from the bank: no alert.
 - [ ] Logging in with clues already in the inventory: no alert.
-- [ ] Login on a member with an uncollected daily (e.g. Zaff's battlestaves after the Varrock easy diary): one
-  "Dailies to collect" line; collected ones aren't listed; each daily's switch removes it.
-- [ ] With two of Snuffy's plugins installed, clue and daily alerts are said once.
+- [ ] With two of Snuffy's plugins installed, clue alerts are said once; no plugin posts a daily reminder in chat.
+
+## Planner (`runBrad "-Pload=planner"`, and in the Toolbelt)
+- [ ] The Planner tab (calendar icon) shows TODAY, WEEKLY, TIMERS, SLAYER, DROPS, NOTES & TO-DO; clicking a heading
+      folds it and it stays folded after a restart; each Show switch hides its list.
+- [ ] Logged out: "Log in to fill your Planner."; logging into another account shows that account's lists.
+- [ ] TODAY on a member: the dailies you've unlocked (e.g. Zaff's battlestaves after the Varrock easy diary) and
+      none you haven't; collecting one ticks it within a few seconds; herb boxes show "n of 15 bought". The heading
+      counts down to 00:00 UTC.
+- [ ] Add... a daily with a note (hover shows it), tick it, edit its name, delete it. Hide a preset; Show hidden
+      brings it back. A ticked custom daily unticks after the daily reset (and a weekly one after Wednesday 00:00 UTC).
+- [ ] At login with dailies left: one voice line "You have dailies to do." and nothing in chat (Chat: Dailies off);
+      turning Chat: Dailies on adds one line with how many. Same for weeklies. Nothing when everything is ticked.
+- [ ] Staying logged in over 00:00 UTC: the collected dailies are due again and the voice line plays once.
+- [ ] Tears of Guthix: after a game it says "back in ..." (start of the seventh day after); ticking it by hand does
+      the same; before any game it says "not seen yet" and isn't counted in the weeklies line.
+- [ ] Kingdom of Miscellania (after Throne of Miscellania): visiting the kingdom shows approval % and coffer, kept
+      after logout; under 50% it's orange.
+- [ ] Farming contract: shows the crop and how the Farming Guild patch is doing; "done: claim from Guinevere" once grown.
+- [ ] TIMERS: patches you've visited (with compost bins and Hespori) and their grown-by times, as the Skilling
+      Helper's FARMING list showed them before (old patches still there). Times show "~" until a patch is seen growing
+      a stage while you stand by it, then no "~". Teleporting between two herb patches doesn't copy one's crop onto
+      the other or delete it. Right-click > Forget this patch.
+- [ ] Patches ready alert (voice + chat naming them, once per crop); bird houses ready 50 minutes after seeding.
+- [ ] Add timer... "Test" 1 minute: Start counts down, Stop resets, it says "Your timer is done." with the name in
+      chat when it ends; still there (and running) after relogging; Edit... and Delete work.
+- [ ] SLAYER: task, kills left (of how many), Konar's area, points and streak, without the PvM/Slayer plugin; kept
+      while logged out.
+- [ ] DROPS: kill a few monsters: each gets kills and a GE value, click to see items; Recent lists drops, those over
+      Valuable Drop From in Valuable Drop Colour. With RuneLite's Loot Tracker on, a clue casket or chest is counted
+      once (and a monster kill isn't counted twice); the clash note mentions the Loot Tracker. Reset one; Reset all.
+- [ ] NOTES & TO-DO: add (Enter), tick, edit, move up/down, delete, Clear ticked; notes kept after a restart and per
+      account; typing in notes isn't interrupted by the list redrawing.
+- [ ] The Skilling Helper's sidebar no longer has the FARMING list; its farming patch and bird house hover cards
+      still work.
+- [ ] With the Toolbelt and the separate Planner both on, the Toolbelt's clash note names Snuffy's Planner.
 
 ## Track for goal: specific methods
 - [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,

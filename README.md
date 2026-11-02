@@ -1,7 +1,7 @@
 # Snuffy's Toolbelt
 
 A RuneLite plugin that bundles PvM, Gemstone Crab, Slayer and skilling helpers, alerts with voice lines,
-and a skill tracker into one place. Everything can be switched on or off in the plugin's settings.
+a skill tracker and a planner for your dailies, timers and drops into one place. Everything can be switched on or off in the plugin's settings.
 
 - [Installing](#installing): the all-in-one, or just the parts you want
 - [Features](#features) (full guide with how-tos: [docs/FEATURES.md](docs/FEATURES.md))
@@ -23,6 +23,7 @@ Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just 
 | **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
 | **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
 | **Snuffy's Tick Counter** | Tick count over your head, tick boxes and a smooth tick bar, metronome, click timing for tick skilling |
+| **Snuffy's Planner** | A sidebar tab for dailies and weeklies, farming patches, bird houses and your own timers, your Slayer task, a drop tracker, and a to-do list with notes |
 | **Snuffy's Alerts** | Optional: one voice and volume for all of the separate plugins |
 
 **From the Plugin Hub** (once they're published there): in RuneLite open the **Plugin Hub** (the plug icon
@@ -32,8 +33,8 @@ everything twice. Every plugin has the idle and logout warnings; with several in
 
 **Before they're on the Plugin Hub**, run them from this repository with **Snuffy's Launcher**: see
 [First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own folder under
-[`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `alerts`) that builds on
-its own. `python3 scripts/split_plugins.py --build` makes all five jars in `releases/`.
+[`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `tick-counter`, `planner`, `alerts`) that builds
+on its own. `python3 scripts/split_plugins.py --build` makes all seven jars in `releases/`.
 
 **Trying the jars with friends:** put the jar(s) in `.runelite/sideloaded-plugins` (create it next to
 `.runelite/settings.properties`) and start RuneLite in developer mode: in **RuneLite (configure)** add
@@ -189,6 +190,22 @@ work a resource.
 - **Hotkeys** (none set at first): reset the count to 1, show/hide the tick overlays, Ticks Per Cycle up/down.
 - **Snuffy's Tick Counter** (also in the Toolbelt); settings under **Tick Counter**.
 
+### Snuffy's Planner (sidebar)
+Its own sidebar tab (the calendar icon), also in the Toolbelt. Six lists, each folds away under its heading and
+each can be hidden in the settings; everything is saved per account.
+- **Today**: the daily rewards you've unlocked (battlestaves, herb boxes, essence, runes, sand, bowstrings,
+  bonemeal, dynamite, ogre arrows), ticked off as you collect them, with the time to the daily reset. Add your own
+  dailies (they untick at the reset), rename or hide any. One voice line at login and at the reset if there are
+  dailies to do; no chat spam.
+- **Weekly**: Tears of Guthix (when Juna lets you back), your own weeklies, the Kingdom of Miscellania's approval and
+  coffer, and your farming contract, with the time to the weekly reset (Wednesday).
+- **Timers**: every farming patch, compost bin and Hespori you've been to and when it's grown (moved here from the
+  Skilling Helper), your bird houses, and timers of your own; each with a ready alert.
+- **Slayer**: your task, kills left, points and streak, straight from the game.
+- **Drops**: kills or opens and the Grand Exchange value per monster or chest, the items, and your latest drops
+  (valuable ones highlighted); reset one or all.
+- **Notes & to-do**: a to-do list and a notes box.
+
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key
   presses since. Banking, shops, the GE and menus never set it off.
@@ -320,7 +337,7 @@ To load the separate plugins instead of the Toolbelt, name them with `-Pload=` (
 .\gradlew.bat runBrad "-Pload=separate"          # all the separate plugins at once
 ```
 
-The names are `toolbelt` (the default), `skilling`, `pvm`, `gemcrab`, `tick` and `alerts`. The Toolbelt always
+The names are `toolbelt` (the default), `skilling`, `pvm`, `gemcrab`, `tick`, `planner` and `alerts`. The Toolbelt always
 loads on its own (it already includes the others). Each separate plugin has its own settings, so settings you
 change in the Toolbelt don't carry over to them (and the other way round).
 
@@ -334,7 +351,8 @@ setting of it that clashes), every one of Snuffy's plugins shows a small yellow 
 boxes (top left of the game; hover it for the clashes and what they mean), and each plugin says its clashes in chat
 once a login. It's live: turn the clashing plugin or setting off and the icon goes within a few seconds. Don't want
 any of it? Turn off **About > Clash Warnings** in that plugin's settings. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
-minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome and Idle Notifier, and the Tempoross,
+minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome, Idle Notifier, Daily Task Indicator and
+Loot Tracker, and the Tempoross,
 Guardians of the Rift Helper and Sailing plugins' notifications.
 
 
@@ -352,6 +370,7 @@ All sections except General start collapsed.
 | Skilling | Hover cards, XP rates on cards, inventory full, resource gone, batch complete |
 | Woodcutting ... Sailing | One section per skill with its pies, cards and alerts |
 | Skill Tracker | Which fields to show, goals, suggested methods and highlights, goal items, auto-pause, ignored skills, level-up alerts |
+| Planner: Today ... Notes & To-Do | Each Planner list's Show switch; the dailies/weeklies voice line; farming, bird house and timer alerts; drop colours and the valuable drop amount |
 
 ## Credits
 

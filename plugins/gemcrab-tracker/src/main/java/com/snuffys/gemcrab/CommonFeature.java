@@ -29,12 +29,9 @@ class CommonFeature {
     private PluginClashes clashes;
     @Inject
     private ClueDrops clueDrops;
-    @Inject
-    private DailyReminders dailyReminders;
 
     void start(Lifecycle lifecycle) {
-        lifecycle.subscribe(inGame, alerts, idleWarnings, runEnergyAlerts, configDefaults, voiceSync, clashes, clueDrops, dailyReminders);
-        dailyReminders.start();
+        lifecycle.subscribe(inGame, alerts, idleWarnings, runEnergyAlerts, configDefaults, voiceSync, clashes, clueDrops);
         configDefaults.add(() -> CommonConfigDefaults.store(configDefaults, config));
         lifecycle.overlay(idleWarningOverlay);
         voiceSync.start();

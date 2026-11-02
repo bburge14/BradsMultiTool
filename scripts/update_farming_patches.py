@@ -26,7 +26,8 @@ def fetch(url):
 
 
 def produce(source):
-    """ENUM -> {name, patch, tickrate, stages}, from Produce's constructor calls."""
+    """ENUM -> {name, patch, tickrate, stages[, contract]}, from Produce's constructor calls; contract is the value
+    the farming contract varbit (FARMGUILD_CONTRACT_TYPE) has when Guinevere asks for this crop."""
     out = {}
     for m in re.finditer(r"^\t([A-Z_]+)\((.*)\)[,;]?\s*(?://.*)?$", source, re.M):
         args = [a.strip() for a in re.split(r",(?![^(]*\))", m.group(2))]
@@ -39,6 +40,9 @@ def produce(source):
             after = args[args.index("PatchImplementation." + impl) + 2:]  # skip itemID
             tickrate, stages = int(after[0]), int(after[1])
         out[m.group(1)] = {"name": name, "patch": impl, "tickrate": tickrate, "stages": stages}
+        # (name, contractVarbitValue, PatchImplementation...)
+        if impl is not None and re.fullmatch(r"\d+", args[1]) and args[2].startswith("PatchImplementation."):
+            out[m.group(1)]["contract"] = int(args[1])
     return out
 
 

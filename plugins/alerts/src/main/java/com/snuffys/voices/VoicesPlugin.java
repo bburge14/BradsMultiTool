@@ -9,7 +9,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 /** Snuffy's Alerts on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
 @PluginDescriptor(
     name = "Snuffy's Alerts",
-    description = "One voice and volume for all of Snuffy's plugins, plus idle, logout, run energy, clue drop and daily reminder alerts",
+    description = "One voice and volume for all of Snuffy's plugins, plus idle, logout, run energy and clue drop alerts",
     tags = {"snuffy", "voice", "alerts", "idle", "logout"}
 )
 public class VoicesPlugin extends Plugin {

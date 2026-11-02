@@ -14,9 +14,7 @@ import net.runelite.api.Client;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
-import net.runelite.api.gameval.DBTableID;
 import net.runelite.api.gameval.VarPlayerID;
-import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.config.ConfigManager;
 
 /**
@@ -29,14 +27,6 @@ class SlayerTracker {
     @Inject
     private Alerts alerts;
 
-    private static final int VARP_SLAYER_COUNT = 394;   // VarPlayerID.SLAYER_COUNT
-    private static final int VARP_SLAYER_TARGET = 395;  // VarPlayerID.SLAYER_TARGET
-    private static final int VARBIT_BOSS_TARGET = 4723; // VarbitID.SLAYER_TARGET_BOSSID
-    private static final int BOSS_TASK = 98;
-    // Game database tables/columns used by RuneLite's Slayer plugin
-    private static final int TABLE_BOSS_TASKS = 116;
-    private static final int TABLE_TASKS = 113;
-    private static final int COLUMN_TASK_NAME = 10;
     // Kills used for the kill rate
     private static final int RATE_WINDOW = 30;
 
@@ -101,9 +91,6 @@ class SlayerTracker {
     @Inject
     private PluginIdentity identity;
 
-    // Slayer masters with their own streak (RuneLite's Slayer plugin: VarbitID.SLAYER_MASTER values)
-    private static final int KRYSTILIA = 7;
-    private static final int MORTIMER = 10;
     /** Task streaks with bonus points, biggest first (every 10th task, 50th, 100th, 250th and 1000th). */
     private static final int[] MILESTONES = {1000, 250, 100, 50, 10};
     /** The bonus each milestone gives, as a multiple of the master's usual points (OSRS Wiki, Slayer reward point). */
@@ -128,8 +115,8 @@ class SlayerTracker {
 
     /** Call once per game tick. */
     void update() {
-        int count = client.getVarpValue(VARP_SLAYER_COUNT);
-        int id = client.getVarpValue(VARP_SLAYER_TARGET);
+        int count = SlayerVars.remaining(client);
+        int id = SlayerVars.taskId(client);
         if (count <= 0) {
             // A task just finished: forget its supplies, so a next task of the same kind and size starts at none
             if (taskName != null && configManager != null && identity != null && configManager.getRSProfileKey() != null) {
@@ -142,7 +129,7 @@ class SlayerTracker {
             // Just logged in (or started): the task we had before may be this one; otherwise it's a new task
             boolean resumed = taskId == -1;
             taskId = id;
-            taskName = lookupTaskName(id);
+            taskName = SlayerVars.taskName(client, id);
             killTimes.clear();
             missingItemAlerted = false;
             loadSupplies(resumed);
@@ -159,27 +146,6 @@ class SlayerTracker {
         Requirement requirement = getRequirement();
         hasRequiredItem = requirement == null || carries(requirement);
         warnIfFightingWithoutItem(requirement);
-    }
-
-    // Same lookup as RuneLite's Slayer plugin: a boss task names the task row through the boss table
-    private String lookupTaskName(int id) {
-        try {
-            if (id == BOSS_TASK) {
-                // The boss table's task column is the task table's row itself (as RuneLite's Slayer plugin reads it)
-                List<Integer> bossRows = client.getDBRowsByValue(TABLE_BOSS_TASKS, 1, 0, client.getVarbitValue(VARBIT_BOSS_TARGET));
-                if (!bossRows.isEmpty()) {
-                    int taskRow = (Integer) client.getDBTableField(bossRows.get(0), 4, 0)[0];
-                    return (String) client.getDBTableField(taskRow, COLUMN_TASK_NAME, 0)[0];
-                }
-            }
-            List<Integer> rows = client.getDBRowsByValue(TABLE_TASKS, 0, 0, id);
-            if (!rows.isEmpty()) {
-                return (String) client.getDBTableField(rows.get(0), COLUMN_TASK_NAME, 0)[0];
-            }
-        } catch (RuntimeException e) {
-            // Unknown task id or table layout change: fall through
-        }
-        return "Task #" + id;
     }
 
     Requirement getRequirement() {
@@ -242,20 +208,10 @@ class SlayerTracker {
 
     /** The area Konar assigned with this task (from the game's Slayer area table), or null. */
     String getKonarArea() {
-        int id = client.getVarpValue(VarPlayerID.SLAYER_AREA);
+        int id = SlayerVars.areaId(client);
         if (id != konarAreaId) {
             konarAreaId = id;
-            konarArea = null;
-            if (id > 0) {
-                try {
-                    List<Integer> rows = client.getDBRowsByValue(DBTableID.SlayerArea.ID, DBTableID.SlayerArea.COL_AREA_ID, 0, id);
-                    if (!rows.isEmpty()) {
-                        konarArea = (String) client.getDBTableField(rows.get(0), DBTableID.SlayerArea.COL_AREA_NAME_IN_HELPER, 0)[0];
-                    }
-                } catch (RuntimeException e) {
-                    konarArea = null;
-                }
-            }
+            konarArea = SlayerVars.area(client, id);
         }
         return konarArea;
     }
@@ -279,7 +235,7 @@ class SlayerTracker {
 
     /** Your Slayer reward points (the same varbit RuneLite's Slayer plugin shows). */
     int points() {
-        return client.getVarbitValue(VarbitID.SLAYER_POINTS);
+        return SlayerVars.points(client);
     }
 
     /**
@@ -287,14 +243,7 @@ class SlayerTracker {
      * every other master shares one. Goes by the master of your current (or last) task.
      */
     int streak() {
-        switch (client.getVarbitValue(VarbitID.SLAYER_MASTER)) {
-            case KRYSTILIA:
-                return client.getVarbitValue(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
-            case MORTIMER:
-                return client.getVarpValue(VarPlayerID.SLAYER_MORTIMER_TASKS_COMPLETED);
-            default:
-                return client.getVarbitValue(VarbitID.SLAYER_TASKS_COMPLETED);
-        }
+        return SlayerVars.streak(client);
     }
 
     /** The milestone (10, 50, 100, 250 or 1000) the task after {@code streak} done lands on, or 0 if none. */

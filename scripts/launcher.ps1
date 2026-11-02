@@ -335,6 +335,7 @@ $plugins = [ordered]@{
     'pvm'      = 'PvM/Slayer'
     'gemcrab'  = 'GemCrab Tracker'
     'tick'     = 'Tick Counter'
+    'planner'  = 'Planner'
     'alerts'   = 'Alerts'
 }
 $last = 'toolbelt'
@@ -359,16 +360,17 @@ $separate.AutoSize = $true
 $pick.Controls.Add($separate)
 
 $boxes = @{}
-$y = 94
+# Two columns of three
+$i = 0
 foreach ($key in $plugins.Keys) {
     $box = New-Object System.Windows.Forms.CheckBox
     $box.Text = $plugins[$key]
-    $box.Location = New-Object System.Drawing.Point(34, $y)
+    $box.Location = New-Object System.Drawing.Point((34 + [math]::Floor($i / 3) * 190), (94 + ($i % 3) * 22))
     $box.AutoSize = $true
     $box.Checked = ($lastNames -contains $key) -or ($lastNames -contains 'separate')
     $pick.Controls.Add($box)
     $boxes[$key] = $box
-    $y += 22
+    $i++
 }
 $updateBoxes = { foreach ($box in $boxes.Values) { $box.Enabled = $separate.Checked } }
 $toolbelt.Add_CheckedChanged($updateBoxes)
@@ -713,7 +715,7 @@ if (Test-Path $publishConfig) {
     }
 }
 
-$bumpLabel = New-Label 'Version for changed plugins:' 12 132 170
+$bumpLabel = New-Label 'Version for changed plugins:' 12 154 170
 $devTab.Controls.Add($bumpLabel)
 $bump = New-Object System.Windows.Forms.ComboBox
 $bump.DropDownStyle = 'DropDownList'
@@ -721,27 +723,27 @@ $bump.DropDownStyle = 'DropDownList'
 [void]$bump.Items.Add('minor (new features: 1.0.0 -> 1.1.0)')
 [void]$bump.Items.Add('major (big changes: 1.0.0 -> 2.0.0)')
 $bump.SelectedIndex = 0
-$bump.Location = New-Object System.Drawing.Point(184, 129)
+$bump.Location = New-Object System.Drawing.Point(184, 151)
 $bump.Size = New-Object System.Drawing.Size(266, 24)
 $devTab.Controls.Add($bump)
 
 $devCheck = New-Object System.Windows.Forms.Button
 $devCheck.Text = 'Check (dry run)'
-$devCheck.Location = New-Object System.Drawing.Point(12, 162)
+$devCheck.Location = New-Object System.Drawing.Point(12, 184)
 $devCheck.Size = New-Object System.Drawing.Size(120, 30)
 $devTab.Controls.Add($devCheck)
 $devPush = New-Object System.Windows.Forms.Button
 $devPush.Text = 'Push to repos'
-$devPush.Location = New-Object System.Drawing.Point(140, 162)
+$devPush.Location = New-Object System.Drawing.Point(140, 184)
 $devPush.Size = New-Object System.Drawing.Size(120, 30)
 $devTab.Controls.Add($devPush)
 $devPublish = New-Object System.Windows.Forms.Button
 $devPublish.Text = 'Publish to RuneLite'
-$devPublish.Location = New-Object System.Drawing.Point(268, 162)
+$devPublish.Location = New-Object System.Drawing.Point(268, 184)
 $devPublish.Size = New-Object System.Drawing.Size(140, 30)
 $devPublish.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
 $devTab.Controls.Add($devPublish)
-$devStatus = New-Label '' 12 198 440
+$devStatus = New-Label '' 12 220 440
 $devTab.Controls.Add($devStatus)
 
 $devOut = New-Object System.Windows.Forms.TextBox
@@ -749,8 +751,8 @@ $devOut.Multiline = $true
 $devOut.ReadOnly = $true
 $devOut.ScrollBars = 'Vertical'
 $devOut.Font = New-Object System.Drawing.Font('Consolas', 8.5)
-$devOut.Location = New-Object System.Drawing.Point(12, 220)
-$devOut.Size = New-Object System.Drawing.Size(438, 400)
+$devOut.Location = New-Object System.Drawing.Point(12, 242)
+$devOut.Size = New-Object System.Drawing.Size(438, 378)
 $devTab.Controls.Add($devOut)
 
 $prLink = New-Object System.Windows.Forms.LinkLabel

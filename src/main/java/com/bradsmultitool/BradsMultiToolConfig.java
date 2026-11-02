@@ -18,14 +18,62 @@ import net.runelite.client.config.Units;
  * repeated here (MultiToolConfigTest checks none is missing).
  */
 @ConfigGroup("bradsmultitool")
-public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, GemCrabConfig, TickConfig {
+public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, GemCrabConfig, TickConfig, PlannerConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Toolbelt: every one of Snuffy's plugins in one (don't run it with the separate ones). Clashes (said in chat while they're on): the timer plugins Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, and RuneLite's Hunter and Mining plugins (our matching timers hide for them); Hunter Rumours and Skills Progress; RuneLite's Slayer plugin with its task highlight on; RuneLite's Metronome; RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Toolbelt: every one of Snuffy's plugins in one (don't run it with the separate ones). Clashes (said in chat while they're on): the timer plugins Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, and RuneLite's Hunter and Mining plugins (our matching timers hide for them); Hunter Rumours and Skills Progress; RuneLite's Slayer plugin with its task highlight on; RuneLite's Metronome; RuneLite's Idle Notifier; RuneLite's Daily Task Indicator and Loot Tracker (the Planner). Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
+
+    @ConfigSection(
+        name = "Planner: Today",
+        description = "<div width='300'>The Planner's TODAY list: daily rewards to collect (from the game) and your own daily to-dos, and the voice line when there are some to do",
+        position = 70,
+        closedByDefault = true
+    )
+    String plannerTodaySection = "plannerTodaySection";
+
+    @ConfigSection(
+        name = "Planner: Weekly",
+        description = "<div width='300'>The Planner's WEEKLY list: Tears of Guthix, your own weekly to-dos, the Kingdom of Miscellania and the farming contract",
+        position = 71,
+        closedByDefault = true
+    )
+    String plannerWeeklySection = "plannerWeeklySection";
+
+    @ConfigSection(
+        name = "Planner: Timers",
+        description = "<div width='300'>The Planner's TIMERS list: farming patches, compost bins and Hespori, bird houses, and timers of your own, with their ready alerts",
+        position = 72,
+        closedByDefault = true
+    )
+    String plannerTimersSection = "plannerTimersSection";
+
+    @ConfigSection(
+        name = "Planner: Slayer",
+        description = "The Planner's SLAYER list: your task, kills left, points and streak",
+        position = 73,
+        closedByDefault = true
+    )
+    String plannerSlayerSection = "plannerSlayerSection";
+
+    @ConfigSection(
+        name = "Planner: Drops",
+        description = "The Planner's DROPS list: what your kills and other loot gave you",
+        position = 74,
+        closedByDefault = true
+    )
+    String plannerDropsSection = "plannerDropsSection";
+
+    @ConfigSection(
+        name = "Planner: Notes & To-Do",
+        description = "The Planner's NOTES & TO-DO list: a to-do list and a notes box",
+        position = 75,
+        closedByDefault = true
+    )
+    String plannerNotesSection = "plannerNotesSection";
 
     @ConfigSection(
         name = "Tick: Bar",
@@ -147,7 +195,6 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         return true;
     }
 
-
     @ConfigSection(
         name = "Tick: Counter",
         description = "<div width='300'>Counts game ticks over your head or in a box you can move, with an optional metronome",
@@ -205,7 +252,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Reminders",
-        description = "Clue drops and daily rewards to collect",
+        description = "Clue drop alerts",
         position = 6,
         closedByDefault = true
     )
@@ -275,8 +322,6 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     )
     String fishingSection = "fishingSection";
 
-
-
     @ConfigSection(
         name = "Skilling: Hunter",
         description = "Hunter creature info, trap and bird house timers, Hunters' Rumours",
@@ -308,12 +353,6 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
         closedByDefault = true
     )
     String minigamesSection = "minigamesSection";
-
-
-
-
-
-
 
     @ConfigSection(
         name = "Skilling: Tracker",
@@ -685,150 +724,6 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     default boolean chatClueDrop() {
         return SkillTrackerConfig.super.chatClueDrop();
     }
-
-    @ConfigItem(
-        keyName = "dailyReminders",
-        name = "Daily Reminders",
-        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
-        section = remindersSection,
-        position = 3
-    )
-    @Override
-    default boolean dailyReminders() {
-        return SkillTrackerConfig.super.dailyReminders();
-    }
-
-    @ConfigItem(
-        keyName = "voiceDailies",
-        name = "Voice: Dailies",
-        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
-        section = remindersSection,
-        position = 4
-    )
-    @Override
-    default boolean voiceDailies() {
-        return SkillTrackerConfig.super.voiceDailies();
-    }
-
-    @ConfigItem(
-        keyName = "chatDailies",
-        name = "Chat: Dailies",
-        description = "Chat message listing the dailies to collect",
-        section = remindersSection,
-        position = 5
-    )
-    @Override
-    default boolean chatDailies() {
-        return SkillTrackerConfig.super.chatDailies();
-    }
-
-    @ConfigItem(
-        keyName = "dailyStaves",
-        name = "Daily: Battlestaves",
-        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
-        section = remindersSection,
-        position = 6
-    )
-    @Override
-    default boolean dailyStaves() {
-        return SkillTrackerConfig.super.dailyStaves();
-    }
-
-    @ConfigItem(
-        keyName = "dailyHerbBoxes",
-        name = "Daily: Herb Boxes",
-        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
-        section = remindersSection,
-        position = 7
-    )
-    @Override
-    default boolean dailyHerbBoxes() {
-        return SkillTrackerConfig.super.dailyHerbBoxes();
-    }
-
-    @ConfigItem(
-        keyName = "dailyEssence",
-        name = "Daily: Pure Essence",
-        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
-        section = remindersSection,
-        position = 8
-    )
-    @Override
-    default boolean dailyEssence() {
-        return SkillTrackerConfig.super.dailyEssence();
-    }
-
-    @ConfigItem(
-        keyName = "dailyRunes",
-        name = "Daily: Random Runes",
-        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
-        section = remindersSection,
-        position = 9
-    )
-    @Override
-    default boolean dailyRunes() {
-        return SkillTrackerConfig.super.dailyRunes();
-    }
-
-    @ConfigItem(
-        keyName = "dailySand",
-        name = "Daily: Sand",
-        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
-        section = remindersSection,
-        position = 10
-    )
-    @Override
-    default boolean dailySand() {
-        return SkillTrackerConfig.super.dailySand();
-    }
-
-    @ConfigItem(
-        keyName = "dailyFlax",
-        name = "Daily: Bowstrings",
-        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
-        section = remindersSection,
-        position = 11
-    )
-    @Override
-    default boolean dailyFlax() {
-        return SkillTrackerConfig.super.dailyFlax();
-    }
-
-    @ConfigItem(
-        keyName = "dailyBonemeal",
-        name = "Daily: Bonemeal",
-        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
-        section = remindersSection,
-        position = 12
-    )
-    @Override
-    default boolean dailyBonemeal() {
-        return SkillTrackerConfig.super.dailyBonemeal();
-    }
-
-    @ConfigItem(
-        keyName = "dailyDynamite",
-        name = "Daily: Dynamite",
-        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
-        section = remindersSection,
-        position = 13
-    )
-    @Override
-    default boolean dailyDynamite() {
-        return SkillTrackerConfig.super.dailyDynamite();
-    }
-
-    @ConfigItem(
-        keyName = "dailyArrows",
-        name = "Daily: Ogre Arrows",
-        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
-        section = remindersSection,
-        position = 14
-    )
-    @Override
-    default boolean dailyArrows() {
-        return SkillTrackerConfig.super.dailyArrows();
-    }
     // ---- End of CommonConfig's settings ----
 
     // ---- Generated by scripts/generate_config_defaults.py: BuffConfig's settings as this plugin's own (don't edit) ----
@@ -1009,54 +904,6 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     }
 
     @ConfigItem(
-        keyName = "farmingPatchList",
-        name = "Farming: Patch List",
-        description = "<div width='300'>A FARMING list in the sidebar: every patch you've been to with something in it, what's growing and when it's grown (the game only tells us a patch's state while you're near it, so each is as you last saw it). Right-click one to forget it",
-        section = otherSkillsSection,
-        position = 4
-    )
-    @Override
-    default boolean farmingPatchList() {
-        return SkillTrackerConfig.super.farmingPatchList();
-    }
-
-    @ConfigItem(
-        keyName = "farmingReadyAlert",
-        name = "Farming: Patches Ready Alert",
-        description = "<div width='300'>Says when patches you've planted are grown, naming them in chat (once per crop)",
-        section = otherSkillsSection,
-        position = 5
-    )
-    @Override
-    default boolean farmingReadyAlert() {
-        return SkillTrackerConfig.super.farmingReadyAlert();
-    }
-
-    @ConfigItem(
-        keyName = "voiceFarmingReady",
-        name = "Farming: Voice: Patches Ready",
-        description = "<div width='300'>Voice line when your farming patches are grown (turning it on plays a preview)",
-        section = otherSkillsSection,
-        position = 6
-    )
-    @Override
-    default boolean voiceFarmingReady() {
-        return SkillTrackerConfig.super.voiceFarmingReady();
-    }
-
-    @ConfigItem(
-        keyName = "chatFarmingReady",
-        name = "Farming: Chat: Patches Ready",
-        description = "<div width='300'>Chat message naming the farming patches that are grown",
-        section = otherSkillsSection,
-        position = 7
-    )
-    @Override
-    default boolean chatFarmingReady() {
-        return SkillTrackerConfig.super.chatFarmingReady();
-    }
-
-    @ConfigItem(
         keyName = "fireTimers",
         name = "Firemaking: Fire Timers",
         description = "<div width='300'>A timer on each fire you cook on. Fires go out at a random time 60-119 seconds after they're lit, so it shows that window: green until the earliest it can go out, then a red ring filling up to the latest (hover it for the times) Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
@@ -1091,7 +938,6 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     default boolean showRunecraftHover() {
         return true;
     }
-
 
     @ConfigItem(
         keyName = "showCookingHover",

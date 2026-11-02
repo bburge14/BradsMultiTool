@@ -76,6 +76,7 @@ public class PluginWiringTest {
         assertWired(GemCrabPlugin.class);
         assertWired(TickCounterPlugin.class);
         assertWired(VoicesPlugin.class);
+        assertWired(PlannerPlugin.class);
     }
 
     /**
@@ -130,7 +131,8 @@ public class PluginWiringTest {
             }
         };
         for (Class<? extends net.runelite.client.plugins.Plugin> type : java.util.Arrays.asList(BradsMultiToolPlugin.class,
-            SkillTrackerPlugin.class, PvmPlugin.class, GemCrabPlugin.class, TickCounterPlugin.class, VoicesPlugin.class)) {
+            SkillTrackerPlugin.class, PvmPlugin.class, GemCrabPlugin.class, TickCounterPlugin.class, VoicesPlugin.class,
+            PlannerPlugin.class)) {
             net.runelite.client.plugins.Plugin plugin = type.getDeclaredConstructor().newInstance();
             // The settings come from RuneLite's ConfigManager, which can't run here: stand-ins instead
             Module settings = com.google.inject.util.Modules.override(plugin).with(binder -> {
@@ -139,6 +141,7 @@ public class PluginWiringTest {
                 binder.bind(PvmConfig.class).toInstance(stub(PvmConfig.class));
                 binder.bind(GemCrabConfig.class).toInstance(stub(GemCrabConfig.class));
                 binder.bind(VoicesConfig.class).toInstance(stub(VoicesConfig.class));
+                binder.bind(PlannerConfig.class).toInstance(stub(PlannerConfig.class));
                 binder.bind(CommonConfig.class).toInstance(stub(CommonConfig.class));
                 binder.bind(TickConfig.class).toInstance(stub(TickConfig.class));
                 binder.bind(BuffConfig.class).toInstance(stub(BuffConfig.class));

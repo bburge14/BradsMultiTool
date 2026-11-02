@@ -44,6 +44,7 @@ public class SettingsPanelTest {
             PvmConfigDefaults.store(defaults.store, config);
             BuffConfigDefaults.store(defaults.store, config);
             GemCrabConfigDefaults.store(defaults.store, config);
+            PlannerConfigDefaults.store(defaults.store, config);
         });
         // Every separate plugin's setting is in the Toolbelt's panel too, in the same section (Timer Opacity...)
         java.util.Map<String, String> sections = new java.util.HashMap<>();
@@ -51,7 +52,8 @@ public class SettingsPanelTest {
             org.junit.Assert.assertNull("Toolbelt shows " + item.getItem().keyName() + " twice",
                 sections.put(item.getItem().keyName(), item.getItem().section()));
         }
-        for (Class<?> part : new Class<?>[]{SkillTrackerConfig.class, PvmConfig.class, GemCrabConfig.class, TickConfig.class, CommonConfig.class}) {
+        for (Class<?> part : new Class<?>[]{SkillTrackerConfig.class, PvmConfig.class, GemCrabConfig.class, TickConfig.class, PlannerConfig.class,
+            CommonConfig.class}) {
             for (Method method : part.getDeclaredMethods()) {
                 net.runelite.client.config.ConfigItem item = method.getAnnotation(net.runelite.client.config.ConfigItem.class);
                 if (item != null) {
@@ -97,6 +99,15 @@ public class SettingsPanelTest {
             CommonConfigDefaults.store(defaults.store, config);
             GemCrabConfigDefaults.store(defaults.store, config);
             BuffConfigDefaults.store(defaults.store, config);
+        });
+    }
+
+    @Test
+    public void planner() throws Exception {
+        open(PlannerConfig.class, PluginIdentity.PLANNER, (defaults) -> {
+            PlannerConfig config = (PlannerConfig) defaults.config;
+            CommonConfigDefaults.store(defaults.store, config);
+            PlannerConfigDefaults.store(defaults.store, config);
         });
     }
 
