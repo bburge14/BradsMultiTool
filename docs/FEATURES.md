@@ -44,6 +44,10 @@ message uses the same words as the voice line, with details in brackets.
 - **General > Same Voice For All** (on by default): with several of Snuffy's plugins installed, changing the
   voice or volume in one changes it in the others too, and one you install later picks it up. Turn it off in a
   plugin to give that plugin its own voice.
+- **General > Speak Only When Unfocused** (off by default): alerts are only spoken while the RuneLite window
+  isn't the one you're using (you're in a browser, say); chat messages still post. Like RuneLite's own
+  notifications, which by default don't show while the client is focused. The preview a Voice switch plays still
+  speaks.
 
 **Good to know:** No alert fires before you click "Click here to play", and anything already true when
 you log in (low prayer, poisoned...) isn't announced.
@@ -488,8 +492,32 @@ clicks; it never clicks, changes a menu or does anything for you.
 - The first tick of each cycle is in its own colour (green by default).
 - **Metronome:** a game sound on every tick, and a different one on the first tick of the cycle. The **Tone**
   is Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, or Tinderbox. It can play on the first tick only.
-- **Follow Attack Speed:** the cycle becomes your weapon's attack speed (one tick faster on Rapid), and the
-  count starts again at 1 each time you attack, so 1 is your attack tick.
+- **Follow Attack Speed:** an attack timer for your own attacks (never a monster's). The cycle becomes your
+  attack speed (the weapon's, one tick faster on Rapid, 5 for spells: 6 on the Twinflame staff, 4 on the
+  harmonised nightmare staff), and the count starts again at 1 each time you attack, so 1 is your attack tick.
+  - An attack only counts once your last one's delay has run out, and eating, blocking a hit, alching or
+    pickpocketing never count as one (nor does fishing or talking to an NPC: only something you can fight).
+  - The cycle is the speed of the attack you made: swapping weapon afterwards changes the next one, not this one
+    (a swap on the attack tick itself counts for that attack).
+  - **Eating** delays your next attack, as in the game: 3 ticks, 2 for karambwans, halibut and gnome foods, 4
+    for the Stymphike tartare; wine and lumpy barbarian potions count as food. While the extra ticks pass the
+    count stays on 1 (and Count Down shows the real number of ticks left).
+  - **Count Down To Attack:** the count over your head counts down the ticks to your next possible attack (4,
+    3, 2, 1, then you can attack), and the box numbers run 4, 3, 2, 1 too (half boxes 3.5, 2.5...). When
+    you're not fighting it loops like the normal count.
+  - **Late Ticks** (5 by default, 0 off): after an attack, once you could attack again but haven't, the count
+    over your head shows how many ticks late you are in red (-1, -2...), up to that many; then it goes back to
+    counting. Works with counting up or down.
+  - The cases come from the Plugin Hub's Attack Timer Metronome (BSD-2, credited in the README). It also knows
+    boss-specific speed changes (Scurrius, ToA, Yama...), spell-sound casts without an animation and special
+    weapons; ours doesn't.
+- **Hotkeys** (Hotkeys section; none set at first):
+  - **Reset Count:** press on the tick you want as 1: the cycle starts again from 1 there (with Follow Attack
+    Speed it also forgets your last attack, so the late count stops).
+  - **Show/Hide:** hides or shows the tick count, boxes and bar (says which in chat); the metronome and click
+    sounds keep playing. Turning the plugin off and on shows them again.
+  - **Ticks Per Cycle Up / Down:** one more or one less (1-10), saved like changing the setting, with a chat
+    line saying the new number (and when Follow Attack Speed or a Tick Pattern sets the cycle instead).
 - **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head: green
   in the ideal zone, white elsewhere before Late After, red when late. The tick bar shades the **ideal zone**
   green (**Ideal From** to **Ideal To**, 100-350ms by default) and the late part orange, and marks your last
@@ -507,10 +535,11 @@ clicks; it never clicks, changes a menu or does anything for you.
 3-tick skilling), or turn on **Follow Attack Speed** for combat. Turn on **Metronome** to hear it. For 1-ticking, set Ticks Per Cycle to 1 and
 turn on the Tick Bar, Click Timing, Click Sounds and Click Every Tick.
 
-**Settings (Tick Counter, Tick Boxes, Tick Bar, Metronome, Click Timing):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
-Ticks Per Cycle (1-10); Follow Attack Speed; Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
+**Settings (Tick Counter, Tick Boxes, Tick Bar, Metronome, Click Timing, Hotkeys):** Count Over Head; Tick Boxes, Box Layout (Horizontal or Vertical), Move Boxes Separately, Box Shape (Square, Rounded or Circle) and Box Opacity; Tick Bar;
+Ticks Per Cycle (1-10); Follow Attack Speed, Count Down To Attack, Late Ticks (0-20); Tick Colour and First Tick Colour; Over Head Text Size; Box Size;
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
-volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick.
+volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick; Reset Count,
+Show/Hide, Ticks Per Cycle Up and Ticks Per Cycle Down hotkeys.
 
 ---
 
@@ -524,9 +553,17 @@ volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Idea
 - **Six-hour logout warning:** the game logs you out after six hours online; this warns twenty minutes before
   (counted from when you logged in or hopped worlds), with a RuneLite notification too. RuneLite's Idle Notifier has
   the same notification.
+- **Run energy low** (off at first): "Your run energy is low" anywhere when your run energy drops below **Run
+  Energy Low Below**; it can go again once energy is 10 above that. While it's on, the Agility section's own
+  run energy alert (only while training Agility) stays quiet, so you never hear both.
+- **Run energy restored** (off at first): "Your run energy is restored" when your energy is back up to **Run
+  Energy Restored At** (100 for full), after it had dropped at least 10 below it, so a step or two of running
+  doesn't set it off. Not at login.
+- With several of Snuffy's plugins installed these are said once, like the idle warnings.
 
 **Settings (Idle):** AFK Alert and Idle Alert After (seconds); Warn Before Logout (seconds); Repeat
-Logout Warning, Repeat Every, Max Repeats; Six-Hour Logout Warning; Voice/Chat switches.
+Logout Warning, Repeat Every, Max Repeats; Six-Hour Logout Warning; Run Energy Low Below and Run Energy Restored
+At (%, 0 off); Voice/Chat switches.
 
 ---
 

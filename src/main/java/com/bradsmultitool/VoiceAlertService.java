@@ -63,6 +63,7 @@ public class VoiceAlertService {
         COIN_POUCH_FULL("coin_pouch_full", "Your coin pouches are full."),
         ARENA_PILLAR_MOVING("arena_pillar_moving", "The pillar is about to move."),
         RUN_ENERGY_LOW("run_energy_low", "Your run energy is low."),
+        RUN_ENERGY_RESTORED("run_energy_restored", "Your run energy is restored."),
         FORESTRY_EVENT("forestry_event", "A forestry event has started."),
         SACK_FULL("sack_full", "The sack is full. Empty it before mining more."),
         BIRD_NEST("bird_nest", "A bird's nest has fallen."),
@@ -137,7 +138,7 @@ public class VoiceAlertService {
         /** Potion buffs running out and run out: PvM/Slayer and the GemCrab Tracker both carry these. */
         POTIONS("potions"),
         GEM_CRAB("gemcrab"),
-        /** Idle and logout warnings: every plugin carries these. */
+        /** Idle and logout warnings and run energy: every plugin carries these (Agility's run energy alert too). */
         SHARED("shared");
 
         final String folder;
@@ -160,7 +161,6 @@ public class VoiceAlertService {
                 case "fishing_spot_moved":
                 case "coin_pouch_full":
                 case "arena_pillar_moving":
-                case "run_energy_low":
                 case "forestry_event":
                 case "sack_full":
                 case "bird_nest":
@@ -174,6 +174,8 @@ public class VoiceAlertService {
                 case "character_idle":
                 case "idle_logout":
                 case "six_hour_logout":
+                case "run_energy_low":
+                case "run_energy_restored":
                     return SHARED;
                 default:
                     return PVM;

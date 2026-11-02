@@ -48,6 +48,9 @@ class AgilityTracker {
     // The pillar warning steps aside while you train one obstacle
     @Inject
     private javax.inject.Provider<ObstacleReps> obstacleReps;
+    // Whether this plugin says the run energy alert everywhere (which then covers Agility too)
+    @Inject
+    private PluginFamily family;
 
     // The course
     @Getter
@@ -173,10 +176,12 @@ class AgilityTracker {
             pillar = null;
             arenaTicksLeft = -1;
         }
-        // Run energy, only while training Agility (it's back to normal once well above the line)
+        // Run energy, only while training Agility (it's back to normal once well above the line). Quiet while this
+        // plugin says the Idle section's run energy alert everywhere, so you don't hear both
         int below = config.runEnergyBelow();
         int energy = client.getEnergy() / 100;
-        if (below > 0 && plugin.trainedRecently(Skill.AGILITY)) {
+        boolean everywhere = config.runEnergyLowAt() > 0 && family != null && family.handlesShared();
+        if (below > 0 && !everywhere && plugin.trainedRecently(Skill.AGILITY)) {
             if (energy < below && !energyWarned) {
                 energyWarned = true;
                 alerts.alert(VoiceAlertService.VoiceLine.RUN_ENERGY_LOW, energy + "%");

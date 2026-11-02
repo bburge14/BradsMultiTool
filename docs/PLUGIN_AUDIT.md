@@ -34,9 +34,9 @@ Tick what you want built.
 - [ ] **More on the buff bar**: vengeance, imbued heart, overload, frozen/teleblocked, staff of the dead, prayer
   regeneration. PvM/Slayer.
 - [ ] **Monster max hit and attack speed** on the hover card. PvM/Slayer.
-- [ ] **Attack timer that counts down** to your next attack (shows when you're late; handles eating and weapon
+- [x] **Attack timer that counts down** to your next attack (shows when you're late; handles eating and weapon
   speed changes). Tick Counter.
-- [ ] **Tick Counter hotkeys**: reset, show/hide, change ticks per cycle. Tick Counter.
+- [x] **Tick Counter hotkeys**: reset, show/hide, change ticks per cycle. Tick Counter.
 - [ ] **Hunter rumour card**: catches left to the guaranteed drop, where to go, alerts. Skilling.
 - [ ] **Progress and goal bars on the in-game Skills tab**. Skilling.
 - [ ] **Agility: outline marks of grace and course traps**. Skilling.
@@ -44,7 +44,7 @@ Tick what you want built.
 - [ ] **Hunter trap states**: a failed trap coloured too, not only caught ones. Skilling.
 - [ ] **Unpotted reminder**: warn when attacking without a combat boost. PvM/Slayer.
 - [ ] **Wrong attack prayer alert**. PvM/Slayer.
-- [ ] **Run energy low/restored everywhere**, not only in Agility. Alerts.
+- [x] **Run energy low/restored everywhere**, not only in Agility. Alerts.
 - [ ] **Minigame cards**: Wintertodt, Tempoross, Tithe Farm timers. Skilling.
 
 ---
@@ -995,12 +995,12 @@ RuneLite's `Notifier`. Every other alert is a voice line and/or a chat message.
    login), and two hub plugins exist only for this (6 Hour Logout Timer, Six Hour Reminder). We have nothing. Add a warning
    N minutes before, with a repeat, and put the countdown on our logout overlay. It needs a new voice line in every voice,
    made with the generation scripts.
-3. **Attack countdown and lost ticks for Follow Attack Speed** (Tick Counter). Attack Timer Metronome counts down to your
+3. **Attack countdown and lost ticks for Follow Attack Speed** (Tick Counter). Done: Count Down To Attack, Late Ticks, eating delays, non-attack animations. Attack Timer Metronome counts down to your
    next attack (3-2-1, or 2-1-0) and shows -1, -2 when you're late to attack. It also accounts for eating delays and for
    weapons that change speed. Ours only counts up from the attack tick and treats any animation while you're interacting
    as an attack. Add a "Count Down" option and a "Late by N ticks" display. Their repo is BSD-2, so their speed/delay
    cases can be studied and credited.
-4. **Hotkeys** (Tick Counter). Visual Metronome and Visual Ticks have hotkeys to reset the cycle to 1, show/hide, and
+4. **Hotkeys** (Tick Counter). Done (Hotkeys section). Visual Metronome and Visual Ticks have hotkeys to reset the cycle to 1, show/hide, and
    raise or lower Ticks Per Cycle. Ours has none, so the only way to line the count up is turning a setting on and off.
    Allowed: like our Slayer card hotkey, it only changes our own overlay.
 5. **Repeat the AFK alert / a stronger AFK cue** (Alerts). Idle Alarm loops a sound until you act, and Better
@@ -1011,7 +1011,7 @@ RuneLite's `Notifier`. Every other alert is a voice line and/or a chat message.
    stats aren't boosted, and has a boost threshold, NPC allow/deny lists and an "only in instances" option. Our
    PotionAlerts already knows the UNPOTTED state but never says anything about it. Add "Not boosted" when you start
    attacking (once per fight).
-7. **Run energy alerts everywhere** (Alerts). Core Idle Notifier has low *and* restored ("You have restored run energy")
+7. **Run energy alerts everywhere** (Alerts). Done: Idle > Run Energy Low Below / Restored At. Core Idle Notifier has low *and* restored ("You have restored run energy")
    thresholds that work anywhere. Ours only warns about low energy while training Agility. Add both thresholds outside
    Agility.
 8. **Tick count at the cursor** (Tick Counter). Visual Metronome's "Tick Counter Follows Mouse" and the hub's cursor-tick
@@ -1020,7 +1020,7 @@ RuneLite's `Notifier`. Every other alert is a voice line and/or a chat message.
 9. **Server tick health next to Click Timing** (Tick Counter). Tick Tracker measures how far real ticks drift from 600ms
    and warns about lag. Late clicks are often caused by server or connection jitter, so a small "ticks: 98% on time" line
    in the click summary would explain them. Information only.
-10. **Speak only when RuneLite isn't focused** (Alerts). This mirrors RuneLite's "Send notifications when focused" switch
+10. **Speak only when RuneLite isn't focused** (Alerts). Done: General > Speak Only When Unfocused. This mirrors RuneLite's "Send notifications when focused" switch
     (which defaults to off). Players watching the screen may not want voice. Add a switch, checked against the client's
     focus state.
 

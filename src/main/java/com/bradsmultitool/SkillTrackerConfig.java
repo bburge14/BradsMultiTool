@@ -81,7 +81,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Idle",
-        description = "Idle character and idle logout warnings",
+        description = "Idle character, idle and six-hour logout warnings, and run energy alerts",
         position = 5,
         closedByDefault = true
     )
@@ -916,7 +916,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "runEnergyBelow",
         name = "Run Energy Alert Below",
-        description = "<div width='300'>While you're training Agility, alert when your run energy drops below this (0: off)",
+        description = "<div width='300'>While you're training Agility, alert when your run energy drops below this (0: off). Quiet while the Idle section's Run Energy Low Below is on (that one alerts anywhere, Agility included)",
         section = agilitySection,
         position = 11
     )
@@ -1347,6 +1347,18 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "voiceOnlyUnfocused",
+        name = "Speak Only When Unfocused",
+        description = "<div width='300'>Only speak alerts while the RuneLite window isn't the one you're using (you're in another window); chat messages still post. Like RuneLite's own notifications, which by default don't show while you're in the client",
+        section = generalSection,
+        position = 5
+    )
+    @Override
+    default boolean voiceOnlyUnfocused() {
+        return CommonConfig.super.voiceOnlyUnfocused();
+    }
+
+    @ConfigItem(
         keyName = "characterIdleAlert",
         name = "AFK Alert",
         description = "<div width='300'>Alert when you were training (gaining XP), your character stopped, and you haven't clicked or typed since. Banking, shops, the GE and menus never set it off",
@@ -1515,6 +1527,86 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Override
     default boolean chatSixHour() {
         return CommonConfig.super.chatSixHour();
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyLowAt",
+        name = "Run Energy Low Below",
+        description = "<div width='300'>Alert anywhere when your run energy drops below this (0: off). While it's on, the Agility section's own run energy alert stays quiet so you don't hear both",
+        section = idleSection,
+        position = 13
+    )
+    @Override
+    default int runEnergyLowAt() {
+        return CommonConfig.super.runEnergyLowAt();
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunLow",
+        name = "Voice: Run Energy Low",
+        description = "<div width='300'>Says when your run energy drops below Run Energy Low Below (turning it on plays a preview)",
+        section = idleSection,
+        position = 14
+    )
+    @Override
+    default boolean voiceRunLow() {
+        return CommonConfig.super.voiceRunLow();
+    }
+
+    @ConfigItem(
+        keyName = "chatRunLow",
+        name = "Chat: Run Energy Low",
+        description = "<div width='300'>Chat message when your run energy drops below Run Energy Low Below",
+        section = idleSection,
+        position = 15
+    )
+    @Override
+    default boolean chatRunLow() {
+        return CommonConfig.super.chatRunLow();
+    }
+
+    @Range(max
+    =
+    100)
+    @Units(Units.PERCENT)
+    @ConfigItem(
+        keyName = "runEnergyRestoredAt",
+        name = "Run Energy Restored At",
+        description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
+        section = idleSection,
+        position = 16
+    )
+    @Override
+    default int runEnergyRestoredAt() {
+        return CommonConfig.super.runEnergyRestoredAt();
+    }
+
+    @ConfigItem(
+        keyName = "voiceRunRestored",
+        name = "Voice: Run Energy Restored",
+        description = "<div width='300'>Says when your run energy is back up to Run Energy Restored At (turning it on plays a preview)",
+        section = idleSection,
+        position = 17
+    )
+    @Override
+    default boolean voiceRunRestored() {
+        return CommonConfig.super.voiceRunRestored();
+    }
+
+    @ConfigItem(
+        keyName = "chatRunRestored",
+        name = "Chat: Run Energy Restored",
+        description = "<div width='300'>Chat message when your run energy is back up to Run Energy Restored At",
+        section = idleSection,
+        position = 18
+    )
+    @Override
+    default boolean chatRunRestored() {
+        return CommonConfig.super.chatRunRestored();
     }
     // ---- End of CommonConfig's settings ----
 }

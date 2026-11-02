@@ -106,7 +106,7 @@ Rules that keep the split working:
 ### Voice lines
 
 Every plugin ships its own clips (only its folder under `voices/<voice>/`, plus `shared` for the idle and
-logout warnings) and keeps the switches for its lines in its own settings sections, so it works alone.
+logout warnings and the run energy alerts, which Agility's own run energy alert also uses) and keeps the switches for its lines in its own settings sections, so it works alone.
 `VoiceAlertService.VoicePlugin` (and `plugin_of()` in `generate_voice_clips.py`) says which folder a clip
 belongs to; add new lines there too.
 
