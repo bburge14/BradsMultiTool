@@ -673,7 +673,7 @@ Skilling Helper; the Calculator's **Set as goal** sets the same goal (both plugi
   first time a patch is seen growing a stage while you stand there; until then times show with a **~** (they may be out
   by one growth cycle) and the ready alert waits a cycle longer.
 - **Bird houses:** when your Fossil Island bird houses are full (50 minutes after seeding), with a bar.
-- **Your own timers:** **+** with a name and a length (minutes, or h:mm); the play, stop and again buttons on each,
+- **Your own timers:** **+** with a name and a length (HH:MM:SS, e.g. 01:30:00; MM:SS or plain minutes work too); the play, stop and again buttons on each,
   the time left counting down with a bar; right-click to edit, reset or delete. They keep running through a logout; one that ends while
   you're away is said when you're back.
 - **Ready Sound:** how the Timers tab tells you something's done (your timers, farming patches, bird houses): its

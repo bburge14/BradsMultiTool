@@ -221,7 +221,10 @@ class PlannerTimers {
         return h > 0 ? String.format("%d:%02d:%02d", h, m, s) : String.format("%d:%02d", m, s);
     }
 
-    /** "90" or "1:30" (minutes, or hours:minutes) as seconds; -1 if it isn't one. */
+    /**
+     * A length as seconds; -1 if it isn't one: "1:30:00" (hours:minutes:seconds), "4:30" (minutes:seconds, as the
+     * timers count down) or "90" (minutes).
+     */
     static long parseLength(String text) {
         if (text == null) {
             return -1;
@@ -229,18 +232,31 @@ class PlannerTimers {
         String t = text.trim();
         try {
             if (t.contains(":")) {
-                String[] parts = t.split(":");
-                if (parts.length != 2) {
+                String[] parts = t.split(":", -1);
+                if (parts.length > 3) {
                     return -1;
                 }
-                long hours = Long.parseLong(parts[0].trim());
-                long minutes = Long.parseLong(parts[1].trim());
-                return hours >= 0 && minutes >= 0 && minutes < 60 && hours + minutes > 0 ? hours * 3600 + minutes * 60 : -1;
+                long total = 0;
+                for (int i = 0; i < parts.length; i++) {
+                    long value = parts[i].trim().isEmpty() ? 0 : Long.parseLong(parts[i].trim());
+                    // Minutes and seconds under 60 (the first part, hours or minutes, can be anything)
+                    if (value < 0 || i > 0 && value >= 60) {
+                        return -1;
+                    }
+                    total = total * 60 + value;
+                }
+                return total > 0 && total <= 30L * 24 * 3600 ? total : -1;
             }
             double minutes = Double.parseDouble(t);
             return minutes > 0 && minutes <= 60 * 24 * 30 ? Math.round(minutes * 60) : -1;
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    /** A length as HH:MM:SS ("01:30:00"), for editing. */
+    static String hms(long seconds) {
+        return String.format("%02d:%02d:%02d", seconds / 3600, seconds % 3600 / 60, seconds % 60);
+    }
     }
 }

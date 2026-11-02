@@ -735,14 +735,14 @@ class PlannerPanel extends PluginPanel {
 
     private void addTimer() {
         JTextField name = new JTextField();
-        JTextField length = new JTextField();
+        JTextField length = new JTextField("00:00:00");
         javax.swing.JComboBox<String> alert = alertChoice(null);
         javax.swing.JSpinner times = new javax.swing.JSpinner(new javax.swing.SpinnerNumberModel(config.timerSoundRepeats(), 1, 5, 1));
-        if (form("Add a timer", new String[]{"Name", "Minutes (or h:mm)", "When it's done", "Times (a sound)"},
+        if (form("Add a timer", new String[]{"Name", "Length (HH:MM:SS)", "When it's done", "Times (a sound)"},
             name, length, alert, times)) {
             long seconds = PlannerTimers.parseLength(length.getText());
             if (name.getText().trim().isEmpty() || seconds <= 0) {
-                JOptionPane.showMessageDialog(this, "Give it a name and a length: minutes (90) or hours:minutes (1:30).");
+                JOptionPane.showMessageDialog(this, "Give it a name and a length: HH:MM:SS (01:30:00), MM:SS (04:30) or minutes (90).");
                 return;
             }
             timers.add(name.getText().trim(), seconds, chosenSound(alert), (Integer) times.getValue());
@@ -751,12 +751,11 @@ class PlannerPanel extends PluginPanel {
 
     private void editTimer(PlannerTimers.Timer timer) {
         JTextField name = new JTextField(timer.name);
-        long minutes = timer.seconds / 60;
-        JTextField length = new JTextField(minutes >= 60 ? minutes / 60 + ":" + String.format("%02d", minutes % 60) : String.valueOf(minutes));
+        JTextField length = new JTextField(PlannerTimers.hms(timer.seconds));
         javax.swing.JComboBox<String> alert = alertChoice(timer.sound);
         javax.swing.JSpinner times = new javax.swing.JSpinner(new javax.swing.SpinnerNumberModel(
             timer.repeats > 0 ? timer.repeats : config.timerSoundRepeats(), 1, 5, 1));
-        if (form("Edit " + timer.name, new String[]{"Name", "Minutes (or h:mm)", "When it's done", "Times (a sound)"},
+        if (form("Edit " + timer.name, new String[]{"Name", "Length (HH:MM:SS)", "When it's done", "Times (a sound)"},
             name, length, alert, times)) {
             long seconds = PlannerTimers.parseLength(length.getText());
             if (!name.getText().trim().isEmpty() && seconds > 0) {

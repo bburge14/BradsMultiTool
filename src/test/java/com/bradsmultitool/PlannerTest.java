@@ -27,7 +27,13 @@ public class PlannerTest {
     @Test
     public void timerLengths() {
         assertEquals(90 * 60, PlannerTimers.parseLength("90"));
-        assertEquals(90 * 60, PlannerTimers.parseLength("1:30"));
+        assertEquals(90 * 60, PlannerTimers.parseLength("1:30:00"));
+        assertEquals(90 * 60 + 15, PlannerTimers.parseLength("01:30:15"));
+        // Two parts are minutes:seconds, as the timers count down
+        assertEquals(4 * 60 + 30, PlannerTimers.parseLength("4:30"));
+        assertEquals(-1, PlannerTimers.parseLength("1:75:00"));
+        assertEquals(-1, PlannerTimers.parseLength("00:00:00"));
+        assertEquals("01:30:15", PlannerTimers.hms(90 * 60 + 15));
         assertEquals(-1, PlannerTimers.parseLength("soon"));
         assertEquals(-1, PlannerTimers.parseLength("0"));
         assertEquals("1:05:09", PlannerTimers.clock(3909));
