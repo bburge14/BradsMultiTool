@@ -109,6 +109,8 @@ final class PlannerCalculatorView {
     private final PlannerPanel.Hinted search = new PlannerPanel.Hinted("Search actions");
 
     private Skill skill;
+    // The goal's card in the Plan view is unfolded (its links showing)
+    private boolean goalOpen;
     // What you typed over the game's XP (null: from the game). A typed target is kept per skill (PlannerCalculator)
     private Integer currentOverride;
     private boolean adjusting;
@@ -760,7 +762,8 @@ final class PlannerCalculatorView {
             .append('|').append(calc.trackerInstalled()).append('|').append(picking).append('|').append(calc.canPlan());
         key.append('|').append(calc.owned().hashCode());
         SkillPlans.Plan plan = calc.plan(shown);
-        key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded())
+        key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen)
+            .append(calc.goalPick(shown))
             .append(calc.planCounts(skills()).keySet())
             .append('|').append(plan == null ? "" : SkillPlans.encode(plan)).append(calc.isTracked(shown, plan))
             .append(calc.trackedPlan(shown) != null);
@@ -1321,7 +1324,8 @@ final class PlannerCalculatorView {
         int level = levelNow();
         if (plan == null) {
             fillPlanList(shown, null);
-            list.add(PlannerUi.empty("No plans for " + shown.getName() + " yet. A plan is a goal and milestones on the way, "
+            list.add(PlannerUi.empty((calc.goal(shown) > planXp() ? "No plans for your goal yet: Make a plan for it (click the "
+                + "goal), or start one here. " : "No plans for " + shown.getName() + " yet. ") + "A plan is a goal and milestones on the way, "
                 + "each with its own method (\"1-20 Logs, 20-50 Willow logs\"). Make as many as you like and export the "
                 + "one you follow to the tracker."));
             int goal = newGoal();
@@ -1516,12 +1520,14 @@ final class PlannerCalculatorView {
     private void fillPlanList(Skill shown, Runnable openPlan) {
         List<SkillPlans.Plan> plans = calc.plans(shown);
         int open = calc.openIndex(shown);
-        list.add(PlannerUi.group(shown.getName() + " plans", plans.isEmpty() ? "" : String.valueOf(plans.size()),
+        list.add(PlannerUi.group(shown.getName() + (calc.goal(shown) > planXp() ? " goal and plans" : " plans"),
+            plans.isEmpty() ? "" : String.valueOf(plans.size()),
             new PlannerUi.IconButton(new PlannerUi.Glyph(PlannerUi.Shape.PLUS, 14, ColorScheme.LIGHT_GRAY_COLOR),
                 "New plan", () -> newPlan(shown))));
         int level = levelNow();
         int xp = planXp();
         boolean expanded = calc.planExpanded();
+        goalCard(shown, plans, xp, level);
         for (int i = 0; i < plans.size(); i++) {
             SkillPlans.Plan plan = plans.get(i);
             int index = i;
@@ -1600,6 +1606,87 @@ final class PlannerCalculatorView {
             }
             list.add(PlannerUi.fullWidth(row));
         }
+    }
+
+    // The skill's goal (set here or in the Skilling Helper: the same goal) as a card like a plan's: its levels, what
+    // it's set to train, how far along; click it for Change goal, Remove goal and Make a plan for it
+    private void goalCard(Skill shown, List<SkillPlans.Plan> plans, int xp, int level) {
+        int goal = calc.goal(shown);
+        if (goal <= xp) {
+            return;
+        }
+        int start = calc.goalStart(shown) > 0 ? Math.min(calc.goalStart(shown), xp) : Experience.getXpForLevel(level);
+        double done = goal > start ? Math.max(0, Math.min(1, (double) (xp - start) / (goal - start))) : 1;
+        SkillPlans.Plan tracked = calc.trackedPlan(shown);
+        String pick = calc.goalPick(shown);
+        String follows = tracked != null ? "plan: " + (tracked.name != null ? tracked.name : "exported plan")
+            : pick != null ? pick : "the wiki's suggestion";
+        PlannerUi.Card card = new PlannerUi.Card((goalOpen ? "▾ " : "▸ ") + "Goal: " + goalText(goal),
+            CalculatorData.level(start, false) + " → " + CalculatorData.level(goal, true) + " · " + follows,
+            "lvl " + level + " · " + (int) Math.floor(done * 100) + "%");
+        card.right.setForeground(Color.WHITE);
+        card.corner.setText(calc.trackerInstalled() ? "In tracker" : "");
+        card.corner.setForeground(GOAL_GOLD);
+        card.noIcon();
+        card.bar(new PlannerUi.Bar(done, GOAL_GOLD));
+        card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, GOAL_GOLD));
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(menuItem("Change goal...", () -> changeSkillGoal(shown)));
+        menu.add(menuItem("Make a plan for it", () -> planFromGoal(shown, goal, pick)));
+        menu.add(menuItem("Remove goal", () -> removeSkillGoal(shown)));
+        list.add(PlannerUi.spaced(card.interactive(() -> {
+            goalOpen = !goalOpen;
+            redraw.run();
+        }, menu, "<html><b>Your " + shown.getName() + " goal</b>: " + goalText(goal) + ", " + String.format("%,d", goal - xp)
+            + " xp to go (" + (int) Math.floor(done * 100) + "% from where it was set)<br>Training: " + PlannerUi.esc(follows)
+            + "<br>The same goal as the Skilling Helper's: change it in either<br>Click for more; right-click to change or "
+            + "remove it</html>")));
+        if (goalOpen) {
+            list.add(linkRow(PlannerUi.linkLabel("Change goal", "Set a new level or XP for it", () -> changeSkillGoal(shown)),
+                PlannerUi.linkLabel("Make a plan for it", "A new plan to this goal, with milestones you can change",
+                    () -> planFromGoal(shown, goal, pick)),
+                PlannerUi.linkLabel("Remove goal", "Clear the goal (in the Skilling Helper too)", () -> removeSkillGoal(shown))));
+        }
+    }
+
+    private void changeSkillGoal(Skill shown) {
+        int goal = calc.goal(shown);
+        String typed = JOptionPane.showInputDialog(list, "The " + shown.getName() + " goal: a level (2-99) or an XP amount:",
+            CalculatorData.level(goal, true));
+        int value = typed == null ? -1 : parse(typed);
+        if (value < 2) {
+            return;
+        }
+        int xpGoal = value <= 126 ? Experience.getXpForLevel(Math.min(99, value)) : Math.min(Experience.MAX_SKILL_XP, value);
+        int game = calc.xp(shown);
+        calc.setGoal(shown, xpGoal, game >= 0 ? game : current());
+        redraw.run();
+    }
+
+    private void removeSkillGoal(Skill shown) {
+        if (confirm("Remove your " + shown.getName() + " goal? (The Skilling Helper's too: it's the same goal.)")) {
+            calc.setGoal(shown, 0, 0);
+            redraw.run();
+        }
+    }
+
+    // A new plan to the goal: one milestone from your level with what the goal trains, when that's a Calculator action
+    private void planFromGoal(Skill shown, int goal, String pick) {
+        SkillPlans.Plan plan = new SkillPlans.Plan(Math.min(99, CalculatorData.level(goal, true)));
+        plan.name = "Goal to " + plan.goal;
+        CalculatorData.Calc skillCalc = data.calc(shown);
+        CalculatorData.Action action = pick == null ? null : CalculatorData.named(skillCalc, pick);
+        int level = levelNow();
+        if (action != null && level < plan.goal) {
+            List<CalculatorData.Bonus> on = CalculatorData.bonuses(skillCalc, calc.bonuses(shown));
+            TrainingData.Method method = SkillPlans.methodFor(training, shown, action.name, level, plan.goal);
+            plan.steps.add(new SkillPlans.Step(action.name, Math.max(level, 1), plan.goal, method == null ? null : method.name,
+                CalculatorData.xpEach(action, on)));
+        }
+        calc.newPlan(shown, plan);
+        calc.setPlanExpanded(true);
+        calc.setMode(PlannerCalculator.Mode.PLAN);
+        redraw.run();
     }
 
     private void newPlan(Skill shown) {

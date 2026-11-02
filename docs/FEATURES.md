@@ -762,6 +762,11 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   worth and what it sells for, and its net with the plus or minus badge. Two actions sharing materials split them as the total does (most XP first): "x 0 of 620 · used
   above". One above your level says what it needs ("needs lvl 80") and isn't counted. The bank counts
   once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
+- **The goal** (when the skill has one, set here or in the Skilling Helper): a gold card at the top of the Plan view
+  with its levels, what it trains (Track for goal pick, the method picked on the tracker card, the exported plan, or
+  the wiki's suggestion), your level and how far along it is. Click it to unfold **Change goal** (a level or XP),
+  **Make a plan for it** (a new plan named "Goal to 70", with one milestone of what it trains when that's a
+  Calculator action) and **Remove goal** (asks first: it's the Skilling Helper's goal too); right-click for the same.
 - **Plans**: the Plan view starts with the skill's saved plans: as many as you like, each with a name ("Darts to
   99", "AFK teaks"), its levels and how many milestones, **In tracker** on the one exported. **+** makes a new one
   (it asks for a name). Each plan's card shows its levels, your level and how far along it you are (a bar and a

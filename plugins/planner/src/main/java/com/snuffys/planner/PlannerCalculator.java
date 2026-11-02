@@ -285,6 +285,23 @@ class PlannerCalculator {
         return configManager.getRSProfileKey() == null ? 0 : SkillGoals.goalStart(configManager, skill);
     }
 
+    /**
+     * What the goal is set to train in the Skilling Helper: its Track for goal pick ("Blessed bone shards") or the
+     * method picked on its card; null for neither (it follows the suggestion, or an exported plan).
+     */
+    String goalPick(Skill skill) {
+        if (!canPlan()) {
+            return null;
+        }
+        String target = configManager.getRSProfileConfiguration(GROUP, "goalTarget." + skill.name());
+        if (target != null && !target.isEmpty()) {
+            String name = target.substring(target.indexOf(':') + 1).split("\\|", -1)[0].trim();
+            return name.isEmpty() ? null : Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        }
+        String method = configManager.getRSProfileConfiguration(GROUP, "goalMethod." + skill.name());
+        return method == null || method.isEmpty() ? null : method;
+    }
+
     /** Sets the skill's goal as the tracker's Set Goal does (its goal bar starts from your XP now). */
     void setGoal(Skill skill, int goalXp, int xpNow) {
         if (configManager.getRSProfileKey() != null) {
