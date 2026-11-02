@@ -191,8 +191,9 @@ OUT_RATE = 11025
 
 
 def write_compact_wav(path, samples, rate):
-    """Write 11 kHz 8-bit mu-law WAV (G.711, what phone audio uses): about a quarter the size of 22 kHz
-    16-bit PCM and still clear for short spoken alerts. Java Sound decodes it natively."""
+    """Write 11 kHz 8-bit PCM WAV: about a quarter the size of 22 kHz 16-bit PCM, compresses well in the jar, and
+    still clear for short spoken alerts. Plain PCM so RuneLite's AudioPlayer plays it on any system (it doesn't
+    convert formats; the Plugin Hub doesn't allow javax.sound in plugins, so the plugins can't either)."""
     x = trim_silence(samples.astype(np.float64) / 32768.0, rate)
     if rate != OUT_RATE:
         # Band-limited resample via FFT so there's no aliasing
@@ -201,10 +202,11 @@ def write_compact_wav(path, samples, rate):
         keep = n_out // 2 + 1
         x = np.fft.irfft(spectrum[:keep], n_out) * (n_out / len(x))
     x = np.clip(x, -1.0, 1.0)
-    data = linear_to_ulaw(np.round(x * 32767).astype(np.int16))
-    header = b"RIFF" + (36 + 2 + len(data) + (len(data) & 1)).to_bytes(4, "little") + b"WAVE"
-    fmt = (7).to_bytes(2, "little") + (1).to_bytes(2, "little") + OUT_RATE.to_bytes(4, "little") \
-        + OUT_RATE.to_bytes(4, "little") + (1).to_bytes(2, "little") + (8).to_bytes(2, "little") + (0).to_bytes(2, "little")
+    # 8-bit WAV is unsigned: silence is 128
+    data = np.clip(np.round(x * 127) + 128, 0, 255).astype(np.uint8)
+    header = b"RIFF" + (36 + len(data) + (len(data) & 1)).to_bytes(4, "little") + b"WAVE"
+    fmt = (1).to_bytes(2, "little") + (1).to_bytes(2, "little") + OUT_RATE.to_bytes(4, "little") \
+        + OUT_RATE.to_bytes(4, "little") + (1).to_bytes(2, "little") + (8).to_bytes(2, "little")
     with open(path, "wb") as f:
         f.write(header + b"fmt " + len(fmt).to_bytes(4, "little") + fmt)
         f.write(b"data" + len(data).to_bytes(4, "little") + data.tobytes())
@@ -303,17 +305,41 @@ def ulaw_to_linear(codes):
     return np.where(sign != 0, -x, x).astype(np.int16)
 
 
+def read_clip(path):
+    """A clip already in OUT_DIR as 16-bit samples and its rate: mu-law (older clips), 8-bit or 16-bit PCM."""
+    with open(path, "rb") as f:
+        raw = f.read()
+    fmt = raw.find(b"fmt ") + 8
+    code = int.from_bytes(raw[fmt:fmt + 2], "little")
+    rate = int.from_bytes(raw[fmt + 4:fmt + 8], "little")
+    bits = int.from_bytes(raw[fmt + 14:fmt + 16], "little")
+    start = raw.find(b"data") + 8
+    length = int.from_bytes(raw[start - 4:start], "little")
+    body = raw[start:start + length]
+    if code == 7:
+        return ulaw_to_linear(np.frombuffer(body, dtype=np.uint8)), rate
+    if bits == 8:
+        return ((np.frombuffer(body, dtype=np.uint8).astype(np.int16) - 128) << 8), rate
+    return np.frombuffer(body, dtype=np.int16), rate
+
+
 def trim_existing():
     """Trim leading/trailing silence from every clip already in OUT_DIR."""
     for root, _, files in os.walk(OUT_DIR):
         for name in files:
             path = os.path.join(root, name)
-            with open(path, "rb") as f:
-                raw = f.read()
-            start = raw.find(b"data") + 8
-            length = int.from_bytes(raw[start - 4:start], "little")
-            samples = ulaw_to_linear(np.frombuffer(raw[start:start + length], dtype=np.uint8))
-            write_compact_wav(path, samples, OUT_RATE)
+            samples, rate = read_clip(path)
+            write_compact_wav(path, samples, rate)
+
+
+def pcm_existing():
+    """Rewrite every clip already in OUT_DIR (mu-law from older runs) as 8-bit PCM, without re-recording."""
+    for root, _, files in os.walk(OUT_DIR):
+        for name in files:
+            if name.endswith(".wav"):
+                path = os.path.join(root, name)
+                samples, rate = read_clip(path)
+                write_compact_wav(path, samples, rate)
 
 
 def compact_existing():
@@ -358,6 +384,9 @@ def clip_path(folder, key):
 def main():
     if "--compact-existing" in sys.argv:
         compact_existing()
+        return
+    if "--pcm-existing" in sys.argv:
+        pcm_existing()
         return
     if "--trim-existing" in sys.argv:
         trim_existing()

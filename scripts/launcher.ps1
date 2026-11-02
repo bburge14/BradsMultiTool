@@ -776,12 +776,13 @@ $devOut.Size = New-Object System.Drawing.Size(438, 378)
 $devTab.Controls.Add($devOut)
 
 $prLink = New-Object System.Windows.Forms.LinkLabel
-$prLink.Text = 'Open the Plugin Hub pull request'
+$prLink.Text = 'Open the Plugin Hub pull request pages'
 $prLink.Location = New-Object System.Drawing.Point(12, 630)
 $prLink.AutoSize = $true
 $prLink.Visible = $false
 $devTab.Controls.Add($prLink)
-$prLink.Add_LinkClicked({ if ($script:prUrl) { Start-Process $script:prUrl } })
+# One pull request per plugin: opens each page the last step printed
+$prLink.Add_LinkClicked({ foreach ($url in @($script:prUrls)) { Start-Process $url } })
 $devGuide = New-Object System.Windows.Forms.LinkLabel
 $devGuide.Text = 'How it works (ROLLOUT.md)'
 $devGuide.Location = New-Object System.Drawing.Point(290, 630)
@@ -791,7 +792,7 @@ $devGuide.Add_LinkClicked({ Start-Process notepad.exe -ArgumentList "`"$(Join-Pa
 
 $script:publishLog = Join-Path $env:TEMP 'snuffys-publish.log'
 $script:publishRun = $null
-$script:prUrl = $null
+$script:prUrls = @()
 $devPoll = New-Object System.Windows.Forms.Timer
 $devPoll.Interval = 500
 $devPoll.Add_Tick({
@@ -806,9 +807,9 @@ $devPoll.Add_Tick({
                 $devOut.SelectionStart = $devOut.Text.Length
                 $devOut.ScrollToCaret()
             }
-            $match = [regex]::Match($text, 'https://github\.com/runelite/plugin-hub/(compare|pull)/\S+')
-            if ($match.Success) {
-                $script:prUrl = $match.Value
+            $found = [regex]::Matches($text, 'https://github\.com/runelite/plugin-hub/(compare|pull)/\S+')
+            if ($found.Count -gt 0) {
+                $script:prUrls = @($found | ForEach-Object { $_.Value } | Select-Object -Unique)
                 $prLink.Visible = $true
             }
         } catch { }
@@ -855,7 +856,7 @@ function Start-DevStep($step, $dryRun) {
     Set-Content -Path $script:publishLog -Value ''
     $devOut.Text = ''
     $prLink.Visible = $false
-    $script:prUrl = $null
+    $script:prUrls = @()
     $devCheck.Enabled = $false
     $devPush.Enabled = $false
     $devPublish.Enabled = $false

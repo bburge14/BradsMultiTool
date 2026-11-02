@@ -294,63 +294,49 @@ def fork_owner(fork):
 
 
 def status(fork):
+    """Each plugin's Plugin Hub pull request (one plugin per pull request, as the Plugin Hub asks): open, published
+    (merged) or closed; for open ones RuneLite's build checks and the latest comment."""
     owner = fork_owner(fork)
     pulls = hub_pulls(owner)
     if not pulls:
-        print("No pull request to RuneLite's Plugin Hub found yet. Publish to RuneLite, then open the pull request "
-              "from the link it shows.")
+        print("No pull request to RuneLite's Plugin Hub found yet. Publish to RuneLite, then open each pull request "
+              "from the links it shows.")
         return
-    pull = next((p for p in pulls if p["state"] == "open"), pulls[0])
-    print("Pull request #%d: %s\n  %s" % (pull["number"], pull["title"], pull["html_url"]))
-    if pull.get("merged_at"):
-        print("\nPUBLISHED: merged %s. Players get it in the Plugin Hub within a few hours (search for Snuffy's)."
-              % pull["merged_at"][:10])
-        return
-    if pull["state"] == "closed":
-        print("\nCLOSED without merging (%s). Read the comments below for why; fix it here, then Push to repos and "
-              "Publish to RuneLite again (that opens a new pull request)." % (pull.get("closed_at") or "")[:10])
-    else:
-        print("\nOPEN: waiting for RuneLite to review and merge it.")
-    # RuneLite's build of each plugin on it
-    checks = github("repos/%s/commits/%s/check-runs" % (HUB_REPO, pull["head"]["sha"])) or {}
-    runs = checks.get("check_runs", [])
-    if runs:
-        print("\nBuild checks:")
-        for run in runs:
+    # The newest pull request of each branch (a plugin's branch is snuffys-<plugin>)
+    seen = set()
+    for pull in pulls:
+        branch = pull["head"]["ref"]
+        if branch in seen:
+            continue
+        seen.add(branch)
+        print("\n#%d %s\n  %s" % (pull["number"], pull["title"], pull["html_url"]))
+        if pull.get("merged_at"):
+            print("  PUBLISHED: merged %s. Players get it in the Plugin Hub within a few hours." % pull["merged_at"][:10])
+            continue
+        if pull["state"] == "closed":
+            print("  Closed without merging (%s)." % (pull.get("closed_at") or "")[:10])
+            continue
+        print("  OPEN: waiting for RuneLite to review and merge it.")
+        checks = github("repos/%s/commits/%s/check-runs" % (HUB_REPO, pull["head"]["sha"])) or {}
+        for run in checks.get("check_runs", []):
             result = run.get("conclusion") or run.get("status")
             mark = {"success": "OK", "failure": "FAILED", "cancelled": "cancelled", "in_progress": "running...",
                     "queued": "waiting to start", "skipped": "skipped"}.get(result, result)
-            print("  %-30s %s%s" % (run["name"], mark, ("  " + run["html_url"]) if result == "failure" else ""))
-        if any(run.get("status") != "completed" for run in runs):
-            print("  Still running: check again in 10-20 minutes.")
-        if any(run.get("conclusion") == "failure" for run in runs):
-            print("  A check FAILED: send its link (or the error in it) to Claude to fix.")
-    else:
-        print("\nBuild checks: none yet (they start a few minutes after the pull request opens or updates).")
-    # Reviews and comments
-    reviews = github("repos/%s/pulls/%d/reviews" % (HUB_REPO, pull["number"])) or []
-    latest = {}
-    for review in reviews:
-        if review["user"]["login"] != owner:
-            latest[review["user"]["login"]] = review["state"]
-    for who, state in latest.items():
-        print("Review by %s: %s" % (who, {"APPROVED": "approved", "CHANGES_REQUESTED": "CHANGES REQUESTED",
-                                          "COMMENTED": "commented"}.get(state, state)))
-    comments = (github("repos/%s/issues/%d/comments" % (HUB_REPO, pull["number"])) or []) \
-        + (github("repos/%s/pulls/%d/comments" % (HUB_REPO, pull["number"])) or [])
-    others = [c for c in comments if c["user"]["login"] != owner and not c["user"]["login"].endswith("[bot]")]
-    if others:
-        print("\n%d comment(s) from others. Latest:" % len(others))
-        last = sorted(others, key=lambda c: c["created_at"])[-1]
-        print("  %s (%s): %s" % (last["user"]["login"], last["created_at"][:10],
-                                 " ".join(last["body"].split())[:300]))
-        print("  Send the comments to Claude to deal with.")
-    elif not latest:
-        print("No reviews or comments yet.")
+            if result != "skipped":
+                print("  Check %-10s %s%s" % (run["name"], mark, ("  " + run["html_url"]) if result == "failure" else ""))
+        comments = github("repos/%s/issues/%d/comments" % (HUB_REPO, pull["number"])) or []
+        others = [c for c in comments if c["user"]["login"] != owner]
+        if others:
+            last = others[-1]
+            print("  Latest comment, %s (%s): %s" % (last["user"]["login"], last["created_at"][:10],
+                                                     " ".join(last["body"].split())[:400]))
+    print("\nA FAILED check or a comment asking for changes: send it to Claude.")
 
 
 def update_hub_fork(fork, names, dry_run, head):
-    """Put the Plugin Hub entries on a branch of your plugin-hub fork, ready for a pull request."""
+    """Put each plugin's Plugin Hub entry on its own branch of your plugin-hub fork (snuffys-<plugin>), one pull
+    request per plugin as the Plugin Hub asks. A plugin whose pull request is open gets it updated; for the others,
+    the link to open one."""
     path = os.path.join(CACHE, "plugin-hub")
     if not os.path.isdir(os.path.join(path, ".git")):
         os.makedirs(CACHE, exist_ok=True)
@@ -359,28 +345,38 @@ def update_hub_fork(fork, names, dry_run, head):
     if not git("remote", cwd=path).count("upstream"):
         git("remote", "add", "upstream", "https://github.com/runelite/plugin-hub.git", cwd=path)
     git("fetch", "--quiet", "upstream", "master", cwd=path)
-    # Your open pull request's branch, so publishing again updates it; else a new one
-    open_pulls = [] if dry_run else [p for p in hub_pulls(fork_owner(fork)) if p["state"] == "open"]
-    branch = open_pulls[0]["head"]["ref"] if open_pulls else BRANCH_PREFIX + head[:7]
-    git("checkout", "--quiet", "-B", branch, "upstream/master", cwd=path)
-    for name in names:
-        shutil.copy(os.path.join(HUB_OUT, name), os.path.join(path, "plugins", name))
-    git("add", "-A", cwd=path)
-    if not git("status", "--porcelain", cwd=path):
-        print("plugin-hub: entries already up to date")
-        return
-    git("commit", "--quiet", "-m", "Update Snuffy's plugins (" + ", ".join(names) + ")", cwd=path)
-    if dry_run:
-        print("plugin-hub: branch %s ready (dry run: not pushed)" % branch)
-        return
-    git("push", "--quiet", "-f", "origin", branch, cwd=path, capture=False)
-    if open_pulls:
-        print("plugin-hub: updated your open pull request #%d (RuneLite's checks run again):\n  %s"
-              % (open_pulls[0]["number"], open_pulls[0]["html_url"]))
-        return
     owner = fork_owner(fork)
-    print("plugin-hub: pushed branch %s. Open the pull request:\n  https://github.com/runelite/plugin-hub/compare/"
-          "master...%s:plugin-hub:%s" % (branch, owner, branch))
+    open_pulls = {} if dry_run else {p["head"]["ref"]: p for p in hub_pulls(owner) if p["state"] == "open"}
+    links = []
+    for name in names:
+        branch = name if name.startswith(BRANCH_PREFIX) else BRANCH_PREFIX + name
+        git("checkout", "--quiet", "-f", "-B", branch, "upstream/master", cwd=path)
+        shutil.copy(os.path.join(HUB_OUT, name), os.path.join(path, "plugins", name))
+        git("add", "-A", cwd=path)
+        if not git("status", "--porcelain", cwd=path):
+            print("plugin-hub: %s already up to date in RuneLite's list" % name)
+            continue
+        title = ("Add " if name not in existing_hub_entries(path) else "Update ") + name
+        git("commit", "--quiet", "-m", title, cwd=path)
+        if dry_run:
+            print("plugin-hub: %s ready on branch %s (dry run: not pushed)" % (name, branch))
+            continue
+        git("push", "--quiet", "-f", "origin", branch, cwd=path, capture=False)
+        pull = open_pulls.get(branch)
+        if pull:
+            print("plugin-hub: %s: updated its open pull request #%d\n  %s" % (name, pull["number"], pull["html_url"]))
+        else:
+            link = "https://github.com/runelite/plugin-hub/compare/master...%s:plugin-hub:%s" % (owner, branch)
+            links.append(link)
+            print("plugin-hub: %s: open its pull request (title: %s):\n  %s" % (name, title, link))
+    if links:
+        print("\n%d pull request(s) to open, one per plugin (the Plugin Hub takes one plugin per pull request). Close "
+              "any older pull request with several plugins in it." % len(links))
+
+
+def existing_hub_entries(path):
+    """The plugins already in RuneLite's list (upstream master), so a new one is "Add", a listed one "Update"."""
+    return set(git("ls-tree", "--name-only", "upstream/master", "plugins/", cwd=path).replace("plugins/", "").split())
 
 
 def main():

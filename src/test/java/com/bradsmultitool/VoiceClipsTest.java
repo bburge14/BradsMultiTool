@@ -3,10 +3,7 @@ package com.bradsmultitool;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedInputStream;
 import java.io.InputStream;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import net.runelite.api.Skill;
 import org.junit.Test;
 
@@ -25,15 +22,11 @@ public class VoiceClipsTest {
         for (VoiceAlertService.VoicePersona persona : VoiceAlertService.VoicePersona.voices()) {
             for (VoiceAlertService.VoiceLine line : VoiceAlertService.VoiceLine.values()) {
                 String resource = VoiceAlertService.clipResource(persona, line.fileName);
-                try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
-                    assertNotNull("missing " + resource, raw);
-                    try (AudioInputStream audio = VoiceAlertService.toPcm(
-                        AudioSystem.getAudioInputStream(new BufferedInputStream(raw)))) {
-                        assertTrue(resource, audio.getFormat().getSampleSizeInBits() == 16);
-                        float seconds = audio.getFrameLength() / audio.getFormat().getFrameRate();
-                        assertTrue(resource + " is " + seconds + "s", seconds > 0.3 && seconds < 5);
-                    }
-                }
+                // Plain 8-bit PCM (RuneLite's AudioPlayer plays it as it is), between 0.3 and 5 seconds
+                VoiceAlertService.Wav wav = VoiceAlertService.read(resource);
+                assertNotNull("missing " + resource, wav);
+                assertTrue(resource, wav.format[0] == 1 && wav.format[14] == 8);
+                assertTrue(resource + " is " + wav.millis() + "ms", wav.millis() > 300 && wav.millis() < 5000);
             }
         }
     }

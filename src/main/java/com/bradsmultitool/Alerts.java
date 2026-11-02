@@ -28,11 +28,12 @@ class Alerts {
     private final InGame inGame;
     private final VoiceSync voiceSync;
     private final ClientUI clientUI;
-    private final VoiceAlertService voice = new VoiceAlertService();
+    private final VoiceAlertService voice;
 
     @Inject
     Alerts(Client client, CommonConfig config, ConfigManager configManager, PluginFamily family, PluginIdentity identity, InGame inGame,
-           VoiceSync voiceSync, ClientUI clientUI) {
+           VoiceSync voiceSync, ClientUI clientUI, net.runelite.client.audio.AudioPlayer audioPlayer) {
+        this.voice = new VoiceAlertService(audioPlayer);
         this.client = client;
         this.config = config;
         this.configManager = configManager;

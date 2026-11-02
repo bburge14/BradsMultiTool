@@ -93,6 +93,8 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Training Focus (fastest / other / cheapest / money maker) | OK. Wiki guide data and GE prices via ItemManager; suggestions only |
 | Suggested training method on goal cards, outline of that method's trees/rocks/stalls/NPCs | OK. Wiki guide text plus object/NPC outlines (like core Object Markers / NPC Indicators); never clicks or moves the player |
 | Voice alerts (bundled clips) | OK. Character voices are named after RuneScape characters but are our own synthesized clips, not Jagex audio |
+| Playing the clips | Through RuneLite's `AudioPlayer` only: the Plugin Hub's scan rejects any use of `javax.sound`. Clips are 8-bit PCM WAV (it plays them as they are, no conversion); an alert's clips are joined in memory and alerts queue on a ScheduledExecutorService (no sleeping) |
+| One plugin per pull request | The Plugin Hub asks for it: Publish to RuneLite puts each plugin on its own fork branch (snuffys-<plugin>) and pull request |
 | Skill tracker panel, level-up alerts | OK |
 | Tick counter (over head, tick boxes, smooth tick bar) and metronome, incl. Follow Attack Speed | OK. Core Metronome plugin does the tick sounds (and sets the sound effect volume for one sound and restores it, as we do); Plugin Hub has visual metronome / tick counter plugins. Counts ticks only: it never highlights what to click or when, and never acts for the player |
 | Click timing (ms after the tick for each click, ding/dun sounds, on time / late / missed summary) | Not published: only in builds from this repository. `split_plugins.py` leaves out the code between `// <click-timing>` markers, so the Plugin Hub copies don't have it |

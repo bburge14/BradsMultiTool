@@ -28,7 +28,9 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
     commits that changed that plugin's folder). Unchanged plugins are
     left alone. You can push as often as you like: players don't get anything until you publish.
   - **Publish to RuneLite** (`hub`): writes each plugin's Plugin Hub entry (its repository and the commit it's at
-    now) and puts them on a branch of your `plugin-hub` fork; the tab then shows the link to open the pull request.
+    now) and puts each on its own branch of your `plugin-hub` fork (`snuffys-<plugin>`): the Plugin Hub takes **one
+    plugin per pull request**. A plugin whose pull request is open gets it updated; for the others the tab shows the
+    link to open one (the link under the output opens them all).
 
 ## Versions
 
@@ -66,8 +68,8 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 ## Submitting
 
 1. Dev tab: **Push to repos** (all seven), then **Publish to RuneLite**.
-2. Open the pull request from the link it shows. Title like "Add Snuffy's plugins"; in the description, one line
-   per plugin saying what it does, and mention they share settings/voices when installed together.
+2. Open each plugin's pull request from the links it shows (one per plugin). Title "Add snuffys-<plugin>"; in the
+   description, a line or two on what it does.
 3. The reviewers comment on the pull request; fix things here, publish again (the same command updates the
    repositories and the pull request branch), and reply.
 4. Once merged, the plugins appear in RuneLite's Plugin Hub within a few hours.
