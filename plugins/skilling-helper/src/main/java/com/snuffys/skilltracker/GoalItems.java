@@ -50,12 +50,64 @@ class GoalItems {
     // The GE value of the materials counted in banked, per goal skill
     private volatile Map<Skill, Long> materialsValue = Collections.emptyMap();
     private boolean bankSeen;
+    // The bank as last seen is kept with your RuneScape profile (item names and amounts), so Banked and Materials
+    // worth show straight after login instead of only once you've opened the bank this session
+    private static final String BANK_KEY = "goalBank";
+    @javax.inject.Inject
+    private net.runelite.client.config.ConfigManager configManager;
+    private boolean bankLoaded;
 
     /** Another account logged in: its bank isn't this one's. */
     void forgetBank() {
         bank.clear();
         bankSeen = false;
+        bankLoaded = false;
         dirty = true;
+    }
+
+    // The saved bank, once per account, until the bank's opened this session
+    private void loadSavedBank() {
+        if (bankLoaded || bankSeen || configManager == null || configManager.getRSProfileKey() == null) {
+            return;
+        }
+        bankLoaded = true;
+        Map<String, Integer> saved = decodeBank(configManager.getRSProfileConfiguration(SkillTracker.SHARED_GROUP, BANK_KEY));
+        if (!saved.isEmpty()) {
+            bank.putAll(saved);
+            bankSeen = true;
+            dirty = true;
+        }
+    }
+
+    private void saveBank() {
+        if (configManager != null && configManager.getRSProfileKey() != null) {
+            configManager.setRSProfileConfiguration(SkillTracker.SHARED_GROUP, BANK_KEY, encodeBank(bank));
+        }
+    }
+
+    /** "logs\t250\nraw lobster\t1200": each item (lower-case name) and how many. */
+    static String encodeBank(Map<String, Integer> items) {
+        StringBuilder out = new StringBuilder();
+        items.forEach((name, count) -> out.append(name.replace('\t', ' ').replace('\n', ' ')).append('\t').append(count).append('\n'));
+        return out.toString();
+    }
+
+    static Map<String, Integer> decodeBank(String text) {
+        Map<String, Integer> out = new HashMap<>();
+        if (text == null) {
+            return out;
+        }
+        for (String line : text.split("\n")) {
+            int tab = line.lastIndexOf('\t');
+            if (tab > 0) {
+                try {
+                    out.put(line.substring(0, tab), Integer.parseInt(line.substring(tab + 1).trim()));
+                } catch (NumberFormatException e) {
+                    // a damaged line: skip it
+                }
+            }
+        }
+        return out;
     }
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
@@ -239,6 +291,7 @@ class GoalItems {
             bank.clear();
             count(event.getItemContainer(), bank);
             bankSeen = true;
+            saveBank();
         }
         if (event.getContainerId() == InventoryID.BANK || event.getContainerId() == InventoryID.INV
             || event.getContainerId() == InventoryID.WORN) {
@@ -261,6 +314,7 @@ class GoalItems {
     // Worked out at most once a tick, after whatever changed
     @Subscribe
     public void onGameTick(GameTick event) {
+        loadSavedBank();
         if (dirty) {
             dirty = false;
             update();

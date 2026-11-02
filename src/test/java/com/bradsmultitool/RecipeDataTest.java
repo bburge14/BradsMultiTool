@@ -20,6 +20,16 @@ public class RecipeDataTest {
     }
 
     @Test
+    public void savedBankRoundTrips() {
+        Map<String, Integer> bank = new HashMap<>();
+        bank.put("raw lobster", 1200);
+        bank.put("jug of blessed sunfire wine", 45);
+        assertEquals(bank, GoalItems.decodeBank(GoalItems.encodeBank(bank)));
+        assertEquals(0, GoalItems.decodeBank(null).size());
+        assertEquals(0, GoalItems.decodeBank("broken").size());
+    }
+
+    @Test
     public void bankedXpCountsEachMaterialOnce() {
         Map<String, Integer> have = new HashMap<>();
         have.put("raw shrimps", 10);

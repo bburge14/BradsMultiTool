@@ -1565,7 +1565,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showBankedXp",
         name = "Show Banked XP",
-        description = "<div width='300'>On a production skill's goal (Cooking, Herblore, Prayer...): the XP in what's in your bank and inventory at your level, the most XP things first. Just a figure: it doesn't change the suggestion. Shows once you've opened your bank",
+        description = "<div width='300'>On a production skill's goal (Cooking, Herblore, Prayer...): the XP in what's in your bank and inventory at your level, the most XP things first. Just a figure: it doesn't change the suggestion. Note: it uses your bank as you last saw it, so open your bank once on each account (after that it's remembered and updates whenever you open it)",
         section = goalsSection,
         position = 9
     )
@@ -1622,7 +1622,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showMaterialsValue",
         name = "Show Materials Value",
-        description = "<div width='300'>On a production skill's goal: the Grand Exchange value of the materials counted in Banked XP (in your bank and inventory). Just a figure. Shows once you've opened your bank",
+        description = "<div width='300'>On a production skill's goal: the Grand Exchange value of the materials counted in Banked XP (in your bank and inventory). Just a figure. Note: it uses your bank as you last saw it, so open your bank once on each account (after that it's remembered and updates whenever you open it)",
         section = goalsSection,
         position = 12
     )
