@@ -132,7 +132,7 @@ README = """# %(title)s
 %(description)s.
 
 %(features)s
-## Installing
+%(screenshots)s## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
 **%(title)s** and click **Install**. Its settings are under its name in the configuration panel, and **Open the
@@ -304,6 +304,29 @@ def published_personas(text):
     return "\n".join(out)
 
 
+SCREENSHOTS = os.path.join(ROOT, "assets", "screenshots")
+
+
+def copy_screenshots(plugin_id, out):
+    """The plugin's screenshots (assets/screenshots/<id>/*.png; the Toolbelt shows every plugin's) copied to
+    screenshots/ in its folder, as the README's Screenshots section. A file's name is its caption: "01-planner-
+    timers.png" is shown first, as "Planner timers"."""
+    ids = [plugin_id] if plugin_id != "multitool" else ["multitool"] + [p for p in PLUGINS if p != "multitool"]
+    lines = []
+    for source_id in ids:
+        folder = os.path.join(SCREENSHOTS, source_id)
+        if not os.path.isdir(folder):
+            continue
+        for name in sorted(f for f in os.listdir(folder) if f.lower().endswith(".png")):
+            os.makedirs(os.path.join(out, "screenshots"), exist_ok=True)
+            target = source_id + "-" + name if plugin_id == "multitool" else name
+            shutil.copy2(os.path.join(folder, name), os.path.join(out, "screenshots", target))
+            caption = re.sub(r"^\d+[-_ ]*", "", os.path.splitext(name)[0]).replace("-", " ").replace("_", " ")
+            caption = caption[:1].upper() + caption[1:]
+            lines.append("![%s](screenshots/%s)" % (caption, target))
+    return "## Screenshots\n\n" + "\n".join(lines) + "\n\n" if lines else ""
+
+
 def build(plugin_id, out_root=OUT, quiet=False):
     spec = PLUGINS[plugin_id]
     known = classes()
@@ -365,9 +388,10 @@ def build(plugin_id, out_root=OUT, quiet=False):
     shutil.copytree(os.path.join(ROOT, "gradle"), os.path.join(out, "gradle"))
     with open(os.path.join(out, ".gitignore"), "w", encoding="utf-8") as f:
         f.write(".gradle/\nbuild/\n.idea/\n*.iml\nout/\n")
+    shots = copy_screenshots(plugin_id, out)
     with open(os.path.join(out, "README.md"), "w", encoding="utf-8") as f:
         f.write(README % {"title": title, "description": description, "features": features(plugin_id),
-                          "family": family(plugin_id)})
+                          "family": family(plugin_id), "screenshots": shots})
     if not quiet:
         print("%-12s %3d classes, %s, voices: %s" % (plugin_id, len(names), ", ".join(sorted(data_files(names))) or "no data",
                                                   "+".join(spec["voices"]) if "VoiceAlertService" in names else "none"))
