@@ -247,6 +247,11 @@ class FarmingTracker {
         return record.grownAt > 0 ? record.grownAt : Long.MAX_VALUE;
     }
 
+    /** How long a patch's crop takes to grow (seconds), for the sidebar's progress bars; 0 when not known. */
+    long growthSeconds(Record record) {
+        return farming.growthSeconds(record.crop);
+    }
+
     /** Forget a patch (from the sidebar). */
     void forget(String key) {
         configManager.unsetRSProfileConfiguration(GROUP, key);

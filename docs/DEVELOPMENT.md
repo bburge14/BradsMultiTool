@@ -16,10 +16,14 @@ separate plugins instead (`skilling`, `pvm`, `gemcrab`, `tick`, `planner`, `aler
 folders are made from; `split_plugins.py --verify` checks each of those builds on its own. `./gradlew test` runs
 the unit tests.
 
-Two Gradle tasks render parts of the UI offline (no client needed) to check layouts:
+Three Gradle tasks render parts of the UI offline (no client needed) to check layouts:
 
 - `./gradlew slayerPreview -Dout=slayer.png`: the Slayer card, with and without a task.
 - `./gradlew headerPreview -Dout=header.png`: the skill tracker's header box.
+- `./gradlew plannerPreview -Dout=planner`: Snuffy's Planner's sidebar with sample data, at 2x: planner-today.png,
+  planner-timers.png, planner-slayer.png, planner-drops.png, planner-notes.png, planner-drops-scrolled.png (at the
+  sidebar's usual height), planner-empty.png (each tab of a new account) and planner-loggedout.png. Item pictures
+  come from the OSRS Wiki, cached in `build/planner-icons` (left out without a connection).
 
 ## Data files
 
@@ -53,7 +57,7 @@ below).
 | **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, wrong prayer, unpotted, Slayer task/superior/item/milestone, kill goal) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
 | **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts, potion buffs and their alerts | `gemcrab` (crab moved, about to burrow) + `potions` + `shared` |
 | **Snuffy's Tick Counter** | Tick count over head, tick boxes, tick bar, metronome, click timing (its own plugin so neither the skilling nor the PvM side carries a second copy) | none (game sounds only) |
-| **Snuffy's Planner** | Its own sidebar tab: TODAY (dailies, from DailyReminders, which it replaced), WEEKLY (Tears of Guthix, Kingdom of Miscellania, farming contract), TIMERS (the farming patch list and its ready alert, moved from the Skilling Helper; bird houses ready; your own timers), SLAYER (read from the game), DROPS (drop tracker), NOTES & TO-DO. No skill goals (those stay in the Skilling Helper). Data: `farming*.json` | `planner` (dailies, weeklies, timer done, farming patches ready, bird houses ready) + `shared` |
+| **Snuffy's Planner** | Its own sidebar tab: tabs for Today (dailies, from DailyReminders, which it replaced; weeklies: Tears of Guthix, Kingdom of Miscellania, farming contract), Timers (the farming patch list and its ready alert, moved from the Skilling Helper; bird houses ready; your own timers), Slayer (read from the game), Drops (drop tracker), Notes (to-do and notes). Built from `PlannerUi`'s cards. No skill goals (those stay in the Skilling Helper). Data: `farming*.json` | `planner` (dailies, weeklies, timer done, farming patches ready, bird houses ready) + `shared` |
 | **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
 
 PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card and buff alerts.

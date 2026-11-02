@@ -1,18 +1,22 @@
 package com.snuffys.planner;
 
+import java.awt.image.BufferedImage;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.SwingUtilities;
+import net.runelite.api.Skill;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.RuneScapeProfileChanged;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 
 /**
- * Snuffy's Planner: its sidebar tab (TODAY, WEEKLY, TIMERS, SLAYER, DROPS, NOTES & TO-DO) and what fills it: the
+ * Snuffy's Planner: its sidebar tab (Today, Timers, Slayer, Drops and Notes tabs) and what fills it: the
  * dailies and weeklies, the farming patch list and ready alert, bird houses and your own timers, the Slayer task,
  * the drop tracker and your notes.
  */
@@ -33,6 +37,9 @@ class PlannerFeature {
     @Inject private PlannerConfig config;
     @Inject private ConfigManager configManager;
     @Inject private PluginIdentity identity;
+    @Inject private ItemManager itemManager;
+    @Inject private ItemIcons itemIcons;
+    @Inject private SkillIconManager skillIcons;
 
     private NavigationButton navButton;
     private PlannerPanel panel;
@@ -58,7 +65,7 @@ class PlannerFeature {
         lifecycle.subscribe(farmingTracker, birdhouseTracker, chores, timers, slayer, drops, this);
         chores.start();
         SwingUtilities.invokeLater(() -> {
-            panel = new PlannerPanel(config, configManager, chores, timers, farmingTracker, slayer, drops, notes);
+            panel = new PlannerPanel(config, configManager, chores, timers, farmingTracker, slayer, drops, notes, icons());
             navButton = NavigationButton.builder()
                 .tooltip("Snuffy's Planner")
                 // The Planner's logo, made by update_icons.py
@@ -82,6 +89,26 @@ class PlannerFeature {
                 }
             });
         });
+    }
+
+    // The sidebar's pictures: the game's item sprites (loaded on the client thread, filled in when ready) and skill icons
+    private PlannerPanel.Icons icons() {
+        return new PlannerPanel.Icons() {
+            @Override
+            public BufferedImage item(int itemId, int quantity, boolean showQuantity) {
+                return itemManager.getImage(itemId, quantity, showQuantity);
+            }
+
+            @Override
+            public int itemId(String name) {
+                return itemIcons.id(name);
+            }
+
+            @Override
+            public BufferedImage skill(Skill skill, boolean small) {
+                return skillIcons.getSkillImage(skill, small);
+            }
+        };
     }
 
     // A new account or RuneLite profile, or a Planner setting changed: redraw

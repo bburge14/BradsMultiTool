@@ -259,6 +259,18 @@ class FarmingData {
         return contracts.get(value);
     }
 
+    /** How long this crop takes to grow from seed (seconds), by its name; 0 when it isn't known. */
+    long growthSeconds(String cropName) {
+        if (cropName != null) {
+            for (Produce p : produce.values()) {
+                if (p.name.equalsIgnoreCase(cropName) && p.stages > 1) {
+                    return p.tickrate * 60L * (p.stages - 1);
+                }
+            }
+        }
+        return 0;
+    }
+
     Crop crop(String name) {
         return name == null ? null : crops.get(name.toLowerCase());
     }
