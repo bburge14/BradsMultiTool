@@ -131,6 +131,10 @@ class SlayerTracker {
         int count = client.getVarpValue(VARP_SLAYER_COUNT);
         int id = client.getVarpValue(VARP_SLAYER_TARGET);
         if (count <= 0) {
+            // A task just finished: forget its supplies, so a next task of the same kind and size starts at none
+            if (taskName != null && configManager != null && identity != null && configManager.getRSProfileKey() != null) {
+                configManager.unsetRSProfileConfiguration(identity.configGroup, SUPPLIES_KEY);
+            }
             reset();
             return;
         }
@@ -157,17 +161,18 @@ class SlayerTracker {
         warnIfFightingWithoutItem(requirement);
     }
 
-    // Same lookup as RuneLite's Slayer plugin: boss tasks map to a creature first, then the task table has the name
+    // Same lookup as RuneLite's Slayer plugin: a boss task names the task row through the boss table
     private String lookupTaskName(int id) {
         try {
-            int creature = id;
             if (id == BOSS_TASK) {
+                // The boss table's task column is the task table's row itself (as RuneLite's Slayer plugin reads it)
                 List<Integer> bossRows = client.getDBRowsByValue(TABLE_BOSS_TASKS, 1, 0, client.getVarbitValue(VARBIT_BOSS_TARGET));
                 if (!bossRows.isEmpty()) {
-                    creature = (Integer) client.getDBTableField(bossRows.get(0), 4, 0)[0];
+                    int taskRow = (Integer) client.getDBTableField(bossRows.get(0), 4, 0)[0];
+                    return (String) client.getDBTableField(taskRow, COLUMN_TASK_NAME, 0)[0];
                 }
             }
-            List<Integer> rows = client.getDBRowsByValue(TABLE_TASKS, 0, 0, creature);
+            List<Integer> rows = client.getDBRowsByValue(TABLE_TASKS, 0, 0, id);
             if (!rows.isEmpty()) {
                 return (String) client.getDBTableField(rows.get(0), COLUMN_TASK_NAME, 0)[0];
             }

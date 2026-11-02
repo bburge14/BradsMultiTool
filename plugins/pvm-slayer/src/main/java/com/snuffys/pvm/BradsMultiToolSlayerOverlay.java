@@ -107,7 +107,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
             }
         }
         if (config.slayerPointsStreak()) {
-            addPointsAndStreak(tracker);
+            addPointsAndStreak(tracker, true);
         }
         if (config.slayerSupplies()) {
             int food = tracker.getFoodEaten();
@@ -133,16 +133,18 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         addKillGoals();
     }
 
-    // "Points: 1,234   Streak: 49", and a gold note when the next task is a milestone (bonus points)
-    private void addPointsAndStreak(SlayerTracker tracker) {
+    // "Points: 1,234   Streak: 49", and a gold note when a milestone is coming: on a task, the streak counts the tasks
+    // finished, so the one you're on is the milestone; with no task, the next one you get is
+    private void addPointsAndStreak(SlayerTracker tracker, boolean onTask) {
         int streak = tracker.streak();
         panel.getChildren().add(LineComponent.builder()
             .left("Points: " + String.format("%,d", tracker.points())).leftColor(Color.WHITE)
             .right("Streak: " + streak).rightColor(Color.WHITE).build());
         int milestone = SlayerTracker.nextMilestone(streak);
         if (milestone > 0) {
-            panel.getChildren().add(new TextBlockComponent("Next task is your " + (streak + 1) + "th: "
-                + SlayerTracker.milestoneMultiplier(milestone) + "x points, pick your master", TITLE_COLOR, false));
+            String bonus = SlayerTracker.milestoneMultiplier(milestone) + "x points";
+            panel.getChildren().add(new TextBlockComponent(onTask ? "This task is your " + (streak + 1) + "th: " + bonus
+                : "Next task is your " + (streak + 1) + "th: " + bonus + ", pick your master", TITLE_COLOR, false));
         }
     }
 
@@ -205,7 +207,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
             line("Quest:", master.quest, SOFT);
         }
         if (config.slayerPointsStreak()) {
-            addPointsAndStreak(plugin.getSlayerTracker());
+            addPointsAndStreak(plugin.getSlayerTracker(), false);
         }
         if (config.slayerTravelRoutes() && !master.routes.isEmpty()) {
             heading("Getting There");

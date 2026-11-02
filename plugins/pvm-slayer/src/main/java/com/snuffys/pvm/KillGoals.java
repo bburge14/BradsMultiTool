@@ -87,11 +87,13 @@ class KillGoals {
 
     /** The goal for a monster (by name), or null. */
     synchronized Goal goal(String monster) {
+        ensureLoaded();
         return monster == null ? null : goals.get(monster.toLowerCase());
     }
 
     /** Every goal, unfinished ones first. */
     synchronized List<Goal> all() {
+        ensureLoaded();
         List<Goal> out = new ArrayList<>();
         goals.values().stream().filter(g -> !g.done()).forEach(out::add);
         goals.values().stream().filter(Goal::done).forEach(out::add);
@@ -99,17 +101,20 @@ class KillGoals {
     }
 
     synchronized void set(String monster, int target) {
+        ensureLoaded();
         goals.put(monster.toLowerCase(), new Goal(monster, target, 0));
         save();
     }
 
     synchronized void clear(String monster) {
+        ensureLoaded();
         goals.remove(monster.toLowerCase());
         save();
     }
 
     /** The Slayer card's "Clear finished kill goals". */
     synchronized void clearFinished() {
+        ensureLoaded();
         goals.values().removeIf(Goal::done);
         save();
     }
@@ -225,6 +230,14 @@ class KillGoals {
     @Subscribe
     public void onRuneScapeProfileChanged(RuneScapeProfileChanged event) {
         load();
+    }
+
+    // Turned on while already logged in (installed from the Plugin Hub, or switched on): load the saved goals the
+    // first time they're needed, so a new goal never overwrites the saved ones
+    private void ensureLoaded() {
+        if (!loaded && configManager.getRSProfileKey() != null) {
+            load();
+        }
     }
 
     private synchronized void load() {

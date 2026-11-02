@@ -1363,7 +1363,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigItem(
         keyName = "deathAlert",
         name = "Death Alert",
-        description = "<div width='300'>When you die: say where (coordinates, or the Wilderness level), and count down the 15 minutes your gravestone keeps your items (only while you're logged in, as the game does)",
+        description = "<div width='300'>When you die: say where (coordinates; in the Wilderness or an instance, it says so), and count down the 15 minutes your gravestone keeps your items (only while you're logged in, as the game does)",
         section = combatAlertsSection,
         position = 13
     )

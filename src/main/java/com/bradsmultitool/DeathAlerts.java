@@ -65,14 +65,16 @@ class DeathAlerts {
     @Subscribe
     public void onActorDeath(ActorDeath event) {
         Player player = client.getLocalPlayer();
-        if (player == null || event.getActor() != player || !config.deathAlert()) {
+        if (player == null || event.getActor() != player || !config.deathAlert() && !config.deathTimer()) {
             return;
         }
         boolean instance = client.getTopLevelWorldView().isInstance();
         boolean wilderness = client.getVarbitValue(VarbitID.INSIDE_WILDERNESS) == 1;
         // The real map square, also inside an instance
         WorldPoint spot = WorldPoint.fromLocalInstance(client, player.getLocalLocation());
-        alerts.alert(VoiceAlertService.VoiceLine.DEATH, where(spot, instance, wilderness));
+        if (config.deathAlert()) {
+            alerts.alert(VoiceAlertService.VoiceLine.DEATH, where(spot, instance, wilderness));
+        }
         // No gravestone in an instance (Death's Office or the boss's reclaim keeps them) or the Wilderness (items
         // drop on the floor)
         if (config.deathTimer() && !instance && !wilderness) {

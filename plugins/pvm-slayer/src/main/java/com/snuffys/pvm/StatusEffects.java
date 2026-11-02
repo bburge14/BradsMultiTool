@@ -242,15 +242,16 @@ class StatusEffects {
         frozenSprite = sprite;
     }
 
-    // Staff of the dead's protection ends when you take the staff off
+    // Staff of the dead's protection ends when you take the staff off (the staffs of light and balance have the same
+    // special)
     @Subscribe
     public void onItemContainerChanged(ItemContainerChanged event) {
         if (event.getContainerId() != InventoryID.WORN || sotdEnd == 0) {
             return;
         }
         Item weapon = event.getItemContainer().getItem(SLOT_WEAPON);
-        if (weapon == null || weapon.getId() <= 0
-            || !client.getItemDefinition(weapon.getId()).getName().toLowerCase().contains("staff of the dead")) {
+        String name = weapon == null || weapon.getId() <= 0 ? "" : client.getItemDefinition(weapon.getId()).getName().toLowerCase();
+        if (!name.contains("staff of the dead") && !name.contains("staff of light") && !name.contains("staff of balance")) {
             sotdEnd = 0;
         }
     }
@@ -260,7 +261,11 @@ class StatusEffects {
         if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING) {
             staminaEnd = antifireEnd = superAntifireEnd = protectionEnd = 0;
             overloadEnd = smellingSaltsEnd = prayerRegenEnd = imbuedHeartEnd = teleblockEnd = 0;
-            vengeanceCooldownEnd = sotdEnd = frozenEnd = 0;
+            frozenEnd = 0;
+            // Kept through a world hop, as RuneLite's Timers and Buffs keeps them (the game doesn't send them again)
+            if (event.getGameState() == GameState.LOGIN_SCREEN) {
+                vengeanceCooldownEnd = sotdEnd = 0;
+            }
             overloadRefreshTick = -1;
             synced = false;
             effects = Collections.emptyList();

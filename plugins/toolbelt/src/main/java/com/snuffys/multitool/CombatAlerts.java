@@ -285,7 +285,7 @@ class CombatAlerts {
         // Supplies used on the Slayer task: the game's own messages for eating and drinking a dose
         if (message.startsWith("You eat ")) {
             plugin.getSlayerTracker().ateFood();
-        } else if (message.startsWith("You drink some of your ")) {
+        } else if (message.startsWith("You drink some of your ") || message.startsWith("You drink some of the foul liquid")) {
             plugin.getSlayerTracker().drankDose();
         }
         if (message.contains("A superior foe has appeared") && config.superiorAlert()) {

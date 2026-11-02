@@ -103,6 +103,15 @@ public class BradsMultiToolFinishOffOverlay extends Overlay {
         return (int) (maxHp * ratio / (double) scale + 0.5);
     }
 
+    // RuneLite's Slayer plugin marks it too: a task monster, or any zygomite on a zygomite task (it matches the name
+    // "Zygomite", so ancient zygomites count on a mutated zygomite task)
+    private boolean coreMarksThis(NPC npc) {
+        SlayerTracker tracker = plugin.getSlayerTracker();
+        String task = tracker.getTaskName();
+        return tracker.isTaskMonster(npc) || task != null && task.toLowerCase().contains("zygomite")
+            && npc.getName() != null && npc.getName().toLowerCase().contains("zygomite");
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
         if (!config.finishOffMarker() || client.getGameState() != GameState.LOGGED_IN) {
@@ -112,7 +121,7 @@ public class BradsMultiToolFinishOffOverlay extends Overlay {
         for (NPC npc : client.getTopLevelWorldView().npcs()) {
             Finisher finisher = finisherFor(npc.getName());
             if (finisher == null || npc.isDead()
-                || (coreOn && finisher.coreMarks && plugin.getSlayerTracker().isTaskMonster(npc))) {
+                || (coreOn && finisher.coreMarks && coreMarksThis(npc))) {
                 continue;
             }
             MonsterData.Stats stats = plugin.statsFor(npc);
