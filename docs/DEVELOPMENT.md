@@ -16,15 +16,18 @@ separate plugins instead (`skilling`, `pvm`, `gemcrab`, `tick`, `planner`, `aler
 folders are made from; `split_plugins.py --verify` checks each of those builds on its own. `./gradlew test` runs
 the unit tests.
 
-Three Gradle tasks render parts of the UI offline (no client needed) to check layouts:
+Four Gradle tasks render parts of the UI offline (no client needed) to check layouts:
 
 - `./gradlew slayerPreview -Dout=slayer.png`: the Slayer card, with and without a task.
 - `./gradlew headerPreview -Dout=header.png`: the skill tracker's header box.
 - `./gradlew plannerPreview -Dout=planner`: Snuffy's Planner's sidebar with sample data, at 2x: planner-today.png,
-  planner-timers.png, planner-slayer.png, planner-drops.png, planner-notes.png, planner-drops-monster.png (a
+  planner-timers.png, planner-slayer.png, planner-drops.png, planner-notes.png, planner-calculator.png, planner-drops-monster.png (a
   monster's own page), planner-drops-session.png (its items this session), planner-drops-casket.png (drops saved
   before drop rates were kept), planner-drops-scrolled.png (at the sidebar's usual height), planner-empty.png (each tab of a new account) and planner-loggedout.png. Item pictures
   come from the OSRS Wiki, cached in `build/planner-icons` (left out without a connection).
+- `./gradlew calculatorPreview -Dout=calc`: the Planner's Calculator tab alone: calc-woodcutting.png (a goal and a
+  bonus ticked), calc-cooking.png (at the sidebar's height), calc-cooking-banked.png (Banked view),
+  calc-prayer.png (an altar, searched) and calc-magic.png (spells have no item picture offline).
 
 ## Data files
 
@@ -40,6 +43,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `recipes.json` | `update_recipe_data.py` | Wiki: recipes for the production skills, Firemaking logs, Prayer bones and ashes |
 | `money.json` | `update_money_data.py` | Wiki: money making guides (skill, requirements, profit) |
 | `training.json` | `update_training_data.py` | Wiki: training guides' methods by level, each with what it trains on (its section's Main links), the guide's first sentences about it, and its table by level (level, item, ingredients, XP) where it has one; where the guide says to do it (links to the wiki's location pages in its list of spots or in "located in"/"at the" sentences, not ones about buying, rewards or requirements); the quests each method and row needs (finished, or "started" where the guide says partial completion; a row's from the item's infobox quest) |
+| `calculator.json` | `update_calculator_data.py` | RuneLite's Skill Calculator (BSD-2): each skill's actions (name, level, XP, item picture or spell sprite) and XP bonuses (multiplier, which they can be ticked with, which actions they don't apply to), read from the plugin's `CalculatorType` and `skills/*Action`/`*Bonus` source (its rules run by a small interpreter in the script); item names from the wiki's infobox_item bucket. `--cache DIR` keeps the downloads |
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
 | `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter (and Hunters' Rumours: locations, method, pity threshold; `--only hunter rumours` refreshes just those), Runecraft, burn levels, cooking and smithing recipes, Agility (and the Brimhaven Arena's obstacles), Sailing, fishing spots (every spot type by NPC id) |
 | `voices/` | `generate_voice_clips.py` | Piper TTS (see [VOICE_CREDITS.md](../VOICE_CREDITS.md)) |
@@ -58,7 +62,7 @@ below).
 | **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, wrong prayer, unpotted, Slayer task/superior/item/milestone, kill goal) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
 | **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts, potion buffs and their alerts | `gemcrab` (crab moved, about to burrow) + `potions` + `shared` |
 | **Snuffy's Tick Counter** | Tick count over head, tick boxes, tick bar, metronome, click timing (its own plugin so neither the skilling nor the PvM side carries a second copy) | none (game sounds only) |
-| **Snuffy's Planner** | Its own sidebar tab: tabs for Today (dailies, from DailyReminders, which it replaced; weeklies: Tears of Guthix, Kingdom of Miscellania, farming contract), Timers (the farming patch list and its ready alert, moved from the Skilling Helper; bird houses ready; your own timers), Slayer (read from the game), Drops (drop tracker), Notes (to-do and notes). Built from `PlannerUi`'s cards. No skill goals (those stay in the Skilling Helper). Data: `farming*.json` | `planner` (dailies, weeklies, timer done, farming patches ready, bird houses ready) + `shared` |
+| **Snuffy's Planner** | Its own sidebar tab: tabs for Today (dailies, from DailyReminders, which it replaced; weeklies: Tears of Guthix, Kingdom of Miscellania, farming contract), Timers (the farming patch list and its ready alert, moved from the Skilling Helper; bird houses ready; your own timers), Slayer (read from the game), Drops (drop tracker), Notes (to-do and notes), Calculator (skill calculator; its Set as goal writes the Skilling Helper's goal keys through `SkillGoals`). Built from `PlannerUi`'s cards. Data: `farming*.json`, `calculator.json`, `recipes.json`, `training.json` | `planner` (dailies, weeklies, timer done, farming patches ready, bird houses ready) + `shared` |
 | **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
 
 PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card and buff alerts.
@@ -72,7 +76,7 @@ PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card an
 | PvM/Slayer | `PvmPlugin` | `PvmFeature` | `PvmConfig` (`snuffyspvm`) | `PvmTracker`, `SlayerTracker` |
 | GemCrab Tracker | `GemCrabPlugin` | `GemCrabFeature` | `GemCrabConfig` (`snuffysgemcrab`) | `GemCrabTracker` |
 | Tick Counter | `TickCounterPlugin` | `TickCounterFeature` | `TickConfig` (`snuffystickcounter`) | `TickCounter` |
-| Planner | `PlannerPlugin` | `PlannerFeature` | `PlannerConfig` (`snuffysplanner`) | `PlannerChores`, `PlannerTimers`, `FarmingTracker`, `PlannerSlayer`, `DropTracker`, `PlannerNotes`; panel `PlannerPanel` (redrawn through `PlannerView`) |
+| Planner | `PlannerPlugin` | `PlannerFeature` | `PlannerConfig` (`snuffysplanner`) | `PlannerChores`, `PlannerTimers`, `FarmingTracker`, `PlannerSlayer`, `DropTracker`, `PlannerNotes`, `PlannerCalculator`; panel `PlannerPanel` (redrawn through `PlannerView`; the Calculator tab drawn by `PlannerCalculatorView`) |
 | Voices | `VoicesPlugin` | `VoicesFeature` | `VoicesConfig` (`snuffysalerts`) | |
 
 Every plugin but the Tick Counter also starts `CommonFeature` (`Alerts`, `IdleWarnings`, `PluginFamily`) and
@@ -82,7 +86,9 @@ stop. `PluginIdentity` says which build is running (settings group, chat tag, fa
 by more than one plugin: `CombatStyle`, `PotionBuffs` (boosts and potion timers, for PvM and the crab card), `MonsterData`, `SlayerData`, `GemstoneCrabs`, `HudColors`, the
 overlay components, `SlayerVars` (the Slayer task, points and streak from the game, for PvM's card and the Planner), and
 `FarmingData` and `BirdhouseTracker` (the Skilling Helper's hover cards and the Planner's TIMERS; both record what they
-see in the shared group, so either plugin alone has it all).
+see in the shared group, so either plugin alone has it all), `SkillGoals` (the goal keys and the remembered bank, for the
+tracker and the Planner's Calculator, so the Planner needn't pull in `SkillTracker`/`GoalItems`), and `RecipeData`,
+`TrainingData`, `ItemPrices`, `ItemIcons` (data only).
 
 Rules that keep the split working:
 - A separate plugin has every feature its part has in the Toolbelt: nothing it shows may depend on another
@@ -176,7 +182,10 @@ the Toolbelt and the separate Planner alike: farming patches (`farmPatch.*`, the
 Skilling Helper) and the account's growth tick offset (`farmTickOffset*`), and under `planner.*` its dailies and
 weeklies (presets' changes and your own, as JSON), what the game last said about each daily, Tears of Guthix, the
 kingdom and the contract, your timers, the Slayer task, drops, to-do list and notes (all RuneScape profile keys), and
-which lists are folded (`plannerCollapsed.*`). `SkillTracker.moveToSharedGroup`
+which lists are folded (`plannerCollapsed.*`). The Calculator reads and writes the goals (`goal.*`, `goalStart.*`) and
+the bank as last seen (`goalBank`, which it also saves when the bank opens, in the same format) through `SkillGoals`, and
+remembers its skill, bonuses per skill and Banked view as plain config (`plannerCalcSkill`, `plannerCalcBonus.*`,
+`plannerCalcBanked`). `SkillTracker.moveToSharedGroup`
 moves anything the Skilling Helper saved under its own group before this, once, without overwriting.
 
 `training.json` methods carry `xpHour` where the guide's text gives an XP rate ("around 45,000 experience per

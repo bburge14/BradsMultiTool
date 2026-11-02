@@ -53,6 +53,16 @@ class RecipeData {
             }
         }
 
+        /** Whether it uses this item (any case) as a material. */
+        boolean uses(String item) {
+            for (String material : materials.keySet()) {
+                if (material.equalsIgnoreCase(item)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /** How many times you can make it from these item counts (lower-case names). */
         int makeable(Map<String, Integer> have) {
             int times = Integer.MAX_VALUE;
@@ -91,11 +101,16 @@ class RecipeData {
         return recipes.containsKey(skill.name());
     }
 
+    /** Everything this skill makes (empty when it isn't a production skill). */
+    List<Recipe> recipes(Skill skill) {
+        return Collections.unmodifiableList(recipes.getOrDefault(skill.name(), Collections.emptyList()));
+    }
+
     /** This skill's recipes that use an item (any case) as a material. */
     List<Recipe> using(Skill skill, String item) {
         List<Recipe> out = new ArrayList<>();
         for (Recipe recipe : recipes.getOrDefault(skill.name(), Collections.emptyList())) {
-            if (GoalItems.uses(recipe, item)) {
+            if (recipe.uses(item)) {
                 out.add(recipe);
             }
         }

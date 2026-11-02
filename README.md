@@ -23,7 +23,7 @@ Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just 
 | **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
 | **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
 | **Snuffy's Tick Counter** | Tick count over your head, tick boxes and a smooth tick bar, metronome, click timing for tick skilling |
-| **Snuffy's Planner** | A sidebar tab for dailies and weeklies, farming patches, bird houses and your own timers, your Slayer task, a drop tracker, and a to-do list with notes |
+| **Snuffy's Planner** | A sidebar tab for dailies and weeklies, farming patches, bird houses and your own timers, your Slayer task, a drop tracker, a to-do list with notes, and a skill calculator |
 | **Snuffy's Alerts** | Optional: one voice and volume for all of the separate plugins |
 
 **From the Plugin Hub** (once they're published there): in RuneLite open the **Plugin Hub** (the plug icon
@@ -207,6 +207,15 @@ each can be hidden in the settings; everything is saved per account.
   drop and this session beside all time; plus your latest drops
   (valuable ones highlighted); reset one or all.
 - **Notes & to-do**: a to-do list and a notes box.
+- **Calculator**: a skill calculator. Pick a skill from the grid; your level and XP fill in from the game (type over
+  them to plan ahead) and the target starts at the skill's goal, or the next level. Tick the XP bonuses you use
+  (skilling outfits, diaries, altars, the bonecrusher...; ones that can't go together untick each other) and every
+  action shows its XP each, how many to your target, the time where the wiki's training guides give an XP rate, the
+  Grand Exchange cost or profit per XP and in all for what you make, and how many you have (bank as last opened plus
+  inventory). What you can do is listed first, highest level first; the guide's method at your level is marked in
+  green; search to filter. **Set as goal** sets the skill's goal just like the Skilling Helper's Set Goal. **Banked**
+  shows what you own instead: the XP in it all, the level that gets you to, and each action's share. Made from
+  RuneLite's own Skill Calculator; information only.
 
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key
@@ -371,7 +380,7 @@ All sections except General start collapsed.
 | Skilling | Hover cards, XP rates on cards, inventory full, resource gone, batch complete |
 | Woodcutting ... Sailing | One section per skill with its pies, cards and alerts |
 | Skill Tracker | Which fields to show, goals, suggested methods and highlights, goal items, auto-pause, ignored skills, level-up alerts |
-| Planner: Today ... Notes & To-Do | Each Planner list's Show switch; the dailies/weeklies voice line; farming, bird house and timer alerts; drop colours and the valuable drop amount |
+| Planner: Today ... Calculator | Each Planner list's Show switch (Calculator: Show Calculator); the dailies/weeklies voice line; farming, bird house and timer alerts; drop colours and the valuable drop amount |
 
 ## Credits
 
@@ -392,6 +401,9 @@ All sections except General start collapsed.
   RuneLite's own plugins (BSD-2-Clause), and the items gathered counts use the chat messages its Woodcutting, Fishing
   and Cooking plugins read. The Slayer points and streak, the finish-off thresholds and the buff bar's timers read
   the game the same way as RuneLite's Slayer and Timers and Buffs plugins (BSD-2-Clause).
+- The Planner's Calculator is made from RuneLite's own Skill Calculator (BSD-2-Clause, (c) the RuneLite
+  contributors): its actions, levels, XP and bonuses are converted from that plugin's source by
+  `scripts/update_calculator_data.py`, and its sums work the same way.
 - The minigame and Sailing alerts use what these Plugin Hub plugins (BSD-2-Clause) worked out:
   [Tempoross](https://github.com/nmlynch94/runelite-external-plugins) (messages, ids, fish damage),
   [Guardians of the Rift Helper](https://github.com/DatBear/Guardians-of-the-Rift-Helper) by DatBear (messages,

@@ -35,7 +35,10 @@ import net.runelite.client.ui.laf.RuneLiteLAF;
  * {@code ./gradlew plannerPreview -Dout=planner} writes planner-today.png, planner-timers.png, planner-slayer.png,
  * planner-drops.png (the list), planner-drops-monster.png (Vorkath's page), planner-drops-session.png (its items this
  * session), planner-drops-casket.png (a source saved before drop rates were kept), planner-drops-scrolled.png,
- * planner-notes.png, planner-empty.png (each tab of a new account) and planner-loggedout.png, at 2x.
+ * planner-notes.png, planner-calculator.png, planner-empty.png (each tab of a new account) and planner-loggedout.png,
+ * at 2x. {@code ./gradlew calculatorPreview -Dout=calc} writes only the Calculator's: calc-woodcutting.png (with a goal
+ * and a bonus), calc-cooking.png (costs, at the sidebar's height), calc-cooking-banked.png (Banked view),
+ * calc-prayer.png (an altar's bonus, searched) and calc-magic.png.
  * Item pictures come from the OSRS Wiki (cached in build/planner-icons; without a connection they're left out).
  */
 public class PlannerPreview {
@@ -46,6 +49,7 @@ public class PlannerPreview {
 
     public static void main(String[] args) throws Exception {
         String out = args.length > 0 ? args[0] : "build/planner";
+        boolean calculatorOnly = args.length > 1 && "calculator".equals(args[1]);
         File icons = new File(System.getProperty("icons", "build/planner-icons"));
         icons.mkdirs();
         SwingUtilities.invokeAndWait(RuneLiteLAF::setup);
@@ -54,12 +58,36 @@ public class PlannerPreview {
         full.fill();
         Sample fresh = new Sample("fresh");
         WikiIcons pictures = new WikiIcons(icons);
-        String[] tabs = {"today", "timers", "slayer", "drops", "notes"};
+        String[] tabs = {"today", "timers", "slayer", "drops", "notes", "calculator"};
+        if (calculatorOnly) {
+            SwingUtilities.invokeAndWait(() -> {
+                try {
+                    PlannerPanel panel = full.panel(pictures);
+                    panel.showCalculator(Skill.WOODCUTTING, false, "");
+                    write(render(panel, 0), out + "-woodcutting.png");
+                    panel.showCalculator(Skill.COOKING, false, "");
+                    write(render(panel, 760), out + "-cooking.png");
+                    panel.showCalculator(Skill.COOKING, true, "");
+                    write(render(panel, 0), out + "-cooking-banked.png");
+                    panel.showCalculator(Skill.PRAYER, false, "dragon");
+                    write(render(panel, 0), out + "-prayer.png");
+                    panel.showCalculator(Skill.MAGIC, false, "alchemy");
+                    write(render(panel, 0), out + "-magic.png");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            System.exit(0);
+        }
         SwingUtilities.invokeAndWait(() -> {
             try {
                 PlannerPanel panel = full.panel(pictures);
                 for (String tab : tabs) {
-                    panel.showTab(tab);
+                    if (tab.equals("calculator")) {
+                        panel.showCalculator(Skill.WOODCUTTING, false, "");
+                    } else {
+                        panel.showTab(tab);
+                    }
                     write(render(panel, 0), out + "-" + tab + ".png");
                 }
                 // A monster's own page, its items this session, and a casket saved before drop rates were kept
@@ -149,6 +177,10 @@ public class PlannerPreview {
         final PlannerSlayer slayer;
         final DropTracker drops;
         final PlannerNotes notes;
+        final PlannerCalculator calculator;
+        final CalculatorData calculatorData = new CalculatorData();
+        final RecipeData recipes = new RecipeData();
+        final TrainingData training = new TrainingData();
         final String profile;
 
         Sample(String profile) throws Exception {
@@ -172,6 +204,10 @@ public class PlannerPreview {
             slayer = new PlannerSlayer(null, configManager, null, view);
             drops = new DropTracker(configManager, null, config, view, gson);
             notes = new PlannerNotes(configManager, view, gson);
+            calculator = new PlannerCalculator(null, configManager, null, view);
+            calculatorData.load(gson);
+            recipes.load(gson);
+            training.load(gson);
         }
 
         void loggedIn(boolean in) {
@@ -185,7 +221,11 @@ public class PlannerPreview {
         }
 
         PlannerPanel panel(PlannerPanel.Icons icons) {
-            return new PlannerPanel(config, configManager, chores, timers, farming, slayer, drops, notes, icons);
+            if (icons instanceof WikiIcons) {
+                ((WikiIcons) icons).add(calculatorData);
+            }
+            return new PlannerPanel(config, configManager, chores, timers, farming, slayer, drops, notes, icons,
+                new PlannerCalculatorView(calculator, calculatorData, recipes, training, icons));
         }
 
         void set(String key, Object value) {
@@ -259,6 +299,32 @@ public class PlannerPreview {
             notes.add("Hand in the Farming contract");
             notes.setDone(3, true);
             notes.setNotes("Spec weapon swap: DWH on Vorkath, then the Arclight.\n\nWorld 330 for the blast furnace.");
+
+            // CALCULATOR: the account's levels, a Woodcutting goal (level 70, set at level 58) and a bonus ticked, an
+            // altar for Prayer, and what's in the bank and inventory
+            Map<Skill, Integer> xp = new java.util.EnumMap<>(Skill.class);
+            for (Skill skill : Skill.values()) {
+                xp.put(skill, net.runelite.api.Experience.getXpForLevel(50) + 2_000);
+            }
+            xp.put(Skill.WOODCUTTING, 302_288);
+            xp.put(Skill.COOKING, 1_210_421);
+            xp.put(Skill.PRAYER, 737_627);
+            xp.put(Skill.MAGIC, 1_986_068);
+            set("goal.WOODCUTTING", net.runelite.api.Experience.getXpForLevel(70));
+            set("goalStart.WOODCUTTING", net.runelite.api.Experience.getXpForLevel(58));
+            calculator.setBonuses(Skill.WOODCUTTING, java.util.Collections.singleton("LUMBERJACK_OUTFIT"));
+            calculator.setBonuses(Skill.PRAYER, java.util.Collections.singleton("LIT_GILDED_ALTAR"));
+            Map<String, Integer> bank = new HashMap<>();
+            bank.put("raw lobster", 1_240);
+            bank.put("raw swordfish", 455);
+            bank.put("raw monkfish", 310);
+            bank.put("raw shark", 96);
+            bank.put("raw karambwan", 620);
+            bank.put("dragon bones", 140);
+            bank.put("teak logs", 220);
+            Map<String, Integer> inventory = new HashMap<>();
+            inventory.put("raw lobster", 28);
+            calculator.setSample(xp, inventory, bank);
         }
 
         private void patch(String key, String title, String crop, String state, long grownAt) {
@@ -387,6 +453,37 @@ public class PlannerPreview {
                 }
             }
             return "Coins 1";
+        }
+
+        // GE prices for the sample's items (in the client these come from ItemManager)
+        private static final Map<String, Integer> PRICES = new HashMap<>();
+
+        static {
+            String[] prices = {"raw lobster", "182", "lobster", "176", "raw swordfish", "330", "swordfish", "305",
+                "raw monkfish", "240", "monkfish", "268", "raw shark", "760", "shark", "780", "raw karambwan", "410",
+                "cooked karambwan", "365", "raw tuna", "60", "tuna", "92", "raw anglerfish", "1580", "anglerfish", "1620",
+                "raw trout", "34", "trout", "28", "raw salmon", "52", "salmon", "41", "dragon bones", "2280",
+                "superior dragon bones", "13500", "babydragon bones", "1740", "nature rune", "95", "fire rune", "5",
+                "teak logs", "64", "raw manta ray", "1500", "manta ray", "1460", "raw sea turtle", "1080", "sea turtle", "1050"};
+            for (int i = 0; i < prices.length; i += 2) {
+                PRICES.put(prices[i], Integer.parseInt(prices[i + 1]));
+            }
+        }
+
+        @Override
+        public int price(String name) {
+            return PRICES.getOrDefault(name.toLowerCase(), 0);
+        }
+
+        /** The calculator's actions' pictures: the item of the action's name. */
+        void add(CalculatorData data) {
+            for (Skill skill : data.skills()) {
+                for (CalculatorData.Action action : data.calc(skill).actions) {
+                    if (action.icon > 0) {
+                        byId.putIfAbsent(action.icon, action.name);
+                    }
+                }
+            }
         }
 
         @Override

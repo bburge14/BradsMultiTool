@@ -1,6 +1,6 @@
 # Snuffy's Planner
 
-A sidebar tab for dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, and a to-do list with notes.
+A sidebar tab for dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, a to-do list with notes, and a skill calculator.
 
 ## Features
 
@@ -10,6 +10,7 @@ A sidebar tab for dailies and weeklies, farming, bird house and your own timers,
 - **Slayer**: your task, kills left, points and streak
 - **Drops**: each monster or chest tracked on its own: kills, loot with the drop rates you've seen, Grand Exchange value, this session beside all time, and your latest drops
 - **Notes & to-do**: a to-do list and a notes box for each account
+- **Calculator**: pick a skill and a target (your goal, or the next level): every action with its XP (with the outfit, diary and altar bonuses you tick), how many to go, the time where the wiki's training guides give an XP rate, the Grand Exchange cost per XP, what you own of it, and Set as goal; Banked view shows the XP and level your bank gets you
 
 
 ## Installing

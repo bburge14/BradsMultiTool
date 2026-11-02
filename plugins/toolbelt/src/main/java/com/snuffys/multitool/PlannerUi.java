@@ -235,6 +235,26 @@ final class PlannerUi {
             add(top, BorderLayout.CENTER);
         }
 
+        /** The third line's left and right text (null until {@link #third} adds it). */
+        JLabel lower;
+        JLabel lowerRight;
+
+        /** Adds a third line of muted text under the second (left and right). */
+        Card third(String leftText, String rightText) {
+            JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            info.setLayout(new java.awt.GridLayout(3, 1));
+            lower = label(leftText, MUTED);
+            lower.setMinimumSize(new Dimension(0, 0));
+            lowerRight = label(rightText == null ? "" : rightText, MUTED);
+            lowerRight.setHorizontalAlignment(SwingConstants.RIGHT);
+            JPanel row = new JPanel(new BorderLayout(4, 0));
+            row.setOpaque(false);
+            row.add(lower, BorderLayout.CENTER);
+            row.add(lowerRight, BorderLayout.EAST);
+            info.add(row);
+            return this;
+        }
+
         /** One line of text only (no second line). */
         Card single() {
             JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
@@ -270,6 +290,11 @@ final class PlannerUi {
             title.setForeground(FAINT);
             left.setForeground(FAINT);
             right.setForeground(FAINT);
+            corner.setForeground(FAINT);
+            if (lower != null) {
+                lower.setForeground(FAINT);
+                lowerRight.setForeground(FAINT);
+            }
             return this;
         }
 
@@ -575,7 +600,7 @@ final class PlannerUi {
 
     /** The drawn icons: the tabs', the header buttons' and the timer buttons'. */
     enum Shape {
-        PLUS, PLAY, STOP, AGAIN, TRASH, CHECKLIST, CLOCK, SKULL, BAG, NOTE, BACK
+        PLUS, PLAY, STOP, AGAIN, TRASH, CHECKLIST, CLOCK, SKULL, BAG, NOTE, BACK, CALCULATOR, SEARCH
     }
 
     static final class Glyph implements Icon {
@@ -693,6 +718,19 @@ final class PlannerUi {
                     g.draw(new Line2D.Double(5.5, 5.5, 10.5, 5.5));
                     g.draw(new Line2D.Double(5.5, 8.2, 10.5, 8.2));
                     g.draw(new Line2D.Double(5.5, 10.9, 8.5, 10.9));
+                    break;
+                case CALCULATOR:
+                    g.draw(new RoundRectangle2D.Double(3, 1.5, 10, 13, 2.5, 2.5));
+                    g.fill(new RoundRectangle2D.Double(5, 3.6, 6, 2.6, 1, 1));
+                    for (int row = 0; row < 2; row++) {
+                        for (int col = 0; col < 3; col++) {
+                            g.fill(new Ellipse2D.Double(4.9 + col * 2.4, 8.3 + row * 2.8, 1.5, 1.5));
+                        }
+                    }
+                    break;
+                case SEARCH:
+                    g.draw(new Ellipse2D.Double(2.5, 2.5, 8, 8));
+                    g.draw(new Line2D.Double(9.4, 9.4, 13.5, 13.5));
                     break;
                 case BACK: {
                     Path2D chevron = new Path2D.Double();

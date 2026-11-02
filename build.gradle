@@ -84,3 +84,11 @@ tasks.register('plannerPreview', JavaExec) {
     args = [System.getProperty('out', 'build/planner')]
     jvmArgs = ['-Djava.awt.headless=true']
 }
+
+// The Planner's Calculator tab with sample data (-Dout=calc writes calc-woodcutting.png, calc-cooking-banked.png...)
+tasks.register('calculatorPreview', JavaExec) {
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.bradsmultitool.PlannerPreview'
+    args = [System.getProperty('out', 'build/calc'), 'calculator']
+    jvmArgs = ['-Djava.awt.headless=true']
+}

@@ -278,7 +278,7 @@ class SkillTracker {
      * place for the Toolbelt and the Skilling Helper alike, so either shows the same goals. (The Toolbelt's old
      * group, so its goals stay where they were; bird houses and compost are kept there too.)
      */
-    static final String SHARED_GROUP = "bradsmultitool";
+    static final String SHARED_GROUP = SkillGoals.GROUP;
     private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "goalMethod.", "trainingFocus.", "prayerMethod."};
 
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
@@ -414,28 +414,12 @@ class SkillTracker {
 
     /** The skill's goal in XP, or 0 for none. */
     public int getSkillGoal(Skill skill) {
-        String value = configManager.getRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name());
-        try {
-            return value == null ? 0 : Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+        return SkillGoals.goal(configManager, skill);
     }
 
     public void setSkillGoal(Skill skill, int goalXp) {
-        if (goalXp <= 0) {
-            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name());
-            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name());
-            configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
-        } else {
-            // Modifying a goal still underway keeps where it started (the goal bar's progress)
-            int xp = client.getSkillExperience(skill);
-            boolean underway = getSkillGoal(skill) > xp && getSkillGoalStart(skill) > 0;
-            configManager.setRSProfileConfiguration(SHARED_GROUP, "goal." + skill.name(), goalXp);
-            if (!underway) {
-                configManager.setRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name(), xp);
-            }
-        }
+        // (the Planner's Calculator sets goals the same way, through SkillGoals)
+        SkillGoals.setGoal(configManager, skill, goalXp, client.getSkillExperience(skill));
         updatePanelUI();
     }
 
@@ -621,12 +605,7 @@ class SkillTracker {
 
     /** Your XP in the skill when you set its goal (for the goal bar), or 0 if unknown. */
     public int getSkillGoalStart(Skill skill) {
-        String value = configManager.getRSProfileConfiguration(SHARED_GROUP, "goalStart." + skill.name());
-        try {
-            return value == null ? 0 : Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+        return SkillGoals.goalStart(configManager, skill);
     }
 
     public void resetSkill(Skill skill) {

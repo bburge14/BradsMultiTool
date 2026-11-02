@@ -11,14 +11,15 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 
 /**
- * Snuffy's Planner: its sidebar tab (Today, Timers, Slayer, Drops and Notes tabs) and what fills it: the
+ * Snuffy's Planner: its sidebar tab (Today, Timers, Slayer, Drops, Notes and Calculator tabs) and what fills it: the
  * dailies and weeklies, the farming patch list and ready alert, bird houses and your own timers, the Slayer task,
- * the drop tracker and your notes.
+ * the drop tracker, your notes and the skill calculator.
  */
 @Singleton
 class PlannerFeature {
@@ -41,6 +42,12 @@ class PlannerFeature {
     @Inject private ItemManager itemManager;
     @Inject private ItemIcons itemIcons;
     @Inject private SkillIconManager skillIcons;
+    @Inject private SpriteManager spriteManager;
+    @Inject private ItemPrices itemPrices;
+    @Inject private PlannerCalculator calculator;
+    @Inject private CalculatorData calculatorData;
+    @Inject private RecipeData recipeData;
+    @Inject private TrainingData trainingData;
 
     private NavigationButton navButton;
     private PlannerPanel panel;
@@ -61,12 +68,18 @@ class PlannerFeature {
             PlannerConfigDefaults.store(configDefaults, config);
         });
         lifecycle.load(farmingData, farmingData::load);
+        // The Calculator's data: its actions and bonuses, and the recipes and training guides for costs and times
+        lifecycle.load(calculatorData, calculatorData::load);
+        lifecycle.load(recipeData, recipeData::load);
+        lifecycle.load(trainingData, trainingData::load);
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)
-        lifecycle.subscribe(farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, this);
+        lifecycle.subscribe(farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, this);
         chores.start();
         SwingUtilities.invokeLater(() -> {
-            panel = new PlannerPanel(config, configManager, chores, timers, farmingTracker, slayer, drops, notes, icons());
+            PlannerPanel.Icons pictures = icons();
+            panel = new PlannerPanel(config, configManager, chores, timers, farmingTracker, slayer, drops, notes, pictures,
+                new PlannerCalculatorView(calculator, calculatorData, recipeData, trainingData, pictures));
             navButton = NavigationButton.builder()
                 .tooltip("Snuffy's Planner")
                 // The Planner's logo, made by update_icons.py
@@ -108,6 +121,17 @@ class PlannerFeature {
             @Override
             public BufferedImage skill(Skill skill, boolean small) {
                 return skillIcons.getSkillImage(skill, small);
+            }
+
+            @Override
+            public void sprite(int spriteId, java.util.function.Consumer<BufferedImage> then) {
+                // (loaded on the client thread; drawn on the Swing thread)
+                spriteManager.getSpriteAsync(spriteId, 0, image -> SwingUtilities.invokeLater(() -> then.accept(image)));
+            }
+
+            @Override
+            public int price(String name) {
+                return itemPrices.price(name);
             }
         };
     }

@@ -67,6 +67,15 @@ class PlannerPanel extends PluginPanel {
         int itemId(String name);
 
         BufferedImage skill(Skill skill, boolean small);
+
+        /** A game sprite (the Calculator's spells), given to {@code then} on the Swing thread once loaded. */
+        default void sprite(int spriteId, java.util.function.Consumer<BufferedImage> then) {
+        }
+
+        /** An item's Grand Exchange price by name, 0 when it has none. */
+        default int price(String name) {
+            return 0;
+        }
     }
 
     private static final String GROUP = PlannerChores.GROUP;
@@ -105,7 +114,8 @@ class PlannerPanel extends PluginPanel {
     private final Page slayerPage = new SlayerPage();
     private final Page dropPage = new DropsPage();
     private final NotesPage notePage = new NotesPage();
-    private final List<Page> pages = Arrays.asList(today, timerPage, slayerPage, dropPage, notePage);
+    private final CalculatorPage calcPage;
+    private final List<Page> pages;
     private String tabsLayout;
     private Page selected;
 
@@ -122,7 +132,8 @@ class PlannerPanel extends PluginPanel {
     private String notesProfile;
 
     PlannerPanel(PlannerConfig config, ConfigManager configManager, PlannerChores chores, PlannerTimers timers,
-                 FarmingTracker farming, PlannerSlayer slayer, DropTracker drops, PlannerNotes notes, Icons icons) {
+                 FarmingTracker farming, PlannerSlayer slayer, DropTracker drops, PlannerNotes notes, Icons icons,
+                 PlannerCalculatorView calculator) {
         super(false);
         this.config = config;
         this.configManager = configManager;
@@ -133,6 +144,8 @@ class PlannerPanel extends PluginPanel {
         this.drops = drops;
         this.notes = notes;
         this.icons = icons;
+        calcPage = new CalculatorPage(calculator);
+        pages = Arrays.asList(today, timerPage, slayerPage, dropPage, notePage, calcPage);
 
         setLayout(new BorderLayout());
         setBackground(PlannerUi.BACKGROUND);
@@ -151,6 +164,7 @@ class PlannerPanel extends PluginPanel {
     }
 
     void stop() {
+        calcPage.view.stop();
         clock.stop();
         countdowns.stop();
         notesSave.stop();
@@ -191,8 +205,8 @@ class PlannerPanel extends PluginPanel {
             }
         }
         if (!loggedIn || shown.isEmpty()) {
-            display.add(!loggedIn ? message("Snuffy's Planner", "Log in to see your dailies, timers, Slayer task, drops and "
-                + "notes. They're kept for each account.")
+            display.add(!loggedIn ? message("Snuffy's Planner", "Log in to see your dailies, timers, Slayer task, drops, "
+                + "notes and calculator. They're kept for each account.")
                 : message("Nothing to show", "Every list is switched off. Turn one on in the Planner's settings."), BorderLayout.NORTH);
         } else {
             MaterialTabGroup group = new MaterialTabGroup(display);
@@ -247,11 +261,17 @@ class PlannerPanel extends PluginPanel {
             PlannerUi.picture(new PlannerUi.Glyph(shape, 32, colour))));
     }
 
-    /** Package-private for the preview: shows this tab ("today", "timers", "slayer", "drops", "notes"). */
+    /** Package-private for the preview: shows this tab ("today", "timers", "slayer", "drops", "notes", "calculator"). */
     void showTab(String id) {
         configManager.setConfiguration(GROUP, TAB_KEY, id);
         tabsLayout = null;
         refresh();
+    }
+
+    /** Package-private for the preview: the Calculator on this skill, in Banked view or not, with this search. */
+    void showCalculator(Skill skill, boolean banked, String search) {
+        calcPage.view.preview(skill, banked, search);
+        showTab("calculator");
     }
 
     /** Package-private for the preview: opens the Drops tab on this monster's or chest's page (null: the list). */
@@ -1317,7 +1337,7 @@ class PlannerPanel extends PluginPanel {
     }
 
     // The box's outline brightens while you type in it
-    private static void focusBorder(JComponent field, JPanel box) {
+    static void focusBorder(JComponent field, JPanel box) {
         javax.swing.border.Border normal = box.getBorder();
         field.addFocusListener(new FocusAdapter() {
             @Override
@@ -1364,7 +1384,7 @@ class PlannerPanel extends PluginPanel {
     }
 
     /** A text field that shows a grey hint while it's empty. */
-    private static final class Hinted extends JTextField {
+    static final class Hinted extends JTextField {
         private final String hint;
 
         Hinted(String hint) {
@@ -1425,6 +1445,38 @@ class PlannerPanel extends PluginPanel {
         g.dispose();
     }
 
+    // ---- Calculator ----
+
+    /** The CALCULATOR tab: its parts above the list stay while you type ({@link PlannerCalculatorView}). */
+    private final class CalculatorPage extends Page {
+        final PlannerCalculatorView view;
+
+        CalculatorPage(PlannerCalculatorView view) {
+            super("calculator", "Calculator: actions to your target level", PlannerUi.Shape.CALCULATOR);
+            this.view = view;
+            target = view.list;
+            view.addTo(column, this::refresh);
+        }
+
+        @Override
+        boolean shown() {
+            return config.plannerShowCalculator();
+        }
+
+        @Override
+        void refresh() {
+            view.update();
+            super.refresh();
+            column.revalidate();
+            column.repaint();
+        }
+
+        @Override
+        Built build() {
+            return new Built(view.key(), view::fill);
+        }
+    }
+
     // ---- Small pieces ----
 
     private static PlannerUi.IconButton plus(String tooltip, Runnable action) {
@@ -1437,7 +1489,7 @@ class PlannerPanel extends PluginPanel {
     }
 
     // Shows a picture on an item-sized label, faded if asked; item pictures from the game fill in once loaded
-    private static void image(JLabel label, BufferedImage picture, float alpha) {
+    static void image(JLabel label, BufferedImage picture, float alpha) {
         if (picture == null) {
             label.setIcon(null);
             return;

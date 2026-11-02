@@ -260,7 +260,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] With two of Snuffy's plugins installed, clue alerts are said once; no plugin posts a daily reminder in chat.
 
 ## Planner (`runBrad "-Pload=planner"`, and in the Toolbelt)
-- [ ] The Planner tab (calendar icon) has five tabs across the top (Today, Timers, Slayer, Drops, Notes); the one you
+- [ ] The Planner tab (calendar icon) has six tabs across the top (Today, Timers, Slayer, Drops, Notes, Calculator); the one you
       pick is still open after a restart; each Show switch hides its list (Today goes when both Dailies and Weeklies
       are off). Nothing clips or scrolls sideways; cards shade under the mouse; item pictures fill in.
 - [ ] Logged out: "Log in to see your dailies, timers..."; logging into another account shows that account's lists.
@@ -301,6 +301,18 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] The Skilling Helper's sidebar no longer has the FARMING list; its farming patch and bird house hover cards
       still work.
 - [ ] With the Toolbelt and the separate Planner both on, the Toolbelt's clash note names Snuffy's Planner.
+- [ ] Calculator: pick skills in the grid (remembered after a restart); level and XP fill in from the game and follow
+      XP drops; typing a level fills its XP and the other way round, and the list follows once you pause; the target
+      is the skill's goal, else the next level. Set as goal: the Skilling Helper (separate and in the Toolbelt) shows
+      the same goal, its bar keeps its start when you change a goal underway; setting a goal in the tracker moves the
+      Calculator's target.
+- [ ] Calculator bonuses: tick the Lumberjack outfit (XP each goes up 2.5%, counts down); Prayer: ticking the Chaos
+      Altar unticks the Gilded altar; the altar doesn't change ashes. Remembered per skill.
+- [ ] Calculator list: greyed above your level, the guide's method in green, a time on actions with a guide rate, GE
+      cost per XP on bones/cooking/smithing (red when it costs), "have" counts after opening the bank (also with only
+      the separate Planner on); search filters; Banked shows the banked XP, level after and each action's share.
+      Typing in the boxes or search never loses focus.
+- [ ] Spells in Magic show their spell icons once loaded.
 
 ## Track for goal: specific methods
 - [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,

@@ -7,7 +7,7 @@ grouped in order: About, General, Idle, then **PvM:** (HUD, Buff Bar, Potion Buf
 Supply Alerts), **Slayer:** (Card, Monsters, Alerts), **GemCrab:** (Crab, Colours), **Skilling:** (Tracker, Goals,
 Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, Other Skills for the rest, and Minigames), and
 **Tick:** (Counter, Boxes, Bar, Metronome, Click Timing), and **Planner:** (Today, Weekly, Timers, Slayer, Drops,
-Notes & To-Do). Each separate plugin has the same sections without the
+Notes & To-Do, Calculator). Each separate plugin has the same sections without the
 plugin's name, and the Skilling Helper gives every skill its own. All start collapsed except About and General.
 
 - [Alerts (all of them)](#alerts-all-of-them)
@@ -620,12 +620,12 @@ Show/Hide, Ticks Per Cycle Up and Ticks Per Cycle Down hotkeys.
 ## Planner
 
 **Snuffy's Planner** (in the Toolbelt too): its own sidebar tab (the calendar icon) for things on a clock and your
-account's to-do list, laid out like RuneLite's Time Tracking: five tabs across the top (**Today**, **Timers**,
-**Slayer**, **Drops**, **Notes**; the one you pick stays open next time), each with a header line (its title, a
+account's to-do list, laid out like RuneLite's Time Tracking: six tabs across the top (**Today**, **Timers**,
+**Slayer**, **Drops**, **Notes**, **Calculator**; the one you pick stays open next time), each with a header line (its title, a
 summary like "3 left · resets in 10h 37m", and a **+** to add) over cards with the item's picture. Right-click a card
 for its menu (edit, hide, delete...). Each list has a **Show ...** setting to hide it. What you add is saved per
-account (RuneScape profile), and the Toolbelt and the separate Planner show the same. Skill goals aren't here: they
-stay in the Skilling Helper.
+account (RuneScape profile), and the Toolbelt and the separate Planner show the same. Skill goals live in the
+Skilling Helper; the Calculator's **Set as goal** sets the same goal (both plugins read it).
 
 **Today: Dailies** (the header counts down to the daily reset, 00:00 UTC):
 - The daily rewards you've unlocked, ticked off by the game as you collect them, the same checks as RuneLite's Daily
@@ -698,7 +698,35 @@ aren't counted twice). With the Loot Tracker on, the clash note says the two lis
 **Notes:** a to-do list (type in the box at the top and press Enter or **+**; click a line to tick it, right-click to
 edit, move up or down, delete; **Clear ticked**) and a notes box below, saved as you type, for each account.
 
-**Settings (Planner: Today, Weekly, Timers, Slayer, Drops, Notes & To-Do):** a Show switch for each list; Dailies To Do
+### Calculator
+
+A skill calculator in the Planner's last tab (the calculator icon), made from RuneLite's own Skill Calculator: the
+same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded down).
+- **Skill**: click one in the grid (the skills the calculator has, in the Skills tab's order); the one you pick is
+  remembered.
+- **Current and target**: your level and XP fill in from the game (logged out, the last you had); type over any of the
+  four boxes to plan ahead (a level fills in its XP and the other way round). The target starts at the skill's goal if
+  it has one ahead of you, else the next level. The line under them says the goal, and **Set as goal** makes the target
+  the skill's goal exactly as the Skilling Helper's Set Goal does (a goal still underway keeps where its bar started);
+  the bar shows how far you are toward it.
+- **XP bonuses** (where the skill has them: skilling outfits, achievement diaries, the Felling axe, altars and the
+  Ectofuntus, the bonecrusher, shark lures, Daeyalt essence, Goldsmith gauntlets...): tick the ones you use. They're
+  remembered per skill; ticking one that can't go with another unticks it (one altar at a time); each counts only for
+  the actions it applies to (the gilded altar for bones, not ashes).
+- **Actions**: each with its picture, name and level (greyed out above your level), XP each with your bonuses and how
+  many to your target. Underneath where it applies: the time at the XP rate the wiki's training guide gives for a
+  matching method (Teak trees for Teak logs), how many you have (bank as last opened plus inventory: of the item, or
+  how many you can make from your materials), and for what you make, burn or bury the Grand Exchange profit or cost
+  per XP and in all to your target (red: costs). The training guide's method at your level is marked in green. What
+  you can do comes first, the highest level first; then what you can't yet. **Search** to filter by name. Hover a card
+  for all of it in words.
+- **Banked** (the link above the list): what you own instead: the XP in all of it for the skill at your level (the most
+  XP each first, each item used once, as the Skilling Helper's banked XP), the level that gets you to, and each action
+  you have the makings of, with how many, the XP and the level it alone gets you to (green when it reaches the
+  target). The bank counts once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
+- Information only: nothing is done in the game.
+
+**Settings (Planner: Today, Weekly, Timers, Slayer, Drops, Notes & To-Do, Calculator):** a Show switch for each list; Dailies To Do
 Alert, Weeklies To Do Alert; Kingdom of Miscellania, Farming Contract; Farming Patch List, Patches Ready Alert, Bird
 Houses Ready Alert; Count Other Loot, Valuable Drop From, Valuable Drop Colour, Recent Drops Shown; Voice/Chat switches.
 

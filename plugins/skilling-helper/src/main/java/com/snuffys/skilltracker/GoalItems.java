@@ -52,7 +52,7 @@ class GoalItems {
     private boolean bankSeen;
     // The bank as last seen is kept with your RuneScape profile (item names and amounts), so Banked and Materials
     // worth show straight after login instead of only once you've opened the bank this session
-    private static final String BANK_KEY = "goalBank";
+    private static final String BANK_KEY = SkillGoals.BANK_KEY;
     @javax.inject.Inject
     private net.runelite.client.config.ConfigManager configManager;
     private boolean bankLoaded;
@@ -85,29 +85,13 @@ class GoalItems {
         }
     }
 
-    /** "logs\t250\nraw lobster\t1200": each item (lower-case name) and how many. */
+    /** "logs\t250\nraw lobster\t1200": each item (lower-case name) and how many (kept in {@link SkillGoals}). */
     static String encodeBank(Map<String, Integer> items) {
-        StringBuilder out = new StringBuilder();
-        items.forEach((name, count) -> out.append(name.replace('\t', ' ').replace('\n', ' ')).append('\t').append(count).append('\n'));
-        return out.toString();
+        return SkillGoals.encodeBank(items);
     }
 
     static Map<String, Integer> decodeBank(String text) {
-        Map<String, Integer> out = new HashMap<>();
-        if (text == null) {
-            return out;
-        }
-        for (String line : text.split("\n")) {
-            int tab = line.lastIndexOf('\t');
-            if (tab > 0) {
-                try {
-                    out.put(line.substring(0, tab), Integer.parseInt(line.substring(tab + 1).trim()));
-                } catch (NumberFormatException e) {
-                    // a damaged line: skip it
-                }
-            }
-        }
-        return out;
+        return SkillGoals.decodeBank(text);
     }
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
@@ -400,12 +384,7 @@ class GoalItems {
 
     /** Whether a recipe uses this item (lower-case name) as a material. */
     static boolean uses(RecipeData.Recipe recipe, String item) {
-        for (String material : recipe.materials.keySet()) {
-            if (material.equalsIgnoreCase(item)) {
-                return true;
-            }
-        }
-        return false;
+        return recipe.uses(item);
     }
 
     private void count(ItemContainer container, Map<String, Integer> into) {

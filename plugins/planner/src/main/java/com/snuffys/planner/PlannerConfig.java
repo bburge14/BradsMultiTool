@@ -119,6 +119,14 @@ public interface PlannerConfig extends CommonConfig {
     )
     String plannerNotesSection = "plannerNotesSection";
 
+    @ConfigSection(
+        name = "Calculator",
+        description = "<div width='300'>The CALCULATOR tab: actions to your target level with XP bonuses, time, Grand Exchange cost and what your bank gets you",
+        position = 76,
+        closedByDefault = true
+    )
+    String plannerCalculatorSection = "plannerCalculatorSection";
+
     // ---- Today ----
 
     @ConfigItem(
@@ -473,6 +481,19 @@ public interface PlannerConfig extends CommonConfig {
         position = 0
     )
     default boolean plannerShowNotes() {
+        return true;
+    }
+
+    // ---- Calculator ----
+
+    @ConfigItem(
+        keyName = "plannerShowCalculator",
+        name = "Show Calculator",
+        description = "<div width='300'>The CALCULATOR tab in the Planner: pick a skill and a target (your goal, or the next level) and see every action with its XP (with the bonuses you tick), how many to the target, the time where the wiki's training guides give an XP rate, the Grand Exchange cost per XP of what you make, what you own of it, and in Banked view the XP and level your bank and inventory get you. Set as goal sets the skill's goal like the Skilling Helper's Set Goal. Made from RuneLite's own Skill Calculator; information only",
+        section = plannerCalculatorSection,
+        position = 0
+    )
+    default boolean plannerShowCalculator() {
         return true;
     }
 

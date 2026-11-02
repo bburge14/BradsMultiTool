@@ -9,8 +9,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 /** Snuffy's Planner on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
 @PluginDescriptor(
     name = "Snuffy's Planner",
-    description = "A sidebar tab for dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, and a to-do list with notes",
-    tags = {"snuffy", "planner", "dailies", "weekly", "farming", "timers", "birdhouse", "slayer", "loot", "drops", "notes", "todo"}
+    description = "A sidebar tab for dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, a to-do list with notes, and a skill calculator",
+    tags = {"snuffy", "planner", "dailies", "weekly", "farming", "timers", "birdhouse", "slayer", "loot", "drops", "notes", "todo", "calculator", "xp"}
 )
 public class PlannerPlugin extends Plugin {
 

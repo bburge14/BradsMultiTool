@@ -76,6 +76,14 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     String plannerNotesSection = "plannerNotesSection";
 
     @ConfigSection(
+        name = "Planner: Calculator",
+        description = "<div width='300'>The Planner's CALCULATOR tab: actions to your target level with XP bonuses, time, Grand Exchange cost and what your bank gets you",
+        position = 76,
+        closedByDefault = true
+    )
+    String plannerCalculatorSection = "plannerCalculatorSection";
+
+    @ConfigSection(
         name = "Tick: Bar",
         description = "The smooth tick bar that fills over each tick (move it with Alt + drag)",
         position = 62,
