@@ -77,33 +77,11 @@ class PlannerTimers {
         this.gson = gson;
     }
 
-    // A Timer Done Sound still to play (one each tick) and which
-    private int tonesLeft;
-    private PlannerConfig.TimerSound tone;
     @Inject
-    private net.runelite.api.Client client;
-    @Inject
-    private net.runelite.client.callback.ClientThread clientThread;
-    @Inject
-    private PluginIdentity identity;
-
-    // Picking a Timer Done Sound plays it once
-    @Subscribe
-    public void onConfigChanged(net.runelite.client.events.ConfigChanged event) {
-        if (identity != null && identity.configGroup.equals(event.getGroup()) && "timerSound".equals(event.getKey())) {
-            PlannerConfig.TimerSound sound = config.timerSound();
-            if (sound.id >= 0 && clientThread != null) {
-                clientThread.invokeLater(() -> client.playSoundEffect(sound.id));
-            }
-        }
-    }
+    private PlannerSound sound;
 
     @Subscribe
     public void onGameTick(GameTick event) {
-        if (tonesLeft > 0 && tone != null && tone.id >= 0) {
-            tonesLeft--;
-            client.playSoundEffect(tone.id);
-        }
         if (!alerts.ready() || configManager.getRSProfileKey() == null) {
             return;
         }
@@ -114,15 +92,7 @@ class PlannerTimers {
             if (timer.ended(now) && !timer.alerted) {
                 timer.alerted = true;
                 changed = true;
-                PlannerConfig.TimerSound sound = config.timerSound();
-                if (sound == PlannerConfig.TimerSound.VOICE) {
-                    alerts.alert(VoiceAlertService.VoiceLine.TIMER_DONE, timer.name);
-                } else {
-                    // A game sound instead of the voice, a few times (one a tick); the chat line as usual
-                    tonesLeft = config.timerSoundRepeats();
-                    tone = sound;
-                    alerts.chat(AlertType.TIMER_DONE, VoiceAlertService.VoiceLine.TIMER_DONE.text + " (" + timer.name + ")");
-                }
+                sound.done(VoiceAlertService.VoiceLine.TIMER_DONE, timer.name);
             }
         }
         if (changed) {
@@ -139,7 +109,7 @@ class PlannerTimers {
         long full = birdhouses.allFullAt();
         if (full > 0 && now >= full) {
             configManager.setRSProfileConfiguration(GROUP, BirdhouseTracker.ALERTED_KEY, "true");
-            alerts.alert(VoiceAlertService.VoiceLine.BIRDHOUSES_READY, null);
+            sound.done(VoiceAlertService.VoiceLine.BIRDHOUSES_READY, null);
             view.update();
         }
     }

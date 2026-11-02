@@ -28,6 +28,7 @@ class PlannerFeature {
     @Inject private BirdhouseTracker birdhouseTracker;
     @Inject private PlannerChores chores;
     @Inject private PlannerTimers timers;
+    @Inject private PlannerSound plannerSound;
     @Inject private PlannerSlayer slayer;
     @Inject private DropTracker drops;
     @Inject private PlannerNotes notes;
@@ -62,7 +63,7 @@ class PlannerFeature {
         lifecycle.load(farmingData, farmingData::load);
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)
-        lifecycle.subscribe(farmingTracker, birdhouseTracker, chores, timers, slayer, drops, this);
+        lifecycle.subscribe(farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, this);
         chores.start();
         SwingUtilities.invokeLater(() -> {
             panel = new PlannerPanel(config, configManager, chores, timers, farmingTracker, slayer, drops, notes, icons());

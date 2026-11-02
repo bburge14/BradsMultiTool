@@ -96,6 +96,8 @@ class FarmingTracker {
     private final ConfigManager configManager;
     private final FarmingData farming;
     private final PlannerConfig config;
+    @javax.inject.Inject
+    private PlannerSound sound;
     private final Alerts alerts;
     private final PlannerView view;
 
@@ -218,7 +220,7 @@ class FarmingTracker {
             }
         }
         if (!ready.isEmpty()) {
-            alerts.alert(VoiceAlertService.VoiceLine.FARMING_READY, String.join(", ", ready));
+            sound.done(VoiceAlertService.VoiceLine.FARMING_READY, String.join(", ", ready));
         }
     }
 

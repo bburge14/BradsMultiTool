@@ -348,8 +348,8 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "timerSound",
-        name = "Timer Done Sound",
-        description = "<div width='300'>How your own timers tell you they're done: the voice line (\"Your timer is done.\"), or a game sound: Bell, Chime, Anvil, Boop or Door (at the game's Sound Effects volume). Picking one plays it",
+        name = "Ready Sound",
+        description = "<div width='300'>How the Timers tab tells you something's done (your timers, farming patches, bird houses): its voice line, or a game sound: Bell, Chime, Anvil, Boop or Door (at the game's Sound Effects volume). Picking one plays it",
         section = plannerTimersSection,
         position = 8
     )
@@ -361,7 +361,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "timerSoundRepeats",
         name = "Times",
-        description = "<div width='300'>How many times the Timer Done Sound plays (a sound only; the voice line is said once)",
+        description = "<div width='300'>How many times the Ready Sound plays (a sound only; the voice line is said once)",
         section = plannerTimersSection,
         position = 9
     )
