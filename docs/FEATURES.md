@@ -453,6 +453,10 @@ you killed last), e.g. "Kill rate: Sand Crab: 52/hr (1:09 each)", over your kill
 killed it twice. Potions and better gear show up here as faster kills; they don't change the kills a goal needs
 (combat XP comes from damage, and a kill can only take its hitpoints).
 
+- **Banked XP** (Goals > Show Banked XP): on a production skill's goal (Cooking, Herblore, Prayer, Fletching...), a
+  "Banked: 1.2M XP" line: the XP in what's in your bank and inventory at your level, the most XP things first, each
+  material counted once. Just a figure; it doesn't change what's suggested. Shows once you've opened your bank.
+
 ---
 
 ## Tick counter and metronome

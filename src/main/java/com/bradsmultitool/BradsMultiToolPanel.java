@@ -933,6 +933,10 @@ public class BradsMultiToolPanel extends PluginPanel {
                 if (item != null) {
                     lines.add(label(item.label) + item.item + " " + label(item.have));
                 }
+                double banked = plugin.getGoalItems().bankedXp(skill);
+                if (banked >= 1 && config.showBankedXp()) {
+                    lines.add(label("Banked:") + shortNumber((long) banked) + " XP");
+                }
                 // Combat goals: how fast you're killing (faster with potions and better gear)
                 String killRate = GoalLines.killRate(plugin, skill);
                 if (killRate != null) {

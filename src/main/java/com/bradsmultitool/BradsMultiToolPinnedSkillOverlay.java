@@ -97,6 +97,10 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             if (item != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(item.label + " " + item.item + " " + item.have, SOFT, false));
             }
+            double banked = plugin.getGoalItems().bankedXp(skill);
+            if (banked >= 1 && config.showBankedXp()) {
+                line("Banked:", BradsMultiToolPanel.shortNumber((long) banked) + " XP", Color.WHITE);
+            }
             String killRate = GoalLines.killRate(plugin, skill);
             if (killRate != null) {
                 panelComponent.getChildren().add(new TextBlockComponent("Kill rate: " + killRate, SOFT, false));

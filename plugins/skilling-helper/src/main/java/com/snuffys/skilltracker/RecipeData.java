@@ -103,6 +103,34 @@ class RecipeData {
     }
 
     /**
+     * The XP in what you have for this skill at this level: the most XP-per-action things first, each made as many
+     * times as the materials left allow (a material only counts once). Only direct materials: herbs count toward
+     * unfinished potions, not the finished ones after.
+     */
+    double bankedXp(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> xpOf) {
+        List<Recipe> doable = new ArrayList<>();
+        for (Recipe recipe : recipes.getOrDefault(skill.name(), Collections.emptyList())) {
+            if (recipe.level <= level && xpOf.applyAsDouble(recipe) > 0) {
+                doable.add(recipe);
+            }
+        }
+        doable.sort((a, b) -> Double.compare(xpOf.applyAsDouble(b), xpOf.applyAsDouble(a)));
+        Map<String, Integer> left = new HashMap<>(have);
+        double total = 0;
+        for (Recipe recipe : doable) {
+            int times = recipe.makeable(left);
+            if (times <= 0) {
+                continue;
+            }
+            for (Map.Entry<String, Integer> material : recipe.materials.entrySet()) {
+                left.merge(material.getKey().toLowerCase(), -times * material.getValue(), Integer::sum);
+            }
+            total += times * xpOf.applyAsDouble(recipe);
+        }
+        return total;
+    }
+
+    /**
      * The best thing to make at this level from what you have (lower-case item name -> count), scored by
      * {@code score} (XP or profit per action); null if you can't make anything.
      */

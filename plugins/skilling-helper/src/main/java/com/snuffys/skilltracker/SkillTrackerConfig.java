@@ -1239,6 +1239,17 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "showBankedXp",
+        name = "Show Banked XP",
+        description = "<div width='300'>On a production skill's goal (Cooking, Herblore, Prayer...): the XP in what's in your bank and inventory at your level, the most XP things first. Just a figure: it doesn't change the suggestion. Shows once you've opened your bank",
+        section = goalsSection,
+        position = 9
+    )
+    default boolean showBankedXp() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "ignoredSkills",
         name = "Ignored Skills",
         description = "Comma-separated list of skills to filter out",

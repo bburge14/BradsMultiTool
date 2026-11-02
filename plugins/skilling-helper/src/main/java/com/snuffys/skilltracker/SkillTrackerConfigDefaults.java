@@ -100,6 +100,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("autoPauseSeconds", config.autoPauseSeconds());
         defaults.store("dropIdleSkillsAfter", config.dropIdleSkillsAfter());
         defaults.store("clearReachedGoals", config.clearReachedGoals());
+        defaults.store("showBankedXp", config.showBankedXp());
         defaults.store("ignoredSkills", config.ignoredSkills());
         defaults.store("voiceLevelUp", config.voiceLevelUp());
         defaults.store("chatLevelUp", config.chatLevelUp());
