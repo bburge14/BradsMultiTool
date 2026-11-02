@@ -44,6 +44,9 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
     private final ItemManager itemManager;
     private final MonsterData monsterData;
     private final PanelComponent panel = new PanelComponent();
+    private static final int KILL_GOALS_SHOWN = 4;
+    @Inject
+    private KillGoals killGoals;
     // Every place the wiki lists instead of Places Shown (the card's right-click menu)
     private boolean allPlaces;
     private FontMetrics metrics;
@@ -59,6 +62,11 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         this.monsterData = monsterData;
         setPosition(OverlayPosition.TOP_LEFT);
         addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Show all / fewer places", "Slayer card", e -> allPlaces = !allPlaces);
+        addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Clear finished kill goals", "Slayer card", e -> {
+            if (killGoals != null) {
+                killGoals.clearFinished();
+            }
+        });
         panel.setPreferredSize(new Dimension(210, 0));
         panel.setGap(new java.awt.Point(0, 3));
     }
@@ -98,6 +106,14 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
                 line("Done In:", minutes >= 60 ? (minutes / 60) + "h " + (minutes % 60) + "m" : minutes + "m", Color.WHITE);
             }
         }
+        if (config.slayerPointsStreak()) {
+            addPointsAndStreak(tracker);
+        }
+        if (config.slayerSupplies()) {
+            int food = tracker.getFoodEaten();
+            int doses = tracker.getDosesDrunk();
+            line("Supplies Used:", food + " food, " + doses + (doses == 1 ? " dose" : " doses"), SOFT);
+        }
         if (config.slayerPrayer()) {
             List<String> prayers = monsterData.protectionPrayers(tracker::isTask);
             if (!prayers.isEmpty()) {
@@ -113,6 +129,38 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         }
         if (config.showSlayerDirections() && task != null && !task.places.isEmpty()) {
             addPlaces(task, area);
+        }
+        addKillGoals();
+    }
+
+    // "Points: 1,234   Streak: 49", and a gold note when the next task is a milestone (bonus points)
+    private void addPointsAndStreak(SlayerTracker tracker) {
+        int streak = tracker.streak();
+        panel.getChildren().add(LineComponent.builder()
+            .left("Points: " + String.format("%,d", tracker.points())).leftColor(Color.WHITE)
+            .right("Streak: " + streak).rightColor(Color.WHITE).build());
+        int milestone = SlayerTracker.nextMilestone(streak);
+        if (milestone > 0) {
+            panel.getChildren().add(new TextBlockComponent("Next task is your " + (streak + 1) + "th: "
+                + SlayerTracker.milestoneMultiplier(milestone) + "x points, pick your master", TITLE_COLOR, false));
+        }
+    }
+
+    // Kill goals in progress (set from a monster's right-click menu), unfinished first
+    private void addKillGoals() {
+        if (!config.killGoals()) {
+            return;
+        }
+        List<KillGoals.Goal> goals = killGoals.all();
+        if (goals.isEmpty()) {
+            return;
+        }
+        heading("Kill Goals");
+        for (KillGoals.Goal goal : goals.subList(0, Math.min(KILL_GOALS_SHOWN, goals.size()))) {
+            line(goal.monster, goal.progress(), goal.done() ? HudColors.GOOD : Color.WHITE);
+        }
+        if (goals.size() > KILL_GOALS_SHOWN) {
+            panel.getChildren().add(new TextBlockComponent("+" + (goals.size() - KILL_GOALS_SHOWN) + " more", SOFT, false));
         }
     }
 
@@ -156,6 +204,9 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
         if (master.quest != null) {
             line("Quest:", master.quest, SOFT);
         }
+        if (config.slayerPointsStreak()) {
+            addPointsAndStreak(plugin.getSlayerTracker());
+        }
         if (config.slayerTravelRoutes() && !master.routes.isEmpty()) {
             heading("Getting There");
             bullets(master.routes);
@@ -165,6 +216,7 @@ public class BradsMultiToolSlayerOverlay extends Overlay {
             String needs = "Combat " + next.combat + (next.slayer > 0 ? ", Slayer " + next.slayer : "");
             panel.getChildren().add(TextBlockComponent.heading("Next: " + next.name + " (" + needs + ")", SOFT));
         }
+        addKillGoals();
     }
 
     // The bundled picture, else the Slayer gem (or nothing with pictures off)

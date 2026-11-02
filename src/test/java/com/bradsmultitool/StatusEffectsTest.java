@@ -20,7 +20,9 @@ public class StatusEffectsTest {
             (proxy, method, args) -> {
                 switch (method.getName()) {
                     case "getGameState": return GameState.LOGGED_IN;
-                    case "getVarpValue": return 0;
+                    case "getVarpValue":
+                    case "getVarbitValue":
+                    case "getTickCount": return 0;
                     case "getRealSkillLevel":
                     case "getBoostedSkillLevel": {
                         Skill skill = (Skill) args[0];

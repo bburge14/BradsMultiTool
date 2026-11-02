@@ -20,6 +20,13 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Running out fires again after another divine dose at the same boost, and after re-dosing a regular potion.
 - [ ] A buff's line on the HUD is red while within the running-out window and green whenever it's above it (e.g. after re-dosing).
 - [ ] Running out still fires right after logging in or hopping (says "under 1:00 left" when the timer isn't synced yet).
+- [ ] Hover a gargoyle: Max Hit: 11, Attack Speed: 4 ticks (2.4s); General Graardor lists 60 (melee), 35 (ranged);
+      Show Max Hit and Speed off hides both.
+- [ ] Wrong Protection Prayer on: Protect from Magic against a gargoyle says "Wrong protection prayer" (chat: attacks
+      with melee) once; switching to Protect from Melee stays quiet; no prayer on stays quiet; a mixed-style
+      monster (Graardor) never sets it off.
+- [ ] Unpotted Reminder on: attacking with no boost says "No combat boost active", not again within 2 minutes;
+      after a super combat it stays quiet. Your Style's: a Magic boost doesn't count while meleeing.
 
 ## Buff bar and monster effects
 - [ ] Buff bar: a potion shows its icon, +boost and time left (divine exact, regular "~" until synced); antifire,
@@ -30,6 +37,11 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] HUD Status: Poisoned/Venomed after poison or venom hits the monster; Frozen 0:xx after Ice barrage (etc.);
       Burning from burn hitsplats.
 - [ ] HUD Defence: Dragon warhammer hit lowers it 30% ("Defence: 140 (-60)"), Elder maul 35%, BGS by the damage.
+- [ ] Buff bar: Overload (Nightmare Zone or a raid) shows one Overload icon with ~time instead of potion icons and
+      boosted stats; Prayer regeneration potion; Staff of the dead special (1:00, gone when you unequip it);
+      Vengeance (ready, then the 0:30 cooldown); Imbued heart cooldown after using it.
+- [ ] Buff bar debuffs: Frozen after an ice spell or bind hits you (gone once you can move); Teleblocked with its
+      time left (Wilderness).
 
 ## Gemstone Crab
 - [ ] When the crab moves, its stats stay up 12s marked (moved) with a "Radar in" countdown, then the radar.
@@ -68,6 +80,17 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] A place whose tags don't fit beside it (Fire giants: Charred Dungeon) has them on the next line,
       right-aligned and grey.
 - [ ] Right-click the card > Show all / fewer places lists every place, and back.
+- [ ] Points and streak on the card (same as RuneLite's Slayer infobox tooltip), also on the no-task card; at a
+      streak of 9, 49, 99... the gold "Next task is your 10th/50th..." note; finishing that task before says
+      "Your next slayer task is a milestone" (chat: task N, Nx points). Not on login.
+- [ ] Supplies Used counts food eaten and potion doses on the task; logging out and in keeps them; a new task
+      starts at 0.
+- [ ] Right-click a monster > Set kill goal, type 5: the hover card shows Kill Goal 0 / 5 and the card lists it;
+      kills count up; the 5th says "Kill goal reached"; Clear kill goal and Clear finished kill goals remove them;
+      goals stay after a relog.
+- [ ] Finish-off marker: rock hammer over a gargoyle at 9 HP or less, ice cooler over a lizard at 4 or less, salt
+      over a rockslug, fungicide over a zygomite. With RuneLite's Slayer plugin on (Show Monster Weakness), task
+      gargoyles/rockslugs/zygomites only get its marker (not two); lizards still get ours.
 - [ ] Pray: line (Fire giants: Protect from Melee; Cave kraken: Magic; Smoke devils: Missiles); none for
       mixed tasks (Spiritual creatures); Protection Prayer off hides it.
 

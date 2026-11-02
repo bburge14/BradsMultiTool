@@ -45,6 +45,26 @@ public class MonsterDataTest {
         assertEquals(java.util.Collections.singletonList("Slash"), DATA.get(2025).attackStyles);
     }
 
+    // The hover card's Max Hit and Attack Speed, from the wiki infobox
+    @Test
+    public void maxHitAndAttackSpeed() {
+        MonsterData.Stats gargoyle = DATA.get(412);
+        assertEquals(java.util.Collections.singletonList("11"), gargoyle.maxHits);
+        assertEquals(4, gargoyle.attackSpeed);
+        MonsterData.Stats graardor = DATA.get(2215);
+        assertTrue(graardor.maxHits.contains("60 (melee)"));
+        assertEquals(6, graardor.attackSpeed);
+        assertEquals("4 ticks (2.4s)", BradsMultiToolHoverOverlay.attackSpeedText(4));
+    }
+
+    // The wrong-prayer alert is only for monsters whose every attack one prayer stops
+    @Test
+    public void onlyProtection() {
+        assertEquals("Melee", DATA.get(412).onlyProtection());
+        // General Graardor: melee and ranged
+        assertEquals(null, DATA.get(2215).onlyProtection());
+    }
+
     @Test
     public void missingWikiStatsGiveUnknownRatherThanAGuess() {
         assertEquals(MonsterWeakness.Type.UNKNOWN, weaknessOf(10841).type);

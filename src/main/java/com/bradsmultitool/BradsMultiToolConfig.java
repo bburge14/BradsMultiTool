@@ -77,7 +77,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Slayer: Alerts",
-        description = "Alerts for your Slayer task: missing item, superiors, halfway, nearly done and complete",
+        description = "<div width='300'>Alerts for your Slayer task: missing item, superiors, halfway, nearly done, complete, next task a milestone, and kill goals reached",
         position = 19,
         closedByDefault = true
     )
@@ -85,7 +85,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Slayer: Monsters",
-        description = "Slayer details on monsters, and outlines on your task's monsters",
+        description = "<div width='300'>Slayer details on monsters, outlines on your task's monsters, and the finish-off marker",
         position = 18,
         closedByDefault = true
     )
@@ -181,7 +181,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "PvM: Combat Alerts",
-        description = "<div width='300'>Special attack, antifire, poison, stamina, ammo, runes and cannon alerts",
+        description = "<div width='300'>Special attack, antifire, poison, stamina, wrong protection prayer and unpotted alerts",
         position = 15,
         closedByDefault = true
     )
@@ -213,7 +213,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigSection(
         name = "Slayer: Card",
-        description = "The Slayer card: your task, kills left, where to go and how to get there, or the master to visit without a task",
+        description = "<div width='300'>The Slayer card: your task, kills left, points and streak, supplies used, kill goals, where to go and how to get there, or the master to visit without a task",
         position = 17,
         closedByDefault = true
     )

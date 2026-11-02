@@ -28,7 +28,7 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 
 | File | Script | Source |
 |---|---|---|
-| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions, Slayer level, XP and task; monsters the wiki has no NPC id for yet are kept by name ("unlisted") |
+| `monsters.json` | `update_monster_data.py` | Wiki: HP, defences, weakness, aggression and its conditions, Slayer level, XP and task, max hits and attack speed (`fields` names each column); monsters the wiki has no NPC id for yet are kept by name ("unlisted") |
 | `skilling.json` | `update_skilling_data.py` | Wiki: trees, rocks, stalls, pickpocket targets |
 | `farming.json` | `update_farming_data.py` | Wiki: crop levels, protection payments, growth times |
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch and its states |
@@ -50,7 +50,7 @@ below).
 | Plugin | What goes in it | Voice lines (`voices/<voice>/<folder>/`) |
 |---|---|---|
 | **Snuffy's Skilling Helper** | The sidebar tracker (cards, auto-pause, level-up alerts), the pinned skill overlay, goals, suggested training methods, goal outlines and Track for goal, goal items in inventory/bank, Issues? button; and the skilling helpers: hover cards, timer pies, skilling alerts. Data: `training.json`, `recipes.json`, `money.json`, `skilling.json`, `skill_helpers.json`, `farming*.json` | `skilling` (level-ups, inventory full, tree gone, rock depleted, fishing spot moved, coin pouches, bird houses, batch complete) + `shared` |
-| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, Slayer task/superior/item) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
+| **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, wrong prayer, unpotted, Slayer task/superior/item/milestone, kill goal) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
 | **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts, potion buffs and their alerts | `gemcrab` (crab moved, about to burrow) + `potions` + `shared` |
 | **Snuffy's Tick Counter** | Tick count over head, tick boxes, tick bar, metronome, click timing (its own plugin so neither the skilling nor the PvM side carries a second copy) | none (game sounds only) |
 | **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |

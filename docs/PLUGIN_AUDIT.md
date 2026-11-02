@@ -28,12 +28,12 @@ Tick what you want built.
 - [ ] **Farming patch list with "ready" alerts** for every patch you've visited. Skilling.
 - [ ] **Items per hour on the cards**: logs, fish, ore, cooked and burnt. Skilling.
 - [ ] **Gem crab stats**: crabs killed, gems by type, mining success/fail, XP, fight length, kept between sessions. GemCrab.
-- [ ] **Slayer points and streak**, with a warning before a milestone task; task history; kill rate kept per task with
-  a "done at" time. PvM/Slayer.
-- [ ] **"Finish it off" marker** for lizards, gargoyles, rockslugs and zygomites. PvM/Slayer.
-- [ ] **More on the buff bar**: vengeance, imbued heart, overload, frozen/teleblocked, staff of the dead, prayer
+- [x] **Slayer points and streak**, with a warning before a milestone task (done); task history; kill rate kept per
+  task with a "done at" time (not yet). PvM/Slayer.
+- [x] **"Finish it off" marker** for lizards, gargoyles, rockslugs and zygomites. PvM/Slayer.
+- [x] **More on the buff bar**: vengeance, imbued heart, overload, frozen/teleblocked, staff of the dead, prayer
   regeneration. PvM/Slayer.
-- [ ] **Monster max hit and attack speed** on the hover card. PvM/Slayer.
+- [x] **Monster max hit and attack speed** on the hover card. PvM/Slayer.
 - [ ] **Attack timer that counts down** to your next attack (shows when you're late; handles eating and weapon
   speed changes). Tick Counter.
 - [ ] **Tick Counter hotkeys**: reset, show/hide, change ticks per cycle. Tick Counter.
@@ -42,8 +42,8 @@ Tick what you want built.
 - [ ] **Agility: outline marks of grace and course traps**. Skilling.
 - [ ] **XP tracker keeps your session after a restart**, more than one pinned skill, actions per hour. Skilling.
 - [ ] **Hunter trap states**: a failed trap coloured too, not only caught ones. Skilling.
-- [ ] **Unpotted reminder**: warn when attacking without a combat boost. PvM/Slayer.
-- [ ] **Wrong attack prayer alert**. PvM/Slayer.
+- [x] **Unpotted reminder**: warn when attacking without a combat boost. PvM/Slayer.
+- [x] **Wrong attack prayer alert**. PvM/Slayer.
 - [ ] **Run energy low/restored everywhere**, not only in Agility. Alerts.
 - [ ] **Minigame cards**: Wintertodt, Tempoross, Tithe Farm timers. Skilling.
 
