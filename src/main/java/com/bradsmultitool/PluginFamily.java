@@ -47,7 +47,7 @@ class PluginFamily {
     }
 
     private final EventBus eventBus;
-    // This build's id ("multitool", "skilltracker", "pvm", "gemcrab", "voices")
+    // This build's id ("multitool", "skilltracker", "pvm", "gemcrab", "planner", "voices")
     private final String self;
     private final Set<String> others = ConcurrentHashMap.newKeySet();
     private volatile VoiceSettings voiceSettings;
@@ -79,14 +79,30 @@ class PluginFamily {
         return others.contains(plugin);
     }
 
+    /** Whether the Skilling Helper's tracker runs: in this build (it or the Toolbelt), or installed alongside. */
+    boolean hasSkillTracker() {
+        return "skilltracker".equals(self) || "multitool".equals(self) || others.contains("skilltracker")
+            || others.contains("multitool");
+    }
+
     // Who runs the warnings every plugin has (idle, logout) when several are installed, so they're said once
     // (and tagged with its name in chat): the first of these that's running. The all-in-one comes first, so
     // with it installed every message says Snuffy's Toolbelt (in the Alerts plugin's voice, if that runs)
-    private static final List<String> SHARED_ORDER = Arrays.asList("multitool", VOICES, "skilltracker", "pvm", "gemcrab");
+    private static final List<String> SHARED_ORDER = Arrays.asList("multitool", VOICES, "skilltracker", "pvm", "gemcrab", "planner");
 
     /** Whether this plugin should run the shared idle and logout warnings (no other of ours ahead of it is running). */
     boolean handlesShared() {
         return isFirstOf(SHARED_ORDER);
+    }
+
+    /** Which of ours says the shared alerts now (its family id: this plugin's own, or the first running ahead of it). */
+    String sharedHandler() {
+        for (String id : SHARED_ORDER) {
+            if (id.equals(self) || others.contains(id)) {
+                return id;
+            }
+        }
+        return self;
     }
 
     /** Whether no other of ours ahead of this plugin in {@code order} is running (so this one does the job). */

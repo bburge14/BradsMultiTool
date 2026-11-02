@@ -1,7 +1,5 @@
 package com.snuffys.multitool;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
@@ -9,17 +7,14 @@ import net.runelite.api.Actor;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.ChatMessageType;
-import net.runelite.api.MenuAction;
 import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.Player;
 import net.runelite.api.Preferences;
-import net.runelite.api.SoundEffectID;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.client.eventbus.Subscribe;
@@ -27,8 +22,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStats;
 
 /**
- * Counts game ticks in cycles (1, 2, 3, 1, 2, 3...) for the tick overlays, plays the metronome, and times your
- * clicks against the tick (how long after it each landed, a ding or a dun). Only reads your clicks and shows or
+ * Counts game ticks in cycles (1, 2, 3, 1, 2, 3...) for the tick overlays, and plays the metronome. Only shows and
  * sounds the ticks: it never clicks, changes a menu or does anything in the game.
  */
 @Singleton
@@ -37,12 +31,6 @@ class TickCounter {
     private static final int UNARMED_SPEED = 4;
     /** Spells take 5 ticks whatever the weapon, except on these staves. */
     private static final int SPELL_SPEED = 5;
-    /** How many recent clicks (and missed ticks) the summary covers. */
-    static final int RECENT = 50;
-    private static final int DING = SoundEffectID.TOWN_CRIER_BELL_DING;
-
-    /** A click (how long after the tick, in ms) or a missed tick (-1), for the summary. */
-    private final Deque<Integer> recent = new ArrayDeque<>();
 
     private final Client client;
     private final TickConfig config;
@@ -59,13 +47,6 @@ class TickCounter {
     /** When the last tick came (System.currentTimeMillis), for the box's flash. */
     @Getter
     private long lastTickMillis;
-    /** How long after the tick your last click landed, and when (System.currentTimeMillis), for the over-head text. */
-    @Getter
-    private int lastClickOffset;
-    @Getter
-    private long lastClickMillis;
-    private int clicksThisTick;
-    private boolean clickedLastTick;
     /** An attack animation started since the last tick (Follow Attack Speed). */
     private boolean attacked;
     private int speedWeaponId = Integer.MIN_VALUE;
@@ -89,32 +70,9 @@ class TickCounter {
     /** Whether the count is shown or sounded at all. */
     boolean active() {
         return config.tickOverHead() || config.tickBoxes() || config.tickBar() || config.metronome()
-            || timingClicks();
+            ;
     }
 
-    boolean timingClicks() {
-        return config.clickTiming() || config.clickSounds();
-    }
-
-    /** Whether a click this long after the tick is late. */
-    boolean isLate(int offset) {
-        return offset >= config.clickLateMs();
-    }
-
-    /** Whether a click this long after the tick is in the ideal zone. */
-    boolean isIdeal(int offset) {
-        return offset >= config.clickIdealFrom() && offset < config.clickIdealTo() && !isLate(offset);
-    }
-
-    /** The colour for a click this long after the tick: green in the ideal zone, red late, else white. */
-    java.awt.Color clickColor(int offset) {
-        return isLate(offset) ? HudColors.BAD : isIdeal(offset) ? HudColors.GOOD : java.awt.Color.WHITE;
-    }
-
-    /** The last clicks (ms after the tick) and missed ticks (-1), oldest first. */
-    Iterable<Integer> recent() {
-        return recent;
-    }
 
     /** The next tick's place in the cycle: 1 after an attack (or once the cycle is done), else one more. */
     static int next(int count, int cycle, boolean attacked) {
@@ -235,28 +193,6 @@ class TickCounter {
         return config.tickFollowWeapon() && config.attackCountDown();
     }
 
-    @Subscribe
-    public void onMenuOptionClicked(MenuOptionClicked event) {
-        // Our own right-click entries (Track for goal...) aren't game clicks
-        if (!timingClicks() || lastTickMillis == 0 || event.getMenuAction() == MenuAction.RUNELITE) {
-            return;
-        }
-        long now = System.currentTimeMillis();
-        lastClickOffset = (int) Math.max(0, now - lastTickMillis);
-        lastClickMillis = now;
-        clicksThisTick++;
-        remember(lastClickOffset);
-        if (config.clickSounds()) {
-            play(isLate(lastClickOffset) ? config.clickLateSound().id : DING);
-        }
-    }
-
-    private void remember(int offset) {
-        recent.addLast(offset);
-        while (recent.size() > RECENT) {
-            recent.removeFirst();
-        }
-    }
 
     @Subscribe
     public void onGameTick(GameTick event) {
@@ -266,21 +202,9 @@ class TickCounter {
             attacked = false;
             attackTimer.reset();
             lastTickMillis = 0;
-            clicksThisTick = 0;
-            clickedLastTick = false;
-            recent.clear();
             return;
         }
-        // 1-ticking: a tick with no click, straight after one with a click, is a missed tick
-        boolean missed = config.clickEveryTick() && timingClicks() && clickedLastTick && clicksThisTick == 0;
-        clickedLastTick = clicksThisTick > 0;
-        clicksThisTick = 0;
-        if (missed) {
-            remember(-1);
-            if (config.clickSounds()) {
-                play(config.clickLateSound().id);
-            }
-        }
+        boolean missed = false;
 
         boolean follow = config.tickFollowWeapon();
         if (follow) {

@@ -28,6 +28,7 @@ class MotherlodeSack {
     private final Client client;
     private final Alerts alerts;
     private boolean warned;
+    private int lastInSack;
 
     @Inject
     MotherlodeSack(Client client, Alerts alerts) {
@@ -46,12 +47,15 @@ class MotherlodeSack {
         int size = client.getVarbitValue(VarbitID.MOTHERLODE_BIGGERSACK) == 1 ? SACK_LARGE_SIZE : SACK_SIZE;
         int carried = inventory.count(ItemID.PAYDIRT);
         boolean full = full(inSack, carried, size);
-        if (full && !warned) {
+        if (full && !warned && alerts.ready()) {
             warned = true;
             alerts.alert(VoiceAlertService.VoiceLine.SACK_FULL, inSack + carried + "/" + size);
-        } else if (!full) {
+        } else if (!full && (carried > 0 || inSack < lastInSack)) {
+            // Re-armed once you carry pay-dirt that fits, or the sack's been emptied; not just because you
+            // deposited (the deposited dirt is still in the water, the sack count catches up a moment later)
             warned = false;
         }
+        lastInSack = inSack;
     }
 
     /** Whether the pay-dirt you carry fills the sack (there's some to carry and it won't all fit after it). */

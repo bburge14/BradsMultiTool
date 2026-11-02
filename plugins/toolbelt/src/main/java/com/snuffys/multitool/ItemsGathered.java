@@ -81,8 +81,38 @@ final class ItemsGathered {
     }
 
     /** "342 (1,050/hr)": a count and how many an hour over this many seconds of training (no rate under a minute). */
-    static String countAndRate(int count, long seconds) {
+    /** "342 (1,050/hr)": the count, and per hour at the skill's XP rate (count per XP gained, times XP/hr). */
+    static String countAndRate(int count, int gainedXp, int xpPerHour) {
         String text = String.format("%,d", count);
-        return seconds >= 60 ? text + " (" + String.format("%,d", count * 3600L / seconds) + "/hr)" : text;
+        return gainedXp > 0 && xpPerHour > 0 ? text + " (" + String.format("%,d", (long) count * xpPerHour / gainedXp) + "/hr)" : text;
+    }
+
+    /** What an XP drop is in a skill without items counted ("Steals"), or null for combat skills (they count kills). */
+    static String actionNoun(Skill skill) {
+        switch (skill) {
+            case THIEVING: return "Steals";
+            case FIREMAKING: return "Burned";
+            case HUNTER: return "Catches";
+            case AGILITY: return "Obstacles";
+            case RUNECRAFT: return "Crafts";
+            case SMITHING:
+            case CRAFTING:
+            case FLETCHING:
+            case HERBLORE:
+                return "Made";
+            case CONSTRUCTION: return "Built";
+            case PRAYER: return "Offered";
+            case MAGIC: return "Casts";
+            case FARMING:
+            case SAILING:
+                return "Actions";
+            case WOODCUTTING:
+            case FISHING:
+            case MINING:
+            case COOKING:
+                return "Actions";
+            default:
+                return null;
+        }
     }
 }

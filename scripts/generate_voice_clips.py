@@ -32,12 +32,10 @@ HF = "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
 PERSONAS = {
     # US voices must use espeak "en-us" in their .onnx.json; several en_US models use British "en"
     "amy": "en/en_US/amy/medium",
-    "ryan": "en/en_US/ryan/high",
     # Piper's Joe voice as recorded (it already sounds like a certain armoured Spartan)
     "john": "en/en_US/joe/medium",
     # Multi-speaker models: (model, speaker); the demo page's first speaker of each
     "arctic": ("en/en_US/arctic/medium", "awb"),      # Scottish man
-    "l2arctic": ("en/en_US/l2arctic/medium", "TXHC"),  # Mandarin Chinese-accented man
     "cori": "en/en_GB/cori/high",
     "alan": "en/en_GB/alan/medium",
 }
@@ -60,7 +58,9 @@ LINES = {
     "idle_logout": "You are about to be logged out.",
     "six_hour_logout": "Six hour logout in twenty minutes.",
     "clue_drop": "You got a clue.",
-    "dailies": "You have dailies to collect.",
+    "dailies": "You have dailies to do.",
+    "weeklies": "You have weeklies to do.",
+    "timer_done": "Your timer is done.",
     "death": "You have died.",
     "crab_low_health": "The crab is about to burrow.",
     "character_idle": "You are idle.",
@@ -332,7 +332,9 @@ def compact_existing():
 # takes just its folder. Keep in step with VoiceAlertService.VoicePlugin.of()
 SKILLING_LINES = {"inventory_full", "tree_gone", "rock_depleted", "fishing_spot_moved", "coin_pouch_full",
                   "arena_pillar_moving", "forestry_event", "sack_full",
-                  "wintertodt_round", "brazier_out", "brazier_broken", "out_of_roots", "wintertodt_hit", "warmth_low", "tempoross_wave", "tempoross_fire", "tempoross_double_spot", "tempoross_vulnerable", "rift_starting", "rift_portal", "boat_health_low", "trim_sails", "bird_nest", "farming_ready", "birdhouses_ready", "rumour_complete", "batch_complete"}
+                  "wintertodt_round", "brazier_out", "brazier_broken", "out_of_roots", "wintertodt_hit", "warmth_low", "tempoross_wave", "tempoross_fire", "tempoross_double_spot", "tempoross_vulnerable", "rift_starting", "rift_portal", "boat_health_low", "trim_sails", "bird_nest", "rumour_complete", "batch_complete"}
+
+PLANNER_LINES = {"dailies", "weeklies", "timer_done", "farming_ready", "birdhouses_ready"}
 
 
 def plugin_of(key):
@@ -342,7 +344,9 @@ def plugin_of(key):
         return "potions"
     if key in ("crab_moved", "crab_low_health"):
         return "gemcrab"
-    if key in ("character_idle", "idle_logout", "six_hour_logout", "run_energy_low", "run_energy_restored", "clue_drop", "dailies"):
+    if key in PLANNER_LINES:
+        return "planner"
+    if key in ("character_idle", "idle_logout", "six_hour_logout", "run_energy_low", "run_energy_restored", "clue_drop"):
         return "shared"
     return "pvm"
 

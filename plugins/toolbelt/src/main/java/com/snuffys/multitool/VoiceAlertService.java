@@ -31,7 +31,9 @@ public class VoiceAlertService {
         IDLE_LOGOUT("idle_logout", "You are about to be logged out."),
         SIX_HOUR_LOGOUT("six_hour_logout", "Six hour logout in twenty minutes."),
         CLUE_DROP("clue_drop", "You got a clue."),
-        DAILIES("dailies", "You have dailies to collect."),
+        DAILIES("dailies", "You have dailies to do."),
+        WEEKLIES("weeklies", "You have weeklies to do."),
+        TIMER_DONE("timer_done", "Your timer is done."),
         DEATH("death", "You have died."),
         CRAB_LOW_HEALTH("crab_low_health", "The crab is about to burrow."),
         CHARACTER_IDLE("character_idle", "You are idle."),
@@ -160,6 +162,8 @@ public class VoiceAlertService {
         /** Potion buffs running out and run out: PvM/Slayer and the GemCrab Tracker both carry these. */
         POTIONS("potions"),
         GEM_CRAB("gemcrab"),
+        /** Planner: dailies, weeklies, farming patches, bird houses and your own timers. */
+        PLANNER("planner"),
         /** Idle and logout warnings and run energy: every plugin carries these (Agility's run energy alert too). */
         SHARED("shared");
 
@@ -200,21 +204,24 @@ public class VoiceAlertService {
                 case "boat_health_low":
                 case "trim_sails":
                 case "bird_nest":
-                case "farming_ready":
-                case "birdhouses_ready":
                 case "rumour_complete":
                 case "batch_complete":
                     return SKILLING;
                 case "crab_moved":
                 case "crab_low_health":
                     return GEM_CRAB;
+                case "dailies":
+                case "weeklies":
+                case "timer_done":
+                case "farming_ready":
+                case "birdhouses_ready":
+                    return PLANNER;
                 case "character_idle":
                 case "idle_logout":
                 case "six_hour_logout":
                 case "run_energy_low":
                 case "run_energy_restored":
                 case "clue_drop":
-                case "dailies":
                     return SHARED;
                 default:
                     return PVM;
@@ -227,14 +234,7 @@ public class VoiceAlertService {
         AMY("Amy (US)"),
         CORI("Cori (UK)"),
         ALAN("Alan (UK)"),
-        RYAN("Ryan (US)"),
-        ARCTIC("Arctic (Scot)"),
-        L2ARCTIC("L2 Arctic"),
-        // Character voices: Piper voices pitch-shifted with effects (see generate_voice_clips.py)
         JOHN("John (US)"),
-        WISE_OLD_MAN("Wise Old Man"),
-        TZHAAR("TzHaar"),
-        GHOST("Ghost"),
         /** A different one of the voices above for each alert (no clips of its own). */
         RANDOM("Random");
 

@@ -8,8 +8,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 
 @PluginDescriptor(
     name = "Snuffy's Toolbelt",
-    description = "All of Snuffy's plugins in one: Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter and Alerts",
-    tags = {"snuffy", "toolbelt", "xp", "skills", "goals", "skilling", "timers", "pvm", "slayer", "buffs", "gemstone", "crab", "tick", "metronome", "voice", "alerts"}
+    description = "All of Snuffy's plugins in one: Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Planner and Alerts",
+    tags = {"snuffy", "toolbelt", "xp", "skills", "goals", "skilling", "timers", "pvm", "slayer", "buffs", "gemstone", "crab", "tick", "metronome", "planner", "dailies", "voice", "alerts"}
 )
 public class BradsMultiToolPlugin extends Plugin {
 
@@ -31,6 +31,9 @@ public class BradsMultiToolPlugin extends Plugin {
     @Inject
     private TickCounterFeature tickCounter;
 
+    @Inject
+    private PlannerFeature planner;
+
     @Override
     protected void startUp() throws Exception {
         lifecycle.plugin = this;
@@ -39,6 +42,7 @@ public class BradsMultiToolPlugin extends Plugin {
         pvm.start(lifecycle);
         gemCrab.start(lifecycle);
         tickCounter.start(lifecycle);
+        planner.start(lifecycle);
         // Together: PvM's monster card steps aside for the skilling and Sailing cards (separate plugins do the
         // same through PluginFamily)
         pvm.hoverCard().setSkillingCards(skillTracker.skillingCards()::coversNpc);
@@ -85,6 +89,11 @@ public class BradsMultiToolPlugin extends Plugin {
 
     @Provides
     GemCrabConfig provideGemCrabConfig(BradsMultiToolConfig config) {
+        return config;
+    }
+
+    @Provides
+    PlannerConfig providePlannerConfig(BradsMultiToolConfig config) {
         return config;
     }
 

@@ -138,7 +138,6 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Tree fallen / rock depleted / fishing spot moved only for the resource you're working.
 - [x] Inventory full while working a resource.
 - [ ] Coin pouches full (at 28, or your Ardougne diary cap).
-- [ ] Bird houses ready 50 minutes after seeding.
 - [ ] Batch complete after a run of cooking / smithing / crafting / fletching / herblore.
 - [ ] Sailing: Boat Health Low below 30% on your own boat (once until repaired); Trim Sails when a gust opens the
       trim window; neither on someone else's boat or ashore.
@@ -163,7 +162,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Items: chop, fish, mine, cook: the card (and pinned skill) shows "Logs: 342 (1,050/hr)", "Fish:", "Ore:"/"Gems:",
       "Cooked: ..., 4 burnt (3%)"; Reset rate / Reset clears them; Show Items Gathered off hides them.
 - [ ] Keep Session After Restart: train, close the client, reopen and log in within 30 minutes: the cards carry on
-      (chat says so), XP/hr about the same; after longer (or with it at 0), a fresh session. Reset all skills, restart: fresh.
+      (no chat line), XP/hr about the same; after longer (or with it at 0), a fresh session. Reset all skills, restart: fresh.
 - [ ] Skills Tab Goal Bars: a thin gold bar along the bottom of each goal skill on the Skills tab, matching the card's
       goal bar; none with the setting off or on other tabs.
 - [ ] Training combat (e.g. Gemstone Crab): cards stay still, no field wraps onto two lines; GOALS / THIS SESSION headings centred.
@@ -258,9 +257,77 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] A monster's clue scroll drop: "Clue: a <tier> clue scroll from <monster>!" once; picking it up says nothing more.
 - [ ] A clue geode / bottle / nest / scroll box from skilling: alert with its tier. Withdrawing one from the bank: no alert.
 - [ ] Logging in with clues already in the inventory: no alert.
-- [ ] Login on a member with an uncollected daily (e.g. Zaff's battlestaves after the Varrock easy diary): one
-  "Dailies to collect" line; collected ones aren't listed; each daily's switch removes it.
-- [ ] With two of Snuffy's plugins installed, clue and daily alerts are said once.
+- [ ] With two of Snuffy's plugins installed, clue alerts are said once; no plugin posts a daily reminder in chat.
+
+## Planner (`runBrad "-Pload=planner"`, and in the Toolbelt)
+- [ ] The Planner tab (calendar icon) has six tabs across the top (Today, Timers, Slayer, Drops, Notes, Calculator); the one you
+      pick is still open after a restart; each Show switch hides its list (Today goes when both Dailies and Weeklies
+      are off). Nothing clips or scrolls sideways; cards shade under the mouse; item pictures fill in.
+- [ ] Logged out: "Log in to see your dailies, timers..."; logging into another account shows that account's lists.
+- [ ] TODAY on a member: the dailies you've unlocked (e.g. Zaff's battlestaves after the Varrock easy diary) and
+      none you haven't; collecting one ticks it within a few seconds; herb boxes show "n of 15 bought". The heading
+      counts down to 00:00 UTC.
+- [ ] + a daily with a note (hover shows it), click it to tick it, right-click to edit its name, delete it. Hide a preset; Show hidden
+      brings it back. A ticked custom daily unticks after the daily reset (and a weekly one after Wednesday 00:00 UTC).
+- [ ] At login with dailies left: one voice line "You have dailies to do." and nothing in chat (Chat: Dailies off);
+      turning Chat: Dailies on adds one line with how many. Same for weeklies. Nothing when everything is ticked.
+- [ ] Staying logged in over 00:00 UTC: the collected dailies are due again and the voice line plays once.
+- [ ] Tears of Guthix: after a game it says "back in ..." (start of the seventh day after); ticking it by hand does
+      the same; before any game it says "not seen yet" and isn't counted in the weeklies line.
+- [ ] Kingdom of Miscellania (after Throne of Miscellania): visiting the kingdom shows approval % and coffer, kept
+      after logout; under 50% it's orange.
+- [ ] Farming contract: shows the crop and how the Farming Guild patch is doing; "done: claim from Guinevere" once grown.
+- [ ] TIMERS: patches you've visited (with compost bins and Hespori) and their grown-by times, as the Skilling
+      Helper's FARMING list showed them before (old patches still there). Times show "~" until a patch is seen growing
+      a stage while you stand by it, then no "~". Teleporting between two herb patches doesn't copy one's crop onto
+      the other or delete it. Right-click > Forget this patch.
+- [ ] Patches ready alert (voice + chat naming them, once per crop); bird houses ready 50 minutes after seeding.
+- [ ] Timers + "Test" 1 minute: the play button counts down (the bar fills), stop resets, it says "Your timer is done." with the name in
+      chat when it ends; still there (and running) after relogging; Edit... and Delete work.
+- [ ] SLAYER: task, kills left (of how many), Konar's area, points and streak, without the PvM/Slayer plugin; kept
+      while logged out.
+- [ ] DROPS: kill a few monsters: each gets a card (initials tile; a clue casket shows the casket) with kills, value per
+      kill and total, most valuable first; Recent lists drops, those over Valuable Drop From in Valuable Drop Colour. With
+      RuneLite's Loot Tracker on, a clue casket or chest is counted once (and a monster kill isn't counted twice); the
+      clash note mentions the Loot Tracker.
+- [ ] DROPS monster page: click a card (or a recent drop): back arrow, tiles (kills, value, per kill, since valuable),
+      Best drop, Session vs all time (session counts from the client start, all time survives a restart), Items with
+      "x 12 · 3 times", "1 in 4" (kills / times dropped; check against your kills) and value, valuable ones highlighted;
+      Show this session / Show all time. A drop worth Valuable Drop From resets "Since valuable" to 0. The bin asks, then
+      resets that monster only (and goes back); Reset all clears everything. Drops saved by an older version load:
+      their items show "?" until they drop again.
+- [ ] Notes: add a to-do (Enter or +; the field keeps focus), tick, edit, move up/down, delete, Clear ticked; notes kept after a restart and per
+      account; typing in notes isn't interrupted by the list redrawing.
+- [ ] The Skilling Helper's sidebar no longer has the FARMING list; its farming patch and bird house hover cards
+      still work.
+- [ ] With the Toolbelt and the separate Planner both on, the Toolbelt's clash note names Snuffy's Planner.
+- [ ] Calculator: pick skills in the grid (remembered after a restart); level and XP fill in from the game and follow
+      XP drops; typing a level fills its XP and the other way round, and the list follows once you pause; the target
+      is the skill's goal, else the next level. Set as goal: the Skilling Helper (separate and in the Toolbelt) shows
+      the same goal, its bar keeps its start when you change a goal underway; setting a goal in the tracker moves the
+      Calculator's target.
+- [ ] Calculator bonuses: tick the Lumberjack outfit (XP each goes up 2.5%, counts down); Prayer: ticking the Chaos
+      Altar unticks the Gilded altar; the altar doesn't change ashes. Remembered per skill.
+- [ ] Calculator list: greyed above your level, the guide's method in green, a time on actions with a guide rate, GE
+      cost per XP on bones/cooking/smithing (red when it costs), "have" counts after opening the bank (also with only
+      the separate Planner on); search filters; Banked shows the banked XP, level after and each action's share.
+      Typing in the boxes or search never loses focus.
+- [ ] Spells in Magic show their spell icons once loaded.
+- [ ] Calculator prices: Woodcutting/Fishing cards say "Earns ... gp" in green (once logged in: prices by item id
+      come in on the next tick); Cooking says "Costs ... gp · Earns ... gp" with the net gp/xp; Prayer bones only cost.
+      Banked shows Value used and each card's Uses/Makes. Show GE Prices off hides them.
+- [ ] Members-only: on a free world the Calculator leaves out Teak logs, agility courses and so on, with the note
+      "Members-only actions hidden on this free world"; on a members world and logged out everything shows; Hide
+      Members On Free Worlds off shows all.
+- [ ] Plan view: Start from suggestions fills milestones from your level to the goal; right-click an action > Add to
+      plan adds one (the last milestone stretches or shortens to meet it); a milestone's Edit..., Change method (pick
+      an action: the Actions list with a banner, click one), Move up/down, Delete; Goal: level N changes the goal;
+      totals follow; kept after a restart and per account.
+- [ ] Export to tracker (Toolbelt, or Planner with the Skilling Helper on): the goal is set; the goal card shows
+      "Milestone: level N (method)" with a blue bar, actions count to it, the method's trees/rocks are outlined; the
+      pinned skill shows the bar and "Plan: ..."; levelling past a milestone moves to the next and says so in chat;
+      a Track for goal pick still wins; Update/Remove; with only the Planner on, the plan shows a note instead of
+      Export. Follow Skill Plans off: the tracker ignores it.
 
 ## Track for goal: specific methods
 - [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,
@@ -288,7 +355,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Tracker: a skill without a goal leaves after Drop Idle Skills After (30 min) without XP and returns on new XP; goal skills and the pinned skill stay; header shows TRAINED with a tooltip.
 - [ ] Tracker: GOALS and THIS SESSION each list the skill with the latest XP first; Attack/Hitpoints from one hit don't swap back and forth.
 - [ ] Tracker: click the GOALS / THIS SESSION heading to fold the list ("+ GOALS (3)") and again to open it; remembered after a relaunch.
-- [ ] Settings > About: heading tooltip lists the plugin and its clashes; Open the Guide opens the guide and switches off. each clash is said in chat once a login, in one plain sentence.
+- [ ] Settings > About: heading tooltip lists the plugin and its clashes; Open the Guide opens the guide and switches off. clashes show only as the warning icon (hover for the list), never in chat.
 - [ ] Tick Counter > Move Boxes Separately: the boxes become separate see-through boxes, each Alt + draggable and kept where placed after a relaunch; only boxes up to the cycle length show.
 - [ ] Tick boxes: Box Shape (square/rounded/circle), Box Opacity and Box Size apply to both the row and the separate boxes.
 - [ ] Reaching a goal clears it with a chat line; a goal already reached clears at the next login; Clear Goals When Reached off keeps it (Done!).

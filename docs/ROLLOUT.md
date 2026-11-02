@@ -23,7 +23,9 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
   - **Push to repos** (`push`): checks this repository is clean, pushed and `plugins/` is up to date; copies each
     ticked plugin's folder, exactly as committed, into its repository. A plugin that changed gets its next version
     (patch by default; pick minor or major in the tab), written into its `build.gradle`, a commit named
-    "<plugin> <version>" listing what changed since its last push, and a `v<version>` tag. Unchanged plugins are
+    "<plugin> <version>" listing what changed since its last push, a `v<version>` tag, and a new entry at the top
+    of the repository's `CHANGELOG.md` ("## 1.0.3 (date)" and the same list: the titles of this repository's
+    commits that changed that plugin's folder). Unchanged plugins are
     left alone. You can push as often as you like: players don't get anything until you publish.
   - **Publish to RuneLite** (`hub`): writes each plugin's Plugin Hub entry (its repository and the commit it's at
     now) and puts them on a branch of your `plugin-hub` fork; the tab then shows the link to open the pull request.
@@ -37,9 +39,9 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 
 ## One-time setup
 
-1. On GitHub, make six empty public repositories: `snuffys-toolbelt`, `snuffys-skilling-helper`, `snuffys-pvm-slayer`,
-   `snuffys-gemcrab-tracker`, `snuffys-tick-counter`, `snuffys-alerts` (names as in `publish.json`; change them
-   there if you pick others).
+1. On GitHub, make seven empty public repositories: `snuffys-toolbelt`, `snuffys-skilling-helper`, `snuffys-pvm-slayer`,
+   `snuffys-gemcrab-tracker`, `snuffys-tick-counter`, `snuffys-planner`, `snuffys-alerts` (names as in `publish.json`;
+   change them there if you pick others). Already made the first six? Just add `snuffys-planner`.
 2. Fork `runelite/plugin-hub` to your account (`bburge14/plugin-hub`, as in `publish.json`).
 3. On your PC: Python 3 (`py` on Windows) and git logged in to GitHub (the same login the launcher's updates use,
    with permission to push).
@@ -50,19 +52,18 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 - [ ] **Test round in game** of every plugin on its own (launcher: pick the separate plugins) and together
       (clashes between ours, shared goals, one voice for all). docs/TESTING.md is the checklist.
 - [ ] **Open questions** in docs/PLUGIN_HUB_COMPLIANCE.md settled:
-  - Click timing (Tick Counter): ask the reviewers, or leave it out.
-  - Voice licences: Ryan (CC BY-NC-SA) and L2 Arctic (CC BY-NC) — ask, or drop those two voices from the
-    published plugins.
-  - Size: PvM/Slayer is about 12 MB and the Skilling Helper about 7 MB, almost all voice clips. The reviewers may
-    ask for smaller; the fix is fewer voices per plugin (e.g. the four standard ones).
+  - Click timing (Tick Counter): done, left out of the published plugins (kept in launcher builds).
+  - Voice licences: done (Ryan and L2 Arctic removed).
+  - Size: done as far as it goes: the published plugins ship four voices (see the sizes `split_plugins.py` prints).
 - [ ] **READMEs**: each `plugins/<folder>/README.md` is what players see on the Plugin Hub page: check the text
       and add a screenshot or two.
-- [ ] **Icons**: `assets/hub/` (48x72 at most; ours are 48x55).
+- [ ] **Icons**: `assets/hub/` (48x72 at most; ours are 48x55). The Planner's logo (`assets/Planner.png`) is a
+      stand-in copy of the Tick Counter's until its own art is in; run `python3 scripts/update_icons.py` after.
 - [ ] Run `./gradlew test` and `python3 scripts/split_plugins.py --verify`; commit and push.
 
 ## Submitting
 
-1. Dev tab: **Push to repos** (all six), then **Publish to RuneLite**.
+1. Dev tab: **Push to repos** (all seven), then **Publish to RuneLite**.
 2. Open the pull request from the link it shows. Title like "Add Snuffy's plugins"; in the description, one line
    per plugin saying what it does, and mention they share settings/voices when installed together.
 3. The reviewers comment on the pull request; fix things here, publish again (the same command updates the
@@ -78,10 +79,10 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 
 ## What to publish
 
-- **The five separate plugins** (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Alerts). Each
+- **The six separate plugins** (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Planner, Alerts). Each
   stands alone, and they work together when installed side by side (shared goals, one voice, no double alerts).
 - **The Toolbelt** too: its own plugin with everything in one, for players who'd rather install one thing. Say
-  in the pull request that it's the all-in-one of the five (same code), so the reviewers don't take it for a
+  in the pull request that it's the all-in-one of the six (same code), so the reviewers don't take it for a
   copy. It's the biggest jar (about 19 MB); if size is a problem it can ship with fewer voices. Players should
   install either the Toolbelt or the separate ones, not both (its clash warning says so if they do).
 - Start with one or two (e.g. Tick Counter and Alerts, the smallest) to learn the review process, then the rest.

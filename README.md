@@ -1,7 +1,7 @@
 # Snuffy's Toolbelt
 
 A RuneLite plugin that bundles PvM, Gemstone Crab, Slayer and skilling helpers, alerts with voice lines,
-and a skill tracker into one place. Everything can be switched on or off in the plugin's settings.
+a skill tracker and a planner for your dailies, timers and drops into one place. Everything can be switched on or off in the plugin's settings.
 
 - [Installing](#installing): the all-in-one, or just the parts you want
 - [Features](#features) (full guide with how-tos: [docs/FEATURES.md](docs/FEATURES.md))
@@ -23,6 +23,7 @@ Snuffy's plugins come as one all-in-one plugin, or as separate plugins for just 
 | **Snuffy's PvM/Slayer** | The PvM HUD and monster card, buff timers, health and prayer warnings, combat alerts, the Slayer card and task outlines |
 | **Snuffy's GemCrab Tracker** | The crab HUD, burrow countdown, radar between coves, outlines and alerts |
 | **Snuffy's Tick Counter** | Tick count over your head, tick boxes and a smooth tick bar, metronome, click timing for tick skilling |
+| **Snuffy's Planner** | A sidebar tab for dailies and weeklies, farming patches, bird houses and your own timers, your Slayer task, a drop tracker, a to-do list with notes, and a skill calculator |
 | **Snuffy's Alerts** | Optional: one voice and volume for all of the separate plugins |
 
 **From the Plugin Hub** (once they're published there): in RuneLite open the **Plugin Hub** (the plug icon
@@ -32,8 +33,8 @@ everything twice. Every plugin has the idle and logout warnings; with several in
 
 **Before they're on the Plugin Hub**, run them from this repository with **Snuffy's Launcher**: see
 [First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own folder under
-[`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `alerts`) that builds on
-its own. `python3 scripts/split_plugins.py --build` makes all five jars in `releases/`.
+[`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `tick-counter`, `planner`, `alerts`) that builds
+on its own. `python3 scripts/split_plugins.py --build` makes all seven jars in `releases/`.
 
 **Trying the jars with friends:** put the jar(s) in `.runelite/sideloaded-plugins` (create it next to
 `.runelite/settings.properties`) and start RuneLite in developer mode: in **RuneLite (configure)** add
@@ -53,6 +54,9 @@ developer mode.
   your god items, vyre noble clothing and greegrees protect you, and any other wiki condition is shown
   as written. It also shows the wiki's max hit for each attack and how often it attacks. With auto retaliate
   off, NPCs you can pickpocket show the Thieving card instead.
+- **Compact Overlays** (General): less on the PvM HUD (the target, its health, weakness and the LOW warnings), the
+  monster hover card (name, health, weakness, aggression, kill goal) and the Slayer card (the task, kills left, time
+  to finish, the prayer and the item it needs).
 - **Buff timers**: each combat potion boost with its icon and time left, divine potions to the second;
   "running out" and "expired" alerts with optional repeats; a buff's line is red while it's running out. Each potion has its own voice line.
 - **Health and prayer**: low health / low prayer / out of prayer alerts (by percent), flashing orbs, and an
@@ -75,6 +79,8 @@ developer mode.
 - Outlines on the crab, its shell (green when you can still mine it, red when you can't) and the cave
   tunnels, plus a radar to find it. All of it only near the crab's three mines in the Tlati Rainforest.
 - Alerts when the crab is about to burrow and when it has moved.
+- **Compact Overlays** (General): the HUD shows just the crab's health, when it burrows, whether you're attacking
+  and the LOW warnings.
 
 ### Slayer
 - Task card with kills left, kill rate and time to finish, plus **where to go**: the wiki's places to kill the
@@ -155,7 +161,18 @@ work a resource.
   tools follow your pick ("Offer: Dragon bones (Gilded altar)").
 - **Goal items**: for production skills the card says what to **Make** from what's in your inventory and
   bank, and outlines its materials there (hover one: "Suggested for your Cooking goal: Lobster";
-  **Highlight Goal Items** (Goals)).
+  **Highlight Goal Items** (Goals)). Following a plan from the Planner, it's the item of the milestone you're on
+  ("Make: Mithril dart (you have 24,620)", counted in items: 10 darts a go).
+- **Banked** and **Materials worth** (goal cards): "Banked: 335K XP (lvl 68)" is the XP in everything for that
+  skill in your bank and inventory at your level (each item used once, the most XP each first) and the level it
+  would get you to; "Materials worth: 2.74M gp" is what those materials sell for on the Grand Exchange. Both are
+  information only; each has its own switch (**Show Banked XP**, **Show Materials Worth**). The bank counts once
+  you've opened it.
+- **Plans on the card**: with a plan exported from the Planner, a blue **Step** bar ("Step: Lvl 67") under the gold
+  goal bar shows the milestone you're on, and "Plan: Mithril dart (to 67)" says its method.
+- **Compact Overlays** (General): one switch for less on the skill cards and the pinned skill: just the level bar,
+  the goal and step bars, XP/hr and time to level. It also trims the Skilling Helper's other overlays (hover cards
+  lose tools and rates, the Agility and minigame cards keep their key numbers).
 - **Pin to screen**: click the pin in a card's top-right corner (or right-click > **Pin to screen**) to show that skill on the game screen (level
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
   time: the pinned card's pin is solid, the others faint, and clicking a faint one moves the pin there. Click the
@@ -180,7 +197,7 @@ work a resource.
   coming. The first tick of each cycle is in its own colour.
 - **Metronome** with a choice of game sounds (Plop, Bell, Anvil, Boop, Coins, Pickaxe and axe, Tinderbox): a
   different sound on the first tick of the cycle.
-- **Click timing** for 1-ticking: how many ms after the tick each click landed, an ideal click zone on the tick
+- **Click timing** (only when run from this repository with the launcher; not in the Plugin Hub version) for 1-ticking: how many ms after the tick each click landed, an ideal click zone on the tick
   bar, a ding when on time and a different sound when late or when you miss a tick, and a summary of your last
   50 clicks.
 - **Follow Attack Speed**: an attack timer for your own attacks. The cycle follows your weapon (and spells,
@@ -188,6 +205,70 @@ work a resource.
   show how many ticks **late** you are (-1, -2).
 - **Hotkeys** (none set at first): reset the count to 1, show/hide the tick overlays, Ticks Per Cycle up/down.
 - **Snuffy's Tick Counter** (also in the Toolbelt); settings under **Tick Counter**.
+
+### Snuffy's Planner (sidebar)
+Its own sidebar tab (the calendar icon), also in the Toolbelt. Six lists, each folds away under its heading and
+each can be hidden in the settings; everything is saved per account.
+- **Today**: the daily rewards you've unlocked (battlestaves, herb boxes, essence, runes, sand, bowstrings,
+  bonemeal, dynamite, ogre arrows), ticked off as you collect them, with the time to the daily reset. Add your own
+  dailies (they untick at the reset), rename or hide any. One voice line at login and at the reset if there are
+  dailies to do; no chat spam.
+- **Weekly**: Tears of Guthix (when Juna lets you back), your own weeklies, the Kingdom of Miscellania's approval and
+  coffer, and your farming contract, with the time to the weekly reset (Wednesday).
+- **Timers**: every farming patch, compost bin and Hespori you've been to and when it's grown (moved here from the
+  Skilling Helper), your bird houses, and timers of your own; each with a ready alert in the game chat. When you add
+  or edit a timer you pick what it does when it's done: the voice line or a sound (Bell, Chime, Anvil, Boop, Door;
+  picking one plays it) and how many times; Default follows the **Ready Sound** setting.
+- Only the dailies and weeklies reminders go to the split private chat (they fade); every other alert uses the game
+  chat.
+- **Slayer**: your task, kills left, points and streak, straight from the game.
+- **Drops**: each monster or chest on its own: kills or opens and the Grand Exchange value on the list, and a page for
+  each with every item it has dropped, the drop rate you've seen ("1 in 45"), its best drop, kills since a valuable
+  drop and this session beside all time; plus your latest drops
+  (valuable ones highlighted); reset one or all.
+- **Notes & to-do**: a to-do list and a notes box.
+- **Calculator**: a skill calculator. Pick a skill from the grid; your level and XP fill in from the game (type over
+  them to plan ahead). Skills with a goal have a gold line in the grid, and **Goals** under it lists them all with how
+  far along you are (click one to open it). Goals are shared with the Skilling Helper: one set in either shows in
+  both, and each plugin works on its own. The target starts at the skill's goal, or the next level; a target you type is kept for that
+  skill until **Reset** (next to it) or **Set as goal** (sets the skill's goal just like the Skilling Helper's Set
+  Goal). Tick the XP bonuses you use (skilling outfits, diaries, altars, the bonecrusher...; ones that can't go
+  together untick each other). Three views:
+  - **Actions**: every action with its XP each, how many to your target, the time where the wiki's training guides
+    give an XP rate, and how many you have (bank as last opened plus inventory). With **Show GE Prices**, the money:
+    "Mats 254K · Sells 226K" is what the materials and the products are worth on the Grand Exchange (neither is
+    profit), and the net beside it, with a **green plus** for a gain or a **red minus** for a loss ("-28K"), plus the
+    net gp per XP. Hover a card for all of it in words. Darts, arrows and bolts count per item (10 darts a go, each
+    with its share of the materials). **Sort** (next to the search) orders them: by level (low to high, at first, or
+    high to low), what you can do first, most XP each, fastest, cheapest per XP, most profit or name; the guide's
+    method at your level is marked in green; search to filter; on a free world members-only actions are left out.
+  - **Banked**: what you own instead. The tiles show the XP in it all, your level now and after ("Level · aim 67":
+    your target beside it), what the materials are worth and the **Net** of making it all. Each card is one thing you
+    can make, and the cards **stack**: each shows the levels it takes you through on top of the ones above it
+    ("lvl 59 → 61", then "lvl 61 → 63"...), so the last one ends at the total. Things that share materials split them
+    as the total does ("x 0 of 620 · used above"); something above your level says what it needs ("needs lvl 80")
+    and isn't counted.
+  - **Plan**: the skill's **goal** comes first, as a card like a plan's (gold): its levels, what it's set to train
+    (your Track for goal pick, the plan the tracker follows, or the wiki's suggestion) and how far along you are.
+    It's the same goal as the Skilling Helper's: click it (or right-click) to **Change goal**, **Remove goal** or
+    **Make a plan for it** (a new plan to that level, starting with what the goal trains). Then
+    as many **plans** per skill as you like, each with a name. **+** makes a new one; each plan's card
+    shows its levels, your level and how far along it you are (a bar and a percentage); click one to open it (it
+    unfolds under its card), click it again to fold it away; right-click to rename, duplicate or delete. Under the
+    list, links to your other skills' plans. A plan is a goal and milestones on the way, each with its own method
+    ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"): start from the wiki's suggestions, or right-click an action >
+    **Add to plan** (it goes in at its own level: Atlatl darts at 74 inside Adamant darts 67-81 makes Adamant 67-74
+    and Atlatl 74-81; when the plan's full it asks to raise its goal), or **+** to add one at levels you type (the
+    milestones it overlaps make room). Each milestone shows its XP, actions, time and money; **Whole plan** adds them
+    up (XP to the goal, time to it, average XP an hour, net); **Materials needed** lists everything the milestones
+    still need in full against what you have ("27,800 / 24,610"), green when you have it all, red when you're
+    short, and the tools. A plan goes by your real XP: typing in Current doesn't mark milestones done. With the
+    Skilling Helper installed, **Export to tracker** makes its goal card follow the plan (one plan per skill at a
+    time).
+  - **Your plan bar**: under the Actions and Banked lists, the open plan's milestones (and the skill's goal) stay in
+    view while you scroll, to compare; click its title to fold it, **Edit** to open the Plan view.
+
+  Made from RuneLite's own Skill Calculator; information only.
 
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key
@@ -204,9 +285,9 @@ work a resource.
   switches, the voice and the volume.
 - With several of the separate plugins, **Same Voice For All** keeps them on one voice and volume: change it
   in any of them (turn it off in one to give it its own).
-- 10 voices (pre-recorded, so they work on any OS): Amy and Cori (US and UK women), Alan,
-  Ryan and John (UK and US men), Arctic (a Scottish man), L2 Arctic (a man with a Mandarin Chinese accent), Wise Old Man, TzHaar and Ghost, or **Random** for a different
-  one each alert. Changing the voice plays a sample.
+- Pre-recorded voices (so they work on any OS): Amy and Cori (US and UK women), Alan and John (UK and US men), or
+  **Random** for a different one each alert. Running it from this repository (the launcher) also has Arctic (a
+  Scottish man), Wise Old Man, TzHaar and Ghost. Changing the voice plays a sample.
 - Chat messages use the same words as the voice line, with details in brackets.
 - **Speak Only When Unfocused** (General, off at first): voice only while you're in another window; chat
   messages still post.
@@ -320,7 +401,7 @@ To load the separate plugins instead of the Toolbelt, name them with `-Pload=` (
 .\gradlew.bat runBrad "-Pload=separate"          # all the separate plugins at once
 ```
 
-The names are `toolbelt` (the default), `skilling`, `pvm`, `gemcrab`, `tick` and `alerts`. The Toolbelt always
+The names are `toolbelt` (the default), `skilling`, `pvm`, `gemcrab`, `tick`, `planner` and `alerts`. The Toolbelt always
 loads on its own (it already includes the others). Each separate plugin has its own settings, so settings you
 change in the Toolbelt don't carry over to them (and the other way round).
 
@@ -331,10 +412,10 @@ change in the Toolbelt don't carry over to them (and the other way round).
 Each plugin's settings start with **About**: hover its heading for what the plugin does and which other plugins
 clash with it, and switch on **Open the Guide** to open the full feature guide. While a clashing plugin is on (or the
 setting of it that clashes), every one of Snuffy's plugins shows a small yellow warning icon among RuneLite's info
-boxes (top left of the game; hover it for the clashes and what they mean), and each plugin says its clashes in chat
-once a login. It's live: turn the clashing plugin or setting off and the icon goes within a few seconds. Don't want
+boxes (top left of the game; hover it for the clashes and what they mean); nothing is posted in chat. It's live: turn the clashing plugin or setting off and the icon goes within a few seconds. Don't want
 any of it? Turn off **About > Clash Warnings** in that plugin's settings. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
-minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome and Idle Notifier, and the Tempoross,
+minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome, Idle Notifier, Daily Task Indicator and
+Loot Tracker, and the Tempoross,
 Guardians of the Rift Helper and Sailing plugins' notifications.
 
 
@@ -342,7 +423,7 @@ All sections except General start collapsed.
 
 | Section | What's in it |
 |---|---|
-| General | Voice on/off, voice, volume, chat messages on/off |
+| General | Voice on/off, voice, volume, chat messages on/off; **Compact Overlays** (less on the plugin's cards and HUDs: one switch in the Toolbelt, one in each separate plugin that has overlays) |
 | Potion Buffs / Health / Prayer | Buff timers and alerts, thresholds, repeats, orb flash, their Voice/Chat switches |
 | Combat Alerts | Spec, antifire, poison, stamina, ammo, runes, cannon |
 | Idle | AFK alert and idle logout warning |
@@ -352,6 +433,7 @@ All sections except General start collapsed.
 | Skilling | Hover cards, XP rates on cards, inventory full, resource gone, batch complete |
 | Woodcutting ... Sailing | One section per skill with its pies, cards and alerts |
 | Skill Tracker | Which fields to show, goals, suggested methods and highlights, goal items, auto-pause, ignored skills, level-up alerts |
+| Planner: Today ... Calculator | Each Planner list's Show switch (Calculator: Show Calculator, Show GE Prices, Hide Members On Free Worlds); the dailies/weeklies voice line; farming, bird house and timer alerts; drop colours and the valuable drop amount |
 
 ## Credits
 
@@ -372,6 +454,9 @@ All sections except General start collapsed.
   RuneLite's own plugins (BSD-2-Clause), and the items gathered counts use the chat messages its Woodcutting, Fishing
   and Cooking plugins read. The Slayer points and streak, the finish-off thresholds and the buff bar's timers read
   the game the same way as RuneLite's Slayer and Timers and Buffs plugins (BSD-2-Clause).
+- The Planner's Calculator is made from RuneLite's own Skill Calculator (BSD-2-Clause, (c) the RuneLite
+  contributors): its actions, levels, XP and bonuses are converted from that plugin's source by
+  `scripts/update_calculator_data.py`, and its sums work the same way.
 - The minigame and Sailing alerts use what these Plugin Hub plugins (BSD-2-Clause) worked out:
   [Tempoross](https://github.com/nmlynch94/runelite-external-plugins) (messages, ids, fish damage),
   [Guardians of the Rift Helper](https://github.com/DatBear/Guardians-of-the-Rift-Helper) by DatBear (messages,

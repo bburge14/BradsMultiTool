@@ -9,13 +9,18 @@ Gemstone Crab HUD with the burrow countdown, radar between coves, gear check, ou
 - **Gear check**, outlines of the crab, its shell and the tunnels, and voice alerts
 
 
+## Screenshots
+
+![Crab HUD](screenshots/01-crab-HUD.png)
+![Crab radar](screenshots/02-crab-radar.png)
+
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
 **Snuffy's GemCrab Tracker** and click **Install**. Its settings are under its name in the configuration panel, and **Open the
 Guide** in them links to the full feature guide.
 
-It's one of Snuffy's plugins: install just the ones you want (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** has all of them in one; don't install it together with the separate ones.
+It's one of Snuffy's plugins: install just the ones you want (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Planner, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** has all of them in one; don't install it together with the separate ones.
 
 ## Source and issues
 

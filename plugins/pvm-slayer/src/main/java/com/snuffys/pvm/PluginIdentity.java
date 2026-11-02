@@ -11,9 +11,20 @@ final class PluginIdentity {
     static final PluginIdentity SKILL_TRACKER = new PluginIdentity("snuffysskillinghelper", "Snuffy's Skilling Helper", "skilltracker");
     static final PluginIdentity PVM = new PluginIdentity("snuffyspvm", "Snuffy's PvM/Slayer", "pvm");
     static final PluginIdentity GEM_CRAB = new PluginIdentity("snuffysgemcrab", "Snuffy's GemCrab Tracker", "gemcrab");
+    static final PluginIdentity PLANNER = new PluginIdentity("snuffysplanner", "Snuffy's Planner", "planner");
     static final PluginIdentity TICK_COUNTER = new PluginIdentity("snuffystickcounter", "Snuffy's Tick Counter", "tickcounter");
     // "voices" is PluginFamily.VOICES, written out so the Tick Counter, which isn't in the family, needn't carry it
     static final PluginIdentity VOICES = new PluginIdentity("snuffysalerts", "Snuffy's Alerts", "voices");
+
+    /** The plugin with this family id ("skilltracker", "voices"...), or null. */
+    static PluginIdentity byFamily(String familyId) {
+        for (PluginIdentity id : new PluginIdentity[] {MULTI_TOOL, SKILL_TRACKER, PVM, GEM_CRAB, TICK_COUNTER, VOICES}) {
+            if (id.familyId.equals(familyId)) {
+                return id;
+            }
+        }
+        return null;
+    }
 
     final String configGroup;
     final String chatName;

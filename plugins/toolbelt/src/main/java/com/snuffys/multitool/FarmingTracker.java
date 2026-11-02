@@ -7,23 +7,30 @@ import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
+import net.runelite.api.WidgetNode;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.WidgetClosed;
+import net.runelite.api.widgets.WidgetModalMode;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 
 /**
- * Every farming patch you've been to: what's in it and when it'll be grown. The game only tells us a patch's state
- * while you're near it, so each time you are, its crop, condition and grown-by time are saved to your RuneLite
- * profile; the sidebar lists them and an alert says when patches you've planted are ready. Only reads the patch
- * game variables (decoded by {@link FarmingData}).
+ * The Planner's farming list: every farming patch, compost bin and Hespori patch you've been to, what's in it and
+ * when it'll be grown. The game only tells us a patch's state while you're near it, so each time you are, its
+ * crop, condition and grown-by time are saved to your RuneScape profile (under the shared group, as before the
+ * list moved here from the Skilling Helper, so nothing saved is lost); the sidebar lists them and an alert says
+ * when patches you've planted are ready. Only reads the patch game variables (decoded by {@link FarmingData}).
+ * <p>
+ * Patches of one kind share a game variable, so it's only read with the same care RuneLite's Time Tracking takes:
+ * after two ticks in the same region (right after a teleport the old area's value can still be there), and not
+ * while a full-screen interface is open (the game doesn't send patch values then).
  */
 @Singleton
 class FarmingTracker {
 
     private static final String GROUP = "bradsmultitool";
     private static final String PREFIX = "farmPatch.";
-    // Read the patches around you this often (ticks); check for ready ones once a minute
-    private static final int READ_TICKS = 5;
+    // Check for ready patches once a minute
     private static final int CHECK_TICKS = 100;
 
     /** A patch as last seen. */
@@ -35,18 +42,29 @@ class FarmingTracker {
         /** When it's grown (epoch seconds), 0 when it isn't growing. */
         final long grownAt;
         final boolean alerted;
+        /** Its growth stage when seen (-1 if not known: saved before stages were kept). */
+        final int stage;
+        /** How far out grownAt may be (seconds): a growth cycle until the account's tick offset is known, else 0. */
+        final long slack;
 
         Record(String key, String title, String crop, String state, long grownAt, boolean alerted) {
+            this(key, title, crop, state, grownAt, alerted, -1, 0);
+        }
+
+        Record(String key, String title, String crop, String state, long grownAt, boolean alerted, int stage, long slack) {
             this.key = key;
             this.title = title;
             this.crop = crop;
             this.state = state;
             this.grownAt = grownAt;
             this.alerted = alerted;
+            this.stage = stage;
+            this.slack = slack;
         }
 
         String encode() {
-            return title.replace("|", "/") + "|" + crop.replace("|", "/") + "|" + state + "|" + grownAt + "|" + alerted;
+            return title.replace("|", "/") + "|" + crop.replace("|", "/") + "|" + state + "|" + grownAt + "|" + alerted
+                + "|" + stage + "|" + slack;
         }
 
         static Record decode(String key, String value) {
@@ -55,34 +73,55 @@ class FarmingTracker {
                 return null;
             }
             try {
-                return new Record(key, p[0], p[1], p[2], Long.parseLong(p[3]), Boolean.parseBoolean(p[4]));
+                // (stage and slack were added later: older records have neither)
+                int stage = p.length > 5 ? Integer.parseInt(p[5]) : -1;
+                long slack = p.length > 6 ? Long.parseLong(p[6]) : 0;
+                return new Record(key, p[0], p[1], p[2], Long.parseLong(p[3]), Boolean.parseBoolean(p[4]), stage, slack);
             } catch (NumberFormatException e) {
                 return null;
             }
         }
 
-        /** Grown (harvestable, or past its grown-by time). */
+        Record alerted() {
+            return new Record(key, title, crop, state, grownAt, true, stage, slack);
+        }
+
+        /** Grown (harvestable, or past its grown-by time, give or take its slack). */
         boolean ready(long now) {
-            return FarmingData.HARVESTABLE.equals(state) || FarmingData.GROWING.equals(state) && grownAt > 0 && now >= grownAt;
+            return FarmingData.HARVESTABLE.equals(state) || FarmingData.GROWING.equals(state) && grownAt > 0 && now >= grownAt + slack;
         }
     }
 
     private final Client client;
     private final ConfigManager configManager;
     private final FarmingData farming;
-    private final SkillTrackerConfig config;
+    private final PlannerConfig config;
+    @javax.inject.Inject
+    private PlannerSound sound;
     private final Alerts alerts;
-    private final SkillTracker plugin;
+    private final PlannerView view;
+
+    // The region you were in last tick and at the last read, and when a full-screen interface last closed
+    private int lastTickRegion = -1;
+    private int lastReadRegion = -1;
+    private int lastModalClose;
 
     @Inject
-    FarmingTracker(Client client, ConfigManager configManager, FarmingData farming, SkillTrackerConfig config, Alerts alerts,
-                   SkillTracker plugin) {
+    FarmingTracker(Client client, ConfigManager configManager, FarmingData farming, PlannerConfig config, Alerts alerts,
+                   PlannerView view) {
         this.client = client;
         this.configManager = configManager;
         this.farming = farming;
         this.config = config;
         this.alerts = alerts;
-        this.plugin = plugin;
+        this.view = view;
+    }
+
+    @Subscribe
+    public void onWidgetClosed(WidgetClosed event) {
+        if (event.getModalMode() != WidgetModalMode.NON_MODAL) {
+            lastModalClose = client.getTickCount();
+        }
     }
 
     @Subscribe
@@ -91,27 +130,37 @@ class FarmingTracker {
             return;
         }
         int tick = client.getTickCount();
-        if (tick % READ_TICKS == 0) {
-            readNearby();
-        }
         if (tick % CHECK_TICKS == 0) {
             alertReady();
-            plugin.updatePanelUI();
+            view.update();
         }
-    }
-
-    // The patches whose state the game gives us here: save what's in them
-    private void readNearby() {
         Player you = client.getLocalPlayer();
-        if (you == null) {
+        int region = you == null ? -1 : you.getWorldLocation().getRegionID();
+        int last = lastTickRegion;
+        lastTickRegion = region;
+        // In the same region two ticks running, so the values are this area's
+        if (region < 0 || region != last) {
             return;
         }
+        for (WidgetNode node : client.getComponentTable()) {
+            if (node.getModalMode() != WidgetModalMode.NON_MODAL) {
+                return;
+            }
+        }
+        boolean arrived = region != lastReadRegion;
+        lastReadRegion = region;
+        readNearby(region, !arrived && tick - lastModalClose > 1);
+    }
+
+    // The patches whose state the game gives us here: save what's in them. A change seen while you've been standing
+    // here (not one found on arriving) happened just now, so a crop growing a stage tells us the account's tick offset
+    private void readNearby(int region, boolean watching) {
         long now = System.currentTimeMillis() / 1000;
         boolean changed = false;
-        for (FarmingData.Patch patch : farming.patchesNear(you.getWorldLocation().getRegionID())) {
+        for (FarmingData.Patch patch : farming.patchesNear(region)) {
             FarmingData.State state = farming.state(patch);
             String key = PREFIX + patch.key();
-            if (state == null || state.isEmpty()) {
+            if (state == null || state.isEmpty() || "EMPTY".equals(state.cropState)) {
                 if (configManager.getRSProfileConfiguration(GROUP, key) != null) {
                     configManager.unsetRSProfileConfiguration(GROUP, key);
                     changed = true;
@@ -119,16 +168,24 @@ class FarmingTracker {
                 continue;
             }
             Record old = Record.decode(key, configManager.getRSProfileConfiguration(GROUP, key));
-            long grownAt = FarmingData.GROWING.equals(state.cropState) ? now + FarmingData.secondsUntilGrown(state, now)
+            boolean sameCrop = old != null && old.crop.equals(state.produce.name);
+            if (watching && sameCrop && grewJustNow(old, state)) {
+                farming.observedGrowthTick(state.produce.tickrate, now);
+            }
+            boolean exact = farming.tickOffset(state.produce.tickrate) >= 0;
+            long slack = FarmingData.GROWING.equals(state.cropState) && !exact ? state.produce.tickrate * 60L : 0;
+            long grownAt = FarmingData.GROWING.equals(state.cropState) ? now + farming.untilGrown(state, now)
                 : FarmingData.HARVESTABLE.equals(state.cropState) ? now : 0;
-            // Keep the grown-by time it had (a re-read moves it by up to a growth cycle) while it's the same crop
-            if (old != null && old.crop.equals(state.produce.name) && old.state.equals(state.cropState) && old.grownAt > 0) {
+            // Without the offset each re-read can move the time by up to a growth cycle: keep the one it had while
+            // it's the same crop
+            if (!exact && sameCrop && old.state.equals(state.cropState) && old.grownAt > 0 && old.slack > 0) {
                 grownAt = old.grownAt;
             }
             // Seen grown with your own eyes: no need to tell you; a new crop is told once it grows
             boolean alerted = FarmingData.HARVESTABLE.equals(state.cropState)
-                || old != null && old.alerted && old.crop.equals(state.produce.name) && old.state.equals(state.cropState);
-            Record record = new Record(key, patch.region + ": " + patch.title(), state.produce.name, state.cropState, grownAt, alerted);
+                || old != null && old.alerted && sameCrop && old.state.equals(state.cropState);
+            Record record = new Record(key, patch.region + ": " + patch.title(), state.produce.name, state.cropState, grownAt,
+                alerted, state.stage, slack);
             String encoded = record.encode();
             if (!encoded.equals(configManager.getRSProfileConfiguration(GROUP, key))) {
                 configManager.setRSProfileConfiguration(GROUP, key, encoded);
@@ -136,8 +193,17 @@ class FarmingTracker {
             }
         }
         if (changed) {
-            plugin.updatePanelUI();
+            view.update();
         }
+    }
+
+    // As Time Tracking tells a growth tick: a growing crop one stage on, or turning diseased; a diseased one dying
+    static boolean grewJustNow(Record old, FarmingData.State now) {
+        if (FarmingData.GROWING.equals(old.state)) {
+            return FarmingData.GROWING.equals(now.cropState) && old.stage >= 0 && now.stage == old.stage + 1
+                || FarmingData.DISEASED.equals(now.cropState);
+        }
+        return FarmingData.DISEASED.equals(old.state) && FarmingData.DEAD.equals(now.cropState);
     }
 
     // Patches that have grown since you planted them: one alert naming them
@@ -150,12 +216,11 @@ class FarmingTracker {
         for (Record record : records()) {
             if (!record.alerted && record.ready(now)) {
                 ready.add(record.title);
-                configManager.setRSProfileConfiguration(GROUP, record.key,
-                    new Record(record.key, record.title, record.crop, record.state, record.grownAt, true).encode());
+                configManager.setRSProfileConfiguration(GROUP, record.key, record.alerted().encode());
             }
         }
         if (!ready.isEmpty()) {
-            alerts.alert(VoiceAlertService.VoiceLine.FARMING_READY, String.join(", ", ready));
+            sound.done(VoiceAlertService.VoiceLine.FARMING_READY, String.join(", ", ready));
         }
     }
 
@@ -184,9 +249,14 @@ class FarmingTracker {
         return record.grownAt > 0 ? record.grownAt : Long.MAX_VALUE;
     }
 
+    /** How long a patch's crop takes to grow (seconds), for the sidebar's progress bars; 0 when not known. */
+    long growthSeconds(Record record) {
+        return farming.growthSeconds(record.crop);
+    }
+
     /** Forget a patch (from the sidebar). */
     void forget(String key) {
         configManager.unsetRSProfileConfiguration(GROUP, key);
-        plugin.updatePanelUI();
+        view.update();
     }
 }

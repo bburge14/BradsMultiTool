@@ -3,7 +3,7 @@ package com.snuffys.multitool;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-/** Snuffy's Tick Counter: the tick count over your head, the tick boxes and bar, the metronome, click timing and its hotkeys. */
+/** Snuffy's Tick Counter: the tick count over your head, the tick boxes and bar, the metronome and its hotkeys. */
 @Singleton
 class TickCounterFeature {
 

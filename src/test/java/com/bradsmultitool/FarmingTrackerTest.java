@@ -22,7 +22,7 @@ public class FarmingTrackerTest {
         assertTrue(new FarmingTracker.Record("k", "t", "c", FarmingData.HARVESTABLE, 0, true).ready(0));
         assertFalse(new FarmingTracker.Record("k", "t", "c", FarmingData.DISEASED, 0, false).ready(5000));
         assertNull(FarmingTracker.Record.decode("k", "broken"));
-        assertEquals("ready", BradsMultiToolPanel.patchStatus(back, 2000));
-        assertEquals("in 10m", BradsMultiToolPanel.patchStatus(back, 400));
+        assertEquals("ready", PlannerPanel.patchStatus(back, 2000));
+        assertEquals("in 10m", PlannerPanel.patchStatus(back, 400));
     }
 }

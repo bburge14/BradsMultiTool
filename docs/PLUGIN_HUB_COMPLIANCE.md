@@ -14,7 +14,7 @@ Last checked: 2026-10-28.
 ## Planned split
 
 The Toolbelt will also be published as separate plugins (Snuffy's Skilling Helper, PvM/Slayer, GemCrab
-Tracker, Tick Counter and an optional Alerts plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
+Tracker, Tick Counter, Planner and an optional Alerts plugin; docs/DEVELOPMENT.md "Planned: separate plugins" lists what goes where). Each part should stay self-contained so it can be lifted into its own plugin:
 its own data files, overlay(s) and config section, talking to the rest only through small shared helpers
 (voice alerts, chat messages, cursor tooltip).
 
@@ -29,7 +29,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | No `Desktop.browse` / `LinkBrowser.open` (`LinkBrowser.browse` is allowed) | OK. The Issues? button uses `LinkBrowser.browse` |
 | No `java.io` file APIs (resources via `getResourceAsStream` are fine) | OK |
 | No `Runtime`, `KeyboardFocusManager`, non-OkHttp network clients | OK (no network use at all) |
-| Don't create your own `Gson` / `OkHttpClient` (inject them) | OK. Plugin code uses the injected `Gson` (tests create their own, which isn't shipped) |
+| Don't create your own `Gson` / `OkHttpClient` (inject them) | OK. Plugin code uses the injected `Gson` (tests create their own, which isn't shipped); the Planner saves its lists as JSON with it, into ConfigManager (no `TypeToken`: plain holder classes) |
 | No `Client.menuAction`, `hopToWorld` | OK |
 | `Client.runScript` is a "sensitive API": allowed, with extra review when code around it changes | Only through RuneLite's own `Quest.getState` (a read-only quest-status script), on the client thread, after login, after a quest completes and every 5 minutes (`QuestProgress`), to leave out training methods whose quests you haven't done. Nothing that sends anything to the server |
 | Don't modify other plugins' configs | OK. Reads the client's idle timeout, and reads (never changes) which plugins are enabled via `PluginManager.getPlugins()` / `isPluginEnabled()` so our resource timers can step aside for a dedicated timer plugin, and reads (never writes) settings of RuneLite's own Fishing and Motherlode Mine plugins (`fishing.showIcons`, `fishing.showTiles`, `fishing.onlyCurrent`, `fishing.showMinnowOverlay`, `motherlode.showVeins`), and whether its Mining plugin is on (it always times depleted rocks and Daeyalt), through `ConfigManager.getConfiguration` so our tile style leaves out an icon or outline those already draw. Matched by class name, no reflection/annotations. Each plugin saves the defaults of its own settings (its own config group only) where nothing is saved yet (`ConfigDefaults`), through generated plain calls rather than reflection |
@@ -46,7 +46,16 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Idle logout warning, AFK alert | OK. Notifications only (core Idle Notifier / Logout Timer do the same); nothing prevents logout |
 | Loot value on the PvM HUD, materials value on goal cards | OK. RuneLite's `NpcLootReceived` and ItemManager GE prices, as the core Loot Tracker; figures only |
 | Death alert and gravestone timer | OK. Same as the old core Death Indicator: reads your death (`ActorDeath`), location and item counts; an InfoBox of our own; nothing acts for the player |
-| Clue drop alert, daily reminders | OK. Clue items by name from kill loot and your inventory; dailies from the same varbits as core Daily Task Indicator; notifications only |
+| Clue drop alert | OK. Clue items by name from kill loot and your inventory; notifications only |
+| Planner: TODAY dailies checklist | OK. The same varbits as core Daily Task Indicator; one generic voice line at login/reset (no chat line unless turned on), never one per item; ticking a line only changes our list |
+| Planner: WEEKLY (Tears of Guthix, Kingdom of Miscellania, farming contract) | OK. Tears of Guthix from the game's own collecting varbit going back to 0 (when your game ends) plus the wiki's "start of the seventh day after" rule; kingdom approval/coffer the way core Kingdom of Miscellania reads them; the contract the way core Time Tracking reads it. Information only |
+| Planner: TIMERS (farming patches incl. compost bins and Hespori, bird houses, your own timers) | OK. Same information as core Time Tracking (patch varbits read with its guards: two ticks in one region, no modal interface open; the growth tick offset learnt the same way); own timers are a countdown the player starts, with a notification |
+| Planner: SLAYER | OK. The varps/varbits and game tables core Slayer reads; information only |
+| Planner: DROPS (drop tracker) | OK. Like core Loot Tracker: `NpcLootReceived`, and `LootReceived` for chests/caskets/raids (posted by core Loot Tracker; its NPC and player records are skipped so kills aren't counted twice); GE prices via ItemManager; saved with ConfigManager (RS profile), this session's totals in memory only. Per monster: items, times dropped (drop rate seen), kills since a valuable drop, best drop; figures only, like core Loot Tracker's boxes. Clash note while core Loot Tracker is on |
+| Planner: Notes (to-do and notes) | OK. Text the player types, saved with ConfigManager (RS profile); no files |
+| Planner: CALCULATOR (skill calculator) | OK. The same information as RuneLite's own Skill Calculator (its data converted into `calculator.json` by a script, not read from its classes, with each action's members-only flag as its `isMembers` says: the item's members flag from the wiki): XP from `Client.getSkillExperience`, items from the inventory container and the bank as last opened (`ItemContainerChanged`, read on the client thread), whether you're on a members world (`Client.getWorldType()`, as RuneLite's calculator hides members actions on free worlds), GE prices via ItemManager (by name, and by item id with `getItemPrice` on the client thread), spell icons via `SpriteManager.getSpriteAsync`. Set as goal only writes our own goal keys (ConfigManager, RS profile). Information only |
+| Planner: skill plans and Export to tracker | OK. A plan (goal and milestones) the player builds, saved as plain text in our own shared group (ConfigManager, RS profile, `SkillPlans`); Export to tracker only writes our own goal and plan keys, offered only when `PluginFamily` says the Skilling Helper or Toolbelt runs. The tracker reads the plan from the shared group (no Planner classes): its milestone shows as a bar and suggestion, and its method is outlined like any suggestion (objects/NPCs, never clicked). Information only |
+| Planner sidebar (tabs, cards, item pictures) | OK. Plain Swing with RuneLite's own `MaterialTabGroup`/`ColorScheme`/`FontManager`; item pictures from `ItemManager.getImage` (filled in on the Swing thread when loaded), skill icons from `SkillIconManager`; everything drawn on the Swing thread. Clicking only changes our own lists. The offline preview (`PlannerPreview`, test code, not shipped) reads ConfigManager's fields reflectively and fetches wiki pictures |
 | Gemstone Crab HUD and radar | OK. Plugin Hub has gemstone-crab-timer |
 | Slayer task card, missing item warning | OK |
 | Task monster outlines (Konar area aware), Slayer info on monster hover/HUD | OK. Core Slayer plugin highlights task monsters too; information only |
@@ -85,7 +94,7 @@ its own data files, overlay(s) and config section, talking to the rest only thro
 | Voice alerts (bundled clips) | OK. Character voices are named after RuneScape characters but are our own synthesized clips, not Jagex audio |
 | Skill tracker panel, level-up alerts | OK |
 | Tick counter (over head, tick boxes, smooth tick bar) and metronome, incl. Follow Attack Speed | OK. Core Metronome plugin does the tick sounds (and sets the sound effect volume for one sound and restores it, as we do); Plugin Hub has visual metronome / tick counter plugins. Counts ticks only: it never highlights what to click or when, and never acts for the player |
-| Click timing (ms after the tick for each click, ding/dun sounds, on time / late / missed summary) | Likely OK, but ask the reviewers (see Open questions). Reads `MenuOptionClicked` only (never consumes or changes it) and the time of the last `GameTick`; shows and sounds feedback after the click, never what or when to click |
+| Click timing (ms after the tick for each click, ding/dun sounds, on time / late / missed summary) | Not published: only in builds from this repository. `split_plugins.py` leaves out the code between `// <click-timing>` markers, so the Plugin Hub copies don't have it |
 | Reset in the PvM HUD's and crab card's right-click menus | OK. RUNELITE_OVERLAY menu entries on our own overlays (like the pinned skill's Unpin); only clear our numbers |
 | Buff bar (your buffs/debuffs with timers) and monster effects on the PvM HUD (poison/venom/burn, freezes, Defence after your special attacks) | OK. Same information as the core Timers and Buffs and Boosts plugins, read from varbits, hitsplats and graphics; information only |
 | Slayer card hotkey | OK (a keybind that toggles our own overlay) |
@@ -108,19 +117,14 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
 
 ## Open questions before publishing
 
-- **Click timing.** A training aid for tick manipulation (1-ticking): it times your own clicks against the tick
-  and gives feedback after them. Nothing on the Plugin Hub does quite this; ask the reviewers before submitting,
-  and drop it if they object (it's only in the Tick Counter, and the tick count and metronome don't depend on it).
+- **Click timing:** settled. Left out of the published plugins (kept in builds from this repository).
 
-- **Voice clip licences.** Ryan's clips are CC BY-NC-SA 4.0 and L2 Arctic's CC BY-NC 4.0 (their recordings'
-  licences; VOICE_CREDITS.md). The plugin is free, so non-commercial use holds, but the Plugin Hub asks for
-  BSD-2 and says nothing about bundled sounds under other licences. Ask the Plugin Hub reviewers, or drop
-  those two voices from the published build.
+- **Voice clip licences:** settled. Ryan (CC BY-NC-SA) and L2 Arctic (CC BY-NC) were removed; the voices left are
+  CC0, public domain, or free to use with credit (VOICE_CREDITS.md).
 
-- Plugin size: the jar is about 17.5 MB, nearly all voice clips (9 voices: 4 standard, 5 RuneScape-inspired characters; 11 kHz mu-law, level-up
-  numbers built from parts; was 35 MB with 11 voices at 16 kHz). Still large for the Plugin Hub: if a
-  reviewer objects, ship fewer voices (e.g. the four standard ones) or move the character voices to their
-  own plugin. Check before submitting.
+- Plugin size: the published plugins ship four voices (Amy, Cori, Alan, John; `PUBLISHED_VOICES` in
+  scripts/split_plugins.py), 11 kHz mu-law, level-up numbers built from parts; the clips are already trimmed. Builds
+  from this repository keep all eight. If a reviewer still objects, the next step is fewer voices again.
 - `Executors.newSingleThreadExecutor()` for audio is not forbidden, but reviewers may prefer the
   injected `ScheduledExecutorService`.
 - The skilling/farming data files are generated from the OSRS Wiki (CC BY-NC-SA) and RuneLite

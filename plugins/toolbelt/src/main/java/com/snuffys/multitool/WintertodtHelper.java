@@ -80,7 +80,7 @@ class WintertodtHelper {
         }
         int warmth = warmth();
         if (warmth > 0 && warmth < config.wintertodtWarmthPercent()) {
-            if (!warmthWarned) {
+            if (!warmthWarned && alerts.ready()) {
                 warmthWarned = true;
                 alerts.alert(VoiceAlertService.VoiceLine.WARMTH_LOW, warmth + "%");
             }

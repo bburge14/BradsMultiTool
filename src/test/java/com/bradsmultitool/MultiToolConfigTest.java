@@ -44,6 +44,7 @@ public class MultiToolConfigTest {
         assertSectionsDeclared(GemCrabConfig.class);
         assertSectionsDeclared(TickConfig.class);
         assertSectionsDeclared(VoicesConfig.class);
+        assertSectionsDeclared(PlannerConfig.class);
         assertSectionsDeclared(BradsMultiToolConfig.class);
     }
 

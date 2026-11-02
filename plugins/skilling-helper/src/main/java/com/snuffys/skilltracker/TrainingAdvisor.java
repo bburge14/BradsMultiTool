@@ -39,6 +39,8 @@ class TrainingAdvisor {
         final double xpEach;
         /** Tools it needs ("Axe", "Knife", "Box trap"), not used up. */
         final List<String> tools;
+        /** The skill plan's milestone it comes from (exported from the Planner), or null for the wiki's. */
+        SkillPlans.Step planStep;
 
         Suggestion(String label, String text, TrainingData.Method method) {
             this(label, text, method, 0, new ArrayList<>());
@@ -109,6 +111,17 @@ class TrainingAdvisor {
                     break;
                 }
             }
+        }
+        // Your skill plan's milestone at this level (exported from the Planner): ahead of the wiki's suggestion and
+        // the Training Focus, behind a method you pick (and a Track for goal pick, which callers check first)
+        SkillPlans.Plan skillPlan = picked == null ? plugin.getSkillPlan(skill) : null;
+        SkillPlans.Step step = skillPlan == null ? null : skillPlan.at(level);
+        if (step != null) {
+            TrainingData.Method method = SkillPlans.method(training, skill, step);
+            Suggestion fromPlan = new Suggestion("Plan:", step.action, method, step.xp,
+                method == null ? new ArrayList<>() : toolsFor(skill, method));
+            fromPlan.planStep = step;
+            return fromPlan;
         }
         SkillTrackerConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
         switch (picked != null ? SkillTrackerConfig.TrainingFocus.FASTEST : focus) {

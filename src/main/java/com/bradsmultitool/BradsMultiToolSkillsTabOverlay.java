@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
+import net.runelite.api.Experience;
 import net.runelite.api.Skill;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
@@ -15,14 +16,18 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
 /**
- * On the game's Skills tab: a thin gold bar along the bottom of each skill you have a goal in, filled by how far
- * you are from where you set the goal to reaching it (the goal bar on the tracker card). Drawn over the tab, like
- * the Skills Progress plugin's bars; the tab itself isn't changed.
+ * On the game's Skills tab: each skill's progress to its next level along the bottom (orange to green), and for a
+ * skill with a goal, a gold bar up its left edge filling from the bottom (how far from where you set the goal to
+ * reaching it, as the tracker card's goal bar). Drawn over the tab; the tab itself isn't changed. With the Plugin
+ * Hub's Skills Tab Progress Bars on, its level bars are used and ours step aside (the goal bars still show: they
+ * sit on the left edge, clear of its bars).
  */
 @Singleton
 public class BradsMultiToolSkillsTabOverlay extends Overlay {
 
-    private static final int BAR_HEIGHT = 3;
+    private static final int BAR_HEIGHT = 2;
+    // The goal bar's width, up the left edge
+    private static final int GOAL_WIDTH = 2;
     // The skill stone's border, so the bar sits inside it
     private static final int INDENT = 4;
     private static final Color BACKGROUND = new Color(0, 0, 0, 170);
@@ -30,12 +35,26 @@ public class BradsMultiToolSkillsTabOverlay extends Overlay {
     private final Client client;
     private final SkillTracker tracker;
     private final SkillTrackerConfig config;
+    private final net.runelite.client.plugins.PluginManager pluginManager;
+    private final net.runelite.client.config.ConfigManager configManager;
+    // How much of the bottom Skills Tab Progress Bars uses (pixels), looked at every couple of seconds
+    private int theirHeight;
+    private long theirCheckedAt;
+
+    // The Plugin Hub's Skills Tab Progress Bars (only read: whether it's on, and its bar settings)
+    private static final String THEIR_PLUGIN = "SkillsTabProgressBarsPlugin";
+    private static final String THEIR_GROUP = "skillstabprogressbars";
+    private static final int THEIR_MAX_HEIGHT = 30;
 
     @Inject
-    BradsMultiToolSkillsTabOverlay(Client client, SkillTracker tracker, SkillTrackerConfig config) {
+    BradsMultiToolSkillsTabOverlay(Client client, SkillTracker tracker, SkillTrackerConfig config,
+                                   net.runelite.client.plugins.PluginManager pluginManager,
+                                   net.runelite.client.config.ConfigManager configManager) {
         this.client = client;
         this.tracker = tracker;
         this.config = config;
+        this.pluginManager = pluginManager;
+        this.configManager = configManager;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
         setPriority(PRIORITY_HIGH);
@@ -43,31 +62,135 @@ public class BradsMultiToolSkillsTabOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!config.skillsTabGoalBars()) {
+        boolean goals = config.skillsTabGoalBars();
+        boolean levels = config.skillsTabLevelBars();
+        if (!goals && !levels) {
             return null;
         }
-        for (Skill skill : tracker.getGoalSkills()) {
-            int goal = tracker.getSkillGoal(skill);
+        long now = System.currentTimeMillis();
+        if (now - theirCheckedAt > 2000) {
+            theirCheckedAt = now;
+            theirHeight = theirBarsHeight();
+        }
+        // Skills Tab Progress Bars draws level progress along the bottom: ours steps aside for it
+        boolean ownLevels = levels && theirHeight == 0;
+        // The game's skill tooltip (hovering a skill) stays on top: nothing of ours is drawn where it is
+        Widget tip = client.getWidget(InterfaceID.Stats.TOOLTIP);
+        Rectangle tipAt = tip != null && !tip.isHidden() ? visibleBounds(tip) : null;
+        java.awt.Shape oldClip = graphics.getClip();
+        if (tipAt != null && tipAt.width > 0 && tipAt.height > 0) {
+            java.awt.geom.Area clip = new java.awt.geom.Area(new Rectangle(0, 0, client.getCanvasWidth(), client.getCanvasHeight()));
+            clip.subtract(new java.awt.geom.Area(tipAt));
+            graphics.setClip(clip);
+        }
+        for (Skill skill : Skill.values()) {
             int component = component(skill);
             Widget stone = component == -1 ? null : client.getWidget(component);
-            if (goal <= 0 || stone == null || stone.isHidden()) {
+            if (stone == null || stone.isHidden()) {
                 continue;
             }
             Rectangle at = stone.getBounds();
-            if (at == null || at.width <= INDENT * 2) {
+            if (at == null || at.width <= INDENT * 2 || at.height <= INDENT * 2) {
                 continue;
             }
             int xp = client.getSkillExperience(skill);
-            double progress = progress(xp, tracker.getSkillGoalStart(skill), goal);
-            int x = at.x + INDENT;
-            int y = at.y + at.height - BAR_HEIGHT - 2;
-            int width = at.width - INDENT * 2;
-            graphics.setColor(BACKGROUND);
-            graphics.fillRect(x, y, width, BAR_HEIGHT);
-            graphics.setColor(BradsMultiToolPanel.GOAL_FILL);
-            graphics.fillRect(x, y, (int) Math.round(width * progress), BAR_HEIGHT);
+            // Progress to the next level: along the bottom, orange to green as it fills (not at 99)
+            int level = Experience.getLevelForXp(xp);
+            if (ownLevels && level < Experience.MAX_REAL_LEVEL) {
+                double progress = levelProgress(xp);
+                int x = at.x + INDENT;
+                int y = at.y + at.height - BAR_HEIGHT - 2;
+                int width = at.width - INDENT * 2;
+                graphics.setColor(BACKGROUND);
+                graphics.fillRect(x, y, width, BAR_HEIGHT);
+                graphics.setColor(levelColour(progress));
+                graphics.fillRect(x, y, (int) Math.round(width * progress), BAR_HEIGHT);
+            }
+            // Your goal: a gold bar up the left edge, filling from the bottom
+            int goal = tracker.getSkillGoal(skill);
+            if (goals && goal > 0) {
+                double progress = progress(xp, tracker.getSkillGoalStart(skill), goal);
+                int x = at.x + 2;
+                // inside the stone's border, left of the skill picture
+                int top = at.y + INDENT;
+                int height = at.height - INDENT * 2;
+                int filled = (int) Math.round(height * progress);
+                graphics.setColor(BACKGROUND);
+                graphics.fillRect(x, top, GOAL_WIDTH, height);
+                graphics.setColor(BradsMultiToolPanel.GOAL_FILL);
+                graphics.fillRect(x, top + height - filled, GOAL_WIDTH, filled);
+            }
         }
+        graphics.setClip(oldClip);
         return null;
+    }
+
+    // The area the tooltip's visible parts (its box and lines) cover; its own bounds if it has none showing
+    private static Rectangle visibleBounds(Widget widget) {
+        Rectangle out = null;
+        for (Widget[] children : new Widget[][] {widget.getStaticChildren(), widget.getDynamicChildren(), widget.getNestedChildren()}) {
+            if (children == null) {
+                continue;
+            }
+            for (Widget child : children) {
+                if (child != null && !child.isHidden() && child.getBounds() != null && child.getBounds().width > 0) {
+                    out = out == null ? new Rectangle(child.getBounds()) : out.union(child.getBounds());
+                }
+            }
+        }
+        return out != null ? out : widget.getBounds();
+    }
+
+    /** How far through the current level this much XP is, 0 to 1. */
+    static double levelProgress(int xp) {
+        int level = Experience.getLevelForXp(xp);
+        if (level >= Experience.MAX_REAL_LEVEL) {
+            return 1;
+        }
+        int start = Experience.getXpForLevel(level);
+        int end = Experience.getXpForLevel(level + 1);
+        return Math.max(0, Math.min(1, (double) (xp - start) / (end - start)));
+    }
+
+    // Orange at the start of a level to green near the next one
+    private static Color levelColour(double progress) {
+        Color from = new Color(230, 120, 30);
+        Color to = new Color(60, 200, 60);
+        return new Color((int) (from.getRed() + (to.getRed() - from.getRed()) * progress),
+            (int) (from.getGreen() + (to.getGreen() - from.getGreen()) * progress),
+            (int) (from.getBlue() + (to.getBlue() - from.getBlue()) * progress));
+    }
+
+    // The height Skills Tab Progress Bars' bars take at the bottom of a skill: its bar height, twice that with its
+    // goal bars on (halved, as it does, when that would pass half the skill); 0 when it's off
+    private int theirBarsHeight() {
+        boolean on = false;
+        for (net.runelite.client.plugins.Plugin plugin : pluginManager.getPlugins()) {
+            if (plugin.getClass().getSimpleName().equals(THEIR_PLUGIN) && pluginManager.isPluginEnabled(plugin)) {
+                on = true;
+                break;
+            }
+        }
+        if (!on) {
+            return 0;
+        }
+        return theirHeight(number(configManager.getConfiguration(THEIR_GROUP, "barHeight"), 2),
+            "true".equals(configManager.getConfiguration(THEIR_GROUP, "showGoals")));
+    }
+
+    static int theirHeight(int barHeight, boolean goals) {
+        if (!goals) {
+            return barHeight;
+        }
+        return barHeight > THEIR_MAX_HEIGHT / 2 ? (barHeight / 2) * 2 : barHeight * 2;
+    }
+
+    private static int number(String value, int otherwise) {
+        try {
+            return value == null ? otherwise : Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return otherwise;
+        }
     }
 
     /** How far from where the goal was set (start) to the goal you are, 0 to 1 (as the tracker's goal bar). */

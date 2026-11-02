@@ -51,6 +51,8 @@ class AgilityTracker {
     // Whether this plugin says the run energy alert everywhere (which then covers Agility too)
     @Inject
     private PluginFamily family;
+    @Inject
+    private net.runelite.client.config.ConfigManager configManager;
 
     // The course
     @Getter
@@ -180,7 +182,7 @@ class AgilityTracker {
         // plugin says the Idle section's run energy alert everywhere, so you don't hear both
         int below = config.runEnergyBelow();
         int energy = client.getEnergy() / 100;
-        boolean everywhere = config.runEnergyLowAt() > 0 && family != null && family.handlesShared();
+        boolean everywhere = sharedRunAlertOn();
         if (below > 0 && !everywhere && plugin.trainedRecently(Skill.AGILITY)) {
             if (energy < below && !energyWarned) {
                 energyWarned = true;
@@ -188,6 +190,24 @@ class AgilityTracker {
             } else if (energy >= below + 10) {
                 energyWarned = false;
             }
+        }
+    }
+
+    // Whether the Idle section's run energy alert is on in the plugin of ours that says the shared alerts (this one, or
+    // e.g. Snuffy's Alerts when it's installed too): then that one warns, and Agility's own stays quiet
+    private boolean sharedRunAlertOn() {
+        if (family == null || configManager == null) {
+            return config.runEnergyLowAt() > 0;
+        }
+        PluginIdentity handler = PluginIdentity.byFamily(family.sharedHandler());
+        if (handler == null || family.handlesShared()) {
+            return config.runEnergyLowAt() > 0;
+        }
+        String value = configManager.getConfiguration(handler.configGroup, "runEnergyLowAt");
+        try {
+            return value != null && Integer.parseInt(value) > 0;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 

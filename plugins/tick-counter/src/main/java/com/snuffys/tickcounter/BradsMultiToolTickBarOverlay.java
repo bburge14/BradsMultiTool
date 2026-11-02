@@ -15,9 +15,7 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 
 /**
  * The tick bar: fills smoothly from left to right over each tick (drawn every frame, so it moves rather than
- * flashes) and snaps back when the next tick comes, with the ideal click zone (green), the late part (orange)
- * and your last click marked on it. Under it, with Click
- * Timing on, a summary of your last clicks. Moved like any overlay (Alt + drag).
+ * flashes) and snaps back when the next tick comes. Moved like any overlay (Alt + drag).
  */
 @Singleton
 public class BradsMultiToolTickBarOverlay extends Overlay {
@@ -43,7 +41,7 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         boolean bar = config.tickBar();
-        boolean summary = config.clickTiming();
+        boolean summary = false;
         if (client.getGameState() != GameState.LOGGED_IN || (!bar && !summary) || ticks.getCount() <= 0
             || ticks.isHidden()) {
             return null;
@@ -58,40 +56,9 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
             Color fill = BradsMultiToolTickBoxOverlay.tickColor(config, ticks.getCount());
             graphics.setColor(new Color(fill.getRed(), fill.getGreen(), fill.getBlue(), Math.min(fill.getAlpha(), 150)));
             graphics.fillRect(0, 0, (int) (width * progress), HEIGHT);
-            if (ticks.timingClicks()) {
-                // On top of the fill so they always show: the ideal zone (green, edged), and from Late After on,
-                // clicks count as late (orange)
-                int idealFrom = x(width, config.clickIdealFrom());
-                int idealTo = x(width, Math.min(config.clickIdealTo(), config.clickLateMs()));
-                if (idealTo > idealFrom) {
-                    graphics.setColor(IDEAL_ZONE);
-                    graphics.fillRect(idealFrom, 0, idealTo - idealFrom, HEIGHT);
-                    graphics.setColor(HudColors.GOOD);
-                    graphics.drawRect(idealFrom, 0, idealTo - idealFrom - 1, HEIGHT - 1);
-                }
-                int lateX = x(width, config.clickLateMs());
-                graphics.setColor(LATE_ZONE);
-                graphics.fillRect(lateX, 0, width - lateX, HEIGHT);
-            }
-            if (ticks.timingClicks() && ticks.getLastClickMillis() >= ticks.getLastTickMillis()) {
-                int clickX = x(width, ticks.getLastClickOffset());
-                graphics.setColor(ticks.clickColor(ticks.getLastClickOffset()));
-                graphics.fillRect(Math.min(width - 2, clickX), 0, 2, HEIGHT);
-            }
             graphics.setColor(Color.BLACK);
             graphics.drawRect(0, 0, width - 1, HEIGHT - 1);
             y = HEIGHT;
-        }
-        if (summary) {
-            String text = summary();
-            graphics.setFont(FontManager.getRunescapeSmallFont());
-            FontMetrics metrics = graphics.getFontMetrics();
-            width = Math.max(width, metrics.stringWidth(text) + 4);
-            y += metrics.getHeight();
-            graphics.setColor(Color.BLACK);
-            graphics.drawString(text, 3, y - metrics.getDescent() + 1);
-            graphics.setColor(Color.WHITE);
-            graphics.drawString(text, 2, y - metrics.getDescent());
         }
         return new Dimension(width, y);
     }
@@ -101,40 +68,4 @@ public class BradsMultiToolTickBarOverlay extends Overlay {
         return (int) (width * Math.min(1, millis / (double) BradsMultiToolTickBoxOverlay.TICK_MILLIS));
     }
 
-    /** "Last 50: 44 on time (30 ideal), 4 late, 2 missed, avg 310ms" */
-    private String summary() {
-        int onTime = 0;
-        int ideal = 0;
-        int late = 0;
-        int missed = 0;
-        long total = 0;
-        for (int offset : ticks.recent()) {
-            if (offset < 0) {
-                missed++;
-            } else {
-                total += offset;
-                if (ticks.isLate(offset)) {
-                    late++;
-                } else {
-                    onTime++;
-                }
-                if (ticks.isIdeal(offset)) {
-                    ideal++;
-                }
-            }
-        }
-        int clicks = onTime + late;
-        if (clicks + missed == 0) {
-            return "Click timing: waiting for a click";
-        }
-        StringBuilder text = new StringBuilder("Last ").append(clicks + missed).append(": ")
-            .append(onTime).append(" on time (").append(ideal).append(" ideal), ").append(late).append(" late");
-        if (config.clickEveryTick()) {
-            text.append(", ").append(missed).append(" missed");
-        }
-        if (clicks > 0) {
-            text.append(", avg ").append(total / clicks).append("ms");
-        }
-        return text.toString();
-    }
 }

@@ -6,7 +6,7 @@ Usage:
     python3 scripts/split_plugins.py --verify     # ...and check each compiles on its own
     python3 scripts/split_plugins.py --build      # ...and build each one's jar into releases/
     python3 scripts/split_plugins.py --check      # are the plugins/ folders up to date? (changes nothing)
-    python3 scripts/split_plugins.py pvm          # just one (multitool, skilltracker, pvm, gemcrab, tickcounter, voices)
+    python3 scripts/split_plugins.py pvm          # just one (multitool, skilltracker, pvm, gemcrab, tickcounter, planner, voices)
 
 The code is written once, in src/ (which is also Snuffy's Toolbelt, the all-in-one). Each plugin's folder gets
 only what that plugin uses: starting from its plugin class, every class it refers to (and so on), the data
@@ -28,11 +28,47 @@ OUT = os.path.join(ROOT, "plugins")
 RELEASES = os.path.join(ROOT, "releases")
 OLD_PACKAGE = "com.bradsmultitool"
 
+# Features only in builds from src/ (the launcher), not on the Plugin Hub: their code sits between
+# "// <click-timing>" and "// </click-timing>" lines, which are left out here, with these words in descriptions
+DEV_ONLY_BLOCK = re.compile(r"^[ \t]*// <click-timing>\n.*?^[ \t]*// </click-timing>\n", re.S | re.M)
+DEV_ONLY_TEXT = {
+    ", an attack timer and click timing for tick skilling": " and an attack timer",
+    ", the metronome and click timing.": " and the metronome.",
+    "the metronome and click timing. */": "and the metronome. */",
+    " Raise it if Click Timing says your clicks on the sound are late, lower it if they're early.": "",
+    "plays the metronome, and times your\n * clicks against the tick (how long after it each landed, a ding or a dun). Only reads your clicks and shows or\n"
+    " * sounds the ticks: it never clicks, changes a menu or does anything in the game.":
+        "and plays the metronome. Only shows and\n * sounds the ticks: it never clicks, changes a menu or does anything in the game.",
+    " snaps back when the next tick comes, with the ideal click zone (green), the late part (orange)\n"
+    " * and your last click marked on it. Under it, with Click\n * Timing on, a summary of your last clicks.":
+        " snaps back when the next tick comes.",
+    "the tick count, and with Click Timing on, how long after the tick each click\n"
+    " * landed, rising and fading like an XP drop (green in the ideal zone, red late).": "the tick count.",
+    "the metronome, click timing and its hotkeys.": "the metronome and its hotkeys.",
+    "Volume of the metronome and the click sounds (0-100)": "Volume of the metronome (0-100)",
+}
+
+
+def dev_only_removed(text):
+    """The text without its dev-only blocks and words, and the config methods those blocks declared."""
+    removed = set()
+    for block in DEV_ONLY_BLOCK.findall(text):
+        removed.update(re.findall(r"default [\w.<>]+ (\w+)\(\)", block))
+    text = DEV_ONLY_BLOCK.sub("", text)
+    for old, new in DEV_ONLY_TEXT.items():
+        text = text.replace(old, new)
+    return text, removed
+
+
+# The voices the published plugins ship (to keep them small for the Plugin Hub); builds from src/ keep every voice.
+# The others' VoicePersona entries are left out of the generated code too, so the settings only offer these.
+PUBLISHED_VOICES = ["amy", "cori", "alan", "john"]
+
 # Each plugin: its plugin class, package, project name, folder under plugins/, and which voice clip folders it ships
 PLUGINS = {
     "multitool": {
         "class": "BradsMultiToolPlugin", "package": "com.snuffys.multitool", "name": "snuffys-toolbelt", "folder": "toolbelt",
-        "voices": ["skilling", "pvm", "potions", "gemcrab", "shared"],
+        "voices": ["skilling", "pvm", "potions", "gemcrab", "planner", "shared"],
     },
     "skilltracker": {
         "class": "SkillTrackerPlugin", "package": "com.snuffys.skilltracker", "name": "snuffys-skilling-helper", "folder": "skilling-helper",
@@ -49,6 +85,10 @@ PLUGINS = {
     "tickcounter": {
         "class": "TickCounterPlugin", "package": "com.snuffys.tickcounter", "name": "snuffys-tick-counter", "folder": "tick-counter",
         "voices": [],
+    },
+    "planner": {
+        "class": "PlannerPlugin", "package": "com.snuffys.planner", "name": "snuffys-planner", "folder": "planner",
+        "voices": ["planner", "shared"],
     },
     "voices": {
         "class": "VoicesPlugin", "package": "com.snuffys.voices", "name": "snuffys-alerts", "folder": "alerts",
@@ -92,7 +132,7 @@ README = """# %(title)s
 %(description)s.
 
 %(features)s
-## Installing
+%(screenshots)s## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
 **%(title)s** and click **Install**. Its settings are under its name in the configuration panel, and **Open the
@@ -111,11 +151,12 @@ FEATURES = {
         "**XP tracker** in the sidebar: XP/hr, time to level, actions left, items gathered per hour, auto-pause, a pinned "
         "skill on screen, and it keeps your session through a quick restart",
         "**Goals** with the wiki's training method for your level, outlined in the world, banked XP and materials value, "
-        "Track for goal, and goal bars on the Skills tab",
+        "Track for goal, goal bars on the Skills tab, and skill plans exported from Snuffy's Planner (the milestone "
+        "you're on, with its own bar and method)",
         "**Hover cards** for trees, rocks, fishing spots, stalls, pickpocketing, farming patches, Hunter, Runecraft, "
         "Agility, Cooking, Smithing and Sailing",
         "**Resource timers**: tree, rock, fishing spot, trap, fire and shipwreck timers",
-        "**Farming patch list** with \"ready\" alerts, and a **Hunters' Rumours** card",
+        "**Hunters' Rumours** card: the creature, catches toward the rare part and where to find it",
         "**Agility**: course and Brimhaven arena cards, the quickest route to the tagged pillar, one-obstacle training",
         "**Minigames**: Wintertodt, Tempoross and Guardians of the Rift cards and alerts",
         "**Voice alerts**: inventory full, resource gone, Forestry events, bird nests, Motherlode sack full, boat "
@@ -139,24 +180,36 @@ FEATURES = {
         "**Tick count** over your head, as numbered tick boxes or a smooth tick bar",
         "**Metronome** with a play-ahead option, and hotkeys to reset, hide and change the cycle",
         "**Attack timer** that follows your weapon's speed, counting up or down to your next attack",
-        "**Click timing**: how far into the tick each click lands, for tick skilling practice",
     ],
     "voices": [
-        "**One voice and volume** for all of Snuffy's plugins (10 voices)",
+        "**One voice and volume** for all of Snuffy's plugins (4 voices)",
         "**Idle alerts**: AFK, about to be logged out, six-hour logout",
         "**Run energy** low and restored alerts",
-        "**Clue drops** from monsters and skilling, and **daily reminders** of what to collect",
+        "**Clue drops** from monsters and skilling",
+    ],
+    "planner": [
+        "**Today**: the daily rewards you've unlocked (battlestaves, herb boxes, essence, runes, sand, flax, bonemeal, "
+        "dynamite, ogre arrows), ticked off as you collect them, plus your own dailies, with the time to the reset",
+        "**Weekly**: Tears of Guthix, your own weeklies, the Kingdom of Miscellania's approval and coffer, and your "
+        "farming contract",
+        "**Timers**: every farming patch, compost bin and Hespori you've been to, bird houses and timers of your own, "
+        "with ready alerts",
+        "**Slayer**: your task, kills left, points and streak",
+        "**Drops**: each monster or chest tracked on its own: kills, loot with the drop rates you've seen, Grand Exchange "
+        "value, this session beside all time, and your latest drops",
+        "**Notes & to-do**: a to-do list and a notes box for each account",
+        "**Calculator**: pick a skill and a target (your goal, or the next level): every action with its XP (with the outfit, diary and altar bonuses you tick), how many to go, the time where the wiki's training guides give an XP rate, what the materials cost and the products are worth at Grand Exchange prices, what you own of it, and Set as goal (members-only actions left out on free worlds); Banked view shows the XP, level and value your bank gets you; Plan view makes a plan of milestones each with its own method (from the wiki's suggestions or by hand) with its XP, time and cost, and exports it to the Skilling Helper",
     ],
 }
 FEATURE_TITLES = {"skilltracker": "Skilling Helper", "pvm": "PvM/Slayer", "gemcrab": "GemCrab Tracker",
-                  "tickcounter": "Tick Counter", "voices": "Alerts"}
+                  "tickcounter": "Tick Counter", "planner": "Planner", "voices": "Alerts"}
 
 
 def features(plugin_id):
     """The README's feature list: the plugin's own, or for the Toolbelt every plugin's under its name."""
     if plugin_id != "multitool":
         return "## Features\n\n" + "".join("- %s\n" % f for f in FEATURES[plugin_id]) + "\n"
-    out = "## Features\n\nEverything in Snuffy's five separate plugins, in one plugin:\n\n"
+    out = "## Features\n\nEverything in Snuffy's six separate plugins, in one plugin:\n\n"
     for pid, title in FEATURE_TITLES.items():
         out += "**Snuffy's %s**\n\n" % title + "".join("- %s\n" % f for f in FEATURES[pid]) + "\n"
     return out
@@ -165,9 +218,9 @@ def features(plugin_id):
 def family(plugin_id):
     if plugin_id == "multitool":
         return ("This is all of Snuffy's plugins together. Install either the Toolbelt or the separate ones you want "
-                "(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Alerts), not both.\n")
+                "(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Planner, Alerts), not both.\n")
     return ("It's one of Snuffy's plugins: install just the ones you want (Skilling Helper, PvM/Slayer, GemCrab Tracker, "
-            "Tick Counter, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** "
+            "Tick Counter, Planner, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** "
             "has all of them in one; don't install it together with the separate ones.\n")
 
 
@@ -208,7 +261,8 @@ def closure(start, known):
 
 
 def data_files(names):
-    """The data files the included classes load (their RESOURCE constants), plus the Slayer pictures."""
+    """The data files the included classes load (their RESOURCE constants), plus the Slayer pictures and the sidebar
+    tab icons they load (icons/<name>.png)."""
     files = set()
     for name in names:
         with open(os.path.join(SRC, name + ".java"), encoding="utf-8") as f:
@@ -216,8 +270,7 @@ def data_files(names):
         files.update(re.findall(r'RESOURCE = "([^"]+)"', text))
         if 'loadImageResource(SlayerData.class, "slayer/"' in text:
             files.add("slayer/")
-        if 'loadImageResource(SkillTracker.class, "icons/' in text:
-            files.add("icons/")
+        files.update(re.findall(r'loadImageResource\(\w+\.class, "(icons/[\w.-]+)"\)', text))
     return files
 
 
@@ -225,10 +278,53 @@ def descriptor(name):
     """name, description and tags from the plugin class's @PluginDescriptor."""
     with open(os.path.join(SRC, name + ".java"), encoding="utf-8") as f:
         text = f.read()
+    text = dev_only_removed(text)[0]
     title = re.search(r'name = "([^"]+)"', text).group(1)
     description = re.search(r'description = "([^"]+)"', text).group(1)
     tags = re.findall(r'"([^"]+)"', re.search(r"tags = \{([^}]*)\}", text).group(1))
     return title, description, tags
+
+
+def published_personas(text):
+    """VoiceAlertService with only the published voices (and Random) in its VoicePersona enum."""
+    out = []
+    in_enum = False
+    for line in text.split("\n"):
+        if "public enum VoicePersona" in line:
+            in_enum = True
+        elif in_enum:
+            constant = re.match(r"\s+([A-Z_]+)\(\"", line)
+            if constant and constant.group(1) != "RANDOM" and constant.group(1).lower() not in PUBLISHED_VOICES:
+                continue
+            if re.match(r"\s+// Character voices", line):
+                continue
+            if constant and constant.group(1) == "RANDOM":
+                in_enum = False
+        out.append(line)
+    return "\n".join(out)
+
+
+SCREENSHOTS = os.path.join(ROOT, "assets", "screenshots")
+
+
+def copy_screenshots(plugin_id, out):
+    """The plugin's screenshots (assets/screenshots/<id>/*.png; the Toolbelt shows every plugin's) copied to
+    screenshots/ in its folder, as the README's Screenshots section. A file's name is its caption: "01-planner-
+    timers.png" is shown first, as "Planner timers"."""
+    ids = [plugin_id] if plugin_id != "multitool" else ["multitool"] + [p for p in PLUGINS if p != "multitool"]
+    lines = []
+    for source_id in ids:
+        folder = os.path.join(SCREENSHOTS, source_id)
+        if not os.path.isdir(folder):
+            continue
+        for name in sorted(f for f in os.listdir(folder) if f.lower().endswith(".png")):
+            os.makedirs(os.path.join(out, "screenshots"), exist_ok=True)
+            target = source_id + "-" + name if plugin_id == "multitool" else name
+            shutil.copy2(os.path.join(folder, name), os.path.join(out, "screenshots", target))
+            caption = re.sub(r"^\d+[-_ ]*", "", os.path.splitext(name)[0]).replace("-", " ").replace("_", " ")
+            caption = caption[:1].upper() + caption[1:]
+            lines.append("![%s](screenshots/%s)" % (caption, target))
+    return "## Screenshots\n\n" + "\n".join(lines) + "\n\n" if lines else ""
 
 
 def build(plugin_id, out_root=OUT, quiet=False):
@@ -242,9 +338,20 @@ def build(plugin_id, out_root=OUT, quiet=False):
     res_out = os.path.join(out, "src", "main", "resources", package_dir)
     os.makedirs(java_out)
     os.makedirs(res_out)
+    sources = {}
+    gone = set()
     for name in sorted(names):
         with open(os.path.join(SRC, name + ".java"), encoding="utf-8") as f:
-            text = f.read()
+            sources[name], removed = dev_only_removed(f.read())
+        gone |= removed
+    for name in sorted(names):
+        text = sources[name]
+        # The generated defaults list every setting: not the ones left out
+        if name.endswith("ConfigDefaults") and gone:
+            text = "\n".join(line for line in text.split("\n")
+                             if not any("config.%s()" % method in line for method in gone))
+        if name == "VoiceAlertService":
+            text = published_personas(text)
         text = text.replace("package %s;" % OLD_PACKAGE, "package %s;" % spec["package"])
         text = text.replace(OLD_PACKAGE + ".", spec["package"] + ".")
         with open(os.path.join(java_out, name + ".java"), "w", encoding="utf-8") as f:
@@ -254,11 +361,12 @@ def build(plugin_id, out_root=OUT, quiet=False):
         if data.endswith("/"):
             shutil.copytree(source, os.path.join(res_out, data))
         else:
+            os.makedirs(os.path.dirname(os.path.join(res_out, data)), exist_ok=True)
             shutil.copy2(source, os.path.join(res_out, data))
     # Voice clips: voices/<persona>/<folder>/ for this plugin's folders
     voices = os.path.join(RES, "voices")
     if "VoiceAlertService" in names:
-        for persona in sorted(os.listdir(voices)):
+        for persona in sorted(p for p in os.listdir(voices) if p in PUBLISHED_VOICES):
             for folder in spec["voices"]:
                 source = os.path.join(voices, persona, folder)
                 if os.path.isdir(source):
@@ -280,9 +388,10 @@ def build(plugin_id, out_root=OUT, quiet=False):
     shutil.copytree(os.path.join(ROOT, "gradle"), os.path.join(out, "gradle"))
     with open(os.path.join(out, ".gitignore"), "w", encoding="utf-8") as f:
         f.write(".gradle/\nbuild/\n.idea/\n*.iml\nout/\n")
+    shots = copy_screenshots(plugin_id, out)
     with open(os.path.join(out, "README.md"), "w", encoding="utf-8") as f:
         f.write(README % {"title": title, "description": description, "features": features(plugin_id),
-                          "family": family(plugin_id)})
+                          "family": family(plugin_id), "screenshots": shots})
     if not quiet:
         print("%-12s %3d classes, %s, voices: %s" % (plugin_id, len(names), ", ".join(sorted(data_files(names))) or "no data",
                                                   "+".join(spec["voices"]) if "VoiceAlertService" in names else "none"))

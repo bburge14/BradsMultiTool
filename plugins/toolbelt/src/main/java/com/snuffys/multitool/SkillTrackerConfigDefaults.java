@@ -12,6 +12,7 @@ final class SkillTrackerConfigDefaults {
     static void store(ConfigDefaults defaults, SkillTrackerConfig config) {
         defaults.store("openGuide", config.openGuide());
         defaults.store("showClashes", config.showClashes());
+        defaults.store("compactOverlays", config.compactOverlays());
         defaults.store("showSkillingHover", config.showSkillingHover());
         defaults.store("showSkillingRates", config.showSkillingRates());
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());
@@ -50,16 +51,9 @@ final class SkillTrackerConfigDefaults {
         defaults.store("voiceCoinPouch", config.voiceCoinPouch());
         defaults.store("chatCoinPouch", config.chatCoinPouch());
         defaults.store("showFarmingHover", config.showFarmingHover());
-        defaults.store("farmingPatchList", config.farmingPatchList());
-        defaults.store("farmingReadyAlert", config.farmingReadyAlert());
-        defaults.store("voiceFarmingReady", config.voiceFarmingReady());
-        defaults.store("chatFarmingReady", config.chatFarmingReady());
         defaults.store("showHunterHover", config.showHunterHover());
         defaults.store("trapTimers", config.showTrapTimer());
         defaults.store("showBirdhouseHover", config.showBirdhouseHover());
-        defaults.store("birdhouseAlert", config.birdhouseAlert());
-        defaults.store("voiceBirdhouses", config.voiceBirdhouses());
-        defaults.store("chatBirdhouses", config.chatBirdhouses());
         defaults.store("rumourCard", config.rumourCard());
         defaults.store("voiceRumourComplete", config.voiceRumourComplete());
         defaults.store("chatRumourComplete", config.chatRumourComplete());
@@ -135,8 +129,10 @@ final class SkillTrackerConfigDefaults {
         defaults.store("autoPauseSeconds", config.autoPauseSeconds());
         defaults.store("dropIdleSkillsAfter", config.dropIdleSkillsAfter());
         defaults.store("clearReachedGoals", config.clearReachedGoals());
+        defaults.store("followSkillPlans", config.followSkillPlans());
         defaults.store("showBankedXp", config.showBankedXp());
         defaults.store("skillsTabGoalBars", config.skillsTabGoalBars());
+        defaults.store("skillsTabLevelBars", config.skillsTabLevelBars());
         defaults.store("showTrackerItems", config.showTrackerItems());
         defaults.store("keepSessionMinutes", config.keepSessionMinutes());
         defaults.store("showMaterialsValue", config.showMaterialsValue());

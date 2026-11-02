@@ -6,7 +6,8 @@ section to open. In the Toolbelt, sections are named after their plugin and
 grouped in order: About, General, Idle, then **PvM:** (HUD, Buff Bar, Potion Buffs, Health, Prayer, Combat Alerts,
 Supply Alerts), **Slayer:** (Card, Monsters, Alerts), **GemCrab:** (Crab, Colours), **Skilling:** (Tracker, Goals,
 Hover Cards, Resource Timers, Alerts, Woodcutting, Mining, Fishing, Hunter, Other Skills for the rest, and Minigames), and
-**Tick:** (Counter, Boxes, Bar, Metronome, Click Timing). Each separate plugin has the same sections without the
+**Tick:** (Counter, Boxes, Bar, Metronome, Click Timing), and **Planner:** (Today, Weekly, Timers, Slayer, Drops,
+Notes & To-Do, Calculator). Each separate plugin has the same sections without the
 plugin's name, and the Skilling Helper gives every skill its own. All start collapsed except About and General.
 
 - [Alerts (all of them)](#alerts-all-of-them)
@@ -25,7 +26,9 @@ plugin's name, and the Skilling Helper gives every skill its own. All start coll
 - [Skill tracker](#skill-tracker)
 - [Goals and suggested training](#goals-and-suggested-training)
 - [Tick counter and metronome](#tick-counter-and-metronome)
+- [Planner](#planner)
 - [Idle alerts](#idle-alerts)
+- [Clue drops](#clue-drops)
 - [Agility](#agility)
 - [Minigames: Wintertodt, Tempoross, Guardians of the Rift](#minigames-wintertodt-tempoross-guardians-of-the-rift)
 - [Issues? button](#issues-button)
@@ -39,8 +42,9 @@ message uses the same words as the voice line, with details in brackets.
 
 **How to use:**
 - **General > Voice Alerts / Chat Messages** turn all voice or all chat on or off.
-- **General > Voice Persona** picks one of 10 voices (Amy, Cori, Alan, Ryan, Arctic, L2 Arctic, John, Wise
-  Old Man, TzHaar, Ghost) or **Random** (a different one each alert). Changing it plays a sample.
+- **General > Voice Persona** picks a voice, or **Random** (a different one each alert); changing it plays a sample.
+  The plugins on the Plugin Hub have four: Amy, Cori, Alan and John. Builds from this repository (the launcher) also
+  have Arctic, Wise Old Man, TzHaar and Ghost.
 - Each alert also has its own **Voice: ...** and **Chat: ...** switch in its section. Turning a Voice
   switch on plays that line as a preview.
 - **General > Same Voice For All** (on by default): with several of Snuffy's plugins installed, changing the
@@ -309,7 +313,8 @@ Daeyalt, RuneLite's Fishing plugin's Minnow overlay for minnow spots...), our pi
 
 ## Skilling alerts
 
-All only for the resource you're working, and each with Voice/Chat switches in its skill's section.
+All only for the resource you're working, and each with Voice/Chat switches in its skill's section. (The farming
+patches and bird houses ready alerts are in the [Planner](#planner) now.)
 
 | Alert | When | Setting |
 |---|---|---|
@@ -321,26 +326,8 @@ All only for the resource you're working, and each with Voice/Chat switches in i
 | Trim sails | On your own boat, a gust opens the window to trim the sails for a burst of speed (the game's buff bar times the same window) | Sailing > Voice/Chat: Trim Sails |
 | Bird nest | A bird's nest falls out of the tree (chat says when it's a clue nest) | Woodcutting > Voice/Chat: Bird Nest |
 | Coin pouches full | At 28 (more with the Ardougne Diary) | Thieving > Coin Pouch Alert |
-| Farming patches ready | Patches you've planted are grown (chat names them; once per crop). Uses each patch as you last saw it | Farming > Patches Ready Alert |
-| Bird houses ready | 50 minutes after you seeded them | Hunter > Bird Houses Ready Alert |
 | Rumour complete | Your Hunters' Rumour creature's rare part drops ("take the part to the Hunter Guild"; chat says how many you caught) | Hunter > Voice/Chat: Rumour Complete |
 | Batch complete | A run of Cooking, Smithing, Crafting, Fletching or Herblore finishes (3+ items in a row; one-off XP like quest rewards and lamps doesn't count) | Skilling Alerts > Batch Complete |
-
----
-
-## Farming patch list
-
-**What it does:** A **FARMING** list at the bottom of the sidebar: every patch you've been to with something in it,
-what's growing and when it's grown ("ready" in green, "in 1h 20m", "diseased", "dead"), soonest first.
-
-**How to use:** Just farm: the game only tells us a patch's state while you're near it, so each patch is saved as you
-last saw it (kept between logins, per account). Click the heading to fold the list; right-click a patch to forget it.
-**Farming > Patches Ready Alert** says when patches you've planted are grown. Settings: Farming Patch List, Patches
-Ready Alert, Voice/Chat: Patches Ready.
-
-**Good to know:** Grown times are estimates to within a growth cycle (crops grow on the game's clock). Disease can
-strike after you leave; the list only knows what it last saw. RuneLite's Time Tracking plugin keeps a similar list
-in its own panel.
 
 ---
 
@@ -386,17 +373,19 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
 - A skill's rate clock **auto-pauses** after a while without XP (**Auto-Pause After**: 10 seconds to an hour, 10 seconds by default) and
   resumes on your next XP.
 - Level-ups are announced with the skill and level ("Woodcutting level... 45!").
-- **Items gathered**: Woodcutting, Fishing, Mining and Cooking cards (and the pinned skill) count what you got
-  this session and how many an hour on the skill's XP/hr clock: "Logs: 342 (1,050/hr)", "Fish:", "Ore:" and
-  "Gems:", "Cooked: 120 (1,400/hr), 4 burnt (3%)". Counted from the game's chat messages (as RuneLite's
-  Woodcutting, Fishing and Cooking plugins do), one per message, so a double catch counts once. Reset rate
-  or Reset clears them (**Show Items Gathered**).
+- **Items gathered**: every skill's card (and the pinned skill), goal or not, counts what you did this session and
+  how many an hour: Woodcutting, Fishing, Mining and Cooking count items from the game's chat messages (as
+  RuneLite's Woodcutting, Fishing and Cooking plugins do; one per message, so a double catch counts once): "Logs:
+  342 (1,050/hr)", "Fish:", "Ore:", "Gems:", "Cooked: 120 (1,400/hr), 4 burnt (3%)". Other skills count each action
+  (each XP drop): "Steals:", "Made:", "Crafts:", "Casts:", "Catches:", "Burned:", "Offered:"... Combat skills count
+  kills instead. Per hour is worked out at the skill's XP rate, so it matches the card's XP/hr. Reset rate or Reset
+  clears them (**Show Items Gathered**).
 - **Keep Session After Restart** (30 minutes by default; 0 turns it off): close the client and log back in to the
   same account within that time of logging out (or of your last XP, if the client closed without logging out) and
-  the tracker carries on with that session's XP, rates, actions and items; chat says so. XP gained elsewhere in
+  the tracker carries on with that session's XP, rates, actions and items, quietly. XP gained elsewhere in
   between (mobile) isn't added. Reset all skills starts afresh. Like RuneLite's XP Tracker keeping its session.
 
-**Settings (Skill Tracker):** a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
+**Settings (Skill Tracker):** a switch for each field; **Compact Overlays** (General) trims the cards (see below); Actions Until Goal; Show Goal; Suggested Method,
 Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
 (minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up; Show Items Gathered; Keep Session After Restart.
 
@@ -437,6 +426,16 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   Train line for all of them. Only places the guide names (and only real wiki location pages), so some methods
   have none.
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
+- **Skill plans** (with **Follow Skill Plans** on, the default): a plan exported from Snuffy's Planner's Calculator
+  (Plan view > Export to tracker) sets the goal and its milestones. The goal card then shows the milestone you're on
+  as the near goal, "Milestone: level 50 (Willow logs)", with its own blue bar under the gold goal bar (from the
+  milestone's start to its end, with the time to it; hover for the whole plan), and the pinned skill the same bar and
+  "Plan: Willow logs (to 50)". Actions (or kills) count to the milestone's end. Its method is the suggestion and its
+  trees, rocks, NPCs or fishing spots are outlined (matched to the training guide's method by name; otherwise just
+  the text), ahead of the wiki's suggestion and the Training Focus, behind a Track for goal pick or a Method you pick
+  (exporting clears an old Method pick). Pass a milestone and it moves to the next (chat says "Woodcutting plan: next
+  milestone, Teak logs to level 60"); levels the plan doesn't cover get the wiki's suggestion. Without an exported
+  plan nothing changes; clearing the goal removes it.
 - Where that method is a tree, rock, stall, pickpocket NPC, Hunter creature or fishing (every spot that catches its fish), those are outlined in the
   world.
 - **Pick another method:** right-click the skill's card > **Method** lists every guide method your level and
@@ -500,9 +499,12 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
    clears itself, with a chat line ("Fishing goal reached (level 53): cleared"); turn off **Clear Goals When
    Reached** to keep reached goals (they show Done!).
 
-**Skills tab goal bars:** on the game's Skills tab, each skill with a goal gets a thin gold bar along its bottom,
-filled as far as the card's goal bar (**Goals > Skills Tab Goal Bars**). It's drawn over the tab; the tab itself
-isn't changed. The Skills Progress plugin draws its own bars there too (clash note).
+**Skills tab bars:** on the game's Skills tab, two separate bars, drawn over the tab (the tab itself isn't changed):
+- **Level bars** (**Goals > Skills Tab Level Bars**): along the bottom of every skill, how far you are to the next
+  level, orange turning green as it fills (none at 99). While the Plugin Hub's Skills Tab Progress Bars is on, ours
+  step aside for its bars (the clash icon says so).
+- **Goal bars** (**Goals > Skills Tab Goal Bars**): up the left edge of each skill with a goal, a gold bar filling
+  from the bottom, as far as the card's goal bar. On the edge, so it never sits on a level bar, ours or theirs.
 
 Goals are saved with your RuneScape profile, so they stay after a relaunch. The Toolbelt and the Skilling Helper
 share them (and your Track for goal picks, Suggest choices and pinned skill), so switching between them keeps
@@ -539,9 +541,9 @@ killed it twice. Potions and better gear show up here as faster kills; they don'
 (combat XP comes from damage, and a kill can only take its hitpoints).
 
 - **Banked XP** (Goals > Show Banked XP): on a production skill's goal (Cooking, Herblore, Prayer, Fletching...), a
-  "Banked: 1.2M XP" line: the XP in what's in your bank and inventory at your level, the most XP things first, each
-  material counted once. Just a figure; it doesn't change what's suggested. Shows once you've opened your bank.
-- **Materials value** (Goals > Show Materials Value): under it, "Materials: 1.2M gp", the Grand Exchange value of
+  "Banked: 1.2M XP (to level 84)" line: the level that gets you to, and the XP in what's in your bank and inventory at your level, the most XP things first, each
+  material counted once. Just a figure; it doesn't change what's suggested. **Note:** both use your bank as you last saw it: open your bank once on each account and they show from then on, even straight after login (the bank's remembered with your account and updated whenever you open it). Until then neither line shows.
+- **Materials value** (Goals > Show Materials Value): under it, "Materials worth: 1.2M gp", the Grand Exchange value of
   the materials counted in Banked XP. Just a figure.
 
 ---
@@ -601,7 +603,7 @@ clicks; it never clicks, changes a menu or does anything for you.
     sounds keep playing. Turning the plugin off and on shows them again.
   - **Ticks Per Cycle Up / Down:** one more or one less (1-10), saved like changing the setting, with a chat
     line saying the new number (and when Follow Attack Speed or a Tick Pattern sets the cycle instead).
-- **Click Timing:** each click shows how long after the tick it landed (e.g. "310ms") over your head: green
+- **Click Timing** (builds from this repository only: the Plugin Hub version leaves it out): each click shows how long after the tick it landed (e.g. "310ms") over your head: green
   in the ideal zone, white elsewhere before Late After, red when late. The tick bar shades the **ideal zone**
   green (**Ideal From** to **Ideal To**, 100-350ms by default) and the late part orange, and marks your last
   click. A summary of your last 50 clicks shows with the bar: "Last 50: 44 on time (30 ideal), 4 late, 2
@@ -623,6 +625,183 @@ Ticks Per Cycle (1-10); Follow Attack Speed, Count Down To Attack, Late Ticks (0
 Bar Width; Metronome, Tone, First Tick Only, Volume (also the click sounds; 0 uses the game's sound effect
 volume); Click Timing; Click Sounds; Late Sound; Late After; Ideal From and Ideal To; Click Every Tick; Reset Count,
 Show/Hide, Ticks Per Cycle Up and Ticks Per Cycle Down hotkeys.
+
+---
+
+## Planner
+
+**Snuffy's Planner** (in the Toolbelt too): its own sidebar tab (the calendar icon) for things on a clock and your
+account's to-do list, laid out like RuneLite's Time Tracking: six tabs across the top (**Today**, **Timers**,
+**Slayer**, **Drops**, **Notes**, **Calculator**; the one you pick stays open next time), each with a header line (its title, a
+summary like "3 left · resets in 10h 37m", and a **+** to add) over cards with the item's picture. Right-click a card
+for its menu (edit, hide, delete...). Each list has a **Show ...** setting to hide it. What you add is saved per
+account (RuneScape profile), and the Toolbelt and the separate Planner show the same. Skill goals live in the
+Skilling Helper; the Calculator's **Set as goal** sets the same goal (both plugins read it).
+
+**Today: Dailies** (the header counts down to the daily reset, 00:00 UTC):
+- The daily rewards you've unlocked, ticked off by the game as you collect them, the same checks as RuneLite's Daily
+  Task Indicator: battlestaves (Zaff, Varrock easy diary), herb boxes (Nightmare Zone, 9,500 points each, up to 15;
+  not Ironmen; "3 of 15 bought"), pure essence (Wizard Cromperty, Ardougne medium), random runes (Lundail,
+  Wilderness easy), sand (Bert, The Hand in the Sand; not Ultimate Ironmen), bowstrings (Flax keeper, Kandarin easy),
+  bonemeal and slime (Robin, Morytania medium and up), dynamite (Thirus, Kourend & Kebos medium), ogre arrows (Rantz,
+  Western Provinces easy). Members only; ones you haven't unlocked don't show. Each shows the reward's picture and
+  where to get it (hover for the full note); collected ones turn grey with a green tick.
+- **Your own:** **+** adds a daily or weekly with a name and an optional note; click it to tick it and it unticks at
+  its reset. Right-click any line to **Edit...** (rename it, change its note) or **Delete** it; presets are
+  **Hidden** instead (**Show hidden** brings them back). Presets can be ticked by clicking too.
+- At login and at the reset, if anything's left: one voice line, "You have dailies to do.", and one line in the
+  **split private chat** (where friends' logins show, above the chat box when the game's Split Private Chat is on; it
+  fades after a while) saying how many are left (**Chat: Dailies**). Never a line per item.
+
+**Today: Weeklies** (under the dailies, counting down to the weekly reset, Wednesday 00:00 UTC):
+- **Tears of Guthix:** noticed when a game there ends; Juna lets you back at the start of the seventh day after
+  ("back in 3d 4h"). Before your first game with the plugin on it says "not seen yet": tick it by hand when you play
+  it elsewhere. (It also needs a quest point or 100,000 XP since your last visit, which the game doesn't tell us.)
+- Your own weeklies, as above. "You have weeklies to do." at login and the weekly reset (Chat: Weeklies off at first).
+- **Kingdom of Miscellania:** approval and coffer as last seen, as RuneLite's Kingdom plugin reads them (the game
+  sends them while you're in the kingdom, or once they've changed), after Throne of Miscellania. A bar shows
+  the approval; under 50% it's orange.
+- **Farming contract:** Guinevere's contract (the crop), how its Farming Guild patch is doing (from Timers, with its
+  growth bar), or "done: claim from Guinevere".
+
+**Timers** (the header says how many are ready and running):
+- **Farming patches** (moved here from the Skilling Helper's sidebar; nothing saved is lost): every patch, compost bin
+  and Hespori patch you've been to with something in it, what's in it (with the crop's picture), a bar
+  filling as it grows and when it's grown ("ready" in green, "in 1h
+  20m", "diseased", "dead"), soonest first. The game only tells us a patch's state while you're near it, so each is as
+  you last saw it; right-click one to forget it. Like RuneLite's Time Tracking, a patch is only read after two ticks in
+  the same area and not while a full-screen interface is open, and the account's growth tick offset is learnt the
+  first time a patch is seen growing a stage while you stand there; until then times show with a **~** (they may be out
+  by one growth cycle) and the ready alert waits a cycle longer.
+- **Bird houses:** when your Fossil Island bird houses are full (50 minutes after seeding), with a bar.
+- **Your own timers:** **+** with a name and a length (HH:MM:SS, e.g. 01:30:00; MM:SS or plain minutes work too); the play, stop and again buttons on each,
+  the time left counting down with a bar; right-click to edit, reset or delete. They keep running through a logout; one that ends while
+  you're away is said when you're back.
+- **Ready Sound:** how the Timers tab tells you something's done (your timers, farming patches, bird houses): its
+  voice line, or a game sound (Bell, Chime, Anvil, Boop, Door) played **Times** times (1-5, 3 at first); picking one
+  plays it. Game sounds follow the game's Sound Effects volume. The chat line is posted either way.
+- Alerts: Patches Ready (names them; once per crop), Bird Houses Ready, Timer Done ("Your timer is done.", names it),
+  each with Voice/Chat switches. Their lines go to the game chat like other alerts (only the dailies and weeklies
+  reminders use the split private chat).
+- **Your timers' alerts**: adding or editing a timer (+, or right-click > Edit...) has **When it's done**: Default (the
+  Ready Sound setting), Voice line, Bell, Chime, Anvil, Boop or Door (picking one plays it), and **Times** (1-5) for a
+  sound. Each timer keeps its own; hover a timer to see it.
+
+**Slayer:** your task and kills left (of how many, with a bar), Konar's area, and Slayer points and streak tiles, read
+straight from the game (as RuneLite's Slayer plugin does), so it works without the PvM/Slayer plugin; kept for when you're logged out.
+
+**Drops** (the header totals the value; the bin clears the lot): each monster is tracked on its own (and each chest,
+clue casket, raid... with **Count Other Loot**). The front page lists them, most valuable first, one card each: its
+picture (a clue casket's or key chest's item; a tile with a monster's initials), name, kills or opens, value per kill
+and total Grand Exchange value; under them your latest drops (**Recent Drops Shown**), the valuable ones (**Valuable
+Drop From**, 100K at first) in **Valuable Drop Colour**. Click a card, or one of its recent drops, for that monster's
+own page (the arrow in its header goes back):
+- Tiles: kills, total value, value per kill, and kills since its last valuable drop ("No valuable yet" until one).
+- **Best drop**: its single most valuable drop, and when.
+- **Session vs all time**: kills, value and value per kill since the client started (kept in memory) beside all
+  time (saved).
+- **Items**: every item it has dropped, most valuable first, with its total amount, how many kills it came in, the drop
+  rate you've seen (**1 in 45** = kills / times dropped; "every kill") and its value; ones worth Valuable Drop From a
+  drop are in Valuable Drop Colour with a bar at the side. **Show this session** lists this session's items instead.
+- The bin resets that monster (after asking); right-click a card on the front page for the same.
+
+Drops saved before drop rates were kept still load: those items show **?** for the rate until they drop again, and
+rates count from then (hover says so). Monster drops are RuneLite's own kill loot (as the PvM HUD's loot per hour counts it, which stays in
+PvM); other loot comes from RuneLite's Loot Tracker, so it's only counted while that plugin is on (its monster kills
+aren't counted twice). With the Loot Tracker on, the clash note says the two lists overlap.
+
+**Notes:** a to-do list (type in the box at the top and press Enter or **+**; click a line to tick it, right-click to
+edit, move up or down, delete; **Clear ticked**) and a notes box below, saved as you type, for each account.
+
+### Calculator
+
+A skill calculator in the Planner's last tab (the calculator icon), made from RuneLite's own Skill Calculator: the
+same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded down).
+- **Skill**: click one in the grid (the skills the calculator has, in the Skills tab's order); the one you pick is
+  remembered.
+- **Goals**: skills with a goal ahead of you (set here or in the Skilling Helper: they share them) have a gold line in
+  the grid, and a **Goals** list under it shows each one ("Fletching → 99", with the percentage from where the goal
+  started; hover for the XP to go and how many plans it has); click one to open that skill.
+- **Current and target**: your level and XP fill in from the game (logged out, the last you had); type over any of the
+  four boxes to plan ahead (a level fills in its XP and the other way round). The target starts at the skill's goal if
+  it has one ahead of you, else the next level. A target you type is kept for that skill (switching skills, logging out)
+  until **Reset** (back to the goal or next level) or **Set as goal**. The line under them says the goal, and **Set as goal** makes the target
+  the skill's goal exactly as the Skilling Helper's Set Goal does (a goal still underway keeps where its bar started);
+  the bar shows how far you are toward it.
+- **XP bonuses** (where the skill has them: skilling outfits, achievement diaries, the Felling axe, altars and the
+  Ectofuntus, the bonecrusher, shark lures, Daeyalt essence, Goldsmith gauntlets...): tick the ones you use. They're
+  remembered per skill; ticking one that can't go with another unticks it (one altar at a time); each counts only for
+  the actions it applies to (the gilded altar for bones, not ashes).
+- **Actions**: each with its picture, name and level (greyed out above your level), XP each with your bonuses and how
+  many to your target. Underneath where it applies: the time at the XP rate the wiki's training guide gives for a
+  matching method (Teak trees for Teak logs), how many you have (bank as last opened plus inventory: of the item, or
+  how many you can make from your materials), and with **Show GE Prices** one line of money at Grand Exchange prices:
+  what the materials to your target are worth ("Mats 1.24M", for what you make, burn or bury) and what the products
+  sell for ("Sells 2.10M": what you make, or the logs, ore, fish or catch you gather, priced by the item's id); neither
+  is profit. The net beside them is: a green plus badge and "+860K" for a gain, a red minus and "-28K" for a loss
+  (what it sells for less what the materials are worth), with the net gp per XP above it. Hover for it in words. The training guide's method at your level is marked in
+  green. **Sort** (beside the search, remembered) orders them: **Level** low to high (at first) or high to low, **What you can do first** (then what you can't yet, each lowest first), **Most XP each**, **Fastest** (the guide's XP an hour), **Cheapest per XP**, **Most profit** or **Name**; all but the level and name orders put what you can do first. **Search** to filter by name.
+  Hover a card for all of it in words; right-click it to **Add to plan**.
+- **Members-only actions** (marked in each action's data, from RuneLite's Skill Calculator and the item's members
+  flag) are left out on a free world, as RuneLite's calculator does, with a note "Members-only actions hidden on
+  this free world"; logged out, everything shows (setting: Hide Members On Free Worlds).
+- **Actions · Banked · Plan** (the tabs above the list; the one you pick is remembered).
+- Each milestone card is its own levels only (not added up). Under them, **Whole plan** adds them up: the XP to the
+  goal, the time to it at the wiki's rates (TTG), the average XP an hour over it, the net gp per XP, and the materials,
+  what it sells for and the net (badge). Hover it for all of it in words.
+- **Materials needed** (under Whole plan): everything the milestones still need, in full (each milestone's actions to
+  its end, in goes of its recipe, times its materials; where there are several recipes, the one you have the most
+  goes of), as "have / need": green when your bank and inventory have all of it, red when you're short (hover for how
+  many); tools say "have it" or "missing".
+- Darts, arrows and bolts are made 10 or 15 at a time: each action is one item, with its share of the materials.
+- A plan goes by your real XP (the game's): typing a level into Current to try it out changes Actions and Banked,
+  but doesn't mark the plan's milestones done.
+- **Your plan bar** (under the list, in Actions and Banked): the skill's goal and the plan's milestones (levels,
+  method, XP left; the one you're on marked green) stay in view while you scroll the actions, to compare. Click its
+  title to fold it away or open it again (remembered); **Edit** opens the Plan view. A long plan scrolls inside it.
+- **Banked**: what you own instead: the XP in all of it for the skill at your level (the most
+  XP each first, each item used once, as the Skilling Helper's banked XP), the level that gets you to (with your target
+  beside it: "Level · aim 67"), what the materials it uses up are worth (**Materials**) and the **Net** of making it all (red for a loss), and each action you have the
+  makings of, with how many, the XP and the levels it takes you through stacked on the ones above it ("lvl 59 → 61",
+  then "lvl 61 → 63"... so the last ends at the total; green once it reaches the target), what its materials are
+  worth and what it sells for, and its net with the plus or minus badge. Two actions sharing materials split them as the total does (most XP first): "x 0 of 620 · used
+  above". One above your level says what it needs ("needs lvl 80") and isn't counted. The bank counts
+  once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
+- **The goal** (when the skill has one, set here or in the Skilling Helper): a gold card at the top of the Plan view
+  with its levels, what it trains (Track for goal pick, the method picked on the tracker card, the exported plan, or
+  the wiki's suggestion), your level and how far along it is. Click it to unfold **Change goal** (a level or XP),
+  **Make a plan for it** (a new plan named "Goal to 70", with one milestone of what it trains when that's a
+  Calculator action) and **Remove goal** (asks first: it's the Skilling Helper's goal too); right-click for the same.
+- **Plans**: the Plan view starts with the skill's saved plans: as many as you like, each with a name ("Darts to
+  99", "AFK teaks"), its levels and how many milestones, **In tracker** on the one exported. **+** makes a new one
+  (it asks for a name). Each plan's card shows its levels, your level and how far along it you are (a bar and a
+  percentage, by XP). Click one to open it: it unfolds under its card (a green edge: it's the one **Add to plan** adds to
+  and the plan bar shows); click it again to fold it away (remembered); right-click one to **Rename...**, **Duplicate** (to try a variation) or
+  **Delete...**. Under them, links to other skills' plans ("Other skills: Fletching (2)"). Plans made before there
+  could be several become the first, unnamed ("Plan 1").
+- **Plan**: the open plan: a final goal (level 99, or your target) and milestones on the way, each with its
+  own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Start from suggestions** fills the milestones from
+  the wiki's training guides from your level to the goal (the skill's AFK / Other focus if you picked it in the
+  Skilling Helper, else the fastest), each guide method as the Calculator action it means at that level; or build it
+  by hand: right-click an action > **Add to plan** (it starts where the last milestone ends, or at its own level, and
+  the last one stretches or shortens to meet it; inside a milestone, it takes over from its own level to where that one ended: Atlatl
+  darts (74) in Adamant darts 67-81 make Adamant 67-74 and Atlatl 74-81; when there's no room before the goal, it
+  asks to raise the goal so the new one goes on after it). **+** with levels you type puts it in at those levels:
+  the milestones it overlaps are cut short, split around it, or removed if it covers them. A new plan's goal is the target you typed or the skill's goal, else 99, or **+** to pick a method and levels. Right-click a milestone to
+  **Edit...** its method and levels, **Change method (pick an action)** from the Actions list, **Move up**/**Move down**
+  (swaps the methods; the levels stay in order) or **Delete** it. Each milestone shows what's left of it: XP, how many
+  actions, the time at the guide's XP rate, the net gp per XP and its cost and earnings; the one you're on is marked,
+  finished ones greyed, levels with no milestone noted. Above them the totals: XP to go, time, cost and earnings, and
+  your level to the goal (**Goal: level 99** to change it). Saved per account (`plan.<SKILL>` in the shared group).
+- **Export to tracker** (only when Snuffy's Skilling Helper or the Toolbelt is installed; otherwise a note says
+  installing it lets you): sets the plan's final goal as the skill's goal (as Set as goal does) and gives the Skilling
+  Helper the milestones, which its goal card then follows (see Goals). Changed since? **Update** replaces it;
+  **Remove** takes it out of the tracker (the goal stays).
+- Information only: nothing is done in the game.
+
+**Settings (Planner: Today, Weekly, Timers, Slayer, Drops, Notes & To-Do, Calculator):** a Show switch for each list; Dailies To Do
+Alert, Weeklies To Do Alert; Kingdom of Miscellania, Farming Contract; Farming Patch List, Patches Ready Alert, Bird
+Houses Ready Alert; Show GE Prices, Hide Members On Free Worlds (Calculator); Count Other Loot, Valuable Drop From, Valuable Drop Colour, Recent Drops Shown; Voice/Chat switches.
 
 ---
 
@@ -650,25 +829,16 @@ At (%, 0 off); Voice/Chat switches.
 
 ---
 
-## Reminders (clue drops and dailies)
+## Clue drops
 
-Every plugin but the Tick Counter has these; with several installed only one says them.
+Every plugin but the Tick Counter has this; with several installed only one says it.
 
-**What it does:**
-- **Clue drop alert:** a clue scroll in the drop of a monster you killed, or a clue bottle, clue geode, clue nest or
-  scroll box from skilling arriving in your inventory: "Clue: a hard clue scroll from Abyssal demon!" (the tier from
-  the item's name). Taking one out of the bank, the GE or a deposit box doesn't count, and picking up a dropped one
-  isn't said twice.
-- **Daily reminders:** at login (and at the daily reset, 00:00 UTC), one chat line listing the daily rewards you've
-  unlocked but not collected, as RuneLite's Daily Task Indicator does: battlestaves (Zaff, Varrock easy diary), herb
-  boxes (Nightmare Zone, 9,500 points; not Ironmen), pure essence (Wizard Cromperty, Ardougne medium), random runes
-  (Lundail, Wilderness easy), sand (Bert, The Hand in the Sand; not Ultimate Ironmen), bowstrings (Flax keeper,
-  Kandarin easy), bonemeal and slime (Robin, Morytania medium and up), dynamite (Thirus, Kourend & Kebos medium),
-  ogre arrows (Rantz, Western Provinces easy). Members only. Kingdom of Miscellania isn't in it: its favour and
-  coffers aren't a daily collection, and RuneLite's plugin doesn't track them either. With RuneLite's Daily Task
-  Indicator on too, the clash note says so.
+**What it does:** a clue scroll in the drop of a monster you killed, or a clue bottle, clue geode, clue nest or
+scroll box from skilling arriving in your inventory: "Clue: a hard clue scroll from Abyssal demon!" (the tier from
+the item's name). Taking one out of the bank, the GE or a deposit box doesn't count, and picking up a dropped one
+isn't said twice. (The daily reminders that used to be here are the Planner's TODAY list now, without the chat line.)
 
-**Settings (Reminders):** Clue Drop Alert; Daily Reminders and a switch for each daily; Voice/Chat switches.
+**Settings (Reminders):** Clue Drop Alert; Voice/Chat: Clue Drop.
 
 ---
 
@@ -749,3 +919,21 @@ Spot, Vulnerable; Guardians of the Rift Card, Voice/Chat: Game Starting, Portal 
 
 The **Issues?** button in the top-right corner of the skill tracker panel opens a new GitHub issue in your browser. Say
 what you did and what you saw; a screenshot helps.
+
+---
+
+## Compact Overlays
+
+One switch in **General** for less on a plugin's cards and HUDs (one in the Toolbelt for all of them; one in each
+separate plugin that has overlays: Skilling Helper, PvM/Slayer, GemCrab Tracker). The other settings still decide
+what shows when it's off.
+- **Skill cards** (sidebar and pinned): the level bar, the goal and step bars, XP/hr and time to level.
+- **Skilling hover cards**: what it is, what it needs and gives; no tools, XP rates or money lines.
+- **Agility**: course laps, laps to your next level and marks; arena pillar and tickets; one-obstacle reps and reps to
+  your next level.
+- **Wintertodt / Tempoross / Guardians of the Rift**: the round, warmth, energy and points / energy, essence, storm
+  and points / the power, open altars and portal.
+- **PvM HUD**: the target, its health, weakness and the LOW warnings. **Monster hover card**: name, health, weakness,
+  aggression and kill goal. **Slayer card**: the task, kills left, time to finish, the prayer and the item it needs
+  (no task: the master and where).
+- **GemCrab HUD**: the crab's health, when it burrows, whether you're attacking and the LOW warnings.

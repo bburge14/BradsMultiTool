@@ -13,7 +13,13 @@ Add-Type -Namespace Snuffys -Name Win -MemberDefinition @'
 [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowEx(IntPtr parent, IntPtr after, string cls, string title);
 [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
 [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
+[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hwnd, int show);
+[DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
 '@
+# No console window behind the launcher, however it was started (the .bat, the shortcut): only the launcher shows.
+# Everything it runs (the build, git, Python) runs hidden too.
+$consoleWindow = [Snuffys.Win]::GetConsoleWindow()
+if ($consoleWindow -ne [IntPtr]::Zero) { [void][Snuffys.Win]::ShowWindow($consoleWindow, 0) }
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $root = Split-Path $PSScriptRoot -Parent
@@ -335,6 +341,7 @@ $plugins = [ordered]@{
     'pvm'      = 'PvM/Slayer'
     'gemcrab'  = 'GemCrab Tracker'
     'tick'     = 'Tick Counter'
+    'planner'  = 'Planner'
     'alerts'   = 'Alerts'
 }
 $last = 'toolbelt'
@@ -359,16 +366,17 @@ $separate.AutoSize = $true
 $pick.Controls.Add($separate)
 
 $boxes = @{}
-$y = 94
+# Two columns of three
+$i = 0
 foreach ($key in $plugins.Keys) {
     $box = New-Object System.Windows.Forms.CheckBox
     $box.Text = $plugins[$key]
-    $box.Location = New-Object System.Drawing.Point(34, $y)
+    $box.Location = New-Object System.Drawing.Point((34 + [math]::Floor($i / 3) * 190), (94 + ($i % 3) * 22))
     $box.AutoSize = $true
     $box.Checked = ($lastNames -contains $key) -or ($lastNames -contains 'separate')
     $pick.Controls.Add($box)
     $boxes[$key] = $box
-    $y += 22
+    $i++
 }
 $updateBoxes = { foreach ($box in $boxes.Values) { $box.Enabled = $separate.Checked } }
 $toolbelt.Add_CheckedChanged($updateBoxes)
@@ -530,7 +538,7 @@ function Confirm-Exit {
     $window = RuneLite-Window
     if (-not $window) { return }
     $hwnd = [IntPtr]::Zero
-    while (($hwnd = [Snuffys.Win]::FindWindowEx([IntPtr]::Zero, $hwnd, $null, 'Exit')) -ne [IntPtr]::Zero) {
+    while (($hwnd = [Snuffys.Win]::FindWindowEx([IntPtr]::Zero, $hwnd, [NullString]::Value, 'Exit')) -ne [IntPtr]::Zero) {
         $owner = 0
         [void][Snuffys.Win]::GetWindowThreadProcessId($hwnd, [ref]$owner)
         if ($owner -eq $window.Id -and [Snuffys.Win]::SetForegroundWindow($hwnd)) {
@@ -541,9 +549,14 @@ function Confirm-Exit {
     }
 }
 
+# Whether any RuneLite is open: the one we started, or one opened before this window
+function RuneLite-Open {
+    return (RuneLite-Running) -or [bool](RuneLite-Window)
+}
+
 $closer.Add_Tick({
     Confirm-Exit
-    if (-not (RuneLite-Running)) {
+    if (-not (RuneLite-Open)) {
         $closer.Stop()
         Update-Plugins
         Start-RuneLite
@@ -551,11 +564,16 @@ $closer.Add_Tick({
     }
     # Still open after 20 seconds: end it and the build behind it
     if (((Get-Date) - $script:closingSince).TotalSeconds -gt 20) {
-        & taskkill.exe /PID $script:runner.Id /T /F | Out-Null
+        if (RuneLite-Running) {
+            & taskkill.exe /PID $script:runner.Id /T /F | Out-Null
+        } else {
+            $window = RuneLite-Window
+            if ($window) { & taskkill.exe /PID $window.Id /T /F | Out-Null }
+        }
     }
 })
 $relaunch.Add_Click({
-    if (-not (RuneLite-Running)) {
+    if (-not (RuneLite-Open)) {
         Update-Plugins
         Start-RuneLite
         return
@@ -625,6 +643,8 @@ $autoUpdate = New-Object System.Windows.Forms.Timer
 $autoUpdate.Interval = 5000
 $autoUpdate.Add_Tick({
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
+    # Not while the Dev tab is pushing: it publishes the commit it started with
+    if ($script:publishRun -and -not $script:publishRun.HasExited) { return }
     if ($script:fetch) {
         if (-not $script:fetch.HasExited) { return }
         $script:fetch = $null
@@ -643,15 +663,27 @@ $autoUpdate.Add_Tick({
 })
 $autoUpdate.Start()
 
-# Desktop shortcut: make (or fix) one with the Toolbelt's icon; shortcuts already pointing here get the icon too
+# Desktop shortcut: opens the launcher straight through PowerShell, minimised and hidden (no cmd window, unlike the
+# .bat); made with the Toolbelt's icon. Shortcuts to the .bat (or to this) are brought up to date when the launcher runs
 $bat = Join-Path $root 'Launch-BradsMultiTool.bat'
+$launcherScript = Join-Path $root 'scripts\launcher.ps1'
+$powershellExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+$launcherArgs = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcherScript`""
 $desktop = [Environment]::GetFolderPath('Desktop')
+function Set-LauncherShortcut($link) {
+    $link.TargetPath = $powershellExe
+    $link.Arguments = $launcherArgs
+    $link.WorkingDirectory = $root
+    $link.WindowStyle = 7
+    $link.IconLocation = "$icon,0"
+    $link.Save()
+}
 function Set-ShortcutIcons {
     Get-ChildItem $desktop -Filter '*.lnk' -ErrorAction SilentlyContinue | ForEach-Object {
         $link = $shell.CreateShortcut($_.FullName)
-        if ($link.TargetPath -ieq $bat -and $link.IconLocation -notlike "$icon*") {
-            $link.IconLocation = "$icon,0"
-            $link.Save()
+        $ours = ($link.TargetPath -ieq $bat) -or ($link.TargetPath -ieq $powershellExe -and $link.Arguments -like "*$launcherScript*")
+        if ($ours -and ($link.TargetPath -ine $powershellExe -or $link.Arguments -ne $launcherArgs -or $link.WindowStyle -ne 7 -or $link.IconLocation -notlike "$icon*")) {
+            Set-LauncherShortcut $link
         }
     }
 }
@@ -661,11 +693,7 @@ $shortcut.Location = New-Object System.Drawing.Point(14, 644)
 $shortcut.AutoSize = $true
 $playTab.Controls.Add($shortcut)
 $shortcut.Add_LinkClicked({
-    $link = $shell.CreateShortcut((Join-Path $desktop "Snuffy's Launcher.lnk"))
-    $link.TargetPath = $bat
-    $link.WorkingDirectory = $root
-    $link.IconLocation = "$icon,0"
-    $link.Save()
+    Set-LauncherShortcut ($shell.CreateShortcut((Join-Path $desktop "Snuffy's Launcher.lnk")))
     [System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher is on your desktop.", "Snuffy's") | Out-Null
 })
 
@@ -674,8 +702,9 @@ $shortcut.Add_LinkClicked({
 
 # Python 3: "py -3" (the Windows launcher) or "python"
 function Find-Python {
-    if (Get-Command py -ErrorAction SilentlyContinue) { return @('py', '-3') }
-    if (Get-Command python -ErrorAction SilentlyContinue) { return @('python') }
+    # The comma keeps a one-item list a list (PowerShell would hand back the bare string)
+    if (Get-Command py -ErrorAction SilentlyContinue) { return ,@('py', '-3') }
+    if (Get-Command python -ErrorAction SilentlyContinue) { return ,@('python') }
     return $null
 }
 
@@ -700,7 +729,7 @@ if (Test-Path $publishConfig) {
     }
 }
 
-$bumpLabel = New-Label 'Version for changed plugins:' 12 132 170
+$bumpLabel = New-Label 'Version for changed plugins:' 12 154 170
 $devTab.Controls.Add($bumpLabel)
 $bump = New-Object System.Windows.Forms.ComboBox
 $bump.DropDownStyle = 'DropDownList'
@@ -708,27 +737,27 @@ $bump.DropDownStyle = 'DropDownList'
 [void]$bump.Items.Add('minor (new features: 1.0.0 -> 1.1.0)')
 [void]$bump.Items.Add('major (big changes: 1.0.0 -> 2.0.0)')
 $bump.SelectedIndex = 0
-$bump.Location = New-Object System.Drawing.Point(184, 129)
+$bump.Location = New-Object System.Drawing.Point(184, 151)
 $bump.Size = New-Object System.Drawing.Size(266, 24)
 $devTab.Controls.Add($bump)
 
 $devCheck = New-Object System.Windows.Forms.Button
 $devCheck.Text = 'Check (dry run)'
-$devCheck.Location = New-Object System.Drawing.Point(12, 162)
+$devCheck.Location = New-Object System.Drawing.Point(12, 184)
 $devCheck.Size = New-Object System.Drawing.Size(120, 30)
 $devTab.Controls.Add($devCheck)
 $devPush = New-Object System.Windows.Forms.Button
 $devPush.Text = 'Push to repos'
-$devPush.Location = New-Object System.Drawing.Point(140, 162)
+$devPush.Location = New-Object System.Drawing.Point(140, 184)
 $devPush.Size = New-Object System.Drawing.Size(120, 30)
 $devTab.Controls.Add($devPush)
 $devPublish = New-Object System.Windows.Forms.Button
 $devPublish.Text = 'Publish to RuneLite'
-$devPublish.Location = New-Object System.Drawing.Point(268, 162)
+$devPublish.Location = New-Object System.Drawing.Point(268, 184)
 $devPublish.Size = New-Object System.Drawing.Size(140, 30)
 $devPublish.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
 $devTab.Controls.Add($devPublish)
-$devStatus = New-Label '' 12 198 440
+$devStatus = New-Label '' 12 220 440
 $devTab.Controls.Add($devStatus)
 
 $devOut = New-Object System.Windows.Forms.TextBox
@@ -736,8 +765,8 @@ $devOut.Multiline = $true
 $devOut.ReadOnly = $true
 $devOut.ScrollBars = 'Vertical'
 $devOut.Font = New-Object System.Drawing.Font('Consolas', 8.5)
-$devOut.Location = New-Object System.Drawing.Point(12, 220)
-$devOut.Size = New-Object System.Drawing.Size(438, 400)
+$devOut.Location = New-Object System.Drawing.Point(12, 242)
+$devOut.Size = New-Object System.Drawing.Size(438, 378)
 $devTab.Controls.Add($devOut)
 
 $prLink = New-Object System.Windows.Forms.LinkLabel
@@ -827,7 +856,10 @@ function Start-DevStep($step, $dryRun) {
     if ($step -eq 'push') { $pyArgs += @('--bump', $level) }
     if ($dryRun) { $pyArgs += '--dry-run' }
     $command = "`"$($python[0])`" " + ($pyArgs -join ' ') + " > `"$($script:publishLog)`" 2>&1"
-    $script:publishRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    # cmd /c drops the first and last quote of what it runs: wrap the whole line in one more pair
+    $script:publishRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', "`"$command`"" -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    # Reading the handle now keeps the exit code readable once it ends (Windows PowerShell)
+    $null = $script:publishRun.Handle
     $devPoll.Start()
 }
 $devCheck.Add_Click({ Start-DevStep 'push' $true })

@@ -9,7 +9,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 /** Snuffy's Tick Counter on its own (see docs/DEVELOPMENT.md "Planned: separate plugins"). */
 @PluginDescriptor(
     name = "Snuffy's Tick Counter",
-    description = "Game tick counter as boxes or a smooth bar, a metronome, an attack timer and click timing for tick skilling",
+    description = "Game tick counter as boxes or a smooth bar, a metronome and an attack timer",
     tags = {"snuffy", "tick", "metronome", "counter", "attack timer", "timing"}
 )
 public class TickCounterPlugin extends Plugin {

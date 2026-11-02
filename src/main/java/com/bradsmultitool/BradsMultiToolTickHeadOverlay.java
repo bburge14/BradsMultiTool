@@ -24,8 +24,10 @@ import net.runelite.client.ui.overlay.OverlayUtil;
 @Singleton
 public class BradsMultiToolTickHeadOverlay extends Overlay {
 
+    // <click-timing>
     private static final long CLICK_SHOW_MILLIS = 1000;
     private static final int CLICK_RISE = 25;
+    // </click-timing>
     /** Pixels between the top of your character and the text. */
     private static final int HEAD_GAP = 4;
 
@@ -59,6 +61,7 @@ public class BradsMultiToolTickHeadOverlay extends Overlay {
                 OverlayUtil.renderTextLocation(graphics, location, text, color);
             }
         }
+        // <click-timing>
         long since = System.currentTimeMillis() - ticks.getLastClickMillis();
         if (config.clickTiming() && since < CLICK_SHOW_MILLIS) {
             String text = ticks.getLastClickOffset() + "ms";
@@ -72,6 +75,7 @@ public class BradsMultiToolTickHeadOverlay extends Overlay {
                     new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.max(0, alpha)));
             }
         }
+        // </click-timing>
         return null;
     }
 

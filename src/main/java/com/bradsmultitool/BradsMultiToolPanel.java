@@ -72,6 +72,8 @@ public class BradsMultiToolPanel extends PluginPanel {
     static final Color BAR_HIGH = new Color(15, 165, 105);
     static final Color BAR_BACKGROUND = new Color(60, 60, 60);
     static final Color GOAL_FILL = new Color(200, 160, 40);
+    /** A skill plan's milestone bar (under the goal's gold). */
+    static final Color MILESTONE_FILL = new Color(70, 140, 200);
 
     private final SkillTracker plugin;
     private final SkillTrackerConfig config;
@@ -84,7 +86,6 @@ public class BradsMultiToolPanel extends PluginPanel {
     private final JPanel cardsContainer = new JPanel();
     private final JLabel goalsHeading = foldingHeading("GOALS", "goals");
     private final JLabel sessionHeading = foldingHeading("THIS SESSION", "session");
-    private final JLabel farmingHeading = foldingHeading("FARMING", "farming");
     private final JLabel rumourHeading = foldingHeading("HUNTER RUMOUR", "rumour");
     // What's laid out now (goal skills, then session skills), so the list is only rebuilt when it changes
     private String cardOrder = "";
@@ -234,14 +235,6 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         boolean goalsFolded = plugin.isListCollapsed("goals");
         boolean sessionFolded = plugin.isListCollapsed("session");
-        boolean farmingFolded = plugin.isListCollapsed("farming");
-        List<FarmingTracker.Record> patches = config.farmingPatchList() ? plugin.getFarmingTracker().records()
-            : Collections.emptyList();
-        long now = System.currentTimeMillis() / 1000;
-        StringBuilder farmingText = new StringBuilder();
-        for (FarmingTracker.Record patch : patches) {
-            farmingText.append(patch.title).append(patch.crop).append(patchStatus(patch, now)).append(';');
-        }
         // Your Hunters' Rumour, if you have one
         boolean rumourFolded = plugin.isListCollapsed("rumour");
         List<String[]> rumour = plugin.getHunterRumours().lines();
@@ -249,8 +242,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         for (String[] line : rumour) {
             rumourText.append(line[0]).append(line[1]).append(';');
         }
-        String order = goals + "|" + session + "|" + goalsFolded + sessionFolded + farmingFolded + rumourFolded + "|" + farmingText
-            + "|" + rumourText;
+        String order = goals + "|" + session + "|" + goalsFolded + sessionFolded + rumourFolded + "|" + rumourText;
         if (!order.equals(cardOrder)) {
             cardOrder = order;
             cardsContainer.removeAll();
@@ -282,69 +274,9 @@ public class BradsMultiToolPanel extends PluginPanel {
                     cardsContainer.add(rumourRow(rumour, plugin.getHunterRumours().places()));
                 }
             }
-            // Farming patches you've been to, soonest grown first
-            if (!patches.isEmpty()) {
-                setHeading(farmingHeading, "FARMING", farmingFolded, patches.size());
-                farmingHeading.setToolTipText(farmingFolded ? "Click to show your farming patches" : "Click to hide your farming patches");
-                cardsContainer.add(farmingHeading);
-                if (!farmingFolded) {
-                    patches.forEach(patch -> cardsContainer.add(patchRow(patch, now)));
-                }
-            }
             cardsContainer.revalidate();
             cardsContainer.repaint();
         }
-    }
-
-    // "ready", "in 1h 20m", "diseased", "dead"
-    static String patchStatus(FarmingTracker.Record patch, long now) {
-        if (patch.ready(now)) {
-            return "ready";
-        }
-        if (FarmingData.DISEASED.equals(patch.state)) {
-            return "diseased";
-        }
-        if (FarmingData.DEAD.equals(patch.state)) {
-            return "dead";
-        }
-        if (FarmingData.GROWING.equals(patch.state) && patch.grownAt > 0) {
-            // To the minute (the list refreshes once a minute)
-            long minutes = (patch.grownAt - now + 59) / 60;
-            return minutes >= 60 ? "in " + minutes / 60 + "h " + minutes % 60 + "m" : "in " + minutes + "m";
-        }
-        return patch.state.toLowerCase();
-    }
-
-    // One patch: where on the left, crop and when on the right; right-click to forget it
-    private JPanel patchRow(FarmingTracker.Record patch, long now) {
-        JPanel row = new JPanel(new BorderLayout(4, 0));
-        row.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        row.setBorder(new EmptyBorder(3, 6, 3, 6));
-        row.setAlignmentX(Component.CENTER_ALIGNMENT);
-        String status = patchStatus(patch, now);
-        JLabel where = new JLabel("<html>" + patch.title + "<br><font color='#b4b4b4'>" + patch.crop + "</font></html>");
-        where.setFont(FontManager.getRunescapeSmallFont());
-        where.setForeground(Color.WHITE);
-        JLabel when = new JLabel(status, SwingConstants.RIGHT);
-        when.setFont(FontManager.getRunescapeSmallFont());
-        when.setForeground("ready".equals(status) ? HudColors.GOOD : "dead".equals(status) ? HudColors.BAD
-            : "diseased".equals(status) ? HudColors.WARN : Color.LIGHT_GRAY);
-        row.add(where, BorderLayout.CENTER);
-        row.add(when, BorderLayout.EAST);
-        row.setToolTipText(patch.title + ": " + patch.crop + " (as you last saw it)");
-        JPopupMenu menu = new JPopupMenu();
-        JMenuItem forget = new JMenuItem("Forget this patch");
-        forget.addActionListener(e -> plugin.getFarmingTracker().forget(patch.key));
-        menu.add(forget);
-        row.setComponentPopupMenu(menu);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
-        JPanel wrap = new JPanel(new BorderLayout());
-        wrap.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        wrap.setBorder(new EmptyBorder(0, 0, 3, 0));
-        wrap.add(row);
-        wrap.setAlignmentX(Component.CENTER_ALIGNMENT);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height + 3));
-        return wrap;
     }
 
     // The rumour card: a line each (creature, catches, where), hover for every place the creature lives
@@ -542,6 +474,13 @@ public class BradsMultiToolPanel extends PluginPanel {
         return minutes + "m " + (seconds % 60) + "s";
     }
 
+    /** " (to level 67)": the level your XP plus what's banked reaches; empty when it doesn't make a level. */
+    static String bankedLevel(int xp, double banked) {
+        int now = Experience.getLevelForXp(xp);
+        int reach = Experience.getLevelForXp((int) Math.min(Experience.MAX_SKILL_XP, xp + (long) banked));
+        return reach > now ? " (to level " + reach + ")" : "";
+    }
+
     /** 9,112 / 55.8K / 1.24M, like RuneLite's XP tracker. */
     static String shortNumber(long value) {
         if (value >= 1_000_000) {
@@ -572,6 +511,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JPanel stats = new JPanel(new GridLayout(0, 2, 6, 2));
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
+        // The skill plan's milestone you're on (exported from the Planner): its own bar under the goal's
+        private final LevelProgressBar milestoneBar = new LevelProgressBar();
         // Logs, fish, ore, food cooked this session and how many an hour ("Logs: 342 (1,050/hr)")
         private final JLabel items = stat();
         private final JLabel suggestion = stat();
@@ -631,7 +572,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             offerRow.add(offerButtons, BorderLayout.SOUTH);
             offerRow.setVisible(false);
             items.setVisible(false);
-            for (JComponent row : new JComponent[]{levelBar, goalBar, items, suggestion, offerRow}) {
+            for (JComponent row : new JComponent[]{levelBar, goalBar, milestoneBar, items, suggestion, offerRow}) {
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
                 row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion || row == offerRow || row == items
                     ? Integer.MAX_VALUE : row.getPreferredSize().height));
@@ -639,6 +580,9 @@ public class BradsMultiToolPanel extends PluginPanel {
                 bars.add(Box.createVerticalStrut(3));
             }
             goalBar.setGoalStyle();
+            milestoneBar.setGoalStyle();
+            milestoneBar.fill = MILESTONE_FILL;
+            milestoneBar.setVisible(false);
 
             // While this skill is pinned to the game screen, a pin is drawn over the card's top-right
             // corner (see paintChildren), so nothing else moves; clicking it unpins
@@ -821,22 +765,23 @@ public class BradsMultiToolPanel extends PluginPanel {
         // Only the fields switched on under Skill Tracker, two to a row
         private void layoutStats() {
             // Combat skills count kills instead, once they have a goal (an action is a hit otherwise)
-            boolean showActions = config.showTrackerActions() && (!COMBAT_SKILLS.contains(skill) || plugin.getSkillGoal(skill) > 0);
+            boolean full = !config.compactOverlays();
+            boolean showActions = full && config.showTrackerActions() && (!COMBAT_SKILLS.contains(skill) || plugin.getSkillGoal(skill) > 0);
             boolean goal = config.showTrackerGoal() && plugin.getSkillGoal(skill) > 0;
             String wanted = "" + config.showTrackerProgressBar() + config.showTrackerXpGained() + config.showTrackerXpToLevel()
-                + showActions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel() + goal;
+                + showActions + config.showTrackerXpPerHour() + config.showXpPerMinute() + config.showTrackerTimeToLevel() + goal + full;
             if (wanted.equals(layout)) {
                 return;
             }
             layout = wanted;
             stats.removeAll();
-            addStat(config.showTrackerXpGained(), gained);
-            addStat(config.showTrackerXpToLevel(), left);
+            addStat(full && config.showTrackerXpGained(), gained);
+            addStat(full && config.showTrackerXpToLevel(), left);
             addStat(config.showTrackerXpPerHour(), perHour);
             // Combat XP comes per hit, not per action, so the count means nothing there
             addStat(showActions, actions);
             addStat(config.showTrackerTimeToLevel(), timeToLevel);
-            addStat(config.showXpPerMinute(), perMinute);
+            addStat(full && config.showXpPerMinute(), perMinute);
             levelBar.setVisible(config.showTrackerProgressBar());
             goalBar.setVisible(goal);
             stats.revalidate();
@@ -890,6 +835,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " left";
                 goalBar.set(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta);
             }
+            updateMilestone(level, goalXp, xp, xpPerHour, paused);
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
@@ -912,6 +858,44 @@ public class BradsMultiToolPanel extends PluginPanel {
             methodMenu.setVisible(skill != Skill.SLAYER && hasGoal);
         }
 
+        // The plan's milestone you're on: a bar from its start to its end, with the time to it
+        private void updateMilestone(int level, int goalXp, int xp, int xpPerHour, boolean paused) {
+            SkillPlans.Step step = goalXp > xp && config.showTrackerGoal() ? plugin.getPlanMilestone(skill, level) : null;
+            boolean show = step != null && step.to < 100;
+            if (milestoneBar.isVisible() != show) {
+                milestoneBar.setVisible(show);
+                revalidate();
+            }
+            if (!show) {
+                return;
+            }
+            int start = Experience.getXpForLevel(step.from);
+            int end = Experience.getXpForLevel(step.to);
+            double progress = end > start ? (double) (xp - start) / (end - start) : 1;
+            int left = Math.max(0, end - xp);
+            String eta = left == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(left * 3600L / xpPerHour) : shortNumber(left) + " left";
+            milestoneBar.set(progress, "Step: Lvl " + step.to, String.format("%.1f%%", Math.max(0, Math.min(1, progress)) * 100), eta);
+            String tip = "<html>Your plan's milestone: level " + step.to + " with " + step.action + " (from " + step.from + ")"
+                + planTip(plugin.getSkillPlan(skill), level) + "</html>";
+            if (!Objects.equals(milestoneBar.getToolTipText(), tip)) {
+                milestoneBar.setToolTipText(tip);
+            }
+        }
+
+        // The whole plan, for a tooltip: "<br>1-20: Logs" for each milestone, the one you're on in white
+        private String planTip(SkillPlans.Plan plan, int level) {
+            if (plan == null) {
+                return "";
+            }
+            StringBuilder out = new StringBuilder("<br><b>Your plan to level " + plan.goal + "</b>");
+            for (SkillPlans.Step s : plan.steps) {
+                boolean on = s.covers(level);
+                out.append("<br>").append(on ? "<font color='#ffffff'>" : "<font color='#bebebe'>").append(s.from).append("-")
+                    .append(s.to).append(": ").append(s.action).append(on ? " (now)" : "").append("</font>");
+            }
+            return out.toString();
+        }
+
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to
         private void setActions(int xp) {
             GoalLines.Actions count = GoalLines.actions(plugin, config, skill, xp, stepEndLevel);
@@ -923,7 +907,7 @@ public class BradsMultiToolPanel extends PluginPanel {
 
         // "Logs: 342 (1,050/hr)" for each kind of item counted (Show Items Gathered)
         private void updateItems() {
-            List<String[]> lines = config.showTrackerItems() ? plugin.itemLines(skill) : Collections.emptyList();
+            List<String[]> lines = !config.compactOverlays() && config.showTrackerItems() ? plugin.itemLines(skill) : Collections.emptyList();
             if (items.isVisible() != !lines.isEmpty()) {
                 items.setVisible(!lines.isEmpty());
             }
@@ -939,7 +923,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             List<String> lines = new ArrayList<>();
             String tooltip = null;
             stepEndLevel = 0;
-            if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion()) {
+            if (goalXp > xp && config.showTrackerGoal() && config.showTrainingSuggestion() && !config.compactOverlays()) {
                 String target = plugin.getGoalTarget(skill);
                 if (target != null) {
                     lines.add(label("Tracking:") + plugin.describeGoalTarget(skill) + " " + label("(your pick)"));
@@ -949,7 +933,14 @@ public class BradsMultiToolPanel extends PluginPanel {
                     // By the Training Focus setting: fastest, other methods, cheapest or money maker
                     // The leg you're on ("Train: Willow trees to 60"); hover it for the whole way to the goal
                     List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level, Experience.getLevelForXp(goalXp));
-                    if (!plan.isEmpty()) {
+                    if (!plan.isEmpty() && plan.get(0).suggestion.planStep != null) {
+                        SkillPlans.Step step = plan.get(0).suggestion.planStep;
+                        lines.add(label("Milestone:") + "level " + step.to + " " + label("(" + step.action + ")"));
+                        String where = GoalLines.where(plan.get(0).suggestion);
+                        if (where != null) {
+                            lines.add(label("Where:") + where);
+                        }
+                    } else if (!plan.isEmpty()) {
                         TrainingAdvisor.Stage first = plan.get(0);
                         lines.add(label(first.suggestion.label) + first.suggestion.text
                             + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
@@ -967,7 +958,11 @@ public class BradsMultiToolPanel extends PluginPanel {
                             + (places.isEmpty() ? "" : (about != null ? "<br><br>" : "") + "<b>Where:</b> " + String.join(", ", places))
                             + "</div></html>";
                     }
-                    if (plan.size() > 1) {
+                    if (!plan.isEmpty() && plan.get(0).suggestion.planStep != null) {
+                        stepEndLevel = plan.get(0).suggestion.planStep.to;
+                        String steps = "<html>" + planTip(plugin.getSkillPlan(skill), level).substring("<br>".length()) + "</html>";
+                        tooltip = tooltip == null ? steps : tooltip.replace("</html>", "<br><br>" + steps.substring("<html>".length()));
+                    } else if (plan.size() > 1) {
                         stepEndLevel = plan.get(0).to;
                         StringBuilder steps = new StringBuilder("<html><b>On the way to your goal</b>");
                         for (TrainingAdvisor.Stage stage : plan) {
@@ -996,11 +991,11 @@ public class BradsMultiToolPanel extends PluginPanel {
                 }
                 double banked = plugin.getGoalItems().bankedXp(skill);
                 if (banked >= 1 && config.showBankedXp()) {
-                    lines.add(label("Banked:") + shortNumber((long) banked) + " XP");
+                    lines.add(label("Banked:") + shortNumber((long) banked) + " XP" + bankedLevel(xp, banked));
                 }
                 long materials = plugin.getGoalItems().materialsValue(skill);
                 if (materials > 0 && config.showMaterialsValue()) {
-                    lines.add(label("Materials:") + shortNumber(materials) + " gp");
+                    lines.add(label("Materials worth:") + shortNumber(materials) + " gp");
                 }
                 // Combat goals: how fast you're killing (faster with potions and better gear)
                 String killRate = GoalLines.killRate(plugin, skill);
@@ -1090,6 +1085,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private String centreText = "";
         private String rightText = "";
         private boolean goal;
+        // The goal style's colour (gold; a plan's milestone blue)
+        Color fill = GOAL_FILL;
 
         LevelProgressBar() {
             setPreferredSize(new Dimension(0, 16));
@@ -1119,14 +1116,20 @@ public class BradsMultiToolPanel extends PluginPanel {
             g.setColor(BAR_BACKGROUND);
             g.fillRect(0, 0, w, h);
             // Level bar: red under a third of the way, orange under two thirds, then green; goal bar: gold
-            g.setColor(goal ? GOAL_FILL : progress < 1 / 3.0 ? BAR_LOW : progress < 2 / 3.0 ? BAR_MID : BAR_HIGH);
+            g.setColor(goal ? fill : progress < 1 / 3.0 ? BAR_LOW : progress < 2 / 3.0 ? BAR_MID : BAR_HIGH);
             g.fillRect(0, 0, (int) (w * progress), h);
 
             FontMetrics fm = g.getFontMetrics();
             int y = (h - fm.getHeight()) / 2 + fm.getAscent();
+            int leftEnd = 4 + fm.stringWidth(leftText);
+            int rightStart = w - 4 - fm.stringWidth(rightText);
             shadowed(g, leftText, 4, y);
-            shadowed(g, centreText, (w - fm.stringWidth(centreText)) / 2, y);
-            shadowed(g, rightText, w - 4 - fm.stringWidth(rightText), y);
+            // The middle text centred, moved over when it would run into the left (or dropped if there's no room)
+            int centreX = Math.max((w - fm.stringWidth(centreText)) / 2, leftEnd + 6);
+            if (centreX + fm.stringWidth(centreText) <= rightStart - 6) {
+                shadowed(g, centreText, centreX, y);
+            }
+            shadowed(g, rightText, rightStart, y);
         }
 
         private static void shadowed(Graphics g, String text, int x, int y) {

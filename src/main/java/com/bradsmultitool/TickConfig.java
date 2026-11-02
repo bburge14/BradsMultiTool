@@ -17,7 +17,7 @@ public interface TickConfig extends Config {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Tick Counter: the tick count over your head, tick boxes and the smooth tick bar (move them with Alt + drag), the metronome and click timing. Clashes (said in chat while they're on): RuneLite's Metronome (you'd hear both). Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Tick Counter: the tick count over your head, tick boxes and the smooth tick bar (move them with Alt + drag), the metronome and click timing. Clashes (a warning icon among the info boxes while they're on): RuneLite's Metronome (you'd hear both). Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -30,6 +30,7 @@ public interface TickConfig extends Config {
     )
     String tickBarSection = "tickBarSection";
 
+    // <click-timing>
     @ConfigSection(
         name = "Click Timing",
         description = "How long after the tick each click lands, its sounds, and the ideal click zone",
@@ -37,6 +38,7 @@ public interface TickConfig extends Config {
         closedByDefault = true
     )
     String clickTimingSection = "clickTimingSection";
+    // </click-timing>
 
     @ConfigSection(
         name = "Metronome",
@@ -76,7 +78,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "showClashes",
         name = "Clash Warnings",
-        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list). Off: no icon",
         section = aboutSection,
         position = 1
     )
@@ -167,6 +169,7 @@ public interface TickConfig extends Config {
         }
     }
 
+    // <click-timing>
     /** The "dun" for a late click or a missed tick: low sounds, nothing like the ding of a click on time. */
     enum LateSound {
         VWOOP("Vwoop (prayer off)", SoundEffectID.PRAYER_DEACTIVE_VWOOP),
@@ -187,6 +190,7 @@ public interface TickConfig extends Config {
             return label;
         }
     }
+    // </click-timing>
 
     @ConfigItem(
         keyName = "tickOverHead",
@@ -496,6 +500,7 @@ public interface TickConfig extends Config {
         return 200;
     }
 
+    // <click-timing>
     @ConfigItem(
         keyName = "clickTiming",
         name = "Click Timing",
@@ -588,6 +593,7 @@ public interface TickConfig extends Config {
     default boolean clickEveryTick() {
         return false;
     }
+    // </click-timing>
 
     @ConfigItem(
         keyName = "tickResetKey",

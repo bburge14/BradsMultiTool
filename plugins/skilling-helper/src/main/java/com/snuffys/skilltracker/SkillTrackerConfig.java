@@ -18,7 +18,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Skilling Helper: the XP tracker in the sidebar (set goals with Set Goal; right-click a skill card for its Method, pin and goal options), skilling hover cards, resource timers and alerts. Clashes (said in chat while they're on): Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, RuneLite's Hunter and Mining plugins (our matching timers hide for them), Hunter Rumours and Skills Progress (they show the same rumour and Skills tab bars), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Skilling Helper: the XP tracker in the sidebar (set goals with Set Goal; right-click a skill card for its Method, pin and goal options), skilling hover cards, resource timers and alerts. Clashes (a warning icon among the info boxes while they're on): Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, RuneLite's Hunter and Mining plugins (our matching timers hide for them), Hunter Rumours (it shows the same rumour card), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -61,7 +61,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showClashes",
         name = "Clash Warnings",
-        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list). Off: no icon",
         section = aboutSection,
         position = 1
     )
@@ -71,13 +71,23 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     // Repeated from CommonConfig: RuneLite only shows sections an interface declares itself
 
-
     @ConfigSection(
         name = "General",
         description = "Voice and chat settings shared by all alerts",
         position = 0
     )
     String generalSection = "generalSection";
+
+    @ConfigItem(
+        keyName = "compactOverlays",
+        name = "Compact Overlays",
+        description = "<div width='300'>The skill cards (sidebar and pinned), hover cards, Agility and minigame cards show only the essentials. Off: everything the other settings turn on</div>",
+        section = generalSection,
+        position = 90
+    )
+    default boolean compactOverlays() {
+        return false;
+    }
 
     @ConfigSection(
         name = "Idle",
@@ -89,7 +99,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Reminders",
-        description = "Clue drops and daily rewards to collect",
+        description = "Clue drop alerts",
         position = 6,
         closedByDefault = true
     )
@@ -175,7 +185,6 @@ public interface SkillTrackerConfig extends CommonConfig {
     default boolean deferToOtherTimerPlugins() {
         return true;
     }
-
 
     @ConfigItem(
         keyName = "pieStyle",
@@ -443,7 +452,6 @@ public interface SkillTrackerConfig extends CommonConfig {
         return TimerShow.TRAINING;
     }
 
-
     @ConfigItem(
         keyName = "voiceRockDepletedEach",
         name = "Voice: Rock Depleted",
@@ -517,8 +525,6 @@ public interface SkillTrackerConfig extends CommonConfig {
     default boolean fishingNewestSpot() {
         return false;
     }
-
-
 
     @Alpha
     @ConfigItem(
@@ -614,50 +620,6 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
-    @ConfigItem(
-        keyName = "farmingPatchList",
-        name = "Farming Patch List",
-        description = "<div width='300'>A FARMING list in the sidebar: every patch you've been to with something in it, what's growing and when it's grown (the game only tells us a patch's state while you're near it, so each is as you last saw it). Right-click one to forget it",
-        section = farmingSection,
-        position = 2
-    )
-    default boolean farmingPatchList() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "farmingReadyAlert",
-        name = "Patches Ready Alert",
-        description = "<div width='300'>Says when patches you've planted are grown, naming them in chat (once per crop)",
-        section = farmingSection,
-        position = 3
-    )
-    default boolean farmingReadyAlert() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceFarmingReady",
-        name = "Voice: Patches Ready",
-        description = "<div width='300'>Voice line when your farming patches are grown (turning it on plays a preview)",
-        section = farmingSection,
-        position = 4
-    )
-    default boolean voiceFarmingReady() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatFarmingReady",
-        name = "Chat: Patches Ready",
-        description = "<div width='300'>Chat message naming the farming patches that are grown",
-        section = farmingSection,
-        position = 5
-    )
-    default boolean chatFarmingReady() {
-        return true;
-    }
-
     @ConfigSection(
         name = "Hunter",
         description = "Hunter creature info, trap and bird house timers, Hunters' Rumours",
@@ -696,39 +658,6 @@ public interface SkillTrackerConfig extends CommonConfig {
         position = 2
     )
     default boolean showBirdhouseHover() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "birdhouseAlert",
-        name = "Bird Houses Ready Alert",
-        description = "Alert when the bird houses you seeded are full (50 minutes)",
-        section = hunterSection,
-        position = 3
-    )
-    default boolean birdhouseAlert() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "voiceBirdhouses",
-        name = "Voice: Bird Houses Ready",
-        description = "<div width='300'>When your bird houses are ready (turning it on plays a preview)",
-        section = hunterSection,
-        position = 4
-    )
-    default boolean voiceBirdhouses() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "chatBirdhouses",
-        name = "Chat: Bird Houses Ready",
-        description = "Chat message when your bird houses are ready",
-        section = hunterSection,
-        position = 5
-    )
-    default boolean chatBirdhouses() {
         return true;
     }
 
@@ -1645,9 +1574,20 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "followSkillPlans",
+        name = "Follow Skill Plans",
+        description = "<div width='300'>When you've exported a skill plan from Snuffy's Planner (its Calculator's Plan view: milestones on the way to the goal, each with its own method), the goal card and pinned skill show the milestone you're on with its own bar, count actions to it, and suggest and outline its method (a Track for goal pick or a Method you pick still comes first). Off, or without a plan: the wiki's suggestion as usual",
+        section = goalsSection,
+        position = 13
+    )
+    default boolean followSkillPlans() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "showBankedXp",
         name = "Show Banked XP",
-        description = "<div width='300'>On a production skill's goal (Cooking, Herblore, Prayer...): the XP in what's in your bank and inventory at your level, the most XP things first. Just a figure: it doesn't change the suggestion. Shows once you've opened your bank",
+        description = "<div width='300'>On a production skill's goal (Cooking, Herblore, Prayer...): the XP in what's in your bank and inventory at your level, the most XP things first. Just a figure: it doesn't change the suggestion. Note: it uses your bank as you last saw it, so open your bank once on each account (after that it's remembered and updates whenever you open it)",
         section = goalsSection,
         position = 9
     )
@@ -1658,18 +1598,29 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "skillsTabGoalBars",
         name = "Skills Tab Goal Bars",
-        description = "<div width='300'>A thin gold bar along the bottom of each skill with a goal on the game's Skills tab, filling up as you get closer to the goal",
+        description = "<div width='300'>On the game's Skills tab, a thin gold bar up the left edge of each skill with a goal, filling up as you get closer to the goal",
         section = goalsSection,
         position = 10
     )
     default boolean skillsTabGoalBars() {
         return true;
     }
+    @ConfigItem(
+        keyName = "skillsTabLevelBars",
+        name = "Skills Tab Level Bars",
+        description = "<div width='300'>On the game's Skills tab, a thin bar along the bottom of each skill showing how far you are to the next level (orange to green). Steps aside while the Skills Tab Progress Bars plugin is on (it draws its own)",
+        section = goalsSection,
+        position = 11
+    )
+    default boolean skillsTabLevelBars() {
+        return true;
+    }
+
 
     @ConfigItem(
         keyName = "showTrackerItems",
         name = "Show Items Gathered",
-        description = "<div width='300'>How many logs, fish and ore you've got and food you've cooked (and burnt) this session, and how many an hour, on the skill's card and the pinned skill. Counted from the game's chat messages",
+        description = "<div width='300'>How many you've done this session and how many an hour, on the skill's card and the pinned skill: logs, fish, ore and food cooked (and burnt) from the game's messages, and for other skills each action (steals, items made, casts...). Per hour at the skill's XP rate",
         section = trackerSection,
         position = 13
     )
@@ -1693,9 +1644,9 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showMaterialsValue",
         name = "Show Materials Value",
-        description = "<div width='300'>On a production skill's goal: the Grand Exchange value of the materials counted in Banked XP (in your bank and inventory). Just a figure. Shows once you've opened your bank",
+        description = "<div width='300'>On a production skill's goal: the Grand Exchange value of the materials counted in Banked XP (in your bank and inventory). Just a figure. Note: it uses your bank as you last saw it, so open your bank once on each account (after that it's remembered and updates whenever you open it)",
         section = goalsSection,
-        position = 10
+        position = 12
     )
     default boolean showMaterialsValue() {
         return true;
@@ -2095,150 +2046,6 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Override
     default boolean chatClueDrop() {
         return CommonConfig.super.chatClueDrop();
-    }
-
-    @ConfigItem(
-        keyName = "dailyReminders",
-        name = "Daily Reminders",
-        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
-        section = remindersSection,
-        position = 3
-    )
-    @Override
-    default boolean dailyReminders() {
-        return CommonConfig.super.dailyReminders();
-    }
-
-    @ConfigItem(
-        keyName = "voiceDailies",
-        name = "Voice: Dailies",
-        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
-        section = remindersSection,
-        position = 4
-    )
-    @Override
-    default boolean voiceDailies() {
-        return CommonConfig.super.voiceDailies();
-    }
-
-    @ConfigItem(
-        keyName = "chatDailies",
-        name = "Chat: Dailies",
-        description = "Chat message listing the dailies to collect",
-        section = remindersSection,
-        position = 5
-    )
-    @Override
-    default boolean chatDailies() {
-        return CommonConfig.super.chatDailies();
-    }
-
-    @ConfigItem(
-        keyName = "dailyStaves",
-        name = "Daily: Battlestaves",
-        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
-        section = remindersSection,
-        position = 6
-    )
-    @Override
-    default boolean dailyStaves() {
-        return CommonConfig.super.dailyStaves();
-    }
-
-    @ConfigItem(
-        keyName = "dailyHerbBoxes",
-        name = "Daily: Herb Boxes",
-        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
-        section = remindersSection,
-        position = 7
-    )
-    @Override
-    default boolean dailyHerbBoxes() {
-        return CommonConfig.super.dailyHerbBoxes();
-    }
-
-    @ConfigItem(
-        keyName = "dailyEssence",
-        name = "Daily: Pure Essence",
-        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
-        section = remindersSection,
-        position = 8
-    )
-    @Override
-    default boolean dailyEssence() {
-        return CommonConfig.super.dailyEssence();
-    }
-
-    @ConfigItem(
-        keyName = "dailyRunes",
-        name = "Daily: Random Runes",
-        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
-        section = remindersSection,
-        position = 9
-    )
-    @Override
-    default boolean dailyRunes() {
-        return CommonConfig.super.dailyRunes();
-    }
-
-    @ConfigItem(
-        keyName = "dailySand",
-        name = "Daily: Sand",
-        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
-        section = remindersSection,
-        position = 10
-    )
-    @Override
-    default boolean dailySand() {
-        return CommonConfig.super.dailySand();
-    }
-
-    @ConfigItem(
-        keyName = "dailyFlax",
-        name = "Daily: Bowstrings",
-        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
-        section = remindersSection,
-        position = 11
-    )
-    @Override
-    default boolean dailyFlax() {
-        return CommonConfig.super.dailyFlax();
-    }
-
-    @ConfigItem(
-        keyName = "dailyBonemeal",
-        name = "Daily: Bonemeal",
-        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
-        section = remindersSection,
-        position = 12
-    )
-    @Override
-    default boolean dailyBonemeal() {
-        return CommonConfig.super.dailyBonemeal();
-    }
-
-    @ConfigItem(
-        keyName = "dailyDynamite",
-        name = "Daily: Dynamite",
-        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
-        section = remindersSection,
-        position = 13
-    )
-    @Override
-    default boolean dailyDynamite() {
-        return CommonConfig.super.dailyDynamite();
-    }
-
-    @ConfigItem(
-        keyName = "dailyArrows",
-        name = "Daily: Ogre Arrows",
-        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
-        section = remindersSection,
-        position = 14
-    )
-    @Override
-    default boolean dailyArrows() {
-        return CommonConfig.super.dailyArrows();
     }
     // ---- End of CommonConfig's settings ----
 }

@@ -853,7 +853,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         line("Status:", statusText(state), statusColor(state));
         if (FarmingData.GROWING.equals(state.cropState)) {
             line("Stage:", (state.stage + 1) + " of " + state.produce.stages, Color.WHITE);
-            long seconds = FarmingData.secondsUntilGrown(state, System.currentTimeMillis() / 1000);
+            long seconds = farming.untilGrown(state, System.currentTimeMillis() / 1000);
             line("Ready In:", "~" + duration(seconds), Color.WHITE);
             if (FarmingData.WATERABLE.contains(patch.implementation)) {
                 line("Watered:", state.watered ? "Yes" : "No", state.watered ? HudColors.GOOD : HudColors.WARN);
@@ -1083,6 +1083,13 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     }
 
     // A sub-heading inside a card, e.g. a fishing method, with an optional note on the right
+    // Compact Overlays: the lines a card leaves out (what it is, what it needs and gives stay; tools, rates, money
+    // and extras go)
+    private static final java.util.Set<String> EXTRAS = new java.util.HashSet<>(java.util.Arrays.asList(
+        "Your Tool:", "Best For You:", "Best Hook For You:", "Your Rate:", "Wiki XP/hr:", "Stun Damage:", "Never Fails At:",
+        "Location:", "  Profit:", "  Makes:", "  Next: ", "  Best: ", "XP From Them:", "Sorting XP:", "Next Multiple:",
+        "Pay Farmer:", "No Damage With:", "Max Hit (No Keel):", "Bone Shards:", "Prayer Points:"));
+
     private void header(String text, String right, Color rightColor) {
         panel.getChildren().add(LineComponent.builder().left(text).leftColor(HEADER_COLOR)
             .right(right).rightColor(rightColor).build());
@@ -1113,7 +1120,7 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
     private void addTools(String skillName, Skill skill) {
         List<SkillingData.Tool> tools = SkillingData.toolsFor(skillName);
-        if (tools.isEmpty() || skill == null) {
+        if (tools.isEmpty() || skill == null || config.compactOverlays()) {
             return;
         }
         SkillingData.Tool owned = SkillingData.bestOwnedTool(tools, ownedItemNames());
@@ -1127,11 +1134,11 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
 
     // XP rates only while you're training that skill (and the option is on)
     private boolean showRates(Skill skill) {
-        return skill != null && config.showSkillingRates() && plugin.isTraining(skill);
+        return skill != null && !config.compactOverlays() && config.showSkillingRates() && plugin.isTraining(skill);
     }
 
     private void addYourRate(Skill skill) {
-        if (!showRates(skill)) {
+        if (!showRates(skill) || config.compactOverlays()) {
             return;
         }
         int rate = plugin.getSkillXpPerHour(skill);
@@ -1161,6 +1168,9 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     }
 
     private void line(String left, String right, Color color) {
+        if (config.compactOverlays() && EXTRAS.contains(left)) {
+            return;
+        }
         panel.getChildren().add(LineComponent.builder().left(left).right(right).rightColor(color).build());
     }
 

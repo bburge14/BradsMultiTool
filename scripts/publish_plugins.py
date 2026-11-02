@@ -21,12 +21,14 @@ push first checks the working tree is clean, pushed, and plugins/ matches src/. 
 uses your own git login.
 """
 import io
+import stat
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import time
 import tarfile
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -57,6 +59,12 @@ def preflight(dry_run):
                      "that exists here.")
 
 
+def make_writable(func, path, _):
+    """rmtree on Windows: git's object files are read-only; make one writable and try again."""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
 def checkout(name, repo, branch, dry_run):
     """A clone of the plugin's repository in .publish-cache, on its branch, matching the remote."""
     path = os.path.join(CACHE, name)
@@ -67,10 +75,11 @@ def checkout(name, repo, branch, dry_run):
     git("remote", "set-url", "origin", repo, cwd=path)
     git("fetch", "--quiet", "origin", cwd=path, check=False)
     if git("ls-remote", "--heads", "origin", branch, cwd=path):
-        git("checkout", "--quiet", "-B", branch, "origin/" + branch, cwd=path)
+        git("checkout", "--quiet", "-f", "-B", branch, "origin/" + branch, cwd=path)
+        git("clean", "--quiet", "-fdx", cwd=path)
     else:
         # A new, empty repository: start the branch from nothing (dropping anything a dry run committed here)
-        shutil.rmtree(path)
+        shutil.rmtree(path, onerror=make_writable)
         if subprocess.run(["git", "clone", "--quiet", repo, path], stderr=subprocess.DEVNULL).returncode != 0:
             sys.exit("Couldn't clone %s." % repo)
         git("checkout", "--quiet", "--orphan", branch, cwd=path, check=False)
@@ -107,9 +116,10 @@ def read_version(path):
 
 def write_version(path, version):
     gradle = os.path.join(path, "build.gradle")
-    with open(gradle, encoding="utf-8") as f:
+    # newline="": keep the file's own line endings (Windows text mode would turn them into CRLF, a change)
+    with open(gradle, encoding="utf-8", newline="") as f:
         text = f.read()
-    with open(gradle, "w", encoding="utf-8") as f:
+    with open(gradle, "w", encoding="utf-8", newline="") as f:
         f.write(VERSION.sub("version = '%s'" % version, text, count=1))
 
 
@@ -129,6 +139,35 @@ def display_name(path):
         return re.search(r"^displayName=(.+)$", f.read(), re.M).group(1)
 
 
+CHANGELOG = "CHANGELOG.md"
+
+
+def read_changelog(path):
+    """The plugin repository's CHANGELOG.md as it is (kept across pushes: it isn't in plugins/), or None."""
+    full = os.path.join(path, CHANGELOG)
+    if not os.path.isfile(full):
+        return None
+    with open(full, encoding="utf-8", newline="") as f:
+        return f.read()
+
+
+def write_changelog(path, text):
+    with open(os.path.join(path, CHANGELOG), "w", encoding="utf-8", newline="") as f:
+        f.write(text)
+
+
+def changelog_with(history, title, version, notes):
+    """The changelog with this version's entry at the top: "## 1.0.2 (2026-11-02)" and its changes."""
+    entry = "## %s (%s)\n\n%s\n" % (version, time.strftime("%Y-%m-%d"), "\n".join(notes))
+    header = "# %s changelog\n\nEach version's changes, newest first.\n\n" % title
+    old = history or ""
+    if old.startswith("# "):
+        # Keep what's under the header (the versions so far)
+        cut = old.find("\n## ")
+        old = old[cut + 1:] if cut >= 0 else ""
+    return header + entry + ("\n" + old if old else "")
+
+
 def changes_since(folder, last):
     """This repository's commit messages that changed plugins/<folder> since the last push (or the last 20)."""
     span = [last + "..HEAD"] if last and git("cat-file", "-t", last, check=False) == "commit" else ["-20"]
@@ -145,10 +184,13 @@ def push(folder, entry, dry_run, head, level):
     # The last push's source commit, from its message
     last = re.search(r"BradsMultiTool ([0-9a-f]{7,40})",
                      git("log", "-1", "--grep=From BradsMultiTool", "--format=%B", cwd=path, check=False) or "")
+    history = read_changelog(path)
     replace_contents(folder, path)
-    # Compare with the version it had, so a version number alone isn't a change
+    # Compare with the version and changelog it had, so neither alone is a change
     if old:
         write_version(path, old)
+    if history is not None:
+        write_changelog(path, history)
     git("add", "-A", cwd=path)
     if not git("status", "--porcelain", cwd=path):
         print("%-16s %s, no changes since the last push" % (folder, old))
@@ -159,6 +201,8 @@ def push(folder, entry, dry_run, head, level):
     changed = len(git("status", "--porcelain", cwd=path).splitlines())
     title = "%s %s" % (display_name(path), new)
     notes = changes_since(folder, last.group(1) if last else None) if old else ["- First release"]
+    write_changelog(path, changelog_with(history, display_name(path), new, notes))
+    git("add", "-A", cwd=path)
     message = "%s\n\nFrom BradsMultiTool %s.\n\nChanges:\n%s\n" % (title, head[:12], "\n".join(notes))
     git("commit", "--quiet", "-m", message, cwd=path)
     git("tag", "-a", "-f", "v" + new, "-m", title, cwd=path)
@@ -174,11 +218,15 @@ def push(folder, entry, dry_run, head, level):
 def hub_entry(entry):
     """The Plugin Hub entry for a plugin: its repository and the commit its branch is at now."""
     branch = entry.get("branch", "master")
-    head = git("ls-remote", entry["repo"], "refs/heads/" + branch, check=False).split()
+    result = subprocess.run(["git", "ls-remote", entry["repo"], "refs/heads/" + branch], cwd=ROOT, text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode != 0:
+        sys.exit("Couldn't reach %s (offline, or not signed in to GitHub):\n%s" % (entry["repo"], result.stderr.strip()))
+    head = result.stdout.split()
     if not head:
         sys.exit("%s has nothing on %s yet: push first." % (entry["repo"], branch))
     os.makedirs(HUB_OUT, exist_ok=True)
-    with open(os.path.join(HUB_OUT, entry["hubName"]), "w") as f:
+    with open(os.path.join(HUB_OUT, entry["hubName"]), "w", newline="\n") as f:
         f.write("repository=%s\ncommit=%s\n" % (entry["repo"], head[0]))
     print("%-24s commit %s" % (entry["hubName"], head[0][:12]))
     return entry["hubName"]
@@ -189,11 +237,11 @@ def update_hub_fork(fork, names, dry_run, head):
     path = os.path.join(CACHE, "plugin-hub")
     if not os.path.isdir(os.path.join(path, ".git")):
         os.makedirs(CACHE, exist_ok=True)
-        if subprocess.run(["git", "clone", "--quiet", "--depth", "50", fork, path]).returncode != 0:
+        if subprocess.run(["git", "clone", "--quiet", fork, path]).returncode != 0:
             sys.exit("Couldn't clone your plugin-hub fork %s (fork runelite/plugin-hub on GitHub first)." % fork)
     if not git("remote", cwd=path).count("upstream"):
         git("remote", "add", "upstream", "https://github.com/runelite/plugin-hub.git", cwd=path)
-    git("fetch", "--quiet", "--depth", "50", "upstream", "master", cwd=path)
+    git("fetch", "--quiet", "upstream", "master", cwd=path)
     branch = "snuffys-" + head[:7]
     git("checkout", "--quiet", "-B", branch, "upstream/master", cwd=path)
     for name in names:

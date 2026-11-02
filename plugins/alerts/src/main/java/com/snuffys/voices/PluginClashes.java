@@ -23,9 +23,9 @@ import net.runelite.client.util.LinkBrowser;
 /**
  * The plugin's About settings: Open the Guide (opens its part of the feature guide, then switches itself off),
  * and clashes with other plugins, checked live: while one that draws or says the same thing is on (or a setting
- * of it that does), a warning icon shows among RuneLite's info boxes (hover it for the list) and it's said once a
- * login in chat; turning the other
- * plugin or setting off ends it, and turning it back on says it again. Only reads which plugins and settings are on; never changes them.
+ * of it that does), a warning icon shows among RuneLite's info boxes (hover it for the list); nothing goes in chat.
+ * Turning the other plugin or setting off takes it away. Only reads which plugins and settings are on; never changes
+ * them.
  */
 @Singleton
 class PluginClashes {
@@ -95,8 +95,8 @@ class PluginClashes {
         plugin("HunterRumoursPlugin", "Hunter Rumours",
             "Hunter Rumours is on and tracks your rumour too; turn off Snuffy's Rumour Card (Hunter) to see just one",
             "skilltracker"),
-        plugin("SkillsTabProgressBarsPlugin", "Skills Progress",
-            "Skills Progress is on and draws bars on the Skills tab too; turn off Snuffy's Skills Tab Goal Bars (Goals) if they overlap",
+        plugin("SkillsTabProgressBarsPlugin", "Skills Tab Progress Bars",
+            "Skills Tab Progress Bars is on and draws level progress on the Skills tab, so Snuffy's level bars there are hidden; Snuffy's goal bars still show on the left edge",
             "skilltracker"),
         plugin(CORE + "mining.MiningPlugin", "RuneLite's Mining",
             "RuneLite's Mining plugin is on and draws its own rock timers, so Snuffy's depleted rock and Daeyalt timers are hidden",
@@ -140,19 +140,24 @@ class PluginClashes {
         // Snuffy's own: the Toolbelt has every separate plugin in it, so install one or the other
         plugin("com.snuffys.multitool.BradsMultiToolPlugin", "Snuffy's Toolbelt",
             "Snuffy's Toolbelt is on and already has this plugin's features in it; turn off one or the other",
-            "skilltracker", "pvm", "gemcrab", "tickcounter", "voices"),
+            "skilltracker", "pvm", "gemcrab", "tickcounter", "planner", "voices"),
         own("com.snuffys.skilltracker.SkillTrackerPlugin", "Snuffy's Skilling Helper"),
         own("com.snuffys.pvm.PvmPlugin", "Snuffy's PvM/Slayer"),
         own("com.snuffys.gemcrab.GemCrabPlugin", "Snuffy's GemCrab Tracker"),
         own("com.snuffys.tickcounter.TickCounterPlugin", "Snuffy's Tick Counter"),
+        own("com.snuffys.planner.PlannerPlugin", "Snuffy's Planner"),
         own("com.snuffys.voices.VoicesPlugin", "Snuffy's Alerts"),
         plugin(CORE + "metronome.MetronomePlugin", "RuneLite's Metronome",
             "RuneLite's Metronome is on; with Snuffy's Metronome on too, you'll hear both", "tickcounter"),
         plugin(CORE + "idlenotifier.IdleNotifierPlugin", "RuneLite's Idle Notifier",
-            "RuneLite's Idle Notifier is on, so it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab", "voices"),
+            "RuneLite's Idle Notifier is on, so it and Snuffy's idle alerts can both warn you", "skilltracker", "pvm", "gemcrab",
+            "planner", "voices"),
         plugin(CORE + "dailytaskindicators.DailyTasksPlugin", "RuneLite's Daily Task Indicator",
-            "RuneLite's Daily Task Indicator is on, so it and Snuffy's Daily Reminders both list your dailies at login; turn off one or the other",
-            "skilltracker", "pvm", "gemcrab", "voices"),
+            "RuneLite's Daily Task Indicator is on, so it reminds you of your dailies in chat too; turn it off or Snuffy's Voice: Dailies to hear of them once",
+            "planner"),
+        plugin(CORE + "loottracker.LootTrackerPlugin", "RuneLite's Loot Tracker",
+            "RuneLite's Loot Tracker is on and lists your drops too; Snuffy's DROPS counts chests, caskets and raids from it, so keep it on and hide whichever list you don't need",
+            "planner"),
         // RuneLite's own Death Indicator left the core client; a plugin by that class name (from the Plugin Hub) does the same
         plugin("DeathIndicatorPlugin", "Death Indicator",
             "Death Indicator is on and also marks your death; turn off its info box or Snuffy's Gravestone Timer to see just one", "pvm"));
@@ -167,8 +172,6 @@ class PluginClashes {
     private final net.runelite.client.ui.overlay.infobox.InfoBoxManager infoBoxes;
     // The warning icon among RuneLite's info boxes (top left) while something clashes; hover it for the list
     private ClashInfoBox infoBox;
-    // The clashes said in chat this login
-    private final Set<Clash> said = new HashSet<>();
     private static final int CHECK_TICKS = 5;
 
     @Inject
@@ -199,14 +202,6 @@ class PluginClashes {
         return out;
     }
 
-    @Subscribe
-    public void onGameStateChanged(GameStateChanged event) {
-        if (event.getGameState() == GameState.LOGIN_SCREEN) {
-            // Said again at the next login
-            said.clear();
-        }
-    }
-
     // Checked every few seconds too, not only when a plugin or setting changes, so nothing is missed
     @Subscribe
     public void onGameTick(net.runelite.api.events.GameTick event) {
@@ -233,8 +228,7 @@ class PluginClashes {
         }
     }
 
-    // What's on now, kept for the sidebar; each clash is said in chat once a login (and again if it ends and
-    // comes back)
+    // What's on now: shown as the warning icon (hover it for the list)
     private void check() {
         Set<String> on = new HashSet<>();
         for (Plugin plugin : pluginManager.getPlugins()) {
@@ -244,23 +238,13 @@ class PluginClashes {
             }
         }
         List<Clash> now = new java.util.ArrayList<>();
-        // Clash Warnings off: nothing shown or said
+        // Clash Warnings off: nothing shown
         boolean warn = !"false".equals(configManager.getConfiguration(identity.configGroup, "showClashes"));
         String self = lifecycle.plugin != null ? lifecycle.plugin.getClass().getName() : "";
         for (Clash clash : warn ? forFamily(identity.familyId) : Collections.<Clash>emptyList()) {
             // Never a clash with itself
             if (on.contains(clash.plugin) && !clash.plugin.equals(self) && settingOn(clash)) {
                 now.add(clash);
-            }
-        }
-        said.retainAll(now);
-        // In the game and past the welcome screen, so the chat box shows it
-        if (client.getGameState() == GameState.LOGGED_IN && inGame.ready()) {
-            for (Clash clash : now) {
-                if (said.add(clash)) {
-                    client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName
-                        + "]</col> " + clash.message + ".", null);
-                }
             }
         }
         showInfoBox(now);

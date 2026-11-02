@@ -20,6 +20,24 @@ public class RecipeDataTest {
     }
 
     @Test
+    public void bankedLevel() {
+        int lvl64 = net.runelite.api.Experience.getXpForLevel(64);
+        int lvl67 = net.runelite.api.Experience.getXpForLevel(67);
+        assertEquals(" (to level 67)", BradsMultiToolPanel.bankedLevel(lvl64, lvl67 - lvl64 + 10));
+        assertEquals("", BradsMultiToolPanel.bankedLevel(lvl64, 10)); // not a level's worth
+    }
+
+    @Test
+    public void savedBankRoundTrips() {
+        Map<String, Integer> bank = new HashMap<>();
+        bank.put("raw lobster", 1200);
+        bank.put("jug of blessed sunfire wine", 45);
+        assertEquals(bank, GoalItems.decodeBank(GoalItems.encodeBank(bank)));
+        assertEquals(0, GoalItems.decodeBank(null).size());
+        assertEquals(0, GoalItems.decodeBank("broken").size());
+    }
+
+    @Test
     public void bankedXpCountsEachMaterialOnce() {
         Map<String, Integer> have = new HashMap<>();
         have.put("raw shrimps", 10);
@@ -41,6 +59,18 @@ public class RecipeDataTest {
         assertEquals(Integer.valueOf(10), used.get("raw shrimps"));
         assertEquals(Integer.valueOf(5), used.get("raw lobster"));
         assertNull(used.get("logs"));
+    }
+
+    @Test
+    public void bankedTimesAddUpToBankedXp() {
+        Map<String, Integer> have = new HashMap<>();
+        have.put("raw shrimps", 10);
+        have.put("raw lobster", 5);
+        Map<String, Integer> made = DATA.bankedTimes(Skill.COOKING, 40, have, r -> r.xp);
+        // Each raw fish is cooked once: the lobsters go to lobster (more XP), none left for offcuts
+        assertEquals(Integer.valueOf(10), made.get("shrimps"));
+        assertEquals(Integer.valueOf(5), made.get("lobster"));
+        assertNull(made.get("fish offcuts"));
     }
 
     @Test

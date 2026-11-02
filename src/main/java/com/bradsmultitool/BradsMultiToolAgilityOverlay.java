@@ -88,13 +88,15 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
             panel.getChildren().add(bar);
         }
         panel.getChildren().add(LineComponent.builder().left("Tickets").right(String.valueOf(agility.getTickets())).build());
-        if (agility.ticketsPerHour() > 0) {
+        // Compact Overlays: the pillar and your tickets only
+        boolean full = !config.compactOverlays();
+        if (full && agility.ticketsPerHour() > 0) {
             panel.getChildren().add(LineComponent.builder().left("Tickets/hr").right(String.valueOf((int) agility.ticketsPerHour())).build());
         }
-        if (reps.trainingOne()) {
+        if (full && reps.trainingOne()) {
             trainingLines();
         }
-        if (config.arenaRoute()) {
+        if (full && config.arenaRoute()) {
             String why = route.whyNoRoute();
             panel.getChildren().add(LineComponent.builder().left("Route").right(why != null ? why
                 : route.getRoute().size() + " obstacles, ~" + clock((int) Math.round(route.routeTicks())))
@@ -111,7 +113,8 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
             add("Training", reps.getName());
         }
         add("Reps", String.valueOf(reps.getReps()));
-        if (reps.repsPerHour() > 0) {
+        boolean full = !config.compactOverlays();
+        if (full && reps.repsPerHour() > 0) {
             add("Reps/hr", String.format("%,.0f", reps.repsPerHour()));
             add("XP/hr", BradsMultiToolPanel.shortNumber((long) (reps.repsPerHour() * reps.getRepXp())));
         }
@@ -121,7 +124,7 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
             add("Reps to " + (level + 1), String.format("%,d", reps.repsTo(Experience.getXpForLevel(level + 1))));
         }
         int goal = plugin.getSkillGoal(Skill.AGILITY);
-        if (goal > xp && reps.repsTo(goal) > 0) {
+        if (full && goal > xp && reps.repsTo(goal) > 0) {
             add("Reps to goal", String.format("%,d", reps.repsTo(goal)));
         }
     }
@@ -166,7 +169,9 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
     private void courseCard() {
         panel.getChildren().add(TitleComponent.builder().text(agility.getCourse()).color(TITLE).build());
         panel.getChildren().add(LineComponent.builder().left("Laps").right(String.valueOf(agility.getLaps())).build());
-        if (agility.lapsPerHour() > 0) {
+        // Compact Overlays: laps, laps to your next level and marks only
+        boolean full = !config.compactOverlays();
+        if (full && agility.lapsPerHour() > 0) {
             panel.getChildren().add(LineComponent.builder().left("Laps/hr").right(String.format("%.0f", agility.lapsPerHour())).build());
             if (agility.getXpPerLap() > 0) {
                 panel.getChildren().add(LineComponent.builder().left("XP/hr")
@@ -181,7 +186,7 @@ public class BradsMultiToolAgilityOverlay extends Overlay {
                 .right(String.format("%,d", agility.lapsTo(Experience.getXpForLevel(level + 1)))).build());
         }
         int goal = plugin.getSkillGoal(Skill.AGILITY);
-        if (goal > xp && agility.lapsTo(goal) > 0) {
+        if (full && goal > xp && agility.lapsTo(goal) > 0) {
             panel.getChildren().add(LineComponent.builder().left("Laps to goal").right(String.format("%,d", agility.lapsTo(goal))).build());
         }
         if (agility.getMarks() > 0) {

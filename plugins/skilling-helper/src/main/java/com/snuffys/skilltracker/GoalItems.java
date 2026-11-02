@@ -50,6 +50,49 @@ class GoalItems {
     // The GE value of the materials counted in banked, per goal skill
     private volatile Map<Skill, Long> materialsValue = Collections.emptyMap();
     private boolean bankSeen;
+    // The bank as last seen is kept with your RuneScape profile (item names and amounts), so Banked and Materials
+    // worth show straight after login instead of only once you've opened the bank this session
+    private static final String BANK_KEY = SkillGoals.BANK_KEY;
+    @javax.inject.Inject
+    private net.runelite.client.config.ConfigManager configManager;
+    private boolean bankLoaded;
+
+    /** Another account logged in: its bank isn't this one's. */
+    void forgetBank() {
+        bank.clear();
+        bankSeen = false;
+        bankLoaded = false;
+        dirty = true;
+    }
+
+    // The saved bank, once per account, until the bank's opened this session
+    private void loadSavedBank() {
+        if (bankLoaded || bankSeen || configManager == null || configManager.getRSProfileKey() == null) {
+            return;
+        }
+        bankLoaded = true;
+        Map<String, Integer> saved = decodeBank(configManager.getRSProfileConfiguration(SkillTracker.SHARED_GROUP, BANK_KEY));
+        if (!saved.isEmpty()) {
+            bank.putAll(saved);
+            bankSeen = true;
+            dirty = true;
+        }
+    }
+
+    private void saveBank() {
+        if (configManager != null && configManager.getRSProfileKey() != null) {
+            configManager.setRSProfileConfiguration(SkillTracker.SHARED_GROUP, BANK_KEY, encodeBank(bank));
+        }
+    }
+
+    /** "logs\t250\nraw lobster\t1200": each item (lower-case name) and how many (kept in {@link SkillGoals}). */
+    static String encodeBank(Map<String, Integer> items) {
+        return SkillGoals.encodeBank(items);
+    }
+
+    static Map<String, Integer> decodeBank(String text) {
+        return SkillGoals.decodeBank(text);
+    }
     // Lower-case material name -> "Suggested for your Cooking goal: Lobster"
     private volatile Map<String, String> highlighted = Collections.emptyMap();
     // Gathering goals (Fishing, Mining, Woodcutting, Hunter...): lower-case tool or bait -> "Needed for your
@@ -232,6 +275,7 @@ class GoalItems {
             bank.clear();
             count(event.getItemContainer(), bank);
             bankSeen = true;
+            saveBank();
         }
         if (event.getContainerId() == InventoryID.BANK || event.getContainerId() == InventoryID.INV
             || event.getContainerId() == InventoryID.WORN) {
@@ -254,6 +298,7 @@ class GoalItems {
     // Worked out at most once a tick, after whatever changed
     @Subscribe
     public void onGameTick(GameTick event) {
+        loadSavedBank();
         if (dirty) {
             dirty = false;
             update();
@@ -303,9 +348,13 @@ class GoalItems {
             String target = plugin.getGoalTarget(skill);
             String item = GoalTarget.itemName(target);
             String recipe = GoalTarget.recipeName(target);
-            Predicate<RecipeData.Recipe> allowed = item == null ? r -> true
-                : r -> uses(r, item) && (recipe == null || r.name.equalsIgnoreCase(recipe));
             int level = client.getRealSkillLevel(skill);
+            // Following a skill plan: the milestone you're on says what to make (Mithril dart, not the best thing
+            // in your bank); your Track for goal pick still comes first
+            SkillPlans.Step step = item == null ? plugin.getPlanMilestone(skill, level) : null;
+            String stepItem = step != null && step.covers(level) ? step.action : null;
+            Predicate<RecipeData.Recipe> allowed = item != null ? r -> uses(r, item) && (recipe == null || r.name.equalsIgnoreCase(recipe))
+                : stepItem != null ? r -> r.name.equalsIgnoreCase(stepItem) : r -> true;
             if (bankSeen) {
                 banked.put(skill, recipes.bankedXp(skill, level, have, this::xp));
                 if (config.showMaterialsValue()) {
@@ -317,14 +366,16 @@ class GoalItems {
                 }
             }
             RecipeData.Recipe best = recipes.best(skill, level, have, score, allowed);
-            if (best == null && item != null) {
+            if (best == null && (item != null || stepItem != null)) {
                 best = recipes.best(skill, level, null, score, allowed);
             }
             if (best == null) {
                 continue;
             }
             suggestions.put(skill, best);
-            counts.put(skill, best.makeable(have));
+            // How many items: a go of a recipe can make several (10 darts), the milestone's XP is one of them
+            int per = step != null && step.xp > 0 && xp(best) / step.xp >= 1.5 ? (int) Math.round(xp(best) / step.xp) : 1;
+            counts.put(skill, best.makeable(have) * per);
             for (String material : best.materials.keySet()) {
                 highlighted.putIfAbsent(material.toLowerCase(), "Suggested for your " + skill.getName() + " goal: " + best.name);
             }
@@ -339,12 +390,7 @@ class GoalItems {
 
     /** Whether a recipe uses this item (lower-case name) as a material. */
     static boolean uses(RecipeData.Recipe recipe, String item) {
-        for (String material : recipe.materials.keySet()) {
-            if (material.equalsIgnoreCase(item)) {
-                return true;
-            }
-        }
-        return false;
+        return recipe.uses(item);
     }
 
     private void count(ItemContainer container, Map<String, Integer> into) {

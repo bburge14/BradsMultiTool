@@ -18,7 +18,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's PvM/Slayer: the PvM HUD and monster hover card, buff bar and potion timers, health and prayer warnings, combat alerts, and the Slayer card (its hotkey shows or hides it) with task monster outlines. Clashes (said in chat while they're on): RuneLite's Slayer plugin with its task highlight on (you'd see two outlines), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's PvM/Slayer: the PvM HUD and monster hover card, buff bar and potion timers, health and prayer warnings, combat alerts, and the Slayer card (its hotkey shows or hides it) with task monster outlines. Clashes (a warning icon among the info boxes while they're on): RuneLite's Slayer plugin with its task highlight on (you'd see two outlines), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -61,7 +61,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @ConfigItem(
         keyName = "showClashes",
         name = "Clash Warnings",
-        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list). Off: no icon",
         section = aboutSection,
         position = 1
     )
@@ -79,6 +79,17 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     )
     String generalSection = "generalSection";
 
+    @ConfigItem(
+        keyName = "compactOverlays",
+        name = "Compact Overlays",
+        description = "<div width='300'>The monster hover card, the Slayer card and the PvM HUD show only the essentials. Off: everything the other settings turn on</div>",
+        section = generalSection,
+        position = 90
+    )
+    default boolean compactOverlays() {
+        return false;
+    }
+
     @ConfigSection(
         name = "Idle",
         description = "Idle character, idle and six-hour logout warnings, and run energy alerts",
@@ -89,7 +100,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     @ConfigSection(
         name = "Reminders",
-        description = "Clue drops and daily rewards to collect",
+        description = "Clue drop alerts",
         position = 6,
         closedByDefault = true
     )
@@ -1765,150 +1776,6 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @Override
     default boolean chatClueDrop() {
         return CommonConfig.super.chatClueDrop();
-    }
-
-    @ConfigItem(
-        keyName = "dailyReminders",
-        name = "Daily Reminders",
-        description = "<div width='300'>On login (and at the daily reset), list the daily rewards you haven't collected, the ones RuneLite's Daily Task Indicator knows: needs the diary or quest that unlocks each; members only",
-        section = remindersSection,
-        position = 3
-    )
-    @Override
-    default boolean dailyReminders() {
-        return CommonConfig.super.dailyReminders();
-    }
-
-    @ConfigItem(
-        keyName = "voiceDailies",
-        name = "Voice: Dailies",
-        description = "<div width='300'>Voice line when there are dailies to collect (turning it on plays a preview)",
-        section = remindersSection,
-        position = 4
-    )
-    @Override
-    default boolean voiceDailies() {
-        return CommonConfig.super.voiceDailies();
-    }
-
-    @ConfigItem(
-        keyName = "chatDailies",
-        name = "Chat: Dailies",
-        description = "Chat message listing the dailies to collect",
-        section = remindersSection,
-        position = 5
-    )
-    @Override
-    default boolean chatDailies() {
-        return CommonConfig.super.chatDailies();
-    }
-
-    @ConfigItem(
-        keyName = "dailyStaves",
-        name = "Daily: Battlestaves",
-        description = "Battlestaves from Zaff in Varrock (Varrock easy diary)",
-        section = remindersSection,
-        position = 6
-    )
-    @Override
-    default boolean dailyStaves() {
-        return CommonConfig.super.dailyStaves();
-    }
-
-    @ConfigItem(
-        keyName = "dailyHerbBoxes",
-        name = "Daily: Herb Boxes",
-        description = "<div width='300'>Herb boxes from the Nightmare Zone (9,500 points each, up to 15 a day; not for Ironmen)",
-        section = remindersSection,
-        position = 7
-    )
-    @Override
-    default boolean dailyHerbBoxes() {
-        return CommonConfig.super.dailyHerbBoxes();
-    }
-
-    @ConfigItem(
-        keyName = "dailyEssence",
-        name = "Daily: Pure Essence",
-        description = "<div width='300'>Pure essence from Wizard Cromperty in East Ardougne (Ardougne medium diary)",
-        section = remindersSection,
-        position = 8
-    )
-    @Override
-    default boolean dailyEssence() {
-        return CommonConfig.super.dailyEssence();
-    }
-
-    @ConfigItem(
-        keyName = "dailyRunes",
-        name = "Daily: Random Runes",
-        description = "<div width='300'>Random runes from Lundail at the Mage Arena bank (Wilderness easy diary)",
-        section = remindersSection,
-        position = 9
-    )
-    @Override
-    default boolean dailyRunes() {
-        return CommonConfig.super.dailyRunes();
-    }
-
-    @ConfigItem(
-        keyName = "dailySand",
-        name = "Daily: Sand",
-        description = "<div width='300'>Buckets of sand from Bert in Yanille (The Hand in the Sand; not for Ultimate Ironmen)",
-        section = remindersSection,
-        position = 10
-    )
-    @Override
-    default boolean dailySand() {
-        return CommonConfig.super.dailySand();
-    }
-
-    @ConfigItem(
-        keyName = "dailyFlax",
-        name = "Daily: Bowstrings",
-        description = "<div width='300'>Flax made into bowstrings by the Flax keeper in Seers' Village (Kandarin easy diary)",
-        section = remindersSection,
-        position = 11
-    )
-    @Override
-    default boolean dailyFlax() {
-        return CommonConfig.super.dailyFlax();
-    }
-
-    @ConfigItem(
-        keyName = "dailyBonemeal",
-        name = "Daily: Bonemeal",
-        description = "<div width='300'>Bonemeal and slime from Robin at Port Phasmatys (Morytania medium diary and up)",
-        section = remindersSection,
-        position = 12
-    )
-    @Override
-    default boolean dailyBonemeal() {
-        return CommonConfig.super.dailyBonemeal();
-    }
-
-    @ConfigItem(
-        keyName = "dailyDynamite",
-        name = "Daily: Dynamite",
-        description = "<div width='300'>Dynamite from Thirus at the Lovakengj blast mine (Kourend & Kebos medium diary)",
-        section = remindersSection,
-        position = 13
-    )
-    @Override
-    default boolean dailyDynamite() {
-        return CommonConfig.super.dailyDynamite();
-    }
-
-    @ConfigItem(
-        keyName = "dailyArrows",
-        name = "Daily: Ogre Arrows",
-        description = "<div width='300'>Ogre arrows from Rantz near Feldip Hills (Western Provinces easy diary)",
-        section = remindersSection,
-        position = 14
-    )
-    @Override
-    default boolean dailyArrows() {
-        return CommonConfig.super.dailyArrows();
     }
     // ---- End of CommonConfig's settings ----
 

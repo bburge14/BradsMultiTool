@@ -172,6 +172,8 @@ class FarmingData {
     private final ConfigManager configManager;
     private final Map<String, Crop> crops = new HashMap<>();
     private final Map<String, Produce> produce = new HashMap<>();
+    // Farming contract varbit value -> crop name (Guinevere's contracts)
+    private final Map<Integer, String> contracts = new HashMap<>();
     private final Map<String, List<Rule>> rules = new HashMap<>();
     // Patches by the region they're in (its own region first, then the neighbouring regions that also send it)
     private final Map<Integer, List<Patch>> primary = new HashMap<>();
@@ -189,6 +191,7 @@ class FarmingData {
     void load(Gson gson) {
         crops.clear();
         produce.clear();
+        contracts.clear();
         rules.clear();
         primary.clear();
         nearby.clear();
@@ -208,6 +211,9 @@ class FarmingData {
             produce.put(e.getKey(), new Produce(e.getKey(), o.get("name").getAsString(),
                 o.get("patch").isJsonNull() ? null : o.get("patch").getAsString(),
                 o.get("tickrate").getAsInt(), o.get("stages").getAsInt()));
+            if (o.has("contract")) {
+                contracts.put(o.get("contract").getAsInt(), o.get("name").getAsString());
+            }
         }
         for (Map.Entry<String, JsonElement> e : patchData.getAsJsonObject("implementations").entrySet()) {
             List<Rule> list = new ArrayList<>();
@@ -246,6 +252,23 @@ class FarmingData {
             log.warn("Failed to load {}", resource, e);
             return null;
         }
+    }
+
+    /** The crop a farming contract asks for, by the contract varbit's value, or null. */
+    String contractCrop(int value) {
+        return contracts.get(value);
+    }
+
+    /** How long this crop takes to grow from seed (seconds), by its name; 0 when it isn't known. */
+    long growthSeconds(String cropName) {
+        if (cropName != null) {
+            for (Produce p : produce.values()) {
+                if (p.name.equalsIgnoreCase(cropName) && p.stages > 1) {
+                    return p.tickrate * 60L * (p.stages - 1);
+                }
+            }
+        }
+        return 0;
     }
 
     Crop crop(String name) {
@@ -325,17 +348,73 @@ class FarmingData {
     }
 
     /**
-     * Seconds until fully grown: crops grow one stage per growth cycle, and cycles tick over on the clock
-     * (every 5, 10, 20, 40... minutes), so this is an estimate to within a few minutes.
+     * Seconds until fully grown: crops grow one stage per growth cycle (every 5, 10, 20, 40... minutes). The cycles
+     * tick over on the clock, but each account's ticks are shifted by its own offset; with offsetSeconds 0 (not
+     * known yet) the time can be out by up to one whole cycle, either way.
      */
     static long secondsUntilGrown(State state, long nowSeconds) {
+        return secondsUntilGrown(state, nowSeconds, 0);
+    }
+
+    /** As above, with the account's growth tick offset (as RuneLite's Time Tracking works it out). */
+    static long secondsUntilGrown(State state, long nowSeconds, long offsetSeconds) {
         int stagesLeft = state.produce.stages - 1 - state.stage;
         int cycle = state.produce.tickrate * 60;
         if (stagesLeft <= 0 || cycle <= 0) {
             return 0;
         }
-        long toNextCycle = cycle - nowSeconds % cycle;
+        long shifted = nowSeconds + offsetSeconds;
+        long toNextCycle = cycle - shifted % cycle;
         return toNextCycle + (long) (stagesLeft - 1) * cycle;
+    }
+
+    // ---- Growth tick offset ----
+    // Each account's farming ticks are shifted from the clock by a few minutes. As RuneLite's Time Tracking does,
+    // it's worked out the first time we see a patch grow a stage while you stand by it, and kept per account
+    // (with the longest growth cycle it was seen on, as a shorter one can't tell a longer one's offset)
+    private static final String OFFSET_KEY = "farmTickOffset";
+    private static final String OFFSET_PRECISION_KEY = "farmTickOffsetPrecision";
+    // RuneLite: an offset seen on a 40-minute (or longer) cycle holds for every crop
+    private static final int OFFSET_GOOD_FOR_ALL = 40;
+
+    /** The offset (seconds) for crops with this growth cycle (minutes), or -1 while it isn't known yet. */
+    long tickOffset(int tickrate) {
+        if (tickrate <= 0 || configManager.getRSProfileKey() == null) {
+            return -1;
+        }
+        Integer precision = number(configManager.getRSProfileConfiguration(CONFIG_GROUP, OFFSET_PRECISION_KEY));
+        Integer minutes = number(configManager.getRSProfileConfiguration(CONFIG_GROUP, OFFSET_KEY));
+        if (precision == null || minutes == null || precision < tickrate && precision < OFFSET_GOOD_FOR_ALL) {
+            return -1;
+        }
+        return (minutes % tickrate) * 60L;
+    }
+
+    /** Seconds until this patch is grown, using the account's offset when known (else the clock's cycles). */
+    long untilGrown(State state, long nowSeconds) {
+        long offset = tickOffset(state.produce.tickrate);
+        return secondsUntilGrown(state, nowSeconds, Math.max(0, offset));
+    }
+
+    /** A patch was just seen growing a stage (or getting diseased, or dying): the account's ticks happen now. */
+    void observedGrowthTick(int tickrate, long nowSeconds) {
+        if (tickrate <= 0 || configManager.getRSProfileKey() == null) {
+            return;
+        }
+        int offset = (int) Math.abs((nowSeconds / 60) % tickrate - tickrate);
+        Integer precision = number(configManager.getRSProfileConfiguration(CONFIG_GROUP, OFFSET_PRECISION_KEY));
+        if (precision == null || tickrate >= precision) {
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, OFFSET_PRECISION_KEY, tickrate);
+            configManager.setRSProfileConfiguration(CONFIG_GROUP, OFFSET_KEY, offset);
+        }
+    }
+
+    private static Integer number(String value) {
+        try {
+            return value == null ? null : Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     // "HARDWOOD_TREE" -> "Hardwood tree patch"

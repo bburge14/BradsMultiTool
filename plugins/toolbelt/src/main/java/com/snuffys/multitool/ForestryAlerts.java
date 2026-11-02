@@ -28,6 +28,8 @@ class ForestryAlerts {
 
     // One alert per event this often at most (ticks): an event brings several objects or NPCs at once
     private static final int REPEAT_TICKS = 100;
+    // Only events this close to you (tiles): not another group's across the scene
+    private static final int NEAR = 15;
 
     private final Client client;
     private final SkillTracker plugin;
@@ -95,24 +97,28 @@ class ForestryAlerts {
 
     @Subscribe
     public void onGameObjectSpawned(GameObjectSpawned event) {
-        started(eventOfObject(event.getGameObject().getId()));
+        started(eventOfObject(event.getGameObject().getId()), event.getGameObject().getWorldLocation());
     }
 
     @Subscribe
     public void onNpcSpawned(NpcSpawned event) {
-        started(eventOfNpc(event.getNpc().getId()));
+        started(eventOfNpc(event.getNpc().getId()), event.getNpc().getWorldLocation());
     }
 
-    private void started(String event) {
-        if (event == null || !plugin.trainedRecently(Skill.WOODCUTTING)) {
+    // An event near you that hasn't been seen for a while: the event keeps spawning objects and NPCs while it runs
+    // (new roots, entlings, foxes), and coming back into view or a scene reload spawns them again, so each spawn
+    // only refreshes when it was last seen
+    private void started(String event, net.runelite.api.coords.WorldPoint at) {
+        net.runelite.api.Player you = client.getLocalPlayer();
+        if (event == null || you == null || at == null || at.distanceTo2D(you.getWorldLocation()) > NEAR
+            || !plugin.trainedRecently(Skill.WOODCUTTING)) {
             return;
         }
         int now = client.getTickCount();
-        Integer last = lastSaid.get(event);
+        Integer last = lastSaid.put(event, now);
         if (last != null && now - last < REPEAT_TICKS) {
             return;
         }
-        lastSaid.put(event, now);
         alerts.alert(VoiceAlertService.VoiceLine.FORESTRY_EVENT, event);
     }
 

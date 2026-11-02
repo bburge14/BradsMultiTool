@@ -1,7 +1,9 @@
 package com.bradsmultitool;
 
+// <click-timing>
 import java.util.ArrayDeque;
 import java.util.Deque;
+// </click-timing>
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
@@ -9,17 +11,23 @@ import net.runelite.api.Actor;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.ChatMessageType;
+// <click-timing>
 import net.runelite.api.MenuAction;
+// </click-timing>
 import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.Player;
 import net.runelite.api.Preferences;
+// <click-timing>
 import net.runelite.api.SoundEffectID;
+// </click-timing>
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+// <click-timing>
 import net.runelite.api.events.MenuOptionClicked;
+// </click-timing>
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.client.eventbus.Subscribe;
@@ -37,12 +45,14 @@ class TickCounter {
     private static final int UNARMED_SPEED = 4;
     /** Spells take 5 ticks whatever the weapon, except on these staves. */
     private static final int SPELL_SPEED = 5;
+    // <click-timing>
     /** How many recent clicks (and missed ticks) the summary covers. */
     static final int RECENT = 50;
     private static final int DING = SoundEffectID.TOWN_CRIER_BELL_DING;
 
     /** A click (how long after the tick, in ms) or a missed tick (-1), for the summary. */
     private final Deque<Integer> recent = new ArrayDeque<>();
+    // </click-timing>
 
     private final Client client;
     private final TickConfig config;
@@ -59,6 +69,7 @@ class TickCounter {
     /** When the last tick came (System.currentTimeMillis), for the box's flash. */
     @Getter
     private long lastTickMillis;
+    // <click-timing>
     /** How long after the tick your last click landed, and when (System.currentTimeMillis), for the over-head text. */
     @Getter
     private int lastClickOffset;
@@ -66,6 +77,7 @@ class TickCounter {
     private long lastClickMillis;
     private int clicksThisTick;
     private boolean clickedLastTick;
+    // </click-timing>
     /** An attack animation started since the last tick (Follow Attack Speed). */
     private boolean attacked;
     private int speedWeaponId = Integer.MIN_VALUE;
@@ -89,9 +101,15 @@ class TickCounter {
     /** Whether the count is shown or sounded at all. */
     boolean active() {
         return config.tickOverHead() || config.tickBoxes() || config.tickBar() || config.metronome()
-            || timingClicks();
+            // <click-timing>
+            || timingClicks()
+            // </click-timing>
+            ;
     }
 
+    // <click-timing>
+    // Click timing is only in builds from this repository: the Plugin Hub copies leave out everything between these
+    // markers (scripts/split_plugins.py)
     boolean timingClicks() {
         return config.clickTiming() || config.clickSounds();
     }
@@ -115,6 +133,7 @@ class TickCounter {
     Iterable<Integer> recent() {
         return recent;
     }
+    // </click-timing>
 
     /** The next tick's place in the cycle: 1 after an attack (or once the cycle is done), else one more. */
     static int next(int count, int cycle, boolean attacked) {
@@ -235,6 +254,7 @@ class TickCounter {
         return config.tickFollowWeapon() && config.attackCountDown();
     }
 
+    // <click-timing>
     @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked event) {
         // Our own right-click entries (Track for goal...) aren't game clicks
@@ -257,6 +277,7 @@ class TickCounter {
             recent.removeFirst();
         }
     }
+    // </click-timing>
 
     @Subscribe
     public void onGameTick(GameTick event) {
@@ -266,13 +287,17 @@ class TickCounter {
             attacked = false;
             attackTimer.reset();
             lastTickMillis = 0;
+            // <click-timing>
             clicksThisTick = 0;
             clickedLastTick = false;
             recent.clear();
+            // </click-timing>
             return;
         }
+        boolean missed = false;
+        // <click-timing>
         // 1-ticking: a tick with no click, straight after one with a click, is a missed tick
-        boolean missed = config.clickEveryTick() && timingClicks() && clickedLastTick && clicksThisTick == 0;
+        missed = config.clickEveryTick() && timingClicks() && clickedLastTick && clicksThisTick == 0;
         clickedLastTick = clicksThisTick > 0;
         clicksThisTick = 0;
         if (missed) {
@@ -281,6 +306,7 @@ class TickCounter {
                 play(config.clickLateSound().id);
             }
         }
+        // </click-timing>
 
         boolean follow = config.tickFollowWeapon();
         if (follow) {

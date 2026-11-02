@@ -53,6 +53,16 @@ class RecipeData {
             }
         }
 
+        /** Whether it uses this item (any case) as a material. */
+        boolean uses(String item) {
+            for (String material : materials.keySet()) {
+                if (material.equalsIgnoreCase(item)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /** How many times you can make it from these item counts (lower-case names). */
         int makeable(Map<String, Integer> have) {
             int times = Integer.MAX_VALUE;
@@ -91,11 +101,16 @@ class RecipeData {
         return recipes.containsKey(skill.name());
     }
 
+    /** Everything this skill makes (empty when it isn't a production skill). */
+    List<Recipe> recipes(Skill skill) {
+        return Collections.unmodifiableList(recipes.getOrDefault(skill.name(), Collections.emptyList()));
+    }
+
     /** This skill's recipes that use an item (any case) as a material. */
     List<Recipe> using(Skill skill, String item) {
         List<Recipe> out = new ArrayList<>();
         for (Recipe recipe : recipes.getOrDefault(skill.name(), Collections.emptyList())) {
-            if (GoalItems.uses(recipe, item)) {
+            if (recipe.uses(item)) {
                 out.add(recipe);
             }
         }
@@ -108,7 +123,14 @@ class RecipeData {
      * unfinished potions, not the finished ones after.
      */
     double bankedXp(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> xpOf) {
-        return banked(skill, level, have, xpOf, null);
+        return banked(skill, level, have, xpOf, null, null);
+    }
+
+    /** How many of each recipe {@link #bankedXp} makes (lower-case name -> times), materials shared as there. */
+    Map<String, Integer> bankedTimes(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> xpOf) {
+        Map<String, Integer> made = new HashMap<>();
+        banked(skill, level, have, xpOf, null, made);
+        return made;
     }
 
     /**
@@ -117,13 +139,13 @@ class RecipeData {
      */
     Map<String, Integer> bankedMaterials(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> xpOf) {
         Map<String, Integer> used = new HashMap<>();
-        banked(skill, level, have, xpOf, used);
+        banked(skill, level, have, xpOf, used, null);
         return used;
     }
 
-    // The banked XP, adding what it uses up to used (when not null)
+    // The banked XP, adding what it uses up to used and how many of each it makes to made (when not null)
     private double banked(Skill skill, int level, Map<String, Integer> have, ToDoubleFunction<Recipe> xpOf,
-                          Map<String, Integer> used) {
+                          Map<String, Integer> used, Map<String, Integer> made) {
         List<Recipe> doable = new ArrayList<>();
         for (Recipe recipe : recipes.getOrDefault(skill.name(), Collections.emptyList())) {
             if (recipe.level <= level && xpOf.applyAsDouble(recipe) > 0) {
@@ -143,6 +165,9 @@ class RecipeData {
                 if (used != null) {
                     used.merge(material.getKey().toLowerCase(), times * material.getValue(), Integer::sum);
                 }
+            }
+            if (made != null) {
+                made.merge(recipe.name.toLowerCase(), times, Integer::sum);
             }
             total += times * xpOf.applyAsDouble(recipe);
         }
