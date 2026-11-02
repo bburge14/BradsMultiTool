@@ -373,7 +373,8 @@ def build(plugin_id, out_root=OUT, quiet=False):
                     shutil.copytree(source, os.path.join(res_out, "voices", persona, folder))
     title, description, tags = descriptor(spec["class"])
     with open(os.path.join(out, "runelite-plugin.properties"), "w", encoding="utf-8") as f:
-        f.write("displayName=%s\nauthor=%s\ndescription=%s\ntags=%s\nplugins=%s.%s\n" % (
+        # build=standard: the Plugin Hub builds it with its standard build (ours only needs RuneLite and Lombok)
+        f.write("displayName=%s\nauthor=%s\ndescription=%s\ntags=%s\nplugins=%s.%s\nbuild=standard\n" % (
             title, AUTHOR, description, ",".join(tags), spec["package"], spec["class"]))
     with open(os.path.join(out, "build.gradle"), "w", encoding="utf-8") as f:
         f.write(BUILD_GRADLE % dict(spec, version=version()))
