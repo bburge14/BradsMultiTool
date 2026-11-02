@@ -105,6 +105,8 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
                 int toGo = Math.max(0, to - xp);
                 String when = toGo == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(toGo * 3600L / rate)
                     : BradsMultiToolPanel.shortNumber(toGo) + " left";
+                // (a little room between it and the goal bar, as on the sidebar card)
+                panelComponent.getChildren().add(new Spacer(2));
                 panelComponent.getChildren().add(bar(done, "Step: Lvl " + milestone.to,
                     String.format("%.1f%%", Math.max(0, Math.min(1, done)) * 100), when, BradsMultiToolPanel.MILESTONE_FILL));
             }
@@ -185,6 +187,36 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             return "Plan: " + now.text + " (to " + now.planStep.to + ")";
         }
         return now.label + " " + now.text + (plan.size() > 1 ? " (to " + plan.get(0).to + ")" : "");
+    }
+
+    // Blank room of a set height between two parts of the panel
+    private static final class Spacer implements net.runelite.client.ui.overlay.components.LayoutableRenderableEntity {
+        private final int height;
+        private final java.awt.Rectangle bounds = new java.awt.Rectangle();
+
+        Spacer(int height) {
+            this.height = height;
+        }
+
+        @Override
+        public Dimension render(Graphics2D graphics) {
+            bounds.setSize(0, height);
+            return new Dimension(0, height);
+        }
+
+        @Override
+        public java.awt.Rectangle getBounds() {
+            return bounds;
+        }
+
+        @Override
+        public void setPreferredLocation(java.awt.Point position) {
+            bounds.setLocation(position);
+        }
+
+        @Override
+        public void setPreferredSize(Dimension dimension) {
+        }
     }
 
     private static ProgressBarComponent bar(double progress, String left, String centre, String right, Color fill) {
