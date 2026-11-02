@@ -284,9 +284,9 @@ each can be hidden in the settings; everything is saved per account.
   switches, the voice and the volume.
 - With several of the separate plugins, **Same Voice For All** keeps them on one voice and volume: change it
   in any of them (turn it off in one to give it its own).
-- 10 voices (pre-recorded, so they work on any OS): Amy and Cori (US and UK women), Alan,
-  Ryan and John (UK and US men), Arctic (a Scottish man), L2 Arctic (a man with a Mandarin Chinese accent), Wise Old Man, TzHaar and Ghost, or **Random** for a different
-  one each alert. Changing the voice plays a sample.
+- Pre-recorded voices (so they work on any OS): Amy and Cori (US and UK women), Alan and John (UK and US men), or
+  **Random** for a different one each alert. Running it from this repository (the launcher) also has Arctic (a
+  Scottish man), Wise Old Man, TzHaar and Ghost. Changing the voice plays a sample.
 - Chat messages use the same words as the voice line, with details in brackets.
 - **Speak Only When Unfocused** (General, off at first): voice only while you're in another window; chat
   messages still post.

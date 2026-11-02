@@ -51,10 +51,8 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
       (clashes between ours, shared goals, one voice for all). docs/TESTING.md is the checklist.
 - [ ] **Open questions** in docs/PLUGIN_HUB_COMPLIANCE.md settled:
   - Click timing (Tick Counter): ask the reviewers, or leave it out.
-  - Voice licences: Ryan (CC BY-NC-SA) and L2 Arctic (CC BY-NC) — ask, or drop those two voices from the
-    published plugins.
-  - Size: PvM/Slayer is about 12 MB and the Skilling Helper about 7 MB, almost all voice clips. The reviewers may
-    ask for smaller; the fix is fewer voices per plugin (e.g. the four standard ones).
+  - Voice licences: done (Ryan and L2 Arctic removed).
+  - Size: done as far as it goes: the published plugins ship four voices (see the sizes `split_plugins.py` prints).
 - [ ] **READMEs**: each `plugins/<folder>/README.md` is what players see on the Plugin Hub page: check the text
       and add a screenshot or two.
 - [ ] **Icons**: `assets/hub/` (48x72 at most; ours are 48x55). The Planner's logo (`assets/Planner.png`) is a

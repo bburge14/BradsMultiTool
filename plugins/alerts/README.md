@@ -4,7 +4,7 @@ One voice and volume for all of Snuffy's plugins, plus idle, logout, run energy 
 
 ## Features
 
-- **One voice and volume** for all of Snuffy's plugins (10 voices)
+- **One voice and volume** for all of Snuffy's plugins (4 voices)
 - **Idle alerts**: AFK, about to be logged out, six-hour logout
 - **Run energy** low and restored alerts
 - **Clue drops** from monsters and skilling

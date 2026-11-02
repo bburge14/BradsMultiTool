@@ -50,7 +50,7 @@ Everything in Snuffy's six separate plugins, in one plugin:
 
 **Snuffy's Alerts**
 
-- **One voice and volume** for all of Snuffy's plugins (10 voices)
+- **One voice and volume** for all of Snuffy's plugins (4 voices)
 - **Idle alerts**: AFK, about to be logged out, six-hour logout
 - **Run energy** low and restored alerts
 - **Clue drops** from monsters and skilling

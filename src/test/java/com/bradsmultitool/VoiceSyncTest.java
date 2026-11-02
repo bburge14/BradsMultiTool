@@ -41,8 +41,8 @@ public class VoiceSyncTest {
         assertEquals(40, pvm.config.voiceVolume());
 
         // And back the other way
-        configManager.setConfiguration(pvm.identity.configGroup, "voicePersona", VoiceAlertService.VoicePersona.RYAN);
-        assertEquals(VoiceAlertService.VoicePersona.RYAN, skilling.config.voicePersona());
+        configManager.setConfiguration(pvm.identity.configGroup, "voicePersona", VoiceAlertService.VoicePersona.JOHN);
+        assertEquals(VoiceAlertService.VoicePersona.JOHN, skilling.config.voicePersona());
     }
 
     @Test

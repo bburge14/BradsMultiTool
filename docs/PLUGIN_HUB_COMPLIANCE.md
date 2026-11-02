@@ -121,15 +121,12 @@ level/skull indicators; anything that modifies or hides core RuneLite UI or othe
   and gives feedback after them. Nothing on the Plugin Hub does quite this; ask the reviewers before submitting,
   and drop it if they object (it's only in the Tick Counter, and the tick count and metronome don't depend on it).
 
-- **Voice clip licences.** Ryan's clips are CC BY-NC-SA 4.0 and L2 Arctic's CC BY-NC 4.0 (their recordings'
-  licences; VOICE_CREDITS.md). The plugin is free, so non-commercial use holds, but the Plugin Hub asks for
-  BSD-2 and says nothing about bundled sounds under other licences. Ask the Plugin Hub reviewers, or drop
-  those two voices from the published build.
+- **Voice clip licences:** settled. Ryan (CC BY-NC-SA) and L2 Arctic (CC BY-NC) were removed; the voices left are
+  CC0, public domain, or free to use with credit (VOICE_CREDITS.md).
 
-- Plugin size: the jar is about 17.5 MB, nearly all voice clips (9 voices: 4 standard, 5 RuneScape-inspired characters; 11 kHz mu-law, level-up
-  numbers built from parts; was 35 MB with 11 voices at 16 kHz). Still large for the Plugin Hub: if a
-  reviewer objects, ship fewer voices (e.g. the four standard ones) or move the character voices to their
-  own plugin. Check before submitting.
+- Plugin size: the published plugins ship four voices (Amy, Cori, Alan, John; `PUBLISHED_VOICES` in
+  scripts/split_plugins.py), 11 kHz mu-law, level-up numbers built from parts; the clips are already trimmed. Builds
+  from this repository keep all eight. If a reviewer still objects, the next step is fewer voices again.
 - `Executors.newSingleThreadExecutor()` for audio is not forbidden, but reviewers may prefer the
   injected `ScheduledExecutorService`.
 - The skilling/farming data files are generated from the OSRS Wiki (CC BY-NC-SA) and RuneLite

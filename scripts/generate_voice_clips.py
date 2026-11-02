@@ -32,12 +32,10 @@ HF = "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
 PERSONAS = {
     # US voices must use espeak "en-us" in their .onnx.json; several en_US models use British "en"
     "amy": "en/en_US/amy/medium",
-    "ryan": "en/en_US/ryan/high",
     # Piper's Joe voice as recorded (it already sounds like a certain armoured Spartan)
     "john": "en/en_US/joe/medium",
     # Multi-speaker models: (model, speaker); the demo page's first speaker of each
     "arctic": ("en/en_US/arctic/medium", "awb"),      # Scottish man
-    "l2arctic": ("en/en_US/l2arctic/medium", "TXHC"),  # Mandarin Chinese-accented man
     "cori": "en/en_GB/cori/high",
     "alan": "en/en_GB/alan/medium",
 }

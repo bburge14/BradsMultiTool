@@ -234,9 +234,7 @@ public class VoiceAlertService {
         AMY("Amy (US)"),
         CORI("Cori (UK)"),
         ALAN("Alan (UK)"),
-        RYAN("Ryan (US)"),
         ARCTIC("Arctic (Scot)"),
-        L2ARCTIC("L2 Arctic"),
         // Character voices: Piper voices pitch-shifted with effects (see generate_voice_clips.py)
         JOHN("John (US)"),
         WISE_OLD_MAN("Wise Old Man"),

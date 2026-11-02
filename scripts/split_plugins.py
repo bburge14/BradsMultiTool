@@ -28,6 +28,10 @@ OUT = os.path.join(ROOT, "plugins")
 RELEASES = os.path.join(ROOT, "releases")
 OLD_PACKAGE = "com.bradsmultitool"
 
+# The voices the published plugins ship (to keep them small for the Plugin Hub); builds from src/ keep every voice.
+# The others' VoicePersona entries are left out of the generated code too, so the settings only offer these.
+PUBLISHED_VOICES = ["amy", "cori", "alan", "john"]
+
 # Each plugin: its plugin class, package, project name, folder under plugins/, and which voice clip folders it ships
 PLUGINS = {
     "multitool": {
@@ -147,7 +151,7 @@ FEATURES = {
         "**Click timing**: how far into the tick each click lands, for tick skilling practice",
     ],
     "voices": [
-        "**One voice and volume** for all of Snuffy's plugins (10 voices)",
+        "**One voice and volume** for all of Snuffy's plugins (4 voices)",
         "**Idle alerts**: AFK, about to be logged out, six-hour logout",
         "**Run energy** low and restored alerts",
         "**Clue drops** from monsters and skilling",
@@ -249,6 +253,25 @@ def descriptor(name):
     return title, description, tags
 
 
+def published_personas(text):
+    """VoiceAlertService with only the published voices (and Random) in its VoicePersona enum."""
+    out = []
+    in_enum = False
+    for line in text.split("\n"):
+        if "public enum VoicePersona" in line:
+            in_enum = True
+        elif in_enum:
+            constant = re.match(r"\s+([A-Z_]+)\(\"", line)
+            if constant and constant.group(1) != "RANDOM" and constant.group(1).lower() not in PUBLISHED_VOICES:
+                continue
+            if re.match(r"\s+// Character voices", line):
+                continue
+            if constant and constant.group(1) == "RANDOM":
+                in_enum = False
+        out.append(line)
+    return "\n".join(out)
+
+
 def build(plugin_id, out_root=OUT, quiet=False):
     spec = PLUGINS[plugin_id]
     known = classes()
@@ -263,6 +286,8 @@ def build(plugin_id, out_root=OUT, quiet=False):
     for name in sorted(names):
         with open(os.path.join(SRC, name + ".java"), encoding="utf-8") as f:
             text = f.read()
+        if name == "VoiceAlertService":
+            text = published_personas(text)
         text = text.replace("package %s;" % OLD_PACKAGE, "package %s;" % spec["package"])
         text = text.replace(OLD_PACKAGE + ".", spec["package"] + ".")
         with open(os.path.join(java_out, name + ".java"), "w", encoding="utf-8") as f:
@@ -277,7 +302,7 @@ def build(plugin_id, out_root=OUT, quiet=False):
     # Voice clips: voices/<persona>/<folder>/ for this plugin's folders
     voices = os.path.join(RES, "voices")
     if "VoiceAlertService" in names:
-        for persona in sorted(os.listdir(voices)):
+        for persona in sorted(p for p in os.listdir(voices) if p in PUBLISHED_VOICES):
             for folder in spec["voices"]:
                 source = os.path.join(voices, persona, folder)
                 if os.path.isdir(source):

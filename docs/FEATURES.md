@@ -42,8 +42,9 @@ message uses the same words as the voice line, with details in brackets.
 
 **How to use:**
 - **General > Voice Alerts / Chat Messages** turn all voice or all chat on or off.
-- **General > Voice Persona** picks one of 10 voices (Amy, Cori, Alan, Ryan, Arctic, L2 Arctic, John, Wise
-  Old Man, TzHaar, Ghost) or **Random** (a different one each alert). Changing it plays a sample.
+- **General > Voice Persona** picks a voice, or **Random** (a different one each alert); changing it plays a sample.
+  The plugins on the Plugin Hub have four: Amy, Cori, Alan and John. Builds from this repository (the launcher) also
+  have Arctic, Wise Old Man, TzHaar and Ghost.
 - Each alert also has its own **Voice: ...** and **Chat: ...** switch in its section. Turning a Voice
   switch on plays that line as a preview.
 - **General > Same Voice For All** (on by default): with several of Snuffy's plugins installed, changing the
