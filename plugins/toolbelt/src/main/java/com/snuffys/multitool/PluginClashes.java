@@ -65,6 +65,12 @@ class PluginClashes {
         return new Clash(plugin, name, group, Arrays.asList(keys), byDefault, message, family);
     }
 
+    // A separate plugin of ours that the Toolbelt already has in it (only the Toolbelt warns about these)
+    private static Clash own(String plugin, String name) {
+        return plugin(plugin, name, name + " is on, and the Toolbelt already has it in it; turn off one or the other",
+            "toolbelt-only");
+    }
+
     private static Clash timer(String plugin, String name, String what) {
         return plugin(plugin, name, name + " is on, so Snuffy's " + what + " are hidden (Use Other Timer Plugins)",
             "skilltracker");
@@ -113,6 +119,15 @@ class PluginClashes {
         setting(CORE + "slayer.SlayerPlugin", "RuneLite's Slayer (task highlight)", "slayer", false,
             "RuneLite's Slayer plugin also highlights your task monsters; turn off its highlight or Snuffy's Highlight Task Monsters to see just one",
             "pvm", "highlightOutline", "highlightHull", "highlightTile"),
+        // Snuffy's own: the Toolbelt has every separate plugin in it, so install one or the other
+        plugin("com.snuffys.multitool.BradsMultiToolPlugin", "Snuffy's Toolbelt",
+            "Snuffy's Toolbelt is on and already has this plugin's features in it; turn off one or the other",
+            "skilltracker", "pvm", "gemcrab", "tickcounter", "voices"),
+        own("com.snuffys.skilltracker.SkillTrackerPlugin", "Snuffy's Skilling Helper"),
+        own("com.snuffys.pvm.PvmPlugin", "Snuffy's PvM/Slayer"),
+        own("com.snuffys.gemcrab.GemCrabPlugin", "Snuffy's GemCrab Tracker"),
+        own("com.snuffys.tickcounter.TickCounterPlugin", "Snuffy's Tick Counter"),
+        own("com.snuffys.voices.VoicesPlugin", "Snuffy's Alerts"),
         plugin(CORE + "metronome.MetronomePlugin", "RuneLite's Metronome",
             "RuneLite's Metronome is on; with Snuffy's Metronome on too, you'll hear both", "tickcounter"),
         plugin(CORE + "idlenotifier.IdleNotifierPlugin", "RuneLite's Idle Notifier",
@@ -207,8 +222,10 @@ class PluginClashes {
         List<Clash> now = new java.util.ArrayList<>();
         // Clash Warnings off: nothing shown or said
         boolean warn = !"false".equals(configManager.getConfiguration(identity.configGroup, "showClashes"));
+        String self = lifecycle.plugin != null ? lifecycle.plugin.getClass().getName() : "";
         for (Clash clash : warn ? forFamily(identity.familyId) : Collections.<Clash>emptyList()) {
-            if (on.contains(clash.plugin) && settingOn(clash)) {
+            // Never a clash with itself
+            if (on.contains(clash.plugin) && !clash.plugin.equals(self) && settingOn(clash)) {
                 now.add(clash);
             }
         }

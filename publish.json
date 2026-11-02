@@ -30,7 +30,7 @@
     "toolbelt": {
       "repo": "https://github.com/bburge14/snuffys-toolbelt.git",
       "hubName": "snuffys-toolbelt",
-      "publish": false
+      "publish": true
     }
   }
 }

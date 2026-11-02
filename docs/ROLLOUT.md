@@ -17,7 +17,7 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
   after changes, as now). Each folder is already a complete plugin repository: build files, `runelite-plugin.properties`,
   icon, licence, README.
 - `publish.json` says which repository each folder goes to (`repo`), its Plugin Hub file name (`hubName`) and
-  whether it's published (`publish`). The Toolbelt is off: see "What to publish" below.
+  whether it's published (`publish`).
 - `scripts/publish_plugins.py` (Windows: `Publish-Plugins.bat`):
   1. checks the working tree is clean, pushed, and `plugins/` matches `src/`;
   2. for each plugin: copies its folder exactly as committed into its repository, commits
@@ -28,7 +28,7 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
 
 ## One-time setup
 
-1. On GitHub, make five empty public repositories: `snuffys-skilling-helper`, `snuffys-pvm-slayer`,
+1. On GitHub, make six empty public repositories: `snuffys-toolbelt`, `snuffys-skilling-helper`, `snuffys-pvm-slayer`,
    `snuffys-gemcrab-tracker`, `snuffys-tick-counter`, `snuffys-alerts` (names as in `publish.json`; change them
    there if you pick others).
 2. Fork `runelite/plugin-hub` to your account (`bburge14/plugin-hub`, as in `publish.json`).
@@ -54,7 +54,7 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
 
 ## Submitting
 
-1. `Publish-Plugins.bat` (all five).
+1. `Publish-Plugins.bat` (all six).
 2. Open the pull request from the link it prints. Title like "Add Snuffy's plugins"; in the description, one line
    per plugin saying what it does, and mention they share settings/voices when installed together.
 3. The reviewers comment on the pull request; fix things here, publish again (the same command updates the
@@ -72,7 +72,8 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
 
 - **The five separate plugins** (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Alerts). Each
   stands alone, and they work together when installed side by side (shared goals, one voice, no double alerts).
-- **Not the Toolbelt (for now)**: it's every plugin in one, which the Plugin Hub tends to turn away as a
-  duplicate of plugins already there (ours), and it's the biggest jar. It stays the development and testing
-  build here. If you want it on the Plugin Hub later, set `"publish": true` for it in `publish.json`.
+- **The Toolbelt** too: its own plugin with everything in one, for players who'd rather install one thing. Say
+  in the pull request that it's the all-in-one of the five (same code), so the reviewers don't take it for a
+  copy. It's the biggest jar (about 19 MB); if size is a problem it can ship with fewer voices. Players should
+  install either the Toolbelt or the separate ones, not both (its clash warning says so if they do).
 - Start with one or two (e.g. Tick Counter and Alerts, the smallest) to learn the review process, then the rest.
