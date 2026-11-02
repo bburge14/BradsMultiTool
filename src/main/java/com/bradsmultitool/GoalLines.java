@@ -57,10 +57,18 @@ final class GoalLines {
         int level = Experience.getLevelForXp(xp);
         int toNextLevel = level >= Experience.MAX_REAL_LEVEL ? 0 : Experience.getXpForLevel(level + 1) - xp;
         int goalXp = plugin.getSkillGoal(skill);
-        boolean toGoal = config.trackerActionsToGoal() && goalXp > xp;
+        // With a skill plan, the count goes to the end of the milestone you're on (the near goal)
+        SkillPlans.Step milestone = plugin.getPlanMilestone(skill, level);
+        boolean toGoal = (config.trackerActionsToGoal() || milestone != null) && goalXp > xp;
         int remaining = toGoal ? goalXp - xp : toNextLevel;
         String until = toGoal ? "until your goal" : "until the next level";
-        if (toGoal && stepEndLevel > 0) {
+        if (toGoal && milestone != null) {
+            int milestoneXp = Experience.getXpForLevel(Math.min(Experience.MAX_REAL_LEVEL, milestone.to));
+            if (milestoneXp > xp && milestoneXp < goalXp) {
+                remaining = milestoneXp - xp;
+                until = "until level " + milestone.to + ", your plan's milestone";
+            }
+        } else if (toGoal && stepEndLevel > 0) {
             int stepEndXp = Experience.getXpForLevel(stepEndLevel);
             if (stepEndXp > xp && stepEndXp < goalXp) {
                 remaining = stepEndXp - xp;

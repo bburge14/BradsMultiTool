@@ -1563,6 +1563,17 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "followSkillPlans",
+        name = "Follow Skill Plans",
+        description = "<div width='300'>When you've exported a skill plan from Snuffy's Planner (its Calculator's Plan view: milestones on the way to the goal, each with its own method), the goal card and pinned skill show the milestone you're on with its own bar, count actions to it, and suggest and outline its method (a Track for goal pick or a Method you pick still comes first). Off, or without a plan: the wiki's suggestion as usual",
+        section = goalsSection,
+        position = 13
+    )
+    default boolean followSkillPlans() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "showBankedXp",
         name = "Show Banked XP",
         description = "<div width='300'>On a production skill's goal (Cooking, Herblore, Prayer...): the XP in what's in your bank and inventory at your level, the most XP things first. Just a figure: it doesn't change the suggestion. Note: it uses your bank as you last saw it, so open your bank once on each account (after that it's remembered and updates whenever you open it)",

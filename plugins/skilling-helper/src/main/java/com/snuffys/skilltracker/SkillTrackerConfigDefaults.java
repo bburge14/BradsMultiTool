@@ -128,6 +128,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("autoPauseSeconds", config.autoPauseSeconds());
         defaults.store("dropIdleSkillsAfter", config.dropIdleSkillsAfter());
         defaults.store("clearReachedGoals", config.clearReachedGoals());
+        defaults.store("followSkillPlans", config.followSkillPlans());
         defaults.store("showBankedXp", config.showBankedXp());
         defaults.store("skillsTabGoalBars", config.skillsTabGoalBars());
         defaults.store("skillsTabLevelBars", config.skillsTabLevelBars());

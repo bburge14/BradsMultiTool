@@ -239,6 +239,26 @@ final class PlannerUi {
         JLabel lower;
         JLabel lowerRight;
 
+        /** A fourth line's left and right text (null until {@link #fourth} adds it). */
+        JLabel last;
+        JLabel lastRight;
+
+        /** Adds a fourth line of muted text under the third (after {@link #third}). */
+        Card fourth(String leftText, String rightText) {
+            JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            info.setLayout(new java.awt.GridLayout(info.getComponentCount() + 1, 1));
+            last = label(leftText, MUTED);
+            last.setMinimumSize(new Dimension(0, 0));
+            lastRight = label(rightText == null ? "" : rightText, MUTED);
+            lastRight.setHorizontalAlignment(SwingConstants.RIGHT);
+            JPanel row = new JPanel(new BorderLayout(4, 0));
+            row.setOpaque(false);
+            row.add(last, BorderLayout.CENTER);
+            row.add(lastRight, BorderLayout.EAST);
+            info.add(row);
+            return this;
+        }
+
         /** Adds a third line of muted text under the second (left and right). */
         Card third(String leftText, String rightText) {
             JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
@@ -294,6 +314,10 @@ final class PlannerUi {
             if (lower != null) {
                 lower.setForeground(FAINT);
                 lowerRight.setForeground(FAINT);
+            }
+            if (last != null) {
+                last.setForeground(FAINT);
+                lastRight.setForeground(FAINT);
             }
             return this;
         }

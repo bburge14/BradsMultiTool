@@ -489,11 +489,33 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "plannerShowCalculator",
         name = "Show Calculator",
-        description = "<div width='300'>The CALCULATOR tab in the Planner: pick a skill and a target (your goal, or the next level) and see every action with its XP (with the bonuses you tick), how many to the target, the time where the wiki's training guides give an XP rate, the Grand Exchange cost per XP of what you make, what you own of it, and in Banked view the XP and level your bank and inventory get you. Set as goal sets the skill's goal like the Skilling Helper's Set Goal. Made from RuneLite's own Skill Calculator; information only",
+        description = "<div width='300'>The CALCULATOR tab in the Planner: pick a skill and a target (your goal, or the next level) and see every action with its XP (with the bonuses you tick), how many to the target, the time where the wiki's training guides give an XP rate, the Grand Exchange cost and worth of what you make or gather, what you own of it, and in Banked view the XP and level your bank and inventory get you. Plan view: a plan for the skill, milestones each with their own method, built by hand or from the wiki's suggestions, with the XP, time and cost of each and in all. Set as goal sets the skill's goal like the Skilling Helper's Set Goal; with the Skilling Helper installed, Export to tracker gives it the plan. Made from RuneLite's own Skill Calculator; information only",
         section = plannerCalculatorSection,
         position = 0
     )
     default boolean plannerShowCalculator() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "plannerCalcPrices",
+        name = "Show GE Prices",
+        description = "<div width='300'>On the Calculator's cards and plan: what the materials cost to reach your target (red) and what the products are worth (green), with the net gp per XP, at Grand Exchange prices; in Banked view the value of what you'd use. Just figures",
+        section = plannerCalculatorSection,
+        position = 1
+    )
+    default boolean plannerCalcPrices() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "plannerCalcHideMembers",
+        name = "Hide Members On Free Worlds",
+        description = "<div width='300'>On a free world, leave members-only actions out of the Calculator (as RuneLite's own Skill Calculator does), with a note saying so. Logged out, everything shows",
+        section = plannerCalculatorSection,
+        position = 2
+    )
+    default boolean plannerCalcHideMembers() {
         return true;
     }
 

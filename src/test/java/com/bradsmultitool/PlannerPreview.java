@@ -38,7 +38,9 @@ import net.runelite.client.ui.laf.RuneLiteLAF;
  * planner-notes.png, planner-calculator.png, planner-empty.png (each tab of a new account) and planner-loggedout.png,
  * at 2x. {@code ./gradlew calculatorPreview -Dout=calc} writes only the Calculator's: calc-woodcutting.png (with a goal
  * and a bonus), calc-cooking.png (costs, at the sidebar's height), calc-cooking-banked.png (Banked view),
- * calc-prayer.png (an altar's bonus, searched) and calc-magic.png.
+ * calc-prayer.png (an altar's bonus, searched), calc-magic.png, calc-plan.png (a plan with four milestones and its
+ * totals), calc-fishing.png (what the catch is worth), calc-free-world.png (members-only actions hidden) and
+ * calc-plan-alone.png (the plan without the Skilling Helper installed).
  * Item pictures come from the OSRS Wiki (cached in build/planner-icons; without a connection they're left out).
  */
 public class PlannerPreview {
@@ -63,16 +65,32 @@ public class PlannerPreview {
             SwingUtilities.invokeAndWait(() -> {
                 try {
                     PlannerPanel panel = full.panel(pictures);
-                    panel.showCalculator(Skill.WOODCUTTING, false, "");
+                    panel.showCalculator(Skill.WOODCUTTING, PlannerCalculator.Mode.ACTIONS, "");
                     write(render(panel, 0), out + "-woodcutting.png");
-                    panel.showCalculator(Skill.COOKING, false, "");
+                    panel.showCalculator(Skill.COOKING, PlannerCalculator.Mode.ACTIONS, "");
                     write(render(panel, 760), out + "-cooking.png");
-                    panel.showCalculator(Skill.COOKING, true, "");
+                    panel.showCalculator(Skill.COOKING, PlannerCalculator.Mode.BANKED, "");
                     write(render(panel, 0), out + "-cooking-banked.png");
-                    panel.showCalculator(Skill.PRAYER, false, "dragon");
+                    panel.showCalculator(Skill.PRAYER, PlannerCalculator.Mode.ACTIONS, "dragon");
                     write(render(panel, 0), out + "-prayer.png");
-                    panel.showCalculator(Skill.MAGIC, false, "alchemy");
+                    panel.showCalculator(Skill.MAGIC, PlannerCalculator.Mode.ACTIONS, "alchemy");
                     write(render(panel, 0), out + "-magic.png");
+                    // A Woodcutting plan with four milestones and its totals, exported to the tracker
+                    panel.showCalculator(Skill.WOODCUTTING, PlannerCalculator.Mode.PLAN, "");
+                    write(render(panel, 0), out + "-plan.png");
+                    panel.showCalculator(Skill.COOKING, PlannerCalculator.Mode.PLAN, "");
+                    write(render(panel, 0), out + "-plan-cooking.png");
+                    // Fishing's prices (what the catch is worth) at the sidebar's height
+                    panel.showCalculator(Skill.FISHING, PlannerCalculator.Mode.ACTIONS, "");
+                    write(render(panel, 760), out + "-fishing.png");
+                    // On a free world: members-only actions left out, with a note
+                    full.calculator.setSampleWorld(false, true);
+                    panel.showCalculator(Skill.COOKING, PlannerCalculator.Mode.ACTIONS, "");
+                    write(render(panel, 760), out + "-free-world.png");
+                    // Without the Skilling Helper: the plan can't be exported
+                    full.calculator.setSampleWorld(true, false);
+                    panel.showCalculator(Skill.WOODCUTTING, PlannerCalculator.Mode.PLAN, "");
+                    write(render(panel, 0), out + "-plan-alone.png");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -84,7 +102,7 @@ public class PlannerPreview {
                 PlannerPanel panel = full.panel(pictures);
                 for (String tab : tabs) {
                     if (tab.equals("calculator")) {
-                        panel.showCalculator(Skill.WOODCUTTING, false, "");
+                        panel.showCalculator(Skill.WOODCUTTING, PlannerCalculator.Mode.ACTIONS, "");
                     } else {
                         panel.showTab(tab);
                     }
@@ -204,7 +222,7 @@ public class PlannerPreview {
             slayer = new PlannerSlayer(null, configManager, null, view);
             drops = new DropTracker(configManager, null, config, view, gson);
             notes = new PlannerNotes(configManager, view, gson);
-            calculator = new PlannerCalculator(null, configManager, null, view);
+            calculator = new PlannerCalculator(null, configManager, null, view, config, null);
             calculatorData.load(gson);
             recipes.load(gson);
             training.load(gson);
@@ -325,6 +343,23 @@ public class PlannerPreview {
             Map<String, Integer> inventory = new HashMap<>();
             inventory.put("raw lobster", 28);
             calculator.setSample(xp, inventory, bank);
+            calculator.setSampleWorld(true, true);
+            // A Woodcutting plan from level 61 (to 99): four milestones, exported to the tracker
+            SkillPlans.Plan plan = new SkillPlans.Plan(99);
+            plan.steps.add(new SkillPlans.Step("Teak logs", 35, 65, "Teak trees", 85));
+            plan.steps.add(new SkillPlans.Step("Yew logs", 65, 75, null, 175));
+            plan.steps.add(new SkillPlans.Step("Magic logs", 75, 90, null, 250));
+            plan.steps.add(new SkillPlans.Step("Redwood logs", 90, 99, null, 380));
+            SkillPlans.savePlan(configManager, Skill.WOODCUTTING, plan);
+            SkillPlans.export(configManager, Skill.WOODCUTTING, plan, 302_288);
+            // A Cooking plan (not exported): costs and earnings
+            SkillPlans.Plan cooking = new SkillPlans.Plan(90);
+            cooking.steps.add(new SkillPlans.Step("Lobster", 75, 80, null, 120));
+            cooking.steps.add(new SkillPlans.Step("Shark", 80, 85, null, 210));
+            cooking.steps.add(new SkillPlans.Step("Manta ray", 91, 92, null, 216.3));
+            cooking.steps.get(2).from = 85;
+            cooking.steps.get(2).to = 90;
+            SkillPlans.savePlan(configManager, Skill.COOKING, cooking);
         }
 
         private void patch(String key, String title, String crop, String state, long grownAt) {
@@ -464,7 +499,7 @@ public class PlannerPreview {
                 "cooked karambwan", "365", "raw tuna", "60", "tuna", "92", "raw anglerfish", "1580", "anglerfish", "1620",
                 "raw trout", "34", "trout", "28", "raw salmon", "52", "salmon", "41", "dragon bones", "2280",
                 "superior dragon bones", "13500", "babydragon bones", "1740", "nature rune", "95", "fire rune", "5",
-                "teak logs", "64", "raw manta ray", "1500", "manta ray", "1460", "raw sea turtle", "1080", "sea turtle", "1050"};
+                "teak logs", "64", "yew logs", "262", "magic logs", "1012", "redwood logs", "364", "maple logs", "18", "willow logs", "24", "oak logs", "58", "logs", "48", "mahogany logs", "352", "raw shark", "760", "raw monkfish", "240", "raw manta ray", "1500", "manta ray", "1460", "raw sea turtle", "1080", "sea turtle", "1050"};
             for (int i = 0; i < prices.length; i += 2) {
                 PRICES.put(prices[i], Integer.parseInt(prices[i + 1]));
             }

@@ -42,5 +42,7 @@ final class PlannerConfigDefaults {
         defaults.store("plannerRecentDrops", config.plannerRecentDrops());
         defaults.store("plannerShowNotes", config.plannerShowNotes());
         defaults.store("plannerShowCalculator", config.plannerShowCalculator());
+        defaults.store("plannerCalcPrices", config.plannerCalcPrices());
+        defaults.store("plannerCalcHideMembers", config.plannerCalcHideMembers());
     }
 }

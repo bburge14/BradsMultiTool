@@ -5,7 +5,7 @@ XP tracker with goals and training suggestions, skilling hover cards, resource t
 ## Features
 
 - **XP tracker** in the sidebar: XP/hr, time to level, actions left, items gathered per hour, auto-pause, a pinned skill on screen, and it keeps your session through a quick restart
-- **Goals** with the wiki's training method for your level, outlined in the world, banked XP and materials value, Track for goal, and goal bars on the Skills tab
+- **Goals** with the wiki's training method for your level, outlined in the world, banked XP and materials value, Track for goal, goal bars on the Skills tab, and skill plans exported from Snuffy's Planner (the milestone you're on, with its own bar and method)
 - **Hover cards** for trees, rocks, fishing spots, stalls, pickpocketing, farming patches, Hunter, Runecraft, Agility, Cooking, Smithing and Sailing
 - **Resource timers**: tree, rock, fishing spot, trap, fire and shipwreck timers
 - **Hunters' Rumours** card: the creature, catches toward the rare part and where to find it

@@ -30,7 +30,7 @@ final class SkillGoals {
     }
 
     /**
-     * Sets the skill's goal (0 clears it, with its start and Track for goal pick). Changing a goal that's still
+     * Sets the skill's goal (0 clears it, with its start, Track for goal pick and exported plan). Changing a goal that's still
      * underway keeps where it started (the goal bar's progress); otherwise it starts from {@code xpNow}.
      */
     static void setGoal(ConfigManager configManager, Skill skill, int goalXp, int xpNow) {
@@ -38,6 +38,8 @@ final class SkillGoals {
             configManager.unsetRSProfileConfiguration(GROUP, "goal." + skill.name());
             configManager.unsetRSProfileConfiguration(GROUP, "goalStart." + skill.name());
             configManager.unsetRSProfileConfiguration(GROUP, "goalTarget." + skill.name());
+            // and the plan exported to the tracker (SkillPlans), whose final goal it was
+            configManager.unsetRSProfileConfiguration(GROUP, "goalPlan." + skill.name());
             return;
         }
         boolean underway = goal(configManager, skill) > xpNow && goalStart(configManager, skill) > 0;

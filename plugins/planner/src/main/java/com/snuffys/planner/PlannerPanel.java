@@ -268,9 +268,9 @@ class PlannerPanel extends PluginPanel {
         refresh();
     }
 
-    /** Package-private for the preview: the Calculator on this skill, in Banked view or not, with this search. */
-    void showCalculator(Skill skill, boolean banked, String search) {
-        calcPage.view.preview(skill, banked, search);
+    /** Package-private for the preview: the Calculator on this skill, in this view, with this search. */
+    void showCalculator(Skill skill, PlannerCalculator.Mode mode, String search) {
+        calcPage.view.preview(skill, mode, search);
         showTab("calculator");
     }
 

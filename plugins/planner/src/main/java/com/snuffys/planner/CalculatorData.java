@@ -25,7 +25,7 @@ import net.runelite.api.Skill;
  * The skill calculator's data: for each skill, every action with its level, XP and picture, and the XP bonuses
  * (outfits, diaries, altars) with their multipliers, which can be ticked together and which actions they apply to.
  * calculator.json is made from RuneLite's own Skill Calculator (BSD-2-Clause, (c) the RuneLite contributors) by
- * scripts/update_calculator_data.py; the sums here work the way that calculator's do.
+ * scripts/update_calculator_data.py (with each action's members-only flag); the sums here work the way that calculator's do.
  */
 @Slf4j
 @Singleton
@@ -43,6 +43,8 @@ class CalculatorData {
         final int sprite;
         /** The skill's bonuses that don't apply to it. */
         final Set<String> noBonus = new HashSet<>();
+        /** Members-only (RuneLite's Skill Calculator hides it on a free world). */
+        boolean members;
 
         Action(String name, int level, double xp, int icon, int sprite) {
             this.name = name;
@@ -55,6 +57,7 @@ class CalculatorData {
         Action(JsonObject o) {
             this(o.get("name").getAsString(), o.get("level").getAsInt(), o.get("xp").getAsDouble(),
                 o.has("icon") ? o.get("icon").getAsInt() : -1, o.has("sprite") ? o.get("sprite").getAsInt() : -1);
+            members = o.has("members") && o.get("members").getAsBoolean();
             if (o.has("noBonus")) {
                 for (JsonElement e : o.getAsJsonArray("noBonus")) {
                     noBonus.add(e.getAsString());
@@ -154,6 +157,30 @@ class CalculatorData {
             }
         }
         return out;
+    }
+
+    /** The actions to show: all of them, or on a free world ({@code members} false) only the free ones. */
+    static List<Action> shown(Calc calc, boolean members) {
+        if (members) {
+            return calc.actions;
+        }
+        List<Action> out = new ArrayList<>();
+        for (Action action : calc.actions) {
+            if (!action.members) {
+                out.add(action);
+            }
+        }
+        return out;
+    }
+
+    /** The action of this name (any case), or null. */
+    static Action named(Calc calc, String name) {
+        for (Action action : calc.actions) {
+            if (action.name.equalsIgnoreCase(name)) {
+                return action;
+            }
+        }
+        return null;
     }
 
     /** The skill's actions and bonuses (empty when there are none). */

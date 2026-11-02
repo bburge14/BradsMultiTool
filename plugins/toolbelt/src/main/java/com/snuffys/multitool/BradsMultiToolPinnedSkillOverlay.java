@@ -22,7 +22,7 @@ import net.runelite.client.ui.overlay.components.ProgressBarComponent;
 
 /**
  * One skill from the tracker pinned to the game screen (right-click a tracker card > Pin to screen): level
- * progress, XP/hr, XP gained, time to level, and its goal with the suggested method. Right-click the
+ * progress, XP/hr, XP gained, time to level, and its goal (with a skill plan's milestone) and the suggested method. Right-click the
  * overlay > Unpin to remove it. Only one skill is pinned at a time.
  */
 @Singleton
@@ -96,6 +96,18 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             int left = Math.max(0, goalXp - xp);
             String eta = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate) : BradsMultiToolPanel.shortNumber(left) + " left";
             panelComponent.getChildren().add(bar(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta, BradsMultiToolPanel.GOAL_FILL));
+            // Your skill plan's milestone (exported from the Planner): its own bar, from its start to its end
+            SkillPlans.Step milestone = left > 0 ? plugin.getPlanMilestone(skill, level) : null;
+            if (milestone != null) {
+                int from = Experience.getXpForLevel(milestone.from);
+                int to = Experience.getXpForLevel(milestone.to);
+                double done = to > from ? (double) (xp - from) / (to - from) : 1;
+                int toGo = Math.max(0, to - xp);
+                String when = toGo == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(toGo * 3600L / rate)
+                    : BradsMultiToolPanel.shortNumber(toGo) + " left";
+                panelComponent.getChildren().add(bar(done, "Milestone: Lvl " + milestone.to,
+                    String.format("%.1f%%", Math.max(0, Math.min(1, done)) * 100), when, BradsMultiToolPanel.MILESTONE_FILL));
+            }
             String suggestion = suggestion(skill, level);
             if (suggestion != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(suggestion, SOFT, false));
@@ -169,6 +181,9 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             return null;
         }
         TrainingAdvisor.Suggestion now = plan.get(0).suggestion;
+        if (now.planStep != null) {
+            return "Plan: " + now.text + " (to " + now.planStep.to + ")";
+        }
         return now.label + " " + now.text + (plan.size() > 1 ? " (to " + plan.get(0).to + ")" : "");
     }
 

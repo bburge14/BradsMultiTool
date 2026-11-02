@@ -72,6 +72,8 @@ public class BradsMultiToolPanel extends PluginPanel {
     static final Color BAR_HIGH = new Color(15, 165, 105);
     static final Color BAR_BACKGROUND = new Color(60, 60, 60);
     static final Color GOAL_FILL = new Color(200, 160, 40);
+    /** A skill plan's milestone bar (under the goal's gold). */
+    static final Color MILESTONE_FILL = new Color(70, 140, 200);
 
     private final SkillTracker plugin;
     private final SkillTrackerConfig config;
@@ -509,6 +511,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JPanel stats = new JPanel(new GridLayout(0, 2, 6, 2));
         private final LevelProgressBar levelBar = new LevelProgressBar();
         private final LevelProgressBar goalBar = new LevelProgressBar();
+        // The skill plan's milestone you're on (exported from the Planner): its own bar under the goal's
+        private final LevelProgressBar milestoneBar = new LevelProgressBar();
         // Logs, fish, ore, food cooked this session and how many an hour ("Logs: 342 (1,050/hr)")
         private final JLabel items = stat();
         private final JLabel suggestion = stat();
@@ -568,7 +572,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             offerRow.add(offerButtons, BorderLayout.SOUTH);
             offerRow.setVisible(false);
             items.setVisible(false);
-            for (JComponent row : new JComponent[]{levelBar, goalBar, items, suggestion, offerRow}) {
+            for (JComponent row : new JComponent[]{levelBar, goalBar, milestoneBar, items, suggestion, offerRow}) {
                 row.setAlignmentX(Component.LEFT_ALIGNMENT);
                 row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row == suggestion || row == offerRow || row == items
                     ? Integer.MAX_VALUE : row.getPreferredSize().height));
@@ -576,6 +580,9 @@ public class BradsMultiToolPanel extends PluginPanel {
                 bars.add(Box.createVerticalStrut(3));
             }
             goalBar.setGoalStyle();
+            milestoneBar.setGoalStyle();
+            milestoneBar.fill = MILESTONE_FILL;
+            milestoneBar.setVisible(false);
 
             // While this skill is pinned to the game screen, a pin is drawn over the card's top-right
             // corner (see paintChildren), so nothing else moves; clicking it unpins
@@ -827,6 +834,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " left";
                 goalBar.set(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta);
             }
+            updateMilestone(level, goalXp, xp, xpPerHour, paused);
 
             pauseItem.setText(pausedByUser() ? "Resume tracking" : "Pause tracking");
             suggestedItem.setVisible(plugin.getGoalTarget(skill) != null);
@@ -847,6 +855,44 @@ public class BradsMultiToolPanel extends PluginPanel {
             (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);
             focusMenu.setVisible(skill != Skill.SLAYER);
             methodMenu.setVisible(skill != Skill.SLAYER && hasGoal);
+        }
+
+        // The plan's milestone you're on: a bar from its start to its end, with the time to it
+        private void updateMilestone(int level, int goalXp, int xp, int xpPerHour, boolean paused) {
+            SkillPlans.Step step = goalXp > xp && config.showTrackerGoal() ? plugin.getPlanMilestone(skill, level) : null;
+            boolean show = step != null && step.to < 100;
+            if (milestoneBar.isVisible() != show) {
+                milestoneBar.setVisible(show);
+                revalidate();
+            }
+            if (!show) {
+                return;
+            }
+            int start = Experience.getXpForLevel(step.from);
+            int end = Experience.getXpForLevel(step.to);
+            double progress = end > start ? (double) (xp - start) / (end - start) : 1;
+            int left = Math.max(0, end - xp);
+            String eta = left == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(left * 3600L / xpPerHour) : shortNumber(left) + " left";
+            milestoneBar.set(progress, "Milestone: Lvl " + step.to, String.format("%.1f%%", Math.max(0, Math.min(1, progress)) * 100), eta);
+            String tip = "<html>Your plan's milestone: level " + step.to + " with " + step.action + " (from " + step.from + ")"
+                + planTip(plugin.getSkillPlan(skill), level) + "</html>";
+            if (!Objects.equals(milestoneBar.getToolTipText(), tip)) {
+                milestoneBar.setToolTipText(tip);
+            }
+        }
+
+        // The whole plan, for a tooltip: "<br>1-20: Logs" for each milestone, the one you're on in white
+        private String planTip(SkillPlans.Plan plan, int level) {
+            if (plan == null) {
+                return "";
+            }
+            StringBuilder out = new StringBuilder("<br><b>Your plan to level " + plan.goal + "</b>");
+            for (SkillPlans.Step s : plan.steps) {
+                boolean on = s.covers(level);
+                out.append("<br>").append(on ? "<font color='#ffffff'>" : "<font color='#bebebe'>").append(s.from).append("-")
+                    .append(s.to).append(": ").append(s.action).append(on ? " (now)" : "").append("</font>");
+            }
+            return out.toString();
         }
 
         // How many more of the last action (its XP drop) until the next level, or until the goal if set to
@@ -886,7 +932,14 @@ public class BradsMultiToolPanel extends PluginPanel {
                     // By the Training Focus setting: fastest, other methods, cheapest or money maker
                     // The leg you're on ("Train: Willow trees to 60"); hover it for the whole way to the goal
                     List<TrainingAdvisor.Stage> plan = plugin.getTrainingAdvisor().plan(skill, level, Experience.getLevelForXp(goalXp));
-                    if (!plan.isEmpty()) {
+                    if (!plan.isEmpty() && plan.get(0).suggestion.planStep != null) {
+                        SkillPlans.Step step = plan.get(0).suggestion.planStep;
+                        lines.add(label("Milestone:") + "level " + step.to + " " + label("(" + step.action + ")"));
+                        String where = GoalLines.where(plan.get(0).suggestion);
+                        if (where != null) {
+                            lines.add(label("Where:") + where);
+                        }
+                    } else if (!plan.isEmpty()) {
                         TrainingAdvisor.Stage first = plan.get(0);
                         lines.add(label(first.suggestion.label) + first.suggestion.text
                             + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
@@ -904,7 +957,11 @@ public class BradsMultiToolPanel extends PluginPanel {
                             + (places.isEmpty() ? "" : (about != null ? "<br><br>" : "") + "<b>Where:</b> " + String.join(", ", places))
                             + "</div></html>";
                     }
-                    if (plan.size() > 1) {
+                    if (!plan.isEmpty() && plan.get(0).suggestion.planStep != null) {
+                        stepEndLevel = plan.get(0).suggestion.planStep.to;
+                        String steps = "<html>" + planTip(plugin.getSkillPlan(skill), level).substring("<br>".length()) + "</html>";
+                        tooltip = tooltip == null ? steps : tooltip.replace("</html>", "<br><br>" + steps.substring("<html>".length()));
+                    } else if (plan.size() > 1) {
                         stepEndLevel = plan.get(0).to;
                         StringBuilder steps = new StringBuilder("<html><b>On the way to your goal</b>");
                         for (TrainingAdvisor.Stage stage : plan) {
@@ -1027,6 +1084,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private String centreText = "";
         private String rightText = "";
         private boolean goal;
+        // The goal style's colour (gold; a plan's milestone blue)
+        Color fill = GOAL_FILL;
 
         LevelProgressBar() {
             setPreferredSize(new Dimension(0, 16));
@@ -1056,7 +1115,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             g.setColor(BAR_BACKGROUND);
             g.fillRect(0, 0, w, h);
             // Level bar: red under a third of the way, orange under two thirds, then green; goal bar: gold
-            g.setColor(goal ? GOAL_FILL : progress < 1 / 3.0 ? BAR_LOW : progress < 2 / 3.0 ? BAR_MID : BAR_HIGH);
+            g.setColor(goal ? fill : progress < 1 / 3.0 ? BAR_LOW : progress < 2 / 3.0 ? BAR_MID : BAR_HIGH);
             g.fillRect(0, 0, (int) (w * progress), h);
 
             FontMetrics fm = g.getFontMetrics();

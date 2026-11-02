@@ -62,7 +62,7 @@ below).
 | **Snuffy's PvM/Slayer** | PvM HUD, monster hover card, buff timers, health/prayer/combat alerts; Slayer card, task monster outlines, Slayer info on monsters. Data: `monsters.json`, `slayer.json` | `pvm` (health, prayer, spec, antifire, poison, stamina, ammo, runes, cannon, wrong prayer, unpotted, Slayer task/superior/item/milestone, kill goal) + `potions` (potion buffs running out / run out, shared with the GemCrab Tracker) + `shared` |
 | **Snuffy's GemCrab Tracker** | Crab HUD, outlines, radar and alerts, potion buffs and their alerts | `gemcrab` (crab moved, about to burrow) + `potions` + `shared` |
 | **Snuffy's Tick Counter** | Tick count over head, tick boxes, tick bar, metronome, click timing (its own plugin so neither the skilling nor the PvM side carries a second copy) | none (game sounds only) |
-| **Snuffy's Planner** | Its own sidebar tab: tabs for Today (dailies, from DailyReminders, which it replaced; weeklies: Tears of Guthix, Kingdom of Miscellania, farming contract), Timers (the farming patch list and its ready alert, moved from the Skilling Helper; bird houses ready; your own timers), Slayer (read from the game), Drops (drop tracker), Notes (to-do and notes), Calculator (skill calculator; its Set as goal writes the Skilling Helper's goal keys through `SkillGoals`). Built from `PlannerUi`'s cards. Data: `farming*.json`, `calculator.json`, `recipes.json`, `training.json` | `planner` (dailies, weeklies, timer done, farming patches ready, bird houses ready) + `shared` |
+| **Snuffy's Planner** | Its own sidebar tab: tabs for Today (dailies, from DailyReminders, which it replaced; weeklies: Tears of Guthix, Kingdom of Miscellania, farming contract), Timers (the farming patch list and its ready alert, moved from the Skilling Helper; bird houses ready; your own timers), Slayer (read from the game), Drops (drop tracker), Notes (to-do and notes), Calculator (skill calculator and skill plans; its Set as goal writes the Skilling Helper's goal keys through `SkillGoals`, Export to tracker its plan keys through `SkillPlans`). Built from `PlannerUi`'s cards. Data: `farming*.json`, `calculator.json`, `recipes.json`, `training.json` | `planner` (dailies, weeklies, timer done, farming patches ready, bird houses ready) + `shared` |
 | **Snuffy's Alerts** (optional) | One voice and volume for all of Snuffy's plugins | none of its own beyond `shared` |
 
 PvM and Slayer stay one plugin: Slayer uses the same monster data, hover card and buff alerts.
@@ -87,7 +87,7 @@ by more than one plugin: `CombatStyle`, `PotionBuffs` (boosts and potion timers,
 overlay components, `SlayerVars` (the Slayer task, points and streak from the game, for PvM's card and the Planner), and
 `FarmingData` and `BirdhouseTracker` (the Skilling Helper's hover cards and the Planner's TIMERS; both record what they
 see in the shared group, so either plugin alone has it all), `SkillGoals` (the goal keys and the remembered bank, for the
-tracker and the Planner's Calculator, so the Planner needn't pull in `SkillTracker`/`GoalItems`), and `RecipeData`,
+tracker and the Planner's Calculator, so the Planner needn't pull in `SkillTracker`/`GoalItems`), `SkillPlans` (skill plans: the Planner writes them, the tracker reads them), and `RecipeData`,
 `TrainingData`, `ItemPrices`, `ItemIcons` (data only).
 
 Rules that keep the split working:
@@ -184,8 +184,11 @@ weeklies (presets' changes and your own, as JSON), what the game last said about
 kingdom and the contract, your timers, the Slayer task, drops, to-do list and notes (all RuneScape profile keys), and
 which lists are folded (`plannerCollapsed.*`). The Calculator reads and writes the goals (`goal.*`, `goalStart.*`) and
 the bank as last seen (`goalBank`, which it also saves when the bank opens, in the same format) through `SkillGoals`, and
-remembers its skill, bonuses per skill and Banked view as plain config (`plannerCalcSkill`, `plannerCalcBonus.*`,
-`plannerCalcBanked`). `SkillTracker.moveToSharedGroup`
+remembers its skill, bonuses per skill and view as plain config (`plannerCalcSkill`, `plannerCalcBonus.*`,
+`plannerCalcBanked`, `plannerCalcPlan`). Skill plans go through `SkillPlans` (shared, data only, like `SkillGoals`):
+the plan being made under `plan.<SKILL>`, the one exported to the tracker under `goalPlan.<SKILL>` (plain text: a
+`goal` line, then `from to action method xp` per milestone, tab-separated), which `SkillTracker.getSkillPlan` reads,
+so the Skilling Helper follows a plan without any Planner class (and clearing a goal clears it). `SkillTracker.moveToSharedGroup`
 moves anything the Skilling Helper saved under its own group before this, once, without overwriting.
 
 `training.json` methods carry `xpHour` where the guide's text gives an XP rate ("around 45,000 experience per

@@ -11,7 +11,8 @@ are Java classes inside that plugin, which a Plugin Hub plugin can't reach, so t
 the same facts as a data file for Snuffy's Planner's Calculator tab. The few rules written as code (switches over
 an action or its method, EnumSet expressions) are worked out by a small interpreter below; an unknown construct
 stops the script rather than guessing. Item names come from the OSRS Wiki (the infobox_item bucket) where the
-calculator takes them from the game's item definitions. Re-run after RuneLite updates its calculator.
+calculator takes them from the game's item definitions, and so does whether an item's action is members-only
+(where the calculator's own rule is "the item is", ItemSkillAction.isMembers). Re-run after RuneLite updates its calculator.
 
 --cache DIR keeps the downloaded source files there (and reads them from there next time).
 """
@@ -393,22 +394,26 @@ def sprite_ids():
     return out
 
 
-def wiki_names():
-    """Item id -> name, from every item infobox on the wiki."""
-    names, offset = {}, 0
+def wiki_items():
+    """(item id -> name, the ids of members-only items), from every item infobox on the wiki. The bucket only
+    lists is_members_only for items that are (its value is empty), so being there is the flag."""
+    names, members, offset = {}, set(), 0
     while True:
-        query = "bucket('infobox_item').select('item_name','item_id').limit(5000).offset(%d).run()" % offset
+        query = ("bucket('infobox_item').select('item_name','item_id','is_members_only').limit(5000).offset(%d).run()"
+                 % offset)
         url = WIKI + "?" + urllib.parse.urlencode({"action": "bucket", "format": "json", "query": query})
-        rows = json.loads(fetch(url, "wiki-items-%d.json" % offset)).get("bucket", [])
+        rows = json.loads(fetch(url, "wiki-items-members-%d.json" % offset)).get("bucket", [])
         for row in rows:
             for i in row.get("item_id") or []:
                 try:
                     if row.get("item_name"):
                         names.setdefault(int(i), row["item_name"])
+                    if "is_members_only" in row:
+                        members.add(int(i))
                 except (TypeError, ValueError):
                     pass
         if len(rows) < 5000:
-            return names
+            return names, members
         offset += 5000
 
 
@@ -474,10 +479,32 @@ def bonuses_of(enum_name):
     return out
 
 
-def actions_of(enum_name, bonus_ids, ids, sprites, names):
+def returns_true(body):
+    return body is not None and re.fullmatch(r"\s*return\s+true\s*;\s*", body) is not None
+
+
+def members_rule(rest):
+    """How the enum says an action is members-only (SkillAction.isMembers): 'all' (always true), 'field' (its
+    isMembers field), 'override' (its isMembersOverride field, or the item's flag), or 'item' (the item's flag, as
+    ItemSkillAction does)."""
+    m = re.search(r"\bisMembers\s*\(\s*final\s+ItemManager\s+\w+\s*\)\s*\{", rest)
+    if not m:
+        return "item"
+    body = rest[m.end():matching(rest, m.end() - 1, "{", "}") - 1]
+    if returns_true(body):
+        return "all"
+    if re.fullmatch(r"\s*return\s+isMembers\s*\(\s*\)\s*;\s*", body):
+        return "field"
+    if re.fullmatch(r"\s*return\s+isMembersOverride\s*\(\s*\)\s*\|\|\s*ItemSkillAction\s*\.\s*super\s*\.\s*isMembers\s*\(\s*\w+\s*\)\s*;\s*", body):
+        return "override"
+    raise ValueError("unknown isMembers rule: " + body.strip()[:80])
+
+
+def actions_of(enum_name, bonus_ids, ids, sprites, names, members):
     source = strip_comments(calculator_source("skills/" + enum_name))
     constants, rest = enum_constants(enum_body(source, enum_name))
     field_list = fields(rest)
+    rule_members = members_rule(rest)
     rule = method_body(rest, "getExcludedSkillBonuses")
     statics = static_sets(rest)
     out = []
@@ -492,6 +519,21 @@ def actions_of(enum_name, bonus_ids, ids, sprites, names):
             action["icon"] = icon
         if values.get("sprite") is not None:
             action["sprite"] = values["sprite"]
+        # Members-only, as SkillAction.isMembers says (the Skill Calculator hides these on a free world)
+        own = re.search(r"\bisMembers\s*\(\s*final\s+ItemManager\s+\w+\s*\)\s*\{(.*?)\}", extra, re.S)
+        if own and returns_true(own.group(1)):
+            is_members = True
+        elif own:
+            raise ValueError("%s.%s: unknown isMembers rule" % (enum_name, constant))
+        elif rule_members == "all":
+            is_members = True
+        elif rule_members == "field":
+            is_members = bool(values.get("isMembers"))
+        else:
+            is_members = (rule_members == "override" and bool(values.get("isMembersOverride"))) or (
+                icon is not None and icon in members)
+        if is_members:
+            action["members"] = True
         if bonus_ids:
             excluded = evaluate(rule, Env(bonus_ids, constant, values, statics), set())
             unknown = excluded - set(bonus_ids)
@@ -512,13 +554,15 @@ def main():
                          calc_type, re.M)
     if not entries:
         sys.exit("No skills found in CalculatorType")
-    ids, sprites, names = item_ids(), sprite_ids(), wiki_names()
+    ids, sprites = item_ids(), sprite_ids()
+    names, members = wiki_items()
     skills = {}
     for _, skill, _, bonus_enum, action_enum in entries:
         bonuses = bonuses_of(bonus_enum) if bonus_enum else []
-        actions = actions_of(action_enum, [b["id"] for b in bonuses], ids, sprites, names)
+        actions = actions_of(action_enum, [b["id"] for b in bonuses], ids, sprites, names, members)
         skills[skill] = {"bonuses": bonuses, "actions": actions}
-        print("%-12s %3d actions, %d bonuses" % (skill, len(actions), len(bonuses)))
+        print("%-12s %3d actions (%d members-only), %d bonuses" % (skill, len(actions),
+                                                                 sum(1 for a in actions if a.get("members")), len(bonuses)))
     data = {"source": "RuneLite's Skill Calculator (runelite-client plugins/skillcalculator, BSD-2-Clause, "
                       "(c) the RuneLite contributors); item names from the OSRS Wiki",
             "skills": skills}

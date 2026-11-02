@@ -423,6 +423,23 @@ class SkillTracker {
         updatePanelUI();
     }
 
+    /**
+     * The skill plan exported from Snuffy's Planner for this skill (its milestones, read from the shared group through
+     * {@link SkillPlans}), or null: none, Follow Skill Plans off, or no goal to follow it to.
+     */
+    public SkillPlans.Plan getSkillPlan(Skill skill) {
+        if (!config.followSkillPlans() || configManager.getRSProfileKey() == null || getSkillGoal(skill) <= 0) {
+            return null;
+        }
+        return SkillPlans.tracked(configManager, skill);
+    }
+
+    /** The plan's milestone you're on at this level (else the next one ahead), or null without a plan or past it. */
+    public SkillPlans.Step getPlanMilestone(Skill skill, int level) {
+        SkillPlans.Plan plan = getSkillPlan(skill);
+        return plan == null ? null : plan.milestone(level);
+    }
+
     /** What to train for a goal, by the Training Focus setting. */
     public TrainingAdvisor getTrainingAdvisor() {
         return trainingAdvisor.get();
@@ -648,7 +665,11 @@ class SkillTracker {
         }
         TrainingAdvisor.Suggestion was = trainingAdvisor.get().suggest(skill, before);
         TrainingAdvisor.Suggestion suggestion = trainingAdvisor.get().suggest(skill, now);
-        if (suggestion != null && !suggestion.equals(was)) {
+        if (suggestion != null && suggestion.planStep != null && (was == null || was.planStep != suggestion.planStep)) {
+            // Past a milestone of your skill plan: the next one
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName + "]</col> "
+                + skill.getName() + " plan: next milestone, " + suggestion.text + " to level " + suggestion.planStep.to, null);
+        } else if (suggestion != null && !suggestion.equals(was)) {
             client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName + "]</col> "
                 + skill.getName() + " goal: you can now switch to " + suggestion.text, null);
         }

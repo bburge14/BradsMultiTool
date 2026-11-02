@@ -425,6 +425,16 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   Train line for all of them. Only places the guide names (and only real wiki location pages), so some methods
   have none.
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
+- **Skill plans** (with **Follow Skill Plans** on, the default): a plan exported from Snuffy's Planner's Calculator
+  (Plan view > Export to tracker) sets the goal and its milestones. The goal card then shows the milestone you're on
+  as the near goal, "Milestone: level 50 (Willow logs)", with its own blue bar under the gold goal bar (from the
+  milestone's start to its end, with the time to it; hover for the whole plan), and the pinned skill the same bar and
+  "Plan: Willow logs (to 50)". Actions (or kills) count to the milestone's end. Its method is the suggestion and its
+  trees, rocks, NPCs or fishing spots are outlined (matched to the training guide's method by name; otherwise just
+  the text), ahead of the wiki's suggestion and the Training Focus, behind a Track for goal pick or a Method you pick
+  (exporting clears an old Method pick). Pass a milestone and it moves to the next (chat says "Woodcutting plan: next
+  milestone, Teak logs to level 60"); levels the plan doesn't cover get the wiki's suggestion. Without an exported
+  plan nothing changes; clearing the goal removes it.
 - Where that method is a tree, rock, stall, pickpocket NPC, Hunter creature or fishing (every spot that catches its fish), those are outlined in the
   world.
 - **Pick another method:** right-click the skill's card > **Method** lists every guide method your level and
@@ -716,19 +726,41 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
 - **Actions**: each with its picture, name and level (greyed out above your level), XP each with your bonuses and how
   many to your target. Underneath where it applies: the time at the XP rate the wiki's training guide gives for a
   matching method (Teak trees for Teak logs), how many you have (bank as last opened plus inventory: of the item, or
-  how many you can make from your materials), and for what you make, burn or bury the Grand Exchange profit or cost
-  per XP and in all to your target (red: costs). The training guide's method at your level is marked in green. What
-  you can do comes first, the highest level first; then what you can't yet. **Search** to filter by name. Hover a card
-  for all of it in words.
-- **Banked** (the link above the list): what you own instead: the XP in all of it for the skill at your level (the most
-  XP each first, each item used once, as the Skilling Helper's banked XP), the level that gets you to, and each action
-  you have the makings of, with how many, the XP and the level it alone gets you to (green when it reaches the
-  target). The bank counts once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
+  how many you can make from your materials), and with **Show GE Prices** one line of money at Grand Exchange prices:
+  what the materials cost to your target in red ("Costs 1.24M gp", for what you make, burn or bury) and what the
+  products are worth in green ("Earns 2.10M gp": what you make, or the logs, ore, fish or catch you gather, priced by
+  the item's id), with the net gp per XP where there's a cost. The training guide's method at your level is marked in
+  green. What you can do comes first, the highest level first; then what you can't yet. **Search** to filter by name.
+  Hover a card for all of it in words; right-click it to **Add to plan**.
+- **Members-only actions** (marked in each action's data, from RuneLite's Skill Calculator and the item's members
+  flag) are left out on a free world, as RuneLite's calculator does, with a note "Members-only actions hidden on
+  this free world"; logged out, everything shows (setting: Hide Members On Free Worlds).
+- **Actions · Banked · Plan** (the tabs above the list; the one you pick is remembered).
+- **Banked**: what you own instead: the XP in all of it for the skill at your level (the most
+  XP each first, each item used once, as the Skilling Helper's banked XP), the level that gets you to, the GE value of
+  what that uses up (**Value used**), and each action you have the makings of, with how many, the XP and the level it
+  alone gets you to (green when it reaches the target) and what its materials and products are worth. The bank counts
+  once you've opened it (with the Planner or the Skilling Helper on; it's remembered).
+- **Plan**: a plan for the skill: a final goal (level 99, or your target) and milestones on the way, each with its
+  own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Start from suggestions** fills the milestones from
+  the wiki's training guides from your level to the goal (the skill's AFK / Other focus if you picked it in the
+  Skilling Helper, else the fastest), each guide method as the Calculator action it means at that level; or build it
+  by hand: right-click an action > **Add to plan** (it starts where the last milestone ends, or at its own level, and
+  the last one stretches or shortens to meet it), or **+** to pick a method and levels. Right-click a milestone to
+  **Edit...** its method and levels, **Change method (pick an action)** from the Actions list, **Move up**/**Move down**
+  (swaps the methods; the levels stay in order) or **Delete** it. Each milestone shows what's left of it: XP, how many
+  actions, the time at the guide's XP rate, the net gp per XP and its cost and earnings; the one you're on is marked,
+  finished ones greyed, levels with no milestone noted. Above them the totals: XP to go, time, cost and earnings, and
+  your level to the goal (**Goal: level 99** to change it). Saved per account (`plan.<SKILL>` in the shared group).
+- **Export to tracker** (only when Snuffy's Skilling Helper or the Toolbelt is installed; otherwise a note says
+  installing it lets you): sets the plan's final goal as the skill's goal (as Set as goal does) and gives the Skilling
+  Helper the milestones, which its goal card then follows (see Goals). Changed since? **Update** replaces it;
+  **Remove** takes it out of the tracker (the goal stays).
 - Information only: nothing is done in the game.
 
 **Settings (Planner: Today, Weekly, Timers, Slayer, Drops, Notes & To-Do, Calculator):** a Show switch for each list; Dailies To Do
 Alert, Weeklies To Do Alert; Kingdom of Miscellania, Farming Contract; Farming Patch List, Patches Ready Alert, Bird
-Houses Ready Alert; Count Other Loot, Valuable Drop From, Valuable Drop Colour, Recent Drops Shown; Voice/Chat switches.
+Houses Ready Alert; Show GE Prices, Hide Members On Free Worlds (Calculator); Count Other Loot, Valuable Drop From, Valuable Drop Colour, Recent Drops Shown; Voice/Chat switches.
 
 ---
 

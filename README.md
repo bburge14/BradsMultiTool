@@ -211,11 +211,16 @@ each can be hidden in the settings; everything is saved per account.
   them to plan ahead) and the target starts at the skill's goal, or the next level. Tick the XP bonuses you use
   (skilling outfits, diaries, altars, the bonecrusher...; ones that can't go together untick each other) and every
   action shows its XP each, how many to your target, the time where the wiki's training guides give an XP rate, the
-  Grand Exchange cost or profit per XP and in all for what you make, and how many you have (bank as last opened plus
-  inventory). What you can do is listed first, highest level first; the guide's method at your level is marked in
-  green; search to filter. **Set as goal** sets the skill's goal just like the Skilling Helper's Set Goal. **Banked**
-  shows what you own instead: the XP in it all, the level that gets you to, and each action's share. Made from
-  RuneLite's own Skill Calculator; information only.
+  Grand Exchange money to your target (what the materials cost in red, what you make or gather is worth in green,
+  and the net gp per XP), and how many you have (bank as last opened plus inventory). What you can do is listed first,
+  highest level first; the guide's method at your level is marked in green; search to filter; on a free world
+  members-only actions are left out (with a note). **Set as goal** sets the skill's goal just like the Skilling
+  Helper's Set Goal. **Banked** shows what you own instead: the XP in it all, the level that gets you to, what it's
+  worth, and each action's share. **Plan** makes a plan for the skill: a goal and milestones each with their own
+  method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"), from the wiki's suggestions or by hand (right-click an
+  action > Add to plan), with each milestone's XP, actions, time and GE cost and the totals; with the Skilling Helper
+  installed, **Export to tracker** makes its goal card follow it. Made from RuneLite's own Skill Calculator;
+  information only.
 
 ### Idle
 - **AFK alert**: when you were training (gaining XP) and your character stopped, with no clicks or key
@@ -380,7 +385,7 @@ All sections except General start collapsed.
 | Skilling | Hover cards, XP rates on cards, inventory full, resource gone, batch complete |
 | Woodcutting ... Sailing | One section per skill with its pies, cards and alerts |
 | Skill Tracker | Which fields to show, goals, suggested methods and highlights, goal items, auto-pause, ignored skills, level-up alerts |
-| Planner: Today ... Calculator | Each Planner list's Show switch (Calculator: Show Calculator); the dailies/weeklies voice line; farming, bird house and timer alerts; drop colours and the valuable drop amount |
+| Planner: Today ... Calculator | Each Planner list's Show switch (Calculator: Show Calculator, Show GE Prices, Hide Members On Free Worlds); the dailies/weeklies voice line; farming, bird house and timer alerts; drop colours and the valuable drop amount |
 
 ## Credits
 

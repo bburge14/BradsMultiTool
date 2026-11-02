@@ -115,7 +115,8 @@ FEATURES = {
         "**XP tracker** in the sidebar: XP/hr, time to level, actions left, items gathered per hour, auto-pause, a pinned "
         "skill on screen, and it keeps your session through a quick restart",
         "**Goals** with the wiki's training method for your level, outlined in the world, banked XP and materials value, "
-        "Track for goal, and goal bars on the Skills tab",
+        "Track for goal, goal bars on the Skills tab, and skill plans exported from Snuffy's Planner (the milestone "
+        "you're on, with its own bar and method)",
         "**Hover cards** for trees, rocks, fishing spots, stalls, pickpocketing, farming patches, Hunter, Runecraft, "
         "Agility, Cooking, Smithing and Sailing",
         "**Resource timers**: tree, rock, fishing spot, trap, fire and shipwreck timers",
@@ -162,7 +163,7 @@ FEATURES = {
         "**Drops**: each monster or chest tracked on its own: kills, loot with the drop rates you've seen, Grand Exchange "
         "value, this session beside all time, and your latest drops",
         "**Notes & to-do**: a to-do list and a notes box for each account",
-        "**Calculator**: pick a skill and a target (your goal, or the next level): every action with its XP (with the outfit, diary and altar bonuses you tick), how many to go, the time where the wiki's training guides give an XP rate, the Grand Exchange cost per XP, what you own of it, and Set as goal; Banked view shows the XP and level your bank gets you",
+        "**Calculator**: pick a skill and a target (your goal, or the next level): every action with its XP (with the outfit, diary and altar bonuses you tick), how many to go, the time where the wiki's training guides give an XP rate, what the materials cost and the products are worth at Grand Exchange prices, what you own of it, and Set as goal (members-only actions left out on free worlds); Banked view shows the XP, level and value your bank gets you; Plan view makes a plan of milestones each with its own method (from the wiki's suggestions or by hand) with its XP, time and cost, and exports it to the Skilling Helper",
     ],
 }
 FEATURE_TITLES = {"skilltracker": "Skilling Helper", "pvm": "PvM/Slayer", "gemcrab": "GemCrab Tracker",

@@ -313,6 +313,21 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       the separate Planner on); search filters; Banked shows the banked XP, level after and each action's share.
       Typing in the boxes or search never loses focus.
 - [ ] Spells in Magic show their spell icons once loaded.
+- [ ] Calculator prices: Woodcutting/Fishing cards say "Earns ... gp" in green (once logged in: prices by item id
+      come in on the next tick); Cooking says "Costs ... gp · Earns ... gp" with the net gp/xp; Prayer bones only cost.
+      Banked shows Value used and each card's Uses/Makes. Show GE Prices off hides them.
+- [ ] Members-only: on a free world the Calculator leaves out Teak logs, agility courses and so on, with the note
+      "Members-only actions hidden on this free world"; on a members world and logged out everything shows; Hide
+      Members On Free Worlds off shows all.
+- [ ] Plan view: Start from suggestions fills milestones from your level to the goal; right-click an action > Add to
+      plan adds one (the last milestone stretches or shortens to meet it); a milestone's Edit..., Change method (pick
+      an action: the Actions list with a banner, click one), Move up/down, Delete; Goal: level N changes the goal;
+      totals follow; kept after a restart and per account.
+- [ ] Export to tracker (Toolbelt, or Planner with the Skilling Helper on): the goal is set; the goal card shows
+      "Milestone: level N (method)" with a blue bar, actions count to it, the method's trees/rocks are outlined; the
+      pinned skill shows the bar and "Plan: ..."; levelling past a milestone moves to the next and says so in chat;
+      a Track for goal pick still wins; Update/Remove; with only the Planner on, the plan shows a note instead of
+      Export. Follow Skill Plans off: the tracker ignores it.
 
 ## Track for goal: specific methods
 - [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,

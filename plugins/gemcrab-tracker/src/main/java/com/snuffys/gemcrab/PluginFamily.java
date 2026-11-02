@@ -79,6 +79,12 @@ class PluginFamily {
         return others.contains(plugin);
     }
 
+    /** Whether the Skilling Helper's tracker runs: in this build (it or the Toolbelt), or installed alongside. */
+    boolean hasSkillTracker() {
+        return "skilltracker".equals(self) || "multitool".equals(self) || others.contains("skilltracker")
+            || others.contains("multitool");
+    }
+
     // Who runs the warnings every plugin has (idle, logout) when several are installed, so they're said once
     // (and tagged with its name in chat): the first of these that's running. The all-in-one comes first, so
     // with it installed every message says Snuffy's Toolbelt (in the Alerts plugin's voice, if that runs)
