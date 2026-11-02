@@ -45,7 +45,9 @@
       "repo": "https://github.com/bburge14/snuffys-toolbelt.git",
       "hubName": "snuffys-toolbelt",
       "publish": true,
-      "branch": "main"
+      "branch": "main",
+      "hub": false
     }
-  }
+  },
+  "_aboutHub": "\"hub\": false keeps a plugin out of Publish to RuneLite while Push to repos still updates its repository."
 }

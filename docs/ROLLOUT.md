@@ -83,7 +83,8 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 
 - **The six separate plugins** (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Planner, Alerts). Each
   stands alone, and they work together when installed side by side (shared goals, one voice, no double alerts).
-- **The Toolbelt** too: its own plugin with everything in one, for players who'd rather install one thing. Say
+- **The Toolbelt: not for now.** It's `"hub": false` in `publish.json`, so Publish to RuneLite leaves it out while
+  Push to repos still keeps its repository up to date (set it to true, or remove the line, to include it later). It was planned as: its own plugin with everything in one, for players who'd rather install one thing. Say
   in the pull request that it's the all-in-one of the six (same code), so the reviewers don't take it for a
   copy. It's the biggest jar (about 19 MB); if size is a problem it can ship with fewer voices. Players should
   install either the Toolbelt or the separate ones, not both (its clash warning says so if they do).

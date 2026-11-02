@@ -315,6 +315,13 @@ def main():
             push(folder, plugins[folder], dry_run, head, level)
         print("Done. When you're ready for players to get it: publish to RuneLite (the hub step).")
         return
+    # "hub": false keeps a plugin off the Plugin Hub (its repository still gets pushed): the Toolbelt for now
+    skipped = [folder for folder in chosen if not plugins[folder].get("hub", True)]
+    if skipped:
+        print("Not on the Plugin Hub (\"hub\": false in publish.json): " + ", ".join(skipped))
+    chosen = [folder for folder in chosen if folder not in skipped]
+    if not chosen:
+        sys.exit("Nothing to publish to RuneLite.")
     names = [hub_entry(plugins[folder]) for folder in chosen]
     print("Plugin Hub entries written to releases/plugin-hub/")
     fork = config.get("pluginHubFork")
