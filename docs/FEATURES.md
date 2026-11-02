@@ -530,7 +530,7 @@ killed it twice. Potions and better gear show up here as faster kills; they don'
 (combat XP comes from damage, and a kill can only take its hitpoints).
 
 - **Banked XP** (Goals > Show Banked XP): on a production skill's goal (Cooking, Herblore, Prayer, Fletching...), a
-  "Banked: 1.2M XP" line: the XP in what's in your bank and inventory at your level, the most XP things first, each
+  "Banked: 1.2M XP (to level 84)" line: the level that gets you to, and the XP in what's in your bank and inventory at your level, the most XP things first, each
   material counted once. Just a figure; it doesn't change what's suggested. **Note:** both use your bank as you last saw it: open your bank once on each account and they show from then on, even straight after login (the bank's remembered with your account and updated whenever you open it). Until then neither line shows.
 - **Materials value** (Goals > Show Materials Value): under it, "Materials worth: 1.2M gp", the Grand Exchange value of
   the materials counted in Banked XP. Just a figure.

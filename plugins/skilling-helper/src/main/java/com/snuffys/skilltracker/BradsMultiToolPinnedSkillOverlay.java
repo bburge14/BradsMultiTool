@@ -111,7 +111,8 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             }
             double banked = plugin.getGoalItems().bankedXp(skill);
             if (banked >= 1 && config.showBankedXp()) {
-                line("Banked:", BradsMultiToolPanel.shortNumber((long) banked) + " XP", Color.WHITE);
+                line("Banked:", BradsMultiToolPanel.shortNumber((long) banked) + " XP"
+                    + BradsMultiToolPanel.bankedLevel(xp, banked).replace(" (to level ", " (lvl ").replace(")", ")"), Color.WHITE);
             }
             long materials = plugin.getGoalItems().materialsValue(skill);
             if (materials > 0 && config.showMaterialsValue()) {

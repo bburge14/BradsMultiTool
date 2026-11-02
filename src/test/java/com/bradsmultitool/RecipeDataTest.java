@@ -20,6 +20,14 @@ public class RecipeDataTest {
     }
 
     @Test
+    public void bankedLevel() {
+        int lvl64 = net.runelite.api.Experience.getXpForLevel(64);
+        int lvl67 = net.runelite.api.Experience.getXpForLevel(67);
+        assertEquals(" (to level 67)", BradsMultiToolPanel.bankedLevel(lvl64, lvl67 - lvl64 + 10));
+        assertEquals("", BradsMultiToolPanel.bankedLevel(lvl64, 10)); // not a level's worth
+    }
+
+    @Test
     public void savedBankRoundTrips() {
         Map<String, Integer> bank = new HashMap<>();
         bank.put("raw lobster", 1200);

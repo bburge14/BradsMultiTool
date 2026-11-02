@@ -472,6 +472,13 @@ public class BradsMultiToolPanel extends PluginPanel {
         return minutes + "m " + (seconds % 60) + "s";
     }
 
+    /** " (to level 67)": the level your XP plus what's banked reaches; empty when it doesn't make a level. */
+    static String bankedLevel(int xp, double banked) {
+        int now = Experience.getLevelForXp(xp);
+        int reach = Experience.getLevelForXp((int) Math.min(Experience.MAX_SKILL_XP, xp + (long) banked));
+        return reach > now ? " (to level " + reach + ")" : "";
+    }
+
     /** 9,112 / 55.8K / 1.24M, like RuneLite's XP tracker. */
     static String shortNumber(long value) {
         if (value >= 1_000_000) {
@@ -926,7 +933,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                 }
                 double banked = plugin.getGoalItems().bankedXp(skill);
                 if (banked >= 1 && config.showBankedXp()) {
-                    lines.add(label("Banked:") + shortNumber((long) banked) + " XP");
+                    lines.add(label("Banked:") + shortNumber((long) banked) + " XP" + bankedLevel(xp, banked));
                 }
                 long materials = plugin.getGoalItems().materialsValue(skill);
                 if (materials > 0 && config.showMaterialsValue()) {
