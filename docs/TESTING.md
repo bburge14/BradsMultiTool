@@ -20,6 +20,10 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Running out fires again after another divine dose at the same boost, and after re-dosing a regular potion.
 - [ ] A buff's line on the HUD is red while within the running-out window and green whenever it's above it (e.g. after re-dosing).
 - [ ] Running out still fires right after logging in or hopping (says "under 1:00 left" when the timer isn't synced yet).
+- [ ] Loot line: after a kill with drops, "Loot:" shows their GE value; "/h" appears after a minute; HUD Reset clears it.
+- [ ] Death (e.g. somewhere safe-ish with cheap items): chat/voice says where; the gravestone info box counts down from
+  15:00, pauses while logged out, and goes when you're back at the spot. No box after a death in an instance, the
+  Wilderness, or a safe minigame (nothing lost).
 
 ## Buff bar and monster effects
 - [ ] Buff bar: a potion shows its icon, +boost and time left (divine exact, regular "~" until synced); antifire,
@@ -118,6 +122,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Cards, fields switch on/off without gaps, progress bar colours.
 - [ ] Training combat (e.g. Gemstone Crab): cards stay still, no field wraps onto two lines; GOALS / THIS SESSION headings centred.
 - [x] Actions left hidden for combat skills.
+- [ ] Production goal (e.g. Cooking) after opening the bank: "Materials: ... gp" under Banked on the card and the pinned skill; Show Materials Value off hides it.
 - [x] Set Goal dialog: the skill list shows your levels; picking one shows your level, XP and current goal.
 - [x] Monsters with no Slayer level (cows, goblins) have no Slayer section.
 - [x] Set Goal button: pick a skill, enter a level (e.g. 80) or XP (e.g. 2000000); the skill appears under GOALS.
@@ -182,6 +187,14 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] AFK alert after training then stopping with no input; never while banking or in shops/GE.
 - [x] No AFK alert after logging in without doing anything (login's XP report isn't training).
 - [x] Idle logout warning before the logout.
+
+## Reminders
+- [ ] A monster's clue scroll drop: "Clue: a <tier> clue scroll from <monster>!" once; picking it up says nothing more.
+- [ ] A clue geode / bottle / nest / scroll box from skilling: alert with its tier. Withdrawing one from the bank: no alert.
+- [ ] Logging in with clues already in the inventory: no alert.
+- [ ] Login on a member with an uncollected daily (e.g. Zaff's battlestaves after the Varrock easy diary): one
+  "Dailies to collect" line; collected ones aren't listed; each daily's switch removes it.
+- [ ] With two of Snuffy's plugins installed, clue and daily alerts are said once.
 
 ## Track for goal: specific methods
 - [ ] Right-click a fishing spot with a Fishing goal: Track for goal opens the ways to fish it with catches,

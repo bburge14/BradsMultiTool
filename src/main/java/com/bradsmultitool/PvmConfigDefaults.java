@@ -98,5 +98,10 @@ final class PvmConfigDefaults {
         defaults.store("buffBarLayout", config.buffBarLayout());
         defaults.store("buffBarIconSize", config.buffBarIconSize());
         defaults.store("showMonsterEffects", config.showMonsterEffects());
+        defaults.store("showPvmLoot", config.showPvmLoot());
+        defaults.store("deathAlert", config.deathAlert());
+        defaults.store("voiceDeath", config.voiceDeath());
+        defaults.store("chatDeath", config.chatDeath());
+        defaults.store("deathTimer", config.deathTimer());
     }
 }
