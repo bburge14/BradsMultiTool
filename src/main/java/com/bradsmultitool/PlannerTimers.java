@@ -31,6 +31,10 @@ class PlannerTimers {
         /** The same to the millisecond, for the countdown shown (0 in timers saved before it was kept). */
         long endsAtMs;
         boolean alerted;
+        /** Its own done sound ({@link PlannerConfig.TimerSound}'s name), null for the Ready Sound setting. */
+        String sound;
+        /** How many times its sound plays, 0 for the setting's. */
+        int repeats;
 
         /** Seconds left (its whole length while stopped, 0 once ended). */
         long left(long now) {
@@ -92,7 +96,7 @@ class PlannerTimers {
             if (timer.ended(now) && !timer.alerted) {
                 timer.alerted = true;
                 changed = true;
-                sound.done(VoiceAlertService.VoiceLine.TIMER_DONE, timer.name);
+                sound.done(VoiceAlertService.VoiceLine.TIMER_DONE, timer.name, timer.sound, timer.repeats);
             }
         }
         if (changed) {
@@ -123,12 +127,14 @@ class PlannerTimers {
         return saved().timers;
     }
 
-    void add(String name, long seconds) {
+    void add(String name, long seconds, String soundName, int repeats) {
         Saved saved = saved();
         Timer timer = new Timer();
         timer.id = "t" + System.currentTimeMillis();
         timer.name = name;
         timer.seconds = seconds;
+        timer.sound = soundName;
+        timer.repeats = repeats;
         saved.timers.add(timer);
         save(saved);
     }
@@ -151,11 +157,23 @@ class PlannerTimers {
         });
     }
 
-    void edit(String id, String name, long seconds) {
+    void edit(String id, String name, long seconds, String soundName, int repeats) {
         change(id, timer -> {
             timer.name = name;
             timer.seconds = seconds;
+            timer.sound = soundName;
+            timer.repeats = repeats;
         });
+    }
+
+    /** Plays a sound once to try it. */
+    void preview(PlannerConfig.TimerSound pick) {
+        sound.preview(pick);
+    }
+
+    /** The sound a timer plays (its own, else the Ready Sound setting). */
+    PlannerConfig.TimerSound soundOf(Timer timer) {
+        return sound.sound(timer.sound);
     }
 
     void delete(String id) {

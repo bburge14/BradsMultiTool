@@ -680,7 +680,11 @@ Skilling Helper; the Calculator's **Set as goal** sets the same goal (both plugi
   voice line, or a game sound (Bell, Chime, Anvil, Boop, Door) played **Times** times (1-5, 3 at first); picking one
   plays it. Game sounds follow the game's Sound Effects volume. The chat line is posted either way.
 - Alerts: Patches Ready (names them; once per crop), Bird Houses Ready, Timer Done ("Your timer is done.", names it),
-  each with Voice/Chat switches. Like the dailies, their lines go to the split private chat and fade, not the chat box.
+  each with Voice/Chat switches. Their lines go to the game chat like other alerts (only the dailies and weeklies
+  reminders use the split private chat).
+- **Your timers' alerts**: adding or editing a timer (+, or right-click > Edit...) has **When it's done**: Default (the
+  Ready Sound setting), Voice line, Bell, Chime, Anvil, Boop or Door (picking one plays it), and **Times** (1-5) for a
+  sound. Each timer keeps its own; hover a timer to see it.
 
 **Slayer:** your task and kills left (of how many, with a bar), Konar's area, and Slayer points and streak tiles, read
 straight from the game (as RuneLite's Slayer plugin does), so it works without the PvM/Slayer plugin; kept for when you're logged out.

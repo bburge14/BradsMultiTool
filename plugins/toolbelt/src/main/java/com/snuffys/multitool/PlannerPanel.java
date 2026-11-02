@@ -730,19 +730,22 @@ class PlannerPanel extends PluginPanel {
         }
         menu.add(item("Delete", () -> timers.delete(timer.id)));
         return card.interactive(null, menu, "<html>" + PlannerUi.esc(timer.name) + ": " + PlannerTimers.clock(timer.seconds)
-            + "<br><font color='#a0a0a0'>Right-click to change or delete it.</font></html>");
+            + "<br>When done: " + timers.soundOf(timer) + "<br><font color='#a0a0a0'>Right-click to change or delete it.</font></html>");
     }
 
     private void addTimer() {
         JTextField name = new JTextField();
         JTextField length = new JTextField();
-        if (form("Add a timer", new String[]{"Name", "Minutes (or h:mm)"}, name, length)) {
+        javax.swing.JComboBox<String> alert = alertChoice(null);
+        javax.swing.JSpinner times = new javax.swing.JSpinner(new javax.swing.SpinnerNumberModel(config.timerSoundRepeats(), 1, 5, 1));
+        if (form("Add a timer", new String[]{"Name", "Minutes (or h:mm)", "When it's done", "Times (a sound)"},
+            name, length, alert, times)) {
             long seconds = PlannerTimers.parseLength(length.getText());
             if (name.getText().trim().isEmpty() || seconds <= 0) {
                 JOptionPane.showMessageDialog(this, "Give it a name and a length: minutes (90) or hours:minutes (1:30).");
                 return;
             }
-            timers.add(name.getText().trim(), seconds);
+            timers.add(name.getText().trim(), seconds, chosenSound(alert), (Integer) times.getValue());
         }
     }
 
@@ -750,12 +753,43 @@ class PlannerPanel extends PluginPanel {
         JTextField name = new JTextField(timer.name);
         long minutes = timer.seconds / 60;
         JTextField length = new JTextField(minutes >= 60 ? minutes / 60 + ":" + String.format("%02d", minutes % 60) : String.valueOf(minutes));
-        if (form("Edit " + timer.name, new String[]{"Name", "Minutes (or h:mm)"}, name, length)) {
+        javax.swing.JComboBox<String> alert = alertChoice(timer.sound);
+        javax.swing.JSpinner times = new javax.swing.JSpinner(new javax.swing.SpinnerNumberModel(
+            timer.repeats > 0 ? timer.repeats : config.timerSoundRepeats(), 1, 5, 1));
+        if (form("Edit " + timer.name, new String[]{"Name", "Minutes (or h:mm)", "When it's done", "Times (a sound)"},
+            name, length, alert, times)) {
             long seconds = PlannerTimers.parseLength(length.getText());
             if (!name.getText().trim().isEmpty() && seconds > 0) {
-                timers.edit(timer.id, name.getText().trim(), seconds);
+                timers.edit(timer.id, name.getText().trim(), seconds, chosenSound(alert), (Integer) times.getValue());
             }
         }
+    }
+
+    // The timer's alert: the Ready Sound setting, the voice line or a game sound; picking one plays it
+    private javax.swing.JComboBox<String> alertChoice(String current) {
+        javax.swing.JComboBox<String> box = new javax.swing.JComboBox<>();
+        box.addItem("Default (" + config.timerSound() + ")");
+        for (PlannerConfig.TimerSound sound : PlannerConfig.TimerSound.values()) {
+            box.addItem(sound.toString());
+        }
+        int index = 0;
+        PlannerConfig.TimerSound[] all = PlannerConfig.TimerSound.values();
+        for (int i = 0; i < all.length; i++) {
+            if (all[i].name().equals(current)) {
+                index = i + 1;
+            }
+        }
+        box.setSelectedIndex(index);
+        box.addActionListener(e -> {
+            int picked = box.getSelectedIndex();
+            timers.preview(picked <= 0 ? config.timerSound() : all[picked - 1]);
+        });
+        return box;
+    }
+
+    private static String chosenSound(javax.swing.JComboBox<String> box) {
+        int picked = box.getSelectedIndex();
+        return picked <= 0 ? null : PlannerConfig.TimerSound.values()[picked - 1].name();
     }
 
     // A crop's picture: the item of that name, or its grimy herb, logs or seed

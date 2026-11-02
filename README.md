@@ -216,7 +216,11 @@ each can be hidden in the settings; everything is saved per account.
 - **Weekly**: Tears of Guthix (when Juna lets you back), your own weeklies, the Kingdom of Miscellania's approval and
   coffer, and your farming contract, with the time to the weekly reset (Wednesday).
 - **Timers**: every farming patch, compost bin and Hespori you've been to and when it's grown (moved here from the
-  Skilling Helper), your bird houses, and timers of your own; each with a ready alert.
+  Skilling Helper), your bird houses, and timers of your own; each with a ready alert in the game chat. When you add
+  or edit a timer you pick what it does when it's done: the voice line or a sound (Bell, Chime, Anvil, Boop, Door;
+  picking one plays it) and how many times; Default follows the **Ready Sound** setting.
+- Only the dailies and weeklies reminders go to the split private chat (they fade); every other alert uses the game
+  chat.
 - **Slayer**: your task, kills left, points and streak, straight from the game.
 - **Drops**: each monster or chest on its own: kills or opens and the Grand Exchange value on the list, and a page for
   each with every item it has dropped, the drop rate you've seen ("1 in 45"), its best drop, kills since a valuable

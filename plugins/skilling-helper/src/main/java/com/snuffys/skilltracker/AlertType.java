@@ -69,7 +69,8 @@ enum AlertType {
     LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
 
     static {
-        for (AlertType type : new AlertType[] {DAILIES, WEEKLIES, TIMER_DONE, FARMING_READY, BIRDHOUSES}) {
+        // Only the dailies and weeklies reminders: timers, patches and bird houses go to the game chat like other alerts
+        for (AlertType type : new AlertType[] {DAILIES, WEEKLIES}) {
             type.reminder = true;
         }
     }
@@ -79,7 +80,7 @@ enum AlertType {
     /** Clips played when the voice toggle is turned on. */
     final String[] preview;
 
-    /** The Planner's reminders: posted to the split private chat, which fades, instead of the chat box. */
+    /** The Planner's dailies and weeklies reminders: posted to the split private chat, which fades, instead of the chat box. */
     boolean reminder;
 
     AlertType(String key, VoiceAlertService.VoiceLine preview) {

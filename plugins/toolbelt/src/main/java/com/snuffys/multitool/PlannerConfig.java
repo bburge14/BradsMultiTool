@@ -290,7 +290,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatFarmingReady",
         name = "Chat: Patches Ready",
-        description = "<div width='300'>A line in the split private chat (it fades after a while) naming the farming patches that are grown",
+        description = "<div width='300'>A line in the chat naming the farming patches that are grown",
         section = plannerTimersSection,
         position = 4
     )
@@ -323,7 +323,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatBirdhouses",
         name = "Chat: Bird Houses Ready",
-        description = "<div width='300'>A line in the split private chat (it fades after a while) when your bird houses are ready",
+        description = "<div width='300'>A line in the chat when your bird houses are ready",
         section = plannerTimersSection,
         position = 7
     )
@@ -357,7 +357,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "timerSound",
         name = "Ready Sound",
-        description = "<div width='300'>How the Timers tab tells you something's done (your timers, farming patches, bird houses): its voice line, or a game sound: Bell, Chime, Anvil, Boop or Door (at the game's Sound Effects volume). Picking one plays it",
+        description = "<div width='300'>How the Timers tab tells you something's done (farming patches, bird houses, and your timers left on Default: each timer can pick its own when you add or edit it): its voice line, or a game sound: Bell, Chime, Anvil, Boop or Door (at the game's Sound Effects volume). Picking one plays it",
         section = plannerTimersSection,
         position = 8
     )
