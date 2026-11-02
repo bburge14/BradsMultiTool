@@ -147,6 +147,10 @@ The Plugin Hub builds a plugin from the root of a repository, at a commit named 
 already laid out that way, so publishing one means making that folder the root of a repository (its own, or a
 copy of it) and submitting that file. Settle the open questions in docs/PLUGIN_HUB_COMPLIANCE.md first.
 
+`Publish-Plugins.bat` (`scripts/publish_plugins.py`, repositories in `publish.json`) does that: it copies each
+folder to its own repository, pushes, and prepares the plugin-hub pull request. The full plan, setup and
+checklist are in docs/ROLLOUT.md.
+
 ## Plugin audit
 
 `docs/PLUGIN_AUDIT.md` compares RuneLite's own and popular Plugin Hub plugins with ours, feature by feature, with a
