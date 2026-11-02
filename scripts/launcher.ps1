@@ -708,7 +708,7 @@ function Find-Python {
     return $null
 }
 
-$devAbout = New-Label "1. Push to repos: copies each ticked plugin, as committed here, to its own GitHub repository; the ones that changed get a new version. Check first to see what would change.`n2. Publish to RuneLite: the Plugin Hub pull request (updates it while open). Check status: published? build OK? comments?" 12 10 440 66
+$devAbout = New-Label "1. Push to repos: copies each ticked plugin to its own GitHub repository; changed ones get a new version (Check first to preview).`n2. Publish to RuneLite: the Plugin Hub pull request. Check status: published? build OK? comments?" 12 10 440 66
 $devTab.Controls.Add($devAbout)
 
 $publishConfig = Join-Path $root 'publish.json'
