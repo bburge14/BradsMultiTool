@@ -1347,6 +1347,18 @@ public interface SkillTrackerConfig extends CommonConfig {
     String trackerSection = "trackerSection";
 
     @ConfigItem(
+        keyName = "compactCards",
+        name = "Compact Cards",
+        description = "<div width='300'>Skill cards (sidebar and pinned) show less: the level, goal and step bars, XP/hr "
+            + "and time to level. Off: everything the settings below turn on</div>",
+        section = trackerSection,
+        position = -1
+    )
+    default boolean compactCards() {
+        return false;
+    }
+
+    @ConfigItem(
         keyName = "showTrackerProgressBar",
         name = "Show Progress Bar",
         description = "The level progress bar at the top of each skill card",

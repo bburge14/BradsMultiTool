@@ -109,6 +109,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("chatRiftStarting", config.chatRiftStarting());
         defaults.store("voiceRiftPortal", config.voiceRiftPortal());
         defaults.store("chatRiftPortal", config.chatRiftPortal());
+        defaults.store("compactCards", config.compactCards());
         defaults.store("showTrackerProgressBar", config.showTrackerProgressBar());
         defaults.store("showTrackerXpGained", config.showTrackerXpGained());
         defaults.store("showTrackerXpToLevel", config.showTrackerXpToLevel());

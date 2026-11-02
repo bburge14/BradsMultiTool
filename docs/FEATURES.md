@@ -384,7 +384,8 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
   the tracker carries on with that session's XP, rates, actions and items, quietly. XP gained elsewhere in
   between (mobile) isn't added. Reset all skills starts afresh. Like RuneLite's XP Tracker keeping its session.
 
-**Settings (Skill Tracker):** a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
+**Settings (Skill Tracker):** **Compact Cards** (skill cards, sidebar and pinned, show only the level, goal and step
+bars, XP/hr and time to level; one switch in the Toolbelt, one in the Skilling Helper); a switch for each field; Actions Until Goal; Show Goal; Suggested Method,
 Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
 (minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up; Show Items Gathered; Keep Session After Restart.
 
