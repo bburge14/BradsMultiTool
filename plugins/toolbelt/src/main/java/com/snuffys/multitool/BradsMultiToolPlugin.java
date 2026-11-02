@@ -8,8 +8,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 
 @PluginDescriptor(
     name = "Snuffy's Toolbelt",
-    description = "Skill tracker with goals and training suggestions, skilling hover cards and timers, PvM HUD with buff timers and voice alerts, Slayer helper, Gemstone Crab tracker, tick counter and metronome",
-    tags = {"snuffy", "xp", "skills", "gemstone", "crab", "shell", "tunnel", "logout", "voice"}
+    description = "All of Snuffy's plugins in one: Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter and Alerts",
+    tags = {"snuffy", "toolbelt", "xp", "skills", "goals", "skilling", "timers", "pvm", "slayer", "buffs", "gemstone", "crab", "tick", "metronome", "voice", "alerts"}
 )
 public class BradsMultiToolPlugin extends Plugin {
 

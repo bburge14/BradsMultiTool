@@ -1,21 +1,23 @@
 # Snuffy's Alerts
 
-One voice and volume for all of Snuffy's plugins, plus the idle and logout warnings.
+One voice and volume for all of Snuffy's plugins, plus idle, logout, six-hour and run energy alerts.
+
+## Features
+
+- **One voice and volume** for all of Snuffy's plugins (10 voices)
+- **Idle alerts**: AFK, about to be logged out, six-hour logout
+- **Run energy** low and restored alerts
+
 
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
-**Snuffy's Alerts** and click **Install**. Its settings are under its name in the configuration panel.
+**Snuffy's Alerts** and click **Install**. Its settings are under its name in the configuration panel, and **Open the
+Guide** in them links to the full feature guide.
 
-It's one of Snuffy's plugins: **Snuffy's Toolbelt** has all of them in one, or install just the ones you want
-(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them). Don't install
-the Toolbelt together with the separate ones.
+It's one of Snuffy's plugins: install just the ones you want (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** has all of them in one; don't install it together with the separate ones.
 
-Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).
+## Source and issues
 
-## About this folder
-
-This folder holds just this plugin, the way the Plugin Hub builds it (`gradlew build` here makes its jar). It's
-generated from the code in [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool) by
-`scripts/split_plugins.py`; changes made here directly are overwritten. Issues and ideas:
-[open an issue](https://github.com/bburge14/bradsmultitool/issues).
+Made by SgtSnufffy. Source: [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool); ideas and
+problems: [open an issue](https://github.com/bburge14/bradsmultitool/issues).

@@ -55,7 +55,7 @@ PLUGINS = {
         "voices": ["shared"],
     },
 }
-AUTHOR = "bburge14"
+AUTHOR = "SgtSnufffy"
 
 BUILD_GRADLE = """plugins {
     id 'java'
@@ -91,24 +91,81 @@ README = """# %(title)s
 
 %(description)s.
 
+%(features)s
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
-**%(title)s** and click **Install**. Its settings are under its name in the configuration panel.
+**%(title)s** and click **Install**. Its settings are under its name in the configuration panel, and **Open the
+Guide** in them links to the full feature guide.
 
-It's one of Snuffy's plugins: **Snuffy's Toolbelt** has all of them in one, or install just the ones you want
-(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them). Don't install
-the Toolbelt together with the separate ones.
+%(family)s
+## Source and issues
 
-Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).
-
-## About this folder
-
-This folder holds just this plugin, the way the Plugin Hub builds it (`gradlew build` here makes its jar). It's
-generated from the code in [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool) by
-`scripts/split_plugins.py`; changes made here directly are overwritten. Issues and ideas:
-[open an issue](https://github.com/bburge14/bradsmultitool/issues).
+Made by SgtSnufffy. Source: [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool); ideas and
+problems: [open an issue](https://github.com/bburge14/bradsmultitool/issues).
 """
+
+# The features each plugin's README lists (the Plugin Hub page players see); the Toolbelt lists every plugin's
+FEATURES = {
+    "skilltracker": [
+        "**XP tracker** in the sidebar: XP/hr, time to level, actions left, auto-pause, a pinned skill on screen",
+        "**Goals** with the wiki's training method for your level, outlined in the world, banked XP, and Track for goal",
+        "**Hover cards** for trees, rocks, fishing spots, stalls, pickpocketing, farming patches, Hunter, Runecraft, "
+        "Agility, Cooking, Smithing and Sailing",
+        "**Resource timers**: tree, rock, fishing spot, trap, fire and shipwreck timers",
+        "**Farming patch list** with \"ready\" alerts",
+        "**Agility**: course and Brimhaven arena cards, the quickest route to the tagged pillar, one-obstacle training",
+        "**Minigames**: Wintertodt, Tempoross and Guardians of the Rift cards and alerts",
+        "**Voice alerts**: inventory full, resource gone, Forestry events, bird nests, Motherlode sack full, boat "
+        "health, level-ups and more",
+    ],
+    "pvm": [
+        "**PvM HUD**: your target's health, weaknesses and what you're dealing",
+        "**Monster hover card**: hitpoints, defences, weakness, max hit and attack speed",
+        "**Buff bar**: potions, antifire, stamina, overload, vengeance, freezes and more, with low and expired alerts",
+        "**Health and prayer warnings**, special attack ready, cannon, ammo and rune alerts",
+        "**Slayer card**: task, kills left and kill rate, where to go, points and streak with milestone warnings, "
+        "supplies used, kill goals; task monster outlines and finish-off markers",
+    ],
+    "gemcrab": [
+        "**Gemstone Crab HUD** with the crab's health and the burrow countdown",
+        "**Radar** pointing to the next cove when the crab burrows",
+        "**Gear check**, outlines of the crab, its shell and the tunnels, and voice alerts",
+    ],
+    "tickcounter": [
+        "**Tick count** over your head, as numbered tick boxes or a smooth tick bar",
+        "**Metronome** with a play-ahead option, and hotkeys",
+        "**Attack timer** that follows your weapon's speed, counting up or down to your next attack",
+        "**Click timing**: how far into the tick each click lands, for tick skilling practice",
+    ],
+    "voices": [
+        "**One voice and volume** for all of Snuffy's plugins (10 voices)",
+        "**Idle alerts**: AFK, about to be logged out, six-hour logout",
+        "**Run energy** low and restored alerts",
+    ],
+}
+FEATURE_TITLES = {"skilltracker": "Skilling Helper", "pvm": "PvM/Slayer", "gemcrab": "GemCrab Tracker",
+                  "tickcounter": "Tick Counter", "voices": "Alerts"}
+
+
+def features(plugin_id):
+    """The README's feature list: the plugin's own, or for the Toolbelt every plugin's under its name."""
+    if plugin_id != "multitool":
+        return "## Features\n\n" + "".join("- %s\n" % f for f in FEATURES[plugin_id]) + "\n"
+    out = "## Features\n\nEverything in Snuffy's five separate plugins, in one plugin:\n\n"
+    for pid, title in FEATURE_TITLES.items():
+        out += "**Snuffy's %s**\n\n" % title + "".join("- %s\n" % f for f in FEATURES[pid]) + "\n"
+    return out
+
+
+def family(plugin_id):
+    if plugin_id == "multitool":
+        return ("This is all of Snuffy's plugins together. Install either the Toolbelt or the separate ones you want "
+                "(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Alerts), not both.\n")
+    return ("It's one of Snuffy's plugins: install just the ones you want (Skilling Helper, PvM/Slayer, GemCrab Tracker, "
+            "Tick Counter, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** "
+            "has all of them in one; don't install it together with the separate ones.\n")
+
 
 
 def version():
@@ -117,10 +174,13 @@ def version():
         return re.search(r"version = '([^']+)'", f.read()).group(1)
 
 
+# Strings, character literals and comments, matched in one pass so a "//" inside a string ("https://...") isn't
+# taken for a comment, nor a quote inside a comment for a string
+TOKENS = re.compile(r'"""(?:.|\n)*?"""|"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\])+\'|/\*.*?\*/|//[^\n]*', re.S)
+
+
 def strip_comments_and_strings(text):
-    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
-    text = re.sub(r"//[^\n]*", " ", text)
-    return re.sub(r'"(?:\\.|[^"\\])*"', '""', text)
+    return TOKENS.sub(lambda m: '""' if m.group(0)[0] in "\"'" else " ", text)
 
 
 def classes():
@@ -209,13 +269,16 @@ def build(plugin_id, out_root=OUT, quiet=False):
         f.write("rootProject.name = '%s'\n" % spec["name"])
     # The Plugin Hub shows icon.png from the root of what it builds (made by update_icons.py)
     shutil.copy2(os.path.join(ROOT, "assets", "hub", plugin_id + ".png"), os.path.join(out, "icon.png"))
-    for keep in ("LICENSE", "VOICE_CREDITS.md", "gradlew", "gradlew.bat"):
+    # Only what the Plugin Hub needs to build it: licence, Gradle wrapper, and the voice credits if it has voices
+    ships_voices = "VoiceAlertService" in names and spec["voices"]
+    for keep in ("LICENSE", "gradlew", "gradlew.bat") + (("VOICE_CREDITS.md",) if ships_voices else ()):
         shutil.copy2(os.path.join(ROOT, keep), os.path.join(out, keep))
     shutil.copytree(os.path.join(ROOT, "gradle"), os.path.join(out, "gradle"))
     with open(os.path.join(out, ".gitignore"), "w", encoding="utf-8") as f:
         f.write(".gradle/\nbuild/\n.idea/\n*.iml\nout/\n")
     with open(os.path.join(out, "README.md"), "w", encoding="utf-8") as f:
-        f.write(README % {"title": title, "description": description})
+        f.write(README % {"title": title, "description": description, "features": features(plugin_id),
+                          "family": family(plugin_id)})
     if not quiet:
         print("%-12s %3d classes, %s, voices: %s" % (plugin_id, len(names), ", ".join(sorted(data_files(names))) or "no data",
                                                   "+".join(spec["voices"]) if "VoiceAlertService" in names else "none"))

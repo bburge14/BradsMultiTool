@@ -1,21 +1,23 @@
 # Snuffy's GemCrab Tracker
 
-Gemstone Crab HUD, burrow countdown, radar between coves, outlines and alerts.
+Gemstone Crab HUD with the burrow countdown, radar between coves, gear check, outlines and alerts.
+
+## Features
+
+- **Gemstone Crab HUD** with the crab's health and the burrow countdown
+- **Radar** pointing to the next cove when the crab burrows
+- **Gear check**, outlines of the crab, its shell and the tunnels, and voice alerts
+
 
 ## Installing
 
 In RuneLite, open the **Plugin Hub** (the plug icon at the bottom of the configuration panel), search for
-**Snuffy's GemCrab Tracker** and click **Install**. Its settings are under its name in the configuration panel.
+**Snuffy's GemCrab Tracker** and click **Install**. Its settings are under its name in the configuration panel, and **Open the
+Guide** in them links to the full feature guide.
 
-It's one of Snuffy's plugins: **Snuffy's Toolbelt** has all of them in one, or install just the ones you want
-(Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them). Don't install
-the Toolbelt together with the separate ones.
+It's one of Snuffy's plugins: install just the ones you want (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, and the optional Alerts for one voice across them); they work together. **Snuffy's Toolbelt** has all of them in one; don't install it together with the separate ones.
 
-Features and how to use them: [the full guide](https://github.com/bburge14/bradsmultitool/blob/main/docs/FEATURES.md).
+## Source and issues
 
-## About this folder
-
-This folder holds just this plugin, the way the Plugin Hub builds it (`gradlew build` here makes its jar). It's
-generated from the code in [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool) by
-`scripts/split_plugins.py`; changes made here directly are overwritten. Issues and ideas:
-[open an issue](https://github.com/bburge14/bradsmultitool/issues).
+Made by SgtSnufffy. Source: [bburge14/bradsmultitool](https://github.com/bburge14/bradsmultitool); ideas and
+problems: [open an issue](https://github.com/bburge14/bradsmultitool/issues).
