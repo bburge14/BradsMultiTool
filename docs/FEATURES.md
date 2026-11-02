@@ -756,7 +756,14 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
 - Darts, arrows and bolts are made 10 or 15 at a time: each action is one item, with its share of the materials.
 - A plan goes by your real XP (the game's): typing a level into Current to try it out changes Actions and Banked,
   but doesn't mark the plan's milestones done.
-- **Your plan bar** (under the list, in Actions and Banked): the skill's goal and the plan's milestones (levels,
+- **Plan overlay** (only when the Skilling Helper isn't installed: its pinned skill card shows the plan then, so
+  never in the Toolbelt): a card on the game screen (Alt + drag to move it) for the plan of the skill you last gained
+  XP in, the plan open in the Calculator for it: the title ("Fletching: Darts to 99"), a bar for the milestone
+  you're on ("Lvl 59 → 67", XP left), its method, actions left, the next milestone, and the materials this milestone
+  still needs against what you carry and bank (green when you have it all, red when not; tools "have it"/"missing").
+  Before a milestone starts (a gap) it says what's next and at what level; past them all, "Plan done". **Plan
+  Overlay** (Calculator settings, on) turns it off; **Compact Overlays** (General) keeps the title, bar and actions left.
+ (under the list, in Actions and Banked): the skill's goal and the plan's milestones (levels,
   method, XP left; the one you're on marked green) stay in view while you scroll the actions, to compare. Click its
   title to fold it away or open it again (remembered); **Edit** opens the Plan view. A long plan scrolls inside it.
 - **Banked**: what you own instead: the XP in all of it for the skill at your level (the most

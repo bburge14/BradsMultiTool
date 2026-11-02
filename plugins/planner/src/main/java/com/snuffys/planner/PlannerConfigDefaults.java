@@ -44,5 +44,7 @@ final class PlannerConfigDefaults {
         defaults.store("plannerShowCalculator", config.plannerShowCalculator());
         defaults.store("plannerCalcPrices", config.plannerCalcPrices());
         defaults.store("plannerCalcHideMembers", config.plannerCalcHideMembers());
+        defaults.store("plannerPlanOverlay", config.plannerPlanOverlay());
+        defaults.store("compactOverlays", config.compactOverlays());
     }
 }

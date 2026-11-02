@@ -127,6 +127,24 @@ class PlannerCalculator {
     @Subscribe
     public void onStatChanged(StatChanged event) {
         dirty = true;
+        // The skill you're training: the last to gain XP (not the login's report of every skill)
+        Integer before = seenXp.put(event.getSkill(), event.getXp());
+        if (before != null && event.getXp() > before) {
+            lastTrained = event.getSkill();
+        }
+    }
+
+    private final Map<Skill, Integer> seenXp = new EnumMap<>(Skill.class);
+    private volatile Skill lastTrained;
+
+    /** The skill you last gained XP in (this session), or null. */
+    Skill lastTrained() {
+        return lastTrained;
+    }
+
+    /** For the preview: the skill being trained. */
+    void setSampleTrained(Skill skill) {
+        lastTrained = skill;
     }
 
     @Subscribe

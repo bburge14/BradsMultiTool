@@ -48,6 +48,7 @@ class PlannerFeature {
     @Inject private CalculatorData calculatorData;
     @Inject private RecipeData recipeData;
     @Inject private TrainingData trainingData;
+    @Inject private PlannerPlanOverlay planOverlay;
 
     private NavigationButton navButton;
     private PlannerPanel panel;
@@ -75,6 +76,8 @@ class PlannerFeature {
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)
         lifecycle.subscribe(farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, this);
+        // The plan on the game screen (only without the Skilling Helper: its pinned card shows the plan then)
+        lifecycle.overlay(planOverlay);
         chores.start();
         SwingUtilities.invokeLater(() -> {
             PlannerPanel.Icons pictures = icons();

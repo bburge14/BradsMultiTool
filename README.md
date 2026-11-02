@@ -265,6 +265,11 @@ each can be hidden in the settings; everything is saved per account.
     short, and the tools. A plan goes by your real XP: typing in Current doesn't mark milestones done. With the
     Skilling Helper installed, **Export to tracker** makes its goal card follow the plan (one plan per skill at a
     time).
+  - **Plan overlay** (without the Skilling Helper installed; its pinned skill card shows the plan otherwise): a
+    card on the game screen for the plan of the skill you're training (the one open in the Calculator): the
+    milestone's bar with the XP left, its method, actions left, the next milestone, and your materials for it in
+    green or red. **Plan Overlay** (Calculator settings) turns it off; **Compact Overlays** (General) keeps just the
+    plan, the bar and the actions left.
   - **Your plan bar**: under the Actions and Banked lists, the open plan's milestones (and the skill's goal) stay in
     view while you scroll, to compare; click its title to fold it, **Edit** to open the Plan view.
 

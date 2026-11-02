@@ -91,6 +91,12 @@ public class PlannerPreview {
                     full.calculator.setSampleWorld(true, false);
                     panel.showCalculator(Skill.WOODCUTTING, PlannerCalculator.Mode.PLAN, "");
                     write(render(panel, 0), out + "-plan-alone.png");
+                    // The plan overlay (no Skilling Helper): training Woodcutting at 61, full and compact
+                    full.calculator.setSampleTrained(Skill.WOODCUTTING);
+                    write(planOverlay(full, false), out + "-plan-overlay.png");
+                    full.configManager.setConfiguration("snuffysplanner", "compactOverlays", true);
+                    write(planOverlay(full, true), out + "-plan-overlay-compact.png");
+                    full.configManager.unsetConfiguration("snuffysplanner", "compactOverlays");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -145,6 +151,33 @@ public class PlannerPreview {
             }
         });
         System.exit(0);
+    }
+
+    // The Planner's plan overlay drawn on a game-coloured background, with a client that's logged in at the sample's XP
+    private static BufferedImage planOverlay(Sample sample, boolean compact) {
+        net.runelite.api.Client client = (net.runelite.api.Client) java.lang.reflect.Proxy.newProxyInstance(
+            PlannerPreview.class.getClassLoader(), new Class<?>[]{net.runelite.api.Client.class}, (proxy, method, args) -> {
+                switch (method.getName()) {
+                    case "getGameState":
+                        return net.runelite.api.GameState.LOGGED_IN;
+                    case "getSkillExperience":
+                        return sample.calculator.xp((Skill) args[0]);
+                    default:
+                        Class<?> type = method.getReturnType();
+                        return type == boolean.class ? false : type == int.class ? 0 : type == long.class ? 0L : null;
+                }
+            });
+        PlannerPlanOverlay overlay = new PlannerPlanOverlay(client, sample.config, sample.calculator, sample.calculatorData,
+            sample.recipes, sample.training);
+        BufferedImage image = new BufferedImage(420, compact ? 140 : 260, BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D g = image.createGraphics();
+        g.scale(2, 2);
+        g.setColor(new java.awt.Color(90, 80, 60));
+        g.fillRect(0, 0, 210, 130);
+        g.translate(5, 5);
+        overlay.render(g);
+        g.dispose();
+        return image;
     }
 
     private static void write(BufferedImage image, String path) throws java.io.IOException {

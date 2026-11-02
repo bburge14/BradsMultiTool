@@ -46,6 +46,8 @@ DEV_ONLY_TEXT = {
     " * landed, rising and fading like an XP drop (green in the ideal zone, red late).": "the tick count.",
     "the metronome, click timing and its hotkeys.": "the metronome and its hotkeys.",
     "Volume of the metronome and the click sounds (0-100)": "Volume of the metronome (0-100)",
+    # (the published plugins ship four voices)
+    " Arctic: a Scottish man. Wise Old Man, TzHaar, Ghost: characters.": "",
 }
 
 
