@@ -1,5 +1,5 @@
-# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it). "Publish to RuneLite..." (bottom right) opens a
-# window that publishes the plugins to their repositories for the Plugin Hub (docs/ROLLOUT.md). It updates the plugins (on opening, then checked every
+# Snuffy's launcher window (Launch-BradsMultiTool.bat opens it), two tabs. Dev: pushes the plugins to their own
+# repositories and publishes them to RuneLite's Plugin Hub (docs/ROLLOUT.md). Play: updates the plugins (on opening, then checked every
 # minute in the background while it's open, pulled as soon as there's one), warns (red, a bold Relaunch, a Windows
 # notification) when the RuneLite that's open was built from an older version, Relaunch closes and restarts RuneLite with any update, checks the setup (RuneLite
 # installed, session saving on in RuneLite (configure), a Jagex session saved, Java, git) with a button to fix
@@ -38,7 +38,7 @@ function New-Group($text, $y, $height) {
     $group.Text = $text
     $group.Location = New-Object System.Drawing.Point(12, $y)
     $group.Size = New-Object System.Drawing.Size(436, $height)
-    $form.Controls.Add($group)
+    $playTab.Controls.Add($group)
     return $group
 }
 
@@ -47,8 +47,20 @@ $form.Text = "Snuffy's Launcher"
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
 $form.StartPosition = 'CenterScreen'
-$form.ClientSize = New-Object System.Drawing.Size(460, 668)
+$form.ClientSize = New-Object System.Drawing.Size(468, 700)
 $form.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+# Two tabs: Play (updates, setup, launching) and Dev (pushing the plugins to their repositories and RuneLite)
+$tabs = New-Object System.Windows.Forms.TabControl
+$tabs.Dock = 'Fill'
+$form.Controls.Add($tabs)
+$playTab = New-Object System.Windows.Forms.TabPage
+$playTab.Text = 'Play'
+$playTab.UseVisualStyleBackColor = $true
+$devTab = New-Object System.Windows.Forms.TabPage
+$devTab.Text = 'Dev'
+$devTab.UseVisualStyleBackColor = $true
+$tabs.TabPages.Add($playTab)
+$tabs.TabPages.Add($devTab)
 $icon = Join-Path $root 'assets\launcher.ico'
 if (Test-Path $icon) {
     $form.Icon = New-Object System.Drawing.Icon($icon)
@@ -370,30 +382,30 @@ $launch.Text = 'Launch RuneLite'
 $launch.Location = New-Object System.Drawing.Point(232, 600)
 $launch.Size = New-Object System.Drawing.Size(126, 32)
 $launch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
-$form.Controls.Add($launch)
+$playTab.Controls.Add($launch)
 $form.AcceptButton = $launch
 $close = New-Object System.Windows.Forms.Button
 $close.Text = 'Close'
 $close.Location = New-Object System.Drawing.Point(366, 600)
 $close.Size = New-Object System.Drawing.Size(82, 32)
 $close.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-$form.Controls.Add($close)
+$playTab.Controls.Add($close)
 $form.CancelButton = $close
 
 # Progress: building, starting RuneLite, running. The build runs hidden; its output goes to a log you can open.
 $launchStatus = New-Label 'Ready.' 14 544 330
-$form.Controls.Add($launchStatus)
+$playTab.Controls.Add($launchStatus)
 $showLog = New-Object System.Windows.Forms.LinkLabel
 $showLog.Text = 'Show log'
 $showLog.Location = New-Object System.Drawing.Point(386, 544)
 $showLog.AutoSize = $true
 $showLog.Visible = $false
-$form.Controls.Add($showLog)
+$playTab.Controls.Add($showLog)
 $progress = New-Object System.Windows.Forms.ProgressBar
 $progress.Location = New-Object System.Drawing.Point(14, 566)
 $progress.Size = New-Object System.Drawing.Size(434, 18)
 $progress.Style = 'Continuous'
-$form.Controls.Add($progress)
+$playTab.Controls.Add($progress)
 
 $logFile = Join-Path $env:TEMP "snuffys-runelite.log"
 $showLog.Add_LinkClicked({ if (Test-Path $logFile) { Start-Process notepad.exe -ArgumentList "`"$logFile`"" } })
@@ -508,7 +520,7 @@ $relaunch.Text = 'Relaunch'
 $relaunch.Location = New-Object System.Drawing.Point(132, 600)
 $relaunch.Size = New-Object System.Drawing.Size(92, 32)
 $relaunch.Enabled = $false
-$form.Controls.Add($relaunch)
+$playTab.Controls.Add($relaunch)
 $script:closingSince = $null
 $closer = New-Object System.Windows.Forms.Timer
 $closer.Interval = 500
@@ -647,7 +659,7 @@ $shortcut = New-Object System.Windows.Forms.LinkLabel
 $shortcut.Text = 'Make a desktop shortcut'
 $shortcut.Location = New-Object System.Drawing.Point(14, 644)
 $shortcut.AutoSize = $true
-$form.Controls.Add($shortcut)
+$playTab.Controls.Add($shortcut)
 $shortcut.Add_LinkClicked({
     $link = $shell.CreateShortcut((Join-Path $desktop "Snuffy's Launcher.lnk"))
     $link.TargetPath = $bat
@@ -657,13 +669,8 @@ $shortcut.Add_LinkClicked({
     [System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher is on your desktop.", "Snuffy's") | Out-Null
 })
 
-# ---- Publish to RuneLite: copies each plugin to its own repository and prepares the Plugin Hub pull request
-# (scripts\publish_plugins.py, repositories in publish.json; docs\ROLLOUT.md). In its own window. ----
-$publishLink = New-Object System.Windows.Forms.LinkLabel
-$publishLink.Text = 'Publish to RuneLite...'
-$publishLink.Location = New-Object System.Drawing.Point(300, 644)
-$publishLink.AutoSize = $true
-$form.Controls.Add($publishLink)
+# ---- Dev tab: push the plugins to their own repositories, then publish them to RuneLite (Plugin Hub pull
+# request). Runs scripts\publish_plugins.py (repositories in publish.json; docs\ROLLOUT.md) hidden, output live. ----
 
 # Python 3: "py -3" (the Windows launcher) or "python"
 function Find-Python {
@@ -672,154 +679,168 @@ function Find-Python {
     return $null
 }
 
-function Show-PublishWindow {
-    $win = New-Object System.Windows.Forms.Form
-    $win.Text = "Publish to RuneLite"
-    $win.StartPosition = 'CenterParent'
-    $win.FormBorderStyle = 'FixedDialog'
-    $win.MaximizeBox = $false
-    $win.ClientSize = New-Object System.Drawing.Size(520, 470)
-    $win.Font = $form.Font
-    if ($form.Icon) { $win.Icon = $form.Icon }
+$devAbout = New-Label "1. Push to repos: copies each ticked plugin, as committed here, to its own GitHub repository; the ones that changed get a new version. Check first to see what would change.`n2. Publish to RuneLite: gets the Plugin Hub pull request ready, so players get what's in the repositories." 12 10 440 66
+$devTab.Controls.Add($devAbout)
 
-    $about = New-Label "Copies each ticked plugin, as committed here, to its own GitHub repository and gets the Plugin Hub pull request ready. Check first: it shows what would change without pushing anything." 12 10 496 34
-    $win.Controls.Add($about)
-
-    # The plugins in publish.json, ticked if they're set to publish
-    $config = Get-Content (Join-Path $root 'publish.json') -Raw | ConvertFrom-Json
-    $ticks = [ordered]@{}
-    $y = 50
+$publishConfig = Join-Path $root 'publish.json'
+$devTicks = [ordered]@{}
+if (Test-Path $publishConfig) {
+    $config = Get-Content $publishConfig -Raw | ConvertFrom-Json
+    $y = 80
     $x = 14
     foreach ($folder in $config.plugins.PSObject.Properties.Name) {
         $box = New-Object System.Windows.Forms.CheckBox
         $box.Text = $folder
         $box.Checked = [bool]$config.plugins.$folder.publish
         $box.Location = New-Object System.Drawing.Point($x, $y)
-        $box.Size = New-Object System.Drawing.Size(160, 20)
-        $win.Controls.Add($box)
-        $ticks[$folder] = $box
-        if ($x -gt 300) { $x = 14; $y += 22 } else { $x += 165 }
+        $box.Size = New-Object System.Drawing.Size(140, 20)
+        $devTab.Controls.Add($box)
+        $devTicks[$folder] = $box
+        if ($x -gt 250) { $x = 14; $y += 22 } else { $x += 145 }
     }
-
-    $check = New-Object System.Windows.Forms.Button
-    $check.Text = 'Check (dry run)'
-    $check.Location = New-Object System.Drawing.Point(12, 104)
-    $check.Size = New-Object System.Drawing.Size(120, 30)
-    $win.Controls.Add($check)
-    $publish = New-Object System.Windows.Forms.Button
-    $publish.Text = 'Publish'
-    $publish.Location = New-Object System.Drawing.Point(140, 104)
-    $publish.Size = New-Object System.Drawing.Size(100, 30)
-    $publish.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
-    $win.Controls.Add($publish)
-    $status = New-Label '' 250 111 260
-    $win.Controls.Add($status)
-
-    $out = New-Object System.Windows.Forms.TextBox
-    $out.Multiline = $true
-    $out.ReadOnly = $true
-    $out.ScrollBars = 'Vertical'
-    $out.Font = New-Object System.Drawing.Font('Consolas', 8.5)
-    $out.Location = New-Object System.Drawing.Point(12, 142)
-    $out.Size = New-Object System.Drawing.Size(496, 284)
-    $win.Controls.Add($out)
-
-    $prLink = New-Object System.Windows.Forms.LinkLabel
-    $prLink.Text = 'Open the Plugin Hub pull request'
-    $prLink.Location = New-Object System.Drawing.Point(12, 438)
-    $prLink.AutoSize = $true
-    $prLink.Visible = $false
-    $win.Controls.Add($prLink)
-    $prLink.Add_LinkClicked({ if ($script:prUrl) { Start-Process $script:prUrl } })
-    $guide = New-Object System.Windows.Forms.LinkLabel
-    $guide.Text = 'How it works (ROLLOUT.md)'
-    $guide.Location = New-Object System.Drawing.Point(340, 438)
-    $guide.AutoSize = $true
-    $win.Controls.Add($guide)
-    $guide.Add_LinkClicked({ Start-Process notepad.exe -ArgumentList "`"$(Join-Path $root 'docs\ROLLOUT.md')`"" })
-
-    $script:publishLog = Join-Path $env:TEMP 'snuffys-publish.log'
-    $script:publishRun = $null
-    $script:prUrl = $null
-    $poll = New-Object System.Windows.Forms.Timer
-    $poll.Interval = 500
-    $poll.Add_Tick({
-        if (Test-Path $script:publishLog) {
-            try {
-                $stream = [System.IO.File]::Open($script:publishLog, 'Open', 'Read', 'ReadWrite')
-                $reader = New-Object System.IO.StreamReader($stream)
-                $text = $reader.ReadToEnd()
-                $stream.Dispose()
-                if ($text -ne $out.Text) {
-                    $out.Text = $text
-                    $out.SelectionStart = $out.Text.Length
-                    $out.ScrollToCaret()
-                }
-                $match = [regex]::Match($text, 'https://github\.com/runelite/plugin-hub/compare/\S+')
-                if ($match.Success) {
-                    $script:prUrl = $match.Value
-                    $prLink.Visible = $true
-                }
-            } catch { }
-        }
-        if ($script:publishRun -and $script:publishRun.HasExited) {
-            $poll.Stop()
-            $check.Enabled = $true
-            $publish.Enabled = $true
-            if ($script:publishRun.ExitCode -eq 0) {
-                $status.Text = 'Done.'
-                $status.ForeColor = $green
-            } else {
-                $status.Text = 'Stopped: see the messages below.'
-                $status.ForeColor = $red
-            }
-            $script:publishRun = $null
-        }
-    })
-
-    $run = {
-        param($dryRun)
-        $python = Find-Python
-        if (-not $python) {
-            $answer = [System.Windows.Forms.MessageBox]::Show("Publishing needs Python 3. Open python.org to get it?", "Snuffy's", 'YesNo')
-            if ($answer -eq 'Yes') { Start-Process 'https://www.python.org/downloads/' }
-            return
-        }
-        $chosen = @($ticks.Keys | Where-Object { $ticks[$_].Checked })
-        if (-not $chosen) {
-            [System.Windows.Forms.MessageBox]::Show('Tick at least one plugin.', "Snuffy's") | Out-Null
-            return
-        }
-        if (-not $dryRun) {
-            $answer = [System.Windows.Forms.MessageBox]::Show("Publish " + ($chosen -join ', ') + " to their repositories now?", "Snuffy's", 'YesNo')
-            if ($answer -ne 'Yes') { return }
-        }
-        Set-Content -Path $script:publishLog -Value ''
-        $out.Text = ''
-        $prLink.Visible = $false
-        $script:prUrl = $null
-        $check.Enabled = $false
-        $publish.Enabled = $false
-        $status.Text = $(if ($dryRun) { 'Checking...' } else { 'Publishing...' })
-        $status.ForeColor = [System.Drawing.SystemColors]::ControlText
-        $pyArgs = @($python | Select-Object -Skip 1) + @('-u', 'scripts\publish_plugins.py') + $chosen
-        if ($dryRun) { $pyArgs += '--dry-run' }
-        $command = "`"$($python[0])`" " + ($pyArgs -join ' ') + " > `"$($script:publishLog)`" 2>&1"
-        $script:publishRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
-        $poll.Start()
-    }
-    $check.Add_Click({ & $run $true })
-    $publish.Add_Click({ & $run $false })
-    $win.Add_FormClosing({
-        if ($script:publishRun -and -not $script:publishRun.HasExited) {
-            $answer = [System.Windows.Forms.MessageBox]::Show('Publishing is still running. Close anyway (it keeps going in the background)?', "Snuffy's", 'YesNo')
-            if ($answer -ne 'Yes') { $_.Cancel = $true }
-        }
-    })
-    [void]$win.ShowDialog($form)
-    $poll.Stop()
 }
-$publishLink.Add_LinkClicked({ Show-PublishWindow })
+
+$bumpLabel = New-Label 'Version for changed plugins:' 12 132 170
+$devTab.Controls.Add($bumpLabel)
+$bump = New-Object System.Windows.Forms.ComboBox
+$bump.DropDownStyle = 'DropDownList'
+[void]$bump.Items.Add('patch (fixes: 1.0.0 -> 1.0.1)')
+[void]$bump.Items.Add('minor (new features: 1.0.0 -> 1.1.0)')
+[void]$bump.Items.Add('major (big changes: 1.0.0 -> 2.0.0)')
+$bump.SelectedIndex = 0
+$bump.Location = New-Object System.Drawing.Point(184, 129)
+$bump.Size = New-Object System.Drawing.Size(266, 24)
+$devTab.Controls.Add($bump)
+
+$devCheck = New-Object System.Windows.Forms.Button
+$devCheck.Text = 'Check (dry run)'
+$devCheck.Location = New-Object System.Drawing.Point(12, 162)
+$devCheck.Size = New-Object System.Drawing.Size(120, 30)
+$devTab.Controls.Add($devCheck)
+$devPush = New-Object System.Windows.Forms.Button
+$devPush.Text = 'Push to repos'
+$devPush.Location = New-Object System.Drawing.Point(140, 162)
+$devPush.Size = New-Object System.Drawing.Size(120, 30)
+$devTab.Controls.Add($devPush)
+$devPublish = New-Object System.Windows.Forms.Button
+$devPublish.Text = 'Publish to RuneLite'
+$devPublish.Location = New-Object System.Drawing.Point(268, 162)
+$devPublish.Size = New-Object System.Drawing.Size(140, 30)
+$devPublish.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+$devTab.Controls.Add($devPublish)
+$devStatus = New-Label '' 12 198 440
+$devTab.Controls.Add($devStatus)
+
+$devOut = New-Object System.Windows.Forms.TextBox
+$devOut.Multiline = $true
+$devOut.ReadOnly = $true
+$devOut.ScrollBars = 'Vertical'
+$devOut.Font = New-Object System.Drawing.Font('Consolas', 8.5)
+$devOut.Location = New-Object System.Drawing.Point(12, 220)
+$devOut.Size = New-Object System.Drawing.Size(438, 400)
+$devTab.Controls.Add($devOut)
+
+$prLink = New-Object System.Windows.Forms.LinkLabel
+$prLink.Text = 'Open the Plugin Hub pull request'
+$prLink.Location = New-Object System.Drawing.Point(12, 630)
+$prLink.AutoSize = $true
+$prLink.Visible = $false
+$devTab.Controls.Add($prLink)
+$prLink.Add_LinkClicked({ if ($script:prUrl) { Start-Process $script:prUrl } })
+$devGuide = New-Object System.Windows.Forms.LinkLabel
+$devGuide.Text = 'How it works (ROLLOUT.md)'
+$devGuide.Location = New-Object System.Drawing.Point(290, 630)
+$devGuide.AutoSize = $true
+$devTab.Controls.Add($devGuide)
+$devGuide.Add_LinkClicked({ Start-Process notepad.exe -ArgumentList "`"$(Join-Path $root 'docs\ROLLOUT.md')`"" })
+
+$script:publishLog = Join-Path $env:TEMP 'snuffys-publish.log'
+$script:publishRun = $null
+$script:prUrl = $null
+$devPoll = New-Object System.Windows.Forms.Timer
+$devPoll.Interval = 500
+$devPoll.Add_Tick({
+    if (Test-Path $script:publishLog) {
+        try {
+            $stream = [System.IO.File]::Open($script:publishLog, 'Open', 'Read', 'ReadWrite')
+            $reader = New-Object System.IO.StreamReader($stream)
+            $text = $reader.ReadToEnd()
+            $stream.Dispose()
+            if ($text -ne $devOut.Text) {
+                $devOut.Text = $text
+                $devOut.SelectionStart = $devOut.Text.Length
+                $devOut.ScrollToCaret()
+            }
+            $match = [regex]::Match($text, 'https://github\.com/runelite/plugin-hub/compare/\S+')
+            if ($match.Success) {
+                $script:prUrl = $match.Value
+                $prLink.Visible = $true
+            }
+        } catch { }
+    }
+    if ($script:publishRun -and $script:publishRun.HasExited) {
+        $devPoll.Stop()
+        $devCheck.Enabled = $true
+        $devPush.Enabled = $true
+        $devPublish.Enabled = $true
+        if ($script:publishRun.ExitCode -eq 0) {
+            $devStatus.Text = 'Done.'
+            $devStatus.ForeColor = $green
+        } else {
+            $devStatus.Text = 'Stopped: see the messages below.'
+            $devStatus.ForeColor = $red
+        }
+        $script:publishRun = $null
+    }
+})
+
+# Runs one step: 'push' (with $dryRun for Check) or 'hub'
+function Start-DevStep($step, $dryRun) {
+    $python = Find-Python
+    if (-not $python) {
+        $answer = [System.Windows.Forms.MessageBox]::Show("This needs Python 3. Open python.org to get it?", "Snuffy's", 'YesNo')
+        if ($answer -eq 'Yes') { Start-Process 'https://www.python.org/downloads/' }
+        return
+    }
+    $chosen = @($devTicks.Keys | Where-Object { $devTicks[$_].Checked })
+    if (-not $chosen) {
+        [System.Windows.Forms.MessageBox]::Show('Tick at least one plugin.', "Snuffy's") | Out-Null
+        return
+    }
+    $level = @('patch', 'minor', 'major')[$bump.SelectedIndex]
+    if (-not $dryRun) {
+        $what = $(if ($step -eq 'push') { "Push " + ($chosen -join ', ') + " to their repositories (changed ones get a new $level version)?" }
+                  else { "Get the Plugin Hub pull request ready for " + ($chosen -join ', ') + "?" })
+        $answer = [System.Windows.Forms.MessageBox]::Show($what, "Snuffy's", 'YesNo')
+        if ($answer -ne 'Yes') { return }
+    }
+    Set-Content -Path $script:publishLog -Value ''
+    $devOut.Text = ''
+    $prLink.Visible = $false
+    $script:prUrl = $null
+    $devCheck.Enabled = $false
+    $devPush.Enabled = $false
+    $devPublish.Enabled = $false
+    $devStatus.Text = $(if ($dryRun) { 'Checking...' } elseif ($step -eq 'push') { 'Pushing...' } else { 'Publishing...' })
+    $devStatus.ForeColor = [System.Drawing.SystemColors]::ControlText
+    $pyArgs = @($python | Select-Object -Skip 1) + @('-u', 'scripts\publish_plugins.py', $step) + $chosen
+    if ($step -eq 'push') { $pyArgs += @('--bump', $level) }
+    if ($dryRun) { $pyArgs += '--dry-run' }
+    $command = "`"$($python[0])`" " + ($pyArgs -join ' ') + " > `"$($script:publishLog)`" 2>&1"
+    $script:publishRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    $devPoll.Start()
+}
+$devCheck.Add_Click({ Start-DevStep 'push' $true })
+$devPush.Add_Click({ Start-DevStep 'push' $false })
+$devPublish.Add_Click({ Start-DevStep 'hub' $false })
+if (-not (Test-Path $publishConfig)) {
+    $devStatus.Text = 'publish.json is missing: update the launcher.'
+    $devStatus.ForeColor = $red
+    $devCheck.Enabled = $false
+    $devPush.Enabled = $false
+    $devPublish.Enabled = $false
+}
+
 
 $form.Add_Shown({
     Set-ShortcutIcons

@@ -2,7 +2,7 @@
 
 Development and testing stay here (the launcher, the Toolbelt, `src/`). The Plugin Hub builds each plugin from its
 own public GitHub repository at a commit named in `runelite/plugin-hub`. One command copies each plugin there and
-prepares the Plugin Hub update: `Publish-Plugins.bat` (or `python3 scripts/publish_plugins.py`).
+prepares the Plugin Hub update: the launcher's **Dev** tab (or `Publish-Plugins.bat push` then `Publish-Plugins.bat hub`).
 
 ## How it fits together
 
@@ -18,13 +18,22 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
   icon, licence, README.
 - `publish.json` says which repository each folder goes to (`repo`), its Plugin Hub file name (`hubName`) and
   whether it's published (`publish`).
-- `scripts/publish_plugins.py` (Windows: `Publish-Plugins.bat`):
-  1. checks the working tree is clean, pushed, and `plugins/` matches `src/`;
-  2. for each plugin: copies its folder exactly as committed into its repository, commits
-     ("Update from BradsMultiTool <commit>: <message>") and pushes (nothing is pushed if nothing changed);
-  3. writes the Plugin Hub entries to `releases/plugin-hub/<name>` (`repository=` and `commit=`);
-  4. puts those entries on a branch of your `plugin-hub` fork and prints the link to open the pull request.
-  `--dry-run` does it all without pushing; name folders to publish only some (`Publish-Plugins.bat pvm-slayer`).
+- The launcher's **Dev** tab runs `scripts/publish_plugins.py` (or `Publish-Plugins.bat push` / `hub` yourself):
+  - **Check (dry run)**: what would change in each repository and the new versions, without pushing.
+  - **Push to repos** (`push`): checks this repository is clean, pushed and `plugins/` is up to date; copies each
+    ticked plugin's folder, exactly as committed, into its repository. A plugin that changed gets its next version
+    (patch by default; pick minor or major in the tab), written into its `build.gradle`, a commit named
+    "<plugin> <version>" listing what changed since its last push, and a `v<version>` tag. Unchanged plugins are
+    left alone. You can push as often as you like: players don't get anything until you publish.
+  - **Publish to RuneLite** (`hub`): writes each plugin's Plugin Hub entry (its repository and the commit it's at
+    now) and puts them on a branch of your `plugin-hub` fork; the tab then shows the link to open the pull request.
+
+## Versions
+
+Each plugin has its own version, kept in its own repository (its `build.gradle` and tags), so a fix to the Tick
+Counter doesn't change the PvM/Slayer's version. The first push is 1.0.0. After that, only plugins with changes
+get a new number: **patch** for fixes (1.0.0 to 1.0.1), **minor** for new features (1.1.0), **major** for big
+changes (2.0.0). The version in this repository's `build.gradle` is only the starting one for a new plugin.
 
 ## One-time setup
 
@@ -34,7 +43,7 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
 2. Fork `runelite/plugin-hub` to your account (`bburge14/plugin-hub`, as in `publish.json`).
 3. On your PC: Python 3 (`py` on Windows) and git logged in to GitHub (the same login the launcher's updates use,
    with permission to push).
-4. Run `Publish-Plugins.bat --dry-run` once to see it work, then `Publish-Plugins.bat`.
+4. Launcher, **Dev** tab: **Check (dry run)** once to see it work, then **Push to repos**.
 
 ## Before the first submission (checklist)
 
@@ -46,7 +55,6 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
     published plugins.
   - Size: PvM/Slayer is about 12 MB and the Skilling Helper about 7 MB, almost all voice clips. The reviewers may
     ask for smaller; the fix is fewer voices per plugin (e.g. the four standard ones).
-- [ ] **Version**: set `version` in `build.gradle` (1.0.0 for the first release) and regenerate.
 - [ ] **READMEs**: each `plugins/<folder>/README.md` is what players see on the Plugin Hub page: check the text
       and add a screenshot or two.
 - [ ] **Icons**: `assets/hub/` (48x72 at most; ours are 48x55).
@@ -54,8 +62,8 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
 
 ## Submitting
 
-1. `Publish-Plugins.bat` (all six).
-2. Open the pull request from the link it prints. Title like "Add Snuffy's plugins"; in the description, one line
+1. Dev tab: **Push to repos** (all six), then **Publish to RuneLite**.
+2. Open the pull request from the link it shows. Title like "Add Snuffy's plugins"; in the description, one line
    per plugin saying what it does, and mention they share settings/voices when installed together.
 3. The reviewers comment on the pull request; fix things here, publish again (the same command updates the
    repositories and the pull request branch), and reply.
@@ -63,8 +71,8 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
 
 ## Updating a live plugin
 
-1. Develop and test here as usual; bump `version` in `build.gradle`; regenerate `plugins/`; commit and push.
-2. `Publish-Plugins.bat` (or just the plugins that changed).
+1. Develop and test here as usual (regenerate `plugins/`, commit and push).
+2. Dev tab: **Push to repos** (pick patch, minor or major), then **Publish to RuneLite**.
 3. Open the pull request it links. Updates to existing plugins are usually merged quickly, as long as the diff
    follows the rules.
 
