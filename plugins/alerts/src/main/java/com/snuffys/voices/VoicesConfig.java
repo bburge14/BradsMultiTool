@@ -18,7 +18,7 @@ public interface VoicesConfig extends CommonConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Alerts: one voice and volume for all of Snuffy's separate plugins, and the idle warnings. Clashes (said in chat while they're on): RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Alerts: one voice and volume for all of Snuffy's separate plugins, and the idle warnings. Clashes (a warning icon among the info boxes while they're on): RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -37,7 +37,7 @@ public interface VoicesConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showClashes",
         name = "Clash Warnings",
-        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list). Off: no icon",
         section = aboutSection,
         position = 1
     )

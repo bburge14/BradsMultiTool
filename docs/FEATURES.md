@@ -630,8 +630,9 @@ separate Planner show the same. Skill goals aren't here: they stay in the Skilli
 - **Your own:** **Add...** a daily or weekly with a name and an optional note; tick it by hand and it unticks at its
   reset. Right-click any line to **Edit...** (rename it, change its note) or **Delete** it; presets are **Hidden**
   instead (**Show hidden** brings them back). Presets can be ticked by hand too.
-- At login and at the reset, if anything's left: one voice line, "You have dailies to do." Nothing in chat unless
-  **Chat: Dailies** is on (off at first). Never a line per item.
+- At login and at the reset, if anything's left: one voice line, "You have dailies to do.", and one line in the
+  **split private chat** (where friends' logins show, above the chat box when the game's Split Private Chat is on; it
+  fades after a while) saying how many are left (**Chat: Dailies**). Never a line per item.
 
 **WEEKLY** (with the time to the weekly reset, Wednesday 00:00 UTC):
 - **Tears of Guthix:** noticed when a game there ends; Juna lets you back at the start of the seventh day after
@@ -655,8 +656,8 @@ separate Planner show the same. Skill goals aren't here: they stay in the Skilli
 - **Bird houses:** when your Fossil Island bird houses are full (50 minutes after seeding).
 - **Your own timers:** **Add timer...** with a name and a length (minutes, or h:mm); Start, Stop, Again; right-click to
   edit or delete. They keep running through a logout; one that ends while you're away is said when you're back.
-- Alerts: Patches Ready (chat names them; once per crop), Bird Houses Ready, Timer Done ("Your timer is done.", chat
-  names it), each with Voice/Chat switches.
+- Alerts: Patches Ready (names them; once per crop), Bird Houses Ready, Timer Done ("Your timer is done.", names it),
+  each with Voice/Chat switches. Like the dailies, their lines go to the split private chat and fade, not the chat box.
 
 **SLAYER:** your task and kills left (of how many), Konar's area, Slayer points and streak, read straight from the
 game (as RuneLite's Slayer plugin does), so it works without the PvM/Slayer plugin; kept for when you're logged out.

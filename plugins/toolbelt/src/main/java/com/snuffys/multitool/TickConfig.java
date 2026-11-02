@@ -17,7 +17,7 @@ public interface TickConfig extends Config {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Tick Counter: the tick count over your head, tick boxes and the smooth tick bar (move them with Alt + drag), the metronome and click timing. Clashes (said in chat while they're on): RuneLite's Metronome (you'd hear both). Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Tick Counter: the tick count over your head, tick boxes and the smooth tick bar (move them with Alt + drag), the metronome and click timing. Clashes (a warning icon among the info boxes while they're on): RuneLite's Metronome (you'd hear both). Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -76,7 +76,7 @@ public interface TickConfig extends Config {
     @ConfigItem(
         keyName = "showClashes",
         name = "Clash Warnings",
-        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list). Off: no icon",
         section = aboutSection,
         position = 1
     )

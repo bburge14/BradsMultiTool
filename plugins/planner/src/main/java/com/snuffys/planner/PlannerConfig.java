@@ -17,7 +17,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Planner: a sidebar tab with your dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, and a to-do list with notes. Clashes (said in chat while they're on): RuneLite's Daily Task Indicator, Loot Tracker and Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Planner: a sidebar tab with your dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, and a to-do list with notes. Clashes (a warning icon among the info boxes while they're on): RuneLite's Daily Task Indicator, Loot Tracker and Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -36,7 +36,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showClashes",
         name = "Clash Warnings",
-        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list). Off: no icon",
         section = aboutSection,
         position = 1
     )
@@ -157,12 +157,12 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatDailies",
         name = "Chat: Dailies",
-        description = "<div width='300'>Also a chat line saying how many dailies are left (off at first: the list is in the Planner tab)",
+        description = "<div width='300'>A line in the split private chat (where friends' logins show; it fades after a while) saying how many dailies are left",
         section = plannerTodaySection,
         position = 3
     )
     default boolean chatDailies() {
-        return false;
+        return true;
     }
 
     // ---- Weekly ----
@@ -203,12 +203,12 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatWeeklies",
         name = "Chat: Weeklies",
-        description = "<div width='300'>Also a chat line saying how many weeklies are left (off at first)",
+        description = "<div width='300'>A line in the split private chat (it fades after a while) saying how many weeklies are left",
         section = plannerWeeklySection,
         position = 3
     )
     default boolean chatWeeklies() {
-        return false;
+        return true;
     }
 
     @ConfigItem(
@@ -282,7 +282,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatFarmingReady",
         name = "Chat: Patches Ready",
-        description = "<div width='300'>Chat message naming the farming patches that are grown",
+        description = "<div width='300'>A line in the split private chat (it fades after a while) naming the farming patches that are grown",
         section = plannerTimersSection,
         position = 4
     )
@@ -315,7 +315,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "chatBirdhouses",
         name = "Chat: Bird Houses Ready",
-        description = "Chat message when your bird houses are ready",
+        description = "<div width='300'>A line in the split private chat (it fades after a while) when your bird houses are ready",
         section = plannerTimersSection,
         position = 7
     )

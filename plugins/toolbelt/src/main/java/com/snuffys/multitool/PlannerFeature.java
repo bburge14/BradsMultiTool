@@ -37,8 +37,21 @@ class PlannerFeature {
     private NavigationButton navButton;
     private PlannerPanel panel;
 
+    // The dailies and weeklies lines started off (they went in the chat box); now they go to the split private chat,
+    // which fades, and are on: turn them on once for players who already had them saved off
+    private void turnOnReminderChat() {
+        if (configManager.getConfiguration(identity.configGroup, "reminderChatTurnedOn") == null) {
+            configManager.setConfiguration(identity.configGroup, "reminderChatTurnedOn", true);
+            configManager.setConfiguration(identity.configGroup, "chatDailies", true);
+            configManager.setConfiguration(identity.configGroup, "chatWeeklies", true);
+        }
+    }
+
     void start(Lifecycle lifecycle) {
-        configDefaults.add(() -> PlannerConfigDefaults.store(configDefaults, config));
+        configDefaults.add(() -> {
+            turnOnReminderChat();
+            PlannerConfigDefaults.store(configDefaults, config);
+        });
         lifecycle.load(farmingData, farmingData::load);
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)

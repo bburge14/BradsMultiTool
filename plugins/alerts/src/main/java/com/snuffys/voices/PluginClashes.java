@@ -23,9 +23,9 @@ import net.runelite.client.util.LinkBrowser;
 /**
  * The plugin's About settings: Open the Guide (opens its part of the feature guide, then switches itself off),
  * and clashes with other plugins, checked live: while one that draws or says the same thing is on (or a setting
- * of it that does), a warning icon shows among RuneLite's info boxes (hover it for the list) and it's said once a
- * login in chat; turning the other
- * plugin or setting off ends it, and turning it back on says it again. Only reads which plugins and settings are on; never changes them.
+ * of it that does), a warning icon shows among RuneLite's info boxes (hover it for the list); nothing goes in chat.
+ * Turning the other plugin or setting off takes it away. Only reads which plugins and settings are on; never changes
+ * them.
  */
 @Singleton
 class PluginClashes {
@@ -169,8 +169,6 @@ class PluginClashes {
     private final net.runelite.client.ui.overlay.infobox.InfoBoxManager infoBoxes;
     // The warning icon among RuneLite's info boxes (top left) while something clashes; hover it for the list
     private ClashInfoBox infoBox;
-    // The clashes said in chat this login
-    private final Set<Clash> said = new HashSet<>();
     private static final int CHECK_TICKS = 5;
 
     @Inject
@@ -201,14 +199,6 @@ class PluginClashes {
         return out;
     }
 
-    @Subscribe
-    public void onGameStateChanged(GameStateChanged event) {
-        if (event.getGameState() == GameState.LOGIN_SCREEN) {
-            // Said again at the next login
-            said.clear();
-        }
-    }
-
     // Checked every few seconds too, not only when a plugin or setting changes, so nothing is missed
     @Subscribe
     public void onGameTick(net.runelite.api.events.GameTick event) {
@@ -235,8 +225,7 @@ class PluginClashes {
         }
     }
 
-    // What's on now, kept for the sidebar; each clash is said in chat once a login (and again if it ends and
-    // comes back)
+    // What's on now: shown as the warning icon (hover it for the list)
     private void check() {
         Set<String> on = new HashSet<>();
         for (Plugin plugin : pluginManager.getPlugins()) {
@@ -246,23 +235,13 @@ class PluginClashes {
             }
         }
         List<Clash> now = new java.util.ArrayList<>();
-        // Clash Warnings off: nothing shown or said
+        // Clash Warnings off: nothing shown
         boolean warn = !"false".equals(configManager.getConfiguration(identity.configGroup, "showClashes"));
         String self = lifecycle.plugin != null ? lifecycle.plugin.getClass().getName() : "";
         for (Clash clash : warn ? forFamily(identity.familyId) : Collections.<Clash>emptyList()) {
             // Never a clash with itself
             if (on.contains(clash.plugin) && !clash.plugin.equals(self) && settingOn(clash)) {
                 now.add(clash);
-            }
-        }
-        said.retainAll(now);
-        // In the game and past the welcome screen, so the chat box shows it
-        if (client.getGameState() == GameState.LOGGED_IN && inGame.ready()) {
-            for (Clash clash : now) {
-                if (said.add(clash)) {
-                    client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName
-                        + "]</col> " + clash.message + ".", null);
-                }
             }
         }
         showInfoBox(now);

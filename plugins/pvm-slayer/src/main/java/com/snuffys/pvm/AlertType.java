@@ -68,10 +68,19 @@ enum AlertType {
     BATCH_COMPLETE("BatchComplete", VoiceAlertService.VoiceLine.BATCH_COMPLETE),
     LEVEL_UP("LevelUp", VoiceAlertService.levelUpClips(net.runelite.api.Skill.WOODCUTTING, 99));
 
+    static {
+        for (AlertType type : new AlertType[] {DAILIES, WEEKLIES, TIMER_DONE, FARMING_READY, BIRDHOUSES}) {
+            type.reminder = true;
+        }
+    }
+
     final String voiceKey;
     final String chatKey;
     /** Clips played when the voice toggle is turned on. */
     final String[] preview;
+
+    /** The Planner's reminders: posted to the split private chat, which fades, instead of the chat box. */
+    boolean reminder;
 
     AlertType(String key, VoiceAlertService.VoiceLine preview) {
         this(key, new String[]{preview.fileName});

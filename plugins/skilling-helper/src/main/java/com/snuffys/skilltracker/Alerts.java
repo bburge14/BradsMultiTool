@@ -87,7 +87,10 @@ class Alerts {
     /** Posts an alert in chat, if you're in game and its chat message is turned on. */
     void chat(AlertType type, String message) {
         if (config.sendChatMessages() && ready() && toggle(type.chatKey)) {
-            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName + "]</col> " + message, null);
+            // The Planner's reminders go where friends' logins show: the split private chat (when that's on in the
+            // game's settings), which fades after a while, instead of staying in the chat box
+            ChatMessageType channel = type.reminder ? ChatMessageType.LOGINLOGOUTNOTIFICATION : ChatMessageType.GAMEMESSAGE;
+            client.addChatMessage(channel, "", "<col=00ffff>[" + identity.chatName + "]</col> " + message, null);
         }
     }
 

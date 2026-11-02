@@ -18,7 +18,7 @@ public interface SkillTrackerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Skilling Helper: the XP tracker in the sidebar (set goals with Set Goal; right-click a skill card for its Method, pin and goal options), skilling hover cards, resource timers and alerts. Clashes (said in chat while they're on): Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, RuneLite's Hunter and Mining plugins (our matching timers hide for them), Hunter Rumours (it shows the same rumour card), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Skilling Helper: the XP tracker in the sidebar (set goals with Set Goal; right-click a skill card for its Method, pin and goal options), skilling hover cards, resource timers and alerts. Clashes (a warning icon among the info boxes while they're on): Tree Despawn Timer, MLM Despawn Timer, Calcified Rock Despawn Timer, Daeyalt Mining Timer, Fishing Spot Timer, Fishing Spot Tracker, Barbarian Fishing, Aerial Fishing Timers, Star AFK Timer, Salvaging AFK Timer, Fire Timer, RuneLite's Hunter and Mining plugins (our matching timers hide for them), Hunter Rumours (it shows the same rumour card), and RuneLite's Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -61,7 +61,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "showClashes",
         name = "Clash Warnings",
-        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list) and a chat line once a login. Off: neither",
+        description = "<div width='300'>While another plugin that clashes with this one is on: a warning icon among RuneLite's info boxes (hover it for the list). Off: no icon",
         section = aboutSection,
         position = 1
     )
