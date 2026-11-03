@@ -57,4 +57,22 @@ public class GeLimitsTest {
         assertEquals(0, w.get(3).resetsAt);
         assertNull(w.get(4));
     }
+
+    @Test
+    public void yourPriceIsYourTradesAverageAndTradedAddsThemUp() {
+        PlannerGeLimits limits = new PlannerGeLimits(null, null, null, null, null, null);
+        long now = System.currentTimeMillis();
+        // Bought 1,000 tips at 180 and 3,000 at 190; sold 2,000 darts at 200
+        limits.addSampleTrade(1, "Adamant dart tip", 1000, 180_000, now - 60_000, false);
+        limits.addSampleTrade(1, "Adamant dart tip", 3000, 570_000, now - 30_000, false);
+        limits.addSampleTrade(2, "Adamant dart", 2000, 400_000, now - 10_000, true);
+        assertEquals(Long.valueOf(188), limits.yourPrice("adamant dart tip"));
+        // A product you sell goes at your sales
+        assertEquals(Long.valueOf(200), limits.yourPrice("Adamant dart"));
+        assertNull(limits.yourPrice("Feather"));
+        long[] traded = limits.traded(Arrays.asList("Adamant dart tip", "Adamant dart"), now - 45_000);
+        // (only since then: the 3,000 tips, and the darts after the 2% tax)
+        assertEquals(570_000, traded[0]);
+        assertEquals(392_000, traded[1]);
+    }
 }

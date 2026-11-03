@@ -39,6 +39,9 @@ class PlannerGeLimits {
 
     private static final String BUYS_KEY = "geBuys";
     private static final String SLOTS_KEY = "geSlots";
+    private static final String FILLS_KEY = "geTrades";
+    /** Trades older than this don't set "your price" (and aren't kept). */
+    static final long PRICE_DAYS = 7;
     private static final int SLOT_COUNT = 8;
     // The offers the game sends as you log in: the ones it sends a few ticks in are still that catch-up, not new fills
     private static final int SETTLE_TICKS = 3;
@@ -65,13 +68,25 @@ class PlannerGeLimits {
         final int total;
         final long price;
         final GrandExchangeOfferState state;
+        /** The gp the offer has spent (a buy) or brought in (a sale) so far. */
+        final long spent;
 
         Slot(int item, int sold, int total, long price, GrandExchangeOfferState state) {
+            this(item, sold, total, price, state, 0);
+        }
+
+        Slot(int item, int sold, int total, long price, GrandExchangeOfferState state, long spent) {
             this.item = item;
             this.sold = sold;
             this.total = total;
             this.price = price;
             this.state = state;
+            this.spent = spent;
+        }
+
+        boolean sell() {
+            return state == GrandExchangeOfferState.SELLING || state == GrandExchangeOfferState.SOLD
+                || state == GrandExchangeOfferState.CANCELLED_SELL;
         }
 
         boolean buying() {
@@ -81,6 +96,23 @@ class PlannerGeLimits {
         boolean buy() {
             return state == GrandExchangeOfferState.BUYING || state == GrandExchangeOfferState.BOUGHT
                 || state == GrandExchangeOfferState.CANCELLED_BUY;
+        }
+    }
+
+    /** A real trade: how many of an item you bought or sold, for how much gp in all (before the sale's tax), when. */
+    static final class Fill {
+        final int item;
+        final int quantity;
+        final long gp;
+        final long at;
+        final boolean sold;
+
+        Fill(int item, int quantity, long gp, long at, boolean sold) {
+            this.item = item;
+            this.quantity = quantity;
+            this.gp = gp;
+            this.at = at;
+            this.sold = sold;
         }
     }
 
@@ -137,6 +169,8 @@ class PlannerGeLimits {
     private final PlannerConfig config;
 
     private final List<Buy> buys = new ArrayList<>();
+    private final List<Fill> fills = new ArrayList<>();
+    private int fillCount;
     private final Slot[] slots = new Slot[SLOT_COUNT];
     private final List<Seen> queue = new ArrayList<>();
     // Names, limits and prices, looked up on the client thread
@@ -184,7 +218,7 @@ class PlannerGeLimits {
         // Live: in the game a few ticks already (a fill as it happens), not the catch-up the game sends as you log in
         boolean live = client.getGameState() == GameState.LOGGED_IN && loggedInTicks >= SETTLE_TICKS;
         queue.add(new Seen(event.getSlot(), new Slot(offer.getItemId(), offer.getQuantitySold(), offer.getTotalQuantity(),
-            offer.getPrice(), offer.getState()), System.currentTimeMillis(), live));
+            offer.getPrice(), offer.getState(), offer.getSpent()), System.currentTimeMillis(), live));
     }
 
     @Subscribe
@@ -243,11 +277,21 @@ class PlannerGeLimits {
             return before != null;
         }
         boolean added = false;
-        if (now.buy()) {
-            int already = before != null && before.buy() && before.item == now.item && before.sold <= now.sold ? before.sold : 0;
-            int filled = now.sold - already;
+        if (now.buy() || now.sell()) {
+            // The same offer as before (same item and side, not gone back): only what filled since
+            boolean same = before != null && before.item == now.item && before.buy() == now.buy() && before.sold <= now.sold
+                && before.spent <= now.spent;
+            int filled = now.sold - (same ? before.sold : 0);
+            long gp = now.spent - (same ? before.spent : 0);
             if (filled > 0) {
-                buys.add(new Buy(now.item, filled, seen.at, seen.live));
+                if (now.buy()) {
+                    buys.add(new Buy(now.item, filled, seen.at, seen.live));
+                }
+                // What it really cost or brought in (a fill seen while away still has its real gp)
+                if (gp > 0) {
+                    fills.add(new Fill(now.item, filled, gp, seen.at, now.sell()));
+                    fillCount++;
+                }
                 added = true;
             }
         }
@@ -255,7 +299,7 @@ class PlannerGeLimits {
         return added || before == null || before.sold != now.sold || before.state != now.state;
     }
 
-    private boolean lookUp(int id, boolean refreshPrice) {
+    private synchronized boolean lookUp(int id, boolean refreshPrice) {
         boolean changed = false;
         if (!names.containsKey(id)) {
             names.put(id, itemManager.getItemComposition(id).getName());
@@ -388,9 +432,12 @@ class PlannerGeLimits {
             out.add(buy.item);
         }
         for (Slot slot : slots) {
-            if (slot != null && slot.buy()) {
+            if (slot != null && (slot.buy() || slot.sell())) {
                 out.add(slot.item);
             }
+        }
+        for (Fill fill : fills) {
+            out.add(fill.item);
         }
         return out;
     }
@@ -398,6 +445,10 @@ class PlannerGeLimits {
     // Buys older than two windows can't matter any more
     private void prune(long now) {
         buys.removeIf(buy -> buy.at < now - 2 * WINDOW);
+        fills.removeIf(fill -> fill.at < now - PRICE_DAYS * 24 * 60 * 60 * 1000L);
+        while (fills.size() > 500) {
+            fills.remove(0);
+        }
     }
 
     /** For the preview: buys, slots and each item's name, limit and price. */
@@ -433,17 +484,31 @@ class PlannerGeLimits {
         for (String part : slotsSaved == null ? new String[0] : slotsSaved.split(";")) {
             String[] f = part.split(":");
             try {
-                if (f.length == 6) {
+                if (f.length == 6 || f.length == 7) {
                     int slot = Integer.parseInt(f[0]);
                     if (slot >= 0 && slot < SLOT_COUNT) {
                         slots[slot] = new Slot(Integer.parseInt(f[1]), Integer.parseInt(f[2]), Integer.parseInt(f[3]),
-                            Long.parseLong(f[4]), GrandExchangeOfferState.valueOf(f[5]));
+                            Long.parseLong(f[4]), GrandExchangeOfferState.valueOf(f[5]), f.length == 7 ? Long.parseLong(f[6]) : 0);
                     }
                 }
             } catch (IllegalArgumentException e) {
                 // a broken entry: skipped
             }
         }
+        fills.clear();
+        String tradesSaved = configManager.getRSProfileConfiguration(PlannerChores.GROUP, FILLS_KEY);
+        for (String part : tradesSaved == null ? new String[0] : tradesSaved.split(";")) {
+            String[] f = part.split(":");
+            try {
+                if (f.length == 5) {
+                    fills.add(new Fill(Integer.parseInt(f[0]), Integer.parseInt(f[1]), Long.parseLong(f[2]), Long.parseLong(f[3]),
+                        "s".equals(f[4])));
+                }
+            } catch (NumberFormatException e) {
+                // a broken entry: skipped
+            }
+        }
+        fillCount++;
         prune(System.currentTimeMillis());
     }
 
@@ -462,9 +527,100 @@ class PlannerGeLimits {
             Slot slot = slots[i];
             if (slot != null) {
                 slotsOut.append(i).append(':').append(slot.item).append(':').append(slot.sold).append(':').append(slot.total)
-                    .append(':').append(slot.price).append(':').append(slot.state.name()).append(';');
+                    .append(':').append(slot.price).append(':').append(slot.state.name()).append(':').append(slot.spent).append(';');
             }
         }
         configManager.setRSProfileConfiguration(PlannerChores.GROUP, SLOTS_KEY, slotsOut.toString());
+        StringBuilder tradesOut = new StringBuilder();
+        for (Fill fill : fills) {
+            tradesOut.append(fill.item).append(':').append(fill.quantity).append(':').append(fill.gp).append(':').append(fill.at)
+                .append(':').append(fill.sold ? 's' : 'b').append(';');
+        }
+        configManager.setRSProfileConfiguration(PlannerChores.GROUP, FILLS_KEY, tradesOut.toString());
+    }
+
+    // ---- Your own prices and trades (for the plans) ----
+
+    /** Changes when a trade is recorded (the plans redraw). */
+    int tradesVersion() {
+        return fillCount;
+    }
+
+    /**
+     * Your own price for an item, by name: what your trades of it in the last week averaged (each fill by how many),
+     * your sales when you've sold it (what a plan's product goes for), else your buys; null when you haven't traded it.
+     */
+    synchronized Long yourPrice(String name) {
+        int id = idOf(name);
+        if (id <= 0) {
+            return null;
+        }
+        Long sold = average(id, true);
+        return sold != null ? sold : average(id, false);
+    }
+
+    /** As above, but only your buys (true: only your sales). */
+    synchronized Long yourPrice(String name, boolean sold) {
+        int id = idOf(name);
+        return id <= 0 ? null : average(id, sold);
+    }
+
+    private Long average(int id, boolean sold) {
+        long since = System.currentTimeMillis() - PRICE_DAYS * 24 * 60 * 60 * 1000L;
+        long gp = 0;
+        long count = 0;
+        for (Fill fill : fills) {
+            if (fill.item == id && fill.sold == sold && fill.at >= since) {
+                gp += fill.gp;
+                count += fill.quantity;
+            }
+        }
+        return count == 0 ? null : Math.round((double) gp / count);
+    }
+
+    /**
+     * What you really spent buying and got selling these items (by name) since then: {spent, brought in (after the
+     * sale tax)}.
+     */
+    synchronized long[] traded(java.util.Collection<String> itemNames, long since) {
+        Set<Integer> ids = new HashSet<>();
+        for (String name : itemNames) {
+            int id = idOf(name);
+            if (id > 0) {
+                ids.add(id);
+            }
+        }
+        long spent = 0;
+        long got = 0;
+        for (Fill fill : fills) {
+            if (fill.at >= since && ids.contains(fill.item)) {
+                if (fill.sold) {
+                    got += fill.gp - Math.min((long) Math.floor(fill.gp * 0.02), 5_000_000L * fill.quantity);
+                } else {
+                    spent += fill.gp;
+                }
+            }
+        }
+        return new long[] {spent, got};
+    }
+
+    // An item's id from its name (the items you've traded or offered, whose names were looked up)
+    private int idOf(String name) {
+        if (name == null) {
+            return -1;
+        }
+        for (Map.Entry<Integer, String> entry : names.entrySet()) {
+            if (entry.getValue().equalsIgnoreCase(name)) {
+                return entry.getKey();
+            }
+        }
+        return -1;
+    }
+
+    /** For tests and the preview: trades as if seen. */
+    synchronized void addSampleTrade(int item, String name, int quantity, long gp, long at, boolean sold) {
+        names.put(item, name);
+        fills.add(new Fill(item, quantity, gp, at, sold));
+        fillCount++;
     }
 }

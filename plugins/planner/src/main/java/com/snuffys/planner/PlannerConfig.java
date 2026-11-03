@@ -531,6 +531,17 @@ public interface PlannerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "plannerYourPrices",
+        name = "Use Your Own Prices",
+        description = "<div width='300'>In plans and the money plan, an item you've bought or sold on the Grand Exchange in the last week goes at what you really paid or got (your trades' average, as they filled), not the GE price; marked \"your price\". Trades are seen while RuneLite runs with the Planner on",
+        section = plannerCalculatorSection,
+        position = 5
+    )
+    default boolean plannerYourPrices() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "chatPlanMilestone",
         name = "Chat: Milestone Done",
         description = "<div width='300'>A game chat message when you finish a milestone of your plan (the one open in the Calculator), naming the next one, and when you reach the plan's goal",

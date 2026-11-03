@@ -145,6 +145,21 @@ class PlannerCalculator {
         return geLimits == null ? 0 : geLimits.limit(itemId);
     }
 
+    /** Your own price for an item from your trades this week (null: none, or the setting's off). */
+    Long yourPrice(String name) {
+        return geLimits == null || !config.plannerYourPrices() ? null : geLimits.yourPrice(name);
+    }
+
+    /** What you really spent and got for these items since then: {spent, brought in}. */
+    long[] traded(java.util.Collection<String> names, long since) {
+        return geLimits == null ? new long[2] : geLimits.traded(names, since);
+    }
+
+    /** Changes when a trade is recorded. */
+    int tradesVersion() {
+        return geLimits == null ? 0 : geLimits.tradesVersion();
+    }
+
     /** How many buy limits are known so far (for redrawing when one comes in). */
     int buyLimitsKnown() {
         return geLimits == null ? 0 : geLimits.known();
@@ -542,8 +557,20 @@ class PlannerCalculator {
         }
         if (gp <= 0) {
             configManager.unsetRSProfileConfiguration(GROUP, "planBudget." + skill.name());
+            configManager.unsetRSProfileConfiguration(GROUP, "planBudgetAt." + skill.name());
         } else {
             configManager.setRSProfileConfiguration(GROUP, "planBudget." + skill.name(), String.valueOf(gp));
+            configManager.setRSProfileConfiguration(GROUP, "planBudgetAt." + skill.name(), String.valueOf(System.currentTimeMillis()));
+        }
+    }
+
+    /** When the budget was set (its real spending counts from then), or 0. */
+    long planBudgetSince(Skill skill) {
+        String saved = canPlan() ? configManager.getRSProfileConfiguration(GROUP, "planBudgetAt." + skill.name()) : null;
+        try {
+            return saved == null ? 0 : Long.parseLong(saved);
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 

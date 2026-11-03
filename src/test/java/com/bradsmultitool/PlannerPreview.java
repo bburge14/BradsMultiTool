@@ -259,8 +259,8 @@ public class PlannerPreview {
             slayer = new PlannerSlayer(null, configManager, null, view);
             drops = new DropTracker(configManager, null, config, view, gson);
             notes = new PlannerNotes(configManager, view, gson);
-            calculator = new PlannerCalculator(null, configManager, null, view, config, null, null, null);
             geLimits = new PlannerGeLimits(null, configManager, null, view, null, config);
+            calculator = new PlannerCalculator(null, configManager, null, view, config, null, null, geLimits);
             calculatorData.load(gson);
             recipes.load(gson);
             training.load(gson);
@@ -392,6 +392,11 @@ public class PlannerPreview {
             calculator.setBonuses(Skill.PRAYER, java.util.Collections.singleton("LIT_GILDED_ALTAR"));
             Map<String, Integer> bank = new HashMap<>();
             bank.put("coins", 18_500_000);
+            // The Cooking plan's budget, and trades since: raw sharks bought, cooked ones sold
+            calculator.setPlanBudget(Skill.COOKING, 20_000_000);
+            long soon = System.currentTimeMillis() + 1000;
+            geLimits.addSampleTrade(net.runelite.api.gameval.ItemID.RAW_SHARK, "Raw shark", 2000, 1_480_000, soon, false);
+            geLimits.addSampleTrade(net.runelite.api.gameval.ItemID.SHARK, "Shark", 1500, 1_170_000, soon, true);
             bank.put("raw lobster", 1_240);
             bank.put("raw swordfish", 455);
             bank.put("raw monkfish", 310);

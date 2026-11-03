@@ -788,7 +788,8 @@ final class PlannerCalculatorView {
             .append('|').append(calc.showMembers()).append(calc.showPrices()).append('|').append(calc.priceVersion())
             .append('|').append(calc.trackerInstalled()).append('|').append(picking).append('|').append(calc.canPlan())
             .append('|').append(calc.sort());
-        key.append('|').append(calc.owned().hashCode()).append('|').append(calc.buyLimitsKnown()).append(calc.planFolds()).append(calc.planBudget(shown));
+        key.append('|').append(calc.owned().hashCode()).append('|').append(calc.buyLimitsKnown()).append(calc.planFolds()).append(calc.planBudget(shown))
+            .append('|').append(calc.tradesVersion());
         SkillPlans.Plan plan = calc.plan(shown);
         key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen).append(calc.pinnedPlanSkill())
             .append(calc.goalPick(shown))
@@ -835,7 +836,7 @@ final class PlannerCalculatorView {
             now = from;
             target = to;
             List<PlannerCalculator.Row> rows = PlannerCalculator.rows(shown, actions, on, now, target, recipes, training, owned,
-                icons::price, calc::itemPrice);
+                this::price, calc::itemPrice);
             String filter = search.getText().trim().toLowerCase(Locale.ROOT);
             if (mode == PlannerCalculator.Mode.BANKED) {
                 fillBanked(shown, skillCalc, on, now, target, rows, owned, filter);
@@ -954,7 +955,7 @@ final class PlannerCalculatorView {
                 reaches ? PlannerUi.READY : Color.WHITE);
             tiles.add(levelTile);
             list.add(PlannerUi.spaced(tiles));
-            long value = calc.showPrices() ? PlannerCalculator.bankedValue(shown, skillCalc, on, level, recipes, owned, icons::price) : 0;
+            long value = calc.showPrices() ? PlannerCalculator.bankedValue(shown, skillCalc, on, level, recipes, owned, this::price) : 0;
             if (value > 0) {
                 // What it all sells for once made, less what the materials are worth: the cards' nets added up
                 Map<String, Integer> madeAll = PlannerCalculator.bankedMade(shown, skillCalc, on, level, recipes, owned);
@@ -1486,7 +1487,7 @@ final class PlannerCalculatorView {
             return;
         }
         List<PlannerCalculator.StepRow> steps = PlannerCalculator.stepRows(shown, skillCalc, on, plan, now, recipes, training,
-            icons::price, calc::itemPrice);
+            this::price, calc::itemPrice);
         PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, steps, now);
 
         JPanel tiles = new JPanel(new GridLayout(0, 2, PlannerUi.GAP, PlannerUi.GAP));
@@ -1605,6 +1606,12 @@ final class PlannerCalculatorView {
         return card.interactive(null, null, tip.append("</html>").toString());
     }
 
+    // An item's price for the plans: yours from your trades this week (Use Your Own Prices), else the GE's
+    private int price(String name) {
+        Long yours = calc.yourPrice(name);
+        return yours != null && yours > 0 ? (int) Math.min(Integer.MAX_VALUE, yours) : icons.price(name);
+    }
+
     // A section of the open plan with a fold arrow: click its header to fold it away or open it (remembered)
     private JComponent section(String key, String title, String summary, JComponent... actions) {
         boolean folded = calc.planFolded(key);
@@ -1639,20 +1646,24 @@ final class PlannerCalculatorView {
             return id > 0 ? calc.buyLimit(id) : 0;
         };
         Map<String, Integer> owned = calc.owned();
-        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(shown, steps, recipes, owned, budget, icons::price, limits);
+        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(shown, steps, recipes, owned, budget, this::price, limits);
         if (money.steps.isEmpty()) {
             return;
         }
-        long needed = PlannerCalculator.budgetNeeded(shown, steps, recipes, owned, icons::price, limits);
+        long needed = PlannerCalculator.budgetNeeded(shown, steps, recipes, owned, this::price, limits);
         JLabel budgetLink = PlannerUi.linkLabel(set > 0 ? "Budget: " + PlannerPanel.gp(set) : "Set a budget",
             "How much this plan may use (the rest of your cash is left alone)", () -> askBudget(shown, coins));
         boolean folded = calc.planFolded("money");
-        String summary = money.runsOut != null ? "short " + PlannerPanel.gp(Math.max(0, needed - budget)) : "it's enough";
+        String summary = money.runsOut != null ? "short " + PlannerPanel.gp(Math.max(0, needed - budget)) : "enough";
         list.add(section("money", "Money plan", summary, budgetLink));
         if (folded) {
             return;
         }
         list.add(PlannerUi.spaced(moneySummary(shown, money, set, coins, needed)));
+        JComponent real = moneySoFar(shown, money, set);
+        if (real != null) {
+            list.add(PlannerUi.spaced(real));
+        }
         for (PlannerCalculator.MoneyStep m : money.steps) {
             list.add(PlannerUi.spaced(moneyCard(m)));
         }
@@ -1736,8 +1747,68 @@ final class PlannerCalculatorView {
             + "<br>The most one round needs: " + String.format("%,d", money.peak) + " gp"
             + (money.limitHours > 0 ? "<br>The buy limits make it take at least " + PlannerPanel.formatDuration(money.limitHours * 3600) : "")
             + "<br>Sales are after the Grand Exchange's 2% tax; prices are today's, so it's a guide"
+            + yourPricesLine(planItems(money))
             + "<br><font color='#a0a0a0'>Click to set the budget</font></html>";
         return card.interactive(() -> askBudget(shown, coins), null, tip);
+    }
+
+    // What you've really spent and sold for the plan since the budget was set (your GE trades of its materials and
+    // products), and the budget that leaves; null before any
+    private JComponent moneySoFar(Skill shown, PlannerCalculator.MoneyPlan money, long set) {
+        long since = calc.planBudgetSince(shown);
+        if (set <= 0 || since <= 0) {
+            return null;
+        }
+        java.util.Set<String> items = planItems(money);
+        long[] traded = calc.traded(items, since);
+        if (traded[0] <= 0 && traded[1] <= 0) {
+            return null;
+        }
+        long left = set - traded[0] + traded[1];
+        PlannerUi.Card card = new PlannerUi.Card("Since you set the budget", "Spent buying", PlannerPanel.gp(traded[0]));
+        card.right.setForeground(new Color(220, 150, 140));
+        card.third("Sold for (after tax)", PlannerPanel.gp(traded[1]));
+        card.lowerRight.setForeground(new Color(150, 210, 150));
+        card.fourth("Budget left", PlannerPanel.gp(Math.max(0, left)));
+        card.lastRight.setForeground(left >= 0 ? Color.WHITE : COSTS);
+        card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CLOCK, 20,
+            new Color(200, 200, 200)))));
+        card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, PlannerUi.GROWING));
+        String tip = "<html><b>Your real trades</b> for this plan since you set its budget ("
+            + java.time.format.DateTimeFormatter.ofPattern("MMM d, h:mm a").format(java.time.LocalDateTime.ofInstant(
+                java.time.Instant.ofEpochMilli(since), java.time.ZoneId.systemDefault()))
+            + "): buys of its materials and sales of what it makes, as they filled on the Grand Exchange<br>"
+            + "Spent " + String.format("%,d", traded[0]) + " gp, brought in " + String.format("%,d", traded[1])
+            + " gp after the 2% tax<br>Budget " + String.format("%,d", set) + " gp: " + String.format("%,d", left)
+            + " gp left<br><font color='#a0a0a0'>Only trades made while RuneLite ran with the Planner on</font></html>";
+        return card.interactive(null, null, tip);
+    }
+
+    // The items a money plan buys and sells: its materials and each milestone's product
+    private static java.util.Set<String> planItems(PlannerCalculator.MoneyPlan money) {
+        java.util.Set<String> items = new java.util.LinkedHashSet<>();
+        for (PlannerCalculator.MoneyStep m : money.steps) {
+            for (PlannerCalculator.Buy buy : m.buys) {
+                items.add(buy.name);
+            }
+            if (m.step.step.action != null) {
+                items.add(m.step.step.action);
+            }
+        }
+        return items;
+    }
+
+    // "Your prices: Adamant dart tip 185, Adamant dart 190" for a tooltip (empty when none)
+    private String yourPricesLine(java.util.Collection<String> items) {
+        List<String> parts = new ArrayList<>();
+        for (String item : items) {
+            Long yours = calc.yourPrice(item);
+            if (yours != null) {
+                parts.add(PlannerUi.esc(item) + " " + String.format("%,d", yours));
+            }
+        }
+        return parts.isEmpty() ? "" : "<br>Your own prices (your trades this week): " + String.join(", ", parts)
+            + "; GE prices for the rest";
     }
 
     // A milestone's money: how much to buy, in how many rounds, what it sells for, and the budget after it
@@ -1790,6 +1861,13 @@ final class PlannerCalculatorView {
 
     // How long what's short takes to buy at the item's Grand Exchange buy limit (and what's left of it now)
     private String buyTime(PlannerCalculator.Need need) {
+        Long yours = calc.yourPrice(need.name);
+        String own = yours == null ? "" : "<br>Your price: " + String.format("%,d", yours) + " gp (your trades this week; GE "
+            + String.format("%,d", icons.price(need.name)) + ")";
+        return own + buyLimitTime(need);
+    }
+
+    private String buyLimitTime(PlannerCalculator.Need need) {
         long shortBy = need.needed - need.have;
         int id = shortBy > 0 ? icons.itemId(need.name) : -1;
         int limit = id > 0 ? calc.buyLimit(id) : 0;
