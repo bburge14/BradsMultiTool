@@ -16,7 +16,7 @@ try { Start-Transcript -Path (Join-Path $env:TEMP 'snuffys-launcher.log') -Force
 function Show-Problem($problem) {
     try { Set-Content -Path $startupLog -Value $problem } catch { }
     Write-Host "PROBLEM: $problem"
-    [void][System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher hit a problem:`r`n`r`n$problem`r`n`r`n(Saved in $startupLog: send it to Claude.)",
+    [void][System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher hit a problem:`r`n`r`n$problem`r`n`r`n(Saved in ${startupLog}: send it to Claude.)",
         "Snuffy's Launcher")
 }
 # An error inside the window (drawing it, a click) says what instead of closing it
@@ -1718,7 +1718,7 @@ function Update-Versions {
             }
         }
         $tip = if ($changed) { "v$version is the last version pushed to its repository; $which has changes since then (Push to repos makes the next version)" }
-                else { "v$version: the last version pushed to its repository, the same as $which" }
+                else { "v${version}: the last version pushed to its repository, the same as $which" }
         $ui.SetPluginVersion($key, $folder, "v$version$(if ($changed) { '+' })", $tip)
     }
 }
