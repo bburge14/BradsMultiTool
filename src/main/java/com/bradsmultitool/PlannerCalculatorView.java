@@ -1540,6 +1540,7 @@ final class PlannerCalculatorView {
             list.add(PlannerUi.spaced(planSummary(steps, totals, level, endLevel)));
         }
         fillMaterials(shown, steps);
+        fillMoneyPlan(shown, steps);
         list.add(linkRow(PlannerUi.linkLabel("Wiki suggestions", "Replace the milestones with the wiki's training "
                 + "guides' methods from your level to " + plan.goal, () -> suggest(shown, actions, on, plan.goal)),
             PlannerUi.linkLabel("Delete plan", "Delete this plan (the tracker keeps it if you exported it)", () -> {
@@ -1601,6 +1602,141 @@ final class PlannerCalculatorView {
                 .append("<br>").append(netTip(totals.cost, totals.earn));
         }
         return card.interactive(null, null, tip.append("</html>").toString());
+    }
+
+    // ---- The money plan: buying, making and selling the plan within a budget ----
+
+    private void fillMoneyPlan(Skill shown, List<PlannerCalculator.StepRow> steps) {
+        if (!calc.showPrices()) {
+            return;
+        }
+        long set = calc.planBudget(shown);
+        long coins = calc.coins();
+        long budget = set > 0 ? set : coins;
+        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(shown, steps, recipes, calc.owned(), budget,
+            icons::price, name -> {
+                int id = icons.itemId(name);
+                return id > 0 ? calc.buyLimit(id) : 0;
+            });
+        if (money.steps.isEmpty()) {
+            return;
+        }
+        JLabel budgetLink = PlannerUi.linkLabel("Budget: " + (set > 0 ? PlannerPanel.gp(set) : "your coins"),
+            "Set how much this plan may use (the rest of your cash is left alone)", () -> askBudget(shown, coins));
+        list.add(PlannerUi.group("Money plan", "", budgetLink));
+        list.add(PlannerUi.spaced(moneySummary(money, set, coins)));
+        for (PlannerCalculator.MoneyStep m : money.steps) {
+            list.add(PlannerUi.spaced(moneyCard(m)));
+        }
+    }
+
+    private void askBudget(Skill shown, long coins) {
+        String typed = JOptionPane.showInputDialog(list, "How much should this plan use? (like 50m, 1.2b, 750k)\n"
+            + "Leave it empty to use all your coins (" + PlannerPanel.gp(coins) + " seen in your bank and inventory).",
+            calc.planBudget(shown) > 0 ? PlannerPanel.gp(calc.planBudget(shown)) : "");
+        if (typed == null) {
+            return;
+        }
+        long gp = parseGp(typed);
+        if (gp < 0) {
+            JOptionPane.showMessageDialog(list, "Type an amount like 50m, 1.2b or 750k.", "Budget", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        calc.setPlanBudget(shown, gp);
+        redraw.run();
+    }
+
+    /** "50m", "1.2b", "750k", "1,000,000" in gp; 0 for empty; -1 when it isn't an amount. */
+    static long parseGp(String text) {
+        String t = text.trim().toLowerCase(Locale.ROOT).replace(",", "").replace(" ", "").replace("gp", "");
+        if (t.isEmpty()) {
+            return 0;
+        }
+        double times = 1;
+        char last = t.charAt(t.length() - 1);
+        if (last == 'k' || last == 'm' || last == 'b') {
+            times = last == 'k' ? 1e3 : last == 'm' ? 1e6 : 1e9;
+            t = t.substring(0, t.length() - 1);
+        }
+        try {
+            double value = Double.parseDouble(t) * times;
+            return value < 0 ? -1 : (long) Math.floor(value);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    // The budget, the most it needs at once, what the plan loses (or makes) after tax, how long the buy limits make it
+    // take at least, and what's left at the end (or where the budget runs out)
+    private JComponent moneySummary(PlannerCalculator.MoneyPlan money, long set, long coins) {
+        PlannerUi.Card card = new PlannerUi.Card(set > 0 ? "Budget " + PlannerPanel.gp(set) : "All your coins: " + PlannerPanel.gp(coins),
+            "Needs at most", PlannerPanel.gp(money.peak) + " at once");
+        card.right.setForeground(money.peak > money.budget ? COSTS : Color.WHITE);
+        card.third(money.loss >= 0 ? "Costs after sales" : "Makes after sales", signed(-money.loss));
+        card.lowerRight.setForeground(money.loss > 0 ? COSTS : PlannerUi.READY);
+        card.fourth("Buy limits: at least", money.limitHours > 0 ? PlannerPanel.formatDuration(money.limitHours * 3600) : "no wait");
+        if (money.runsOut != null) {
+            card.fifth("Runs out at " + money.runsOut.step.step.action, "");
+            card.fifth.setForeground(COSTS);
+            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, COSTS));
+        } else {
+            card.fifth("Left at the goal", PlannerPanel.gp(Math.max(0, money.end())));
+            card.fifthRight.setForeground(money.end() >= 0 ? PlannerUi.READY : COSTS);
+            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, PlannerUi.READY));
+        }
+        card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CALCULATOR, 20,
+            new Color(200, 200, 200)))));
+        String tip = "<html><b>Money plan</b>: buy what each milestone needs that you don't have, make it, sell it, "
+            + "and buy the next lot with what it brought in, so you only need a round's worth at once<br>"
+            + "Budget: " + String.format("%,d", money.budget) + " gp" + (set > 0 ? "" : " (all your coins: set one with Budget)")
+            + "<br>The most one round needs: " + String.format("%,d", money.peak) + " gp"
+            + "<br>Sales are after the Grand Exchange's 2% tax; prices are today's, so it's a guide"
+            + "<br>Each item's buy limit allows one round a 4 hours</html>";
+        return card.interactive(null, null, tip);
+    }
+
+    // A milestone's money: what to buy, in how many rounds and how much a round, and the budget after it
+    private JComponent moneyCard(PlannerCalculator.MoneyStep m) {
+        SkillPlans.Step step = m.step.step;
+        String what = m.buys.isEmpty() ? "Nothing to buy"
+            : "Buy " + PlannerPanel.gp(m.buys.get(0).quantity) + " " + m.buys.get(0).name
+            + (m.buys.size() > 1 ? " +" + (m.buys.size() - 1) : "");
+        PlannerUi.Card card = new PlannerUi.Card(step.action, what, m.cost > 0 ? PlannerPanel.gp(m.cost) : "");
+        card.corner.setText(step.from + " → " + step.to);
+        card.right.setForeground(new Color(220, 150, 140));
+        if (m.runsOut) {
+            card.third("The budget can't carry this", "");
+            card.lower.setForeground(COSTS);
+            card.fourth("It loses " + PlannerPanel.gp(m.loss()) + "; there's " + PlannerPanel.gp(Math.max(0, m.budgetBefore)), "");
+            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, COSTS));
+        } else {
+            boolean byLimit = m.limitRounds >= m.cashRounds;
+            card.third(m.rounds == 1 ? "In one go" : m.rounds + " rounds of " + PlannerPanel.gp(m.perRound),
+                m.rounds > 1 ? (byLimit ? "buy limit" : "budget") : "");
+            card.fourth(m.earn > 0 ? "Sells " + PlannerPanel.gp(m.earn) : "Nothing to sell", "");
+            net(card.lastRight, (double) m.cost, (double) m.earn, true);
+            card.fifth("Budget after", PlannerPanel.gp(Math.max(0, m.budgetAfter)));
+            card.fifthRight.setForeground(Color.WHITE);
+        }
+        if (m.step.action != null) {
+            picture(card.icon, m.step.action);
+        }
+        StringBuilder tip = new StringBuilder("<html><b>").append(PlannerUi.esc(step.action)).append("</b> ").append(step.from)
+            .append(" to ").append(step.to);
+        for (PlannerCalculator.Buy buy : m.buys) {
+            tip.append("<br>Buy ").append(String.format("%,d", buy.quantity)).append(" ").append(PlannerUi.esc(buy.name))
+                .append(": ").append(String.format("%,d", buy.cost)).append(" gp")
+                .append(buy.limit > 0 ? " (limit " + String.format("%,d", buy.limit) + " a 4 hours)" : "");
+        }
+        if (m.rounds > 1) {
+            tip.append("<br>").append(m.rounds).append(" rounds: buy about ").append(String.format("%,d", m.perRound))
+                .append(" gp of it, make it, sell it, again")
+                .append(m.limitRounds > 1 ? "<br>The buy limits allow one round a 4 hours: at least "
+                    + PlannerPanel.formatDuration((m.limitRounds - 1) * 4 * 3600) : "");
+        }
+        tip.append("<br>Budget: ").append(String.format("%,d", Math.max(0, m.budgetBefore))).append(" gp before, ")
+            .append(String.format("%,d", Math.max(0, m.budgetAfter))).append(" after</html>");
+        return card.interactive(null, null, tip.toString());
     }
 
     // How long what's short takes to buy at the item's Grand Exchange buy limit (and what's left of it now)

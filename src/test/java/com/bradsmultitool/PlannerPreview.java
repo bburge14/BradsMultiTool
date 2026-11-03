@@ -391,6 +391,7 @@ public class PlannerPreview {
             calculator.setBonuses(Skill.WOODCUTTING, java.util.Collections.singleton("LUMBERJACK_OUTFIT"));
             calculator.setBonuses(Skill.PRAYER, java.util.Collections.singleton("LIT_GILDED_ALTAR"));
             Map<String, Integer> bank = new HashMap<>();
+            bank.put("coins", 18_500_000);
             bank.put("raw lobster", 1_240);
             bank.put("raw swordfish", 455);
             bank.put("raw monkfish", 310);

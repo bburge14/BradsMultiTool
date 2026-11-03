@@ -523,6 +523,35 @@ class PlannerCalculator {
         }
     }
 
+    /** The money set aside for a skill's plan, in gp (0: all your coins). Kept per account. */
+    long planBudget(Skill skill) {
+        if (!canPlan()) {
+            return 0;
+        }
+        String saved = configManager.getRSProfileConfiguration(GROUP, "planBudget." + skill.name());
+        try {
+            return saved == null ? 0 : Math.max(0, Long.parseLong(saved));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    void setPlanBudget(Skill skill, long gp) {
+        if (!canPlan()) {
+            return;
+        }
+        if (gp <= 0) {
+            configManager.unsetRSProfileConfiguration(GROUP, "planBudget." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(GROUP, "planBudget." + skill.name(), String.valueOf(gp));
+        }
+    }
+
+    /** Coins in your bank (as last opened) and inventory. */
+    long coins() {
+        return owned().getOrDefault("coins", 0);
+    }
+
     /** Keeps this target for the skill (0 forgets it). */
     void setSavedTarget(Skill skill, int xp) {
         if (configManager.getRSProfileKey() == null) {
@@ -743,7 +772,7 @@ class PlannerCalculator {
         Double profit;
         /** What one's materials cost (GE), or null (no recipe, or a material without a price). */
         Double costEach;
-        /** What one product is worth (GE): what it makes or gathers; null when it's nothing that sells. */
+        /** What selling one product gets you (GE price less its 2% tax); null when it's nothing that sells. */
         Double earnEach;
         /** How many you have or can make from what you own. */
         int have;
@@ -827,7 +856,7 @@ class PlannerCalculator {
                 }
                 // The action is one item; a recipe can make several at once (10 darts from 10 tips and 10 feathers)
                 cost /= per;
-                double worth = consumed(recipe) ? 0 : price.applyAsInt(recipe.name);
+                double worth = consumed(recipe) ? 0 : afterTax(price.applyAsInt(recipe.name));
                 double profit = worth - cost;
                 if (row.profit == null || profit > row.profit) {
                     row.profit = profit;
@@ -842,7 +871,7 @@ class PlannerCalculator {
                 if (worth <= 0) {
                     worth = price.applyAsInt(action.name);
                 }
-                row.earnEach = worth > 0 ? (double) worth : null;
+                row.earnEach = worth > 0 ? afterTax(worth) : null;
             }
         }
         TrainingData.Method method = training == null ? null : rated(training, skill, action, level);
@@ -851,6 +880,17 @@ class PlannerCalculator {
             row.seconds = (long) Math.ceil((target - xp) * 3600.0 / method.xpHour);
         }
         return row;
+    }
+
+    /**
+     * What selling one at this price gets you: the Grand Exchange keeps 2% of each sale (rounded down, so nothing on
+     * one under 50 gp), at most 5M an item.
+     */
+    static double afterTax(double price) {
+        if (price <= 0) {
+            return price;
+        }
+        return price - Math.min(Math.floor(price * 0.02), 5_000_000);
     }
 
     /**
@@ -1208,6 +1248,141 @@ class PlannerCalculator {
             }
         }
         return new ArrayList<>(out.values());
+    }
+
+    // ---- The money plan: buying, making and selling within a budget ----
+
+    /** One thing to buy for a milestone. */
+    static final class Buy {
+        final String name;
+        final long quantity;
+        final long cost;
+        /** Its buy limit every 4 hours (0: not known). */
+        final int limit;
+
+        Buy(String name, long quantity, long cost, int limit) {
+            this.name = name;
+            this.quantity = quantity;
+            this.cost = cost;
+            this.limit = limit;
+        }
+    }
+
+    /** A milestone's money: what to buy, in how many rounds of buy, make and sell, and the budget after it. */
+    static final class MoneyStep {
+        final StepRow step;
+        final List<Buy> buys = new ArrayList<>();
+        /** What buying it all costs, and what selling the products gets you (after tax). */
+        long cost;
+        long earn;
+        /** Rounds: the most of the budget's and the buy limits'. */
+        long rounds;
+        long limitRounds;
+        long cashRounds;
+        /** Cash one round needs. */
+        long perRound;
+        long budgetBefore;
+        long budgetAfter;
+        /** The budget can't carry it (not even a round at a time). */
+        boolean runsOut;
+
+        MoneyStep(StepRow step) {
+            this.step = step;
+        }
+
+        long loss() {
+            return cost - earn;
+        }
+    }
+
+    /** The whole money plan: each milestone's, the most cash needed at once, and the time the buy limits take at least. */
+    static final class MoneyPlan {
+        long budget;
+        final List<MoneyStep> steps = new ArrayList<>();
+        long peak;
+        long loss;
+        long limitHours;
+        /** The milestone the budget runs out at, or null. */
+        MoneyStep runsOut;
+
+        long end() {
+            return steps.isEmpty() ? budget : steps.get(steps.size() - 1).budgetAfter;
+        }
+    }
+
+    /**
+     * Plans the money for the milestones still to do, in order, within {@code budget}: each one buys what it needs that
+     * you don't own (owned materials are used up milestone by milestone), makes and sells in rounds, as many as the buy
+     * limits (one round a 4 hours each) and the budget need: a round buys only what the budget left then can pay for
+     * (losses come out of it as it goes). Stops where the budget can't carry a milestone.
+     */
+    static MoneyPlan moneyPlan(Skill skill, List<StepRow> steps, RecipeData recipes, Map<String, Integer> owned, long budget,
+                               ToIntFunction<String> price, ToIntFunction<String> limit) {
+        MoneyPlan plan = new MoneyPlan();
+        plan.budget = budget;
+        Map<String, Integer> pool = new HashMap<>(owned);
+        long cash = budget;
+        for (StepRow s : steps) {
+            if (s.done || s.row == null || s.row.needed <= 0) {
+                continue;
+            }
+            MoneyStep m = new MoneyStep(s);
+            m.budgetBefore = cash;
+            for (Need need : planMaterials(skill, java.util.Collections.singletonList(s), recipes, pool)) {
+                String key = need.name.toLowerCase(Locale.ROOT);
+                long have = need.tool ? need.have : pool.getOrDefault(key, 0);
+                long toBuy = Math.max(0, need.needed - have);
+                if (!need.tool) {
+                    pool.put(key, (int) Math.max(0, have - need.needed));
+                }
+                if (toBuy > 0) {
+                    long each = Math.max(0, price.applyAsInt(need.name));
+                    m.buys.add(new Buy(need.name, toBuy, toBuy * each, need.tool ? 0 : Math.max(0, limit.applyAsInt(need.name))));
+                    m.cost += toBuy * each;
+                    if (need.tool) {
+                        // (a tool, once: in your pool from here on)
+                        pool.put(key, 1);
+                    }
+                }
+            }
+            Double earn = s.row.earn(s.row.needed);
+            m.earn = earn == null ? 0 : Math.round(earn);
+            for (Buy buy : m.buys) {
+                if (buy.limit > 0) {
+                    m.limitRounds = Math.max(m.limitRounds, (buy.quantity + buy.limit - 1) / buy.limit);
+                }
+            }
+            long loss = m.loss();
+            if (m.cost <= 0) {
+                m.cashRounds = 1;
+            } else if (loss > 0) {
+                // Each round's sale pays for the next round's buy; the budget shrinks by the loss as it goes, so the
+                // last round has the least: rounds x (budget - loss) >= what the sales bring back
+                long spare = cash - loss;
+                if (spare <= 0 || (m.earn == 0 && cash < m.cost)) {
+                    m.runsOut = true;
+                } else {
+                    m.cashRounds = Math.max(1, (m.earn + spare - 1) / spare);
+                }
+            } else {
+                m.cashRounds = cash <= 0 ? 0 : Math.max(1, (m.cost + cash - 1) / cash);
+                m.runsOut = cash <= 0;
+            }
+            m.rounds = Math.max(1, Math.max(m.limitRounds, m.cashRounds));
+            m.perRound = m.cost <= 0 ? 0 : (m.cost + m.rounds - 1) / m.rounds;
+            plan.steps.add(m);
+            if (m.runsOut) {
+                m.budgetAfter = cash;
+                plan.runsOut = m;
+                break;
+            }
+            cash -= loss;
+            m.budgetAfter = cash;
+            plan.peak = Math.max(plan.peak, m.perRound);
+            plan.loss += loss;
+            plan.limitHours += Math.max(0, m.limitRounds - 1) * 4;
+        }
+        return plan;
     }
 
     // A tool you have: any item named for it ("Hammer" in "Imcando hammer", "Knife")

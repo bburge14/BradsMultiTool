@@ -197,11 +197,12 @@ public class SkillPlanTest {
         int count = (int) Math.ceil(need / 120.0);
         assertEquals(count, step.row.needed);
         assertEquals(200.0 * count, step.row.cost(count), 0);
-        assertEquals(250.0 * count, step.row.earn(count), 0);
+        // (sold at 250 gp, less the 2% tax: 245)
+        assertEquals(245.0 * count, step.row.earn(count), 0);
         PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, rows, xp);
         assertEquals(need, totals.xp);
         assertEquals(200.0 * count, totals.cost, 0);
-        assertEquals(250.0 * count, totals.earn, 0);
+        assertEquals(245.0 * count, totals.earn, 0);
         assertEquals(50, totals.endLevel);
         // Halfway: only what's left counts; past the end it's done
         int half = Experience.getXpForLevel(45);
@@ -219,7 +220,7 @@ public class SkillPlanTest {
             new HashMap<>(), name -> 0, id -> id == yew.icon ? 300 : 0);
         PlannerCalculator.Row row = rows.stream().filter(r -> r.action == yew).findFirst().orElse(null);
         assertNotNull(row);
-        assertEquals(300, row.earnEach, 0);
+        assertEquals(294, row.earnEach, 0);
         assertNull(row.costEach);
         // Earnings alone give no net gp/xp (that needs a cost)
         assertNull(row.perXp());
@@ -330,5 +331,74 @@ public class SkillPlanTest {
         assertEquals("Rune dart", plan.steps.get(3).action);
         assertEquals("Onyx bolts", plan.steps.get(4).action);
         assertEquals(90, plan.steps.get(4).from);
+    }
+
+    @Test
+    public void geTaxIsTwoPercentRoundedDownAndCapped() {
+        assertEquals(49, PlannerCalculator.afterTax(49), 0);
+        assertEquals(49, PlannerCalculator.afterTax(50), 0);
+        assertEquals(294, PlannerCalculator.afterTax(300), 0);
+        // at most 5M an item
+        assertEquals(1_495_000_000, PlannerCalculator.afterTax(1_500_000_000), 0);
+    }
+
+    @Test
+    public void moneyPlanCyclesWithinTheBudget() {
+        // Lobsters 40-50: raw lobsters at 200 each, cooked sell at 250 (245 after tax): a gain, so 1M covers it in rounds
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        SkillPlans.Plan plan = new SkillPlans.Plan(50);
+        plan.steps.add(new SkillPlans.Step("Lobster", 40, 50, null, 120));
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("raw lobster", 200);
+        prices.put("lobster", 250);
+        int xp = Experience.getXpForLevel(40);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.COOKING, cooking, Collections.emptyList(), plan,
+            xp, RECIPES, TRAINING, name -> prices.getOrDefault(name.toLowerCase(), 0), id -> 0);
+        long count = rows.get(0).row.needed;
+        Map<String, Integer> owned = new HashMap<>();
+        owned.put("raw lobster", 100);
+        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, owned, 100_000,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0);
+        PlannerCalculator.MoneyStep step = money.steps.get(0);
+        // The 100 you own aren't bought
+        assertEquals(count - 100, step.buys.get(0).quantity);
+        assertEquals((count - 100) * 200, step.cost);
+        // A round at a time: no round needs more than the budget
+        assertTrue(step.perRound <= 100_000);
+        assertEquals((step.cost + 99_999) / 100_000, step.rounds);
+        assertTrue(money.runsOut == null);
+        assertEquals(100_000 - step.loss(), money.end());
+        // A buy limit of 1,000 every 4 hours makes it more rounds, and takes time
+        PlannerCalculator.MoneyPlan limited = PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, owned, 100_000_000,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 1000);
+        assertEquals((count - 100 + 999) / 1000, limited.steps.get(0).rounds);
+        assertEquals((limited.steps.get(0).rounds - 1) * 4, limited.limitHours);
+    }
+
+    @Test
+    public void moneyPlanSaysWhereTheBudgetRunsOut() {
+        // Something that loses: sharks bought at 1,000 and sold at 500
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        SkillPlans.Plan plan = new SkillPlans.Plan(85);
+        plan.steps.add(new SkillPlans.Step("Shark", 80, 85, null, 210));
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("raw shark", 1000);
+        prices.put("shark", 500);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.COOKING, cooking, Collections.emptyList(), plan,
+            Experience.getXpForLevel(80), RECIPES, TRAINING, name -> prices.getOrDefault(name.toLowerCase(), 0), id -> 0);
+        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, new HashMap<>(), 10_000,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0);
+        assertNotNull(money.runsOut);
+        assertTrue(money.runsOut.runsOut);
+    }
+
+    @Test
+    public void budgetAmountsAreRead() {
+        assertEquals(50_000_000, PlannerCalculatorView.parseGp("50m"));
+        assertEquals(1_200_000_000, PlannerCalculatorView.parseGp("1.2B"));
+        assertEquals(750_000, PlannerCalculatorView.parseGp("750k"));
+        assertEquals(1_000_000, PlannerCalculatorView.parseGp("1,000,000 gp"));
+        assertEquals(0, PlannerCalculatorView.parseGp(" "));
+        assertEquals(-1, PlannerCalculatorView.parseGp("lots"));
     }
 }
