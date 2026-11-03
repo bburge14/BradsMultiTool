@@ -642,13 +642,6 @@ namespace Snuffys
             return Path.Combine(Path.Combine(Path.Combine(root, "assets"), folder), name);
         }
 
-        // The launcher's icon, or the Toolbelt's picture before the icon is made
-        private string LogoPath()
-        {
-            string icon = Path.Combine(Path.Combine(root, "assets"), "launcher.ico");
-            return File.Exists(icon) ? icon : Asset("hub", "multitool.png");
-        }
-
         // ---- Header: the logo, the name, the update chip, and Play | Dev ----
 
         private void BuildHeader()
@@ -658,7 +651,9 @@ namespace Snuffys
             header.Height = 112;
             header.BackColor = Theme.Window;
             PictureBox logo = new PictureBox();
-            logo.Image = Theme.Picture(LogoPath(), 44) ?? Theme.Picture(Asset("hub", "multitool.png"), 44);
+            // The Toolbelt's badge from its PNG (the .ico's big frame is PNG-compressed, which Windows' icon reader
+            // turns into noise)
+            logo.Image = Theme.Picture(Asset("hub", "multitool.png"), 44);
             logo.SizeMode = PictureBoxSizeMode.Zoom;
             logo.Location = new Point(18, 14);
             logo.Size = new Size(44, 44);
