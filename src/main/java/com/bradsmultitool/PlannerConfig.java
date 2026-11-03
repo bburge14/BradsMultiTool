@@ -309,6 +309,24 @@ public interface PlannerConfig extends CommonConfig {
         return true;
     }
 
+    /** Whether plans treat you as an ironman: from your account, or always, or never. */
+    enum IronmanPlans {
+        AUTO("From your account"),
+        ALWAYS("Always"),
+        NEVER("Never");
+
+        private final String label;
+
+        IronmanPlans(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     /** How your own timers say they're done: the voice line, or a game sound. */
     enum TimerSound {
         VOICE("Voice line", -1),
@@ -528,6 +546,17 @@ public interface PlannerConfig extends CommonConfig {
     )
     default boolean plannerPlanOverlay() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "plannerIronman",
+        name = "Plan As Ironman",
+        description = "<div width='300'>Plans for an ironman: every material you can gather or make comes from the skill that gets it (logs from Woodcutting, bars from Smithing and their ore from Mining), listed in those skills' plans as supplies, and the money plan is left out. From your account: when the game says it's an ironman account",
+        section = plannerCalculatorSection,
+        position = 6
+    )
+    default IronmanPlans plannerIronman() {
+        return IronmanPlans.AUTO;
     }
 
     @ConfigItem(

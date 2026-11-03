@@ -809,7 +809,7 @@ final class PlannerCalculatorView {
             .append('|').append(calc.trackerInstalled()).append('|').append(picking).append('|').append(calc.canPlan())
             .append('|').append(calc.sort());
         key.append('|').append(calc.owned().hashCode()).append('|').append(calc.buyLimitsKnown()).append(calc.planFolds()).append(calc.planBudget(shown))
-            .append('|').append(calc.tradesVersion()).append('|').append(openSteps).append('|').append(calc.gatherChoices());
+            .append('|').append(calc.tradesVersion()).append('|').append(openSteps).append('|').append(calc.gatherState());
         SkillPlans.Plan plan = calc.plan(shown);
         key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen).append(calc.pinnedPlanSkill())
             .append(calc.goalPick(shown))
@@ -1757,7 +1757,8 @@ final class PlannerCalculatorView {
     // ---- The money plan: buying, making and selling the plan within a budget ----
 
     private void fillMoneyPlan(Skill shown, List<PlannerCalculator.StepRow> steps) {
-        if (!calc.showPrices()) {
+        // (an ironman doesn't buy: no money plan)
+        if (!calc.showPrices() || calc.ironman()) {
             return;
         }
         long set = calc.planBudget(shown);
@@ -1770,9 +1771,10 @@ final class PlannerCalculatorView {
         Map<String, Integer> owned = calc.owned();
         // (what you get yourself isn't bought)
         java.util.Set<String> gathered = new java.util.HashSet<>();
-        for (String choice : calc.gatherChoices()) {
-            if (choice.startsWith(shown.name() + ":")) {
-                gathered.add(choice.substring(shown.name().length() + 1));
+        for (PlannerCalculator.Need need : PlannerCalculator.planMaterials(shown, steps, recipes, calc.owned())) {
+            if (!need.tool && calc.gathers(shown, need.name)
+                && PlannerCalculator.sourceOf(need.name, shown, data, recipes) != null) {
+                gathered.add(need.name.toLowerCase(Locale.ROOT));
             }
         }
         PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(shown, steps, recipes, owned, budget, this::price, limits,
@@ -1992,6 +1994,14 @@ final class PlannerCalculatorView {
 
     private static final Color GATHER_BLUE = new Color(138, 180, 248);
 
+    private static String repeat(String text, int times) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < times; i++) {
+            out.append(text);
+        }
+        return out.toString();
+    }
+
     // "WC", "Mining": a skill's short name for a material row
     private static String shortSkill(Skill skill) {
         switch (skill) {
@@ -2019,6 +2029,18 @@ final class PlannerCalculatorView {
         tip.append(gather ? "<font color='#8ab4f8'>You get it yourself: " : "Or get it yourself: ")
             .append(source.gathered ? "gathered" : "made").append(" in ").append(source.skill.getName())
             .append(" (level ").append(source.action.level).append(")").append(gather ? "</font>" : "");
+        if (gather && shortBy > 0) {
+            List<PlannerCalculator.Link> links = PlannerCalculator.chain(need.name, need.needed, shown, data, recipes,
+                new java.util.HashMap<>(calc.owned()), calc::gathers);
+            if (links.size() > 1) {
+                tip.append("<br>All the way down:");
+                for (PlannerCalculator.Link link : links) {
+                    tip.append("<br>").append(repeat("&nbsp;&nbsp;", link.depth + 1)).append(String.format("%,d", link.toGet()))
+                        .append(" ").append(PlannerUi.esc(link.item)).append(link.skill == null ? " (get it yourself: a drop or shop)"
+                        : " from " + link.skill.getName());
+                }
+            }
+        }
         if (shortBy > 0) {
             Supply supply = supply(source, shortBy);
             tip.append("<br>").append(String.format("%,d", shortBy)).append(" more: ")
@@ -2064,40 +2086,51 @@ final class PlannerCalculatorView {
     // In this skill's Plan view: what the other skills' plans need from it (yew logs for Firemaking), how much you have,
     // the XP and time it is; a click goes to that plan
     private void fillSupplies(Skill shown) {
-        Map<String, Integer> owned = calc.owned();
-        List<JComponent> cards = new ArrayList<>();
-        for (String choice : calc.gatherChoices()) {
-            String[] parts = choice.split(":", 2);
-            Skill consumer;
-            try {
-                consumer = Skill.valueOf(parts[0]);
-            } catch (IllegalArgumentException e) {
-                continue;
-            }
-            SkillPlans.Plan plan = calc.plan(consumer);
-            PlannerCalculator.Source source = PlannerCalculator.sourceOf(parts[1], consumer, data, recipes);
-            if (plan == null || source == null || source.skill != shown) {
+        // Each skill's plan's materials got yourself, followed all the way down; the steps in this skill
+        Map<String, long[]> totals = new java.util.LinkedHashMap<>();
+        Map<String, PlannerCalculator.Link> links = new java.util.HashMap<>();
+        for (Skill consumer : skills()) {
+            SkillPlans.Plan plan = consumer == shown ? null : calc.plan(consumer);
+            if (plan == null) {
                 continue;
             }
             CalculatorData.Calc consumerCalc = data.calc(consumer);
             List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(consumer, consumerCalc,
                 CalculatorData.bonuses(consumerCalc, calc.bonuses(consumer)), plan, Math.max(0, calc.xp(consumer)), recipes,
                 training, this::price, calc::itemPrice);
-            for (PlannerCalculator.Need need : PlannerCalculator.planMaterials(consumer, rows, recipes, owned)) {
-                if (!need.tool && need.name.equalsIgnoreCase(parts[1])) {
-                    cards.add(PlannerUi.spaced(supplyCard(consumer, need, source)));
+            Map<String, Integer> pool = new java.util.HashMap<>(calc.owned());
+            for (PlannerCalculator.Need need : PlannerCalculator.planMaterials(consumer, rows, recipes, calc.owned())) {
+                if (need.tool || !calc.gathers(consumer, need.name)
+                    || PlannerCalculator.sourceOf(need.name, consumer, data, recipes) == null) {
+                    continue;
+                }
+                for (PlannerCalculator.Link link : PlannerCalculator.chain(need.name, need.needed, consumer, data, recipes, pool,
+                    calc::gathers)) {
+                    if (link.skill != shown) {
+                        continue;
+                    }
+                    String key = link.item + "|" + consumer.name();
+                    long[] sum = totals.computeIfAbsent(key, k -> new long[2]);
+                    sum[0] += link.total;
+                    sum[1] += link.have;
+                    links.put(key, link);
                 }
             }
         }
-        if (cards.isEmpty()) {
+        if (totals.isEmpty()) {
             return;
         }
-        list.add(section("supplies", "Supplies for other plans", String.valueOf(cards.size())));
+        list.add(section("supplies", "Supplies for other plans", String.valueOf(totals.size())));
         if (calc.planFolded("supplies")) {
             return;
         }
-        for (JComponent card : cards) {
-            list.add(card);
+        for (Map.Entry<String, long[]> entry : totals.entrySet()) {
+            Skill consumer = Skill.valueOf(entry.getKey().substring(entry.getKey().indexOf('|') + 1));
+            PlannerCalculator.Link link = links.get(entry.getKey());
+            PlannerCalculator.Need need = new PlannerCalculator.Need(link.item, entry.getValue()[0],
+                (int) Math.min(Integer.MAX_VALUE, entry.getValue()[1]), false);
+            list.add(PlannerUi.spaced(supplyCard(consumer, need,
+                new PlannerCalculator.Source(link.skill, link.action, link.gathered))));
         }
     }
 
@@ -2125,12 +2158,47 @@ final class PlannerCalculatorView {
             + (shortBy > 0 ? "<br>" + (source.gathered ? "Gathering" : "Making") + " the " + String.format("%,d", shortBy)
             + " more gives " + String.format("%,d", supply.xp) + " " + source.skill.getName() + " xp"
             + (supply.seconds > 0 ? ", about " + PlannerPanel.formatDuration(supply.seconds) : "") : "")
-            + "<br><font color='#a0a0a0'>Click to go to the " + consumer.getName() + " plan</font></html>";
-        return card.interactive(() -> pick(consumer), null, tip);
+            + "<br><font color='#a0a0a0'>Click to go to the " + consumer.getName() + " plan; right-click to add it to "
+            + "your " + source.skill.getName() + " plan</font></html>";
+        // Right-click: make it a milestone of this skill's plan (its action, from your level to where its XP gets you)
+        JPopupMenu menu = new JPopupMenu();
+        if (shortBy > 0) {
+            int from = Math.max(CalculatorData.level(Math.max(0, calc.xp(source.skill)), false), source.action.level);
+            int to = Math.min(99, CalculatorData.level((int) Math.min(Experience.MAX_SKILL_XP,
+                (long) Math.max(calc.xp(source.skill), Experience.getXpForLevel(from)) + supply.xp), false));
+            if (to <= from) {
+                to = Math.min(99, from + 1);
+            }
+            int start = from;
+            int end = to;
+            menu.add(menuItem("Add to the " + source.skill.getName() + " plan (" + start + "-" + end + ")",
+                () -> addSupplyMilestone(source, start, end)));
+        }
+        menu.add(menuItem("Go to the " + consumer.getName() + " plan", () -> pick(consumer)));
+        return card.interactive(() -> pick(consumer), menu, tip);
+    }
+
+    // A supply as a milestone of its skill's plan (a new plan to its end if there isn't one): the milestones there make room
+    private void addSupplyMilestone(PlannerCalculator.Source source, int from, int to) {
+        Skill skill = source.skill;
+        SkillPlans.Plan plan = calc.plan(skill);
+        if (plan == null) {
+            plan = new SkillPlans.Plan(to);
+            plan.name = "Supplies";
+        }
+        List<CalculatorData.Bonus> on = CalculatorData.bonuses(data.calc(skill), calc.bonuses(skill));
+        TrainingData.Method method = SkillPlans.methodFor(training, skill, source.action.name, from, to);
+        PlannerCalculator.insertStep(plan, new SkillPlans.Step(source.action.name, from, to, method == null ? null : method.name,
+            CalculatorData.xpEach(source.action, on)));
+        calc.savePlan(skill, plan);
+        redraw.run();
     }
 
     // How long what's short takes to buy at the item's Grand Exchange buy limit (and what's left of it now)
     private String buyTime(PlannerCalculator.Need need) {
+        if (calc.ironman()) {
+            return "";
+        }
         Long yours = calc.yourPrice(need.name);
         String own = yours == null ? "" : "<br>Your price: " + String.format("%,d", yours) + " gp (your trades this week; GE "
             + String.format("%,d", icons.price(need.name)) + ")";
@@ -2606,6 +2674,27 @@ final class PlannerCalculatorView {
             menu.add(menuItem("Move down", () -> change(shown, p -> PlannerCalculator.swapSteps(p, index, index + 1))));
         }
         menu.add(menuItem("Delete", () -> change(shown, p -> PlannerCalculator.removeStep(p, index))));
+        // Its materials: get each yourself (gathered or made in another skill) or buy it
+        if (row != null && !s.done) {
+            boolean first = true;
+            for (PlannerCalculator.Need need : PlannerCalculator.planMaterials(shown, java.util.Collections.singletonList(s),
+                recipes, calc.owned())) {
+                PlannerCalculator.Source source = need.tool ? null : PlannerCalculator.sourceOf(need.name, shown, data, recipes);
+                if (source == null) {
+                    continue;
+                }
+                if (first) {
+                    menu.addSeparator();
+                    first = false;
+                }
+                boolean gather = calc.gathers(shown, need.name);
+                menu.add(menuItem(gather ? "Buy " + need.name + " instead"
+                    : (source.gathered ? "Gather " : "Make ") + need.name + " yourself (" + source.skill.getName() + ")", () -> {
+                        calc.setGathers(shown, need.name, !gather);
+                        redraw.run();
+                    }));
+            }
+        }
         StringBuilder tip = new StringBuilder("<html><b>").append(PlannerUi.esc(step.action)).append("</b>: level ")
             .append(step.from).append(" to ").append(step.to);
         if (s.done) {

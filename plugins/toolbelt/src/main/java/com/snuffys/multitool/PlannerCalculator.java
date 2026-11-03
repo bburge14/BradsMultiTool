@@ -27,6 +27,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -281,6 +282,15 @@ class PlannerCalculator {
 
     @Subscribe
     public void onGameTick(GameTick event) {
+        // An ironman account (any kind): its plans get everything themselves (kept, so logged out still knows)
+        if (client.getGameState() == GameState.LOGGED_IN && configManager.getRSProfileKey() != null) {
+            boolean iron = client.getVarbitValue(VarbitID.IRONMAN) != 0;
+            if (accountIron == null || accountIron != iron) {
+                accountIron = iron;
+                configManager.setRSProfileConfiguration(GROUP, "accountIronman", String.valueOf(iron));
+                view.update();
+            }
+        }
         if (!bankLoaded && configManager.getRSProfileKey() != null) {
             bankLoaded = true;
             Map<String, Integer> saved = SkillGoals.savedBank(configManager);
@@ -1351,8 +1361,29 @@ class PlannerCalculator {
         return null;
     }
 
-    // The materials you get yourself, per plan's skill ("FIREMAKING:yew logs"), kept per account
+    private volatile Boolean accountIron;
+
+    /** Whether plans are an ironman's (Plan As Ironman: from the account, or always, or never). */
+    boolean ironman() {
+        switch (config.plannerIronman()) {
+            case ALWAYS:
+                return true;
+            case NEVER:
+                return false;
+            default:
+                if (accountIron != null) {
+                    return accountIron;
+                }
+                String saved = configManager.getRSProfileKey() == null ? null
+                    : configManager.getRSProfileConfiguration(GROUP, "accountIronman");
+                return Boolean.parseBoolean(saved);
+        }
+    }
+
+    // The materials you get yourself, per plan's skill ("FIREMAKING:yew logs"), kept per account; and the ones you buy
+    // (only matters for an ironman, where getting it yourself is the default)
     private static final String GATHER_KEY = "planGather";
+    private static final String BUY_KEY = "planBuy";
 
     /** The choices as saved: "SKILL:material" each. */
     List<String> gatherChoices() {
@@ -1366,22 +1397,126 @@ class PlannerCalculator {
         return out;
     }
 
-    /** Whether a plan in {@code skill} gets this material itself (else it's bought). */
+    private List<String> choices(String key) {
+        String saved = canPlan() ? configManager.getRSProfileConfiguration(GROUP, key) : null;
+        List<String> out = new ArrayList<>();
+        for (String part : saved == null ? new String[0] : saved.split(",")) {
+            if (part.contains(":")) {
+                out.add(part);
+            }
+        }
+        return out;
+    }
+
+    /** Whether a plan in {@code skill} gets this material itself (else it's bought): chosen, or an ironman's default. */
     boolean gathers(Skill skill, String material) {
-        return gatherChoices().contains(skill.name() + ":" + material.toLowerCase(Locale.ROOT));
+        String entry = skill.name() + ":" + material.toLowerCase(Locale.ROOT);
+        return choices(GATHER_KEY).contains(entry) || (ironman() && !choices(BUY_KEY).contains(entry));
     }
 
     void setGathers(Skill skill, String material, boolean gather) {
         if (!canPlan()) {
             return;
         }
-        List<String> all = gatherChoices();
         String entry = skill.name() + ":" + material.toLowerCase(Locale.ROOT);
-        all.remove(entry);
-        if (gather) {
-            all.add(entry);
+        List<String> gathered = choices(GATHER_KEY);
+        List<String> bought = choices(BUY_KEY);
+        gathered.remove(entry);
+        bought.remove(entry);
+        (gather ? gathered : bought).add(entry);
+        configManager.setRSProfileConfiguration(GROUP, GATHER_KEY, String.join(",", gathered));
+        configManager.setRSProfileConfiguration(GROUP, BUY_KEY, String.join(",", bought));
+    }
+
+    /** What the choices are now, for redrawing when one changes. */
+    String gatherState() {
+        return ironman() + "|" + choices(GATHER_KEY) + "|" + choices(BUY_KEY);
+    }
+
+    /** One step of getting a material yourself: in this skill, this many of the item (its action that many times). */
+    static final class Link {
+        /** The skill, or null: nothing gathers or makes it (a drop, a shop: get it yourself). */
+        final Skill skill;
+        final CalculatorData.Action action;
+        final String item;
+        /** How many it takes in all, how many you have toward it, and how many times the action. */
+        final long total;
+        final long have;
+        final long actions;
+        final boolean gathered;
+        /** 0 for the plan's own material, 1 for what that's made from, and on. */
+        final int depth;
+
+        Link(Skill skill, CalculatorData.Action action, String item, long total, long have, long actions, boolean gathered,
+             int depth) {
+            this.skill = skill;
+            this.action = action;
+            this.item = item;
+            this.total = total;
+            this.have = have;
+            this.actions = actions;
+            this.gathered = gathered;
+            this.depth = depth;
         }
-        configManager.setRSProfileConfiguration(GROUP, GATHER_KEY, String.join(",", all));
+
+        long toGet() {
+            return Math.max(0, total - have);
+        }
+    }
+
+    /**
+     * Everything getting {@code quantity} of a material yourself takes, all the way down: where it comes from (gathered,
+     * or made, and then what that's made from, where {@code gathers} says that's got yourself too: an ironman's whole
+     * chain, bars from Smithing and their ore from Mining). What you own counts first ({@code pool} is used up as it
+     * goes). Four steps deep at most; a material nothing makes is a link with no skill.
+     */
+    static List<Link> chain(String material, long quantity, Skill consumer, CalculatorData data, RecipeData recipes,
+                            Map<String, Integer> pool, java.util.function.BiPredicate<Skill, String> gathers) {
+        List<Link> out = new ArrayList<>();
+        chain(material, quantity, consumer, data, recipes, pool, gathers, 0, out);
+        return out;
+    }
+
+    private static void chain(String material, long quantity, Skill consumer, CalculatorData data, RecipeData recipes,
+                              Map<String, Integer> pool, java.util.function.BiPredicate<Skill, String> gathers, int depth,
+                              List<Link> out) {
+        String key = material.toLowerCase(Locale.ROOT);
+        long have = Math.min(quantity, pool.getOrDefault(key, 0));
+        pool.put(key, (int) Math.max(0, pool.getOrDefault(key, 0) - have));
+        long need = quantity - have;
+        // (the plan's own skill isn't a source for its own materials; further down the same skill can be: dart tips and
+        // the bars they're made from are both Smithing)
+        Source source = sourceOf(material, depth == 0 ? consumer : null, data, recipes);
+        if (source == null) {
+            out.add(new Link(null, null, material, quantity, have, 0, false, depth));
+            return;
+        }
+        if (source.gathered) {
+            out.add(new Link(source.skill, source.action, material, quantity, have, need, true, depth));
+            return;
+        }
+        RecipeData.Recipe recipe = null;
+        for (RecipeData.Recipe r : recipesFor(source.skill, source.action, recipes)) {
+            if (!consumed(r)) {
+                recipe = r;
+                break;
+            }
+        }
+        if (recipe == null) {
+            out.add(new Link(null, null, material, quantity, have, 0, false, depth));
+            return;
+        }
+        int per = perMake(recipe, source.action);
+        long goes = (need + per - 1) / per;
+        out.add(new Link(source.skill, source.action, material, quantity, have, goes, false, depth));
+        if (depth >= 3 || goes <= 0) {
+            return;
+        }
+        for (Map.Entry<String, Integer> sub : recipe.materials.entrySet()) {
+            if (gathers.test(source.skill, sub.getKey()) && sourceOf(sub.getKey(), null, data, recipes) != null) {
+                chain(sub.getKey(), goes * sub.getValue(), source.skill, data, recipes, pool, gathers, depth + 1, out);
+            }
+        }
     }
 
     // ---- The money plan: buying, making and selling within a budget ----

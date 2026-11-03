@@ -440,4 +440,28 @@ public class SkillPlanTest {
         // ...so selling them is all gain
         assertTrue(money.end() > 1_000_000);
     }
+
+    @Test
+    public void ironmanChainsGoAllTheWayDown() {
+        // 1,000 adamant dart tips for Fletching: made in Smithing from adamantite bars, made there from ore and coal mined
+        List<PlannerCalculator.Link> links = PlannerCalculator.chain("Adamant dart tip", 1000, Skill.FLETCHING, DATA, RECIPES,
+            new HashMap<>(), (skill, item) -> true);
+        assertEquals(Skill.SMITHING, links.get(0).skill);
+        assertEquals("Adamant dart tip", links.get(0).item);
+        PlannerCalculator.Link bars = links.stream().filter(l -> l.item.equalsIgnoreCase("Adamantite bar")).findFirst().orElse(null);
+        assertNotNull(bars);
+        assertEquals(Skill.SMITHING, bars.skill);
+        assertEquals(1, bars.depth);
+        PlannerCalculator.Link ore = links.stream().filter(l -> l.item.equalsIgnoreCase("Adamantite ore")).findFirst().orElse(null);
+        assertNotNull(ore);
+        assertEquals(Skill.MINING, ore.skill);
+        assertTrue(ore.gathered);
+        assertTrue(links.stream().anyMatch(l -> l.item.equalsIgnoreCase("Coal") && l.skill == Skill.MINING));
+        // What you own counts first
+        Map<String, Integer> pool = new HashMap<>();
+        pool.put("adamantite bar", 1_000_000);
+        List<PlannerCalculator.Link> owned = PlannerCalculator.chain("Adamant dart tip", 1000, Skill.FLETCHING, DATA, RECIPES,
+            pool, (skill, item) -> true);
+        assertTrue(owned.stream().noneMatch(l -> l.item.equalsIgnoreCase("Adamantite ore")));
+    }
 }
