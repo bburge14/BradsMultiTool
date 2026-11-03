@@ -582,6 +582,11 @@ namespace Snuffys
         public Link PrLink;
         public RoundButton DevStatusButton;
         public Label DevStatus;
+        public SegmentButton DevMainNav;
+        public SegmentButton DevHubNav;
+        public Card HubSummary;
+        public FlowLayoutPanel HubChips;
+        public Label HubSummaryLine;
         public Label HubStatus;
         public FlowLayoutPanel PrList;
         public Link ShowOutput;
@@ -893,13 +898,47 @@ namespace Snuffys
             Dev.Dock = DockStyle.Fill;
             Dev.BackColor = Theme.Window;
             Dev.Visible = false;
-            FlowLayoutPanel flow = new FlowLayoutPanel();
-            flow.Dock = DockStyle.Fill;
-            flow.FlowDirection = FlowDirection.TopDown;
-            flow.WrapContents = false;
-            UpDownOnly(flow);
-            flow.Padding = new Padding(16, 6, 0, 10);
-            flow.BackColor = Theme.Window;
+            // Two sub-tabs: Publish (the steps, with the Plugin Hub's summary on top) and Plugin Hub (every card)
+            FlowLayoutPanel flow = DevFlow();
+            FlowLayoutPanel board = DevFlow();
+            board.Visible = false;
+            Panel top = new Panel();
+            top.Dock = DockStyle.Top;
+            top.Height = 40;
+            top.BackColor = Theme.Window;
+            SegmentTrack sub = new SegmentTrack();
+            sub.Location = new Point(16, 4);
+            sub.Size = new Size(448, 30);
+            SegmentButton[] subs = sub.Segments("Publish", "Plugin Hub");
+            DevMainNav = subs[0];
+            DevHubNav = subs[1];
+            DevMainNav.Checked = true;
+            DevMainNav.CheckedChanged += delegate { flow.Visible = DevMainNav.Checked; board.Visible = !DevMainNav.Checked; };
+            top.Controls.Add(sub);
+
+            // The Plugin Hub at a glance: how many in each state, how many new; click for the board
+            HubSummary = new Card();
+            HubSummary.Title = "Plugin Hub";
+            HubSummary.Size = new Size(448, 104);
+            HubSummary.Margin = new Padding(0, 0, 0, 12);
+            HubSummary.Cursor = Cursors.Hand;
+            Link openBoard = new Link("Open the board");
+            openBoard.Location = new Point(346, 12);
+            openBoard.LinkClicked += delegate { ShowHub(); };
+            HubSummary.Controls.Add(openBoard);
+            HubChips = new FlowLayoutPanel();
+            HubChips.Location = new Point(12, 38);
+            HubChips.Size = new Size(424, 28);
+            HubChips.BackColor = Theme.Surface;
+            HubChips.WrapContents = true;
+            HubSummary.Controls.Add(HubChips);
+            HubSummaryLine = Text("Not checked yet: it checks on its own while the launcher is open.", 14, 74, 420, 20, Theme.Muted,
+                Theme.Body(8.5f));
+            HubSummary.Controls.Add(HubSummaryLine);
+            HubSummary.Click += delegate { ShowHub(); };
+            HubSummaryLine.Click += delegate { ShowHub(); };
+            HubChips.Click += delegate { ShowHub(); };
+            flow.Controls.Add(HubSummary);
 
             // 1. Push
             PushCard = new Card();
@@ -947,7 +986,7 @@ namespace Snuffys
             HubStatus = Text("Checks on its own while the launcher is open.", 144, 40, 290, 34, Theme.Muted, Theme.Body(8.5f));
             HubStatus.TextAlign = ContentAlignment.MiddleLeft;
             status.Controls.Add(HubStatus);
-            flow.Controls.Add(status);
+            board.Controls.Add(status);
 
             PrList = new FlowLayoutPanel();
             PrList.FlowDirection = FlowDirection.TopDown;
@@ -956,9 +995,10 @@ namespace Snuffys
             PrList.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             PrList.BackColor = Theme.Window;
             PrList.Margin = new Padding(0);
-            flow.Controls.Add(PrList);
-            // Then the steps: push, publish
-            PushCard.Margin = new Padding(0, 4, 0, 12);
+            board.Controls.Add(PrList);
+            // HubStatus says it on the summary card too
+            HubStatus.TextChanged += delegate { HubSummaryLine.Text = HubStatus.Text; };
+            HubStatus.ForeColorChanged += delegate { HubSummaryLine.ForeColor = HubStatus.ForeColor == Theme.Text ? Theme.Muted : HubStatus.ForeColor; };
             flow.Controls.Add(PushCard);
             flow.Controls.Add(publish);
             // What the last push or publish did
@@ -991,7 +1031,86 @@ namespace Snuffys
             flow.Controls.Add(DevOut);
 
             Dev.Controls.Add(flow);
+            Dev.Controls.Add(board);
+            Dev.Controls.Add(top);
             Form.Controls.Add(Dev);
+        }
+
+        private static FlowLayoutPanel DevFlow()
+        {
+            FlowLayoutPanel flow = new FlowLayoutPanel();
+            flow.Dock = DockStyle.Fill;
+            flow.FlowDirection = FlowDirection.TopDown;
+            flow.WrapContents = false;
+            UpDownOnly(flow);
+            flow.Padding = new Padding(16, 4, 0, 10);
+            flow.BackColor = Theme.Window;
+            return flow;
+        }
+
+        /** The Dev tab's Plugin Hub board (from a notification, or the summary card). */
+        public void ShowHub()
+        {
+            DevNav.Checked = true;
+            DevHubNav.Checked = true;
+        }
+
+        // The summary card's chips: how many pull requests in each state, and how many new comments
+        private void DrawSummary()
+        {
+            HubChips.SuspendLayout();
+            HubChips.Controls.Clear();
+            Dictionary<string, int> counts = new Dictionary<string, int>();
+            List<string> order = new List<string>();
+            foreach (Pull pull in pulls)
+            {
+                string label = StateOf(pull);
+                if (!counts.ContainsKey(label))
+                {
+                    counts[label] = 0;
+                    order.Add(label);
+                }
+                counts[label]++;
+            }
+            int unread = Unread();
+            if (unread > 0)
+            {
+                HubChips.Controls.Add(SummaryChip(unread + " new", Theme.Accent));
+            }
+            foreach (string label in order)
+            {
+                HubChips.Controls.Add(SummaryChip(counts[label] + " " + label.Replace(" \u00b7 build OK", ""), Tone(label)));
+            }
+            if (pulls.Count == 0)
+            {
+                HubChips.Controls.Add(SummaryChip("No pull requests yet", Theme.Muted));
+            }
+            // One row of chips, or two when they don't fit
+            int width = 0;
+            foreach (Control chip in HubChips.Controls)
+            {
+                width += chip.Width + 6;
+            }
+            int rows = width > HubChips.Width ? 2 : 1;
+            HubChips.Height = rows * 28;
+            HubSummaryLine.Top = 46 + rows * 28;
+            HubSummary.Height = 76 + rows * 28;
+            HubChips.ResumeLayout();
+            HubSummary.Accent = unread > 0;
+            HubSummary.Invalidate();
+            DevHubNav.Text = unread > 0 ? "Plugin Hub  (" + unread + " new)" : "Plugin Hub";
+        }
+
+        private Chip SummaryChip(string text, Color tone)
+        {
+            Chip chip = new Chip();
+            chip.Text = text;
+            chip.ForeColor = tone;
+            chip.Size = new Size(TextRenderer.MeasureText(text, chip.Font).Width + 30, 22);
+            chip.Margin = new Padding(0, 0, 6, 6);
+            chip.Cursor = Cursors.Hand;
+            chip.Click += delegate { ShowHub(); };
+            return chip;
         }
 
         public void ShowDevOutput(bool show)
@@ -1226,6 +1345,7 @@ namespace Snuffys
             PrList.ResumeLayout();
             int unread = Unread();
             DevNav.Text = unread > 0 ? "Dev  (" + unread + " new)" : "Dev";
+            DrawSummary();
         }
 
         private Card PullCard(Pull pull)
@@ -1787,7 +1907,7 @@ $tray.Icon = if ($form.Icon) { $form.Icon } else { [System.Drawing.SystemIcons]:
 $tray.Text = "Snuffy's Launcher"
 $script:balloonFor = $null
 $tray.Add_BalloonTipClicked({
-    if ($script:balloonFor -eq 'hub') { $ui.DevNav.Checked = $true }
+    if ($script:balloonFor -eq 'hub') { $ui.ShowHub() }
     $form.Activate()
 })
 $form.Add_FormClosed({ $tray.Visible = $false; $tray.Dispose() })

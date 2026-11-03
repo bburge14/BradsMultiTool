@@ -357,8 +357,8 @@ $s.Save()
   plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time. Each one shows its version (the last one pushed to its repository; "v1.0.2+" when the code you're running has changed since);
 - a **Dev** tab (for the plugins' owner): **Push to repos** copies the plugins to their own GitHub repositories with
   new versions for the ones that changed (**Check (dry run)** first shows what would change), and **Publish to
-  RuneLite** gets the Plugin Hub pull requests ready. At the top, **Plugin Hub** keeps a card for each plugin's pull
-  request, checked in the background while the launcher is open (every 10 minutes when git is signed in to GitHub,
+  RuneLite** gets the Plugin Hub pull requests ready. Its **Plugin Hub** sub-tab keeps a card for each plugin's pull
+  request (the Publish sub-tab has a summary card: how many in each state, how many new), checked in the background while the launcher is open (every 10 minutes when git is signed in to GitHub,
   else hourly; **Check now** any time): in review, building, build failed, changes asked, approved or published,
   the earlier ones it replaced, and the latest comment. A comment you haven't opened marks the card "1 new" (and the
   Dev tab), with a Windows notification; clicking the card opens it and clears it. See docs/ROLLOUT.md;
