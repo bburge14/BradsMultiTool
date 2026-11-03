@@ -299,6 +299,7 @@ final class PlannerCalculatorView {
         Set<String> on = calc.bonuses(shown);
         StringBuilder bonusKey = new StringBuilder(shown.name()).append('|');
         on.forEach(id -> bonusKey.append(id).append(','));
+        bonusKey.append(calc.planFolded("bonuses"));
         if (bonusSlot.changed(bonusKey.toString()) && !skillCalc.bonuses.isEmpty()) {
             bonusSlot.add(bonuses(shown, skillCalc, on), BorderLayout.CENTER);
         }
@@ -677,7 +678,12 @@ final class PlannerCalculatorView {
         for (CalculatorData.Bonus bonus : CalculatorData.bonuses(skillCalc, on)) {
             total *= bonus.value;
         }
-        box.add(PlannerUi.group("XP bonuses", on.isEmpty() ? "" : "x" + trim(Math.round(total * 1000) / 1000.0)));
+        // Folds away like the plan's sections (the total stays on the header)
+        box.add(section("bonuses", "XP bonuses", on.isEmpty() ? (calc.planFolded("bonuses") ? "none on" : "")
+            : "x" + trim(Math.round(total * 1000) / 1000.0)));
+        if (calc.planFolded("bonuses")) {
+            return box;
+        }
         JPanel rows = new JPanel(new GridLayout(0, 1));
         rows.setBackground(PlannerUi.CARD);
         rows.setBorder(new EmptyBorder(2, 0, 2, 0));
