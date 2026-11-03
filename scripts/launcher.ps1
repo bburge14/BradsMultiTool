@@ -11,11 +11,23 @@ Add-Type -AssemblyName System.Drawing
 # Anything that stops the launcher says what in a message (and in %TEMP%\snuffys-launcher-error.log), instead of the
 # window just not opening (its console is hidden)
 $startupLog = Join-Path $env:TEMP 'snuffys-launcher-error.log'
-trap {
-    $problem = "$($_.Exception.Message)`r`n`r`n$($_.InvocationInfo.PositionMessage)"
+# Everything the launcher says (its steps, any error) goes to %TEMP%\snuffys-launcher.log too: its console is hidden
+try { Start-Transcript -Path (Join-Path $env:TEMP 'snuffys-launcher.log') -Force | Out-Null } catch { }
+function Show-Problem($problem) {
     try { Set-Content -Path $startupLog -Value $problem } catch { }
-    [void][System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher couldn't start:`r`n`r`n$problem`r`n`r`n(Saved in $startupLog)",
+    Write-Host "PROBLEM: $problem"
+    [void][System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher hit a problem:`r`n`r`n$problem`r`n`r`n(Saved in $startupLog: send it to Claude.)",
         "Snuffy's Launcher")
+}
+# An error inside the window (drawing it, a click) says what instead of closing it
+try { [System.Windows.Forms.Application]::SetUnhandledExceptionMode([System.Windows.Forms.UnhandledExceptionMode]::CatchException) } catch { }
+[System.Windows.Forms.Application]::add_ThreadException({
+    param($source, $info)
+    Show-Problem ($info.Exception.ToString())
+})
+Write-Host "Starting $(Get-Date)"
+trap {
+    Show-Problem "$($_.Exception.Message)`r`n`r`n$($_.InvocationInfo.PositionMessage)"
     exit 1
 }
 # Finding RuneLite's "Are you sure you want to exit?" box, for Relaunch to answer it
@@ -1913,11 +1925,23 @@ if (-not (Test-Path $publishConfig)) {
 
 
 $form.Add_Shown({
-    Set-ShortcutIcons
-    Check-Setup
-    Update-Plugins
-    Check-RunningVersion
-    Update-Versions
+    Write-Host 'Window shown'
+    try {
+        Set-ShortcutIcons
+        Check-Setup
+        Update-Plugins
+        Check-RunningVersion
+        Update-Versions
+    } catch {
+        Show-Problem "$($_.Exception.Message)`r`n`r`n$($_.InvocationInfo.PositionMessage)"
+    }
     $script:lastFetch = Get-Date
+    Write-Host 'Checks done'
 })
-[void]$form.ShowDialog()
+Write-Host 'Window built, opening it'
+try {
+    [void]$form.ShowDialog()
+} catch {
+    Show-Problem ($_.Exception.ToString())
+}
+Write-Host "Window closed $(Get-Date)"
