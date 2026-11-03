@@ -584,6 +584,8 @@ namespace Snuffys
         public Label DevStatus;
         public SegmentButton DevMainNav;
         public SegmentButton DevHubNav;
+        public SegmentButton DevOutNav;
+        private Label outputStatus;
         public Card HubSummary;
         public FlowLayoutPanel HubChips;
         public Label HubSummaryLine;
@@ -902,6 +904,12 @@ namespace Snuffys
             FlowLayoutPanel flow = DevFlow();
             FlowLayoutPanel board = DevFlow();
             board.Visible = false;
+            // Output: what Push and Publish print, filling the tab (it switches here while they run)
+            Panel output = new Panel();
+            output.Dock = DockStyle.Fill;
+            output.Padding = new Padding(16, 4, 16, 12);
+            output.BackColor = Theme.Window;
+            output.Visible = false;
             Panel top = new Panel();
             top.Dock = DockStyle.Top;
             top.Height = 40;
@@ -909,11 +917,20 @@ namespace Snuffys
             SegmentTrack sub = new SegmentTrack();
             sub.Location = new Point(16, 4);
             sub.Size = new Size(448, 30);
-            SegmentButton[] subs = sub.Segments("Publish", "Plugin Hub");
+            SegmentButton[] subs = sub.Segments("Publish", "Plugin Hub", "Output");
             DevMainNav = subs[0];
             DevHubNav = subs[1];
+            DevOutNav = subs[2];
             DevMainNav.Checked = true;
-            DevMainNav.CheckedChanged += delegate { flow.Visible = DevMainNav.Checked; board.Visible = !DevMainNav.Checked; };
+            EventHandler pick = delegate
+            {
+                flow.Visible = DevMainNav.Checked;
+                board.Visible = DevHubNav.Checked;
+                output.Visible = DevOutNav.Checked;
+            };
+            DevMainNav.CheckedChanged += pick;
+            DevHubNav.CheckedChanged += pick;
+            DevOutNav.CheckedChanged += pick;
             top.Controls.Add(sub);
 
             // The Plugin Hub at a glance: how many in each state, how many new; click for the board
@@ -979,11 +996,11 @@ namespace Snuffys
             // 3. Status
             Card status = new Card();
             status.Title = "Plugin Hub";
-            status.Size = new Size(448, 86);
+            status.Size = new Size(430, 86);
             status.Margin = new Padding(0, 0, 0, 8);
             DevStatusButton = Button("Check now", 14, 40, 120, 32, false);
             status.Controls.Add(DevStatusButton);
-            HubStatus = Text("Checks on its own while the launcher is open.", 144, 40, 290, 34, Theme.Muted, Theme.Body(8.5f));
+            HubStatus = Text("Checks on its own while the launcher is open.", 144, 40, 274, 34, Theme.Muted, Theme.Body(8.5f));
             HubStatus.TextAlign = ContentAlignment.MiddleLeft;
             status.Controls.Add(HubStatus);
             board.Controls.Add(status);
@@ -1011,7 +1028,7 @@ namespace Snuffys
             links.BackColor = Theme.Window;
             ShowOutput = new Link("Show output");
             ShowOutput.Location = new Point(0, 2);
-            ShowOutput.LinkClicked += delegate { ShowDevOutput(!DevOut.Visible); };
+            ShowOutput.LinkClicked += delegate { ShowDevOutput(true); };
             links.Controls.Add(ShowOutput);
             DevGuide = new Link("How it works (ROLLOUT.md)");
             DevGuide.Location = new Point(290, 2);
@@ -1026,12 +1043,18 @@ namespace Snuffys
             DevOut.BackColor = Theme.Surface;
             DevOut.ForeColor = Theme.Text;
             DevOut.BorderStyle = BorderStyle.FixedSingle;
-            DevOut.Size = new Size(448, 220);
-            DevOut.Visible = false;
-            flow.Controls.Add(DevOut);
+            DevOut.Dock = DockStyle.Fill;
+            output.Controls.Add(DevOut);
+            outputStatus = Text("Nothing run yet: Check, Push to repos and Publish show what they do here.", 0, 0, 448, 24,
+                Theme.Muted, Theme.Body(9));
+            outputStatus.Dock = DockStyle.Top;
+            output.Controls.Add(outputStatus);
+            DevStatus.TextChanged += delegate { if (DevStatus.Text.Length > 0) outputStatus.Text = DevStatus.Text; };
+            DevStatus.ForeColorChanged += delegate { outputStatus.ForeColor = DevStatus.ForeColor; };
 
             Dev.Controls.Add(flow);
             Dev.Controls.Add(board);
+            Dev.Controls.Add(output);
             Dev.Controls.Add(top);
             Form.Controls.Add(Dev);
         }
@@ -1113,10 +1136,11 @@ namespace Snuffys
             return chip;
         }
 
+        // The Output sub-tab (show), or back to Publish
         public void ShowDevOutput(bool show)
         {
-            DevOut.Visible = show;
-            ShowOutput.Text = show ? "Hide output" : "Show output";
+            if (show) DevOutNav.Checked = true;
+            else DevMainNav.Checked = true;
         }
 
         // A plugin to push: a switch in the Push card (two to a row, room for its version)
@@ -1358,15 +1382,15 @@ namespace Snuffys
             string[] latest = pull.Comments.Count > 0 ? pull.Comments[pull.Comments.Count - 1] : null;
             string label = StateOf(pull);
             Card card = new Card();
-            card.Size = new Size(448, latest != null ? 76 : 56);
+            card.Size = new Size(430, latest != null ? 76 : 56);
             card.Margin = new Padding(0, 0, 0, 8);
             card.Cursor = Cursors.Hand;
             card.Accent = unread.Count > 0;
-            card.Controls.Add(Text("#" + pull.Number + "  " + Friendly(pull.Plugin), 14, 9, 210, 20, Theme.Text, Theme.Bold(9)));
+            card.Controls.Add(Text("#" + pull.Number + "  " + Friendly(pull.Plugin), 14, 9, 196, 20, Theme.Text, Theme.Bold(9)));
             Chip chip = new Chip();
             chip.Text = label;
             chip.ForeColor = Tone(label);
-            chip.Location = new Point(296, 8);
+            chip.Location = new Point(278, 8);
             chip.Size = new Size(140, 22);
             card.Controls.Add(chip);
             if (unread.Count > 0)
@@ -1374,17 +1398,17 @@ namespace Snuffys
                 Chip fresh = new Chip();
                 fresh.Text = unread.Count + " new";
                 fresh.ForeColor = Theme.Accent;
-                fresh.Location = new Point(226, 8);
+                fresh.Location = new Point(208, 8);
                 fresh.Size = new Size(66, 22);
                 card.Controls.Add(fresh);
             }
             string second = pull.State == "open" ? (pull.Check == "failed" ? "Build failed: click to see why" : "Waiting for RuneLite's review")
                 : (pull.State == "merged" ? "Merged " : "Closed ") + pull.Date;
             if (!string.IsNullOrEmpty(pull.Earlier)) second += "  \u00b7  " + pull.Earlier;
-            card.Controls.Add(Text(second, 14, 31, 420, 18, Theme.Muted, Theme.Body(8.5f)));
+            card.Controls.Add(Text(second, 14, 31, 404, 18, Theme.Muted, Theme.Body(8.5f)));
             if (latest != null)
             {
-                card.Controls.Add(Text(latest[1] + ": " + latest[3], 14, 51, 420, 18,
+                card.Controls.Add(Text(latest[1] + ": " + latest[3], 14, 51, 404, 18,
                     unread.Count > 0 ? Theme.Text : Theme.Muted, Theme.Body(8.5f)));
             }
             // Opens the first comment you haven't seen (and marks them all seen), a failed build's log, or the page
