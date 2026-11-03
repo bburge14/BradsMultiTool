@@ -84,6 +84,9 @@ public class PlannerPreview {
                     // The Cooking plan with its Shark milestone opened to its breakdown
                     panel.showCalculatorBreakdown(Skill.COOKING, 1);
                     write(render(panel, 0), out + "-plan-cooking.png");
+                    // Fishing's Plan view: the raw sharks the Cooking plan gets from it
+                    panel.showCalculator(Skill.FISHING, PlannerCalculator.Mode.PLAN, "");
+                    write(render(panel, 0), out + "-supplies.png");
                     // Fishing's prices (what the catch is worth) at the sidebar's height
                     panel.showCalculator(Skill.FISHING, PlannerCalculator.Mode.ACTIONS, "");
                     write(render(panel, 760), out + "-fishing.png");
@@ -395,6 +398,8 @@ public class PlannerPreview {
             bank.put("coins", 18_500_000);
             // The Cooking plan's budget, and trades since: raw sharks bought, cooked ones sold
             calculator.setPlanBudget(Skill.COOKING, 20_000_000);
+            // The Cooking plan's raw sharks caught yourself (a supply in the Fishing plan view)
+            calculator.setGathers(Skill.COOKING, "Raw shark", true);
             long soon = System.currentTimeMillis() + 1000;
             geLimits.addSampleTrade(net.runelite.api.gameval.ItemID.RAW_SHARK, "Raw shark", 2000, 1_480_000, soon, false);
             geLimits.addSampleTrade(net.runelite.api.gameval.ItemID.SHARK, "Shark", 1500, 1_170_000, soon, true);

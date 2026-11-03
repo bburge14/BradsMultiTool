@@ -408,4 +408,36 @@ public class SkillPlanTest {
         assertEquals(0, PlannerCalculatorView.parseGp(" "));
         assertEquals(-1, PlannerCalculatorView.parseGp("lots"));
     }
+
+    @Test
+    public void materialsKnowWhereToGetThemYourself() {
+        // Logs from Woodcutting (not Firemaking, which burns them), fish from Fishing, bars made in Smithing
+        PlannerCalculator.Source logs = PlannerCalculator.sourceOf("Yew logs", Skill.FIREMAKING, DATA, RECIPES);
+        assertNotNull(logs);
+        assertEquals(Skill.WOODCUTTING, logs.skill);
+        assertTrue(logs.gathered);
+        assertEquals(Skill.FISHING, PlannerCalculator.sourceOf("Raw shark", Skill.COOKING, DATA, RECIPES).skill);
+        PlannerCalculator.Source bars = PlannerCalculator.sourceOf("Adamantite bar", Skill.CRAFTING, DATA, RECIPES);
+        assertNotNull(bars);
+        assertEquals(Skill.SMITHING, bars.skill);
+        assertFalse(bars.gathered);
+    }
+
+    @Test
+    public void gatheredMaterialsAreNotBought() {
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        SkillPlans.Plan plan = new SkillPlans.Plan(50);
+        plan.steps.add(new SkillPlans.Step("Lobster", 40, 50, null, 120));
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("raw lobster", 200);
+        prices.put("lobster", 250);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.COOKING, cooking, Collections.emptyList(), plan,
+            Experience.getXpForLevel(40), RECIPES, TRAINING, name -> prices.getOrDefault(name.toLowerCase(), 0), id -> 0);
+        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, new HashMap<>(), 1_000_000,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0, Collections.singleton("raw lobster"));
+        assertTrue(money.steps.get(0).buys.isEmpty());
+        assertEquals(0, money.steps.get(0).cost);
+        // ...so selling them is all gain
+        assertTrue(money.end() > 1_000_000);
+    }
 }

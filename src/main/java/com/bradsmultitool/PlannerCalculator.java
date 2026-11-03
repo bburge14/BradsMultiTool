@@ -1302,6 +1302,88 @@ class PlannerCalculator {
         return new ArrayList<>(out.values());
     }
 
+    // ---- Getting materials yourself: gather or make one in another skill instead of buying it ----
+
+    /** Where a material can come from: a skill and its action, gathered there (logs, ore, fish) or made by its recipe. */
+    static final class Source {
+        final Skill skill;
+        final CalculatorData.Action action;
+        final boolean gathered;
+
+        Source(Skill skill, CalculatorData.Action action, boolean gathered) {
+            this.skill = skill;
+            this.action = action;
+            this.gathered = gathered;
+        }
+    }
+
+    /**
+     * Where to get a material yourself instead of buying it, for a plan in {@code consumer}: a gathering skill with an
+     * action of its name first (Woodcutting for logs), else a skill whose recipe makes it (Smithing for bars), not
+     * one that uses it up (Firemaking's "Yew logs" burns them) or the plan's own skill. Null when there's none.
+     */
+    static Source sourceOf(String material, Skill consumer, CalculatorData data, RecipeData recipes) {
+        for (Skill skill : GATHERING) {
+            if (skill == consumer) {
+                continue;
+            }
+            CalculatorData.Calc calc = data.calc(skill);
+            CalculatorData.Action action = calc == null ? null : CalculatorData.named(calc, material);
+            if (action != null) {
+                return new Source(skill, action, true);
+            }
+        }
+        for (Skill skill : data.skills()) {
+            if (skill == consumer || GATHERING.contains(skill)) {
+                continue;
+            }
+            CalculatorData.Action action = CalculatorData.named(data.calc(skill), material);
+            if (action == null) {
+                continue;
+            }
+            for (RecipeData.Recipe recipe : recipesFor(skill, action, recipes)) {
+                boolean fromItself = recipe.materials.keySet().stream().anyMatch(m -> m.equalsIgnoreCase(material));
+                if (!consumed(recipe) && !fromItself) {
+                    return new Source(skill, action, false);
+                }
+            }
+        }
+        return null;
+    }
+
+    // The materials you get yourself, per plan's skill ("FIREMAKING:yew logs"), kept per account
+    private static final String GATHER_KEY = "planGather";
+
+    /** The choices as saved: "SKILL:material" each. */
+    List<String> gatherChoices() {
+        String saved = canPlan() ? configManager.getRSProfileConfiguration(GROUP, GATHER_KEY) : null;
+        List<String> out = new ArrayList<>();
+        for (String part : saved == null ? new String[0] : saved.split(",")) {
+            if (part.contains(":")) {
+                out.add(part);
+            }
+        }
+        return out;
+    }
+
+    /** Whether a plan in {@code skill} gets this material itself (else it's bought). */
+    boolean gathers(Skill skill, String material) {
+        return gatherChoices().contains(skill.name() + ":" + material.toLowerCase(Locale.ROOT));
+    }
+
+    void setGathers(Skill skill, String material, boolean gather) {
+        if (!canPlan()) {
+            return;
+        }
+        List<String> all = gatherChoices();
+        String entry = skill.name() + ":" + material.toLowerCase(Locale.ROOT);
+        all.remove(entry);
+        if (gather) {
+            all.add(entry);
+        }
+        configManager.setRSProfileConfiguration(GROUP, GATHER_KEY, String.join(",", all));
+    }
+
     // ---- The money plan: buying, making and selling within a budget ----
 
     /** One thing to buy for a milestone. */
@@ -1370,6 +1452,12 @@ class PlannerCalculator {
      */
     static MoneyPlan moneyPlan(Skill skill, List<StepRow> steps, RecipeData recipes, Map<String, Integer> owned, long budget,
                                ToIntFunction<String> price, ToIntFunction<String> limit) {
+        return moneyPlan(skill, steps, recipes, owned, budget, price, limit, java.util.Collections.emptySet());
+    }
+
+    /** As above; the materials in {@code gathered} (lower case) you get yourself, so they're never bought. */
+    static MoneyPlan moneyPlan(Skill skill, List<StepRow> steps, RecipeData recipes, Map<String, Integer> owned, long budget,
+                               ToIntFunction<String> price, ToIntFunction<String> limit, Set<String> gathered) {
         MoneyPlan plan = new MoneyPlan();
         plan.budget = budget;
         Map<String, Integer> pool = new HashMap<>(owned);
@@ -1387,7 +1475,7 @@ class PlannerCalculator {
                 if (!need.tool) {
                     pool.put(key, (int) Math.max(0, have - need.needed));
                 }
-                if (toBuy > 0) {
+                if (toBuy > 0 && !gathered.contains(key)) {
                     long each = Math.max(0, price.applyAsInt(need.name));
                     m.buys.add(new Buy(need.name, toBuy, toBuy * each, need.tool ? 0 : Math.max(0, limit.applyAsInt(need.name))));
                     m.cost += toBuy * each;
@@ -1443,8 +1531,13 @@ class PlannerCalculator {
      */
     static long budgetNeeded(Skill skill, List<StepRow> steps, RecipeData recipes, Map<String, Integer> owned,
                              ToIntFunction<String> price, ToIntFunction<String> limit) {
+        return budgetNeeded(skill, steps, recipes, owned, price, limit, java.util.Collections.emptySet());
+    }
+
+    static long budgetNeeded(Skill skill, List<StepRow> steps, RecipeData recipes, Map<String, Integer> owned,
+                             ToIntFunction<String> price, ToIntFunction<String> limit, Set<String> gathered) {
         long high = 0;
-        for (MoneyStep m : moneyPlan(skill, steps, recipes, owned, Long.MAX_VALUE / 4, price, limit).steps) {
+        for (MoneyStep m : moneyPlan(skill, steps, recipes, owned, Long.MAX_VALUE / 4, price, limit, gathered).steps) {
             high += Math.max(0, m.cost);
         }
         if (high <= 0) {
@@ -1453,7 +1546,7 @@ class PlannerCalculator {
         long low = 0;
         while (high - low > Math.max(1000, high / 100)) {
             long mid = low + (high - low) / 2;
-            if (moneyPlan(skill, steps, recipes, owned, mid, price, limit).runsOut == null) {
+            if (moneyPlan(skill, steps, recipes, owned, mid, price, limit, gathered).runsOut == null) {
                 high = mid;
             } else {
                 low = mid;
