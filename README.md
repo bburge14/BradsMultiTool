@@ -31,15 +31,11 @@ at the bottom of the configuration panel), search **Snuffy's**, and install eith
 or the separate plugins you want. Don't install the Toolbelt together with the separate ones: you'd get
 everything twice. Every plugin has the idle and logout warnings; with several installed they're said once.
 
-**Before they're on the Plugin Hub**, run them from this repository with **Snuffy's Launcher**: see
-[First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own folder under
-[`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `tick-counter`, `planner`, `alerts`) that builds
-on its own. `python3 scripts/split_plugins.py --build` makes all seven jars in `releases/`.
-
-**Trying the jars with friends:** put the jar(s) in `.runelite/sideloaded-plugins` (create it next to
-`.runelite/settings.properties`) and start RuneLite in developer mode: in **RuneLite (configure)** add
-`--developer-mode` to the client arguments and `-ea` to the JVM options. RuneLite only loads sideloaded jars in
-developer mode.
+**Before they're on the Plugin Hub** (or to get updates the day they're made), use **Snuffy's Launcher**:
+[github.com/bburge14/snuffys-launcher](https://github.com/bburge14/snuffys-launcher). It's only the launcher: it
+downloads each plugin from its own repository, keeps them up to date and starts RuneLite with the ones you pick. See
+[First-time setup](#first-time-setup-windows-powershell). (Working on the plugins themselves: see
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).)
 
 ## Features
 
@@ -325,30 +321,18 @@ winget install --id Git.Git -e
 
 Close and reopen PowerShell afterwards so `java` and `git` are on your PATH.
 
-**2. Download the project:**
+**2. Download Snuffy's Launcher** (just the launcher: it downloads the plugins themselves when it first opens):
 
 ```powershell
-New-Item -ItemType Directory -Force C:\dev | Out-Null
-Set-Location C:\dev
-git clone https://github.com/bburge14/bradsmultitool.git BradsMultiTool
-Set-Location C:\dev\BradsMultiTool
-git checkout claude/nifty-feynman-izouon   # skip once this branch is merged into main
+Set-Location $env:USERPROFILE\Documents
+git clone https://github.com/bburge14/snuffys-launcher.git
 ```
 
-If the repo is private, Git opens a browser window to sign in to GitHub.
+**3. Open it:** double-click **Launch-Snuffys.bat** in the `snuffys-launcher` folder, then click **Make a desktop
+shortcut** at the bottom of the window so it's on your desktop from then on. The first time, it downloads every
+plugin (a minute or two).
 
-**3. Put the launcher on your desktop** (run once; or open `Launch-BradsMultiTool.bat` and click **Make a
-desktop shortcut** at the bottom of the window):
-
-```powershell
-$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Launcher.lnk")
-$s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
-$s.WorkingDirectory = "C:\dev\BradsMultiTool"
-$s.IconLocation = "C:\dev\BradsMultiTool\assets\launcher.ico,0"
-$s.Save()
-```
-
-**4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small dark window (Play and Dev at the top) that:
+**4. Using Snuffy's Launcher.** It's a small dark window that:
 
 - **updates** the plugins each time you open it, and while it's open checks every minute in the background and
   pulls any update straight away: two chips under its name say where your copy of the code is ("Code: up to date") and what the open RuneLite is running ("RuneLite: latest code", or in red "RuneLite: 3 updates behind, Relaunch"), and **What's new** lists the changes, each with what it touches (the plugins it changes, which need a Relaunch, or the launcher and docs only, which don't; the RuneLite chip only counts the ones that need a Relaunch) (**Check again** to retry; when you're offline or have changed
@@ -367,14 +351,7 @@ $s.Save()
     character's name and the date, never the session itself;
   - **Java** (needed to build) and **git** (for updates);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
-  plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time. Each one shows its version (the last one pushed to its repository; "v1.0.2+" when the code you're running has changed since);
-- a **Dev** tab (for the plugins' owner): **Push to repos** copies the plugins to their own GitHub repositories with
-  new versions for the ones that changed (**Check (dry run)** first shows what would change), and **Publish to
-  RuneLite** gets the Plugin Hub pull requests ready. Its **Plugin Hub** sub-tab keeps a card for each plugin's pull
-  request (the Publish sub-tab has a summary card: how many in each state, how many new), checked in the background while the launcher is open (every 10 minutes when git is signed in to GitHub,
-  else hourly; **Check now** any time): in review, building, build failed, changes asked, approved or published,
-  the earlier ones it replaced, and the latest comment. A comment you haven't opened marks the card "1 new" (and the
-  Dev tab), with a Windows notification; clicking the card opens it and clears it. See docs/ROLLOUT.md;
+  plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time. Each one shows its version (from its GitHub repository);
 - **Relaunch** closes RuneLite (as its X button would, answering OK to RuneLite's "Are you sure you want to exit?"
   for you; forced if it hangs), updates, and starts it again with your pick;
 - **Launch RuneLite** builds and starts it silently (no console window): the button fills as it goes, building,

@@ -9,6 +9,42 @@ For people working on the plugin. Players only need the [README](../README.md).
 
 ## Running a development client
 
+### The dev launcher (this repository)
+
+The owner runs Snuffy's from this repository; friends use the friends launcher instead (below). On Windows:
+
+```powershell
+New-Item -ItemType Directory -Force C:\dev | Out-Null
+Set-Location C:\dev
+git clone https://github.com/bburge14/bradsmultitool.git BradsMultiTool
+Set-Location C:\dev\BradsMultiTool
+```
+
+Then double-click `Launch-BradsMultiTool.bat` (its **Make a desktop shortcut** link puts it on the desktop). It's the
+same launcher friends get, built from `src/` (it updates from this repository) and with a Play | Dev switch.
+Its **Dev** tab (only in this repository's copy): **Push to repos** copies the plugins to their own GitHub repositories with
+  new versions for the ones that changed (**Check (dry run)** first shows what would change), and **Publish to
+  RuneLite** gets the Plugin Hub pull requests ready. Its **Plugin Hub** sub-tab keeps a card for each plugin's pull
+  request (the Publish sub-tab has a summary card: how many in each state, how many new), checked in the background while the launcher is open (every 10 minutes when git is signed in to GitHub,
+  else hourly; **Check now** any time): in review, building, build failed, changes asked, approved or published,
+  the earlier ones it replaced, and the latest comment. A comment you haven't opened marks the card "1 new" (and the
+  Dev tab), with a Windows notification; clicking the card opens it and clears it. See docs/ROLLOUT.md;
+
+### The friends launcher (its own repository)
+
+`split_plugins.py` also writes `plugins/launcher`: Snuffy's Launcher without the Dev tab, for
+[snuffys-launcher](https://github.com/bburge14/snuffys-launcher) (in `publish.json` as `launcher`, `"hub": false`;
+**Push to repos** sends it there with no version). It has `Launch-Snuffys.bat`, the same `scripts/launcher.ps1`
+(which switches to friends mode when `friends.json` is beside it), `friends.json` (each plugin's repository, branch and
+plugin class, from `publish.json` and the split's `PLUGINS`), and `runner/`: a Gradle project that compiles the
+plugin repositories the launcher downloaded into `plugins/` (each in its own package) and starts RuneLite with the
+chosen classes (`runSnuffys -Pclasses=...`). In friends mode the launcher clones or pulls each plugin repository (and
+fetches them every minute in the background), shows each repository's `build.gradle` version, and its "what's new" and
+"RuneLite is behind" come from those repositories' commits. Friends get only what's been pushed to the plugin
+repositories (which are public anyway, as the Plugin Hub needs), not this repository.
+
+### Gradle
+
 `.\gradlew.bat runBrad` (Windows) or `./gradlew runBrad` launches RuneLite in developer mode with the plugin
 loaded; see the README for the first-time setup and logging in with a Jagex Account. `-Pload=` picks the
 separate plugins instead (`skilling`, `pvm`, `gemcrab`, `tick`, `planner`, `alerts`, or `separate` for all of them;
