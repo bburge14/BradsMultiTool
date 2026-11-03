@@ -81,7 +81,8 @@ public class PlannerPreview {
                     // Choosing a better method for its third milestone: the best picks first
                     panel.showCalculatorPicking(Skill.WOODCUTTING, 2);
                     write(render(panel, 760), out + "-plan-pick.png");
-                    panel.showCalculator(Skill.COOKING, PlannerCalculator.Mode.PLAN, "");
+                    // The Cooking plan with its Shark milestone opened to its breakdown
+                    panel.showCalculatorBreakdown(Skill.COOKING, 1);
                     write(render(panel, 0), out + "-plan-cooking.png");
                     // Fishing's prices (what the catch is worth) at the sidebar's height
                     panel.showCalculator(Skill.FISHING, PlannerCalculator.Mode.ACTIONS, "");
