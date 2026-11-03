@@ -883,9 +883,29 @@ namespace Snuffys
                 toggle.Text = Plugins[i][1];
                 toggle.Icon = Theme.Picture(Asset("hub", Plugins[i][2] + ".png"), 36);
                 toggle.Location = new Point(16 + (i / 3) * 210, 102 + (i % 3) * 28);
-                toggle.Size = new Size(208, 24);
+                toggle.Size = new Size(dev ? 208 : 186, 24);
                 plugins.Controls.Add(toggle);
                 Boxes[Plugins[i][0]] = toggle;
+                if (!dev)
+                {
+                    // The friends launcher: remove a plugin (its download, and its updates), or add it back
+                    Link remove = new Link("\u2715");
+                    remove.Tag = Plugins[i][0];
+                    remove.Location = new Point(16 + (i / 3) * 210 + 190, 105 + (i % 3) * 28);
+                    versionTip.SetToolTip(remove, "Remove " + Plugins[i][1] + " (its download; add it back any time)");
+                    plugins.Controls.Add(remove);
+                    RemoveLinks[Plugins[i][0]] = remove;
+                }
+            }
+            if (!dev)
+            {
+                Link removeToolbelt = new Link("Remove");
+                removeToolbelt.Tag = "toolbelt";
+                removeToolbelt.Location = new Point(384, 78);
+                versionTip.SetToolTip(removeToolbelt, "Remove Snuffy's Toolbelt (its download; add it back any time)");
+                plugins.Controls.Add(removeToolbelt);
+                RemoveLinks["toolbelt"] = removeToolbelt;
+                Note.Width = 360;
             }
             Toolbelt.CheckedChanged += delegate { SetToolbelt(); };
             flow.Controls.Add(plugins);
@@ -895,13 +915,61 @@ namespace Snuffys
             Form.Controls.Add(Play);
         }
 
+        /** The friends launcher's remove buttons, by plugin key (toolbelt too). */
+        public Dictionary<string, Link> RemoveLinks = new Dictionary<string, Link>();
+        private readonly HashSet<string> removed = new HashSet<string>();
+
+        public bool IsRemoved(string key)
+        {
+            return removed.Contains(key);
+        }
+
+        /** A plugin removed (switched off, its button a + to add it back) or there again. */
+        public void SetRemoved(string key, bool gone)
+        {
+            if (gone) removed.Add(key); else removed.Remove(key);
+            Link link;
+            if (RemoveLinks.TryGetValue(key, out link))
+            {
+                string name = key == "toolbelt" ? "Snuffy's Toolbelt" : NameOf(key);
+                link.Text = gone ? (key == "toolbelt" ? "Add back" : "+") : (key == "toolbelt" ? "Remove" : "\u2715");
+                versionTip.SetToolTip(link, gone ? "Add " + name + " back (downloads it again)"
+                    : "Remove " + name + " (its download; add it back any time)");
+            }
+            if (key == "toolbelt")
+            {
+                Toolbelt.Enabled = !gone;
+                if (gone && Toolbelt.Checked)
+                {
+                    Separate.Checked = true;
+                }
+            }
+            else if (Boxes.ContainsKey(key))
+            {
+                if (gone)
+                {
+                    Boxes[key].Checked = false;
+                }
+                Boxes[key].Enabled = !gone && !Toolbelt.Checked;
+            }
+        }
+
+        private static string NameOf(string key)
+        {
+            foreach (string[] plugin in Plugins)
+            {
+                if (plugin[0] == key) return plugin[1];
+            }
+            return key;
+        }
+
         private void SetToolbelt()
         {
             Note.Text = Toolbelt.Checked ? "The Toolbelt is every plugin in one: the switches don't apply."
                 : "Load just the ones switched on.";
-            foreach (ToggleSwitch box in Boxes.Values)
+            foreach (KeyValuePair<string, ToggleSwitch> box in Boxes)
             {
-                box.Enabled = !Toolbelt.Checked;
+                box.Value.Enabled = !Toolbelt.Checked && !removed.Contains(box.Key);
             }
         }
 
@@ -1252,7 +1320,12 @@ namespace Snuffys
         // folder), with what it means on hover
         public void SetPluginVersion(string key, string folder, string version, string tip)
         {
-            string suffix = string.IsNullOrEmpty(version) ? "" : " " + version;
+            // (the friends launcher keeps the version in the tooltip: its remove buttons take the room)
+            string suffix = string.IsNullOrEmpty(version) || !dev ? "" : " " + version;
+            if (!dev && !string.IsNullOrEmpty(version))
+            {
+                tip = version + ": " + tip;
+            }
             if (key == "toolbelt")
             {
                 Toolbelt.Text = "Snuffy's Toolbelt" + suffix;
@@ -1546,6 +1619,12 @@ $friendsConfig = Join-Path $root 'friends.json'
 $friends = Test-Path $friendsConfig
 $friendPlugins = if ($friends) { @((Get-Content $friendsConfig -Raw | ConvertFrom-Json).plugins) } else { @() }
 $pluginsHome = Join-Path $root 'plugins'
+# (friends) Plugins you removed: not downloaded or updated until you add them back
+$removedFile = Join-Path $root '.removed-plugins'
+function Get-Removed {
+    if (-not (Test-Path $removedFile)) { return @() }
+    return @(Get-Content $removedFile | Where-Object { $_ })
+}
 
 # The code's version: this repository's commit, or (friends) the launcher's and every plugin repository's
 function Get-Head {
@@ -1649,7 +1728,11 @@ function Update-Friends {
     git -C $root pull --ff-only --quiet 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { $problems += 'the launcher' }
     if (-not (Test-Path $pluginsHome)) { New-Item -ItemType Directory -Path $pluginsHome | Out-Null }
+    # (kept out of sight in File Explorer: it's the launcher's)
+    try { (Get-Item $pluginsHome -Force).Attributes = 'Directory, Hidden' } catch { }
+    $removed = Get-Removed
     foreach ($plugin in $friendPlugins) {
+        if ($removed -contains $plugin.key) { continue }
         $dir = Join-Path $pluginsHome $plugin.folder
         if (Test-Path (Join-Path $dir '.git')) {
             git -C $dir pull --ff-only --quiet 2>&1 | Out-Null
@@ -1894,11 +1977,53 @@ $boxes = $ui.Boxes
 foreach ($key in $plugins.Keys) {
     $boxes[$key].Checked = ($lastNames -contains $key) -or ($lastNames -contains 'separate')
 }
-$updateBoxes = { foreach ($box in $boxes.Values) { $box.Enabled = $separate.Checked } }
+$updateBoxes = { foreach ($key in @($boxes.Keys)) { $boxes[$key].Enabled = $separate.Checked -and -not $ui.IsRemoved($key) } }
 $toolbelt.Add_CheckedChanged($updateBoxes)
 $separate.Add_CheckedChanged($updateBoxes)
 if ($lastNames -contains 'toolbelt') { $toolbelt.Checked = $true } else { $separate.Checked = $true }
 & $updateBoxes
+
+# (friends) Each plugin's remove button: deletes its download and stops its updates; + adds it back (downloads it)
+function Toggle-Removed($key) {
+    $removed = Get-Removed
+    $plugin = $friendPlugins | Where-Object { $_.key -eq $key } | Select-Object -First 1
+    if (-not $plugin) { return }
+    if ($removed -contains $key) {
+        Set-Content -Path $removedFile -Value @($removed | Where-Object { $_ -ne $key })
+        $ui.SetRemoved($key, $false)
+        & $updateBoxes
+        Update-Plugins
+        Update-Versions
+        return
+    }
+    if (RuneLite-Running) {
+        [System.Windows.Forms.MessageBox]::Show("Close RuneLite first, then remove $($plugin.name).", "Snuffy's") | Out-Null
+        return
+    }
+    $answer = [System.Windows.Forms.MessageBox]::Show("Remove $($plugin.name)? Its download is deleted and it isn't updated; " +
+        "your settings for it stay in RuneLite. Add it back any time with +.", "Snuffy's", 'YesNo')
+    if ($answer -ne 'Yes') { return }
+    $dir = Join-Path $pluginsHome $plugin.folder
+    if (Test-Path $dir) {
+        try {
+            Remove-Item -Path $dir -Recurse -Force -ErrorAction Stop
+        } catch {
+            [System.Windows.Forms.MessageBox]::Show("Couldn't delete it: $($_.Exception.Message)", "Snuffy's") | Out-Null
+            return
+        }
+    }
+    Set-Content -Path $removedFile -Value @($removed + $key)
+    $ui.SetRemoved($key, $true)
+    & $updateBoxes
+    Update-Versions
+}
+if ($friends) {
+    foreach ($key in (Get-Removed)) { $ui.SetRemoved($key, $true) }
+    & $updateBoxes
+    foreach ($link in $ui.RemoveLinks.Values) {
+        $link.Add_LinkClicked({ param($source, $info) Toggle-Removed ([string]$source.Tag) })
+    }
+}
 
 # ---- Launch ----
 # The big Launch button: it fills as RuneLite builds and starts (the status line above it says what's happening;

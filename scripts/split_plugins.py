@@ -621,6 +621,7 @@ runner/.gradle/
 .launch-runelite
 .running-commit
 .hub-seen
+.removed-plugins
 """
 
 
