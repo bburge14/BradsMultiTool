@@ -555,6 +555,7 @@ namespace Snuffys
         // Play
         public Panel Play;
         public TextBox UpdateLog;
+        public Card NewsCard;
         public Card SetupCard;
         public Label SetupSummary;
         public Link SetupToggle;
@@ -773,6 +774,7 @@ namespace Snuffys
 
             // What's new
             Card news = new Card();
+            NewsCard = news;
             news.Title = "What's new";
             news.Size = new Size(448, 96);
             news.Margin = new Padding(0, 0, 0, 12);
@@ -782,7 +784,8 @@ namespace Snuffys
             UpdateLog.ScrollBars = ScrollBars.Vertical;
             UpdateLog.BorderStyle = BorderStyle.None;
             UpdateLog.BackColor = Theme.Surface;
-            UpdateLog.ForeColor = Theme.Muted;
+            UpdateLog.ForeColor = Color.FromArgb(205, 208, 212);
+            UpdateLog.Font = Theme.Body(8.5f);
             UpdateLog.Location = new Point(14, 38);
             UpdateLog.Size = new Size(420, 46);
             UpdateLog.TabStop = false;
@@ -873,6 +876,9 @@ namespace Snuffys
                 row.Button.Parent = open ? SetupCard : null;
             }
             SetupCard.Height = open ? 182 : 44;
+            // What's new takes the room the checklist leaves when it's folded
+            NewsCard.Height = open ? 96 : 96 + 138;
+            UpdateLog.Height = NewsCard.Height - 50;
             SetupToggle.Text = open ? "Hide" : "Show";
         }
 
@@ -1492,11 +1498,11 @@ function Update-Plugins {
     if ($old -eq $new) {
         $updateStatus.Text = 'Code: up to date'
         $updateStatus.ForeColor = $green
-        $updateLog.Text = (git -C $root log -1 --format='Latest: %s (%cr)' 2>$null | Out-String).Trim()
+        $updateLog.Text = "Recent changes:`r`n" + (Get-Changes '-5').Text
     } else {
         $updateStatus.Text = 'Code: just updated'
         $updateStatus.ForeColor = $green
-        $updateLog.Text = (git -C $root log --format='- %s' "$old..$new" 2>$null | Out-String).Trim()
+        $updateLog.Text = "Just updated:`r`n" + (Get-Changes "$old..$new").Text
     }
 }
 $checkAgain.Add_LinkClicked({ Update-Plugins })
@@ -1940,6 +1946,36 @@ $script:lastFetch = [DateTime]::MinValue
 $script:warnedFor = $null
 
 # Says when the open RuneLite is older than the plugins here (once a notification per new version)
+# What changed in a range of commits ("<old>..HEAD", or "-5" for the latest five), one line each with what it
+# touches: the plugins it changes (RuneLite needs a Relaunch for those), or the launcher and docs only (it doesn't).
+# Needed: how many change what RuneLite runs
+$pluginNames = @{ 'skilling-helper' = 'Skilling Helper'; 'pvm-slayer' = 'PvM/Slayer'; 'gemcrab-tracker' = 'GemCrab Tracker';
+    'tick-counter' = 'Tick Counter'; 'planner' = 'Planner'; 'alerts' = 'Alerts'; 'toolbelt' = 'Toolbelt' }
+function Get-Changes($range) {
+    $lines = New-Object System.Collections.Generic.List[string]
+    $needed = 0
+    foreach ($entry in @(git -C $root log --max-count=30 --format='%h %s' $range 2>$null)) {
+        if (-not $entry) { continue }
+        $hash, $subject = $entry -split ' ', 2
+        if ($subject.Length -gt 150) { $subject = $subject.Substring(0, 147) + '...' }
+        $files = @(git -C $root diff-tree --no-commit-id --name-only -r $hash 2>$null)
+        $code = @($files | Where-Object { $_ -match '^(src/main/|plugins/|build\.gradle|settings\.gradle|gradle/)' }).Count -gt 0
+        $folders = @($files | Where-Object { $_ -match '^plugins/[^/]+/' } | ForEach-Object { ([regex]::Match($_, '^plugins/([^/]+)/')).Groups[1].Value } |
+            Select-Object -Unique)
+        # (the Toolbelt has every plugin in it: named only when it's the one that changed)
+        $names = @($folders | Where-Object { $_ -ne 'toolbelt' } | ForEach-Object { if ($pluginNames[$_]) { $pluginNames[$_] } else { $_ } })
+        if (-not $names -and $folders -contains 'toolbelt') { $names = @('Toolbelt') }
+        if ($code) {
+            $needed++
+            $what = if ($names) { $names -join ', ' } else { 'every plugin' }
+            $lines.Add("- $subject`r`n      -> $what (Relaunch to get it)")
+        } else {
+            $lines.Add("- $subject`r`n      -> launcher or docs only (no Relaunch needed)")
+        }
+    }
+    return @{ Text = ($lines -join "`r`n"); Needed = $needed; All = $lines.Count }
+}
+
 function Check-RunningVersion {
     $running = Running-Commit
     $head = (git -C $root rev-parse HEAD 2>$null)
@@ -1955,24 +1991,37 @@ function Check-RunningVersion {
         $runningStatus.Text = 'RuneLite: latest code'
         $runningStatus.ForeColor = $green
     }
-    if (-not $running -or -not $head -or $running.Trim() -eq $head.Trim()) {
+    $changes = $null
+    if ($running -and $head -and $running.Trim() -ne $head.Trim()) {
+        $changes = Get-Changes "$($running.Trim())..HEAD"
+        # What's new: what the open RuneLite is missing, and which of it needs a Relaunch
+        $updateLog.Text = $(if ($changes.Needed -gt 0) {
+                "The open RuneLite is missing $($changes.All) update$(if ($changes.All -ne 1) { 's' }); $($changes.Needed) change$(if ($changes.Needed -eq 1) { 's' }) plugins (press Relaunch):"
+            } else {
+                "RuneLite has every plugin change. Since it opened, only the launcher or docs changed:"
+            }) + "`r`n" + $changes.Text
+        $updateLog.Select(0, 0)
+        if ($changes.Needed -eq 0) {
+            $runningStatus.Text = 'RuneLite: latest plugins'
+            $runningStatus.ForeColor = $green
+        }
+    }
+    if (-not $changes -or $changes.Needed -eq 0) {
         if ($script:warnedFor) {
             $script:warnedFor = $null
             $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9)
         }
         return
     }
-    $behind = (git -C $root rev-list --count "$($running.Trim())..HEAD" 2>$null)
-    $runningStatus.Text = if ($behind -and [int]$behind -gt 0) { "RuneLite: $behind update$(if ([int]$behind -ne 1) { 's' }) behind, Relaunch" } else { 'RuneLite: older code, Relaunch' }
+    $runningStatus.Text = "RuneLite: $($changes.Needed) update$(if ($changes.Needed -ne 1) { 's' }) behind, Relaunch"
     $runningStatus.ForeColor = $red
     $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
     $relaunch.Enabled = $true
     if ($script:warnedFor -ne $head) {
         $script:warnedFor = $head
-        $updateLog.Text = "Not in the RuneLite that's open yet (press Relaunch):`r`n" + (git -C $root log --format='- %s' "$($running.Trim())..HEAD" 2>$null | Out-String).Trim()
         $tray.Visible = $true
         $script:balloonFor = 'update'
-        $tray.ShowBalloonTip(10000, "Snuffy's plugins updated", 'RuneLite is running an older version. Open the launcher and press Relaunch to use the new one.', 'Info')
+        $tray.ShowBalloonTip(10000, "Snuffy's plugins updated", 'RuneLite is running an older version of your plugins. Open the launcher and press Relaunch to use the new one.', 'Info')
     }
 }
 

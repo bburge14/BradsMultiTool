@@ -338,7 +338,7 @@ $s.Save()
 **4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small dark window (Play and Dev at the top) that:
 
 - **updates** the plugins each time you open it, and while it's open checks every minute in the background and
-  pulls any update straight away: two chips under its name say where your copy of the code is ("Code: up to date") and what the open RuneLite is running ("RuneLite: latest code", or in red "RuneLite: 3 updates behind, Relaunch"), and **What's new** lists the changes (**Check again** to retry; when you're offline or have changed
+  pulls any update straight away: two chips under its name say where your copy of the code is ("Code: up to date") and what the open RuneLite is running ("RuneLite: latest code", or in red "RuneLite: 3 updates behind, Relaunch"), and **What's new** lists the changes, each with what it touches (the plugins it changes, which need a Relaunch, or the launcher and docs only, which don't; the RuneLite chip only counts the ones that need a Relaunch) (**Check again** to retry; when you're offline or have changed
   files here, it says so and you launch the version you have);
 - **warns you when the open RuneLite is out of date**: it remembers which version each launch was built from (even
   if you close and reopen the launcher), and when there's a newer one its chip turns red ("RuneLite: 3 updates
