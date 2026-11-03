@@ -354,10 +354,10 @@ $s.Save()
     character's name and the date, never the session itself;
   - **Java** (needed to build) and **git** (for updates);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
-  plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time;
+  plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time. Each one shows its version (the last one pushed to its repository; "v1.0.2+" when the code you're running has changed since);
 - a **Dev** tab (for the plugins' owner): **Push to repos** copies the plugins to their own GitHub repositories with
   new versions for the ones that changed (**Check (dry run)** first shows what would change), and **Publish to
-  RuneLite** gets the Plugin Hub pull requests ready, and **Check status** shows each one as a card (open,
+  RuneLite** gets the Plugin Hub pull requests ready, and **Check status** shows each one as a card (in review,
   building, build failed, published; the latest comment; click one to open it). See docs/ROLLOUT.md;
 - **Relaunch** closes RuneLite (as its X button would, answering OK to RuneLite's "Are you sure you want to exit?"
   for you; forced if it hangs), updates, and starts it again with your pick;

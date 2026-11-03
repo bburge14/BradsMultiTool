@@ -804,7 +804,7 @@ namespace Snuffys
                 toggle.Text = Plugins[i][1];
                 toggle.Icon = Theme.Picture(Asset("hub", Plugins[i][2] + ".png"), 36);
                 toggle.Location = new Point(16 + (i / 3) * 210, 102 + (i % 3) * 28);
-                toggle.Size = new Size(200, 24);
+                toggle.Size = new Size(208, 24);
                 plugins.Controls.Add(toggle);
                 Boxes[Plugins[i][0]] = toggle;
             }
@@ -878,13 +878,13 @@ namespace Snuffys
             // 1. Push
             PushCard = new Card();
             PushCard.Title = "1   Push to repos";
-            PushCard.Size = new Size(448, 222);
+            PushCard.Size = new Size(448, 246);
             PushCard.Margin = new Padding(0, 0, 0, 12);
             PushCard.Controls.Add(Text("Copies each plugin switched on to its own GitHub repository; the changed ones get a new version.",
                 16, 34, 416, 34, Theme.Muted, Theme.Body(8.5f)));
             SegmentTrack level = new SegmentTrack();
             level.BackColor = Theme.Window;
-            level.Location = new Point(14, 138);
+            level.Location = new Point(14, 162);
             level.Size = new Size(420, 30);
             SegmentButton[] levels = level.Segments("Patch (fixes)", "Minor (features)", "Major");
             Patch = levels[0];
@@ -892,8 +892,8 @@ namespace Snuffys
             Major = levels[2];
             Patch.Checked = true;
             PushCard.Controls.Add(level);
-            DevCheck = Button("Check (dry run)", 14, 176, 140, 32, false);
-            DevPush = Button("Push to repos", 162, 176, 140, 32, false);
+            DevCheck = Button("Check (dry run)", 14, 200, 140, 32, false);
+            DevPush = Button("Push to repos", 162, 200, 140, 32, false);
             PushCard.Controls.Add(DevCheck);
             PushCard.Controls.Add(DevPush);
             flow.Controls.Add(PushCard);
@@ -967,19 +967,49 @@ namespace Snuffys
             ShowOutput.Text = show ? "Hide output" : "Show output";
         }
 
-        // A plugin to push: a switch in the Push card (three to a row)
+        // A plugin to push: a switch in the Push card (two to a row, room for its version)
         public ToggleSwitch AddDevTick(string folder, bool on)
         {
             ToggleSwitch toggle = new ToggleSwitch();
             toggle.Text = folder;
             toggle.Checked = on;
-            toggle.Location = new Point(16 + (devTickCount % 3) * 140, 70 + (devTickCount / 3) * 22);
-            toggle.Size = new Size(136, 20);
+            toggle.Location = new Point(16 + (devTickCount % 2) * 210, 70 + (devTickCount / 2) * 22);
+            toggle.Size = new Size(206, 20);
             toggle.Font = Theme.Body(8.5f);
             PushCard.Controls.Add(toggle);
             DevTicks[folder] = toggle;
             devTickCount++;
             return toggle;
+        }
+
+        private readonly ToolTip versionTip = new ToolTip();
+
+        // A plugin's version beside its name: on Play (its key: skilling, pvm, ..., or toolbelt) and on Dev (its
+        // folder), with what it means on hover
+        public void SetPluginVersion(string key, string folder, string version, string tip)
+        {
+            string suffix = string.IsNullOrEmpty(version) ? "" : " " + version;
+            if (key == "toolbelt")
+            {
+                Toolbelt.Text = "Snuffy's Toolbelt" + suffix;
+                versionTip.SetToolTip(Toolbelt, tip);
+            }
+            else
+            {
+                foreach (string[] plugin in Plugins)
+                {
+                    if (plugin[0] == key && Boxes.ContainsKey(key))
+                    {
+                        Boxes[key].Text = plugin[1] + suffix;
+                        versionTip.SetToolTip(Boxes[key], tip);
+                    }
+                }
+            }
+            if (folder != null && DevTicks.ContainsKey(folder))
+            {
+                DevTicks[folder].Text = folder + suffix;
+                versionTip.SetToolTip(DevTicks[folder], tip);
+            }
         }
 
         // The version bump picked: patch, minor or major
@@ -994,13 +1024,40 @@ namespace Snuffys
         {
             PrList.SuspendLayout();
             PrList.Controls.Clear();
-            foreach (Match block in Regex.Matches(output ?? "", @"^#(\d+) (.+)\r?\n\s+(https://\S+)\r?\n((?:\s{2}.*(?:\r?\n|$))*)",
-                RegexOptions.Multiline))
+            // Each pull request: "#N title", then its lines indented by two spaces (its link first), up to the
+            // next unindented line
+            List<List<string>> blocks = new List<List<string>>();
+            List<string> current = null;
+            foreach (string raw in (output ?? "").Split('\n'))
             {
-                string number = block.Groups[1].Value;
-                string title = block.Groups[2].Value.Trim();
-                string url = block.Groups[3].Value;
-                string body = block.Groups[4].Value;
+                string line = raw.TrimEnd('\r');
+                if (Regex.IsMatch(line, @"^#\d+ "))
+                {
+                    current = new List<string>();
+                    current.Add(line);
+                    blocks.Add(current);
+                }
+                else if (current != null && line.StartsWith("  "))
+                {
+                    current.Add(line);
+                }
+                else
+                {
+                    current = null;
+                }
+            }
+            foreach (List<string> block in blocks)
+            {
+                string[] lines = block.ToArray();
+                Match head = Regex.Match(lines[0], @"^#(\d+) (.+)$");
+                string url = lines.Length > 1 && lines[1].Trim().StartsWith("https://") ? lines[1].Trim() : "";
+                if (!head.Success || url.Length == 0)
+                {
+                    continue;
+                }
+                string number = head.Groups[1].Value;
+                string title = head.Groups[2].Value.Trim();
+                string body = string.Join("\n", lines, 2, lines.Length - 2);
                 string state;
                 Color tone;
                 if (body.Contains("PUBLISHED"))
@@ -1008,24 +1065,24 @@ namespace Snuffys
                     state = "Published";
                     tone = Theme.Good;
                 }
-                else if (body.Contains("Closed"))
+                else if (body.Contains("Closed without merging"))
                 {
                     state = "Closed";
                     tone = Theme.Muted;
                 }
-                else if (body.Contains("FAILED"))
+                else if (Regex.IsMatch(body, @"Check\s+\S+\s+FAILED"))
                 {
                     state = "Build failed";
                     tone = Theme.Bad;
                 }
-                else if (body.Contains("running") || body.Contains("waiting to start"))
+                else if (Regex.IsMatch(body, @"Check\s+\S+\s+(running|waiting to start)"))
                 {
                     state = "Building";
                     tone = Theme.Warn;
                 }
                 else
                 {
-                    state = body.Contains("Check build      OK") ? "Open \u00b7 build OK" : "Open";
+                    state = Regex.IsMatch(body, @"Check\s+build\s+OK") ? "In review \u00b7 build OK" : "In review";
                     tone = Theme.Link;
                 }
                 Match comment = Regex.Match(body, @"Latest comment, ([^(]+) \(([^)]*)\): (.*)");
@@ -1413,6 +1470,7 @@ $watcher.Add_Tick({
                 $script:stage = 'running'
                 Set-Status 'RuneLite is running.' $green 100
                 Check-RunningVersion
+                Update-Versions
             } else {
                 Set-Status 'Starting RuneLite...' $textColor ([Math]::Min(95, [Math]::Max($progress.Value, 70) + 1))
             }
@@ -1428,6 +1486,7 @@ $watcher.Add_Tick({
     if ($script:runner -and $script:runner.HasExited) {
         $watcher.Stop()
         Check-RunningVersion
+        Update-Versions
         $launch.Enabled = $true
         $relaunch.Enabled = $true
         if ($script:stage -eq 'running') {
@@ -1592,6 +1651,49 @@ function Check-RunningVersion {
     }
 }
 
+# Each plugin's version beside its name (Play and Dev): the last one pushed to its repository (Push to repos keeps
+# them in .publish-cache), with a + when the code RuneLite runs (or, closed, your copy) has changed since then
+$hubKeys = [ordered]@{ 'skilling-helper' = 'skilling'; 'pvm-slayer' = 'pvm'; 'gemcrab-tracker' = 'gemcrab';
+    'tick-counter' = 'tick'; 'planner' = 'planner'; 'alerts' = 'alerts'; 'toolbelt' = 'toolbelt' }
+function Update-Versions {
+    if (-not (Test-Path $publishConfig)) { return }
+    $config = Get-Content $publishConfig -Raw | ConvertFrom-Json
+    $code = Running-Commit
+    $which = 'the RuneLite that is open'
+    if (-not $code) {
+        $code = (git -C $root rev-parse HEAD 2>$null)
+        $which = 'your copy of the code'
+    }
+    foreach ($folder in $config.plugins.PSObject.Properties.Name) {
+        $key = $hubKeys[$folder]
+        $cache = Join-Path $root ".publish-cache\$($config.plugins.$folder.hubName)"
+        $gradle = Join-Path $cache 'build.gradle'
+        $version = $null
+        if (Test-Path $gradle) {
+            $found = Select-String -Path $gradle -Pattern "^version = '([^']+)'" | Select-Object -First 1
+            if ($found) { $version = $found.Matches[0].Groups[1].Value }
+        }
+        if (-not $version) {
+            $ui.SetPluginVersion($key, $folder, '', 'Not pushed from this PC yet: Push to repos gives it a version')
+            continue
+        }
+        # The commit it was last pushed from, and whether this plugin's code changed after it
+        $from = (git -C $cache log -1 --grep='From BradsMultiTool' --format=%B 2>$null | Out-String)
+        $changed = $false
+        if ($code -and $from -match 'BradsMultiTool ([0-9a-f]{7,40})') {
+            $pushed = $Matches[1]
+            git -C $root cat-file -e "$pushed^{commit}" 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                git -C $root diff --quiet $pushed $code.Trim() -- "plugins/$folder" 2>$null
+                $changed = $LASTEXITCODE -eq 1
+            }
+        }
+        $tip = if ($changed) { "v$version is the last version pushed to its repository; $which has changes since then (Push to repos makes the next version)" }
+                else { "v$version: the last version pushed to its repository, the same as $which" }
+        $ui.SetPluginVersion($key, $folder, "v$version$(if ($changed) { '+' })", $tip)
+    }
+}
+
 $autoUpdate = New-Object System.Windows.Forms.Timer
 $autoUpdate.Interval = 5000
 $autoUpdate.Add_Tick({
@@ -1607,6 +1709,7 @@ $autoUpdate.Add_Tick({
             if ($LASTEXITCODE -eq 0 -and [int]$behind -gt 0) { Update-Plugins }
         }
         Check-RunningVersion
+        Update-Versions
         return
     }
     if (((Get-Date) - $script:lastFetch).TotalSeconds -ge 60) {
@@ -1727,6 +1830,7 @@ $devPoll.Add_Tick({
             $ui.ShowDevOutput($true)
         }
         $script:publishRun = $null
+        Update-Versions
     }
 })
 
@@ -1796,6 +1900,7 @@ $form.Add_Shown({
     Check-Setup
     Update-Plugins
     Check-RunningVersion
+    Update-Versions
     $script:lastFetch = Get-Date
 })
 [void]$form.ShowDialog()
