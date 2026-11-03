@@ -78,6 +78,9 @@ public class PlannerPreview {
                     // A Woodcutting plan with four milestones and its totals, exported to the tracker
                     panel.showCalculator(Skill.WOODCUTTING, PlannerCalculator.Mode.PLAN, "");
                     write(render(panel, 0), out + "-plan.png");
+                    // Choosing a better method for its third milestone: the best picks first
+                    panel.showCalculatorPicking(Skill.WOODCUTTING, 2);
+                    write(render(panel, 760), out + "-plan-pick.png");
                     panel.showCalculator(Skill.COOKING, PlannerCalculator.Mode.PLAN, "");
                     write(render(panel, 0), out + "-plan-cooking.png");
                     // Fishing's prices (what the catch is worth) at the sidebar's height

@@ -243,6 +243,26 @@ final class PlannerUi {
         JLabel last;
         JLabel lastRight;
 
+        /** A fifth line's left and right text (null until {@link #fifth} adds it). */
+        JLabel fifth;
+        JLabel fifthRight;
+
+        /** Adds a fifth line of muted text under the fourth (after {@link #fourth}). */
+        Card fifth(String leftText, String rightText) {
+            JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            info.setLayout(new java.awt.GridLayout(info.getComponentCount() + 1, 1));
+            fifth = label(leftText, MUTED);
+            fifth.setMinimumSize(new Dimension(0, 0));
+            fifthRight = label(rightText == null ? "" : rightText, MUTED);
+            fifthRight.setHorizontalAlignment(SwingConstants.RIGHT);
+            JPanel row = new JPanel(new BorderLayout(4, 0));
+            row.setOpaque(false);
+            row.add(fifth, BorderLayout.CENTER);
+            row.add(fifthRight, BorderLayout.EAST);
+            info.add(row);
+            return this;
+        }
+
         /** Adds a fourth line of muted text under the third (after {@link #third}). */
         Card fourth(String leftText, String rightText) {
             JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
@@ -318,6 +338,10 @@ final class PlannerUi {
             if (last != null) {
                 last.setForeground(FAINT);
                 lastRight.setForeground(FAINT);
+            }
+            if (fifth != null) {
+                fifth.setForeground(FAINT);
+                fifthRight.setForeground(FAINT);
             }
             return this;
         }

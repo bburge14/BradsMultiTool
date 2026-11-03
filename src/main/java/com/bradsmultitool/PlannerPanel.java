@@ -262,6 +262,13 @@ class PlannerPanel extends PluginPanel {
         showTab("calculator");
     }
 
+    /** Package-private for the preview: the Calculator choosing a method for this milestone of the open plan. */
+    void showCalculatorPicking(Skill skill, int milestone) {
+        calcPage.view.preview(skill, PlannerCalculator.Mode.PLAN, "");
+        calcPage.view.previewPicking(milestone);
+        showTab("calculator");
+    }
+
     /** Package-private for the preview: opens the Drops tab on this monster's or chest's page (null: the list). */
     void showDropSource(String source) {
         showTab("drops");
