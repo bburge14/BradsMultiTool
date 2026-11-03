@@ -18,3 +18,4 @@ plugins/*/.gradle/
 .running-commit
 .claude/worktrees/
 .publish-cache/
+.hub-seen

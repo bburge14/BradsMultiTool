@@ -76,7 +76,10 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 
 ## Checking on it
 
-Launcher, Dev tab, **Check status** (a card for each pull request; click one to open it. Or `Publish-Plugins.bat status` / `python3 scripts/publish_plugins.py status`):
+Launcher, Dev tab, **Plugin Hub** at the top: a card for each plugin's pull request, kept up to date while the
+launcher is open, a "new" badge and a Windows notification for a comment you haven't opened or a change (published,
+build failed); click a card to open it (the new comment first). Signed in to GitHub (git's saved login, or
+GITHUB_TOKEN) it checks every 10 minutes, else hourly (GitHub's limit without one). Or `Publish-Plugins.bat status` / `python3 scripts/publish_plugins.py status`):
 your Plugin Hub pull request's link and whether it's **OPEN** (waiting for review), **PUBLISHED** (merged: players get
 it within a few hours) or **CLOSED**; RuneLite's build checks on it (a failed one with its link); and reviewers'
 verdicts and their latest comment. It reads GitHub's public API, so no login is needed (GitHub allows 60 such requests

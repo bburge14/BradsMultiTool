@@ -357,8 +357,11 @@ $s.Save()
   plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time. Each one shows its version (the last one pushed to its repository; "v1.0.2+" when the code you're running has changed since);
 - a **Dev** tab (for the plugins' owner): **Push to repos** copies the plugins to their own GitHub repositories with
   new versions for the ones that changed (**Check (dry run)** first shows what would change), and **Publish to
-  RuneLite** gets the Plugin Hub pull requests ready, and **Check status** shows each one as a card (in review,
-  building, build failed, published; the latest comment; click one to open it). See docs/ROLLOUT.md;
+  RuneLite** gets the Plugin Hub pull requests ready. At the top, **Plugin Hub** keeps a card for each plugin's pull
+  request, checked in the background while the launcher is open (every 10 minutes when git is signed in to GitHub,
+  else hourly; **Check now** any time): in review, building, build failed, changes asked, approved or published,
+  the earlier ones it replaced, and the latest comment. A comment you haven't opened marks the card "1 new" (and the
+  Dev tab), with a Windows notification; clicking the card opens it and clears it. See docs/ROLLOUT.md;
 - **Relaunch** closes RuneLite (as its X button would, answering OK to RuneLite's "Are you sure you want to exit?"
   for you; forced if it hangs), updates, and starts it again with your pick;
 - **Launch RuneLite** builds and starts it silently (no console window): the button fills as it goes, building,

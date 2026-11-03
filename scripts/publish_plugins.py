@@ -263,16 +263,55 @@ HUB_REPO = "runelite/plugin-hub"
 BRANCH_PREFIX = "snuffys-"
 
 
+# GitHub's answers: how many more it allows this hour, and whether we're signed in (a token: 5,000 an hour, else 60)
+RATE = {"remaining": None, "authenticated": False, "failed": None}
+_TOKEN = []
+
+
+def github_token():
+    """A GitHub token for reading: GITHUB_TOKEN or GH_TOKEN, else the login git keeps for github.com (the one it
+    pushes with; never shown or saved). None without one: GitHub's public limit then."""
+    if not _TOKEN:
+        token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+        if not token:
+            try:
+                env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GCM_INTERACTIVE="never")
+                out = subprocess.run(["git", "credential", "fill"], input="protocol=https\nhost=github.com\n\n",
+                                     capture_output=True, text=True, timeout=15, env=env).stdout
+                token = next((line[9:] for line in out.splitlines() if line.startswith("password=")), None)
+            except (OSError, subprocess.SubprocessError):
+                token = None
+        _TOKEN.append(token)
+    return _TOKEN[0]
+
+
 def github(path):
-    """GET a GitHub API path (public data: no login); None when it fails (offline, rate-limited)."""
-    request = urllib.request.Request("https://api.github.com/" + path, headers={
-        "Accept": "application/vnd.github+json", "User-Agent": "snuffys-publish"})
-    try:
-        with urllib.request.urlopen(request, timeout=20) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except (urllib.error.URLError, ValueError, OSError) as e:
-        print("GitHub didn't answer (%s): try again in a minute." % e)
+    """GET a GitHub API path, signed in when there's a token (else as anyone); None when it fails (offline,
+    rate-limited). Messages go to stderr, so status --json's output stays JSON."""
+    token = github_token()
+    for auth in ([token, None] if token else [None]):
+        headers = {"Accept": "application/vnd.github+json", "User-Agent": "snuffys-publish"}
+        if auth:
+            headers["Authorization"] = "Bearer " + auth
+        request = urllib.request.Request("https://api.github.com/" + path, headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                remaining = response.headers.get("X-RateLimit-Remaining")
+                RATE["remaining"] = int(remaining) if remaining and remaining.isdigit() else RATE["remaining"]
+                RATE["authenticated"] = bool(auth)
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code == 401 and auth:
+                # A login GitHub doesn't take for this: as anyone instead
+                _TOKEN[0] = None
+                continue
+            RATE["failed"] = "GitHub said %d %s" % (e.code, e.reason) + (
+                " (its limit for this hour is used up)" if e.code in (403, 429) else "")
+        except (urllib.error.URLError, ValueError, OSError) as e:
+            RATE["failed"] = "GitHub didn't answer (%s)" % e
+        print(RATE["failed"] + ": try again in a minute.", file=sys.stderr)
         return None
+    return None
 
 
 def hub_pulls(owner):
@@ -331,6 +370,64 @@ def status(fork):
             print("  Latest comment, %s (%s): %s" % (last["user"]["login"], last["created_at"][:10],
                                                      " ".join(re.sub(r"<!--.*?-->", "", last["body"], flags=re.S).split())[:400]))
     print("\nA FAILED check or a comment asking for changes: send it to Claude.")
+
+
+def plain(text, limit=300):
+    """A comment's text on one line, without its HTML comments."""
+    return " ".join(re.sub(r"<!--.*?-->", "", text or "", flags=re.S).split())[:limit]
+
+
+def status_json(fork):
+    """status --json, for the launcher: each plugin's newest Plugin Hub pull request with its state, build check and
+    everyone else's comments and reviews (each with its id and link), and GitHub's limit left."""
+    owner = fork_owner(fork)
+    pulls = hub_pulls(owner)
+    out = []
+    seen = set()
+    for pull in pulls:
+        branch = pull["head"]["ref"]
+        if branch in seen:
+            continue
+        seen.add(branch)
+        # Each update after a merge is a new pull request from the same branch: the newest (an open one first) is
+        # the plugin's card, the ones before it listed under it
+        earlier = [{"number": p["number"], "state": "merged" if p.get("merged_at") else p["state"], "url": p["html_url"],
+                    "date": (p.get("merged_at") or p.get("closed_at") or "")[:10]}
+                   for p in pulls if p["head"]["ref"] == branch and p["number"] != pull["number"]]
+        earlier.sort(key=lambda p: p["number"], reverse=True)
+        state = "merged" if pull.get("merged_at") else pull["state"]
+        entry = {"plugin": branch, "number": pull["number"], "title": pull["title"], "url": pull["html_url"],
+                 "state": state, "date": (pull.get("merged_at") or pull.get("closed_at") or pull.get("updated_at") or "")[:10],
+                 "check": "none", "checkUrl": "", "comments": [], "earlier": earlier}
+        n = pull["number"]
+        if state == "open":
+            checks = github("repos/%s/commits/%s/check-runs" % (HUB_REPO, pull["head"]["sha"])) or {}
+            results = [(run.get("conclusion") or run.get("status"), run.get("html_url", ""))
+                       for run in checks.get("check_runs", []) if (run.get("conclusion") or run.get("status")) != "skipped"]
+            failed = [u for result, u in results if result in ("failure", "timed_out", "cancelled")]
+            if failed:
+                entry["check"], entry["checkUrl"] = "failed", failed[0]
+            elif any(result in ("in_progress", "queued", "pending") for result, _ in results):
+                entry["check"] = "running"
+            elif results:
+                entry["check"] = "ok"
+        comments = []
+        for c in github("repos/%s/issues/%d/comments" % (HUB_REPO, n)) or []:
+            comments.append(("c%d" % c["id"], c["user"]["login"], c["created_at"], c["body"], c["html_url"]))
+        for c in github("repos/%s/pulls/%d/comments" % (HUB_REPO, n)) or []:
+            comments.append(("l%d" % c["id"], c["user"]["login"], c["created_at"], c["body"], c["html_url"]))
+        for review in github("repos/%s/pulls/%d/reviews" % (HUB_REPO, n)) or []:
+            verdict = {"APPROVED": "approved", "CHANGES_REQUESTED": "asked for changes"}.get(review.get("state"), "")
+            if review.get("body") or verdict:
+                text = (verdict + (": " if verdict and review.get("body") else "") + (review.get("body") or "")).strip()
+                comments.append(("r%d" % review["id"], review["user"]["login"], review.get("submitted_at") or "", text,
+                                 review["html_url"]))
+        comments.sort(key=lambda c: c[2])
+        entry["comments"] = [{"id": cid, "user": user, "date": date[:10], "text": plain(body), "url": url}
+                             for cid, user, date, body, url in comments if user != owner]
+        out.append(entry)
+    print(json.dumps({"ok": RATE["failed"] is None or bool(out), "problem": RATE["failed"], "remaining": RATE["remaining"],
+                      "authenticated": RATE["authenticated"], "pulls": out}))
 
 
 def update_hub_fork(fork, names, dry_run, head):
@@ -399,7 +496,8 @@ def main():
     step, args = words[0], words[1:]
     if step == "status":
         with open(config_path) as f:
-            status(json.load(f)["pluginHubFork"])
+            fork = json.load(f)["pluginHubFork"]
+        status_json(fork) if "--json" in argv else status(fork)
         return
     dry_run = "--dry-run" in argv
     with open(config_path) as f:

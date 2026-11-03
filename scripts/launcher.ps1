@@ -282,6 +282,8 @@ namespace Snuffys
     public class Card : Panel
     {
         public string Title;
+        /** An accent border (something new on it). */
+        public bool Accent;
 
         public Card()
         {
@@ -303,7 +305,7 @@ namespace Snuffys
                 {
                     g.FillPath(brush, path);
                 }
-                using (Pen pen = new Pen(Theme.Border))
+                using (Pen pen = new Pen(Accent ? Theme.Accent : Theme.Border, Accent ? 2 * s : 1))
                 {
                     g.DrawPath(pen, path);
                 }
@@ -580,6 +582,7 @@ namespace Snuffys
         public Link PrLink;
         public RoundButton DevStatusButton;
         public Label DevStatus;
+        public Label HubStatus;
         public FlowLayoutPanel PrList;
         public Link ShowOutput;
         public TextBox DevOut;
@@ -919,7 +922,6 @@ namespace Snuffys
             DevPush = Button("Push to repos", 162, 200, 140, 32, false);
             PushCard.Controls.Add(DevCheck);
             PushCard.Controls.Add(DevPush);
-            flow.Controls.Add(PushCard);
 
             // 2. Publish
             Card publish = new Card();
@@ -930,21 +932,21 @@ namespace Snuffys
                 Theme.Muted, Theme.Body(8.5f)));
             DevPublish = Button("Publish to RuneLite", 14, 72, 180, 34, true);
             publish.Controls.Add(DevPublish);
-            PrLink = new Link("Open the pull request pages");
+            PrLink = new Link("Open the new pull requests");
             PrLink.Location = new Point(206, 81);
             PrLink.Visible = false;
             publish.Controls.Add(PrLink);
-            flow.Controls.Add(publish);
 
             // 3. Status
             Card status = new Card();
-            status.Title = "3   Status";
+            status.Title = "Plugin Hub";
             status.Size = new Size(448, 86);
             status.Margin = new Padding(0, 0, 0, 8);
-            DevStatusButton = Button("Check status", 14, 40, 120, 32, false);
+            DevStatusButton = Button("Check now", 14, 40, 120, 32, false);
             status.Controls.Add(DevStatusButton);
-            DevStatus = Text("", 144, 46, 290, 20, Theme.Muted, Theme.Body(9));
-            status.Controls.Add(DevStatus);
+            HubStatus = Text("Checks on its own while the launcher is open.", 144, 40, 290, 34, Theme.Muted, Theme.Body(8.5f));
+            HubStatus.TextAlign = ContentAlignment.MiddleLeft;
+            status.Controls.Add(HubStatus);
             flow.Controls.Add(status);
 
             PrList = new FlowLayoutPanel();
@@ -955,6 +957,14 @@ namespace Snuffys
             PrList.BackColor = Theme.Window;
             PrList.Margin = new Padding(0);
             flow.Controls.Add(PrList);
+            // Then the steps: push, publish
+            PushCard.Margin = new Padding(0, 4, 0, 12);
+            flow.Controls.Add(PushCard);
+            flow.Controls.Add(publish);
+            // What the last push or publish did
+            DevStatus = Text("", 0, 0, 448, 20, Theme.Muted, Theme.Body(9));
+            DevStatus.Margin = new Padding(4, 0, 0, 4);
+            flow.Controls.Add(DevStatus);
 
             Panel links = new Panel();
             links.Size = new Size(448, 24);
@@ -1041,103 +1051,240 @@ namespace Snuffys
             return Major.Checked ? "major" : Minor.Checked ? "minor" : "patch";
         }
 
-        // Each pull request in the status output as a card: its number and title, a chip (open, published,
-        // closed), its build check and latest comment; clicking it opens its page
-        public void SetPullRequests(string output)
+        // ---- The Plugin Hub board: each plugin's pull request as a card, kept up to date; comments you haven't
+        // opened marked new (clicking the card opens the first of them and clears it) ----
+
+        private class Pull
+        {
+            public string Plugin, Title, Url, State, Check, CheckUrl, Date, Earlier;
+            public int Number;
+            public List<string[]> Comments = new List<string[]>();
+        }
+
+        private readonly List<Pull> pulls = new List<Pull>();
+        private readonly HashSet<string> seenComments = new HashSet<string>();
+        private readonly HashSet<string> toldComments = new HashSet<string>();
+        private readonly Dictionary<string, string> knownStates = new Dictionary<string, string>();
+        private bool seenLoaded;
+        private bool firstLook;
+        private readonly List<string> news = new List<string>();
+
+        /** Where it remembers what you've opened and been told (a file of its own, next to the launcher). */
+        public string SeenPath;
+
+        public void BeginPullRequests()
+        {
+            pulls.Clear();
+            if (!seenLoaded)
+            {
+                seenLoaded = true;
+                firstLook = SeenPath == null || !File.Exists(SeenPath);
+                if (!firstLook)
+                {
+                    foreach (string line in File.ReadAllLines(SeenPath))
+                    {
+                        string[] parts = line.Split(' ');
+                        if (parts.Length == 2 && parts[0] == "seen") seenComments.Add(parts[1]);
+                        else if (parts.Length == 2 && parts[0] == "told") toldComments.Add(parts[1]);
+                        else if (parts.Length == 3 && parts[0] == "state") knownStates[parts[1]] = parts[2];
+                    }
+                }
+            }
+        }
+
+        /** One plugin's pull request; comments as {id, who, date, text, link}, oldest first. */
+        public void AddPullRequest(string plugin, int number, string title, string url, string state, string check,
+            string checkUrl, string date, string earlier, string[] ids, string[] users, string[] dates, string[] texts, string[] urls)
+        {
+            Pull pull = new Pull();
+            pull.Plugin = plugin; pull.Number = number; pull.Title = title; pull.Url = url; pull.State = state;
+            pull.Check = check; pull.CheckUrl = checkUrl; pull.Date = date; pull.Earlier = earlier;
+            for (int i = 0; ids != null && i < ids.Length; i++)
+            {
+                pull.Comments.Add(new[] { ids[i], users[i], dates[i], texts[i], urls[i] });
+            }
+            pulls.Add(pull);
+            string name = Friendly(plugin);
+            // What's new since last time, for a Windows notification (nothing the first time: that's the baseline)
+            foreach (string[] c in pull.Comments)
+            {
+                if (firstLook)
+                {
+                    seenComments.Add(c[0]);
+                    toldComments.Add(c[0]);
+                }
+                else if (!toldComments.Contains(c[0]))
+                {
+                    toldComments.Add(c[0]);
+                    news.Add(name + ": " + c[1] + " commented");
+                }
+            }
+            string label = StateOf(pull);
+            string key = number.ToString();
+            string before;
+            if (!firstLook && knownStates.TryGetValue(key, out before) && before != label.Replace(' ', '_'))
+            {
+                news.Add(name + ": " + label);
+            }
+            knownStates[key] = label.Replace(' ', '_');
+        }
+
+        /** Draws the cards and saves; returns what's new (one line each) for a notification, or "". */
+        public string EndPullRequests()
+        {
+            firstLook = false;
+            Save();
+            DrawPullRequests();
+            string said = string.Join("\n", news.ToArray());
+            news.Clear();
+            return said;
+        }
+
+        /** Comments you haven't opened, on every card. */
+        public int Unread()
+        {
+            int count = 0;
+            foreach (Pull pull in pulls)
+            {
+                foreach (string[] c in pull.Comments)
+                {
+                    if (!seenComments.Contains(c[0])) count++;
+                }
+            }
+            return count;
+        }
+
+        private static string Friendly(string plugin)
+        {
+            string name = plugin.StartsWith("snuffys-") ? plugin.Substring(8) : plugin;
+            switch (name)
+            {
+                case "skilling-helper": return "Skilling Helper";
+                case "pvm-slayer": return "PvM/Slayer";
+                case "gemcrab-tracker": return "GemCrab Tracker";
+                case "tick-counter": return "Tick Counter";
+                case "planner": return "Planner";
+                case "alerts": return "Alerts";
+                case "toolbelt": return "Toolbelt";
+                default: return name;
+            }
+        }
+
+        // The state shown on the chip: published, closed, the build, or the latest review's verdict
+        private static string StateOf(Pull pull)
+        {
+            if (pull.State == "merged") return "Published";
+            if (pull.State == "closed") return "Closed";
+            if (pull.Check == "failed") return "Build failed";
+            if (pull.Check == "running") return "Building";
+            for (int i = pull.Comments.Count - 1; i >= 0; i--)
+            {
+                if (pull.Comments[i][0].StartsWith("r"))
+                {
+                    if (pull.Comments[i][3].StartsWith("asked for changes")) return "Changes asked";
+                    if (pull.Comments[i][3].StartsWith("approved")) return "Approved";
+                    break;
+                }
+            }
+            return pull.Check == "ok" ? "In review \u00b7 build OK" : "In review";
+        }
+
+        private static Color Tone(string label)
+        {
+            if (label == "Published" || label == "Approved") return Theme.Good;
+            if (label == "Closed") return Theme.Muted;
+            if (label == "Build failed") return Theme.Bad;
+            if (label == "Building" || label == "Changes asked") return Theme.Warn;
+            return Theme.Link;
+        }
+
+        private void Save()
+        {
+            if (SeenPath == null) return;
+            List<string> lines = new List<string>();
+            foreach (string id in seenComments) lines.Add("seen " + id);
+            foreach (string id in toldComments) lines.Add("told " + id);
+            foreach (KeyValuePair<string, string> state in knownStates) lines.Add("state " + state.Key + " " + state.Value);
+            try
+            {
+                File.WriteAllLines(SeenPath, lines.ToArray());
+            }
+            catch (Exception)
+            {
+                // not saved: the same comments show as new next time
+            }
+        }
+
+        private void DrawPullRequests()
         {
             PrList.SuspendLayout();
             PrList.Controls.Clear();
-            // Each pull request: "#N title", then its lines indented by two spaces (its link first), up to the
-            // next unindented line
-            List<List<string>> blocks = new List<List<string>>();
-            List<string> current = null;
-            foreach (string raw in (output ?? "").Split('\n'))
+            foreach (Pull pull in pulls)
             {
-                string line = raw.TrimEnd('\r');
-                if (Regex.IsMatch(line, @"^#\d+ "))
-                {
-                    current = new List<string>();
-                    current.Add(line);
-                    blocks.Add(current);
-                }
-                else if (current != null && line.StartsWith("  "))
-                {
-                    current.Add(line);
-                }
-                else
-                {
-                    current = null;
-                }
-            }
-            foreach (List<string> block in blocks)
-            {
-                string[] lines = block.ToArray();
-                Match head = Regex.Match(lines[0], @"^#(\d+) (.+)$");
-                string url = lines.Length > 1 && lines[1].Trim().StartsWith("https://") ? lines[1].Trim() : "";
-                if (!head.Success || url.Length == 0)
-                {
-                    continue;
-                }
-                string number = head.Groups[1].Value;
-                string title = head.Groups[2].Value.Trim();
-                string body = string.Join("\n", lines, 2, lines.Length - 2);
-                string state;
-                Color tone;
-                if (body.Contains("PUBLISHED"))
-                {
-                    state = "Published";
-                    tone = Theme.Good;
-                }
-                else if (body.Contains("Closed without merging"))
-                {
-                    state = "Closed";
-                    tone = Theme.Muted;
-                }
-                else if (Regex.IsMatch(body, @"Check\s+\S+\s+FAILED"))
-                {
-                    state = "Build failed";
-                    tone = Theme.Bad;
-                }
-                else if (Regex.IsMatch(body, @"Check\s+\S+\s+(running|waiting to start)"))
-                {
-                    state = "Building";
-                    tone = Theme.Warn;
-                }
-                else
-                {
-                    state = Regex.IsMatch(body, @"Check\s+build\s+OK") ? "In review \u00b7 build OK" : "In review";
-                    tone = Theme.Link;
-                }
-                Match comment = Regex.Match(body, @"Latest comment, ([^(]+) \(([^)]*)\): (.*)");
-                Card card = new Card();
-                card.Size = new Size(448, comment.Success ? 74 : 52);
-                card.Margin = new Padding(0, 0, 0, 8);
-                card.Cursor = Cursors.Hand;
-                Label name = Text("#" + number + "  " + title, 14, 8, 280, 20, Theme.Text, Theme.Bold(9));
-                card.Controls.Add(name);
-                Chip chip = new Chip();
-                chip.Text = state;
-                chip.ForeColor = tone;
-                chip.Location = new Point(300, 8);
-                chip.Size = new Size(136, 22);
-                card.Controls.Add(chip);
-                card.Controls.Add(Text(url.Replace("https://github.com/", ""), 14, 28, 420, 18, Theme.Muted, Theme.Body(8.5f)));
-                if (comment.Success)
-                {
-                    card.Controls.Add(Text(comment.Groups[1].Value.Trim() + ": " + comment.Groups[3].Value.Trim(), 14, 48, 420, 18,
-                        Theme.Muted, Theme.Body(8.5f)));
-                }
-                string page = url;
-                EventHandler open = delegate { System.Diagnostics.Process.Start(page); };
-                card.Click += open;
-                foreach (Control child in card.Controls)
-                {
-                    child.Click += open;
-                    child.Cursor = Cursors.Hand;
-                }
-                PrList.Controls.Add(card);
+                PrList.Controls.Add(PullCard(pull));
             }
             PrList.ResumeLayout();
+            int unread = Unread();
+            DevNav.Text = unread > 0 ? "Dev  (" + unread + " new)" : "Dev";
+        }
+
+        private Card PullCard(Pull pull)
+        {
+            List<string[]> unread = new List<string[]>();
+            foreach (string[] c in pull.Comments)
+            {
+                if (!seenComments.Contains(c[0])) unread.Add(c);
+            }
+            string[] latest = pull.Comments.Count > 0 ? pull.Comments[pull.Comments.Count - 1] : null;
+            string label = StateOf(pull);
+            Card card = new Card();
+            card.Size = new Size(448, latest != null ? 76 : 56);
+            card.Margin = new Padding(0, 0, 0, 8);
+            card.Cursor = Cursors.Hand;
+            card.Accent = unread.Count > 0;
+            card.Controls.Add(Text("#" + pull.Number + "  " + Friendly(pull.Plugin), 14, 9, 210, 20, Theme.Text, Theme.Bold(9)));
+            Chip chip = new Chip();
+            chip.Text = label;
+            chip.ForeColor = Tone(label);
+            chip.Location = new Point(296, 8);
+            chip.Size = new Size(140, 22);
+            card.Controls.Add(chip);
+            if (unread.Count > 0)
+            {
+                Chip fresh = new Chip();
+                fresh.Text = unread.Count + " new";
+                fresh.ForeColor = Theme.Accent;
+                fresh.Location = new Point(226, 8);
+                fresh.Size = new Size(66, 22);
+                card.Controls.Add(fresh);
+            }
+            string second = pull.State == "open" ? (pull.Check == "failed" ? "Build failed: click to see why" : "Waiting for RuneLite's review")
+                : (pull.State == "merged" ? "Merged " : "Closed ") + pull.Date;
+            if (!string.IsNullOrEmpty(pull.Earlier)) second += "  \u00b7  " + pull.Earlier;
+            card.Controls.Add(Text(second, 14, 31, 420, 18, Theme.Muted, Theme.Body(8.5f)));
+            if (latest != null)
+            {
+                card.Controls.Add(Text(latest[1] + ": " + latest[3], 14, 51, 420, 18,
+                    unread.Count > 0 ? Theme.Text : Theme.Muted, Theme.Body(8.5f)));
+            }
+            // Opens the first comment you haven't seen (and marks them all seen), a failed build's log, or the page
+            string page = unread.Count > 0 ? unread[0][4] : pull.Check == "failed" && !string.IsNullOrEmpty(pull.CheckUrl) ? pull.CheckUrl : pull.Url;
+            Pull which = pull;
+            EventHandler open = delegate
+            {
+                try { System.Diagnostics.Process.Start(page); } catch (Exception) { }
+                foreach (string[] c in which.Comments) seenComments.Add(c[0]);
+                Save();
+                DrawPullRequests();
+            };
+            card.Click += open;
+            foreach (Control child in card.Controls)
+            {
+                child.Click += open;
+                child.Cursor = Cursors.Hand;
+            }
+            new ToolTip().SetToolTip(card, "Click to open " + (unread.Count > 0 ? "the new comment" : "it") + ": " + page);
+            return card;
         }
     }
 }
@@ -1638,7 +1785,11 @@ function Running-Commit {
 $tray = New-Object System.Windows.Forms.NotifyIcon
 $tray.Icon = if ($form.Icon) { $form.Icon } else { [System.Drawing.SystemIcons]::Information }
 $tray.Text = "Snuffy's Launcher"
-$tray.Add_BalloonTipClicked({ $form.Activate() })
+$script:balloonFor = $null
+$tray.Add_BalloonTipClicked({
+    if ($script:balloonFor -eq 'hub') { $ui.DevNav.Checked = $true }
+    $form.Activate()
+})
 $form.Add_FormClosed({ $tray.Visible = $false; $tray.Dispose() })
 $script:fetch = $null
 $script:lastFetch = [DateTime]::MinValue
@@ -1676,6 +1827,7 @@ function Check-RunningVersion {
         $script:warnedFor = $head
         $updateLog.Text = "Not in the RuneLite that's open yet (press Relaunch):`r`n" + (git -C $root log --format='- %s' "$($running.Trim())..HEAD" 2>$null | Out-String).Trim()
         $tray.Visible = $true
+        $script:balloonFor = 'update'
         $tray.ShowBalloonTip(10000, "Snuffy's plugins updated", 'RuneLite is running an older version. Open the launcher and press Relaunch to use the new one.', 'Info')
     }
 }
@@ -1828,7 +1980,7 @@ $devPoll.Add_Tick({
                 $devOut.SelectionStart = $devOut.Text.Length
                 $devOut.ScrollToCaret()
             }
-            $found = [regex]::Matches($text, 'https://github\.com/runelite/plugin-hub/(compare|pull)/\S+')
+            $found = [regex]::Matches($text, 'https://github\.com/runelite/plugin-hub/compare/\S+')
             if ($found.Count -gt 0) {
                 $script:prUrls = @($found | ForEach-Object { $_.Value } | Select-Object -Unique)
                 $prLink.Visible = $true
@@ -1841,18 +1993,10 @@ $devPoll.Add_Tick({
         $devPush.Enabled = $true
         $devPublish.Enabled = $true
         $devStatusButton.Enabled = $true
-        $cards = 0
-        if ($script:devStep -eq 'status') {
-            $ui.SetPullRequests($devOut.Text)
-            $cards = $ui.PrList.Controls.Count
-        }
         if ($script:publishRun.ExitCode -ne 0) {
             $devStatus.Text = 'Stopped: see the output below.'
             $devStatus.ForeColor = $red
             $ui.ShowDevOutput($true)
-        } elseif ($cards -gt 0) {
-            $devStatus.Text = "$cards pull request$(if ($cards -ne 1) { 's' }) (click one to open it)."
-            $devStatus.ForeColor = $green
         } else {
             $devStatus.Text = 'Done.'
             $devStatus.ForeColor = $green
@@ -1860,6 +2004,8 @@ $devPoll.Add_Tick({
         }
         $script:publishRun = $null
         Update-Versions
+        # A publish changes the pull requests: check them again
+        if ($script:devStep -eq 'hub') { $script:hubNext = Get-Date }
     }
 })
 
@@ -1888,9 +2034,7 @@ function Start-DevStep($step, $dryRun) {
     Set-Content -Path $script:publishLog -Value ''
     $devOut.Text = ''
     $script:devStep = $step
-    # The status check's answer comes back as cards; the other steps' output shows as it runs
-    $ui.SetPullRequests('')
-    $ui.ShowDevOutput($step -ne 'status')
+    $ui.ShowDevOutput($true)
     $prLink.Visible = $false
     $script:prUrls = @()
     $devCheck.Enabled = $false
@@ -1912,7 +2056,83 @@ function Start-DevStep($step, $dryRun) {
 $devCheck.Add_Click({ Start-DevStep 'push' $true })
 $devPush.Add_Click({ Start-DevStep 'push' $false })
 $devPublish.Add_Click({ Start-DevStep 'hub' $false })
-$devStatusButton.Add_Click({ Start-DevStep 'status' $false })
+$devStatusButton.Add_Click({ Start-HubCheck $true })
+
+# ---- The Plugin Hub board: each plugin's pull request checked in the background (on opening, then every 10
+# minutes signed in to GitHub, else hourly: GitHub allows 60 unsigned requests an hour), a card each; comments you
+# haven't opened marked new, and a Windows notification for a new comment or a change (published, build failed) ----
+$ui.SeenPath = Join-Path $root '.hub-seen'
+$hubJson = Join-Path $env:TEMP 'snuffys-hub-status.json'
+$hubErr = Join-Path $env:TEMP 'snuffys-hub-status.err'
+$script:hubRun = $null
+$script:hubNext = Get-Date
+$script:hubManual = $false
+
+function Start-HubCheck($manual) {
+    if ($script:hubRun -and -not $script:hubRun.HasExited) { return }
+    $python = Find-Python
+    if (-not $python -or -not (Test-Path $publishConfig)) {
+        $script:hubNext = (Get-Date).AddHours(1)
+        if ($manual) { [System.Windows.Forms.MessageBox]::Show('Checking the Plugin Hub needs Python 3 and publish.json.', "Snuffy's") | Out-Null }
+        return
+    }
+    $script:hubManual = $manual
+    $ui.HubStatus.Text = 'Asking GitHub...'
+    $ui.HubStatus.ForeColor = $textColor
+    $devStatusButton.Enabled = $false
+    $pyArgs = @($python | Select-Object -Skip 1) + @('-u', 'scripts\publish_plugins.py', 'status', '--json')
+    $command = "`"$($python[0])`" " + ($pyArgs -join ' ') + " > `"$hubJson`" 2> `"$hubErr`""
+    $script:hubRun = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', "`"$command`"" -WorkingDirectory $root -WindowStyle Hidden -PassThru
+}
+
+function Read-HubCheck {
+    $devStatusButton.Enabled = $true
+    $script:hubRun = $null
+    $data = $null
+    try { $data = Get-Content $hubJson -Raw | ConvertFrom-Json } catch { }
+    if (-not $data -or -not $data.ok) {
+        $why = if ($data -and $data.problem) { $data.problem } else { ((Get-Content $hubErr -ErrorAction SilentlyContinue | Select-Object -Last 1) -join '') }
+        $ui.HubStatus.Text = "Couldn't check: $why"
+        $ui.HubStatus.ForeColor = $red
+        $script:hubNext = (Get-Date).AddMinutes(30)
+        return
+    }
+    $ui.BeginPullRequests()
+    foreach ($pull in @($data.pulls | Where-Object { $_ })) {
+        $comments = @($pull.comments | Where-Object { $_ })
+        $earlier = (@($pull.earlier | Where-Object { $_ }) | Select-Object -First 2 | ForEach-Object {
+            "#$($_.number) $(if ($_.state -eq 'merged') { 'published' } else { $_.state })" }) -join ', '
+        if ($earlier) { $earlier = "Before: $earlier" }
+        $ui.AddPullRequest([string]$pull.plugin, [int]$pull.number, [string]$pull.title, [string]$pull.url, [string]$pull.state,
+            [string]$pull.check, [string]$pull.checkUrl, [string]$pull.date, [string]$earlier,
+            [string[]]@($comments | ForEach-Object { [string]$_.id }), [string[]]@($comments | ForEach-Object { [string]$_.user }),
+            [string[]]@($comments | ForEach-Object { [string]$_.date }), [string[]]@($comments | ForEach-Object { [string]$_.text }),
+            [string[]]@($comments | ForEach-Object { [string]$_.url }))
+    }
+    $news = $ui.EndPullRequests()
+    $minutes = if ($data.authenticated) { 10 } else { 60 }
+    $script:hubNext = (Get-Date).AddMinutes($minutes)
+    $count = @($data.pulls | Where-Object { $_ }).Count
+    $ui.HubStatus.Text = "$count pull request$(if ($count -ne 1) { 's' }), checked $((Get-Date).ToString('t')); next at $($script:hubNext.ToString('t'))" +
+        $(if (-not $data.authenticated) { ' (hourly: not signed in to GitHub)' } else { '' })
+    $ui.HubStatus.ForeColor = $green
+    if ($news) {
+        $script:balloonFor = 'hub'
+        $tray.Visible = $true
+        $tray.ShowBalloonTip(10000, "Snuffy's Plugin Hub", $news, 'Info')
+    }
+}
+
+$hubTimer = New-Object System.Windows.Forms.Timer
+$hubTimer.Interval = 2000
+$hubTimer.Add_Tick({
+    if ($script:hubRun) {
+        if ($script:hubRun.HasExited) { Read-HubCheck }
+        return
+    }
+    if ((Get-Date) -ge $script:hubNext) { Start-HubCheck $false }
+})
+$hubTimer.Start()
 if (-not (Test-Path $publishConfig)) {
     $devStatus.Text = 'publish.json is missing: update the launcher.'
     $devStatus.ForeColor = $red
