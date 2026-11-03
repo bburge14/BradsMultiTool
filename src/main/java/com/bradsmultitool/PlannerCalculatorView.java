@@ -1419,13 +1419,13 @@ final class PlannerCalculatorView {
         for (int i = 0; i < steps.size(); i++) {
             PlannerCalculator.StepRow step = steps.get(i);
             if (step.step.from > expected && step.step.from > level) {
-                list.add(gap(expected, step.step.from));
+                list.add(gap(shown, plan, expected, step.step.from));
             }
             list.add(PlannerUi.spaced(stepCard(shown, plan, i, step, level)));
             expected = Math.max(expected, step.step.to);
         }
         if (expected < plan.goal) {
-            list.add(gap(expected, plan.goal));
+            list.add(gap(shown, plan, expected, plan.goal));
         }
         if (totals.xp > 0) {
             list.add(PlannerUi.spaced(planSummary(steps, totals, level, endLevel)));
@@ -1768,9 +1768,29 @@ final class PlannerCalculatorView {
     }
 
     // "Levels 45-50: no milestone (the tracker suggests the wiki's method)"
-    private static JComponent gap(int from, int to) {
-        return note("Levels " + from + "-" + to + ": no milestone here (the wiki's suggestion)", "No milestone covers these "
-            + "levels; the Skilling Helper suggests the wiki's method there");
+    // Levels no milestone covers: click to add one for them
+    private JComponent gap(Skill shown, SkillPlans.Plan plan, int from, int to) {
+        JComponent row = note("Levels " + from + "-" + to + ": no milestone here (the wiki's suggestion). Click to add one",
+            "No milestone covers these levels; the Skilling Helper suggests the wiki's method there. Click to add a "
+            + "milestone for them");
+        clickable(row, new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                stepDialog(shown, -1, plan.goal, null, from, to);
+            }
+        });
+        return row;
+    }
+
+    // The click on it and everything in it (a label with a tooltip would keep it otherwise)
+    private static void clickable(java.awt.Component component, MouseAdapter click) {
+        component.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        component.addMouseListener(click);
+        if (component instanceof java.awt.Container) {
+            for (java.awt.Component child : ((java.awt.Container) component).getComponents()) {
+                clickable(child, click);
+            }
+        }
     }
 
     // Buttons side by side, sharing the width: each link drawn as a button (a card with its text centred, lighter
@@ -1858,6 +1878,10 @@ final class PlannerCalculatorView {
         }
         JPopupMenu menu = new JPopupMenu();
         menu.add(menuItem("Edit...", () -> stepDialog(shown, index, plan.goal)));
+        if (!s.done) {
+            int insertFrom = Math.max(step.from, Math.min(step.to - 1, level));
+            menu.add(menuItem("Insert a milestone in it...", () -> stepDialog(shown, -1, plan.goal, null, insertFrom, step.to)));
+        }
         menu.add(menuItem("Change method (pick an action)", () -> {
             picking = index;
             search.setText("");
@@ -1972,23 +1996,17 @@ final class PlannerCalculatorView {
         }
         TrainingData.Method method = SkillPlans.methodFor(training, shown, action.name, action.level, plan.goal);
         if (!PlannerCalculator.addStep(plan, action, xpEach, method == null ? null : method.name, levelNow())) {
-            // The plan is full up to its goal: offer to raise the goal so this goes on after it
-            String typed = plan.goal >= 99 ? null : JOptionPane.showInputDialog(list, "Your plan already ends at level "
-                + plan.goal + ". Raise its goal to fit " + action.name + " after it (level " + (plan.goal + 1) + "-99):",
-                99);
-            int goal = typed == null ? -1 : parse(typed);
-            if (goal <= plan.goal || goal > 99) {
-                if (plan.goal >= 99) {
-                    JOptionPane.showMessageDialog(list, "Your plan already reaches 99 from level " + Math.max(levelNow(),
-                        action.level) + ". Right-click a milestone to edit its levels or change its method.", "Add to plan",
-                        JOptionPane.INFORMATION_MESSAGE);
+            // No room on its own (the plan's milestones already reach its goal): ask which levels, filled in from its
+            // level to the end of the milestone it lands in; it goes in there and that one makes room
+            int start = Math.min(98, Math.max(levelNow(), action.level));
+            int end = plan.goal > start ? plan.goal : 99;
+            for (SkillPlans.Step step : plan.steps) {
+                if (step.from <= start && start < step.to) {
+                    end = step.to;
                 }
-                return;
             }
-            PlannerCalculator.raiseGoal(plan, goal);
-            if (!PlannerCalculator.addStep(plan, action, xpEach, method == null ? null : method.name, levelNow())) {
-                return;
-            }
+            stepDialog(shown, -1, plan.goal, action.name, start, end);
+            return;
         }
         calc.savePlan(shown, plan);
         redraw.run();
@@ -2045,6 +2063,16 @@ final class PlannerCalculatorView {
 
     // Adds a milestone (index -1) or edits one: its method and levels. Neighbours that met it still meet it.
     private void stepDialog(Skill shown, int index, int goal) {
+        stepDialog(shown, index, goal, null, 0, 0);
+    }
+
+    /**
+     * Adds (index -1) or edits a milestone. A new one can come with its method and levels filled in ({@code
+     * presetAction}, {@code presetFrom}-{@code presetTo}; null and 0 for the usual guesses). A new one goes in at its own
+     * levels: the milestones it overlaps make room, split around it when it's inside one (74-81 inside 74-99 leaves
+     * 81-99).
+     */
+    private void stepDialog(Skill shown, int index, int goal, String presetAction, int presetFrom, int presetTo) {
         SkillPlans.Plan plan = calc.plan(shown);
         if (plan == null) {
             plan = new SkillPlans.Plan(goal);
@@ -2060,6 +2088,8 @@ final class PlannerCalculatorView {
         int last = plan.steps.isEmpty() ? levelNow() : plan.steps.get(plan.steps.size() - 1).to;
         if (editing != null) {
             method.setSelectedItem(editing.action);
+        } else if (presetAction != null) {
+            method.setSelectedItem(presetAction);
         } else {
             CalculatorData.Action best = null;
             for (CalculatorData.Action action : actions) {
@@ -2071,8 +2101,9 @@ final class PlannerCalculatorView {
                 method.setSelectedItem(best.name);
             }
         }
-        JTextField from = new JTextField(String.valueOf(editing != null ? editing.from : Math.min(last, plan.goal - 1)));
-        JTextField to = new JTextField(String.valueOf(editing != null ? editing.to : plan.goal));
+        JTextField from = new JTextField(String.valueOf(editing != null ? editing.from : presetFrom > 0 ? presetFrom
+            : Math.min(last, plan.goal - 1)));
+        JTextField to = new JTextField(String.valueOf(editing != null ? editing.to : presetTo > 0 ? presetTo : plan.goal));
         JPanel form = new JPanel(new GridLayout(0, 1, 2, 2));
         form.add(new JLabel("Method"));
         form.add(method);
@@ -2080,6 +2111,11 @@ final class PlannerCalculatorView {
         form.add(from);
         form.add(new JLabel("To level"));
         form.add(to);
+        if (editing == null && !plan.steps.isEmpty()) {
+            JLabel hint = new JLabel("<html><font color='#a0a0a0'>Milestones it overlaps make room: inside one, it's<br>"
+                + "split around it (74-81 in 74-99 leaves 81-99)</font></html>");
+            form.add(hint);
+        }
         if (JOptionPane.showConfirmDialog(list, form, editing != null ? "Edit milestone" : "Add a milestone",
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
             return;
@@ -2096,14 +2132,8 @@ final class PlannerCalculatorView {
         List<CalculatorData.Bonus> on = CalculatorData.bonuses(skillCalc, calc.bonuses(shown));
         double xpEach = action == null ? 0 : CalculatorData.xpEach(action, on);
         if (editing != null) {
-            for (SkillPlans.Step other : plan.steps) {
-                if (other != editing && other.to == editing.from) {
-                    other.to = start;
-                } else if (other != editing && other.from == editing.to) {
-                    other.from = end;
-                }
-            }
-            plan.steps.removeIf(other -> other != editing && other.to <= other.from);
+            // Made shorter: the levels it gave up become a gap to fill (click it), the others stay as they are;
+            // made longer: the ones it grows into make room
             editing.action = name;
             editing.from = start;
             editing.to = end;

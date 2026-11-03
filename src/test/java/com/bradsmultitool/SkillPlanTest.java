@@ -307,4 +307,28 @@ public class SkillPlanTest {
         assertEquals(1, end.size());
         assertTrue(end.get(0), end.get(0).contains("plan complete"));
     }
+
+    @Test
+    public void insertingInsideAMilestoneSplitsIt() {
+        // Adamant 67-74, Onyx 74-99: Atlatl 74-81 goes in, Onyx carries on from 81
+        SkillPlans.Plan plan = new SkillPlans.Plan(99);
+        plan.steps.add(new SkillPlans.Step("Adamant dart", 67, 74, null, 15));
+        plan.steps.add(new SkillPlans.Step("Onyx bolts", 74, 99, null, 9.4));
+        PlannerCalculator.insertStep(plan, new SkillPlans.Step("Atlatl dart", 74, 81, null, 12));
+        assertEquals(3, plan.steps.size());
+        assertEquals("Adamant dart", plan.steps.get(0).action);
+        assertEquals(74, plan.steps.get(0).to);
+        assertEquals("Atlatl dart", plan.steps.get(1).action);
+        assertEquals(81, plan.steps.get(1).to);
+        assertEquals("Onyx bolts", plan.steps.get(2).action);
+        assertEquals(81, plan.steps.get(2).from);
+        assertEquals(99, plan.steps.get(2).to);
+        // In the middle of one: split around it
+        PlannerCalculator.insertStep(plan, new SkillPlans.Step("Rune dart", 85, 90, null, 18.8));
+        assertEquals(5, plan.steps.size());
+        assertEquals(85, plan.steps.get(2).to);
+        assertEquals("Rune dart", plan.steps.get(3).action);
+        assertEquals("Onyx bolts", plan.steps.get(4).action);
+        assertEquals(90, plan.steps.get(4).from);
+    }
 }
