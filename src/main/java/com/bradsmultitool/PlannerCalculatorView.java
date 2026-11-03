@@ -110,7 +110,8 @@ final class PlannerCalculatorView {
 
     private Skill skill;
     // The goal's card in the Plan view is unfolded (its links showing)
-    private boolean goalOpen;
+    // The goal card open, with its plans under it (open to start with)
+    private boolean goalOpen = true;
     // What you typed over the game's XP (null: from the game). A typed target is kept per skill (PlannerCalculator)
     private Integer currentOverride;
     private boolean adjusting;
@@ -2057,15 +2058,19 @@ final class PlannerCalculatorView {
     private void fillPlanList(Skill shown, Runnable openPlan) {
         List<SkillPlans.Plan> plans = calc.plans(shown);
         int open = calc.openIndex(shown);
-        list.add(PlannerUi.group(shown.getName() + (calc.goal(shown) > planXp() ? " goal and plans" : " plans"),
-            plans.isEmpty() ? "" : String.valueOf(plans.size()),
+        boolean hasGoal = calc.goal(shown) > planXp();
+        list.add(PlannerUi.group(shown.getName() + (hasGoal ? " goal" : " plans"),
+            plans.isEmpty() || hasGoal ? "" : String.valueOf(plans.size()),
             new PlannerUi.IconButton(new PlannerUi.Glyph(PlannerUi.Shape.PLUS, 14, ColorScheme.LIGHT_GRAY_COLOR),
                 "New plan", () -> newPlan(shown))));
+        // The open plan's contents go under all the plan cards (so every plan is listed together)
+        boolean showOpen = false;
         int level = levelNow();
         int xp = planXp();
         boolean expanded = calc.planExpanded();
         goalCard(shown, plans, xp, level);
-        for (int i = 0; i < plans.size(); i++) {
+        // With a goal, its plans are under it (folded away with it)
+        for (int i = 0; i < plans.size() && (!hasGoal || goalOpen); i++) {
             SkillPlans.Plan plan = plans.get(i);
             int index = i;
             boolean isOpen = i == open;
@@ -2080,7 +2085,7 @@ final class PlannerCalculatorView {
                 + " · " + plan.steps.size() + (plan.steps.size() == 1 ? " milestone" : " milestones"),
                 "lvl " + level + " · " + (int) Math.floor(done * 100) + "%");
             card.right.setForeground(Color.WHITE);
-            card.corner.setText(tracked ? "In tracker" : "");
+            card.corner.setText(tracked ? "Followed" : "");
             card.corner.setForeground(PlannerUi.READY);
             card.noIcon();
             card.bar(new PlannerUi.Bar(done, done >= 1 ? PlannerUi.READY : PlannerUi.GROWING));
@@ -2141,14 +2146,18 @@ final class PlannerCalculatorView {
                 calc.setPlanExpanded(true);
                 openPlan(shown, index);
             };
-            list.add(PlannerUi.spaced(card.interactive(click, menu, "<html><b>"
+            list.add(indent(hasGoal, card.interactive(click, menu, "<html><b>"
                 + PlannerUi.esc(planName(plan, i)) + "</b>: level " + start + " to " + plan.goal + ", " + plan.steps.size()
                 + (plan.steps.size() == 1 ? " milestone" : " milestones") + "<br>" + (int) Math.floor(done * 100)
                 + "% of the way (you're level " + level + ")" + (unfolded ? "<br>Click to fold it away" : "<br>Click to open it")
-                + (tracked ? "<br>It's the plan the tracker follows" : "") + "<br>Right-click to rename, duplicate or delete</html>")));
+                + (tracked ? "<br>Followed: the plan your goal follows in the tracker" : "")
+                + "<br>Right-click to rename, duplicate or delete</html>")));
             if (unfolded && openPlan != null) {
-                openPlan.run();
+                showOpen = true;
             }
+        }
+        if (showOpen) {
+            openPlan.run();
         }
         // Other skills' plans: a click goes to that skill's
         Map<Skill, Integer> others = calc.planCounts(skills());
@@ -2174,6 +2183,30 @@ final class PlannerCalculatorView {
 
     // The skill's goal (set here or in the Skilling Helper: the same goal) as a card like a plan's: its levels, what
     // it's set to train, how far along; click it for Change goal, Remove goal and Make a plan for it
+    // A plan card under the goal: set in a little, so it reads as the goal's
+    private static JComponent indent(boolean under, JComponent card) {
+        JComponent spaced = PlannerUi.spaced(card);
+        if (!under) {
+            return spaced;
+        }
+        JPanel row = new JPanel(new BorderLayout());
+        row.setBackground(PlannerUi.BACKGROUND);
+        row.setBorder(new EmptyBorder(0, 12, 0, 0));
+        row.add(spaced, BorderLayout.CENTER);
+        return PlannerUi.fullWidth(row);
+    }
+
+    // The tracked plan's name in this skill's list ("Plan 2"), or "your plan"
+    private String planNameOf(Skill shown, SkillPlans.Plan tracked) {
+        List<SkillPlans.Plan> plans = calc.plans(shown);
+        for (int i = 0; i < plans.size(); i++) {
+            if (calc.isTracked(shown, plans.get(i))) {
+                return planName(plans.get(i), i);
+            }
+        }
+        return "your plan";
+    }
+
     private void goalCard(Skill shown, List<SkillPlans.Plan> plans, int xp, int level) {
         int goal = calc.goal(shown);
         if (goal <= xp) {
@@ -2183,13 +2216,13 @@ final class PlannerCalculatorView {
         double done = goal > start ? Math.max(0, Math.min(1, (double) (xp - start) / (goal - start))) : 1;
         SkillPlans.Plan tracked = calc.trackedPlan(shown);
         String pick = calc.goalPick(shown);
-        String follows = tracked != null ? "plan: " + (tracked.name != null ? tracked.name : "exported plan")
-            : pick != null ? pick : "the wiki's suggestion";
+        String follows = tracked != null ? "follows " + (tracked.name != null ? tracked.name : planNameOf(shown, tracked))
+            : pick != null ? "via " + pick : "the wiki's methods";
         PlannerUi.Card card = new PlannerUi.Card((goalOpen ? "▾ " : "▸ ") + "Goal: " + goalText(goal),
             CalculatorData.level(start, false) + " → " + CalculatorData.level(goal, true) + " · " + follows,
             "lvl " + level + " · " + (int) Math.floor(done * 100) + "%");
         card.right.setForeground(Color.WHITE);
-        card.corner.setText(calc.trackerInstalled() ? "In tracker" : "");
+        card.corner.setText(plans.isEmpty() ? "" : plans.size() + (plans.size() == 1 ? " plan" : " plans"));
         card.corner.setForeground(GOAL_GOLD);
         card.noIcon();
         card.bar(new PlannerUi.Bar(done, GOAL_GOLD));
@@ -2203,14 +2236,8 @@ final class PlannerCalculatorView {
             redraw.run();
         }, menu, "<html><b>Your " + shown.getName() + " goal</b>: " + goalText(goal) + ", " + String.format("%,d", goal - xp)
             + " xp to go (" + (int) Math.floor(done * 100) + "% from where it was set)<br>Training: " + PlannerUi.esc(follows)
-            + "<br>The same goal as the Skilling Helper's: change it in either<br>Click for more; right-click to change or "
-            + "remove it</html>")));
-        if (goalOpen) {
-            list.add(linkRow(PlannerUi.linkLabel("Change goal", "Set a new level or XP for it", () -> changeSkillGoal(shown)),
-                PlannerUi.linkLabel("Make a plan", "A new plan to this goal, with milestones you can change",
-                    () -> planFromGoal(shown, goal, pick)),
-                PlannerUi.linkLabel("Remove goal", "Clear the goal (in the Skilling Helper too)", () -> removeSkillGoal(shown))));
-        }
+            + "<br>The same goal as the Skilling Helper's: change it in either<br>Click to " + (goalOpen ? "fold away" : "show")
+            + " its plans; right-click to change it, make a plan for it or remove it</html>")));
     }
 
     private void changeSkillGoal(Skill shown) {
