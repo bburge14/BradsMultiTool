@@ -453,6 +453,16 @@ namespace Snuffys
             ForeColor = Theme.Muted;
         }
 
+        // The whole text on hover (a long one is cut short with "...")
+        private static readonly ToolTip Tip = new ToolTip();
+
+        protected override void OnTextChanged(EventArgs e)
+        {
+            base.OnTextChanged(e);
+            Tip.SetToolTip(this, Text);
+            Invalidate();
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -513,6 +523,7 @@ namespace Snuffys
         public Form Form;
         // Header
         public Chip UpdateStatus;
+        public Chip RunningStatus;
         public Link CheckAgain;
         public SegmentButton PlayNav;
         public SegmentButton DevNav;
@@ -659,13 +670,19 @@ namespace Snuffys
             logo.Size = new Size(44, 44);
             header.Controls.Add(logo);
             header.Controls.Add(Text("Snuffy's Launcher", 72, 12, 250, 26, Theme.Text, new Font(Theme.FontName, 13, FontStyle.Bold)));
+            // Two chips: your copy of the code (updates), and the RuneLite that's open (built from it, or older)
             UpdateStatus = new Chip();
             UpdateStatus.Location = new Point(72, 40);
-            UpdateStatus.Size = new Size(300, 22);
-            UpdateStatus.Text = "Checking for updates...";
+            UpdateStatus.Size = new Size(150, 22);
+            UpdateStatus.Text = "Code: checking...";
             header.Controls.Add(UpdateStatus);
+            RunningStatus = new Chip();
+            RunningStatus.Location = new Point(226, 40);
+            RunningStatus.Size = new Size(238, 22);
+            RunningStatus.Text = "RuneLite: not running";
+            header.Controls.Add(RunningStatus);
             CheckAgain = new Link("Check again");
-            CheckAgain.Location = new Point(384, 42);
+            CheckAgain.Location = new Point(384, 16);
             header.Controls.Add(CheckAgain);
 
             SegmentTrack nav = new SegmentTrack();
@@ -1062,19 +1079,21 @@ $ui = New-Object Snuffys.LauncherUi($root)
 $form = $ui.Form
 $icon = Join-Path $root 'assets\launcher.ico'
 
-# ---- Updates: the chip under the name, what's new in its card ----
+# ---- Updates: two chips under the name (your copy of the code; the RuneLite that's open), what's new in its card ----
 $updateStatus = $ui.UpdateStatus
+$runningStatus = $ui.RunningStatus
 $updateLog = $ui.UpdateLog
 $checkAgain = $ui.CheckAgain
 
 function Update-Plugins {
-    $updateStatus.Text = 'Checking for updates...'
+    $updateStatus.Text = 'Code: checking...'
     $updateStatus.ForeColor = $textColor
     $updateLog.Text = ''
     $form.Refresh()
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        $updateStatus.Text = "git isn't installed: launching the version you have."
+        $updateStatus.Text = "Code: no updates (no git)"
         $updateStatus.ForeColor = $red
+        $updateLog.Text = "git isn't installed, so the plugins can't update: launching the version you have."
         return
     }
     $old = (git -C $root rev-parse HEAD 2>$null)
@@ -1087,18 +1106,18 @@ function Update-Plugins {
         $out = (git -C $root pull --ff-only origin $branch 2>&1 | Out-String)
     }
     if ($LASTEXITCODE -ne 0) {
-        $updateStatus.Text = "Couldn't update (offline, or files changed here)."
+        $updateStatus.Text = "Code: couldn't update"
         $updateStatus.ForeColor = $red
-        $updateLog.Text = $out.Trim()
+        $updateLog.Text = "Couldn't update (offline, or files changed here):`r`n" + $out.Trim()
         return
     }
     $new = (git -C $root rev-parse HEAD 2>$null)
     if ($old -eq $new) {
-        $updateStatus.Text = 'Up to date.'
+        $updateStatus.Text = 'Code: up to date'
         $updateStatus.ForeColor = $green
         $updateLog.Text = (git -C $root log -1 --format='Latest: %s (%cr)' 2>$null | Out-String).Trim()
     } else {
-        $updateStatus.Text = 'Updated. New since last time:'
+        $updateStatus.Text = 'Code: just updated'
         $updateStatus.ForeColor = $green
         $updateLog.Text = (git -C $root log --format='- %s' "$old..$new" 2>$null | Out-String).Trim()
     }
@@ -1393,6 +1412,7 @@ $watcher.Add_Tick({
             if (RuneLite-Window) {
                 $script:stage = 'running'
                 Set-Status 'RuneLite is running.' $green 100
+                Check-RunningVersion
             } else {
                 Set-Status 'Starting RuneLite...' $textColor ([Math]::Min(95, [Math]::Max($progress.Value, 70) + 1))
             }
@@ -1407,6 +1427,7 @@ $watcher.Add_Tick({
     }
     if ($script:runner -and $script:runner.HasExited) {
         $watcher.Stop()
+        Check-RunningVersion
         $launch.Enabled = $true
         $relaunch.Enabled = $true
         if ($script:stage -eq 'running') {
@@ -1539,6 +1560,18 @@ $script:warnedFor = $null
 function Check-RunningVersion {
     $running = Running-Commit
     $head = (git -C $root rev-parse HEAD 2>$null)
+    # The RuneLite chip: not running, running this code, running older code (how far behind), or running from
+    # before the launcher kept track
+    if (-not ((RuneLite-Running) -or (RuneLite-Window))) {
+        $runningStatus.Text = 'RuneLite: not running'
+        $runningStatus.ForeColor = $textColor
+    } elseif (-not $running -or -not $head) {
+        $runningStatus.Text = 'RuneLite: running'
+        $runningStatus.ForeColor = $textColor
+    } elseif ($running.Trim() -eq $head.Trim()) {
+        $runningStatus.Text = 'RuneLite: latest code'
+        $runningStatus.ForeColor = $green
+    }
     if (-not $running -or -not $head -or $running.Trim() -eq $head.Trim()) {
         if ($script:warnedFor) {
             $script:warnedFor = $null
@@ -1547,14 +1580,13 @@ function Check-RunningVersion {
         return
     }
     $behind = (git -C $root rev-list --count "$($running.Trim())..HEAD" 2>$null)
-    if (-not $behind) { $behind = 'some' }
-    $updateStatus.Text = "RuneLite is out of date: press Relaunch."
-    $updateStatus.ForeColor = $red
+    $runningStatus.Text = if ($behind -and [int]$behind -gt 0) { "RuneLite: $behind update$(if ([int]$behind -ne 1) { 's' }) behind, Relaunch" } else { 'RuneLite: older code, Relaunch' }
+    $runningStatus.ForeColor = $red
     $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
     $relaunch.Enabled = $true
     if ($script:warnedFor -ne $head) {
         $script:warnedFor = $head
-        $updateLog.Text = (git -C $root log --format='- %s' "$($running.Trim())..HEAD" 2>$null | Out-String).Trim()
+        $updateLog.Text = "Not in the RuneLite that's open yet (press Relaunch):`r`n" + (git -C $root log --format='- %s' "$($running.Trim())..HEAD" 2>$null | Out-String).Trim()
         $tray.Visible = $true
         $tray.ShowBalloonTip(10000, "Snuffy's plugins updated", 'RuneLite is running an older version. Open the launcher and press Relaunch to use the new one.', 'Info')
     }
