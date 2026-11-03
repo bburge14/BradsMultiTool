@@ -23,18 +23,22 @@ if ($consoleWindow -ne [IntPtr]::Zero) { [void][Snuffys.Win]::ShowWindow($consol
 [System.Windows.Forms.Application]::EnableVisualStyles()
 # GDI+ text off (Windows' own, crisper text), before any window is made
 try { [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false) } catch { }
-# The dark theme: its colours, and flat versions of the controls Windows always draws grey (tabs, group frames, the
-# progress bar). C# 5, which Windows PowerShell 5.1 compiles
+# The window itself (dark theme, rounded cards, switches, the Launch button that fills as it builds, the Dev
+# steps, high-DPI): the C# below, which Windows PowerShell 5.1 compiles (C# 5). The logic stays here
 Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -TypeDefinition @'
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace Snuffys
 {
-    // The launcher's dark theme: colours, and the controls Windows draws in its own grey whatever their colours are
-    // (the tab strip, group box frames, the progress bar), drawn flat here instead
+    // ---- The launcher's look: colours and the drawing helpers every control shares ----
+
     public static class Theme
     {
         public static readonly Color Window = Color.FromArgb(32, 33, 36);
@@ -51,6 +55,19 @@ namespace Snuffys
         public static readonly Color Link = Color.FromArgb(138, 180, 248);
         public static readonly Color Good = Color.FromArgb(88, 204, 120);
         public static readonly Color Bad = Color.FromArgb(242, 105, 105);
+        public static readonly Color Warn = Color.FromArgb(242, 180, 80);
+
+        public const string FontName = "Segoe UI";
+
+        public static Font Body(float size)
+        {
+            return new Font(FontName, size, FontStyle.Regular);
+        }
+
+        public static Font Bold(float size)
+        {
+            return new Font(FontName, size, FontStyle.Bold);
+        }
 
         [DllImport("dwmapi.dll")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
@@ -68,103 +85,185 @@ namespace Snuffys
             }
             catch (Exception)
             {
-                // no DWM (very old Windows): the title bar stays as it is
+                // no DWM: the title bar stays as it is
+            }
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
+
+        // Sharp on scaled displays: Windows draws the window at the screen's real resolution (the layout scales with
+        // it, AutoScaleMode.Dpi) instead of stretching a blurry 96 DPI picture. Before any window is made
+        public static void DpiAware()
+        {
+            try
+            {
+                SetProcessDPIAware();
+            }
+            catch (Exception)
+            {
+                // not Windows, or too old: stays as it is
+            }
+        }
+
+        // A rounded rectangle, radius in pixels
+        public static GraphicsPath Round(RectangleF r, float radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+            float d = Math.Min(radius * 2, Math.Min(r.Width, r.Height));
+            if (d <= 0)
+            {
+                path.AddRectangle(r);
+                return path;
+            }
+            path.AddArc(r.X, r.Y, d, d, 180, 90);
+            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
+        // How much bigger than 96 DPI this is drawn (1 at 100% scaling, 1.5 at 150%)
+        public static float Scale(Graphics g)
+        {
+            return g.DpiX / 96f;
+        }
+
+        // The colour behind a control (for its rounded corners)
+        public static Color Behind(Control control)
+        {
+            Control parent = control.Parent;
+            while (parent != null && parent.BackColor.A < 255)
+            {
+                parent = parent.Parent;
+            }
+            return parent != null ? parent.BackColor : Window;
+        }
+
+        public static Color Mix(Color a, Color b, float amount)
+        {
+            return Color.FromArgb(
+                (int) (a.R + (b.R - a.R) * amount), (int) (a.G + (b.G - a.G) * amount), (int) (a.B + (b.B - a.B) * amount));
+        }
+
+        // A picture made small and square-ish, for icons (null when the file isn't there)
+        public static Image Picture(string path, int size)
+        {
+            try
+            {
+                if (path == null || !File.Exists(path))
+                {
+                    return null;
+                }
+                using (Image full = path.EndsWith(".ico", StringComparison.OrdinalIgnoreCase)
+                    ? (Image) new Icon(path, 256, 256).ToBitmap() : Image.FromFile(path))
+                {
+                    float scale = Math.Min((float) size / full.Width, (float) size / full.Height);
+                    int w = Math.Max(1, (int) (full.Width * scale));
+                    int h = Math.Max(1, (int) (full.Height * scale));
+                    Bitmap small = new Bitmap(size, size);
+                    using (Graphics g = Graphics.FromImage(small))
+                    {
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        g.DrawImage(full, (size - w) / 2, (size - h) / 2, w, h);
+                    }
+                    return small;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
     }
 
-    // A thin flat bar in the accent colour, instead of Windows' green blocks. Value 0 to Maximum
-    public class FlatProgressBar : Control
+    // A rounded button: primary ones in the accent colour, the rest dark grey (a bold font marks one that needs
+    // pressing: it goes accent too). Value (1-99) fills it from the left like a progress bar
+    public class RoundButton : Button
     {
+        private bool hover;
+        private bool down;
         private int value;
-        private int maximum = 100;
+        public bool Primary;
 
-        public FlatProgressBar()
+        public RoundButton()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
-                | ControlStyles.ResizeRedraw, true);
-            BackColor = Theme.Raised;
-            ForeColor = Theme.Accent;
+                | ControlStyles.ResizeRedraw | ControlStyles.SupportsTransparentBackColor, true);
+            FlatStyle = FlatStyle.Flat;
+            FlatAppearance.BorderSize = 0;
+            Cursor = Cursors.Hand;
+            Font = Theme.Body(9);
         }
 
         public int Value
         {
             get { return value; }
-            set { this.value = Math.Max(0, Math.Min(maximum, value)); Invalidate(); }
+            set { this.value = Math.Max(0, Math.Min(100, value)); Invalidate(); }
         }
 
-        public int Maximum
-        {
-            get { return maximum; }
-            set { maximum = Math.Max(1, value); Invalidate(); }
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            e.Graphics.Clear(BackColor);
-            int width = (int) ((long) Width * value / maximum);
-            if (width > 0)
-            {
-                using (SolidBrush fill = new SolidBrush(ForeColor))
-                {
-                    e.Graphics.FillRectangle(fill, 0, 0, width, Height);
-                }
-            }
-        }
-    }
-
-    // Tabs as flat text, the open one lighter with an accent line under it, on the window's colour
-    public class DarkTabControl : TabControl
-    {
-        public DarkTabControl()
-        {
-            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
-                | ControlStyles.ResizeRedraw, true);
-            SizeMode = TabSizeMode.Fixed;
-            ItemSize = new Size(84, 30);
-        }
+        protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hover = false; down = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnMouseDown(MouseEventArgs e) { down = true; Invalidate(); base.OnMouseDown(e); }
+        protected override void OnMouseUp(MouseEventArgs e) { down = false; Invalidate(); base.OnMouseUp(e); }
+        protected override void OnEnabledChanged(EventArgs e) { Invalidate(); base.OnEnabledChanged(e); }
+        protected override void OnFontChanged(EventArgs e) { Invalidate(); base.OnFontChanged(e); }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            g.Clear(Theme.Window);
-            for (int i = 0; i < TabCount; i++)
+            g.Clear(Theme.Behind(this));
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            float s = Theme.Scale(g);
+            bool accent = Primary || Font.Bold;
+            Color fill;
+            if (!Enabled)
             {
-                Rectangle tab = GetTabRect(i);
-                bool open = i == SelectedIndex;
-                if (open)
+                fill = Theme.Raised;
+            }
+            else if (accent)
+            {
+                fill = down ? Theme.AccentDown : hover ? Theme.AccentHover : Theme.Accent;
+            }
+            else
+            {
+                fill = down ? Theme.RaisedDown : hover ? Theme.RaisedHover : Theme.Raised;
+            }
+            RectangleF box = new RectangleF(0, 0, Width - 1, Height - 1);
+            using (GraphicsPath path = Theme.Round(box, 6 * s))
+            {
+                using (SolidBrush brush = new SolidBrush(fill))
                 {
-                    using (SolidBrush fill = new SolidBrush(Theme.Surface))
-                    {
-                        g.FillRectangle(fill, tab);
-                    }
-                    using (SolidBrush line = new SolidBrush(Theme.Accent))
-                    {
-                        g.FillRectangle(line, tab.X, tab.Bottom - 3, tab.Width, 3);
-                    }
+                    g.FillPath(brush, path);
                 }
-                using (Font font = new Font(Font, open ? FontStyle.Bold : FontStyle.Regular))
+                // Progress: the accent filling it from the left
+                if (value > 0 && value < 100)
                 {
-                    TextRenderer.DrawText(g, TabPages[i].Text, font, tab, open ? Theme.Text : Theme.Muted,
-                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                    Region clip = g.Clip;
+                    g.SetClip(path);
+                    using (SolidBrush brush = new SolidBrush(Theme.Accent))
+                    {
+                        g.FillRectangle(brush, 0, 0, Width * value / 100f, Height);
+                    }
+                    g.Clip = clip;
                 }
             }
-            // A hairline between the tabs and the page
-            Rectangle page = DisplayRectangle;
-            using (Pen pen = new Pen(Theme.Border))
-            {
-                g.DrawLine(pen, 0, page.Top - 1, Width, page.Top - 1);
-            }
+            Color text = !Enabled && value == 0 ? Theme.Muted : accent || value > 0 ? Color.White : Theme.Text;
+            TextRenderer.DrawText(g, Text, Font, new Rectangle(0, 0, Width, Height), text,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
     }
 
-    // A group as a flat card: the surface colour, a 1 px border, and its title in bold on the border
-    public class DarkGroupBox : GroupBox
+    // A card: a rounded surface with a 1 px border and, optionally, a bold title at its top left
+    public class Card : Panel
     {
-        public DarkGroupBox()
+        public string Title;
+
+        public Card()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
-                | ControlStyles.ResizeRedraw | ControlStyles.SupportsTransparentBackColor, true);
+                | ControlStyles.ResizeRedraw, true);
             BackColor = Theme.Surface;
             ForeColor = Theme.Text;
         }
@@ -172,35 +271,787 @@ namespace Snuffys
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            g.Clear(Parent != null ? Parent.BackColor : Theme.Window);
-            using (Font bold = new Font(Font, FontStyle.Bold))
+            g.Clear(Theme.Behind(this));
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            float s = Theme.Scale(g);
+            using (GraphicsPath path = Theme.Round(new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f), 10 * s))
             {
-                Size title = TextRenderer.MeasureText(g, Text, bold);
-                int top = title.Height / 2;
-                Rectangle card = new Rectangle(0, top, Width - 1, Height - top - 1);
-                using (SolidBrush fill = new SolidBrush(BackColor))
+                using (SolidBrush brush = new SolidBrush(BackColor))
                 {
-                    g.FillRectangle(fill, card);
+                    g.FillPath(brush, path);
                 }
                 using (Pen pen = new Pen(Theme.Border))
                 {
-                    g.DrawRectangle(pen, card);
+                    g.DrawPath(pen, path);
                 }
-                if (!string.IsNullOrEmpty(Text))
+            }
+            if (!string.IsNullOrEmpty(Title))
+            {
+                using (Font bold = Theme.Bold(10))
                 {
-                    Rectangle label = new Rectangle(8, 0, title.Width + 4, title.Height);
-                    using (SolidBrush fill = new SolidBrush(BackColor))
-                    {
-                        g.FillRectangle(fill, label);
-                    }
-                    TextRenderer.DrawText(g, Text, bold, new Point(10, 0), Theme.Text);
+                    TextRenderer.DrawText(g, Title, bold, new Point((int) (14 * s), (int) (11 * s)), Theme.Text);
                 }
             }
         }
     }
-}
 
+    // An on/off switch with a picture and a name (a check box underneath: Checked, CheckedChanged)
+    public class ToggleSwitch : CheckBox
+    {
+        public Image Icon;
+
+        public ToggleSwitch()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.ResizeRedraw, true);
+            AutoSize = false;
+            Cursor = Cursors.Hand;
+            Font = Theme.Body(9);
+        }
+
+        protected override void OnEnabledChanged(EventArgs e) { Invalidate(); base.OnEnabledChanged(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.Clear(Theme.Behind(this));
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            float s = Theme.Scale(g);
+            float w = 34 * s;
+            float h = 18 * s;
+            float y = (Height - h) / 2;
+            Color track = !Checked ? Theme.Raised : Enabled ? Theme.Accent : Theme.Mix(Theme.Accent, Theme.Surface, 0.55f);
+            using (GraphicsPath path = Theme.Round(new RectangleF(0, y, w, h), h / 2))
+            {
+                using (SolidBrush brush = new SolidBrush(track))
+                {
+                    g.FillPath(brush, path);
+                }
+                if (!Checked)
+                {
+                    using (Pen pen = new Pen(Theme.Border))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                }
+            }
+            float knob = h - 6 * s;
+            float x = Checked ? w - knob - 3 * s : 3 * s;
+            using (SolidBrush brush = new SolidBrush(Enabled ? Color.White : Theme.Muted))
+            {
+                g.FillEllipse(brush, x, y + 3 * s, knob, knob);
+            }
+            float left = w + 8 * s;
+            if (Icon != null)
+            {
+                float size = 18 * s;
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.DrawImage(Icon, left, (Height - size) / 2, size, size);
+                left += size + 6 * s;
+            }
+            TextRenderer.DrawText(g, Text, Font, new Rectangle((int) left, 0, Width - (int) left, Height),
+                Enabled ? Theme.Text : Theme.Muted, TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+        }
+    }
+
+    // A segmented switch: SegmentButtons (radio buttons underneath: one checked at a time) on a dark rounded track
+    public class SegmentTrack : Panel
+    {
+        public SegmentTrack()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.ResizeRedraw, true);
+            BackColor = Theme.Window;
+            Padding = new Padding(3);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.Clear(Theme.Behind(this));
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            float s = Theme.Scale(g);
+            using (GraphicsPath path = Theme.Round(new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f), 8 * s))
+            {
+                using (SolidBrush brush = new SolidBrush(BackColor))
+                {
+                    g.FillPath(brush, path);
+                }
+                using (Pen pen = new Pen(Theme.Border))
+                {
+                    g.DrawPath(pen, path);
+                }
+            }
+        }
+
+        // Adds the segments side by side, sharing the width
+        public SegmentButton[] Segments(params string[] names)
+        {
+            SegmentButton[] out_ = new SegmentButton[names.Length];
+            int inner = Width - 6;
+            for (int i = 0; i < names.Length; i++)
+            {
+                SegmentButton segment = new SegmentButton();
+                segment.Text = names[i];
+                segment.Location = new Point(3 + inner * i / names.Length, 3);
+                segment.Size = new Size(inner * (i + 1) / names.Length - inner * i / names.Length, Height - 6);
+                Controls.Add(segment);
+                out_[i] = segment;
+            }
+            return out_;
+        }
+    }
+
+    public class SegmentButton : RadioButton
+    {
+        private bool hover;
+
+        public SegmentButton()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.ResizeRedraw, true);
+            AutoSize = false;
+            Cursor = Cursors.Hand;
+            Font = Theme.Body(9);
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hover = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnCheckedChanged(EventArgs e) { Invalidate(); base.OnCheckedChanged(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.Clear(Theme.Behind(this));
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            float s = Theme.Scale(g);
+            if (Checked || hover)
+            {
+                using (GraphicsPath path = Theme.Round(new RectangleF(0, 0, Width - 1, Height - 1), 6 * s))
+                using (SolidBrush brush = new SolidBrush(Checked ? Theme.Raised : Theme.Surface))
+                {
+                    g.FillPath(brush, path);
+                }
+            }
+            using (Font font = Checked ? Theme.Bold(9) : Theme.Body(9))
+            {
+                TextRenderer.DrawText(g, Text, font, new Rectangle(0, 0, Width, Height), Checked ? Theme.Text : Theme.Muted,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            }
+        }
+    }
+
+    // A status chip: a dot and the text on a soft pill of its colour (ForeColor: green, red, or plain text for neutral)
+    public class Chip : Label
+    {
+        public Chip()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.ResizeRedraw, true);
+            AutoSize = false;
+            Font = Theme.Body(8.5f);
+            ForeColor = Theme.Muted;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.Clear(Theme.Behind(this));
+            if (string.IsNullOrEmpty(Text))
+            {
+                return;
+            }
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            float s = Theme.Scale(g);
+            Size text = TextRenderer.MeasureText(g, Text, Font);
+            float dot = 7 * s;
+            float width = Math.Min(Width - 1, text.Width + dot + 22 * s);
+            Color tone = ForeColor == Theme.Text ? Theme.Muted : ForeColor;
+            using (GraphicsPath path = Theme.Round(new RectangleF(0, 0, width, Height - 1), (Height - 1) / 2f))
+            using (SolidBrush brush = new SolidBrush(Color.FromArgb(46, tone)))
+            {
+                g.FillPath(brush, path);
+            }
+            using (SolidBrush brush = new SolidBrush(tone))
+            {
+                g.FillEllipse(brush, 9 * s, (Height - dot) / 2, dot, dot);
+            }
+            TextRenderer.DrawText(g, Text, Font, new Rectangle((int) (9 * s + dot + 5 * s), 0, (int) width, Height),
+                ForeColor == Theme.Text ? Theme.Text : Theme.Mix(tone, Color.White, 0.25f),
+                TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+        }
+    }
+
+    // A text link in the theme's link colour
+    public class Link : LinkLabel
+    {
+        public Link(string text)
+        {
+            Text = text;
+            AutoSize = true;
+            LinkColor = Theme.Link;
+            VisitedLinkColor = Theme.Link;
+            ActiveLinkColor = Theme.Text;
+            LinkBehavior = LinkBehavior.HoverUnderline;
+            Font = Theme.Body(9);
+            BackColor = Color.Transparent;
+        }
+    }
+
+    // One line of the setup checklist: a tick or a cross, what it says, and a button to fix it
+    public class SetupRow
+    {
+        public Label Mark;
+        public Label Text;
+        public RoundButton Button;
+    }
+
+    // ---- The window ----
+
+    public class LauncherUi
+    {
+        public Form Form;
+        // Header
+        public Chip UpdateStatus;
+        public Link CheckAgain;
+        public SegmentButton PlayNav;
+        public SegmentButton DevNav;
+        // Play
+        public Panel Play;
+        public TextBox UpdateLog;
+        public Card SetupCard;
+        public Label SetupSummary;
+        public Link SetupToggle;
+        public Dictionary<string, SetupRow> Rows = new Dictionary<string, SetupRow>();
+        public SegmentButton Toolbelt;
+        public SegmentButton Separate;
+        public Label Note;
+        public Dictionary<string, ToggleSwitch> Boxes = new Dictionary<string, ToggleSwitch>();
+        public RoundButton Launch;
+        public Label LaunchStatus;
+        public Link ShowLog;
+        public RoundButton Relaunch;
+        public RoundButton Close;
+        public Link Shortcut;
+        // Dev
+        public Panel Dev;
+        public Card PushCard;
+        public Dictionary<string, ToggleSwitch> DevTicks = new Dictionary<string, ToggleSwitch>();
+        public SegmentButton Patch;
+        public SegmentButton Minor;
+        public SegmentButton Major;
+        public RoundButton DevCheck;
+        public RoundButton DevPush;
+        public RoundButton DevPublish;
+        public Link PrLink;
+        public RoundButton DevStatusButton;
+        public Label DevStatus;
+        public FlowLayoutPanel PrList;
+        public Link ShowOutput;
+        public TextBox DevOut;
+        public Link DevGuide;
+
+        private readonly string root;
+        private bool setupOpen = true;
+        private int devTickCount;
+
+        // The plugins the Play tab loads: key, name, icon (assets\hub)
+        private static readonly string[][] Plugins = {
+            new[] { "skilling", "Skilling Helper", "skilltracker" },
+            new[] { "pvm", "PvM/Slayer", "pvm" },
+            new[] { "gemcrab", "GemCrab Tracker", "gemcrab" },
+            new[] { "tick", "Tick Counter", "tickcounter" },
+            new[] { "planner", "Planner", "planner" },
+            new[] { "alerts", "Alerts", "voices" },
+        };
+
+        public LauncherUi(string root)
+        {
+            this.root = root;
+            Form = new Form();
+            Form.AutoScaleDimensions = new SizeF(96F, 96F);
+            Form.AutoScaleMode = AutoScaleMode.Dpi;
+            Form.Text = "Snuffy's Launcher";
+            Form.FormBorderStyle = FormBorderStyle.FixedSingle;
+            Form.MaximizeBox = false;
+            Form.StartPosition = FormStartPosition.CenterScreen;
+            Form.ClientSize = new Size(480, 760);
+            Form.Font = Theme.Body(9);
+            Form.BackColor = Theme.Window;
+            Form.ForeColor = Theme.Text;
+            string icon = Path.Combine(Path.Combine(root, "assets"), "launcher.ico");
+            try
+            {
+                if (File.Exists(icon))
+                {
+                    Form.Icon = new Icon(icon);
+                }
+            }
+            catch (Exception)
+            {
+                // an icon this Windows can't read: the default one
+            }
+            Form.HandleCreated += delegate { Theme.DarkTitleBar(Form.Handle); };
+
+            BuildDev();
+            BuildPlay();
+            BuildHeader();
+            PlayNav.Checked = true;
+            // The focus on Launch (Enter launches), not on a text box with its text all selected
+            Form.Shown += delegate { Form.ActiveControl = Launch; UpdateLog.Select(0, 0); };
+        }
+
+        // Scrolls up and down only: a scroll bar never pushes the cards into a sideways one
+        private static void UpDownOnly(FlowLayoutPanel flow)
+        {
+            flow.AutoScroll = false;
+            flow.HorizontalScroll.Enabled = false;
+            flow.HorizontalScroll.Visible = false;
+            flow.HorizontalScroll.Maximum = 0;
+            flow.AutoScroll = true;
+        }
+
+        private static Label Text(string text, int x, int y, int width, int height, Color colour, Font font)
+        {
+            Label label = new Label();
+            label.Text = text;
+            label.Location = new Point(x, y);
+            label.Size = new Size(width, height);
+            label.ForeColor = colour;
+            label.BackColor = Color.Transparent;
+            label.Font = font;
+            return label;
+        }
+
+        private static RoundButton Button(string text, int x, int y, int width, int height, bool primary)
+        {
+            RoundButton button = new RoundButton();
+            button.Text = text;
+            button.Location = new Point(x, y);
+            button.Size = new Size(width, height);
+            button.Primary = primary;
+            if (primary)
+            {
+                button.Font = Theme.Bold(9);
+            }
+            return button;
+        }
+
+        private string Asset(string folder, string name)
+        {
+            return Path.Combine(Path.Combine(Path.Combine(root, "assets"), folder), name);
+        }
+
+        // The launcher's icon, or the Toolbelt's picture before the icon is made
+        private string LogoPath()
+        {
+            string icon = Path.Combine(Path.Combine(root, "assets"), "launcher.ico");
+            return File.Exists(icon) ? icon : Asset("hub", "multitool.png");
+        }
+
+        // ---- Header: the logo, the name, the update chip, and Play | Dev ----
+
+        private void BuildHeader()
+        {
+            Panel header = new Panel();
+            header.Dock = DockStyle.Top;
+            header.Height = 112;
+            header.BackColor = Theme.Window;
+            PictureBox logo = new PictureBox();
+            logo.Image = Theme.Picture(LogoPath(), 44) ?? Theme.Picture(Asset("hub", "multitool.png"), 44);
+            logo.SizeMode = PictureBoxSizeMode.Zoom;
+            logo.Location = new Point(18, 14);
+            logo.Size = new Size(44, 44);
+            header.Controls.Add(logo);
+            header.Controls.Add(Text("Snuffy's Launcher", 72, 12, 250, 26, Theme.Text, new Font(Theme.FontName, 13, FontStyle.Bold)));
+            UpdateStatus = new Chip();
+            UpdateStatus.Location = new Point(72, 40);
+            UpdateStatus.Size = new Size(300, 22);
+            UpdateStatus.Text = "Checking for updates...";
+            header.Controls.Add(UpdateStatus);
+            CheckAgain = new Link("Check again");
+            CheckAgain.Location = new Point(384, 42);
+            header.Controls.Add(CheckAgain);
+
+            SegmentTrack nav = new SegmentTrack();
+            nav.Location = new Point(16, 72);
+            nav.Size = new Size(448, 34);
+            SegmentButton[] tabs = nav.Segments("Play", "Dev");
+            PlayNav = tabs[0];
+            DevNav = tabs[1];
+            PlayNav.CheckedChanged += delegate { Play.Visible = PlayNav.Checked; Dev.Visible = !PlayNav.Checked; };
+            header.Controls.Add(nav);
+            Form.Controls.Add(header);
+        }
+
+        // ---- Play: what's new, setup (folds away once it's all set), plugins, and the launch bar ----
+
+        private void BuildPlay()
+        {
+            Play = new Panel();
+            Play.Dock = DockStyle.Fill;
+            Play.BackColor = Theme.Window;
+
+            // The launch bar, pinned to the bottom
+            Panel bar = new Panel();
+            bar.Dock = DockStyle.Bottom;
+            bar.Height = 132;
+            bar.BackColor = Theme.Window;
+            LaunchStatus = Text("Ready.", 18, 6, 300, 20, Theme.Muted, Theme.Body(9));
+            bar.Controls.Add(LaunchStatus);
+            ShowLog = new Link("Show log");
+            ShowLog.Location = new Point(404, 8);
+            ShowLog.Visible = false;
+            bar.Controls.Add(ShowLog);
+            Launch = Button("Launch RuneLite", 16, 30, 448, 48, true);
+            Launch.Font = Theme.Bold(11);
+            bar.Controls.Add(Launch);
+            Relaunch = Button("Relaunch", 16, 86, 140, 34, false);
+            Relaunch.Enabled = false;
+            bar.Controls.Add(Relaunch);
+            Close = Button("Close", 364, 86, 100, 34, false);
+            Close.DialogResult = DialogResult.Cancel;
+            bar.Controls.Add(Close);
+            Shortcut = new Link("Make a desktop shortcut");
+            Shortcut.Location = new Point(170, 95);
+            bar.Controls.Add(Shortcut);
+            Form.AcceptButton = Launch;
+            Form.CancelButton = Close;
+
+            FlowLayoutPanel flow = new FlowLayoutPanel();
+            flow.Dock = DockStyle.Fill;
+            flow.FlowDirection = FlowDirection.TopDown;
+            flow.WrapContents = false;
+            UpDownOnly(flow);
+            flow.Padding = new Padding(16, 6, 0, 6);
+            flow.BackColor = Theme.Window;
+
+            // What's new
+            Card news = new Card();
+            news.Title = "What's new";
+            news.Size = new Size(448, 96);
+            news.Margin = new Padding(0, 0, 0, 12);
+            UpdateLog = new TextBox();
+            UpdateLog.Multiline = true;
+            UpdateLog.ReadOnly = true;
+            UpdateLog.ScrollBars = ScrollBars.Vertical;
+            UpdateLog.BorderStyle = BorderStyle.None;
+            UpdateLog.BackColor = Theme.Surface;
+            UpdateLog.ForeColor = Theme.Muted;
+            UpdateLog.Location = new Point(14, 38);
+            UpdateLog.Size = new Size(420, 46);
+            UpdateLog.TabStop = false;
+            news.Controls.Add(UpdateLog);
+            flow.Controls.Add(news);
+
+            // Setup: a summary line that opens into the checklist
+            SetupCard = new Card();
+            SetupCard.Title = "Setup";
+            SetupCard.Size = new Size(448, 182);
+            SetupCard.Margin = new Padding(0, 0, 0, 12);
+            SetupSummary = Text("", 80, 12, 260, 20, Theme.Muted, Theme.Body(9));
+            SetupCard.Controls.Add(SetupSummary);
+            SetupToggle = new Link("Hide");
+            SetupToggle.Location = new Point(390, 13);
+            SetupToggle.LinkClicked += delegate { ShowSetup(!setupOpen); };
+            SetupCard.Controls.Add(SetupToggle);
+            int y = 42;
+            foreach (string key in new[] { "runelite", "flag", "session", "java", "git" })
+            {
+                SetupRow row = new SetupRow();
+                row.Mark = Text("", 14, y + 4, 20, 20, Theme.Muted, new Font("Segoe UI Symbol", 9, FontStyle.Bold));
+                row.Text = Text("", 36, y + 4, 290, 20, Theme.Text, Theme.Body(9));
+                row.Button = Button("", 332, y, 102, 26, false);
+                row.Button.Visible = false;
+                SetupCard.Controls.Add(row.Mark);
+                SetupCard.Controls.Add(row.Text);
+                SetupCard.Controls.Add(row.Button);
+                Rows[key] = row;
+                y += 27;
+            }
+            flow.Controls.Add(SetupCard);
+
+            // Plugins: the Toolbelt or the separate ones, each a switch
+            Card plugins = new Card();
+            plugins.Title = "Plugins to load";
+            plugins.Size = new Size(448, 192);
+            plugins.Margin = new Padding(0);
+            SegmentTrack which = new SegmentTrack();
+            which.BackColor = Theme.Window;
+            which.Location = new Point(14, 40);
+            which.Size = new Size(420, 32);
+            SegmentButton[] choice = which.Segments("Snuffy's Toolbelt", "Separate plugins");
+            Toolbelt = choice[0];
+            Separate = choice[1];
+            plugins.Controls.Add(which);
+            Note = Text("The Toolbelt is every plugin in one.", 16, 78, 410, 18, Theme.Muted, Theme.Body(8.5f));
+            plugins.Controls.Add(Note);
+            for (int i = 0; i < Plugins.Length; i++)
+            {
+                ToggleSwitch toggle = new ToggleSwitch();
+                toggle.Text = Plugins[i][1];
+                toggle.Icon = Theme.Picture(Asset("hub", Plugins[i][2] + ".png"), 36);
+                toggle.Location = new Point(16 + (i / 3) * 210, 102 + (i % 3) * 28);
+                toggle.Size = new Size(200, 24);
+                plugins.Controls.Add(toggle);
+                Boxes[Plugins[i][0]] = toggle;
+            }
+            Toolbelt.CheckedChanged += delegate { SetToolbelt(); };
+            flow.Controls.Add(plugins);
+
+            Play.Controls.Add(flow);
+            Play.Controls.Add(bar);
+            Form.Controls.Add(Play);
+        }
+
+        private void SetToolbelt()
+        {
+            Note.Text = Toolbelt.Checked ? "The Toolbelt is every plugin in one: the switches don't apply."
+                : "Load just the ones switched on.";
+            foreach (ToggleSwitch box in Boxes.Values)
+            {
+                box.Enabled = !Toolbelt.Checked;
+            }
+        }
+
+        // Open (every line, its fix button) or folded to its summary line
+        public void ShowSetup(bool open)
+        {
+            setupOpen = open;
+            foreach (SetupRow row in Rows.Values)
+            {
+                row.Mark.Visible = open;
+                row.Text.Visible = open;
+            }
+            foreach (SetupRow row in Rows.Values)
+            {
+                row.Button.Parent = open ? SetupCard : null;
+            }
+            SetupCard.Height = open ? 182 : 44;
+            SetupToggle.Text = open ? "Hide" : "Show";
+        }
+
+        // After the setup check: "All set" (folded) or how many need you (opened)
+        public void UpdateSetupSummary()
+        {
+            int problems = 0;
+            foreach (SetupRow row in Rows.Values)
+            {
+                if (row.Mark.Text != "\u2714")
+                {
+                    problems++;
+                }
+            }
+            SetupSummary.Text = problems == 0 ? "\u2714  All set" : problems + (problems == 1 ? " thing needs" : " things need") + " you";
+            SetupSummary.ForeColor = problems == 0 ? Theme.Good : Theme.Bad;
+            ShowSetup(problems > 0);
+        }
+
+        // ---- Dev: 1 push, 2 publish, 3 status, with each plugin's pull request as a card ----
+
+        private void BuildDev()
+        {
+            Dev = new Panel();
+            Dev.Dock = DockStyle.Fill;
+            Dev.BackColor = Theme.Window;
+            Dev.Visible = false;
+            FlowLayoutPanel flow = new FlowLayoutPanel();
+            flow.Dock = DockStyle.Fill;
+            flow.FlowDirection = FlowDirection.TopDown;
+            flow.WrapContents = false;
+            UpDownOnly(flow);
+            flow.Padding = new Padding(16, 6, 0, 10);
+            flow.BackColor = Theme.Window;
+
+            // 1. Push
+            PushCard = new Card();
+            PushCard.Title = "1   Push to repos";
+            PushCard.Size = new Size(448, 222);
+            PushCard.Margin = new Padding(0, 0, 0, 12);
+            PushCard.Controls.Add(Text("Copies each plugin switched on to its own GitHub repository; the changed ones get a new version.",
+                16, 34, 416, 34, Theme.Muted, Theme.Body(8.5f)));
+            SegmentTrack level = new SegmentTrack();
+            level.BackColor = Theme.Window;
+            level.Location = new Point(14, 138);
+            level.Size = new Size(420, 30);
+            SegmentButton[] levels = level.Segments("Patch (fixes)", "Minor (features)", "Major");
+            Patch = levels[0];
+            Minor = levels[1];
+            Major = levels[2];
+            Patch.Checked = true;
+            PushCard.Controls.Add(level);
+            DevCheck = Button("Check (dry run)", 14, 176, 140, 32, false);
+            DevPush = Button("Push to repos", 162, 176, 140, 32, false);
+            PushCard.Controls.Add(DevCheck);
+            PushCard.Controls.Add(DevPush);
+            flow.Controls.Add(PushCard);
+
+            // 2. Publish
+            Card publish = new Card();
+            publish.Title = "2   Publish to RuneLite";
+            publish.Size = new Size(448, 118);
+            publish.Margin = new Padding(0, 0, 0, 12);
+            publish.Controls.Add(Text("One Plugin Hub pull request per plugin; publishing again updates the open ones.", 16, 34, 416, 34,
+                Theme.Muted, Theme.Body(8.5f)));
+            DevPublish = Button("Publish to RuneLite", 14, 72, 180, 34, true);
+            publish.Controls.Add(DevPublish);
+            PrLink = new Link("Open the pull request pages");
+            PrLink.Location = new Point(206, 81);
+            PrLink.Visible = false;
+            publish.Controls.Add(PrLink);
+            flow.Controls.Add(publish);
+
+            // 3. Status
+            Card status = new Card();
+            status.Title = "3   Status";
+            status.Size = new Size(448, 86);
+            status.Margin = new Padding(0, 0, 0, 8);
+            DevStatusButton = Button("Check status", 14, 40, 120, 32, false);
+            status.Controls.Add(DevStatusButton);
+            DevStatus = Text("", 144, 46, 290, 20, Theme.Muted, Theme.Body(9));
+            status.Controls.Add(DevStatus);
+            flow.Controls.Add(status);
+
+            PrList = new FlowLayoutPanel();
+            PrList.FlowDirection = FlowDirection.TopDown;
+            PrList.WrapContents = false;
+            PrList.AutoSize = true;
+            PrList.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            PrList.BackColor = Theme.Window;
+            PrList.Margin = new Padding(0);
+            flow.Controls.Add(PrList);
+
+            Panel links = new Panel();
+            links.Size = new Size(448, 24);
+            links.BackColor = Theme.Window;
+            ShowOutput = new Link("Show output");
+            ShowOutput.Location = new Point(0, 2);
+            ShowOutput.LinkClicked += delegate { ShowDevOutput(!DevOut.Visible); };
+            links.Controls.Add(ShowOutput);
+            DevGuide = new Link("How it works (ROLLOUT.md)");
+            DevGuide.Location = new Point(290, 2);
+            links.Controls.Add(DevGuide);
+            flow.Controls.Add(links);
+
+            DevOut = new TextBox();
+            DevOut.Multiline = true;
+            DevOut.ReadOnly = true;
+            DevOut.ScrollBars = ScrollBars.Vertical;
+            DevOut.Font = new Font("Consolas", 8.5f);
+            DevOut.BackColor = Theme.Surface;
+            DevOut.ForeColor = Theme.Text;
+            DevOut.BorderStyle = BorderStyle.FixedSingle;
+            DevOut.Size = new Size(448, 220);
+            DevOut.Visible = false;
+            flow.Controls.Add(DevOut);
+
+            Dev.Controls.Add(flow);
+            Form.Controls.Add(Dev);
+        }
+
+        public void ShowDevOutput(bool show)
+        {
+            DevOut.Visible = show;
+            ShowOutput.Text = show ? "Hide output" : "Show output";
+        }
+
+        // A plugin to push: a switch in the Push card (three to a row)
+        public ToggleSwitch AddDevTick(string folder, bool on)
+        {
+            ToggleSwitch toggle = new ToggleSwitch();
+            toggle.Text = folder;
+            toggle.Checked = on;
+            toggle.Location = new Point(16 + (devTickCount % 3) * 140, 70 + (devTickCount / 3) * 22);
+            toggle.Size = new Size(136, 20);
+            toggle.Font = Theme.Body(8.5f);
+            PushCard.Controls.Add(toggle);
+            DevTicks[folder] = toggle;
+            devTickCount++;
+            return toggle;
+        }
+
+        // The version bump picked: patch, minor or major
+        public string Level()
+        {
+            return Major.Checked ? "major" : Minor.Checked ? "minor" : "patch";
+        }
+
+        // Each pull request in the status output as a card: its number and title, a chip (open, published,
+        // closed), its build check and latest comment; clicking it opens its page
+        public void SetPullRequests(string output)
+        {
+            PrList.SuspendLayout();
+            PrList.Controls.Clear();
+            foreach (Match block in Regex.Matches(output ?? "", @"^#(\d+) (.+)\r?\n\s+(https://\S+)\r?\n((?:\s{2}.*(?:\r?\n|$))*)",
+                RegexOptions.Multiline))
+            {
+                string number = block.Groups[1].Value;
+                string title = block.Groups[2].Value.Trim();
+                string url = block.Groups[3].Value;
+                string body = block.Groups[4].Value;
+                string state;
+                Color tone;
+                if (body.Contains("PUBLISHED"))
+                {
+                    state = "Published";
+                    tone = Theme.Good;
+                }
+                else if (body.Contains("Closed"))
+                {
+                    state = "Closed";
+                    tone = Theme.Muted;
+                }
+                else if (body.Contains("FAILED"))
+                {
+                    state = "Build failed";
+                    tone = Theme.Bad;
+                }
+                else if (body.Contains("running") || body.Contains("waiting to start"))
+                {
+                    state = "Building";
+                    tone = Theme.Warn;
+                }
+                else
+                {
+                    state = body.Contains("Check build      OK") ? "Open \u00b7 build OK" : "Open";
+                    tone = Theme.Link;
+                }
+                Match comment = Regex.Match(body, @"Latest comment, ([^(]+) \(([^)]*)\): (.*)");
+                Card card = new Card();
+                card.Size = new Size(448, comment.Success ? 74 : 52);
+                card.Margin = new Padding(0, 0, 0, 8);
+                card.Cursor = Cursors.Hand;
+                Label name = Text("#" + number + "  " + title, 14, 8, 280, 20, Theme.Text, Theme.Bold(9));
+                card.Controls.Add(name);
+                Chip chip = new Chip();
+                chip.Text = state;
+                chip.ForeColor = tone;
+                chip.Location = new Point(300, 8);
+                chip.Size = new Size(136, 22);
+                card.Controls.Add(chip);
+                card.Controls.Add(Text(url.Replace("https://github.com/", ""), 14, 28, 420, 18, Theme.Muted, Theme.Body(8.5f)));
+                if (comment.Success)
+                {
+                    card.Controls.Add(Text(comment.Groups[1].Value.Trim() + ": " + comment.Groups[3].Value.Trim(), 14, 48, 420, 18,
+                        Theme.Muted, Theme.Body(8.5f)));
+                }
+                string page = url;
+                EventHandler open = delegate { System.Diagnostics.Process.Start(page); };
+                card.Click += open;
+                foreach (Control child in card.Controls)
+                {
+                    child.Click += open;
+                    child.Cursor = Cursors.Hand;
+                }
+                PrList.Controls.Add(card);
+            }
+            PrList.ResumeLayout();
+        }
+    }
+}
 '@
+# Sharp on high-DPI screens (Windows scales the window properly rather than stretching a blurry one)
+[Snuffys.Theme]::DpiAware()
 
 $root = Split-Path $PSScriptRoot -Parent
 $choiceFile = Join-Path $root '.launch-choice'
@@ -212,67 +1063,14 @@ $red = [Snuffys.Theme]::Bad
 $gray = [Snuffys.Theme]::Muted
 $textColor = [Snuffys.Theme]::Text
 
-function New-Label($text, $x, $y, $width = 400, $height = 18) {
-    $label = New-Object System.Windows.Forms.Label
-    $label.Text = $text
-    $label.Location = New-Object System.Drawing.Point($x, $y)
-    $label.Size = New-Object System.Drawing.Size($width, $height)
-    return $label
-}
-
-function New-Group($text, $y, $height) {
-    $group = New-Object Snuffys.DarkGroupBox
-    $group.Text = $text
-    $group.Location = New-Object System.Drawing.Point(12, $y)
-    $group.Size = New-Object System.Drawing.Size(436, $height)
-    $playTab.Controls.Add($group)
-    return $group
-}
-
-$form = New-Object System.Windows.Forms.Form
-$form.Text = "Snuffy's Launcher"
-$form.FormBorderStyle = 'FixedDialog'
-$form.MaximizeBox = $false
-$form.StartPosition = 'CenterScreen'
-$form.ClientSize = New-Object System.Drawing.Size(468, 700)
-$form.Font = New-Object System.Drawing.Font('Segoe UI', 9)
-$form.BackColor = [Snuffys.Theme]::Window
-$form.ForeColor = $textColor
-# The title bar dark too (Windows 10 20H1 and 11)
-$form.Add_HandleCreated({ [Snuffys.Theme]::DarkTitleBar($form.Handle) })
-# Two tabs: Play (updates, setup, launching) and Dev (pushing the plugins to their repositories and RuneLite)
-$tabs = New-Object Snuffys.DarkTabControl
-$tabs.Dock = 'Fill'
-$form.Controls.Add($tabs)
-$playTab = New-Object System.Windows.Forms.TabPage
-$playTab.Text = 'Play'
-$playTab.UseVisualStyleBackColor = $false
-$devTab = New-Object System.Windows.Forms.TabPage
-$devTab.Text = 'Dev'
-$devTab.UseVisualStyleBackColor = $false
-$tabs.TabPages.Add($playTab)
-$tabs.TabPages.Add($devTab)
+$ui = New-Object Snuffys.LauncherUi($root)
+$form = $ui.Form
 $icon = Join-Path $root 'assets\launcher.ico'
-if (Test-Path $icon) {
-    $form.Icon = New-Object System.Drawing.Icon($icon)
-}
 
-# ---- Updates ----
-$updates = New-Group 'Updates' 10 130
-$updateStatus = New-Label 'Checking for updates...' 12 22 330
-$updates.Controls.Add($updateStatus)
-$updateLog = New-Object System.Windows.Forms.TextBox
-$updateLog.Multiline = $true
-$updateLog.ReadOnly = $true
-$updateLog.ScrollBars = 'Vertical'
-$updateLog.Location = New-Object System.Drawing.Point(12, 46)
-$updateLog.Size = New-Object System.Drawing.Size(410, 72)
-$updates.Controls.Add($updateLog)
-$checkAgain = New-Object System.Windows.Forms.Button
-$checkAgain.Text = 'Check again'
-$checkAgain.Location = New-Object System.Drawing.Point(342, 16)
-$checkAgain.Size = New-Object System.Drawing.Size(80, 25)
-$updates.Controls.Add($checkAgain)
+# ---- Updates: the chip under the name, what's new in its card ----
+$updateStatus = $ui.UpdateStatus
+$updateLog = $ui.UpdateLog
+$checkAgain = $ui.CheckAgain
 
 function Update-Plugins {
     $updateStatus.Text = 'Checking for updates...'
@@ -310,7 +1108,7 @@ function Update-Plugins {
         $updateLog.Text = (git -C $root log --format='- %s' "$old..$new" 2>$null | Out-String).Trim()
     }
 }
-$checkAgain.Add_Click({ Update-Plugins })
+$checkAgain.Add_LinkClicked({ Update-Plugins })
 
 # ---- Setup checklist: RuneLite, its session setting, the saved session, Java, git ----
 $runeLiteChoice = Join-Path $root '.launch-runelite'
@@ -357,21 +1155,8 @@ $jagexLauncher = @(
 ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 $flag = '--insecure-write-credentials'
 
-$setup = New-Group 'Setup' 150 160
-$rows = @{}
-$rowY = 20
-foreach ($key in 'runelite', 'flag', 'session', 'java', 'git') {
-    $mark = New-Label '' 10 ($rowY + 4) 18
-    $mark.Font = New-Object System.Drawing.Font('Segoe UI Symbol', 9, [System.Drawing.FontStyle]::Bold)
-    $text = New-Label '' 28 ($rowY + 4) 290 18
-    $button = New-Object System.Windows.Forms.Button
-    $button.Location = New-Object System.Drawing.Point(322, $rowY)
-    $button.Size = New-Object System.Drawing.Size(102, 24)
-    $button.Visible = $false
-    $setup.Controls.AddRange(@($mark, $text, $button))
-    $rows[$key] = @{ Mark = $mark; Text = $text; Button = $button }
-    $rowY += 27
-}
+# Each row: its mark, its text, its fix button (the Setup card folds to "All set" when every row is ticked)
+$rows = $ui.Rows
 $tip = New-Object System.Windows.Forms.ToolTip
 
 function Set-Row($key, $ok, $text, $buttonText = $null, $hint = $null) {
@@ -442,6 +1227,7 @@ function Check-Setup {
         Set-Row 'git' $false "git isn't installed (no updates)." 'Get git'
     }
     $launch.Enabled = [bool](Get-Command java -ErrorAction SilentlyContinue)
+    $ui.UpdateSetupSummary()
 }
 
 # Point to RuneLite.exe (remembered), or get RuneLite
@@ -520,7 +1306,6 @@ $watch.Add_Tick({
 })
 
 # ---- Plugins ----
-$pick = New-Group 'Plugins to load' 320 214
 $plugins = [ordered]@{
     'skilling' = 'Skilling Helper'
     'pvm'      = 'PvM/Slayer'
@@ -536,32 +1321,12 @@ if (Test-Path $choiceFile) {
 }
 $lastNames = $last.ToLower() -split '[,+ ]+'
 
-$toolbelt = New-Object System.Windows.Forms.RadioButton
-$toolbelt.Text = "Snuffy's Toolbelt (everything in one)"
-$toolbelt.Location = New-Object System.Drawing.Point(14, 22)
-$toolbelt.AutoSize = $true
-$pick.Controls.Add($toolbelt)
-$note = New-Label 'Runs on its own: it already includes every separate plugin.' 32 44 390
-$note.ForeColor = $gray
-$pick.Controls.Add($note)
-$separate = New-Object System.Windows.Forms.RadioButton
-$separate.Text = 'Separate plugins:'
-$separate.Location = New-Object System.Drawing.Point(14, 70)
-$separate.AutoSize = $true
-$pick.Controls.Add($separate)
-
-$boxes = @{}
-# Two columns of three
-$i = 0
+# The Toolbelt or separate plugins (a two-way switch), and a switch for each separate one
+$toolbelt = $ui.Toolbelt
+$separate = $ui.Separate
+$boxes = $ui.Boxes
 foreach ($key in $plugins.Keys) {
-    $box = New-Object System.Windows.Forms.CheckBox
-    $box.Text = $plugins[$key]
-    $box.Location = New-Object System.Drawing.Point((34 + [math]::Floor($i / 3) * 190), (94 + ($i % 3) * 22))
-    $box.AutoSize = $true
-    $box.Checked = ($lastNames -contains $key) -or ($lastNames -contains 'separate')
-    $pick.Controls.Add($box)
-    $boxes[$key] = $box
-    $i++
+    $boxes[$key].Checked = ($lastNames -contains $key) -or ($lastNames -contains 'separate')
 }
 $updateBoxes = { foreach ($box in $boxes.Values) { $box.Enabled = $separate.Checked } }
 $toolbelt.Add_CheckedChanged($updateBoxes)
@@ -570,34 +1335,13 @@ if ($lastNames -contains 'toolbelt') { $toolbelt.Checked = $true } else { $separ
 & $updateBoxes
 
 # ---- Launch ----
-$launch = New-Object System.Windows.Forms.Button
-$launch.Text = 'Launch RuneLite'
-$launch.Location = New-Object System.Drawing.Point(232, 600)
-$launch.Size = New-Object System.Drawing.Size(126, 32)
-$launch.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
-$playTab.Controls.Add($launch)
-$form.AcceptButton = $launch
-$close = New-Object System.Windows.Forms.Button
-$close.Text = 'Close'
-$close.Location = New-Object System.Drawing.Point(366, 600)
-$close.Size = New-Object System.Drawing.Size(82, 32)
-$close.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-$playTab.Controls.Add($close)
-$form.CancelButton = $close
-
-# Progress: building, starting RuneLite, running. The build runs hidden; its output goes to a log you can open.
-$launchStatus = New-Label 'Ready.' 14 544 330
-$playTab.Controls.Add($launchStatus)
-$showLog = New-Object System.Windows.Forms.LinkLabel
-$showLog.Text = 'Show log'
-$showLog.Location = New-Object System.Drawing.Point(386, 544)
-$showLog.AutoSize = $true
-$showLog.Visible = $false
-$playTab.Controls.Add($showLog)
-$progress = New-Object Snuffys.FlatProgressBar
-$progress.Location = New-Object System.Drawing.Point(14, 572)
-$progress.Size = New-Object System.Drawing.Size(434, 6)
-$playTab.Controls.Add($progress)
+# The big Launch button: it fills as RuneLite builds and starts (the status line above it says what's happening;
+# the build runs hidden, its output in a log a click away)
+$launch = $ui.Launch
+$progress = $ui.Launch
+$close = $ui.Close
+$launchStatus = $ui.LaunchStatus
+$showLog = $ui.ShowLog
 
 $logFile = Join-Path $env:TEMP "snuffys-runelite.log"
 $showLog.Add_LinkClicked({ if (Test-Path $logFile) { Start-Process notepad.exe -ArgumentList "`"$logFile`"" } })
@@ -609,7 +1353,10 @@ $script:stage = 'idle'
 function Set-Status($text, $color, $value) {
     $launchStatus.Text = $text
     $launchStatus.ForeColor = $color
-    if ($value -ge 0) { $progress.Value = [Math]::Min(100, $value) }
+    if ($value -ge 0) { $progress.Value = [Math]::Min(100, $value) } else { $progress.Value = 0 }
+    $now = $progress.Value
+    $launch.Text = if ($now -gt 0 -and $now -lt 100) { "$($text.TrimEnd('.'))  $now%" }
+                   elseif ($now -ge 100) { 'RuneLite is running' } else { 'Launch RuneLite' }
 }
 
 # What's new in the log since last time (read without locking it: the build is still writing)
@@ -707,12 +1454,7 @@ function RuneLite-Running {
 }
 
 # ---- Relaunch: close RuneLite (as its X button does, forced if it hangs), update, launch again ----
-$relaunch = New-Object System.Windows.Forms.Button
-$relaunch.Text = 'Relaunch'
-$relaunch.Location = New-Object System.Drawing.Point(132, 600)
-$relaunch.Size = New-Object System.Drawing.Size(92, 32)
-$relaunch.Enabled = $false
-$playTab.Controls.Add($relaunch)
+$relaunch = $ui.Relaunch
 $script:closingSince = $null
 $closer = New-Object System.Windows.Forms.Timer
 $closer.Interval = 500
@@ -871,11 +1613,7 @@ function Set-ShortcutIcons {
         }
     }
 }
-$shortcut = New-Object System.Windows.Forms.LinkLabel
-$shortcut.Text = 'Make a desktop shortcut'
-$shortcut.Location = New-Object System.Drawing.Point(14, 644)
-$shortcut.AutoSize = $true
-$playTab.Controls.Add($shortcut)
+$shortcut = $ui.Shortcut
 $shortcut.Add_LinkClicked({
     Set-LauncherShortcut ($shell.CreateShortcut((Join-Path $desktop "Snuffy's Launcher.lnk")))
     [System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher is on your desktop.", "Snuffy's") | Out-Null
@@ -892,86 +1630,26 @@ function Find-Python {
     return $null
 }
 
-$devAbout = New-Label "1. Push to repos: copies each ticked plugin to its own GitHub repository; changed ones get a new version (Check first to preview).`n2. Publish to RuneLite: the Plugin Hub pull request. Check status: published? build OK? comments?" 12 10 440 66
-$devTab.Controls.Add($devAbout)
-
 $publishConfig = Join-Path $root 'publish.json'
 $devTicks = [ordered]@{}
 if (Test-Path $publishConfig) {
     $config = Get-Content $publishConfig -Raw | ConvertFrom-Json
-    $y = 80
-    $x = 14
     foreach ($folder in $config.plugins.PSObject.Properties.Name) {
-        $box = New-Object System.Windows.Forms.CheckBox
-        $box.Text = $folder
-        $box.Checked = [bool]$config.plugins.$folder.publish
-        $box.Location = New-Object System.Drawing.Point($x, $y)
-        $box.Size = New-Object System.Drawing.Size(140, 20)
-        $devTab.Controls.Add($box)
-        $devTicks[$folder] = $box
-        if ($x -gt 250) { $x = 14; $y += 22 } else { $x += 145 }
+        $devTicks[$folder] = $ui.AddDevTick($folder, [bool]$config.plugins.$folder.publish)
     }
 }
-
-$bumpLabel = New-Label 'Version for changed plugins:' 12 154 170
-$devTab.Controls.Add($bumpLabel)
-$bump = New-Object System.Windows.Forms.ComboBox
-$bump.DropDownStyle = 'DropDownList'
-[void]$bump.Items.Add('patch (fixes: 1.0.0 -> 1.0.1)')
-[void]$bump.Items.Add('minor (new features: 1.0.0 -> 1.1.0)')
-[void]$bump.Items.Add('major (big changes: 1.0.0 -> 2.0.0)')
-$bump.SelectedIndex = 0
-$bump.Location = New-Object System.Drawing.Point(184, 151)
-$bump.Size = New-Object System.Drawing.Size(266, 24)
-$devTab.Controls.Add($bump)
-
-$devCheck = New-Object System.Windows.Forms.Button
-$devCheck.Text = 'Check (dry run)'
-$devCheck.Location = New-Object System.Drawing.Point(12, 184)
-$devCheck.Size = New-Object System.Drawing.Size(100, 30)
-$devTab.Controls.Add($devCheck)
-$devPush = New-Object System.Windows.Forms.Button
-$devPush.Text = 'Push to repos'
-$devPush.Location = New-Object System.Drawing.Point(118, 184)
-$devPush.Size = New-Object System.Drawing.Size(100, 30)
-$devTab.Controls.Add($devPush)
-$devPublish = New-Object System.Windows.Forms.Button
-$devPublish.Text = 'Publish to RuneLite'
-$devPublish.Location = New-Object System.Drawing.Point(224, 184)
-$devPublish.Size = New-Object System.Drawing.Size(132, 30)
-$devPublish.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
-$devTab.Controls.Add($devPublish)
-# Where the Plugin Hub pull request is: open, published (merged) or closed, its build checks, reviewers' comments
-$devStatusButton = New-Object System.Windows.Forms.Button
-$devStatusButton.Text = 'Check status'
-$devStatusButton.Location = New-Object System.Drawing.Point(362, 184)
-$devStatusButton.Size = New-Object System.Drawing.Size(88, 30)
-$devTab.Controls.Add($devStatusButton)
-$devStatus = New-Label '' 12 220 440
-$devTab.Controls.Add($devStatus)
-
-$devOut = New-Object System.Windows.Forms.TextBox
-$devOut.Multiline = $true
-$devOut.ReadOnly = $true
-$devOut.ScrollBars = 'Vertical'
-$devOut.Font = New-Object System.Drawing.Font('Consolas', 8.5)
-$devOut.Location = New-Object System.Drawing.Point(12, 242)
-$devOut.Size = New-Object System.Drawing.Size(438, 378)
-$devTab.Controls.Add($devOut)
-
-$prLink = New-Object System.Windows.Forms.LinkLabel
-$prLink.Text = 'Open the Plugin Hub pull request pages'
-$prLink.Location = New-Object System.Drawing.Point(12, 630)
-$prLink.AutoSize = $true
-$prLink.Visible = $false
-$devTab.Controls.Add($prLink)
+# 1 Push (Check is a dry run), 2 Publish, 3 Status: where each Plugin Hub pull request is (open, published or
+# closed, its build check, reviewers' comments), a card each
+$devCheck = $ui.DevCheck
+$devPush = $ui.DevPush
+$devPublish = $ui.DevPublish
+$devStatusButton = $ui.DevStatusButton
+$devStatus = $ui.DevStatus
+$devOut = $ui.DevOut
+$prLink = $ui.PrLink
 # One pull request per plugin: opens each page the last step printed
 $prLink.Add_LinkClicked({ foreach ($url in @($script:prUrls)) { Start-Process $url } })
-$devGuide = New-Object System.Windows.Forms.LinkLabel
-$devGuide.Text = 'How it works (ROLLOUT.md)'
-$devGuide.Location = New-Object System.Drawing.Point(290, 630)
-$devGuide.AutoSize = $true
-$devTab.Controls.Add($devGuide)
+$devGuide = $ui.DevGuide
 $devGuide.Add_LinkClicked({ Start-Process notepad.exe -ArgumentList "`"$(Join-Path $root 'docs\ROLLOUT.md')`"" })
 
 $script:publishLog = Join-Path $env:TEMP 'snuffys-publish.log'
@@ -1004,12 +1682,22 @@ $devPoll.Add_Tick({
         $devPush.Enabled = $true
         $devPublish.Enabled = $true
         $devStatusButton.Enabled = $true
-        if ($script:publishRun.ExitCode -eq 0) {
-            $devStatus.Text = 'Done.'
+        $cards = 0
+        if ($script:devStep -eq 'status') {
+            $ui.SetPullRequests($devOut.Text)
+            $cards = $ui.PrList.Controls.Count
+        }
+        if ($script:publishRun.ExitCode -ne 0) {
+            $devStatus.Text = 'Stopped: see the output below.'
+            $devStatus.ForeColor = $red
+            $ui.ShowDevOutput($true)
+        } elseif ($cards -gt 0) {
+            $devStatus.Text = "$cards pull request$(if ($cards -ne 1) { 's' }) (click one to open it)."
             $devStatus.ForeColor = $green
         } else {
-            $devStatus.Text = 'Stopped: see the messages below.'
-            $devStatus.ForeColor = $red
+            $devStatus.Text = 'Done.'
+            $devStatus.ForeColor = $green
+            $ui.ShowDevOutput($true)
         }
         $script:publishRun = $null
     }
@@ -1030,7 +1718,7 @@ function Start-DevStep($step, $dryRun) {
         [System.Windows.Forms.MessageBox]::Show('Tick at least one plugin.', "Snuffy's") | Out-Null
         return
     }
-    $level = @('patch', 'minor', 'major')[$bump.SelectedIndex]
+    $level = $ui.Level()
     if (-not $dryRun -and $step -ne 'status') {
         $what = $(if ($step -eq 'push') { "Push " + ($chosen -join ', ') + " to their repositories (changed ones get a new $level version)?" }
                   else { "Get the Plugin Hub pull request ready for " + ($chosen -join ', ') + "?" })
@@ -1039,6 +1727,10 @@ function Start-DevStep($step, $dryRun) {
     }
     Set-Content -Path $script:publishLog -Value ''
     $devOut.Text = ''
+    $script:devStep = $step
+    # The status check's answer comes back as cards; the other steps' output shows as it runs
+    $ui.SetPullRequests('')
+    $ui.ShowDevOutput($step -ne 'status')
     $prLink.Visible = $false
     $script:prUrls = @()
     $devCheck.Enabled = $false
@@ -1071,49 +1763,6 @@ if (-not (Test-Path $publishConfig)) {
 }
 
 
-# ---- The dark theme on every control (set once they're all made) ----
-
-# Primary actions: the accent colour; every other button a flat dark grey
-$primaryButtons = @($launch, $relaunch, $devPublish)
-function Set-Theme($parent) {
-    foreach ($control in $parent.Controls) {
-        if ($control -is [System.Windows.Forms.TabPage]) {
-            $control.UseVisualStyleBackColor = $false
-            $control.BackColor = [Snuffys.Theme]::Window
-            $control.ForeColor = $textColor
-        } elseif ($control -is [System.Windows.Forms.LinkLabel]) {
-            $control.LinkColor = [Snuffys.Theme]::Link
-            $control.VisitedLinkColor = [Snuffys.Theme]::Link
-            $control.ActiveLinkColor = $textColor
-        } elseif ($control -is [System.Windows.Forms.Button]) {
-            $primary = $primaryButtons -contains $control
-            $control.UseVisualStyleBackColor = $false
-            $control.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-            $control.FlatAppearance.BorderSize = 0
-            $control.BackColor = if ($primary) { [Snuffys.Theme]::Accent } else { [Snuffys.Theme]::Raised }
-            $control.FlatAppearance.MouseOverBackColor = if ($primary) { [Snuffys.Theme]::AccentHover } else { [Snuffys.Theme]::RaisedHover }
-            $control.FlatAppearance.MouseDownBackColor = if ($primary) { [Snuffys.Theme]::AccentDown } else { [Snuffys.Theme]::RaisedDown }
-            $control.ForeColor = if ($primary) { [System.Drawing.Color]::White } else { $textColor }
-            $control.Cursor = [System.Windows.Forms.Cursors]::Hand
-        } elseif ($control -is [System.Windows.Forms.CheckBox] -or $control -is [System.Windows.Forms.RadioButton]) {
-            $control.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-            $control.FlatAppearance.BorderColor = [Snuffys.Theme]::Border
-            $control.ForeColor = $textColor
-        } elseif ($control -is [System.Windows.Forms.TextBox]) {
-            $control.BackColor = [Snuffys.Theme]::Surface
-            $control.ForeColor = $textColor
-            $control.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-        } elseif ($control -is [System.Windows.Forms.ComboBox]) {
-            $control.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-            $control.BackColor = [Snuffys.Theme]::Surface
-            $control.ForeColor = $textColor
-        } elseif ($control -is [System.Windows.Forms.Label] -and $control.ForeColor -eq [System.Drawing.SystemColors]::ControlText) {
-            $control.ForeColor = $textColor
-        }
-        if ($control.Controls.Count -gt 0) { Set-Theme $control }
-    }
-}
-Set-Theme $form
 
 $form.Add_Shown({
     Set-ShortcutIcons

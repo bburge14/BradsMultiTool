@@ -335,15 +335,16 @@ $s.IconLocation = "C:\dev\BradsMultiTool\assets\launcher.ico,0"
 $s.Save()
 ```
 
-**4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small window that:
+**4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small dark window (Play and Dev at the top) that:
 
 - **updates** the plugins each time you open it, and while it's open checks every minute in the background and
-  pulls any update straight away, listing what's new (**Check again** to retry; when you're offline or have changed
+  pulls any update straight away: the chip under its name says where it's at and **What's new** lists the changes (**Check again** to retry; when you're offline or have changed
   files here, it says so and you launch the version you have);
 - **warns you when the open RuneLite is out of date**: it remembers which version each launch was built from (even
   if you close and reopen the launcher), and when there's a newer one it turns red ("RuneLite is out of date: press
   Relaunch", with what's new listed below), makes **Relaunch** bold and pops up a Windows notification;
-- checks your **setup**, each row with a button to fix it:
+- checks your **setup**, each row with a button to fix it (once everything's ticked the Setup card folds to
+  "All set"; **Show** opens it again):
   - **RuneLite** installed (it looks in RuneLite's usual folders, its uninstall entry, Start menu shortcuts and
     the Jagex Launcher's folder; **Find it...** lets you point to `RuneLite.exe` if it's somewhere else);
   - **session saving** on in RuneLite (configure): **Turn it on** adds `--insecure-write-credentials` for you
@@ -353,13 +354,14 @@ $s.Save()
     character's name and the date, never the session itself;
   - **Java** (needed to build) and **git** (for updates);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
-  plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
+  plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time;
 - a **Dev** tab (for the plugins' owner): **Push to repos** copies the plugins to their own GitHub repositories with
   new versions for the ones that changed (**Check (dry run)** first shows what would change), and **Publish to
-  RuneLite** gets the Plugin Hub pull request ready (see docs/ROLLOUT.md);
+  RuneLite** gets the Plugin Hub pull requests ready, and **Check status** shows each one as a card (open,
+  building, build failed, published; the latest comment; click one to open it). See docs/ROLLOUT.md;
 - **Relaunch** closes RuneLite (as its X button would, answering OK to RuneLite's "Are you sure you want to exit?"
   for you; forced if it hangs), updates, and starts it again with your pick;
-- **Launch RuneLite** builds and starts it silently (no console window): a progress bar shows it building,
+- **Launch RuneLite** builds and starts it silently (no console window): the button fills as it goes, building,
   starting RuneLite and then "RuneLite is running", and the launcher stays open (it says when RuneLite closes,
   and **Launch** works again). If something goes wrong it says so in red; **Show log** opens the full output.
   The first launch downloads Gradle and RuneLite, so it takes a few minutes.
