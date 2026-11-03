@@ -547,6 +547,31 @@ class PlannerCalculator {
         }
     }
 
+    /** The plan view's sections folded away ("milestones", "materials", "money"), as a comma list. */
+    String planFolds() {
+        String saved = configManager.getConfiguration(GROUP, "planFolded");
+        return saved == null ? "" : saved;
+    }
+
+    boolean planFolded(String section) {
+        return ("," + planFolds() + ",").contains("," + section + ",");
+    }
+
+    void setPlanFolded(String section, boolean folded) {
+        java.util.Set<String> all = new java.util.LinkedHashSet<>();
+        for (String part : planFolds().split(",")) {
+            if (!part.isEmpty()) {
+                all.add(part);
+            }
+        }
+        if (folded) {
+            all.add(section);
+        } else {
+            all.remove(section);
+        }
+        configManager.setConfiguration(GROUP, "planFolded", String.join(",", all));
+    }
+
     /** Coins in your bank (as last opened) and inventory. */
     long coins() {
         return owned().getOrDefault("coins", 0);
@@ -1383,6 +1408,31 @@ class PlannerCalculator {
             plan.limitHours += Math.max(0, m.limitRounds - 1) * 4;
         }
         return plan;
+    }
+
+    /**
+     * The smallest budget that carries the whole plan (to about 1%): the money plan run at budgets in between, the
+     * least one that doesn't run out. 0 when it needs nothing.
+     */
+    static long budgetNeeded(Skill skill, List<StepRow> steps, RecipeData recipes, Map<String, Integer> owned,
+                             ToIntFunction<String> price, ToIntFunction<String> limit) {
+        long high = 0;
+        for (MoneyStep m : moneyPlan(skill, steps, recipes, owned, Long.MAX_VALUE / 4, price, limit).steps) {
+            high += Math.max(0, m.cost);
+        }
+        if (high <= 0) {
+            return 0;
+        }
+        long low = 0;
+        while (high - low > Math.max(1000, high / 100)) {
+            long mid = low + (high - low) / 2;
+            if (moneyPlan(skill, steps, recipes, owned, mid, price, limit).runsOut == null) {
+                high = mid;
+            } else {
+                low = mid;
+            }
+        }
+        return high;
     }
 
     // A tool you have: any item named for it ("Hammer" in "Imcando hammer", "Knife")

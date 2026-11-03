@@ -390,6 +390,13 @@ public class SkillPlanTest {
             name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0);
         assertNotNull(money.runsOut);
         assertTrue(money.runsOut.runsOut);
+        // The budget it needs carries it; a bit less doesn't
+        long needed = PlannerCalculator.budgetNeeded(Skill.COOKING, rows, RECIPES, new HashMap<>(),
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0);
+        assertNull(PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, new HashMap<>(), needed,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0).runsOut);
+        assertNotNull(PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, new HashMap<>(), needed * 9 / 10,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0).runsOut);
     }
 
     @Test
