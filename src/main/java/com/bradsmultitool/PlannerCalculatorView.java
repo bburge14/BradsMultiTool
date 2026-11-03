@@ -1132,7 +1132,14 @@ final class PlannerCalculatorView {
             click = () -> pickMethod(shown, action, row.xpEach);
             menu.add(menuItem("Use for this milestone", click));
         } else if (calc.canPlan()) {
-            menu.add(menuItem("Add to plan", () -> addToPlan(shown, action, row.xpEach)));
+            int[] typed = typedLevels(shown);
+            if (typed != null) {
+                // The levels typed above (Current to Target): it goes in there, the milestones there make room
+                menu.add(menuItem("Add to plan (" + typed[0] + "-" + typed[1] + ")",
+                    () -> addToPlanAt(shown, action, row.xpEach, typed[0], typed[1])));
+            } else {
+                menu.add(menuItem("Add to plan", () -> addToPlan(shown, action, row.xpEach)));
+            }
         }
         return card.interactive(click, menu.getComponentCount() > 0 ? menu : null, actionTip(row, now, target));
     }
@@ -1987,6 +1994,28 @@ final class PlannerCalculatorView {
             calc.savePlan(shown, plan);
             redraw.run();
         }
+    }
+
+    // The Current and Target levels when you've typed either (else null): Add to plan uses them as the milestone's levels
+    private int[] typedLevels(Skill shown) {
+        if (currentOverride == null && calc.savedTarget(shown) <= 0) {
+            return null;
+        }
+        int from = CalculatorData.level(current(), false);
+        int to = Math.min(99, CalculatorData.level(target(), false));
+        return from >= 1 && to > from ? new int[] {from, to} : null;
+    }
+
+    // In at exactly these levels: the milestones it overlaps make room (split around it when it's inside one)
+    private void addToPlanAt(Skill shown, CalculatorData.Action action, double xpEach, int from, int to) {
+        SkillPlans.Plan plan = calc.plan(shown);
+        if (plan == null) {
+            plan = new SkillPlans.Plan(Math.max(to, newGoal()));
+        }
+        TrainingData.Method method = SkillPlans.methodFor(training, shown, action.name, from, to);
+        PlannerCalculator.insertStep(plan, new SkillPlans.Step(action.name, from, to, method == null ? null : method.name, xpEach));
+        calc.savePlan(shown, plan);
+        redraw.run();
     }
 
     private void addToPlan(Skill shown, CalculatorData.Action action, double xpEach) {

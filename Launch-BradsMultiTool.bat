@@ -4,4 +4,10 @@ rem session is saved, lets you pick which plugins to load (the Toolbelt on its o
 rem and launches RuneLite. Your pick is remembered in .launch-choice next to this file. The launcher hides its own
 rem console window; the desktop shortcut it makes opens it with no window at all.
 cd /d "%~dp0"
+rem A script that can't even be read (a broken update) opens its errors in Notepad instead of nothing happening
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile('%~dp0scripts\launcher.ps1', [ref]$null, [ref]$e); if ($e) { ($e | Out-String) | Set-Content (Join-Path $env:TEMP 'snuffys-launcher-error.log'); exit 1 }"
+if errorlevel 1 (
+  start "" notepad "%TEMP%\snuffys-launcher-error.log"
+  exit /b 1
+)
 start "" /min powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0scripts\launcher.ps1"

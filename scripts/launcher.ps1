@@ -8,6 +8,16 @@
 # progress bar (building, starting, running; the log a click away) and the window stays open while RuneLite runs.
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+# Anything that stops the launcher says what in a message (and in %TEMP%\snuffys-launcher-error.log), instead of the
+# window just not opening (its console is hidden)
+$startupLog = Join-Path $env:TEMP 'snuffys-launcher-error.log'
+trap {
+    $problem = "$($_.Exception.Message)`r`n`r`n$($_.InvocationInfo.PositionMessage)"
+    try { Set-Content -Path $startupLog -Value $problem } catch { }
+    [void][System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher couldn't start:`r`n`r`n$problem`r`n`r`n(Saved in $startupLog)",
+        "Snuffy's Launcher")
+    exit 1
+}
 # Finding RuneLite's "Are you sure you want to exit?" box, for Relaunch to answer it
 Add-Type -Namespace Snuffys -Name Win -MemberDefinition @'
 [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindowEx(IntPtr parent, IntPtr after, string cls, string title);
@@ -25,7 +35,8 @@ if ($consoleWindow -ne [IntPtr]::Zero) { [void][Snuffys.Win]::ShowWindow($consol
 try { [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false) } catch { }
 # The window itself (dark theme, rounded cards, switches, the Launch button that fills as it builds, the Dev
 # steps, high-DPI): the C# below, which Windows PowerShell 5.1 compiles (C# 5). The logic stays here
-Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -TypeDefinition @'
+$compileErrors = $null
+$uiSource = @'
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -1119,6 +1130,12 @@ namespace Snuffys
     }
 }
 '@
+# (the compiler's own messages in the error, should it fail: Add-Type on its own only says "compilation errors")
+try {
+    Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -TypeDefinition $uiSource -ErrorVariable compileErrors -ErrorAction Stop
+} catch {
+    throw ("The window's code didn't compile:`r`n" + (($compileErrors | Select-Object -First 8 | Out-String).Trim()))
+}
 # Sharp on high-DPI screens (Windows scales the window properly rather than stretching a blurry one)
 [Snuffys.Theme]::DpiAware()
 
