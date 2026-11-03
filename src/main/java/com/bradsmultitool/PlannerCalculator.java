@@ -103,7 +103,8 @@ class PlannerCalculator {
 
     @Inject
     PlannerCalculator(Client client, ConfigManager configManager, ItemManager itemManager, PlannerView view,
-                      PlannerConfig config, PluginFamily family) {
+                      PlannerConfig config, PluginFamily family, Alerts alerts) {
+        this.alerts = alerts;
         this.client = client;
         this.configManager = configManager;
         this.itemManager = itemManager;
@@ -131,7 +132,45 @@ class PlannerCalculator {
         Integer before = seenXp.put(event.getSkill(), event.getXp());
         if (before != null && event.getXp() > before) {
             lastTrained = event.getSkill();
+            milestonesPassed(event.getSkill(), before, event.getXp());
         }
+    }
+
+    private final Alerts alerts;
+
+    // Your plan's milestones ticked off as you pass them: a chat message for each one finished (with the next), and
+    // one when you reach the plan's goal
+    private void milestonesPassed(Skill skill, int before, int now) {
+        SkillPlans.Plan plan = canPlan() ? plan(skill) : null;
+        for (String message : milestoneMessages(skill, plan, before, now)) {
+            alerts.chat("chatPlanMilestone", message);
+        }
+    }
+
+    /** What to say when XP goes from {@code before} to {@code now}: each milestone ended between them, and the goal. */
+    static List<String> milestoneMessages(Skill skill, SkillPlans.Plan plan, int before, int now) {
+        List<String> out = new ArrayList<>();
+        if (plan == null || now <= before) {
+            return out;
+        }
+        int goal = Experience.getXpForLevel(Math.min(99, Math.max(2, plan.goal)));
+        for (SkillPlans.Step step : plan.steps) {
+            int end = Experience.getXpForLevel(Math.min(99, Math.max(2, step.to)));
+            if (before < end && now >= end && end < goal) {
+                SkillPlans.Step next = null;
+                for (SkillPlans.Step other : plan.steps) {
+                    if (other != step && other.from <= step.to && step.to < other.to && (next == null || other.from > next.from)) {
+                        next = other;
+                    }
+                }
+                out.add(skill.getName() + " plan: milestone done, " + step.action + " (" + step.from + "-" + step.to + ")."
+                    + (next != null ? " Next: " + next.action + " to " + next.to + "." : ""));
+            }
+        }
+        if (before < goal && now >= goal) {
+            out.add(skill.getName() + " plan complete: level " + plan.goal + " reached!");
+        }
+        return out;
     }
 
     private final Map<Skill, Integer> seenXp = new EnumMap<>(Skill.class);
@@ -962,6 +1001,10 @@ class PlannerCalculator {
         final int xp;
         /** Already past its end. */
         final boolean done;
+        /** How far through it you are, 0 (not started) to 1 (done). */
+        double progress;
+        /** Actions for the whole milestone, start to end (0 without an action): with {@code row.needed}, how many are done. */
+        long total;
 
         StepRow(SkillPlans.Step step, CalculatorData.Action action, Row row, int xp, boolean done) {
             this.step = step;
@@ -969,6 +1012,11 @@ class PlannerCalculator {
             this.row = row;
             this.xp = xp;
             this.done = done;
+        }
+
+        /** Actions done of it so far (0 without an action). */
+        long made() {
+            return row == null ? 0 : Math.max(0, total - row.needed);
         }
 
         /** You can't do its action at its start level. */
@@ -1003,7 +1051,11 @@ class PlannerCalculator {
             boolean done = xpNow >= end;
             Row row = action == null ? null : row(skill, action, on, start, end, Math.max(step.from,
                 CalculatorData.level(xpNow, false)), recipes, training, Collections.emptyMap(), price, itemPrice);
-            out.add(new StepRow(step, action, row, done ? 0 : Math.max(0, end - start), done));
+            StepRow s = new StepRow(step, action, row, done ? 0 : Math.max(0, end - start), done);
+            int from = Experience.getXpForLevel(Math.max(1, step.from));
+            s.progress = done ? 1 : end > from ? Math.max(0, Math.min(1, (double) (xpNow - from) / (end - from))) : 0;
+            s.total = action == null ? 0 : CalculatorData.needed(action, on, from, end);
+            out.add(s);
         }
         return out;
     }

@@ -509,6 +509,17 @@ public interface PlannerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "chatPlanMilestone",
+        name = "Chat: Milestone Done",
+        description = "<div width='300'>A game chat message when you finish a milestone of your plan (the one open in the Calculator), naming the next one, and when you reach the plan's goal",
+        section = plannerCalculatorSection,
+        position = 4
+    )
+    default boolean chatPlanMilestone() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "compactOverlays",
         name = "Compact Overlays",
         description = "<div width='300'>The plan overlay shows only the essentials (the plan, the milestone's bar and the actions left). Off: everything</div>",

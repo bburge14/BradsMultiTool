@@ -274,4 +274,37 @@ public class SkillPlanTest {
         assertTrue(SkillPlans.matches(method, "Teak logs"));
         assertTrue(PlannerCalculator.matches(method, "Teak logs"));
     }
+
+    @Test
+    public void milestonesTickOffAsYouGo() {
+        CalculatorData.Calc fletching = DATA.calc(Skill.FLETCHING);
+        SkillPlans.Plan plan = new SkillPlans.Plan(90);
+        plan.steps.add(new SkillPlans.Step("Adamant dart", 67, 81, null, 15));
+        plan.steps.add(new SkillPlans.Step("Rune dart", 81, 90, null, 18.8));
+        int at70 = Experience.getXpForLevel(70);
+        List<PlannerCalculator.StepRow> before = PlannerCalculator.stepRows(Skill.FLETCHING, fletching, Collections.emptyList(),
+            plan, at70, RECIPES, TRAINING, n -> 0, id -> 0);
+        // 3,000 darts later: 3,000 fewer to go, and they count as done
+        List<PlannerCalculator.StepRow> after = PlannerCalculator.stepRows(Skill.FLETCHING, fletching, Collections.emptyList(),
+            plan, at70 + 45_000, RECIPES, TRAINING, n -> 0, id -> 0);
+        assertEquals(before.get(0).row.needed - 3000, after.get(0).row.needed);
+        assertEquals(before.get(0).made() + 3000, after.get(0).made());
+        assertEquals(before.get(0).total, after.get(0).total);
+        assertTrue(after.get(0).progress > before.get(0).progress);
+        assertEquals(0, after.get(1).progress, 0);
+        // Past 81: the first is done (and full), and passing it says so, with the next
+        int at81 = Experience.getXpForLevel(81);
+        PlannerCalculator.StepRow done = PlannerCalculator.stepRows(Skill.FLETCHING, fletching, Collections.emptyList(), plan,
+            at81, RECIPES, TRAINING, n -> 0, id -> 0).get(0);
+        assertTrue(done.done);
+        assertEquals(1, done.progress, 0);
+        List<String> said = PlannerCalculator.milestoneMessages(Skill.FLETCHING, plan, at81 - 10, at81 + 10);
+        assertEquals(1, said.size());
+        assertTrue(said.get(0), said.get(0).contains("Adamant dart") && said.get(0).contains("Next: Rune dart to 90"));
+        assertTrue(PlannerCalculator.milestoneMessages(Skill.FLETCHING, plan, at81 + 10, at81 + 20).isEmpty());
+        List<String> end = PlannerCalculator.milestoneMessages(Skill.FLETCHING, plan, Experience.getXpForLevel(90) - 1,
+            Experience.getXpForLevel(90));
+        assertEquals(1, end.size());
+        assertTrue(end.get(0), end.get(0).contains("plan complete"));
+    }
 }

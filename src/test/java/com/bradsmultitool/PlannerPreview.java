@@ -255,7 +255,7 @@ public class PlannerPreview {
             slayer = new PlannerSlayer(null, configManager, null, view);
             drops = new DropTracker(configManager, null, config, view, gson);
             notes = new PlannerNotes(configManager, view, gson);
-            calculator = new PlannerCalculator(null, configManager, null, view, config, null);
+            calculator = new PlannerCalculator(null, configManager, null, view, config, null, null);
             calculatorData.load(gson);
             recipes.load(gson);
             training.load(gson);

@@ -1811,8 +1811,12 @@ final class PlannerCalculatorView {
         SkillPlans.Step step = s.step;
         PlannerCalculator.Row row = s.row;
         boolean now = step.covers(level);
-        PlannerUi.Card card = new PlannerUi.Card(step.action, s.done ? "done: you're level " + level : PlannerPanel.gp(s.xp) + " xp"
-            + (now ? " left" : ""), row != null && !s.done ? String.format("%,d", row.needed) : "");
+        // Ticked off once you're past its end; on the way, how far through it you are
+        int percent = (int) Math.floor(s.progress * 100);
+        boolean started = !s.done && s.progress > 0;
+        PlannerUi.Card card = new PlannerUi.Card(step.action, s.done ? "Done (you're level " + level + ")"
+            : PlannerPanel.gp(s.xp) + " xp" + (started ? " left · " + percent + "%" : now ? " left" : ""),
+            row != null && !s.done ? String.format("%,d", row.needed) : "");
         card.corner.setText(step.from + " → " + step.to);
         card.corner.setForeground(now ? Color.WHITE : PlannerUi.MUTED);
         card.right.setForeground(Color.WHITE);
@@ -1842,8 +1846,15 @@ final class PlannerCalculatorView {
         }
         if (s.done) {
             card.dim();
-        } else if (now) {
-            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, SUGGESTED));
+            card.left.setForeground(PlannerUi.READY);
+            card.bar(new PlannerUi.Bar(1, PlannerUi.READY));
+        } else {
+            if (now) {
+                card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, SUGGESTED));
+            }
+            if (started) {
+                card.bar(new PlannerUi.Bar(Math.max(0.02, s.progress), PlannerUi.GROWING));
+            }
         }
         JPopupMenu menu = new JPopupMenu();
         menu.add(menuItem("Edit...", () -> stepDialog(shown, index, plan.goal)));
@@ -1864,6 +1875,10 @@ final class PlannerCalculatorView {
         if (s.done) {
             tip.append(" (done)");
         } else if (row != null) {
+            if (started) {
+                tip.append("<br>").append(percent).append("% done: ").append(String.format("%,d", s.made())).append(" of ")
+                    .append(String.format("%,d", s.total)).append(" actions");
+            }
             tip.append("<br>").append(String.format("%,d", s.xp)).append(" xp: ").append(String.format("%,d", row.needed))
                 .append(" actions at ").append(xp(row.xpEach)).append(" xp each");
             if (row.seconds > 0) {
