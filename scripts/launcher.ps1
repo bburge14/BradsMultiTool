@@ -1626,19 +1626,35 @@ function Get-Removed {
     return @(Get-Content $removedFile | Where-Object { $_ })
 }
 
-# The code's version: this repository's commit, or (friends) the launcher's and every plugin repository's
+# (friends) What the background updater knows: each repository's commit and recent history (.plugin-state.json)
+$pluginState = Join-Path $root '.plugin-state.json'
+function Get-PluginState {
+    $state = @{}
+    if (Test-Path $pluginState) {
+        try {
+            $saved = Get-Content $pluginState -Raw | ConvertFrom-Json
+            foreach ($property in $saved.PSObject.Properties) { $state[$property.Name] = $property.Value }
+        } catch { }
+    }
+    return $state
+}
+
+# The code's version: this repository's commit, or (friends) the launcher's and every downloaded plugin's
 function Get-Head {
     if (-not $friends) { return (git -C $root rev-parse HEAD 2>$null) }
-    $parts = @("launcher=$((git -C $root rev-parse HEAD 2>$null))")
+    $state = Get-PluginState
+    $parts = @()
+    if ($state['launcher']) { $parts += "launcher=$($state['launcher'].sha)" }
     foreach ($plugin in $friendPlugins) {
-        $dir = Join-Path $pluginsHome $plugin.folder
-        if (Test-Path (Join-Path $dir '.git')) { $parts += "$($plugin.folder)=$((git -C $dir rev-parse HEAD 2>$null))" }
+        if ($state[$plugin.folder] -and (Test-Path (Join-Path (Join-Path $pluginsHome $plugin.folder) 'build.gradle'))) {
+            $parts += "$($plugin.folder)=$($state[$plugin.folder].sha)"
+        }
     }
     return ($parts -join ';')
 }
 
-# (friends) What changed in the plugin repositories since a Get-Head (or lately, with none), one line each: all of it
-# plugin code, so all of it needs a Relaunch
+# (friends) What changed in the plugins since a Get-Head (or lately, with none), one line each, from their saved
+# history: all of it plugin code, so all of it needs a Relaunch
 function Get-FriendsChanges($since) {
     $was = @{}
     if ($since) {
@@ -1647,13 +1663,18 @@ function Get-FriendsChanges($since) {
             if ($pair.Count -eq 2) { $was[$pair[0]] = $pair[1] }
         }
     }
+    $state = Get-PluginState
     $lines = New-Object System.Collections.Generic.List[string]
     foreach ($plugin in $friendPlugins) {
-        $dir = Join-Path $pluginsHome $plugin.folder
-        if (-not (Test-Path (Join-Path $dir '.git'))) { continue }
-        $range = if ($since -and $was[$plugin.folder]) { "$($was[$plugin.folder])..HEAD" } elseif ($since) { '-3' } else { '-2' }
-        foreach ($subject in @(git -C $dir log --max-count=20 --format='%s' $range 2>$null)) {
-            if ($subject) { $lines.Add("- $($plugin.name): $subject") }
+        $known = $state[$plugin.folder]
+        if (-not $known -or -not $known.history) { continue }
+        $count = 0
+        foreach ($commit in @($known.history)) {
+            if ($since -and $was[$plugin.folder] -and $commit.sha -eq $was[$plugin.folder]) { break }
+            if (-not $since -and $count -ge 2) { break }
+            if ($since -and -not $was[$plugin.folder] -and $count -ge 3) { break }
+            $lines.Add("- $($plugin.name): $($commit.subject)")
+            $count++
         }
     }
     return @{ Text = ($lines -join "`r`n"); Needed = $lines.Count; All = $lines.Count }
@@ -1712,50 +1733,49 @@ function Update-Plugins {
 }
 $checkAgain.Add_LinkClicked({ Update-Plugins })
 
-# (friends) The launcher itself, then each plugin's repository: downloaded the first time, brought up to date after
+# (friends) The launcher itself and each plugin, from GitHub with no git: scripts\update-plugins.ps1 in the background
+# (no window), then Finish-Friends shows what it did
+$script:updater = $null
+$script:updateBefore = $null
 function Update-Friends {
+    if ($script:updater -and -not $script:updater.HasExited) { return }
     $updateStatus.Text = 'Code: checking...'
     $updateStatus.ForeColor = $textColor
-    $form.Refresh()
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        $updateStatus.Text = "Code: no updates (no git)"
-        $updateStatus.ForeColor = $red
-        $updateLog.Text = "git isn't installed: it's how the launcher downloads Snuffy's plugins. Get it from git-scm.com (Setup, below)."
-        return
-    }
-    $before = Get-Head
-    $problems = @()
-    git -C $root pull --ff-only --quiet 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) { $problems += 'the launcher' }
-    if (-not (Test-Path $pluginsHome)) { New-Item -ItemType Directory -Path $pluginsHome | Out-Null }
-    # (kept out of sight in File Explorer: it's the launcher's)
-    try { (Get-Item $pluginsHome -Force).Attributes = 'Directory, Hidden' } catch { }
-    $removed = Get-Removed
-    foreach ($plugin in $friendPlugins) {
-        if ($removed -contains $plugin.key) { continue }
-        $dir = Join-Path $pluginsHome $plugin.folder
-        if (Test-Path (Join-Path $dir '.git')) {
-            git -C $dir pull --ff-only --quiet 2>&1 | Out-Null
-        } else {
-            $updateStatus.Text = "Code: downloading $($plugin.name)..."
-            $form.Refresh()
-            git clone --quiet --branch $plugin.branch $plugin.repo $dir 2>&1 | Out-Null
-        }
-        if ($LASTEXITCODE -ne 0) { $problems += $plugin.name }
-    }
+    $script:updateBefore = Get-Head
+    $updater = Join-Path $root 'scripts\update-plugins.ps1'
+    $script:updater = Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass',
+        '-WindowStyle', 'Hidden', '-File', "`"$updater`"", '-Root', "`"$root`"" -WindowStyle Hidden -PassThru
+}
+
+function Finish-Friends {
+    $script:updater = $null
+    $result = $null
+    try { $result = Get-Content (Join-Path $root '.update-result.json') -Raw | ConvertFrom-Json } catch { }
     $after = Get-Head
+    $problems = if ($result) { @($result.problems | Where-Object { $_ }) } else { @('the update') }
     if ($problems) {
         $updateStatus.Text = "Code: couldn't update"
         $updateStatus.ForeColor = $red
-        $updateLog.Text = "Couldn't update " + ($problems -join ', ') + " (offline, or files changed there).`r`n" + (Get-FriendsChanges $null).Text
-    } elseif ($before -eq $after) {
+        $updateLog.Text = "Couldn't update " + ($problems -join ', ') + " (offline? GitHub busy?): it tries again in a while.`r`n" +
+            (Get-FriendsChanges $null).Text
+    } elseif ($script:updateBefore -eq $after) {
         $updateStatus.Text = 'Code: up to date'
         $updateStatus.ForeColor = $green
         $updateLog.Text = "Recent changes:`r`n" + (Get-FriendsChanges $null).Text
     } else {
         $updateStatus.Text = 'Code: just updated'
         $updateStatus.ForeColor = $green
-        $updateLog.Text = "Just updated:`r`n" + (Get-FriendsChanges $before).Text
+        $updateLog.Text = "Just updated:`r`n" + (Get-FriendsChanges $script:updateBefore).Text
+    }
+    if ($result -and @($result.changed) -contains 'launcher') {
+        $updateLog.Text = "The launcher itself was updated: close it and open it again to use the new one.`r`n" + $updateLog.Text
+    }
+    Check-RunningVersion
+    Update-Versions
+    Check-Setup
+    if ($script:launchAfterUpdate) {
+        $script:launchAfterUpdate = $false
+        Start-RuneLite
     }
 }
 
@@ -1831,6 +1851,21 @@ function Get-ClientArguments {
 }
 
 # Only reads the character's name and when the file was saved; the session itself is never shown
+# (friends) The launcher's own Java (java\), when Windows has none
+function Get-JavaHome {
+    $home17 = Join-Path $root 'java'
+    if (Test-Path (Join-Path $home17 'bin\java.exe')) { return $home17 }
+    return $null
+}
+
+$script:javaJob = $null
+function Start-JavaDownload {
+    if ($script:javaJob -and -not $script:javaJob.HasExited) { return }
+    $getter = Join-Path $root 'scripts\get-java.ps1'
+    $script:javaJob = Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass',
+        '-WindowStyle', 'Hidden', '-File', "`"$getter`"", '-Root', "`"$root`"" -WindowStyle Hidden -PassThru
+}
+
 function Check-Setup {
     $script:rlExe = Find-RuneLite
     $hasRuneLite = [bool]$script:rlExe
@@ -1866,16 +1901,30 @@ function Check-Setup {
     if (Get-Command java -ErrorAction SilentlyContinue) {
         $version = (cmd /c 'java -version 2>&1' | Select-Object -First 1)
         Set-Row 'java' $true "Java: $version" $null
+    } elseif (Get-JavaHome) {
+        Set-Row 'java' $true "Java: Snuffy's own (in the launcher's folder)" $null (Get-JavaHome)
+    } elseif ($friends) {
+        # No Java: a portable one for the launcher, fetched once in the background
+        $download = Join-Path $root '.java-download.txt'
+        $said = if (Test-Path $download) { (Get-Content $download -Raw).Trim() } else { '' }
+        if ($said -like 'failed*' -and -not ($script:javaJob -and -not $script:javaJob.HasExited)) {
+            Set-Row 'java' $false "Couldn't get Java: try again." 'Try again' $said
+        } else {
+            Start-JavaDownload
+            Set-Row 'java' $false 'Getting Java (once, about 190 MB)...' $null 'A portable Java 17 for the launcher, in its own folder'
+        }
     } else {
         Set-Row 'java' $false "Java isn't installed (needed to build)." 'Get Java' 'Install a JDK 11 or newer (Temurin 17 recommended)'
     }
 
-    if (Get-Command git -ErrorAction SilentlyContinue) {
+    if ($friends) {
+        Set-Row 'git' $true 'Updates come straight from GitHub.'
+    } elseif (Get-Command git -ErrorAction SilentlyContinue) {
         Set-Row 'git' $true 'git is installed (for updates).'
     } else {
         Set-Row 'git' $false "git isn't installed (no updates)." 'Get git'
     }
-    $launch.Enabled = [bool](Get-Command java -ErrorAction SilentlyContinue)
+    $launch.Enabled = [bool](Get-Command java -ErrorAction SilentlyContinue) -or [bool](Get-JavaHome)
     $ui.UpdateSetupSummary()
 }
 
@@ -1891,7 +1940,14 @@ $rows['runelite'].Button.Add_Click({
     }
     Check-Setup
 })
-$rows['java'].Button.Add_Click({ Start-Process 'https://adoptium.net/temurin/releases/?version=17' })
+$rows['java'].Button.Add_Click({
+    if ($friends) {
+        Remove-Item (Join-Path $root '.java-download.txt') -ErrorAction SilentlyContinue
+        Check-Setup
+    } else {
+        Start-Process 'https://adoptium.net/temurin/releases/?version=17'
+    }
+})
 $rows['git'].Button.Add_Click({ Start-Process 'https://git-scm.com/download/win' })
 
 # Turn on session saving: adds the argument to RuneLite's own settings (backed up first), or opens configure
@@ -2136,6 +2192,12 @@ function Start-RuneLite {
     Set-Status "Building Snuffy's plugins..." $textColor 5
     Set-Content -Path $runningFile -Value (Get-Head)
     $script:warnedFor = $null
+    if ($friends -and $script:updater -and -not $script:updater.HasExited) {
+        # (an update is putting new files in place: launch once it's done)
+        $script:launchAfterUpdate = $true
+        Set-Status "Updating Snuffy's plugins first..." $textColor 3
+        return
+    }
     if ($friends) {
         # The chosen plugins' classes (the Toolbelt on its own), built from the downloaded repositories by runner\
         $keys = $load -split ','
@@ -2146,7 +2208,9 @@ function Start-RuneLite {
             $launch.Enabled = $true
             return
         }
-        $command = "gradlew.bat --console=plain runSnuffys `"-Pclasses=$classes`" > `"$logFile`" 2>&1"
+        $javaHome = Get-JavaHome
+        $useJava = if ($javaHome -and -not (Get-Command java -ErrorAction SilentlyContinue)) { "set `"JAVA_HOME=$javaHome`" && set `"PATH=$javaHome\bin;%PATH%`" && " } else { '' }
+        $command = "$useJava" + "gradlew.bat --console=plain runSnuffys `"-Pclasses=$classes`" > `"$logFile`" 2>&1"
         $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory (Join-Path $root 'runner') -WindowStyle Hidden -PassThru
     } else {
         $command = "gradlew.bat --console=plain runBrad `"-Pload=$load`" > `"$logFile`" 2>&1"
@@ -2392,6 +2456,22 @@ function Update-Versions {
 $autoUpdate = New-Object System.Windows.Forms.Timer
 $autoUpdate.Interval = 5000
 $autoUpdate.Add_Tick({
+    if ($friends) {
+        if ($script:javaJob -and $script:javaJob.HasExited) {
+            $script:javaJob = $null
+            Check-Setup
+        }
+        if ($script:updater -and $script:updater.HasExited) {
+            Finish-Friends
+            return
+        }
+        if (-not $script:updater -and ((Get-Date) - $script:lastFetch).TotalMinutes -ge 15) {
+            $script:lastFetch = Get-Date
+            Update-Friends
+        }
+        Check-RunningVersion
+        return
+    }
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
     # Not while the Dev tab is pushing: it publishes the commit it started with
     if ($script:publishRun -and -not $script:publishRun.HasExited) { return }
@@ -2399,9 +2479,7 @@ $autoUpdate.Add_Tick({
         if (-not $script:fetch.HasExited) { return }
         $script:fetch = $null
         $behindAny = $false
-        $dirs = @($root)
-        if ($friends) { $dirs += @($friendPlugins | ForEach-Object { Join-Path $pluginsHome $_.folder } | Where-Object { Test-Path (Join-Path $_ '.git') }) }
-        foreach ($dir in $dirs) {
+        foreach ($dir in @($root)) {
             $upstream = (git -C $dir rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null)
             if (-not $upstream) { continue }
             $behind = (git -C $dir rev-list --count "HEAD..$($upstream.Trim())" 2>$null)
@@ -2414,14 +2492,7 @@ $autoUpdate.Add_Tick({
     }
     if (((Get-Date) - $script:lastFetch).TotalSeconds -ge 60) {
         $script:lastFetch = Get-Date
-        if ($friends) {
-            # The launcher and every plugin repository, one after the other, in the background
-            $fetches = @("git -C `"$root`" fetch --quiet") + @($friendPlugins | ForEach-Object { Join-Path $pluginsHome $_.folder } |
-                Where-Object { Test-Path (Join-Path $_ '.git') } | ForEach-Object { "git -C `"$_`" fetch --quiet" })
-            $script:fetch = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', "`"$($fetches -join ' & ')`"" -WindowStyle Hidden -PassThru
-        } else {
-            $script:fetch = Start-Process -FilePath 'git' -ArgumentList '-C', "`"$root`"", 'fetch', '--quiet' -WindowStyle Hidden -PassThru
-        }
+        $script:fetch = Start-Process -FilePath 'git' -ArgumentList '-C', "`"$root`"", 'fetch', '--quiet' -WindowStyle Hidden -PassThru
     }
 })
 $autoUpdate.Start()

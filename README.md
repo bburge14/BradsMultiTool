@@ -5,7 +5,7 @@ a skill tracker and a planner for your dailies, timers and drops into one place.
 
 - [Installing](#installing): the all-in-one, or just the parts you want
 - [Features](#features) (full guide with how-tos: [docs/FEATURES.md](docs/FEATURES.md))
-- [Setup (Windows)](#first-time-setup-windows-powershell)
+- [Setup (Windows)](#first-time-setup-windows)
 - [Logging in with a Jagex Account](#logging-in-with-a-jagex-account)
 - [Settings guide](#settings-guide)
 - [Credits](#credits)
@@ -34,7 +34,7 @@ everything twice. Every plugin has the idle and logout warnings; with several in
 **Before they're on the Plugin Hub** (or to get updates the day they're made), use **Snuffy's Launcher**:
 [github.com/bburge14/snuffys-launcher](https://github.com/bburge14/snuffys-launcher). It's only the launcher: it
 downloads each plugin from its own repository, keeps them up to date and starts RuneLite with the ones you pick. See
-[First-time setup](#first-time-setup-windows-powershell). (Working on the plugins themselves: see
+[First-time setup](#first-time-setup-windows). (Working on the plugins themselves: see
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).)
 
 ## Features
@@ -310,27 +310,19 @@ each can be hidden in the settings; everything is saved per account.
 - **Speak Only When Unfocused** (General, off at first): voice only while you're in another window; chat
   messages still post.
 
-## First-time setup (Windows, PowerShell)
+## First-time setup (Windows)
 
-**1. Install Java and Git** (skip what you already have; check with `java -version` and `git --version`):
+No commands and nothing to install: the launcher gets what it needs (the plugins, and a Java of its own if your PC has
+none) by itself.
 
-```powershell
-winget install --id EclipseAdoptium.Temurin.17.JDK -e
-winget install --id Git.Git -e
-```
+**1. Download Snuffy's Launcher:** [snuffys-launcher (zip)](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip)
+(just the launcher: it downloads the plugins when it first opens).
 
-Close and reopen PowerShell afterwards so `java` and `git` are on your PATH.
+**2. Unzip it** where you'd like to keep it (right-click the zip > **Extract All...**).
 
-**2. Download Snuffy's Launcher** (just the launcher: it downloads the plugins themselves when it first opens):
-
-```powershell
-Set-Location $env:USERPROFILE\Documents
-git clone https://github.com/bburge14/snuffys-launcher.git
-```
-
-**3. Open it:** double-click **Launch-Snuffys.bat** in the `snuffys-launcher` folder, then click **Make a desktop
-shortcut** at the bottom of the window so it's on your desktop from then on. The first time, it downloads every
-plugin (a minute or two).
+**3. Double-click "Snuffy's Launcher"** in the folder (Windows may ask once: **More info > Run anyway**), then click
+**Make a desktop shortcut** at the bottom of the window so it's on your desktop from then on. The first time, it
+downloads every plugin (a minute or two), and Java if you have none (about 190 MB, once).
 
 **4. Using Snuffy's Launcher.** It's a small dark window that:
 
@@ -349,7 +341,7 @@ plugin (a minute or two).
   - a **Jagex session** saved, for which character and when: **Save one** opens the Jagex Launcher, tells you
     what to do (press Play, log in once) and ticks the row as soon as the session is saved. It only reads the
     character's name and the date, never the session itself;
-  - **Java** (needed to build) and **git** (for updates);
+  - **Java** (needed to build: the launcher gets one of its own if your PC has none);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
   plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time. Each one shows its version (from its GitHub repository);
 - **Relaunch** closes RuneLite (as its X button would, answering OK to RuneLite's "Are you sure you want to exit?"

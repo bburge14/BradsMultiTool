@@ -1,5 +1,9 @@
 {
-  "_about": "The plugins Snuffy's Launcher downloads (each its own repository) and the class it loads",
+  "_about": "The plugins Snuffy's Launcher downloads (each its own repository) and the class it loads; launcher is its own repository (it updates itself from there)",
+  "launcher": {
+    "repo": "https://github.com/bburge14/snuffys-launcher.git",
+    "branch": "main"
+  },
   "plugins": [
     {
       "key": "toolbelt",

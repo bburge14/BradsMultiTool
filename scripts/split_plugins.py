@@ -471,6 +471,21 @@ if errorlevel 1 (
 start "" /min powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0scripts\launcher.ps1"
 """
 
+LAUNCHER_VBS = r'''' Opens Snuffy's Launcher with no window at all (scripts\launcher.ps1, hidden): double-click this.
+' If the launcher's script can't be read (a broken update) its errors open in Notepad instead.
+Set shell = CreateObject("WScript.Shell")
+folder = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
+script = folder & "\scripts\launcher.ps1"
+ps = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden "
+check = ps & "-Command ""$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile('" & script & _
+    "', [ref]$null, [ref]$e); if ($e) { ($e | Out-String) | Set-Content (Join-Path $env:TEMP 'snuffys-launcher-error.log'); exit 1 }"""
+If shell.Run(check, 0, True) <> 0 Then
+    shell.Run "notepad.exe """ & shell.ExpandEnvironmentStrings("%TEMP%") & "\snuffys-launcher-error.log""", 1, False
+    WScript.Quit 1
+End If
+shell.Run ps & "-File """ & script & """", 0, False
+'''
+
 RUNNER_SETTINGS = """plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
@@ -580,35 +595,30 @@ public class SnuffysRunner {
 LAUNCHER_README = """# Snuffy's Launcher
 
 Runs [Snuffy's plugins](https://github.com/bburge14/snuffys-toolbelt) in RuneLite before (or alongside) the Plugin Hub:
-it downloads each plugin's own repository, keeps them up to date, and starts RuneLite with the ones you pick.
-
-## What you need
-
-- **Windows**
-- **RuneLite** ([runelite.net](https://runelite.net/))
-- **Java 11 or newer** ([Temurin 17](https://adoptium.net/temurin/releases/?version=17) is a good one)
-- **git** ([git-scm.com](https://git-scm.com/download/win)): how the launcher downloads and updates the plugins
+it downloads each plugin, keeps them up to date, and starts RuneLite with the ones you pick. No commands to type and
+nothing else to install: it gets what it needs itself.
 
 ## Getting it
 
-Open PowerShell where you want it (your Documents, say) and run:
+1. **Download it:** [snuffys-launcher (zip)](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip).
+2. **Unzip it** where you'd like to keep it (your Documents, say): right-click the zip > **Extract All...**.
+3. **Double-click "Snuffy's Launcher"** (Snuffy's Launcher.vbs) in the folder. Windows may ask once whether to run
+   it: choose **More info > Run anyway**. Then click **Make a desktop shortcut** at the bottom of the window so it's
+   on your desktop from then on.
 
-```
-git clone https://github.com/bburge14/snuffys-launcher.git
-```
-
-Then open the `snuffys-launcher` folder and double-click **Launch-Snuffys.bat**. Its **Make a desktop shortcut** link
-puts it on your desktop.
+You need **Windows** and **RuneLite** ([runelite.net](https://runelite.net/)). The first time, the launcher downloads
+the plugins and, if your PC has no Java, a Java of its own into its folder (about 190 MB, once). Nothing is installed
+in Windows.
 
 ## Using it
 
-- The first time it downloads every plugin (a minute or two), then updates them each time you open it, and every
-  minute while it's open.
 - Work down the **Setup** rows until they're ticked: RuneLite found, session saving turned on (the launcher can do it
-  for you), a Jagex session saved (log in once through the Jagex Launcher), Java and git.
-- Pick **Snuffy's Toolbelt** (everything in one) or the separate plugins you want, and press **Launch RuneLite**. The
-  first launch downloads RuneLite and builds the plugins, so it takes a few minutes.
-- When the chip under the name says RuneLite is behind, press **Relaunch** to get the update.
+  for you), a Jagex session saved (log in once through the Jagex Launcher), Java.
+- Pick **Snuffy's Toolbelt** (everything in one) or the separate plugins you want (the ✕ beside one removes it; + adds
+  it back), and press **Launch RuneLite**. The first launch downloads RuneLite and builds the plugins, so it takes a
+  few minutes.
+- It updates the plugins (and itself) on its own while it's open. When the chip under its name says RuneLite is
+  behind, press **Relaunch** to get the update.
 
 Your settings and plans are kept in RuneLite, per account, as with any plugin.
 """
@@ -622,6 +632,10 @@ runner/.gradle/
 .running-commit
 .hub-seen
 .removed-plugins
+.plugin-state.json
+.update-result.json
+.java-download.txt
+java/
 """
 
 
@@ -632,7 +646,11 @@ def build_launcher(publish_path=os.path.join(ROOT, "publish.json")):
     os.makedirs(os.path.join(out, "scripts"))
     with open(os.path.join(out, "Launch-Snuffys.bat"), "w", newline="\r\n") as f:
         f.write(LAUNCHER_BAT)
-    shutil.copy2(os.path.join(ROOT, "scripts", "launcher.ps1"), os.path.join(out, "scripts", "launcher.ps1"))
+    for name in ("launcher.ps1", "update-plugins.ps1", "get-java.ps1"):
+        shutil.copy2(os.path.join(ROOT, "scripts", name), os.path.join(out, "scripts", name))
+    # The double-click that opens it with no window at all (a .bat always flashes a console)
+    with open(os.path.join(out, "Snuffy's Launcher.vbs"), "w", newline="\r\n") as f:
+        f.write(LAUNCHER_VBS)
     os.makedirs(os.path.join(out, "assets", "hub"))
     for name in os.listdir(os.path.join(ROOT, "assets", "hub")):
         if name.endswith(".png"):
@@ -651,8 +669,11 @@ def build_launcher(publish_path=os.path.join(ROOT, "publish.json")):
         plugins.append({"key": LAUNCH_KEYS[plugin_id], "folder": spec["folder"], "name": DISPLAY.get(plugin_id, spec["name"]),
                         "repo": entry["repo"], "branch": entry.get("branch", "master"),
                         "class": spec["package"] + "." + spec["class"]})
+    launcher = repos.get("launcher", {})
     with open(os.path.join(out, "friends.json"), "w", encoding="utf-8", newline="\n") as f:
-        json.dump({"_about": "The plugins Snuffy's Launcher downloads (each its own repository) and the class it loads",
+        json.dump({"_about": "The plugins Snuffy's Launcher downloads (each its own repository) and the class it loads; "
+                             "launcher is its own repository (it updates itself from there)",
+                   "launcher": {"repo": launcher.get("repo", ""), "branch": launcher.get("branch", "main")},
                    "plugins": plugins}, f, indent=2)
         f.write("\n")
     runner = os.path.join(out, "runner")
