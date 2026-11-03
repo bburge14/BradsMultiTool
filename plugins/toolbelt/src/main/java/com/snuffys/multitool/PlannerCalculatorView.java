@@ -142,14 +142,22 @@ final class PlannerCalculatorView {
 
     /** Adds the page's parts to its column (once). {@code redraw} redraws the page. */
     void addTo(JPanel column, Runnable redraw) {
+        addTo(column, column, redraw);
+    }
+
+    /**
+     * The skill, its target, the bonuses and the view's tabs in {@code top} (they stay put), the list (actions, banked,
+     * the plan) in {@code column} (it scrolls).
+     */
+    void addTo(JPanel top, JPanel column, Runnable redraw) {
         this.redraw = redraw;
-        column.add(header);
-        column.add(grid);
-        column.add(PlannerUi.spaced(inputs));
-        column.add(bonusSlot);
-        column.add(listHeader);
+        top.add(header);
+        top.add(grid);
+        top.add(PlannerUi.spaced(inputs));
+        top.add(bonusSlot);
+        top.add(listHeader);
         searchSlot = PlannerUi.spaced(searchRow);
-        column.add(searchSlot);
+        top.add(searchSlot);
         column.add(list);
     }
 

@@ -1630,15 +1630,20 @@ class PlannerPanel extends PluginPanel {
     /** The CALCULATOR tab: its parts above the list stay while you type ({@link PlannerCalculatorView}). */
     private final class CalculatorPage extends Page {
         final PlannerCalculatorView view;
+        // The parts above the list, which don't scroll
+        final PlannerUi.Column top = new PlannerUi.Column();
 
         CalculatorPage(PlannerCalculatorView view) {
             super("calculator", "Calculator: actions to your target level", PlannerUi.Shape.CALCULATOR);
             this.view = view;
             target = view.list;
-            view.addTo(column, this::refresh);
-            // The plan bar stays under the scrolling list, so you can compare while you scroll
+            // The skill, its target, bonuses and the Actions | Banked | Plan tabs stay put at the top; only the list
+            // under them scrolls; the plan bar stays under it, so you can compare while you scroll
+            top.setBackground(PlannerUi.BACKGROUND);
+            view.addTo(top, column, this::refresh);
             JPanel both = new JPanel(new BorderLayout(0, 6));
             both.setBackground(PlannerUi.BACKGROUND);
+            both.add(top, BorderLayout.NORTH);
             both.add(scroll, BorderLayout.CENTER);
             both.add(view.dock, BorderLayout.SOUTH);
             body = both;
@@ -1653,6 +1658,8 @@ class PlannerPanel extends PluginPanel {
         void refresh() {
             view.update();
             super.refresh();
+            top.revalidate();
+            top.repaint();
             column.revalidate();
             column.repaint();
         }
