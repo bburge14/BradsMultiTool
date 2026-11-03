@@ -632,9 +632,17 @@ namespace Snuffys
             new[] { "alerts", "Alerts", "voices" },
         };
 
-        public LauncherUi(string root)
+        // Whether there's a Dev tab (the dev launcher), or just Play (the friends launcher)
+        private readonly bool dev;
+
+        public LauncherUi(string root) : this(root, true)
+        {
+        }
+
+        public LauncherUi(string root, bool dev)
         {
             this.root = root;
+            this.dev = dev;
             Form = new Form();
             Form.AutoScaleDimensions = new SizeF(96F, 96F);
             Form.AutoScaleMode = AutoScaleMode.Dpi;
@@ -750,6 +758,12 @@ namespace Snuffys
             DevNav = tabs[1];
             PlayNav.CheckedChanged += delegate { Play.Visible = PlayNav.Checked; Dev.Visible = !PlayNav.Checked; };
             header.Controls.Add(nav);
+            if (!dev)
+            {
+                // Just Play: no Play | Dev switch, and the room it took goes to the page
+                nav.Visible = false;
+                header.Height = 72;
+            }
             Form.Controls.Add(header);
         }
 
@@ -1526,7 +1540,47 @@ $red = [Snuffys.Theme]::Bad
 $gray = [Snuffys.Theme]::Muted
 $textColor = [Snuffys.Theme]::Text
 
-$ui = New-Object Snuffys.LauncherUi($root)
+# The friends launcher (its own repository, friends.json beside this): no Dev tab; it downloads and updates each plugin's
+# own repository into plugins\ and builds them with runner\, instead of this repository's code
+$friendsConfig = Join-Path $root 'friends.json'
+$friends = Test-Path $friendsConfig
+$friendPlugins = if ($friends) { @((Get-Content $friendsConfig -Raw | ConvertFrom-Json).plugins) } else { @() }
+$pluginsHome = Join-Path $root 'plugins'
+
+# The code's version: this repository's commit, or (friends) the launcher's and every plugin repository's
+function Get-Head {
+    if (-not $friends) { return (git -C $root rev-parse HEAD 2>$null) }
+    $parts = @("launcher=$((git -C $root rev-parse HEAD 2>$null))")
+    foreach ($plugin in $friendPlugins) {
+        $dir = Join-Path $pluginsHome $plugin.folder
+        if (Test-Path (Join-Path $dir '.git')) { $parts += "$($plugin.folder)=$((git -C $dir rev-parse HEAD 2>$null))" }
+    }
+    return ($parts -join ';')
+}
+
+# (friends) What changed in the plugin repositories since a Get-Head (or lately, with none), one line each: all of it
+# plugin code, so all of it needs a Relaunch
+function Get-FriendsChanges($since) {
+    $was = @{}
+    if ($since) {
+        foreach ($part in ($since -split ';')) {
+            $pair = $part -split '=', 2
+            if ($pair.Count -eq 2) { $was[$pair[0]] = $pair[1] }
+        }
+    }
+    $lines = New-Object System.Collections.Generic.List[string]
+    foreach ($plugin in $friendPlugins) {
+        $dir = Join-Path $pluginsHome $plugin.folder
+        if (-not (Test-Path (Join-Path $dir '.git'))) { continue }
+        $range = if ($since -and $was[$plugin.folder]) { "$($was[$plugin.folder])..HEAD" } elseif ($since) { '-3' } else { '-2' }
+        foreach ($subject in @(git -C $dir log --max-count=20 --format='%s' $range 2>$null)) {
+            if ($subject) { $lines.Add("- $($plugin.name): $subject") }
+        }
+    }
+    return @{ Text = ($lines -join "`r`n"); Needed = $lines.Count; All = $lines.Count }
+}
+
+$ui = New-Object Snuffys.LauncherUi($root, (-not $friends))
 $form = $ui.Form
 $icon = Join-Path $root 'assets\launcher.ico'
 
@@ -1537,6 +1591,10 @@ $updateLog = $ui.UpdateLog
 $checkAgain = $ui.CheckAgain
 
 function Update-Plugins {
+    if ($friends) {
+        Update-Friends
+        return
+    }
     $updateStatus.Text = 'Code: checking...'
     $updateStatus.ForeColor = $textColor
     $updateLog.Text = ''
@@ -1574,6 +1632,49 @@ function Update-Plugins {
     }
 }
 $checkAgain.Add_LinkClicked({ Update-Plugins })
+
+# (friends) The launcher itself, then each plugin's repository: downloaded the first time, brought up to date after
+function Update-Friends {
+    $updateStatus.Text = 'Code: checking...'
+    $updateStatus.ForeColor = $textColor
+    $form.Refresh()
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        $updateStatus.Text = "Code: no updates (no git)"
+        $updateStatus.ForeColor = $red
+        $updateLog.Text = "git isn't installed: it's how the launcher downloads Snuffy's plugins. Get it from git-scm.com (Setup, below)."
+        return
+    }
+    $before = Get-Head
+    $problems = @()
+    git -C $root pull --ff-only --quiet 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { $problems += 'the launcher' }
+    if (-not (Test-Path $pluginsHome)) { New-Item -ItemType Directory -Path $pluginsHome | Out-Null }
+    foreach ($plugin in $friendPlugins) {
+        $dir = Join-Path $pluginsHome $plugin.folder
+        if (Test-Path (Join-Path $dir '.git')) {
+            git -C $dir pull --ff-only --quiet 2>&1 | Out-Null
+        } else {
+            $updateStatus.Text = "Code: downloading $($plugin.name)..."
+            $form.Refresh()
+            git clone --quiet --branch $plugin.branch $plugin.repo $dir 2>&1 | Out-Null
+        }
+        if ($LASTEXITCODE -ne 0) { $problems += $plugin.name }
+    }
+    $after = Get-Head
+    if ($problems) {
+        $updateStatus.Text = "Code: couldn't update"
+        $updateStatus.ForeColor = $red
+        $updateLog.Text = "Couldn't update " + ($problems -join ', ') + " (offline, or files changed there).`r`n" + (Get-FriendsChanges $null).Text
+    } elseif ($before -eq $after) {
+        $updateStatus.Text = 'Code: up to date'
+        $updateStatus.ForeColor = $green
+        $updateLog.Text = "Recent changes:`r`n" + (Get-FriendsChanges $null).Text
+    } else {
+        $updateStatus.Text = 'Code: just updated'
+        $updateStatus.ForeColor = $green
+        $updateLog.Text = "Just updated:`r`n" + (Get-FriendsChanges $before).Text
+    }
+}
 
 # ---- Setup checklist: RuneLite, its session setting, the saved session, Java, git ----
 $runeLiteChoice = Join-Path $root '.launch-runelite'
@@ -1908,10 +2009,24 @@ function Start-RuneLite {
     $showLog.Visible = $true
     $launch.Enabled = $false
     Set-Status "Building Snuffy's plugins..." $textColor 5
-    Set-Content -Path $runningFile -Value (git -C $root rev-parse HEAD 2>$null)
+    Set-Content -Path $runningFile -Value (Get-Head)
     $script:warnedFor = $null
-    $command = "gradlew.bat --console=plain runBrad `"-Pload=$load`" > `"$logFile`" 2>&1"
-    $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    if ($friends) {
+        # The chosen plugins' classes (the Toolbelt on its own), built from the downloaded repositories by runner\
+        $keys = $load -split ','
+        $classes = @($friendPlugins | Where-Object { $keys -contains $_.key -and (Test-Path (Join-Path $pluginsHome $_.folder)) } |
+            ForEach-Object { $_.class }) -join ','
+        if (-not $classes) {
+            Set-Status "Snuffy's plugins aren't downloaded yet: press Check again (it needs git)." $red 0
+            $launch.Enabled = $true
+            return
+        }
+        $command = "gradlew.bat --console=plain runSnuffys `"-Pclasses=$classes`" > `"$logFile`" 2>&1"
+        $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory (Join-Path $root 'runner') -WindowStyle Hidden -PassThru
+    } else {
+        $command = "gradlew.bat --console=plain runBrad `"-Pload=$load`" > `"$logFile`" 2>&1"
+        $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory $root -WindowStyle Hidden -PassThru
+    }
     $watcher.Start()
     $relaunch.Enabled = $true
     $relaunch.Font = New-Object System.Drawing.Font('Segoe UI', 9)
@@ -2046,7 +2161,7 @@ function Get-Changes($range) {
 
 function Check-RunningVersion {
     $running = Running-Commit
-    $head = (git -C $root rev-parse HEAD 2>$null)
+    $head = Get-Head
     # The RuneLite chip: not running, running this code, running older code (how far behind), or running from
     # before the launcher kept track
     if (-not ((RuneLite-Running) -or (RuneLite-Window))) {
@@ -2061,7 +2176,7 @@ function Check-RunningVersion {
     }
     $changes = $null
     if ($running -and $head -and $running.Trim() -ne $head.Trim()) {
-        $changes = Get-Changes "$($running.Trim())..HEAD"
+        $changes = if ($friends) { Get-FriendsChanges $running.Trim() } else { Get-Changes "$($running.Trim())..HEAD" }
         # What's new: what the open RuneLite is missing, and which of it needs a Relaunch
         $updateLog.Text = $(if ($changes.Needed -gt 0) {
                 "The open RuneLite is missing $($changes.All) update$(if ($changes.All -ne 1) { 's' }); $($changes.Needed) change$(if ($changes.Needed -eq 1) { 's' }) plugins (press Relaunch):"
@@ -2098,6 +2213,19 @@ function Check-RunningVersion {
 $hubKeys = [ordered]@{ 'skilling-helper' = 'skilling'; 'pvm-slayer' = 'pvm'; 'gemcrab-tracker' = 'gemcrab';
     'tick-counter' = 'tick'; 'planner' = 'planner'; 'alerts' = 'alerts'; 'toolbelt' = 'toolbelt' }
 function Update-Versions {
+    if ($friends) {
+        foreach ($plugin in $friendPlugins) {
+            $gradle = Join-Path (Join-Path $pluginsHome $plugin.folder) 'build.gradle'
+            $found = if (Test-Path $gradle) { Select-String -Path $gradle -Pattern "^version = '([^']+)'" | Select-Object -First 1 } else { $null }
+            if ($found) {
+                $version = $found.Matches[0].Groups[1].Value
+                $ui.SetPluginVersion($plugin.key, $null, "v$version", "Version $version, from its GitHub repository")
+            } else {
+                $ui.SetPluginVersion($plugin.key, $null, '', 'Not downloaded yet')
+            }
+        }
+        return
+    }
     if (-not (Test-Path $publishConfig)) { return }
     $config = Get-Content $publishConfig -Raw | ConvertFrom-Json
     $code = Running-Commit
@@ -2145,25 +2273,37 @@ $autoUpdate.Add_Tick({
     if ($script:fetch) {
         if (-not $script:fetch.HasExited) { return }
         $script:fetch = $null
-        $upstream = Get-Upstream
-        if ($upstream) {
-            $behind = (git -C $root rev-list --count "HEAD..$upstream" 2>$null)
-            if ($LASTEXITCODE -eq 0 -and [int]$behind -gt 0) { Update-Plugins }
+        $behindAny = $false
+        $dirs = @($root)
+        if ($friends) { $dirs += @($friendPlugins | ForEach-Object { Join-Path $pluginsHome $_.folder } | Where-Object { Test-Path (Join-Path $_ '.git') }) }
+        foreach ($dir in $dirs) {
+            $upstream = (git -C $dir rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null)
+            if (-not $upstream) { continue }
+            $behind = (git -C $dir rev-list --count "HEAD..$($upstream.Trim())" 2>$null)
+            if ($LASTEXITCODE -eq 0 -and [int]$behind -gt 0) { $behindAny = $true }
         }
+        if ($behindAny) { Update-Plugins }
         Check-RunningVersion
         Update-Versions
         return
     }
     if (((Get-Date) - $script:lastFetch).TotalSeconds -ge 60) {
         $script:lastFetch = Get-Date
-        $script:fetch = Start-Process -FilePath 'git' -ArgumentList '-C', "`"$root`"", 'fetch', '--quiet' -WindowStyle Hidden -PassThru
+        if ($friends) {
+            # The launcher and every plugin repository, one after the other, in the background
+            $fetches = @("git -C `"$root`" fetch --quiet") + @($friendPlugins | ForEach-Object { Join-Path $pluginsHome $_.folder } |
+                Where-Object { Test-Path (Join-Path $_ '.git') } | ForEach-Object { "git -C `"$_`" fetch --quiet" })
+            $script:fetch = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', "`"$($fetches -join ' & ')`"" -WindowStyle Hidden -PassThru
+        } else {
+            $script:fetch = Start-Process -FilePath 'git' -ArgumentList '-C', "`"$root`"", 'fetch', '--quiet' -WindowStyle Hidden -PassThru
+        }
     }
 })
 $autoUpdate.Start()
 
 # Desktop shortcut: opens the launcher straight through PowerShell, minimised and hidden (no cmd window, unlike the
 # .bat); made with the Toolbelt's icon. Shortcuts to the .bat (or to this) are brought up to date when the launcher runs
-$bat = Join-Path $root 'Launch-BradsMultiTool.bat'
+$bat = Join-Path $root $(if ($friends) { 'Launch-Snuffys.bat' } else { 'Launch-BradsMultiTool.bat' })
 $launcherScript = Join-Path $root 'scripts\launcher.ps1'
 $powershellExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $launcherArgs = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcherScript`""

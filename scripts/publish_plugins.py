@@ -218,7 +218,19 @@ def push(folder, entry, dry_run, head, level):
         write_changelog(path, history)
     git("add", "-A", cwd=path)
     if not git("status", "--porcelain", cwd=path):
-        print("%-16s %s, no changes since the last push" % (folder, old))
+        print("%-16s %s, no changes since the last push" % (folder, old or "up to date"))
+        return
+    if not os.path.exists(os.path.join(path, "runelite-plugin.properties")):
+        # Not a plugin (the friends launcher): no version or changelog, just the update
+        notes = changes_since(folder, last.group(1) if last else None)
+        changed = len(git("status", "--porcelain", cwd=path).splitlines())
+        message = "Update\n\nFrom BradsMultiTool %s.\n\nChanges:\n%s\n" % (head[:12], "\n".join(notes))
+        git("commit", "--quiet", "-m", message, cwd=path)
+        if dry_run:
+            print("%-16s %d file(s) would change (dry run: not pushed)" % (folder, changed))
+            return
+        git("push", "--quiet", "origin", branch, cwd=path, capture=False)
+        print("%-16s pushed (%d file(s) changed) to %s" % (folder, changed, repo))
         return
     new = bump(old, level) if old else read_version(path)
     write_version(path, new)

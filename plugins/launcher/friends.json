@@ -1,0 +1,61 @@
+{
+  "_about": "The plugins Snuffy's Launcher downloads (each its own repository) and the class it loads",
+  "plugins": [
+    {
+      "key": "toolbelt",
+      "folder": "toolbelt",
+      "name": "Snuffy's Toolbelt",
+      "repo": "https://github.com/bburge14/snuffys-toolbelt.git",
+      "branch": "main",
+      "class": "com.snuffys.multitool.BradsMultiToolPlugin"
+    },
+    {
+      "key": "skilling",
+      "folder": "skilling-helper",
+      "name": "Skilling Helper",
+      "repo": "https://github.com/bburge14/snuffys-skilling-helper.git",
+      "branch": "main",
+      "class": "com.snuffys.skilltracker.SkillTrackerPlugin"
+    },
+    {
+      "key": "pvm",
+      "folder": "pvm-slayer",
+      "name": "PvM/Slayer",
+      "repo": "https://github.com/bburge14/snuffys-pvm-slayer.git",
+      "branch": "main",
+      "class": "com.snuffys.pvm.PvmPlugin"
+    },
+    {
+      "key": "gemcrab",
+      "folder": "gemcrab-tracker",
+      "name": "GemCrab Tracker",
+      "repo": "https://github.com/bburge14/snuffys-gemcrab-tracker.git",
+      "branch": "main",
+      "class": "com.snuffys.gemcrab.GemCrabPlugin"
+    },
+    {
+      "key": "tick",
+      "folder": "tick-counter",
+      "name": "Tick Counter",
+      "repo": "https://github.com/bburge14/snuffys-tick-counter.git",
+      "branch": "main",
+      "class": "com.snuffys.tickcounter.TickCounterPlugin"
+    },
+    {
+      "key": "planner",
+      "folder": "planner",
+      "name": "Planner",
+      "repo": "https://github.com/bburge14/snuffys-planner.git",
+      "branch": "main",
+      "class": "com.snuffys.planner.PlannerPlugin"
+    },
+    {
+      "key": "alerts",
+      "folder": "alerts",
+      "name": "Alerts",
+      "repo": "https://github.com/bburge14/snuffys-alerts.git",
+      "branch": "main",
+      "class": "com.snuffys.voices.VoicesPlugin"
+    }
+  ]
+}

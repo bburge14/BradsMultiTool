@@ -1,0 +1,69 @@
+// Builds the plugins the launcher downloaded (../plugins/<name>, each its own repository) together and starts a RuneLite
+// developer client with the ones chosen: gradlew runSnuffys -Pclasses=com.snuffys.planner.PlannerPlugin,...
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'https://repo.runelite.net'
+        content {
+            includeGroupByRegex("net\\.runelite.*")
+        }
+    }
+    mavenCentral()
+}
+
+def runeLiteVersion = 'latest.release'
+
+dependencies {
+    implementation group: 'net.runelite', name: 'client', version: runeLiteVersion
+    implementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+// Every downloaded plugin's code and resources (each in its own package, so they build side by side)
+def pluginsDir = file('../plugins')
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            if (pluginsDir.isDirectory()) {
+                pluginsDir.eachDir { srcDir new File(it, 'src/main/java') }
+            }
+        }
+        resources {
+            if (pluginsDir.isDirectory()) {
+                pluginsDir.eachDir { srcDir new File(it, 'src/main/resources') }
+            }
+        }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+tasks.withType(JavaExec).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release.set(11)
+}
+
+tasks.register('runSnuffys', JavaExec) {
+    group = 'application'
+    description = "Run RuneLite with Snuffy's plugins (-Pclasses=their plugin classes)"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.snuffys.launcher.SnuffysRunner'
+    args = ['--developer-mode']
+    systemProperty 'snuffys.classes', project.findProperty('classes') ?: ''
+}

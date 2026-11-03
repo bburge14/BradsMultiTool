@@ -47,7 +47,15 @@
       "publish": true,
       "branch": "main",
       "hub": false
+    },
+    "launcher": {
+      "repo": "https://github.com/bburge14/snuffys-launcher.git",
+      "hubName": "snuffys-launcher",
+      "publish": true,
+      "branch": "main",
+      "hub": false
     }
   },
-  "_aboutHub": "\"hub\": false keeps a plugin out of Publish to RuneLite while Push to repos still updates its repository."
+  "_aboutHub": "\"hub\": false keeps a plugin out of Publish to RuneLite while Push to repos still updates its repository.",
+  "_aboutLauncher": "launcher is the friends launcher (plugins/launcher, made by split_plugins.py): Push to repos sends it to its own repository; never published to RuneLite."
 }
