@@ -95,6 +95,28 @@ namespace Snuffys
         [DllImport("dwmapi.dll")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
+        [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
+        private static extern int SetWindowTheme(IntPtr hwnd, string app, string idList);
+
+        // Windows 10 (1809 on) and 11: dark scroll bars on a control, as Explorer's dark mode has (a white one on a
+        // dark box is hard to look past). Ignored where there's no dark theme
+        public static void DarkScrollBars(Control control)
+        {
+            EventHandler apply = delegate
+            {
+                try
+                {
+                    SetWindowTheme(control.Handle, "DarkMode_Explorer", null);
+                }
+                catch (Exception)
+                {
+                    // older Windows (or not Windows): its own scroll bars
+                }
+            };
+            if (control.IsHandleCreated) apply(control, EventArgs.Empty);
+            else control.HandleCreated += apply;
+        }
+
         // Windows 10 (20H1 on) and 11: the title bar dark too (attribute 20; 19 on older builds). Ignored elsewhere
         public static void DarkTitleBar(IntPtr hwnd)
         {
@@ -649,6 +671,7 @@ namespace Snuffys
         // Scrolls up and down only: a scroll bar never pushes the cards into a sideways one
         private static void UpDownOnly(FlowLayoutPanel flow)
         {
+            Theme.DarkScrollBars(flow);
             flow.AutoScroll = false;
             flow.HorizontalScroll.Enabled = false;
             flow.HorizontalScroll.Visible = false;
@@ -785,8 +808,14 @@ namespace Snuffys
             UpdateLog.BorderStyle = BorderStyle.None;
             UpdateLog.BackColor = Theme.Surface;
             UpdateLog.ForeColor = Color.FromArgb(205, 208, 212);
-            UpdateLog.Font = Theme.Body(8.5f);
+            UpdateLog.Font = Theme.Body(9);
             UpdateLog.Location = new Point(14, 38);
+            Theme.DarkScrollBars(UpdateLog);
+            // The whole list in a window of its own, big enough to read
+            Link showAll = new Link("Show all");
+            showAll.Location = new Point(380, 12);
+            showAll.LinkClicked += delegate { ShowText("What's new", UpdateLog.Text); };
+            news.Controls.Add(showAll);
             UpdateLog.Size = new Size(420, 46);
             UpdateLog.TabStop = false;
             news.Controls.Add(UpdateLog);
@@ -1042,6 +1071,7 @@ namespace Snuffys
             flow.Controls.Add(links);
 
             DevOut = new TextBox();
+            Theme.DarkScrollBars(DevOut);
             DevOut.Multiline = true;
             DevOut.ReadOnly = true;
             DevOut.ScrollBars = ScrollBars.Vertical;
@@ -1063,6 +1093,44 @@ namespace Snuffys
             Dev.Controls.Add(output);
             Dev.Controls.Add(top);
             Form.Controls.Add(Dev);
+        }
+
+        // A dark window with some text in it, resizable, closed with Esc or its button
+        public void ShowText(string title, string text)
+        {
+            Form window = new Form();
+            window.Text = title;
+            window.Icon = Form.Icon;
+            window.StartPosition = FormStartPosition.CenterParent;
+            window.AutoScaleDimensions = new SizeF(96F, 96F);
+            window.AutoScaleMode = AutoScaleMode.Dpi;
+            window.ClientSize = new Size(640, 520);
+            window.MinimizeBox = false;
+            window.BackColor = Theme.Window;
+            window.ForeColor = Theme.Text;
+            window.Padding = new Padding(16);
+            window.HandleCreated += delegate { Theme.DarkTitleBar(window.Handle); };
+            TextBox box = new TextBox();
+            box.Multiline = true;
+            box.ReadOnly = true;
+            box.ScrollBars = ScrollBars.Vertical;
+            box.BorderStyle = BorderStyle.None;
+            box.BackColor = Theme.Window;
+            box.ForeColor = Theme.Text;
+            box.Font = Theme.Body(10);
+            box.Dock = DockStyle.Fill;
+            box.Text = text;
+            box.TabStop = false;
+            Theme.DarkScrollBars(box);
+            window.Controls.Add(box);
+            RoundButton close = Button("Close", 0, 0, 100, 32, false);
+            close.Dock = DockStyle.Bottom;
+            close.DialogResult = DialogResult.Cancel;
+            window.Controls.Add(close);
+            window.CancelButton = close;
+            window.Shown += delegate { box.Select(0, 0); window.ActiveControl = close; };
+            window.ShowDialog(Form);
+            window.Dispose();
         }
 
         private static FlowLayoutPanel DevFlow()
