@@ -52,6 +52,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     private SlayerMonsterInfo slayerInfo;
     @Inject
     private PluginFamily family;
+    @Inject
+    private net.runelite.client.ui.overlay.OverlayManager overlayManager;
     private final PanelComponent panel = new PanelComponent();
 
     @Inject
@@ -76,7 +78,8 @@ public class BradsMultiToolHoverOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         HudColors.theme(panel, runeLiteConfig.overlayBackgroundColor());
-        if (!config.showHoverInfo() || client.getGameState() != GameState.LOGGED_IN || client.isMenuOpen()) {
+        if (!config.showHoverInfo() || client.getGameState() != GameState.LOGGED_IN || client.isMenuOpen()
+            || CursorTooltip.covered(client, overlayManager, this)) {
             return null;
         }
 

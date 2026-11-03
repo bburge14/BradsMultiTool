@@ -53,6 +53,9 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private final MethodDetector methods;
     private final net.runelite.client.game.SkillIconManager skillIcons;
 
+    @javax.inject.Inject
+    private net.runelite.client.ui.overlay.OverlayManager overlayManager;
+
     @Inject
     public BradsMultiToolResourceTimerOverlay(Client client, SkillTrackerConfig config, ResourceTimers timers,
                                               OtherTimerPlugins otherPlugins, SkillTracker plugin,
@@ -143,7 +146,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         drawPie(graphics, at, safe ? (double) timer.ticksToEarliest() / timer.minTicks : timer.windowPassed(),
             color, border != null ? border : safe ? color : HudColors.WARN, 150);
         net.runelite.api.Point mouse = client.getMouseCanvasPosition();
-        if (mouse != null && Math.hypot(mouse.getX() - at.getX(), mouse.getY() - at.getY()) <= DIAMETER / 2.0 + 2) {
+        if (mouse != null && Math.hypot(mouse.getX() - at.getX(), mouse.getY() - at.getY()) <= DIAMETER / 2.0 + 2
+            && !CursorTooltip.covered(client, overlayManager, this)) {
             tooltips.add(new Tooltip(windowText(timer)));
         }
     }
@@ -404,7 +408,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
         Polygon poly = timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
         net.runelite.api.Point mouse = client.getMouseCanvasPosition();
-        if (poly != null && mouse != null && poly.contains(mouse.getX(), mouse.getY())) {
+        if (poly != null && mouse != null && poly.contains(mouse.getX(), mouse.getY())
+            && !CursorTooltip.covered(client, overlayManager, this)) {
             tooltips.add(new Tooltip(windowText(timer)));
         }
     }

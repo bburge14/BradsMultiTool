@@ -377,6 +377,28 @@ public interface PlannerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "plannerGeLimits",
+        name = "GE Buy Limits",
+        description = "<div width='300'>In TIMERS: each item you've bought on the Grand Exchange in the last 4 hours, how much of its buy limit that's used and when it resets; for a buy offer that isn't filling, whether it's the limit or your price (yours against the current one). From your own offers as they fill (the game keeps no times for trades): fills while you were logged out count from when they were seen, so their reset is \"by\" that time. Information only",
+        section = plannerTimersSection,
+        position = 12
+    )
+    default boolean plannerGeLimits() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatGeLimitReset",
+        name = "Chat: Buy Limit Reset",
+        description = "<div width='300'>Chat message when an item's buy limit resets, for one you'd used up or still have a buy offer for",
+        section = plannerTimersSection,
+        position = 13
+    )
+    default boolean chatGeLimitReset() {
+        return true;
+    }
+
     // ---- Slayer ----
 
     @ConfigItem(

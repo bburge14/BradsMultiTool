@@ -788,7 +788,7 @@ final class PlannerCalculatorView {
             .append('|').append(calc.showMembers()).append(calc.showPrices()).append('|').append(calc.priceVersion())
             .append('|').append(calc.trackerInstalled()).append('|').append(picking).append('|').append(calc.canPlan())
             .append('|').append(calc.sort());
-        key.append('|').append(calc.owned().hashCode());
+        key.append('|').append(calc.owned().hashCode()).append('|').append(calc.buyLimitsKnown());
         SkillPlans.Plan plan = calc.plan(shown);
         key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen).append(calc.pinnedPlanSkill())
             .append(calc.goalPick(shown))
@@ -1603,6 +1603,23 @@ final class PlannerCalculatorView {
         return card.interactive(null, null, tip.append("</html>").toString());
     }
 
+    // How long what's short takes to buy at the item's Grand Exchange buy limit (and what's left of it now)
+    private String buyTime(PlannerCalculator.Need need) {
+        long shortBy = need.needed - need.have;
+        int id = shortBy > 0 ? icons.itemId(need.name) : -1;
+        int limit = id > 0 ? calc.buyLimit(id) : 0;
+        if (limit <= 0) {
+            return "";
+        }
+        int left = calc.buyLimitLeft(id);
+        long now = left < 0 ? limit : left;
+        long windows = shortBy <= now ? 0 : (shortBy - now + limit - 1) / limit;
+        return "<br>Buy limit " + String.format("%,d", limit) + " every 4 hours"
+            + (left >= 0 ? " (" + String.format("%,d", left) + " left now)" : "")
+            + (windows == 0 ? ": you can buy it all now" : ": about " + PlannerPanel.formatDuration(windows * 4 * 3600)
+            + " to buy it all");
+    }
+
     // What the plan's milestones still need, in full, green when your bank and inventory have all of it, red when not
     private void fillMaterials(Skill shown, List<PlannerCalculator.StepRow> steps) {
         Map<String, Integer> owned = calc.owned();
@@ -1629,7 +1646,8 @@ final class PlannerCalculatorView {
                 : " (not in your bank or inventory)")
                 : "<html>" + PlannerUi.esc(need.name) + ": the plan needs " + String.format("%,d", need.needed)
                 + ", you have " + String.format("%,d", need.have) + (need.enough() ? "" : "<br><font color='#e66e64'>"
-                + String.format("%,d", need.needed - need.have) + " short</font>") + "<br>(bank as last opened plus inventory)</html>";
+                + String.format("%,d", need.needed - need.have) + " short</font>") + buyTime(need)
+                + "<br>(bank as last opened plus inventory)</html>";
             JPanel row = new JPanel(new BorderLayout(6, 0));
             row.setOpaque(false);
             JLabel name = PlannerUi.label(need.name, Color.WHITE);

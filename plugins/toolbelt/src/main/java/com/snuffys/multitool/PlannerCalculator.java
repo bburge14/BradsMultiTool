@@ -103,8 +103,9 @@ class PlannerCalculator {
 
     @Inject
     PlannerCalculator(Client client, ConfigManager configManager, ItemManager itemManager, PlannerView view,
-                      PlannerConfig config, PluginFamily family, Alerts alerts) {
+                      PlannerConfig config, PluginFamily family, Alerts alerts, PlannerGeLimits geLimits) {
         this.alerts = alerts;
+        this.geLimits = geLimits;
         this.client = client;
         this.configManager = configManager;
         this.itemManager = itemManager;
@@ -137,6 +138,22 @@ class PlannerCalculator {
     }
 
     private final Alerts alerts;
+    private final PlannerGeLimits geLimits;
+
+    /** An item's GE buy limit (0: unknown or not looked up yet). */
+    int buyLimit(int itemId) {
+        return geLimits == null ? 0 : geLimits.limit(itemId);
+    }
+
+    /** How many buy limits are known so far (for redrawing when one comes in). */
+    int buyLimitsKnown() {
+        return geLimits == null ? 0 : geLimits.known();
+    }
+
+    /** What's left of an item's buy limit right now (-1: its whole limit, or not known). */
+    int buyLimitLeft(int itemId) {
+        return geLimits == null ? -1 : geLimits.leftNow(itemId);
+    }
 
     // Your plan's milestones ticked off as you pass them: a chat message for each one finished (with the next), and
     // one when you reach the plan's goal

@@ -78,6 +78,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final ItemIcons itemIcons;
     @Inject
     private ArenaRoute arenaRoute;
+    @Inject
+    private net.runelite.client.ui.overlay.OverlayManager overlayManager;
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
@@ -104,7 +106,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         HudColors.theme(panel, runeLiteConfig.overlayBackgroundColor());
-        if (client.getGameState() != GameState.LOGGED_IN) {
+        // (not over another panel: the game's hover text names what's behind it, but you're pointing at the panel)
+        if (client.getGameState() != GameState.LOGGED_IN || CursorTooltip.covered(client, overlayManager, this)) {
             return null;
         }
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);

@@ -220,6 +220,13 @@ each can be hidden in the settings; everything is saved per account.
   Skilling Helper), your bird houses, and timers of your own; each with a ready alert in the game chat. When you add
   or edit a timer you pick what it does when it's done: the voice line or a sound (Bell, Chime, Anvil, Boop, Door;
   picking one plays it) and how many times; Default follows the **Ready Sound** setting.
+  **GE buy limits** there too: each item you've bought on the Grand Exchange in the last 4 hours, how much of its buy
+  limit that's used ("7,000 / 7,000 bought") and when it resets, and for a buy offer that isn't filling whether it's
+  the limit ("At the limit: more in 2h 48m") or your price ("Under the limit: it's your price", yours against the GE
+  price). It goes by your own offers as they fill (the game keeps no times for trades): what filled while you were
+  logged out counts from when it was seen, so it resets "by" that time. A chat message when a limit you'd used
+  resets (**Chat: Buy Limit Reset**), and a plan's **Materials needed** says how long what's short takes to buy at
+  the limit.
 - Only the dailies and weeklies reminders go to the split private chat (they fade); every other alert uses the game
   chat.
 - **Slayer**: your task, kills left, points and streak, straight from the game.

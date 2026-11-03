@@ -232,6 +232,7 @@ public class PlannerPreview {
         final DropTracker drops;
         final PlannerNotes notes;
         final PlannerCalculator calculator;
+        final PlannerGeLimits geLimits;
         final CalculatorData calculatorData = new CalculatorData();
         final RecipeData recipes = new RecipeData();
         final TrainingData training = new TrainingData();
@@ -258,7 +259,8 @@ public class PlannerPreview {
             slayer = new PlannerSlayer(null, configManager, null, view);
             drops = new DropTracker(configManager, null, config, view, gson);
             notes = new PlannerNotes(configManager, view, gson);
-            calculator = new PlannerCalculator(null, configManager, null, view, config, null, null);
+            calculator = new PlannerCalculator(null, configManager, null, view, config, null, null, null);
+            geLimits = new PlannerGeLimits(null, configManager, null, view, null, config);
             calculatorData.load(gson);
             recipes.load(gson);
             training.load(gson);
@@ -278,7 +280,7 @@ public class PlannerPreview {
             if (icons instanceof WikiIcons) {
                 ((WikiIcons) icons).add(calculatorData);
             }
-            return new PlannerPanel(config, configManager, chores, timers, farming, slayer, drops, notes, icons,
+            return new PlannerPanel(config, configManager, chores, timers, farming, slayer, drops, notes, geLimits, icons,
                 new PlannerCalculatorView(calculator, calculatorData, recipes, training, icons));
         }
 
@@ -288,6 +290,32 @@ public class PlannerPreview {
 
         void fill() {
             long now = System.currentTimeMillis() / 1000;
+            // GE buy limits: adamant dart tips at their limit (an offer still open), feathers under it but priced low,
+            // and mithril bars bought while away
+            long ms = now * 1000;
+            int tips = net.runelite.api.gameval.ItemID.ADAMANT_DART_TIP;
+            int feather = net.runelite.api.gameval.ItemID.FEATHER;
+            int bars = net.runelite.api.gameval.ItemID.MITHRIL_BAR;
+            java.util.Map<Integer, String> geNames = new java.util.HashMap<>();
+            geNames.put(tips, "Adamant dart tip");
+            geNames.put(feather, "Feather");
+            geNames.put(bars, "Mithril bar");
+            java.util.Map<Integer, Integer> geLimitsOf = new java.util.HashMap<>();
+            geLimitsOf.put(tips, 7000);
+            geLimitsOf.put(feather, 30000);
+            geLimitsOf.put(bars, 10000);
+            java.util.Map<Integer, Long> gePrices = new java.util.HashMap<>();
+            gePrices.put(tips, 182L);
+            gePrices.put(feather, 3L);
+            gePrices.put(bars, 410L);
+            PlannerGeLimits.Slot[] geSlots = new PlannerGeLimits.Slot[8];
+            geSlots[0] = new PlannerGeLimits.Slot(tips, 7000, 20000, 185, net.runelite.api.GrandExchangeOfferState.BUYING);
+            geSlots[1] = new PlannerGeLimits.Slot(feather, 12000, 40000, 2, net.runelite.api.GrandExchangeOfferState.BUYING);
+            geLimits.setSample(java.util.Arrays.asList(
+                new PlannerGeLimits.Buy(tips, 4000, ms - 72 * 60000L, true),
+                new PlannerGeLimits.Buy(tips, 3000, ms - 40 * 60000L, true),
+                new PlannerGeLimits.Buy(feather, 12000, ms - 15 * 60000L, true),
+                new PlannerGeLimits.Buy(bars, 2500, ms - 130 * 60000L, false)), geSlots, geNames, geLimitsOf, gePrices);
             // TODAY: dailies and weeklies of your own (from the preset tasks, with their pictures), one ticked
             chores.add("Battlestaves", false, "Zaff in Varrock (Varrock easy diary)", net.runelite.api.gameval.ItemID.BATTLESTAFF);
             chores.add("Herb run", false, "Catherby, Ardougne, Falador and the Farming Guild",

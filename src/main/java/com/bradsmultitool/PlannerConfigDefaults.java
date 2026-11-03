@@ -32,6 +32,8 @@ final class PlannerConfigDefaults {
         defaults.store("timerSoundRepeats", config.timerSoundRepeats());
         defaults.store("voiceTimerDone", config.voiceTimerDone());
         defaults.store("chatTimerDone", config.chatTimerDone());
+        defaults.store("plannerGeLimits", config.plannerGeLimits());
+        defaults.store("chatGeLimitReset", config.chatGeLimitReset());
         defaults.store("plannerShowSlayer", config.plannerShowSlayer());
         defaults.store("plannerShowDrops", config.plannerShowDrops());
         defaults.store("plannerOtherLoot", config.plannerOtherLoot());
