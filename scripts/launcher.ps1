@@ -21,15 +21,196 @@ Add-Type -Namespace Snuffys -Name Win -MemberDefinition @'
 $consoleWindow = [Snuffys.Win]::GetConsoleWindow()
 if ($consoleWindow -ne [IntPtr]::Zero) { [void][Snuffys.Win]::ShowWindow($consoleWindow, 0) }
 [System.Windows.Forms.Application]::EnableVisualStyles()
+# GDI+ text off (Windows' own, crisper text), before any window is made
+try { [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false) } catch { }
+# The dark theme: its colours, and flat versions of the controls Windows always draws grey (tabs, group frames, the
+# progress bar). C# 5, which Windows PowerShell 5.1 compiles
+Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -TypeDefinition @'
+using System;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
+namespace Snuffys
+{
+    // The launcher's dark theme: colours, and the controls Windows draws in its own grey whatever their colours are
+    // (the tab strip, group box frames, the progress bar), drawn flat here instead
+    public static class Theme
+    {
+        public static readonly Color Window = Color.FromArgb(32, 33, 36);
+        public static readonly Color Surface = Color.FromArgb(48, 49, 52);
+        public static readonly Color Raised = Color.FromArgb(60, 64, 67);
+        public static readonly Color RaisedHover = Color.FromArgb(74, 78, 82);
+        public static readonly Color RaisedDown = Color.FromArgb(88, 92, 96);
+        public static readonly Color Border = Color.FromArgb(72, 74, 78);
+        public static readonly Color Text = Color.FromArgb(241, 243, 244);
+        public static readonly Color Muted = Color.FromArgb(154, 160, 166);
+        public static readonly Color Accent = Color.FromArgb(0, 120, 212);
+        public static readonly Color AccentHover = Color.FromArgb(24, 136, 226);
+        public static readonly Color AccentDown = Color.FromArgb(0, 98, 180);
+        public static readonly Color Link = Color.FromArgb(138, 180, 248);
+        public static readonly Color Good = Color.FromArgb(88, 204, 120);
+        public static readonly Color Bad = Color.FromArgb(242, 105, 105);
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+        // Windows 10 (20H1 on) and 11: the title bar dark too (attribute 20; 19 on older builds). Ignored elsewhere
+        public static void DarkTitleBar(IntPtr hwnd)
+        {
+            int on = 1;
+            try
+            {
+                if (DwmSetWindowAttribute(hwnd, 20, ref on, 4) != 0)
+                {
+                    DwmSetWindowAttribute(hwnd, 19, ref on, 4);
+                }
+            }
+            catch (Exception)
+            {
+                // no DWM (very old Windows): the title bar stays as it is
+            }
+        }
+    }
+
+    // A thin flat bar in the accent colour, instead of Windows' green blocks. Value 0 to Maximum
+    public class FlatProgressBar : Control
+    {
+        private int value;
+        private int maximum = 100;
+
+        public FlatProgressBar()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.ResizeRedraw, true);
+            BackColor = Theme.Raised;
+            ForeColor = Theme.Accent;
+        }
+
+        public int Value
+        {
+            get { return value; }
+            set { this.value = Math.Max(0, Math.Min(maximum, value)); Invalidate(); }
+        }
+
+        public int Maximum
+        {
+            get { return maximum; }
+            set { maximum = Math.Max(1, value); Invalidate(); }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.Clear(BackColor);
+            int width = (int) ((long) Width * value / maximum);
+            if (width > 0)
+            {
+                using (SolidBrush fill = new SolidBrush(ForeColor))
+                {
+                    e.Graphics.FillRectangle(fill, 0, 0, width, Height);
+                }
+            }
+        }
+    }
+
+    // Tabs as flat text, the open one lighter with an accent line under it, on the window's colour
+    public class DarkTabControl : TabControl
+    {
+        public DarkTabControl()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.ResizeRedraw, true);
+            SizeMode = TabSizeMode.Fixed;
+            ItemSize = new Size(84, 30);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.Clear(Theme.Window);
+            for (int i = 0; i < TabCount; i++)
+            {
+                Rectangle tab = GetTabRect(i);
+                bool open = i == SelectedIndex;
+                if (open)
+                {
+                    using (SolidBrush fill = new SolidBrush(Theme.Surface))
+                    {
+                        g.FillRectangle(fill, tab);
+                    }
+                    using (SolidBrush line = new SolidBrush(Theme.Accent))
+                    {
+                        g.FillRectangle(line, tab.X, tab.Bottom - 3, tab.Width, 3);
+                    }
+                }
+                using (Font font = new Font(Font, open ? FontStyle.Bold : FontStyle.Regular))
+                {
+                    TextRenderer.DrawText(g, TabPages[i].Text, font, tab, open ? Theme.Text : Theme.Muted,
+                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                }
+            }
+            // A hairline between the tabs and the page
+            Rectangle page = DisplayRectangle;
+            using (Pen pen = new Pen(Theme.Border))
+            {
+                g.DrawLine(pen, 0, page.Top - 1, Width, page.Top - 1);
+            }
+        }
+    }
+
+    // A group as a flat card: the surface colour, a 1 px border, and its title in bold on the border
+    public class DarkGroupBox : GroupBox
+    {
+        public DarkGroupBox()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer
+                | ControlStyles.ResizeRedraw | ControlStyles.SupportsTransparentBackColor, true);
+            BackColor = Theme.Surface;
+            ForeColor = Theme.Text;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.Clear(Parent != null ? Parent.BackColor : Theme.Window);
+            using (Font bold = new Font(Font, FontStyle.Bold))
+            {
+                Size title = TextRenderer.MeasureText(g, Text, bold);
+                int top = title.Height / 2;
+                Rectangle card = new Rectangle(0, top, Width - 1, Height - top - 1);
+                using (SolidBrush fill = new SolidBrush(BackColor))
+                {
+                    g.FillRectangle(fill, card);
+                }
+                using (Pen pen = new Pen(Theme.Border))
+                {
+                    g.DrawRectangle(pen, card);
+                }
+                if (!string.IsNullOrEmpty(Text))
+                {
+                    Rectangle label = new Rectangle(8, 0, title.Width + 4, title.Height);
+                    using (SolidBrush fill = new SolidBrush(BackColor))
+                    {
+                        g.FillRectangle(fill, label);
+                    }
+                    TextRenderer.DrawText(g, Text, bold, new Point(10, 0), Theme.Text);
+                }
+            }
+        }
+    }
+}
+
+'@
 
 $root = Split-Path $PSScriptRoot -Parent
 $choiceFile = Join-Path $root '.launch-choice'
 # The version (commit) RuneLite was last launched with, to tell when the open one is out of date
 $runningFile = Join-Path $root '.running-commit'
 $creds = Join-Path $env:USERPROFILE '.runelite\credentials.properties'
-$green = [System.Drawing.Color]::FromArgb(0, 140, 60)
-$red = [System.Drawing.Color]::FromArgb(190, 30, 30)
-$gray = [System.Drawing.Color]::Gray
+$green = [Snuffys.Theme]::Good
+$red = [Snuffys.Theme]::Bad
+$gray = [Snuffys.Theme]::Muted
+$textColor = [Snuffys.Theme]::Text
 
 function New-Label($text, $x, $y, $width = 400, $height = 18) {
     $label = New-Object System.Windows.Forms.Label
@@ -40,7 +221,7 @@ function New-Label($text, $x, $y, $width = 400, $height = 18) {
 }
 
 function New-Group($text, $y, $height) {
-    $group = New-Object System.Windows.Forms.GroupBox
+    $group = New-Object Snuffys.DarkGroupBox
     $group.Text = $text
     $group.Location = New-Object System.Drawing.Point(12, $y)
     $group.Size = New-Object System.Drawing.Size(436, $height)
@@ -55,16 +236,20 @@ $form.MaximizeBox = $false
 $form.StartPosition = 'CenterScreen'
 $form.ClientSize = New-Object System.Drawing.Size(468, 700)
 $form.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+$form.BackColor = [Snuffys.Theme]::Window
+$form.ForeColor = $textColor
+# The title bar dark too (Windows 10 20H1 and 11)
+$form.Add_HandleCreated({ [Snuffys.Theme]::DarkTitleBar($form.Handle) })
 # Two tabs: Play (updates, setup, launching) and Dev (pushing the plugins to their repositories and RuneLite)
-$tabs = New-Object System.Windows.Forms.TabControl
+$tabs = New-Object Snuffys.DarkTabControl
 $tabs.Dock = 'Fill'
 $form.Controls.Add($tabs)
 $playTab = New-Object System.Windows.Forms.TabPage
 $playTab.Text = 'Play'
-$playTab.UseVisualStyleBackColor = $true
+$playTab.UseVisualStyleBackColor = $false
 $devTab = New-Object System.Windows.Forms.TabPage
 $devTab.Text = 'Dev'
-$devTab.UseVisualStyleBackColor = $true
+$devTab.UseVisualStyleBackColor = $false
 $tabs.TabPages.Add($playTab)
 $tabs.TabPages.Add($devTab)
 $icon = Join-Path $root 'assets\launcher.ico'
@@ -91,7 +276,7 @@ $updates.Controls.Add($checkAgain)
 
 function Update-Plugins {
     $updateStatus.Text = 'Checking for updates...'
-    $updateStatus.ForeColor = [System.Drawing.SystemColors]::ControlText
+    $updateStatus.ForeColor = $textColor
     $updateLog.Text = ''
     $form.Refresh()
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -409,10 +594,9 @@ $showLog.Location = New-Object System.Drawing.Point(386, 544)
 $showLog.AutoSize = $true
 $showLog.Visible = $false
 $playTab.Controls.Add($showLog)
-$progress = New-Object System.Windows.Forms.ProgressBar
-$progress.Location = New-Object System.Drawing.Point(14, 566)
-$progress.Size = New-Object System.Drawing.Size(434, 18)
-$progress.Style = 'Continuous'
+$progress = New-Object Snuffys.FlatProgressBar
+$progress.Location = New-Object System.Drawing.Point(14, 572)
+$progress.Size = New-Object System.Drawing.Size(434, 6)
 $playTab.Controls.Add($progress)
 
 $logFile = Join-Path $env:TEMP "snuffys-runelite.log"
@@ -462,13 +646,13 @@ $watcher.Add_Tick({
         elseif ($script:stage -eq 'building' -and $new -match "Loading Snuffy's") { $script:stage = 'starting' }
     }
     switch ($script:stage) {
-        'building' { Set-Status "Building Snuffy's plugins..." ([System.Drawing.SystemColors]::ControlText) ([Math]::Min(65, 5 + 7 * $script:tasks)) }
+        'building' { Set-Status "Building Snuffy's plugins..." $textColor ([Math]::Min(65, 5 + 7 * $script:tasks)) }
         'starting' {
             if (RuneLite-Window) {
                 $script:stage = 'running'
                 Set-Status 'RuneLite is running.' $green 100
             } else {
-                Set-Status 'Starting RuneLite...' ([System.Drawing.SystemColors]::ControlText) ([Math]::Min(95, [Math]::Max($progress.Value, 70) + 1))
+                Set-Status 'Starting RuneLite...' $textColor ([Math]::Min(95, [Math]::Max($progress.Value, 70) + 1))
             }
         }
     }
@@ -484,7 +668,7 @@ $watcher.Add_Tick({
         $launch.Enabled = $true
         $relaunch.Enabled = $true
         if ($script:stage -eq 'running') {
-            Set-Status 'RuneLite closed.' ([System.Drawing.SystemColors]::ControlText) 0
+            Set-Status 'RuneLite closed.' $textColor 0
         } else {
             Set-Status "RuneLite stopped before it opened: see the log." $red -1
             $showLog.Visible = $true
@@ -507,7 +691,7 @@ function Start-RuneLite {
     $script:stage = 'building'
     $showLog.Visible = $true
     $launch.Enabled = $false
-    Set-Status "Building Snuffy's plugins..." ([System.Drawing.SystemColors]::ControlText) 5
+    Set-Status "Building Snuffy's plugins..." $textColor 5
     Set-Content -Path $runningFile -Value (git -C $root rev-parse HEAD 2>$null)
     $script:warnedFor = $null
     $command = "gradlew.bat --console=plain runBrad `"-Pload=$load`" > `"$logFile`" 2>&1"
@@ -578,7 +762,7 @@ $relaunch.Add_Click({
         Start-RuneLite
         return
     }
-    Set-Status 'Closing RuneLite...' ([System.Drawing.SystemColors]::ControlText) 0
+    Set-Status 'Closing RuneLite...' $textColor 0
     $relaunch.Enabled = $false
     $window = RuneLite-Window
     if ($window) { [void]$window.CloseMainWindow() }
@@ -862,7 +1046,7 @@ function Start-DevStep($step, $dryRun) {
     $devPublish.Enabled = $false
     $devStatusButton.Enabled = $false
     $devStatus.Text = $(if ($dryRun) { 'Checking...' } elseif ($step -eq 'push') { 'Pushing...' } elseif ($step -eq 'status') { 'Asking GitHub...' } else { 'Publishing...' })
-    $devStatus.ForeColor = [System.Drawing.SystemColors]::ControlText
+    $devStatus.ForeColor = $textColor
     $pyArgs = @($python | Select-Object -Skip 1) + @('-u', 'scripts\publish_plugins.py', $step) + $chosen
     if ($step -eq 'push') { $pyArgs += @('--bump', $level) }
     if ($dryRun) { $pyArgs += '--dry-run' }
@@ -886,6 +1070,50 @@ if (-not (Test-Path $publishConfig)) {
     $devStatusButton.Enabled = $false
 }
 
+
+# ---- The dark theme on every control (set once they're all made) ----
+
+# Primary actions: the accent colour; every other button a flat dark grey
+$primaryButtons = @($launch, $relaunch, $devPublish)
+function Set-Theme($parent) {
+    foreach ($control in $parent.Controls) {
+        if ($control -is [System.Windows.Forms.TabPage]) {
+            $control.UseVisualStyleBackColor = $false
+            $control.BackColor = [Snuffys.Theme]::Window
+            $control.ForeColor = $textColor
+        } elseif ($control -is [System.Windows.Forms.LinkLabel]) {
+            $control.LinkColor = [Snuffys.Theme]::Link
+            $control.VisitedLinkColor = [Snuffys.Theme]::Link
+            $control.ActiveLinkColor = $textColor
+        } elseif ($control -is [System.Windows.Forms.Button]) {
+            $primary = $primaryButtons -contains $control
+            $control.UseVisualStyleBackColor = $false
+            $control.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+            $control.FlatAppearance.BorderSize = 0
+            $control.BackColor = if ($primary) { [Snuffys.Theme]::Accent } else { [Snuffys.Theme]::Raised }
+            $control.FlatAppearance.MouseOverBackColor = if ($primary) { [Snuffys.Theme]::AccentHover } else { [Snuffys.Theme]::RaisedHover }
+            $control.FlatAppearance.MouseDownBackColor = if ($primary) { [Snuffys.Theme]::AccentDown } else { [Snuffys.Theme]::RaisedDown }
+            $control.ForeColor = if ($primary) { [System.Drawing.Color]::White } else { $textColor }
+            $control.Cursor = [System.Windows.Forms.Cursors]::Hand
+        } elseif ($control -is [System.Windows.Forms.CheckBox] -or $control -is [System.Windows.Forms.RadioButton]) {
+            $control.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+            $control.FlatAppearance.BorderColor = [Snuffys.Theme]::Border
+            $control.ForeColor = $textColor
+        } elseif ($control -is [System.Windows.Forms.TextBox]) {
+            $control.BackColor = [Snuffys.Theme]::Surface
+            $control.ForeColor = $textColor
+            $control.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+        } elseif ($control -is [System.Windows.Forms.ComboBox]) {
+            $control.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+            $control.BackColor = [Snuffys.Theme]::Surface
+            $control.ForeColor = $textColor
+        } elseif ($control -is [System.Windows.Forms.Label] -and $control.ForeColor -eq [System.Drawing.SystemColors]::ControlText) {
+            $control.ForeColor = $textColor
+        }
+        if ($control.Controls.Count -gt 0) { Set-Theme $control }
+    }
+}
+Set-Theme $form
 
 $form.Add_Shown({
     Set-ShortcutIcons
