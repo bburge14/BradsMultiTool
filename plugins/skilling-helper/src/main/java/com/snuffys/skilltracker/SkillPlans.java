@@ -60,6 +60,11 @@ final class SkillPlans {
         final List<Supply> supplies = new ArrayList<>();
         /** Why it's there, when it was added for something ("to reach 60 for the Firemaking supply"), or null. */
         String note;
+        /**
+         * The pace its time is worked out at ({@link PlannerRates}: "Normal", "1-tick", "Wiki guide"...), or null for
+         * the wiki guide's rate where there is one, else the normal pace.
+         */
+        String pace;
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;
@@ -72,6 +77,7 @@ final class SkillPlans {
         Step copy() {
             Step copy = new Step(action, from, to, method, xp);
             copy.note = note;
+            copy.pace = pace;
             for (Supply supply : supplies) {
                 copy.supplies.add(new Supply(supply.skill, supply.item, supply.quantity));
             }
@@ -252,6 +258,17 @@ final class SkillPlans {
         configManager.unsetRSProfileConfiguration(GROUP, "goalMethod." + skill.name());
     }
 
+    /**
+     * Keeps the tracker on a plan it follows after you change it in the Planner: its milestones (and its goal, when
+     * the plan's final goal moved) are sent again. Unlike {@link #export}, a method picked on the tracker card stays.
+     */
+    static void sync(ConfigManager configManager, Skill skill, Plan plan, int xpNow) {
+        if (SkillGoals.goal(configManager, skill) != plan.goalXp()) {
+            SkillGoals.setGoal(configManager, skill, plan.goalXp(), xpNow);
+        }
+        configManager.setRSProfileConfiguration(GROUP, TRACKED_KEY + skill.name(), encode(plan));
+    }
+
     /** Removes the exported plan (the goal stays). */
     static void untrack(ConfigManager configManager, Skill skill) {
         configManager.unsetRSProfileConfiguration(GROUP, TRACKED_KEY + skill.name());
@@ -271,14 +288,17 @@ final class SkillPlans {
             out.append(step.from).append('\t').append(step.to).append('\t').append(clean(step.action)).append('\t')
                 .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp);
             // (its supplies for other plans, when it has any: "FIREMAKING|Yew logs|30000;...", then its note)
-            if (!step.supplies.isEmpty() || step.note != null) {
+            if (!step.supplies.isEmpty() || step.note != null || step.pace != null) {
                 out.append('\t');
                 for (Supply supply : step.supplies) {
                     out.append(supply.skill).append('|').append(clean(supply.item).replace("|", " ").replace(";", " "))
                         .append('|').append(supply.quantity).append(';');
                 }
-                if (step.note != null) {
-                    out.append('\t').append(clean(step.note));
+                if (step.note != null || step.pace != null) {
+                    out.append('\t').append(step.note == null ? "" : clean(step.note));
+                }
+                if (step.pace != null) {
+                    out.append('\t').append(clean(step.pace));
                 }
             }
             out.append('\n');
@@ -317,6 +337,9 @@ final class SkillPlans {
                         }
                         if (parts.length > 6 && !parts[6].trim().isEmpty()) {
                             step.note = parts[6].trim();
+                        }
+                        if (parts.length > 7 && !parts[7].trim().isEmpty()) {
+                            step.pace = parts[7].trim();
                         }
                         plan.steps.add(step);
                     }

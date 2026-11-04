@@ -929,7 +929,7 @@ final class PlannerCalculatorView {
         box.add(PlannerUi.label("Best for " + step.from + " → " + step.to + " (click to use)", Color.WHITE));
         bestLine(box, shown, "Cheapest", cheapest, cheapest == null ? "" : gpPerXp(cheapest.perXp()));
         bestLine(box, shown, "Fastest", fastest, fastest == null ? "" : PlannerPanel.gp(fastest.xpHour) + " xp/hr"
-            + (fastest.seconds > 0 ? ", ~" + PlannerPanel.formatDuration(fastest.seconds) : ""));
+            + (fastest.estimated ? " est." : "") + (fastest.seconds > 0 ? ", ~" + PlannerPanel.formatDuration(fastest.seconds) : ""));
         bestLine(box, shown, "Most profit", profit, profit == null ? "" : signed(netOf(profit)) + " gp");
         bestLine(box, shown, "Most XP each", most, most == null ? "" : xp(most.xpEach) + " xp, "
             + String.format("%,d", most.needed) + " to go");
@@ -1200,7 +1200,7 @@ final class PlannerCalculatorView {
         card.right.setForeground(Color.WHITE);
         List<String> notes = new ArrayList<>();
         if (row.seconds > 0) {
-            notes.add("~" + PlannerPanel.formatDuration(row.seconds));
+            notes.add(duration(row.seconds, row.estimated));
         }
         if (row.have > 0) {
             notes.add("have " + PlannerPanel.gp(row.have));
@@ -1241,7 +1241,7 @@ final class PlannerCalculatorView {
                 menu.add(menuItem("Add to plan", () -> addToPlan(shown, action, row.xpEach)));
             }
         }
-        return card.interactive(click, menu.getComponentCount() > 0 ? menu : null, actionTip(row, now, target));
+        return card.interactive(click, menu.getComponentCount() > 0 ? menu : null, actionTip(shown, row, now, target));
     }
 
     /**
@@ -1350,7 +1350,7 @@ final class PlannerCalculatorView {
         return item;
     }
 
-    private String actionTip(PlannerCalculator.Row row, int now, int target) {
+    private String actionTip(Skill shown, PlannerCalculator.Row row, int now, int target) {
         CalculatorData.Action action = row.action;
         StringBuilder tip = new StringBuilder("<html><b>").append(PlannerUi.esc(action.name)).append("</b> (level ")
             .append(action.level).append(action.members ? ", members" : "").append(")");
@@ -1364,7 +1364,15 @@ final class PlannerCalculatorView {
         }
         if (row.seconds > 0) {
             tip.append("<br>About ").append(PlannerPanel.formatDuration(row.seconds)).append(" at ")
-                .append(String.format("%,d", row.xpHour)).append(" xp an hour (the wiki's training guide)");
+                .append(String.format("%,d", row.xpHour)).append(rateSource(row));
+        }
+        // Faster ways to do it (1-tick, 3-tick, clicking fast): a milestone of it can be timed at one (its Pace)
+        for (PlannerRates.Way way : PlannerRates.ways(shown, action, PlannerCalculator.recipesFor(shown, action, recipes))) {
+            if (!PlannerRates.NORMAL.equals(way.name)) {
+                tip.append("<br>").append(PlannerUi.esc(way.name)).append(": about ")
+                    .append(String.format("%,d", Math.round(way.perHour * row.xpEach))).append(" xp an hour (")
+                    .append(PlannerUi.esc(way.about)).append("; a milestone's Pace)");
+            }
         }
         if (calc.showPrices()) {
             if (row.costEach != null && row.costEach > 0) {
@@ -1518,10 +1526,10 @@ final class PlannerCalculatorView {
         tiles.setBackground(PlannerUi.BACKGROUND);
         tiles.add(tile("XP to go", PlannerPanel.gp(totals.xp) + " xp", String.format("%,d", totals.xp)
             + " XP left in the plan's milestones", Color.WHITE));
-        tiles.add(tile("Time", totals.seconds > 0 ? "~" + PlannerPanel.formatDuration(totals.seconds) + (totals.untimed > 0 ? "+" : "")
-            : "-", totals.untimed > 0 ? totals.untimed + " milestone" + (totals.untimed == 1 ? " has" : "s have") + " no XP rate "
-            + "in the wiki's guides, so the time leaves " + (totals.untimed == 1 ? "it" : "them") + " out"
-            : "At the wiki's training guides' XP rates", Color.WHITE));
+        tiles.add(tile("Time", totals.seconds > 0 ? duration(totals.seconds, totals.estimated > 0) + (totals.untimed > 0 ? "+" : "")
+            : "-", (totals.untimed > 0 ? totals.untimed + " milestone" + (totals.untimed == 1 ? " has" : "s have") + " no XP rate, "
+            + "so the time leaves " + (totals.untimed == 1 ? "it" : "them") + " out" : "At the wiki's training guides' XP rates")
+            + estimatedNote(totals), Color.WHITE));
         int endLevel = Math.min(plan.goal, Math.max(totals.endLevel, level));
         tiles.add(tile("Level", level + " → " + endLevel, endLevel < plan.goal ? "The milestones end at level " + endLevel
             + "; the goal is " + plan.goal : "Your level now, and where the plan ends (its goal)", Color.WHITE));
@@ -1602,7 +1610,7 @@ final class PlannerCalculatorView {
                 milestones++;
             }
         }
-        String time = totals.seconds > 0 ? "~" + PlannerPanel.formatDuration(totals.seconds)
+        String time = totals.seconds > 0 ? duration(totals.seconds, totals.estimated > 0)
             + (totals.untimed > 0 ? " for " + (milestones - totals.untimed) + " of " + milestones : "")
             : "no XP rates";
         PlannerUi.Card card = new PlannerUi.Card("Whole plan: " + level + " → " + endLevel,
@@ -1623,7 +1631,7 @@ final class PlannerCalculatorView {
             .append(" to ").append(endLevel);
         if (totals.seconds > 0) {
             tip.append("<br>About ").append(PlannerPanel.formatDuration(totals.seconds)).append(" at the wiki's training guides' "
-                + "rates (").append(String.format("%,d", perHour)).append(" xp an hour on average)");
+                + "rates (").append(String.format("%,d", perHour)).append(" xp an hour on average)").append(estimatedNote(totals));
         }
         if (totals.untimed > 0) {
             tip.append("<br>").append(totals.untimed).append(totals.untimed == 1 ? " milestone has" : " milestones have")
@@ -2071,7 +2079,7 @@ final class PlannerCalculatorView {
             tip.append("<br>").append(String.format("%,d", shortBy)).append(" more: ")
                 .append(PlannerPanel.gp(supply.xp)).append(" ").append(source.skill.getName()).append(" xp");
             if (supply.seconds > 0) {
-                tip.append(", ~").append(PlannerPanel.formatDuration(supply.seconds));
+                tip.append(", ").append(duration(supply.seconds, supply.estimated));
             }
             long buying = shortBy * (long) price(need.name);
             if (buying > 0) {
@@ -2087,10 +2095,34 @@ final class PlannerCalculatorView {
         return tip.toString();
     }
 
+    /** "~2h 10m", with "est." when the rate behind it is an estimate rather than a training guide's. */
+    static String duration(long seconds, boolean estimated) {
+        return "~" + PlannerPanel.formatDuration(seconds) + (estimated ? " est." : "");
+    }
+
+    // Where an action's XP an hour comes from, for its tooltip
+    private static String rateSource(PlannerCalculator.Row row) {
+        if (row.estimated && row.pace != null && !PlannerRates.NORMAL.equals(row.pace)) {
+            return " xp an hour (an estimate for " + PlannerUi.esc(row.pace) + "; yours may differ)";
+        }
+        return row.estimated ? " xp an hour (an estimate: a typical pace for it, banking included; yours may differ)"
+            : " xp an hour (the wiki's training guide)";
+    }
+
+    // Said under a time that has estimates in it
+    private static String estimatedNote(PlannerCalculator.Totals totals) {
+        if (totals.estimated <= 0) {
+            return "";
+        }
+        return "<br>" + totals.estimated + (totals.estimated == 1 ? " milestone's" : " milestones'") + " rate is an estimate "
+            + "(a typical pace, not the wiki's), so take the time as rough";
+    }
+
     /** What getting some of a material yourself takes in its skill: the XP, and the time at the guides' rate. */
     private static final class Supply {
         long xp;
         long seconds;
+        boolean estimated;
     }
 
     private Supply supply(PlannerCalculator.Source source, long quantity) {
@@ -2103,6 +2135,7 @@ final class PlannerCalculatorView {
         List<PlannerCalculator.Row> rows = PlannerCalculator.rows(source.skill, java.util.Collections.singletonList(source.action),
             on, from, to, recipes, training, new java.util.HashMap<>(), this::price, calc::itemPrice);
         out.seconds = rows.isEmpty() ? 0 : rows.get(0).seconds;
+        out.estimated = !rows.isEmpty() && rows.get(0).estimated;
         return out;
     }
 
@@ -2168,7 +2201,7 @@ final class PlannerCalculatorView {
         card.right.setForeground(PlannerUi.READY);
         if (shortBy > 0) {
             long buying = shortBy * (long) price(need.name);
-            card.third(supply.seconds > 0 ? "~" + PlannerPanel.formatDuration(supply.seconds) : "no XP rate",
+            card.third(supply.seconds > 0 ? duration(supply.seconds, supply.estimated) : "no XP rate",
                 buying > 0 ? "saves " + PlannerPanel.gp(buying) : "");
             card.lowerRight.setForeground(PlannerUi.READY);
         } else {
@@ -2574,6 +2607,39 @@ final class PlannerCalculatorView {
             menu.add(menuItem("Update \"" + planName(calc.plans(shown).get(made), made) + "\" from the tracker...",
                 () -> updateFromGoal(shown, made, goal, pick)));
         }
+        // The tracker follows a copy that none of your plans match any more (changed before plans kept it in step):
+        // say so, and let you pick which one wins
+        boolean drifted = tracked != null && plans.stream().noneMatch(p -> calc.isTracked(shown, p));
+        if (drifted) {
+            SkillPlans.Plan open = calc.plan(shown);
+            JLabel[] note = card.line("Tracker has an older copy: right-click to sync", "");
+            note[0].setForeground(HudColors.WARN);
+            note[0].setToolTipText("<html>The Skilling Helper follows a copy of a plan from before it was last changed: "
+                + PlannerUi.esc(String.valueOf(tracked.steps.size())) + " milestones to level " + tracked.goal
+                + "<br>Right-click the goal: send your open plan to it, or bring its copy in as a plan</html>");
+            menu.addSeparator();
+            if (open != null && !open.steps.isEmpty()) {
+                menu.add(menuItem("Send \"" + planName(open, calc.openIndex(shown)) + "\" to the tracker", () -> {
+                    CalculatorData.Calc skillCalc = data.calc(shown);
+                    SkillPlans.Plan withXp = withXp(shown, open, CalculatorData.bonuses(skillCalc, calc.bonuses(shown)), skillCalc);
+                    int game = calc.xp(shown);
+                    calc.export(shown, withXp, game >= 0 ? game : current());
+                    redraw.run();
+                }));
+            }
+            menu.add(menuItem("Bring the tracker's copy in as a plan", () -> {
+                SkillPlans.Plan copy = tracked.copy();
+                copy.name = "From the tracker";
+                calc.newPlan(shown, copy);
+                calc.setMode(PlannerCalculator.Mode.PLAN);
+                redraw.run();
+            }));
+            menu.add(menuItem("Take the plan out of the tracker", () -> {
+                calc.untrack(shown);
+                redraw.run();
+            }));
+            menu.addSeparator();
+        }
         menu.add(menuItem("Remove goal", () -> removeSkillGoal(shown)));
         list.add(PlannerUi.spaced(card.interactive(() -> {
             goalOpen = !goalOpen;
@@ -2804,7 +2870,8 @@ final class PlannerCalculatorView {
         if (row != null && !s.done) {
             Double perXp = calc.showPrices() ? row.perXp() : null;
             String time = row.seconds > 0 ? "~" + PlannerPanel.formatDuration(row.seconds)
-                + (row.xpHour > 0 ? " (" + PlannerPanel.gp(row.xpHour) + "/hr)" : "") : "no XP rate";
+                + (row.xpHour > 0 ? " (" + PlannerPanel.gp(row.xpHour) + "/hr" + (row.estimated ? " est." : "") + ")" : "")
+                : "no XP rate";
             card.third(s.tooLow() ? "needs level " + s.action.level : time, perXp == null ? "" : gpPerXp(perXp));
             if (s.tooLow()) {
                 card.lower.setForeground(COSTS);
@@ -2886,6 +2953,31 @@ final class PlannerCalculatorView {
         if (index < plan.steps.size() - 1 && !fixed && plan.steps.get(index + 1).supplies.isEmpty()) {
             menu.add(menuItem("Move down", () -> change(shown, p -> PlannerCalculator.swapSteps(p, index, index + 1))));
         }
+        // The pace its time is worked out at: the wiki guide's rate, a normal pace, or a faster way (1-tick, 3-tick...)
+        if (s.action != null && !s.done) {
+            CalculatorData.Calc skillCalc = data.calc(shown);
+            Map<String, Integer> paces = PlannerCalculator.paces(shown, s.action, CalculatorData.bonuses(skillCalc,
+                calc.bonuses(shown)), Math.max(step.from, level), recipes, training);
+            if (paces.size() > 1) {
+                javax.swing.JMenu pace = new javax.swing.JMenu("Pace");
+                String using = row != null ? row.pace : null;
+                for (Map.Entry<String, Integer> entry : paces.entrySet()) {
+                    String name = entry.getKey();
+                    javax.swing.JCheckBoxMenuItem item = new javax.swing.JCheckBoxMenuItem(name + ": "
+                        + PlannerPanel.gp(entry.getValue()) + " xp/hr" + (PlannerRates.GUIDE.equals(name) ? "" : " est."),
+                        name.equals(using));
+                    item.addActionListener(e -> change(shown, p -> {
+                        if (index < p.steps.size()) {
+                            // (the default, the guide's rate where there is one, else the normal pace, isn't saved)
+                            String first = paces.keySet().iterator().next();
+                            p.steps.get(index).pace = name.equals(first) ? null : name;
+                        }
+                    }));
+                    pace.add(item);
+                }
+                menu.add(pace);
+            }
+        }
         menu.add(menuItem("Delete", () -> change(shown, p -> PlannerCalculator.removeStep(p, index))));
         // Supplies it carries for other plans: each can be dropped (they're sold again)
         if (!step.supplies.isEmpty()) {
@@ -2932,7 +3024,7 @@ final class PlannerCalculatorView {
                 .append(" actions at ").append(xp(row.xpEach)).append(" xp each");
             if (row.seconds > 0) {
                 tip.append("<br>About ").append(PlannerPanel.formatDuration(row.seconds)).append(" at ")
-                    .append(String.format("%,d", row.xpHour)).append(" xp an hour (the wiki's training guide)");
+                    .append(String.format("%,d", row.xpHour)).append(rateSource(row));
             }
             if (s.tooLow()) {
                 tip.append("<br><font color='#e66e64'>Needs level ").append(s.action.level).append(" to start</font>");
@@ -2964,7 +3056,7 @@ final class PlannerCalculatorView {
         SkillPlans.Plan withXp = withXp(shown, plan, on, skillCalc);
         boolean same = calc.isTracked(shown, withXp);
         boolean any = calc.trackedPlan(shown) != null;
-        JLabel status = PlannerUi.label(same ? "In the tracker" : any ? "Tracker has another plan" : "Not in the tracker",
+        JLabel status = PlannerUi.label(same ? "In the tracker" : any ? "Tracker has a different plan" : "Not in the tracker",
             same ? PlannerUi.READY : any ? PlannerUi.GROWING : PlannerUi.MUTED);
         status.setMinimumSize(new Dimension(0, 0));
         row.add(status, BorderLayout.CENTER);
@@ -2972,7 +3064,7 @@ final class PlannerCalculatorView {
         links.setLayout(new BoxLayout(links, BoxLayout.X_AXIS));
         links.setOpaque(false);
         if (!same) {
-            links.add(PlannerUi.linkLabel(any ? "Update" : "Export to tracker", "Set level " + plan.goal + " as the skill's goal "
+            links.add(PlannerUi.linkLabel(any ? "Send this one" : "Export to tracker", "Set level " + plan.goal + " as the skill's goal "
                 + "and give the Skilling Helper these milestones: its goal card shows the one you're on, with its own bar, "
                 + "and suggests and outlines its method" + (any ? " (replaces the plan it has)" : ""), () -> {
                     int game = calc.xp(shown);
@@ -2991,7 +3083,8 @@ final class PlannerCalculatorView {
         }
         row.add(links, BorderLayout.EAST);
         PlannerUi.tips(row, "<html>Snuffy's Skilling Helper: " + (same ? "it follows this plan" : any
-            ? "it follows an earlier version of this plan" : "it doesn't have this plan yet") + "</html>");
+            ? "it follows another plan (or an older copy of this one): Send this one makes it follow this plan" : "it doesn't "
+            + "have this plan yet") + "<br>Once it follows a plan, your changes to that plan reach it as you make them</html>");
         return PlannerUi.spaced(row);
     }
 
@@ -3096,36 +3189,89 @@ final class PlannerCalculatorView {
                 aims.add(aim);
             }
         }
+        // Yours that aren't supplies (those always stay): with any, the suggestions can fill around them instead
+        boolean mine = old != null && old.steps.stream().anyMatch(st -> st.supplies.isEmpty());
         JPanel form = new JPanel(new GridLayout(0, 1, 2, 6));
-        form.add(new JLabel("<html><b>Suggest a " + shown.getName() + " plan</b>, level " + level + " to " + to
-            + (old != null && !old.steps.isEmpty() ? "<br><font color='#a0a0a0'>It replaces the milestones of \""
-            + PlannerUi.esc(planName(old, calc.openIndex(shown))) + "\" (its supply milestones stay)</font>" : "") + "</html>"));
+        JLabel head = new JLabel();
+        form.add(head);
+        javax.swing.JCheckBox keep = new javax.swing.JCheckBox("<html>Keep my milestones, suggest only the levels they "
+            + "leave open<br><font color='#a0a0a0'>Before, between and after yours; untick to replace them</font></html>", mine);
+        if (mine) {
+            form.add(keep);
+        }
         javax.swing.ButtonGroup group = new javax.swing.ButtonGroup();
-        Map<javax.swing.JRadioButton, SkillPlans.Plan> picks = new java.util.LinkedHashMap<>();
+        // Each aim's two plans: [0] replacing yours (supply milestones kept), [1] filling around yours
+        Map<javax.swing.JRadioButton, SkillPlans.Plan[]> picks = new java.util.LinkedHashMap<>();
+        Map<javax.swing.JRadioButton, String[]> texts = new java.util.HashMap<>();
         for (PlannerCalculator.PlanAim aim : aims) {
-            SkillPlans.Plan plan = PlannerCalculator.aimedPlan(shown, actions, on, training, recipes, level, to, aim,
+            SkillPlans.Plan suggested = PlannerCalculator.aimedPlan(shown, actions, on, training, recipes, level, to, aim,
                 calc.hourWorth(), this::price, calc::itemPrice);
-            List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(shown, skillCalc, on, plan, xp, recipes, training,
-                this::price, calc::itemPrice);
-            PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, rows, xp);
-            StringBuilder about = new StringBuilder("<html><b>").append(aim.label).append("</b>: ");
-            about.append(totals.seconds > 0 ? "~" + PlannerPanel.formatDuration(totals.seconds) + (totals.untimed > 0
-                ? " (+" + totals.untimed + " without a rate)" : "") : "no XP rates");
-            if (prices && (totals.cost > 0 || totals.earn > 0)) {
-                about.append(" &middot; ").append(signed(totals.earn - totals.cost)).append(" gp");
+            SkillPlans.Plan replace = suggested;
+            if (old != null) {
+                // (its supply milestones stay as they are: the suggestions make room for them)
+                for (SkillPlans.Step step : old.steps) {
+                    if (!step.supplies.isEmpty()) {
+                        PlannerCalculator.insertStep(replace, step.copy());
+                    }
+                }
             }
-            about.append(" &middot; ").append(plan.steps.size()).append(plan.steps.size() == 1 ? " milestone" : " milestones");
-            about.append("<br><font color='#a0a0a0'>").append(aim.about)
-                .append(aim == PlannerCalculator.PlanAim.BALANCED ? ": " + PlannerPanel.gp(calc.hourWorth()) + " an hour (in the "
-                    + "settings)" : "").append("</font></html>");
-            javax.swing.JRadioButton choice = new javax.swing.JRadioButton(about.toString());
-            choice.setEnabled(!plan.steps.isEmpty());
+            SkillPlans.Plan fill = mine ? PlannerCalculator.keepAndFill(suggested, old) : replace;
+            SkillPlans.Plan[] both = {replace, fill};
+            String[] about = new String[2];
+            for (int i = 0; i < 2; i++) {
+                SkillPlans.Plan plan = both[i];
+                List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(shown, skillCalc, on, plan, xp, recipes, training,
+                    this::price, calc::itemPrice);
+                PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, rows, xp);
+                StringBuilder text = new StringBuilder("<html><b>").append(aim.label).append("</b>: ");
+                text.append(totals.seconds > 0 ? duration(totals.seconds, totals.estimated > 0) + (totals.untimed > 0
+                    ? " (+" + totals.untimed + " without a rate)" : "") : "no XP rates");
+                if (prices && (totals.cost > 0 || totals.earn > 0)) {
+                    text.append(" &middot; ").append(signed(totals.earn - totals.cost)).append(" gp");
+                }
+                if (i == 1) {
+                    int added = PlannerCalculator.added(plan, old);
+                    text.append(" &middot; adds ").append(added).append(added == 1 ? " milestone" : " milestones");
+                } else {
+                    text.append(" &middot; ").append(plan.steps.size()).append(plan.steps.size() == 1 ? " milestone" : " milestones");
+                }
+                text.append("<br><font color='#a0a0a0'>").append(aim.about)
+                    .append(aim == PlannerCalculator.PlanAim.BALANCED ? ": " + PlannerPanel.gp(calc.hourWorth()) + " an hour (in the "
+                        + "settings)" : "").append("</font></html>");
+                about[i] = text.toString();
+            }
+            javax.swing.JRadioButton choice = new javax.swing.JRadioButton();
             group.add(choice);
-            picks.put(choice, plan);
+            picks.put(choice, both);
+            texts.put(choice, about);
             form.add(choice);
         }
-        picks.keySet().stream().filter(java.awt.Component::isEnabled).findFirst().ifPresent(first -> first.setSelected(true));
-        if (picks.keySet().stream().noneMatch(java.awt.Component::isEnabled)) {
+        String planLabel = old != null && !old.steps.isEmpty() ? PlannerUi.esc(planName(old, calc.openIndex(shown))) : null;
+        Runnable show = () -> {
+            int which = keep.isSelected() && mine ? 1 : 0;
+            head.setText("<html><b>Suggest a " + shown.getName() + " plan</b>, level " + level + " to " + to
+                + (planLabel == null ? "" : which == 1 ? "<br><font color='#a0a0a0'>Added to \"" + planLabel + "\" around its "
+                + "milestones</font>" : "<br><font color='#a0a0a0'>It replaces the milestones of \"" + planLabel
+                + "\" (its supply milestones stay)</font>") + "</html>");
+            javax.swing.JRadioButton first = null;
+            for (Map.Entry<javax.swing.JRadioButton, SkillPlans.Plan[]> entry : picks.entrySet()) {
+                javax.swing.JRadioButton choice = entry.getKey();
+                choice.setText(texts.get(choice)[which]);
+                SkillPlans.Plan plan = entry.getValue()[which];
+                choice.setEnabled(which == 1 ? PlannerCalculator.added(plan, old) > 0 : !plan.steps.isEmpty());
+                if (first == null && choice.isEnabled()) {
+                    first = choice;
+                }
+            }
+            javax.swing.JRadioButton picked = picks.keySet().stream().filter(javax.swing.AbstractButton::isSelected).findFirst()
+                .orElse(null);
+            if ((picked == null || !picked.isEnabled()) && first != null) {
+                first.setSelected(true);
+            }
+        };
+        keep.addActionListener(e -> show.run());
+        show.run();
+        if (picks.keySet().stream().noneMatch(java.awt.Component::isEnabled) && !mine) {
             JOptionPane.showMessageDialog(list, "Nothing to suggest for " + shown.getName() + " here: add milestones from the "
                 + "actions instead.", "Suggest a plan", JOptionPane.INFORMATION_MESSAGE);
             return;
@@ -3134,10 +3280,11 @@ final class PlannerCalculatorView {
             JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
             return;
         }
+        int which = keep.isSelected() && mine ? 1 : 0;
         SkillPlans.Plan plan = null;
-        for (Map.Entry<javax.swing.JRadioButton, SkillPlans.Plan> entry : picks.entrySet()) {
-            if (entry.getKey().isSelected()) {
-                plan = entry.getValue();
+        for (Map.Entry<javax.swing.JRadioButton, SkillPlans.Plan[]> entry : picks.entrySet()) {
+            if (entry.getKey().isSelected() && entry.getKey().isEnabled()) {
+                plan = entry.getValue()[which];
             }
         }
         if (plan == null) {
@@ -3147,12 +3294,6 @@ final class PlannerCalculatorView {
         if (old != null) {
             plan.fromGoal = old.fromGoal;
             plan.fromPick = old.fromPick;
-            // Its supply milestones stay as they are (the suggestions make room for them)
-            for (SkillPlans.Step step : old.steps) {
-                if (!step.supplies.isEmpty()) {
-                    PlannerCalculator.insertStep(plan, step.copy());
-                }
-            }
         }
         calc.savePlan(shown, plan);
         redraw.run();

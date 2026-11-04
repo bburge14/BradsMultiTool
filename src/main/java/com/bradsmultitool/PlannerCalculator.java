@@ -728,8 +728,19 @@ class PlannerCalculator {
             plans.add(plan);
             SkillPlans.savePlans(configManager, skill, plans, 0);
         } else {
+            SkillPlans.Plan before = plans.get(open);
             plans.set(open, plan);
             SkillPlans.savePlans(configManager, skill, plans, open);
+            keepTracked(skill, before, plan);
+        }
+    }
+
+    // When the plan you changed is the one the tracker follows, the tracker gets the change too (so the goal and
+    // the Planner never drift apart)
+    private void keepTracked(Skill skill, SkillPlans.Plan before, SkillPlans.Plan after) {
+        if (before != null && after != null && isTracked(skill, before) && !isTracked(skill, after)) {
+            int now = xp(skill);
+            SkillPlans.sync(configManager, skill, after, Math.max(0, now));
         }
     }
 
@@ -770,8 +781,10 @@ class PlannerCalculator {
         }
         List<SkillPlans.Plan> plans = plans(skill);
         if (index >= 0 && index < plans.size()) {
+            SkillPlans.Plan before = plans.get(index);
             plans.set(index, plan);
             SkillPlans.savePlans(configManager, skill, plans, SkillPlans.open(configManager, skill, plans.size()));
+            keepTracked(skill, before, plan);
         }
     }
 
@@ -826,10 +839,17 @@ class PlannerCalculator {
         final int needed;
         /** You can't do it yet. */
         final boolean locked;
-        /** Seconds to the target at the training guide's rate for a matching method, or 0 when there's none. */
+        /**
+         * Seconds to the target at the training guide's rate for a matching method, else at an estimate (see
+         * {@link #estimated}), or 0 when there's neither.
+         */
         long seconds;
-        /** That method's XP an hour. */
+        /** That method's XP an hour (or the estimate's). */
         int xpHour;
+        /** The rate is an estimate (a typical count an hour times the XP each, {@link PlannerRates}), not a guide's. */
+        boolean estimated;
+        /** The pace the rate is ({@link PlannerRates.Way#name}, or {@link PlannerRates#GUIDE}), or null with no rate. */
+        String pace;
         /** What making one earns (product less materials, GE): negative when it costs; null when not known. */
         Double profit;
         /** What one's materials cost (GE), or null (no recipe, or a material without a price). */
@@ -908,6 +928,13 @@ class PlannerCalculator {
     private static Row row(Skill skill, CalculatorData.Action action, Collection<CalculatorData.Bonus> on, int xp, int target,
                            int level, RecipeData recipes, TrainingData training, Map<String, Integer> have,
                            ToIntFunction<String> price, IntUnaryOperator itemPrice) {
+        return row(skill, action, on, xp, target, level, recipes, training, have, price, itemPrice, null);
+    }
+
+    // ... at this pace (a step's; null: the guide's rate, else the normal pace)
+    private static Row row(Skill skill, CalculatorData.Action action, Collection<CalculatorData.Bonus> on, int xp, int target,
+                           int level, RecipeData recipes, TrainingData training, Map<String, Integer> have,
+                           ToIntFunction<String> price, IntUnaryOperator itemPrice, String pace) {
         Row row = new Row(action, CalculatorData.xpEach(action, on), CalculatorData.needed(action, on, xp, target),
             action.level > level);
         List<RecipeData.Recipe> made = recipes == null ? Collections.emptyList() : recipesFor(skill, action, recipes);
@@ -940,11 +967,45 @@ class PlannerCalculator {
             }
         }
         TrainingData.Method method = training == null ? null : rated(training, skill, action, level);
-        if (method != null && target > xp) {
+        PlannerRates.Way way = pace == null || PlannerRates.GUIDE.equals(pace) ? null
+            : PlannerRates.way(PlannerRates.ways(skill, action, made), pace);
+        if (method != null && way == null) {
             row.xpHour = method.xpHour;
-            row.seconds = (long) Math.ceil((target - xp) * 3600.0 / method.xpHour);
+            row.pace = PlannerRates.GUIDE;
+        } else {
+            if (way == null) {
+                List<PlannerRates.Way> ways = PlannerRates.ways(skill, action, made);
+                way = ways.isEmpty() ? null : ways.get(0);
+            }
+            if (way != null && row.xpEach > 0) {
+                row.xpHour = (int) Math.round(way.perHour * row.xpEach);
+                row.estimated = row.xpHour > 0;
+                row.pace = row.estimated ? way.name : null;
+            }
+        }
+        if (row.xpHour > 0 && target > xp) {
+            row.seconds = (long) Math.ceil((target - xp) * 3600.0 / row.xpHour);
         }
         return row;
+    }
+
+    /**
+     * The paces a step of this action can be timed at, with their XP an hour (the bonuses ticked): the wiki guide's
+     * rate when it has one, then the estimates (the normal pace, then any faster ways).
+     */
+    static Map<String, Integer> paces(Skill skill, CalculatorData.Action action, Collection<CalculatorData.Bonus> on, int level,
+                                      RecipeData recipes, TrainingData training) {
+        Map<String, Integer> out = new java.util.LinkedHashMap<>();
+        TrainingData.Method method = training == null ? null : rated(training, skill, action, level);
+        if (method != null) {
+            out.put(PlannerRates.GUIDE, method.xpHour);
+        }
+        List<RecipeData.Recipe> made = recipes == null ? Collections.emptyList() : recipesFor(skill, action, recipes);
+        double each = CalculatorData.xpEach(action, on);
+        for (PlannerRates.Way way : PlannerRates.ways(skill, action, made)) {
+            out.put(way.name, (int) Math.round(way.perHour * each));
+        }
+        return out;
     }
 
     /**
@@ -1153,6 +1214,8 @@ class PlannerCalculator {
         long seconds;
         /** Steps without a time. */
         int untimed;
+        /** Steps whose time is an estimate ({@link Row#estimated}). */
+        int estimated;
         double cost;
         double earn;
         boolean priced;
@@ -1172,7 +1235,7 @@ class PlannerCalculator {
             CalculatorData.Action action = CalculatorData.named(calc, step.action);
             boolean done = xpNow >= end;
             Row row = action == null ? null : row(skill, action, on, start, end, Math.max(step.from,
-                CalculatorData.level(xpNow, false)), recipes, training, Collections.emptyMap(), price, itemPrice);
+                CalculatorData.level(xpNow, false)), recipes, training, Collections.emptyMap(), price, itemPrice, step.pace);
             if (row != null) {
                 // (what it makes for other skills' plans isn't sold)
                 row.kept = Math.min(step.supplied(), row.needed);
@@ -1195,6 +1258,9 @@ class PlannerCalculator {
             totals.xp += s.xp;
             if (s.row != null && s.row.seconds > 0) {
                 totals.seconds += s.row.seconds;
+                if (s.row.estimated) {
+                    totals.estimated++;
+                }
             } else if (s.xp > 0) {
                 totals.untimed++;
             }
@@ -1717,6 +1783,44 @@ class PlannerCalculator {
      * Puts a milestone in at its own levels: the ones it overlaps make room (cut short, cut off at the start, split in
      * two around it, or gone when it covers them). The step may already be in the plan (one being edited).
      */
+    /**
+     * Your milestones kept as they are, with the suggested plan's filling only the levels they leave open (before,
+     * between and after them). How many milestones the suggestions add is {@link #added}.
+     */
+    static SkillPlans.Plan keepAndFill(SkillPlans.Plan suggested, SkillPlans.Plan mine) {
+        SkillPlans.Plan out = new SkillPlans.Plan(Math.max(suggested.goal, mine.goal));
+        for (SkillPlans.Step step : suggested.steps) {
+            out.steps.add(step.copy());
+        }
+        // Yours over the suggestions (the supply ones last: they're fixed, so nothing of yours gets cut by them)
+        for (boolean supplies : new boolean[]{false, true}) {
+            for (SkillPlans.Step step : mine.steps) {
+                if (step.supplies.isEmpty() != supplies) {
+                    insertStep(out, step.copy());
+                }
+            }
+        }
+        out.goal = Math.max(out.goal, out.end());
+        return out;
+    }
+
+    /** How many of the plan's milestones aren't one of yours (same action and levels). */
+    static int added(SkillPlans.Plan plan, SkillPlans.Plan mine) {
+        int added = 0;
+        for (SkillPlans.Step step : plan.steps) {
+            boolean yours = false;
+            for (SkillPlans.Step old : mine.steps) {
+                if (old.action.equals(step.action) && old.from == step.from && old.to == step.to) {
+                    yours = true;
+                }
+            }
+            if (!yours) {
+                added++;
+            }
+        }
+        return added;
+    }
+
     static void insertStep(SkillPlans.Plan plan, SkillPlans.Step step) {
         // A supply milestone (kept for another plan) is fixed: a new one fits around it, never over it
         if (step.supplies.isEmpty()) {
@@ -1743,7 +1847,9 @@ class PlannerCalculator {
             }
             if (other.from < step.from && other.to > step.to) {
                 // Around it: split, its second half after the new one
-                after.add(new SkillPlans.Step(other.action, step.to, other.to, other.method, other.xp));
+                SkillPlans.Step rest = new SkillPlans.Step(other.action, step.to, other.to, other.method, other.xp);
+                rest.pace = other.pace;
+                after.add(rest);
                 other.to = step.from;
             } else if (other.from < step.from) {
                 other.to = step.from;

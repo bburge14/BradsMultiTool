@@ -723,7 +723,9 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   the actions it applies to (the gilded altar for bones, not ashes).
 - **Actions**: each with its picture, name and level (greyed out above your level), XP each with your bonuses and how
   many to your target. Underneath where it applies: the time at the XP rate the wiki's training guide gives for a
-  matching method (Teak trees for Teak logs), how many you have (bank as last opened plus inventory: of the item, or
+  matching method (Teak trees for Teak logs), else at an estimate marked "est." (a typical count an hour for it,
+  banking included, times its XP each: within about 20-30% for an average player; faster ways such as 1-tick
+  karambwans, 2-tick teaks, 3-tick granite or clicking darts fast are in the tooltip and a milestone's **Pace**), how many you have (bank as last opened plus inventory: of the item, or
   how many you can make from your materials), and with **Show GE Prices** one line of money at Grand Exchange prices:
   what the materials to your target are worth ("Mats 1.24M", for what you make, burn or bury) and what the products
   sell for ("Sells 2.10M": what you make, or the logs, ore, fish or catch you gather, priced by the item's id); neither
@@ -783,7 +785,10 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   at each level), **Cheapest** (the fewest gp lost per XP), **Money maker** (the most profit), **Balanced** (the least
   gp and time together, an hour counted at **What An Hour Is Worth**), **AFK** and **Wiki guide** (the wiki's training
   guides, as before); an ironman gets Fastest, AFK and Wiki guide. Pick one and it fills the milestones (supply
-  milestones stay), each an ordinary milestone to change; or build it
+  milestones stay), each an ordinary milestone to change. When the plan has milestones already, **Keep my milestones,
+  suggest only the levels they leave open** (ticked) adds the suggestions before, between and after yours ("adds 3
+  milestones"); untick it to replace them. A milestone's right-click **Pace** times it at the wiki guide's rate, the
+  normal pace or a faster way (1-tick, 3-tick, clicking fast), with each one's XP an hour. Or build it
   by hand: right-click an action > **Add to plan** (it starts where the last milestone ends, or at its own level, and
   the last one stretches or shortens to meet it; inside a milestone, it takes over from its own level to where that one ended: Atlatl
   darts (74) in Adamant darts 67-81 make Adamant 67-74 and Atlatl 74-81; when there's no room before the goal, it
@@ -796,8 +801,11 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   your level to the goal (**Goal: level 99** to change it). Saved per account (`plan.<SKILL>` in the shared group).
 - **Export to tracker** (only when Snuffy's Skilling Helper or the Toolbelt is installed; otherwise a note says
   installing it lets you): sets the plan's final goal as the skill's goal (as Set as goal does) and gives the Skilling
-  Helper the milestones, which its goal card then follows (see Goals). Changed since? **Update** replaces it;
-  **Remove** takes it out of the tracker (the goal stays).
+  Helper the milestones, which its goal card then follows (see Goals). Changes to the plan it follows reach it as you
+  make them (its goal too, when the plan's goal moves; a method picked on the tracker card stays). When the tracker
+  has a different plan, **Send this one** makes it follow the open one; **Remove** takes it out of the tracker (the goal
+  stays). An older copy that none of your plans match any more shows on the goal card ("Tracker has an older copy"):
+  right-click it to send your open plan, bring the copy in as a plan, or take it out of the tracker.
 - Information only: nothing is done in the game.
 
 **Settings (Planner: Today, Weekly, Timers, Slayer, Drops, Notes & To-Do, Calculator):** a Show switch for each list; Dailies To Do
