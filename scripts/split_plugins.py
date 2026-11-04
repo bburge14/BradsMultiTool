@@ -600,11 +600,14 @@ nothing else to install: it gets what it needs itself.
 
 ## Getting it
 
-1. **Download it:** [snuffys-launcher (zip)](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip).
-2. **Unzip it** where you'd like to keep it (your Documents, say): right-click the zip > **Extract All...**.
-3. **Double-click "Snuffy's Launcher"** (Snuffy's Launcher.vbs) in the folder. Windows may ask once whether to run
-   it: choose **More info > Run anyway**. Then click **Make a desktop shortcut** at the bottom of the window so it's
-   on your desktop from then on.
+**Download [Snuffys-Launcher-Setup.exe](https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe)
+and double-click it.** It installs Snuffy's Launcher in your own folder (no admin rights needed), puts it on your
+desktop and opens it. Windows may warn that it doesn't know the file (it isn't signed): choose **More info > Run
+anyway**. ([All releases](https://github.com/bburge14/snuffys-launcher/releases).)
+
+Or without the installer: download the [zip](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip),
+unzip it where you'd like to keep it, double-click **Snuffy's Launcher** in the folder, and click **Make a desktop
+shortcut** at the bottom of its window.
 
 You need **Windows** and **RuneLite** ([runelite.net](https://runelite.net/)). The first time, the launcher downloads
 the plugins and, if your PC has no Java, a Java of its own into its folder (about 190 MB, once). Nothing is installed
@@ -637,6 +640,26 @@ runner/.gradle/
 .java-download.txt
 java/
 """
+
+
+SETUP_EXE = "Snuffys-Launcher-Setup.exe"
+
+
+def compile_setup(source, target):
+    """Builds the installer with mcs (Mono) or csc (.NET Framework, in every Windows); leaves the old one if neither."""
+    icon = os.path.join(ROOT, "assets", "launcher.ico")
+    refs = ["System.Windows.Forms.dll", "System.Drawing.dll"]
+    csc = os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe")
+    if shutil.which("mcs"):
+        command = ["mcs", "-langversion:5", "-target:winexe", "-out:" + target] + ["-r:" + ref for ref in refs]
+    elif os.path.exists(csc):
+        command = [csc, "/nologo", "/target:winexe", "/out:" + target] + ["/r:" + ref for ref in refs]
+    else:
+        return
+    if os.path.exists(icon):
+        command.append(("-" if command[0] == "mcs" else "/") + "win32icon:" + icon)
+    command.append(source)
+    subprocess.run(command, check=True, stdout=subprocess.DEVNULL)
 
 
 def build_launcher(publish_path=os.path.join(ROOT, "publish.json")):
@@ -687,6 +710,13 @@ def build_launcher(publish_path=os.path.join(ROOT, "publish.json")):
     for name in ("gradlew", "gradlew.bat"):
         shutil.copy2(os.path.join(ROOT, name), os.path.join(runner, name))
     shutil.copytree(os.path.join(ROOT, "gradle"), os.path.join(runner, "gradle"))
+    # The one-file installer to send friends (Snuffys-Launcher-Setup.exe): built here when there's a C# compiler (mcs, or
+    # Windows' own csc), kept in scripts/setup/ for when there isn't
+    setup = os.path.join(ROOT, "scripts", "setup")
+    built = os.path.join(setup, SETUP_EXE)
+    compile_setup(os.path.join(setup, "SnuffysSetup.cs"), built)
+    if os.path.exists(built):
+        shutil.copy2(built, os.path.join(out, SETUP_EXE))
     for name, text in (("README.md", LAUNCHER_README), (".gitignore", LAUNCHER_IGNORE)):
         with open(os.path.join(out, name), "w", newline="\n") as f:
             f.write(text)

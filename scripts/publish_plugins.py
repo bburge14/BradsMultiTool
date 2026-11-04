@@ -231,6 +231,7 @@ def push(folder, entry, dry_run, head, level):
             return
         git("push", "--quiet", "origin", branch, cwd=path, capture=False)
         print("%-16s pushed (%d file(s) changed) to %s" % (folder, changed, repo))
+        release(repo, branch, path, notes)
         return
     new = bump(old, level) if old else read_version(path)
     write_version(path, new)
@@ -382,6 +383,44 @@ def status(fork):
             print("  Latest comment, %s (%s): %s" % (last["user"]["login"], last["created_at"][:10],
                                                      " ".join(re.sub(r"<!--.*?-->", "", last["body"], flags=re.S).split())[:400]))
     print("\nA FAILED check or a comment asking for changes: send it to Claude.")
+
+
+SETUP_EXE = "Snuffys-Launcher-Setup.exe"
+
+
+def release(repo, branch, path, notes):
+    """A GitHub release of the launcher with its installer attached, so there's a page (and a link that's always the
+    newest: .../releases/latest/download/Snuffys-Launcher-Setup.exe) to send friends. Needs git's GitHub login."""
+    setup = os.path.join(path, SETUP_EXE)
+    token = github_token()
+    if not os.path.exists(setup):
+        return
+    if not token:
+        print("release: no GitHub login in git on this PC, so no release made (the zip still updates)")
+        return
+    owner_repo = re.search(r"github\.com[/:]([^/]+/[^/.]+)", repo).group(1)
+    stamp = time.strftime("%Y.%m.%d-%H%M")
+    body = json.dumps({"tag_name": "v" + stamp, "target_commitish": branch, "name": "Snuffy's Launcher " + stamp,
+                       "body": "Download **%s** below and double-click it: it installs Snuffy's Launcher, puts it on your "
+                               "desktop and opens it. Already have it? It updates itself.\n\nChanges:\n%s"
+                               % (SETUP_EXE, "\n".join(notes)), "make_latest": "true"}).encode("utf-8")
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "snuffys-publish", "Authorization": "Bearer " + token}
+    try:
+        request = urllib.request.Request("https://api.github.com/repos/%s/releases" % owner_repo, data=body,
+                                         headers=dict(headers, **{"Content-Type": "application/json"}), method="POST")
+        with urllib.request.urlopen(request, timeout=30) as response:
+            made = json.loads(response.read().decode("utf-8"))
+        upload = made["upload_url"].split("{")[0] + "?name=" + SETUP_EXE
+        with open(setup, "rb") as f:
+            data = f.read()
+        request = urllib.request.Request(upload, data=data, method="POST",
+                                         headers=dict(headers, **{"Content-Type": "application/octet-stream"}))
+        with urllib.request.urlopen(request, timeout=120):
+            pass
+        print("release: %s\n  send friends: https://github.com/%s/releases/latest/download/%s"
+              % (made["html_url"], owner_repo, SETUP_EXE))
+    except (urllib.error.URLError, ValueError, OSError, KeyError) as e:
+        print("release: couldn't make it (%s); the zip still updates" % e)
 
 
 def plain(text, limit=300):

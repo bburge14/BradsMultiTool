@@ -40,7 +40,7 @@ plugin class, from `publish.json` and the split's `PLUGINS`), and `runner/`: a G
 plugin repositories the launcher downloaded into `plugins/` (each in its own package) and starts RuneLite with the
 chosen classes (`runSnuffys -Pclasses=...`). In friends mode the launcher clones or pulls each plugin repository (and
 fetches them every minute in the background), shows each repository's `build.gradle` version, and its "what's new" and
-"RuneLite is behind" come from those repositories' commits. Friends get only what's been pushed to the plugin
+"RuneLite is behind" come from those repositories' commits. `Snuffys-Launcher-Setup.exe` (built from `scripts/setup/SnuffysSetup.cs` by the split, with mcs or Windows' csc; a prebuilt copy is kept in `scripts/setup/`) installs it into `%LOCALAPPDATA%\\Snuffy's Launcher` and makes the desktop shortcut; pushing the launcher also makes a GitHub release with it attached (git's GitHub login), so `https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe` is always the newest. Friends get only what's been pushed to the plugin
 repositories (which are public anyway, as the Plugin Hub needs), not this repository.
 
 ### Gradle

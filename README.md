@@ -315,14 +315,13 @@ each can be hidden in the settings; everything is saved per account.
 No commands and nothing to install: the launcher gets what it needs (the plugins, and a Java of its own if your PC has
 none) by itself.
 
-**1. Download Snuffy's Launcher:** [snuffys-launcher (zip)](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip)
-(just the launcher: it downloads the plugins when it first opens).
+**Download [Snuffys-Launcher-Setup.exe](https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe)
+and double-click it.** It installs Snuffy's Launcher in your own folder (no admin rights needed), puts it on your
+desktop and opens it. Windows may warn that it doesn't know the file (it isn't signed): **More info > Run anyway**.
+The first time, the launcher downloads every plugin (a minute or two), and Java if you have none (about 190 MB, once).
 
-**2. Unzip it** where you'd like to keep it (right-click the zip > **Extract All...**).
-
-**3. Double-click "Snuffy's Launcher"** in the folder (Windows may ask once: **More info > Run anyway**), then click
-**Make a desktop shortcut** at the bottom of the window so it's on your desktop from then on. The first time, it
-downloads every plugin (a minute or two), and Java if you have none (about 190 MB, once).
+(Without the installer: download the [zip](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip),
+unzip it, double-click **Snuffy's Launcher** in the folder and click **Make a desktop shortcut**.)
 
 **4. Using Snuffy's Launcher.** It's a small dark window that:
 
