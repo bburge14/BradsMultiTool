@@ -594,6 +594,10 @@ public class BradsMultiToolPanel extends PluginPanel {
                     // Only one skill is pinned at a time: pinning this one moves the pin from the other
                     if (SwingUtilities.isLeftMouseButton(e) && pinBounds().contains(e.getPoint())) {
                         plugin.setPinnedSkill(pinned ? null : skill);
+                    } else if (SwingUtilities.isLeftMouseButton(e) && foldBounds().contains(e.getPoint())) {
+                        // (layout runs again so the folded rows come back)
+                        layout = "";
+                        plugin.setListCollapsed("card." + skill.name(), !folded());
                     }
                 }
 
@@ -609,12 +613,14 @@ public class BradsMultiToolPanel extends PluginPanel {
                 @Override
                 public void mouseMoved(MouseEvent e) {
                     boolean over = pinBounds().contains(e.getPoint());
+                    boolean overFold = foldBounds().contains(e.getPoint());
                     if (over != pinHover) {
                         pinHover = over;
                         repaint();
                     }
-                    setCursor(over ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
-                    setToolTipText(over ? pinTip() : skill.getName() + " - right-click for options");
+                    setCursor(over || overFold ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+                    setToolTipText(over ? pinTip() : overFold ? (folded() ? "Click to show this card in full" : "Click to fold "
+                        + "this card to its goal bar") : skill.getName() + " - right-click for options");
                 }
             });
 
@@ -764,6 +770,16 @@ public class BradsMultiToolPanel extends PluginPanel {
             g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha));
             g2.drawImage(PIN_IMAGE, at.x, at.y, null);
             g2.dispose();
+            // The fold button, top-left: "-" open, "+" folded (plain signs, like the list headings)
+            Rectangle fold = foldBounds();
+            Graphics2D g3 = (Graphics2D) g.create();
+            g3.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g3.setColor(folded() ? Color.WHITE : new Color(160, 160, 160));
+            g3.setFont(FontManager.getRunescapeBoldFont());
+            String sign = folded() ? "+" : "-";
+            FontMetrics metrics = g3.getFontMetrics();
+            g3.drawString(sign, fold.x + (fold.width - metrics.stringWidth(sign)) / 2, fold.y + metrics.getAscent() - 1);
+            g3.dispose();
         }
 
         // Only the fields switched on under Skill Tracker, two to a row
@@ -861,6 +877,29 @@ public class BradsMultiToolPanel extends PluginPanel {
             focusMenu.setVisible(skill != Skill.SLAYER);
             methodMenu.setVisible(skill != Skill.SLAYER && hasGoal);
             followMenu.setVisible(skill != Skill.SLAYER && hasGoal);
+            applyFold(hasGoal);
+        }
+
+        // Folded (its - / + button, remembered per skill): only the goal bar (no goal: the level bar)
+        private boolean folded() {
+            return plugin.isListCollapsed("card." + skill.name());
+        }
+
+        private void applyFold(boolean hasGoal) {
+            if (!folded()) {
+                stats.setVisible(true);
+                return;
+            }
+            stats.setVisible(false);
+            for (JComponent row : new JComponent[]{milestoneBar, items, suggestion, offerRow}) {
+                row.setVisible(false);
+            }
+            levelBar.setVisible(!hasGoal);
+        }
+
+        private Rectangle foldBounds() {
+            // (the top-left corner, over the skill icon's: clear of the stats)
+            return new Rectangle(0, 0, 13, 13);
         }
 
         // Follow: the plan (when one's sent), your pick (when one's saved) or the wiki; the others stay saved

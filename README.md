@@ -175,6 +175,8 @@ work a resource.
   solid pin to unpin, or right-click the overlay > **Unpin**.
 - **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 10 seconds by default) and resumes on your
   next XP.
+- **Fold a card**: the **-** at a card's top-left folds it to its goal bar (**+** opens it again), remembered per
+  skill; the GOALS and THIS SESSION headings fold their whole lists.
 - **Idle skills drop off**: a skill without a goal leaves the tracker after 30 minutes without XP (**Drop Idle Skills
   After**, 0 for never) and comes back, with its session numbers, when you gain XP in it again. Skills with a goal
   and the pinned skill always stay; there's no other limit on how many cards it shows. **TRAINED** at the top counts
