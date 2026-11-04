@@ -2377,41 +2377,53 @@ final class PlannerCalculatorView {
                                      SkillPlans.Plan plan, int now) {
         SkillPlans.Plan before = plan.copy();
         boolean changed = false;
-        for (SkillPlans.Step step : new ArrayList<>(plan.steps)) {
-            if (step.supplies.isEmpty()) {
-                continue;
+        // In order: each starts where the one before it ends (or at its own level, if that's later), so they follow on
+        // from each other instead of overlapping, and runs as far as getting its supplies takes you
+        List<SkillPlans.Step> supplies = new ArrayList<>();
+        for (SkillPlans.Step step : plan.steps) {
+            if (!step.supplies.isEmpty()) {
+                supplies.add(step);
             }
-            long items = suppliesToGet(step);
+        }
+        supplies.sort((a, b) -> Integer.compare(a.from, b.from));
+        int previousEnd = 0;
+        for (SkillPlans.Step step : supplies) {
             CalculatorData.Action action = CalculatorData.named(skillCalc, step.action);
-            if (items <= 0 || action == null) {
+            long items = suppliesToGet(step);
+            if (action == null || items <= 0) {
+                previousEnd = Math.max(previousEnd, step.to);
                 continue;
             }
+            int from = previousEnd > 0 ? Math.max(action.level, previousEnd) : step.from;
             int per = 1;
             for (RecipeData.Recipe recipe : PlannerCalculator.recipesFor(shown, action, recipes)) {
                 per = Math.max(per, PlannerCalculator.perMake(recipe, action));
             }
             long actions = (items + per - 1) / per;
             double each = CalculatorData.xpEach(action, on);
-            long start = Math.max(now, Experience.getXpForLevel(Math.max(1, step.from)));
+            long start = Math.max(now, Experience.getXpForLevel(Math.max(1, from)));
             long end = Math.min(Experience.MAX_SKILL_XP, start + (long) Math.ceil(actions * each));
-            int to = Math.min(99, Math.max(step.from + 1, CalculatorData.level((int) end, false)));
-            if (to == step.to) {
+            int to = Math.min(99, Math.max(from + 1, CalculatorData.level((int) end, false)));
+            previousEnd = to;
+            if (to == step.to && from == step.from) {
                 continue;
             }
             int oldTo = step.to;
-            // (shorter: the milestone after it starts where it ends now)
+            // (shorter: an ordinary milestone after it starts where it ends now)
             for (SkillPlans.Step next : plan.steps) {
                 if (next != step && next.supplies.isEmpty() && next.from == oldTo && to < oldTo) {
                     next.from = to;
                 }
             }
             plan.steps.remove(step);
+            step.from = from;
             step.to = to;
             PlannerCalculator.insertStep(plan, step);
             plan.goal = Math.max(plan.goal, to);
             changed = true;
         }
         if (changed) {
+            plan.steps.sort((a, b) -> Integer.compare(a.from, b.from));
             calc.savePlanQuietly(shown, plan, before);
         }
     }
