@@ -2289,7 +2289,7 @@ function Start-RuneLite {
         $classes = @($friendPlugins | Where-Object { $keys -contains $_.key -and (Test-Path (Join-Path $pluginsHome $_.folder)) } |
             ForEach-Object { $_.class }) -join ','
         if (-not $classes) {
-            Set-Status "Snuffy's plugins aren't downloaded yet: press Check again (it needs git)." $red 0
+            Set-Status "Snuffy's plugins aren't downloaded yet: press Check again (it needs the internet)." $red 0
             $launch.Enabled = $true
             return
         }
