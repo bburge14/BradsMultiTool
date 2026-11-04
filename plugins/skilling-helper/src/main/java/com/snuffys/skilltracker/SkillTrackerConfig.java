@@ -1489,6 +1489,33 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    enum HighlightGoals {
+        ALL("Every goal"),
+        ACTIVE("Only the active goal");
+
+        private final String label;
+
+        HighlightGoals(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    @ConfigItem(
+        keyName = "highlightGoals",
+        name = "Highlight For",
+        description = "<div width='300'>Which goals the outlines and item highlights are for: every goal, or only the one you set active (right-click a goal's card > Set as active goal; with none set, every goal)",
+        section = goalsSection,
+        position = 6
+    )
+    default HighlightGoals highlightGoals() {
+        return HighlightGoals.ALL;
+    }
+
     @ConfigItem(
         keyName = "highlightGoalItems",
         name = "Highlight Goal Items",

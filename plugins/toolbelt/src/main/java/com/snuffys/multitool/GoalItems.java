@@ -318,7 +318,7 @@ class GoalItems {
         Map<Skill, Double> banked = new HashMap<>();
         Map<Skill, Long> materialsValue = new HashMap<>();
         Map<String, String> tools = new HashMap<>();
-        for (Skill skill : plugin.getGoalSkills()) {
+        for (Skill skill : plugin.getHighlightSkills()) {
             if (plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
                 continue;
             }

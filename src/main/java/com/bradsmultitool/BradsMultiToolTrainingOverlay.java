@@ -115,7 +115,7 @@ public class BradsMultiToolTrainingOverlay extends Overlay {
         java.util.Map<String, Set<String>> fishOptions = new java.util.HashMap<>();
         // Fish a suggested fishing method catches ("trout"): spots that catch any of them
         Set<String> suggestedFish = new HashSet<>();
-        for (Skill skill : plugin.getGoalSkills()) {
+        for (Skill skill : plugin.getHighlightSkills()) {
             int xp = client.getSkillExperience(skill);
             if (plugin.getSkillGoal(skill) <= xp) {
                 continue;

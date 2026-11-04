@@ -283,6 +283,8 @@ class SkillTracker {
      */
     static final String SHARED_GROUP = SkillGoals.GROUP;
     private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "goalMethod.", "trainingFocus.", "prayerMethod.", "goalFollow."};
+    // The goal you set active (one at a time): with Highlight For on the active goal, only it is highlighted
+    private static final String ACTIVE_GOAL_KEY = "goalActive";
 
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
     // which changes when synced settings arrive), so redraw the tracker then
@@ -973,6 +975,42 @@ class SkillTracker {
     }
 
     /** Skills you've set a goal for, in skill order. */
+    /** The goal set active, or null. */
+    public Skill getActiveGoal() {
+        String saved = configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, ACTIVE_GOAL_KEY);
+        if (saved == null) {
+            return null;
+        }
+        try {
+            Skill skill = Skill.valueOf(saved);
+            return getSkillGoal(skill) > 0 ? skill : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    public void setActiveGoal(Skill skill) {
+        if (skill == null) {
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, ACTIVE_GOAL_KEY);
+        } else {
+            configManager.setRSProfileConfiguration(SHARED_GROUP, ACTIVE_GOAL_KEY, skill.name());
+        }
+        updatePanelUI();
+    }
+
+    /**
+     * The goals the outlines and item highlights are for: every goal, or with Highlight For on the active goal, only
+     * that one (every goal while none is set active).
+     */
+    public List<Skill> getHighlightSkills() {
+        Skill active = getActiveGoal();
+        if (config.highlightGoals() == SkillTrackerConfig.HighlightGoals.ACTIVE && active != null) {
+            return java.util.Collections.singletonList(active);
+        }
+        return getGoalSkills();
+    }
+
     public List<Skill> getGoalSkills() {
         List<Skill> skills = new ArrayList<>();
         if (configManager.getRSProfileKey() == null) {

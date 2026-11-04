@@ -533,7 +533,10 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JMenuItem setGoalItem = new JMenuItem("Set goal...");
         private final JMenuItem modifyGoalItem = new JMenuItem("Modify goal...");
         private final JMenuItem clearGoalItem = new JMenuItem("Clear goal");
+        // The active goal (one at a time): with Highlight For on the active goal, only it is highlighted
+        private final JMenuItem activeItem = new JMenuItem();
         private boolean pinHover;
+        private boolean wasActive;
         // What this skill's goal suggestions aim for (its own choice, or the default)
         private final JMenu focusMenu = new JMenu("Suggest");
         // Pick the guide method the suggestion uses (filled in each time the menu opens, for your level)
@@ -620,7 +623,8 @@ public class BradsMultiToolPanel extends PluginPanel {
                     }
                     setCursor(over || overFold ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
                     setToolTipText(over ? pinTip() : overFold ? (folded() ? "Click to show this card in full" : "Click to fold "
-                        + "this card to its goal bar") : skill.getName() + " - right-click for options");
+                        + "this card to its goal bar") : skill.getName() + (wasActive ? " (your active goal)" : "")
+                        + " - right-click for options");
                 }
             });
 
@@ -641,6 +645,8 @@ public class BradsMultiToolPanel extends PluginPanel {
             menu.add(setGoalItem);
             menu.add(modifyGoalItem);
             menu.add(clearGoalItem);
+            activeItem.addActionListener(e -> plugin.setActiveGoal(skill == plugin.getActiveGoal() ? null : skill));
+            menu.add(activeItem);
             ButtonGroup focusGroup = new ButtonGroup();
             defaultFocusItem.addActionListener(e -> plugin.setTrainingFocus(skill, null));
             focusGroup.add(defaultFocusItem);
@@ -770,6 +776,14 @@ public class BradsMultiToolPanel extends PluginPanel {
             g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha));
             g2.drawImage(PIN_IMAGE, at.x, at.y, null);
             g2.dispose();
+            // The active goal: a gold dot beside the fold button
+            if (wasActive) {
+                Graphics2D dot = (Graphics2D) g.create();
+                dot.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                dot.setColor(new Color(255, 200, 60));
+                dot.fillOval(14, 3, 7, 7);
+                dot.dispose();
+            }
             // The fold button, top-left: "-" open, "+" folded (plain signs, like the list headings)
             Rectangle fold = foldBounds();
             Graphics2D g3 = (Graphics2D) g.create();
@@ -867,6 +881,13 @@ public class BradsMultiToolPanel extends PluginPanel {
             setGoalItem.setVisible(!hasGoal);
             modifyGoalItem.setVisible(hasGoal);
             clearGoalItem.setVisible(hasGoal);
+            boolean active = skill == plugin.getActiveGoal();
+            activeItem.setVisible(hasGoal);
+            activeItem.setText(active ? "Stop being the active goal" : "Set as active goal");
+            if (active != wasActive) {
+                wasActive = active;
+                repaint();
+            }
             if (pinned != nowPinned) {
                 pinned = nowPinned;
                 repaint();
