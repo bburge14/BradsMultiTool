@@ -244,6 +244,11 @@ class TrainingAdvisor {
             }
         }
         names.addAll(method.npcs);
+        // (fish a method catches, "Trout": its spots, by the catch's name)
+        for (String target : method.targets) {
+            names.add(target);
+            names.add("Raw " + target.toLowerCase(java.util.Locale.ROOT));
+        }
         for (String name : names) {
             for (LocationData.Place place : locations.of(name)) {
                 if (!method.places.contains(place.label())) {

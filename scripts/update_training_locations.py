@@ -53,6 +53,24 @@ BEST = {
     "Gem rocks": [("Shilo Village mine (underground)", "Deposit chest; Shilo Village quest; a charged glory triples gems")],
     "Coal rocks": [("Mining Guild (P2P)", "60 Mining"), ("Lovakite mine", "Near a bank")],
     "Runite rocks": [("Mining Guild", "85 Mining; 6-minute respawn")],
+    # Fish (Pay-to-play Fishing training): keyed by the catch
+    "Raw shark": [("Fishing Guild", "68 Fishing; +7 invisible boost; bank next to it"), ("Catherby", "Bank nearby")],
+    "Raw lobster": [("Catherby", "Bank nearby"), ("Fishing Guild", "68 Fishing; bank next to it"),
+                    ("Musa Point", "F2P; deposit box at Port Sarim (boat)")],
+    "Raw swordfish": [("Catherby", "Bank nearby"), ("Fishing Guild", "68 Fishing")],
+    "Raw tuna": [("Port Piscarilius", "West of the bank: the 2-tick harpoon spot"), ("Catherby", "Bank nearby")],
+    "Raw trout": [("Prifddinas", "South-east of the south gate: spots never move"),
+                  ("Shilo Village", "Best if banking; Shilo Village quest"), ("Barbarian Village", "F2P; permanent fire")],
+    "Raw salmon": [("Prifddinas", "South-east of the south gate: spots never move"),
+                   ("Shilo Village", "Best if banking; Shilo Village quest"), ("Barbarian Village", "F2P; permanent fire")],
+    "Leaping trout": [("Barbarian Outpost", "Otto's Grotto: the 3-tick and cut-eat spot; games necklace to Barbarian Assault")],
+    "Leaping salmon": [("Barbarian Outpost", "Otto's Grotto: the 3-tick and cut-eat spot")],
+    "Leaping sturgeon": [("Barbarian Outpost", "Otto's Grotto: the 3-tick and cut-eat spot")],
+    "Raw monkfish": [("Piscatoris Fishing Colony", "Swan Song; fairy ring AKQ; bank in the colony")],
+    "Raw karambwan": [("North-eastern Karamja", "North of fairy ring DKP: spots never move; Tai Bwo Wannai Trio")],
+    "Raw anglerfish": [("Port Piscarilius", "South of Tynan's; sandworms")],
+    "Raw dark crab": [("Wilderness Resource Area", "Entry fee (less with the Wilderness diary); PKers")],
+    "Raw shrimps": [("Lumbridge Swamp", "F2P"), ("Draynor Village", "F2P; south of the bank")],
     "Knight of Ardougne": [("East Ardougne", "The market: splashers keep the guards busy; medium Ardougne diary"),
                            ("West Ardougne", "")],
     "Master Farmer": [("Outer Fortis", "Hard Ardougne diary helps"), ("Farming Guild", "")],
@@ -167,6 +185,39 @@ def ordered(page, found):
     return out + rest
 
 
+def fish_places(things):
+    """Fishing: the Fishing spot page's table (each kind of spot, what it catches), each kind's own page for where it
+    is (place, how many), merged by catch: "raw shark" gets every place a shark spot is."""
+    text = wikitext("Fishing spot")
+    start = text.find("!Locations")
+    table = text[start:text.find("\n|}", start)]
+    by_fish = {}
+    for row in table.split("\n|-")[1:]:
+        cells = [c for c in re.split(r"\n\|", "\n" + row.strip()) if c.strip()]
+        if len(cells) < 3:
+            continue
+        spot = re.search(r"\[\[([^\]|]+)", cells[0])
+        catches = re.findall(r"\{\{plink\|([^}|]+)", cells[2])
+        if not spot or not catches:
+            continue
+        found = places(spot.group(1))
+        if not found:
+            # (no location rows: the table's own places)
+            found = [{"place": plain(p).strip(" ,"), "count": 0, "members": "Free-to-play" not in p}
+                     for p in re.split(r"<br\s*/?>", cells[3] if len(cells) > 3 else "") if plain(p).strip()]
+        for catch in catches:
+            merged = by_fish.setdefault(catch.strip(), {})
+            for entry in found:
+                have = merged.setdefault(entry["place"], dict(entry, count=0))
+                have["count"] += entry.get("count", 0)
+        print("fishing %-40s %d places" % (spot.group(1), len(found)), file=sys.stderr)
+        time.sleep(0.2)
+    for fish, merged in by_fish.items():
+        listed = ordered(fish, list(merged.values()))
+        if listed:
+            things[fish.lower()] = {"name": fish, "skill": "Fishing", "places": listed}
+
+
 def main():
     with open(os.path.join(RES, "skilling.json")) as f:
         skilling = json.load(f)
@@ -182,6 +233,7 @@ def main():
         if "bird house" not in name and "birdhouse" not in name:
             pages.setdefault(creature.get("name", name), "Hunter")
     things = {}
+    fish_places(things)
     for i, (page, skill) in enumerate(sorted(pages.items())):
         found = ordered(page, places(page))
         if found:

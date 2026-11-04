@@ -452,6 +452,17 @@
    ],
    "skill": "Mining"
   },
+  "big fishing net": {
+   "name": "Big fishing net",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members South of the Cothon"
+    }
+   ],
+   "skill": "Fishing"
+  },
   "black chinchompa": {
    "name": "Black chinchompa",
    "places": [
@@ -524,6 +535,19 @@
    ],
    "skill": "Hunter"
   },
+  "bluegill": {
+   "name": "Bluegill",
+   "places": [
+    {
+     "count": 20,
+     "members": true,
+     "place": "Lake Molch",
+     "x": 1382,
+     "y": 3627
+    }
+   ],
+   "skill": "Fishing"
+  },
   "blurite rocks": {
    "name": "Blurite rocks",
    "places": [
@@ -536,6 +560,17 @@
     }
    ],
    "skill": "Mining"
+  },
+  "broken glass": {
+   "name": "Broken glass",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members South of the Cothon"
+    }
+   ],
+   "skill": "Fishing"
   },
   "calcified rocks": {
    "name": "Calcified rocks",
@@ -638,6 +673,192 @@
     }
    ],
    "skill": "Hunter"
+  },
+  "casket": {
+   "name": "Casket",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    },
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members South of the Cothon"
+    }
+   ],
+   "skill": "Fishing"
   },
   "cerulean twitch": {
    "name": "Cerulean Twitch",
@@ -1382,6 +1603,19 @@
    ],
    "skill": "Hunter"
   },
+  "common tench": {
+   "name": "Common tench",
+   "places": [
+    {
+     "count": 20,
+     "members": true,
+     "place": "Lake Molch",
+     "x": 1382,
+     "y": 3627
+    }
+   ],
+   "skill": "Fishing"
+  },
   "copper longtail": {
    "name": "Copper longtail",
    "places": [
@@ -2024,6 +2258,33 @@
    ],
    "skill": "Thieving"
   },
+  "frog spawn": {
+   "name": "Frog spawn",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Dorgesh-Kaan South Dungeon",
+     "x": 2746,
+     "y": 5230
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Lumbridge Swamp Caves",
+     "x": 3245,
+     "y": 9570
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ruins of Camdozaal",
+     "x": 2925,
+     "y": 5810
+    }
+   ],
+   "skill": "Fishing"
+  },
   "fruit stall": {
    "name": "Fruit Stall",
    "places": [
@@ -2457,6 +2718,19 @@
    ],
    "skill": "Mining"
   },
+  "golden tench": {
+   "name": "Golden tench",
+   "places": [
+    {
+     "count": 20,
+     "members": true,
+     "place": "Lake Molch",
+     "x": 1382,
+     "y": 3627
+    }
+   ],
+   "skill": "Fishing"
+  },
   "golden warbler": {
    "name": "Golden warbler",
    "places": [
@@ -2511,6 +2785,19 @@
     }
    ],
    "skill": "Mining"
+  },
+  "greater siren": {
+   "name": "Greater siren",
+   "places": [
+    {
+     "count": 20,
+     "members": true,
+     "place": "Lake Molch",
+     "x": 1382,
+     "y": 3627
+    }
+   ],
+   "skill": "Fishing"
   },
   "grubby sapling": {
    "name": "Grubby sapling",
@@ -2652,6 +2939,17 @@
     }
    ],
    "skill": "Hunter"
+  },
+  "house keys": {
+   "name": "House keys",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members South of the Cothon"
+    }
+   ],
+   "skill": "Fishing"
   },
   "imp": {
    "name": "Imp",
@@ -3364,6 +3662,17 @@
    ],
    "skill": "Woodcutting"
   },
+  "jade": {
+   "name": "Jade",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members South of the Cothon"
+    }
+   ],
+   "skill": "Fishing"
+  },
   "jatoba tree": {
    "name": "Jatoba tree",
    "places": [
@@ -3479,6 +3788,431 @@
     }
    ],
    "skill": "Mining"
+  },
+  "leaping salmon": {
+   "name": "Leaping salmon",
+   "places": [
+    {
+     "best": "Otto's Grotto: the 3-tick and cut-eat spot",
+     "count": 5,
+     "members": true,
+     "place": "Barbarian Outpost",
+     "x": 2504,
+     "y": 3497
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Mount Quidamortem",
+     "x": 1266,
+     "y": 3541
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "leaping sturgeon": {
+   "name": "Leaping sturgeon",
+   "places": [
+    {
+     "best": "Otto's Grotto: the 3-tick and cut-eat spot",
+     "count": 5,
+     "members": true,
+     "place": "Barbarian Outpost",
+     "x": 2504,
+     "y": 3497
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Mount Quidamortem",
+     "x": 1266,
+     "y": 3541
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "leaping trout": {
+   "name": "Leaping trout",
+   "places": [
+    {
+     "best": "Otto's Grotto: the 3-tick and cut-eat spot; games necklace to Barbarian Assault",
+     "count": 5,
+     "members": true,
+     "place": "Barbarian Outpost",
+     "x": 2504,
+     "y": 3497
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Mount Quidamortem",
+     "x": 1266,
+     "y": 3541
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "leather boots": {
+   "name": "Leather boots",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "leather gloves": {
+   "name": "Leather gloves",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    }
+   ],
+   "skill": "Fishing"
   },
   "limestone rock": {
    "name": "Limestone rock",
@@ -4624,6 +5358,19 @@
    ],
    "skill": "Hunter"
   },
+  "mottled eel": {
+   "name": "Mottled eel",
+   "places": [
+    {
+     "count": 20,
+     "members": true,
+     "place": "Lake Molch",
+     "x": 1382,
+     "y": 3627
+    }
+   ],
+   "skill": "Fishing"
+  },
   "nickel rocks": {
    "name": "Nickel rocks",
    "places": [
@@ -4689,6 +5436,17 @@
    ],
    "skill": "Woodcutting"
   },
+  "old boot": {
+   "name": "Old boot",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members South of the Cothon"
+    }
+   ],
+   "skill": "Fishing"
+  },
   "orange salamander": {
    "name": "Orange salamander",
    "places": [
@@ -4726,6 +5484,187 @@
     }
    ],
    "skill": "Mining"
+  },
+  "oyster": {
+   "name": "Oyster",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    }
+   ],
+   "skill": "Fishing"
   },
   "paladin": {
    "name": "Paladin",
@@ -4862,6 +5801,2977 @@
    ],
    "skill": "Hunter"
   },
+  "raw anchovies": {
+   "name": "Raw anchovies",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1827,
+     "y": 3605
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "Lumbridge Swamp",
+     "x": 3246,
+     "y": 3155
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Aldarin",
+     "x": 1313,
+     "y": 2962
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Entrana",
+     "x": 2875,
+     "y": 3342
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Fishing Platform",
+     "x": 2790,
+     "y": 3273
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2161,
+     "y": 2782
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Barbarian Outpost",
+     "x": 2498,
+     "y": 3547
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Kastori",
+     "x": 1324,
+     "y": 3011
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Musa Point",
+     "x": 2924,
+     "y": 3181
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1761,
+     "y": 3796
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2633,
+     "y": 3687
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "The Pandemonium",
+     "x": 3033,
+     "y": 2999
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3431
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Al Kharid",
+     "x": 3267,
+     "y": 3148
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Catherby",
+     "x": 2838,
+     "y": 3431
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Draynor Village",
+     "x": 3086,
+     "y": 3227
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Land's End",
+     "x": 1536,
+     "y": 3414
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1776,
+     "y": 2984
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1565,
+     "y": 3327
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Southern Feldip Hills",
+     "x": 2515,
+     "y": 2838
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "West of Port Sarim",
+     "x": 2996,
+     "y": 3158
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Wilderness Bandit Camp",
+     "x": 3050,
+     "y": 3704
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw anglerfish": {
+   "name": "Raw anglerfish",
+   "places": [
+    {
+     "best": "South of Tynan's; sandworms",
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1826,
+     "y": 3770
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw bass": {
+   "name": "Raw bass",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw brawk fish (3)": {
+   "name": "Raw brawk fish (3)",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members Chambers of Xeric"
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw cave eel": {
+   "name": "Raw cave eel",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Dorgesh-Kaan South Dungeon",
+     "x": 2746,
+     "y": 5230
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Lumbridge Swamp Caves",
+     "x": 3245,
+     "y": 9570
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ruins of Camdozaal",
+     "x": 2925,
+     "y": 5810
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw cod": {
+   "name": "Raw cod",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw dark crab": {
+   "name": "Raw dark crab",
+   "places": [
+    {
+     "best": "Entry fee (less with the Wilderness diary); PKers",
+     "count": 4,
+     "members": true,
+     "place": "Wilderness Resource Area",
+     "x": 3181,
+     "y": 3926
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wilderness East Coast",
+     "x": 3349,
+     "y": 3793
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw herring": {
+   "name": "Raw herring",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1827,
+     "y": 3605
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "Lumbridge Swamp",
+     "x": 3246,
+     "y": 3155
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Aldarin",
+     "x": 1313,
+     "y": 2962
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Entrana",
+     "x": 2875,
+     "y": 3342
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Fishing Platform",
+     "x": 2790,
+     "y": 3273
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2161,
+     "y": 2782
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Barbarian Outpost",
+     "x": 2498,
+     "y": 3547
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Kastori",
+     "x": 1324,
+     "y": 3011
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Musa Point",
+     "x": 2924,
+     "y": 3181
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1761,
+     "y": 3796
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2633,
+     "y": 3687
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "The Pandemonium",
+     "x": 3033,
+     "y": 2999
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3431
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Al Kharid",
+     "x": 3267,
+     "y": 3148
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Catherby",
+     "x": 2838,
+     "y": 3431
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Draynor Village",
+     "x": 3086,
+     "y": 3227
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Land's End",
+     "x": 1536,
+     "y": 3414
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1776,
+     "y": 2984
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1565,
+     "y": 3327
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Southern Feldip Hills",
+     "x": 2515,
+     "y": 2838
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "West of Port Sarim",
+     "x": 2996,
+     "y": 3158
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Wilderness Bandit Camp",
+     "x": 3050,
+     "y": 3704
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw jumbo squid": {
+   "name": "Raw jumbo squid",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1176,
+     "y": 2717
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "The Onyx Crest",
+     "x": 3002,
+     "y": 2271
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Wintumber Island",
+     "x": 2074,
+     "y": 2601
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Buccaneers' Haven",
+     "x": 2075,
+     "y": 3675
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw karambwan": {
+   "name": "Raw karambwan",
+   "places": [
+    {
+     "best": "North of fairy ring DKP: spots never move; Tai Bwo Wannai Trio",
+     "count": 4,
+     "members": true,
+     "place": "North-eastern Karamja",
+     "x": 2899,
+     "y": 3119
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw kyren fish (6)": {
+   "name": "Raw kyren fish (6)",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members Chambers of Xeric"
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw leckish fish (2)": {
+   "name": "Raw leckish fish (2)",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members Chambers of Xeric"
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw lobster": {
+   "name": "Raw lobster",
+   "places": [
+    {
+     "best": "Bank nearby",
+     "count": 2,
+     "members": true,
+     "place": "Catherby",
+     "x": 2844,
+     "y": 3429
+    },
+    {
+     "best": "68 Fishing; bank next to it",
+     "count": 11,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2599,
+     "y": 3419
+    },
+    {
+     "best": "F2P; deposit box at Port Sarim (boat)",
+     "count": 3,
+     "members": false,
+     "place": "Musa Point",
+     "x": 2923,
+     "y": 3180
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "East of The Great Conch",
+     "x": 3265,
+     "y": 2427
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "North of The Great Conch",
+     "x": 3153,
+     "y": 2538
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Lledrith Island",
+     "x": 2075,
+     "y": 3185
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "North of Shimmering Atoll",
+     "x": 1542,
+     "y": 2814
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South of Ruins of Unkah",
+     "x": 3142,
+     "y": 2802
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2464,
+     "y": 2712
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2131,
+     "y": 3542
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2401,
+     "y": 3781
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2233,
+     "y": 3424
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1841,
+     "y": 3627
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2639,
+     "y": 3694
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1893,
+     "y": 2970
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Wilderness Resource Area",
+     "x": 3181,
+     "y": 3926
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Corsair Cove Resource Area",
+     "x": 2453,
+     "y": 2891
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1577,
+     "y": 2962
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Miscellania",
+     "x": 2572,
+     "y": 3860
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2278,
+     "y": 2976
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Mistrock",
+     "x": 1370,
+     "y": 2843
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1747,
+     "y": 3802
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2163,
+     "y": 3365
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wilderness East Coast",
+     "x": 3349,
+     "y": 3793
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Wilderness East Coast (Only on Free-to-play worlds)",
+     "x": 3347,
+     "y": 3814
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2573,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1493,
+     "y": 3442
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw mackerel": {
+   "name": "Raw mackerel",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw monkfish": {
+   "name": "Raw monkfish",
+   "places": [
+    {
+     "best": "Swan Song; fairy ring AKQ; bank in the colony",
+     "count": 5,
+     "members": true,
+     "place": "Piscatoris Fishing Colony",
+     "x": 2310,
+     "y": 3697
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw mycil fish (4)": {
+   "name": "Raw mycil fish (4)",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members Chambers of Xeric"
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw pike": {
+   "name": "Raw pike",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3191,
+     "y": 2432
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "South-western Tree Gnome Stronghold",
+     "x": 2382,
+     "y": 3414
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Water Ravine Dungeon",
+     "x": 3350,
+     "y": 9567
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South of Baxtorian Falls",
+     "x": 2508,
+     "y": 3421
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Iorwerth Camp",
+     "x": 2264,
+     "y": 3258
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Iorwerth Camp (Instanced)",
+     "x": 3288,
+     "y": 6010
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Observatory",
+     "x": 2461,
+     "y": 3150
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Entrana",
+     "x": 2840,
+     "y": 3356
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Iorwerth Camp",
+     "x": 2210,
+     "y": 3237
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Iorwerth Camp (Instanced)",
+     "x": 3234,
+     "y": 5989
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "North of Seers' Village",
+     "x": 2714,
+     "y": 3532
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Varlamore in the river Ortus",
+     "x": 1553,
+     "y": 3188
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Fisher Realm",
+     "x": 2668,
+     "y": 4710
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Nemus Retreat",
+     "x": 1394,
+     "y": 3313
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1720,
+     "y": 3683
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Shayzien",
+     "x": 1581,
+     "y": 3563
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Shilo Village",
+     "x": 2855,
+     "y": 2974
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Barbarian Village",
+     "x": 3104,
+     "y": 3424
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Custodia Pass",
+     "x": 1293,
+     "y": 3382
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1714,
+     "y": 3607
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Lumbridge in the river Lum",
+     "x": 3238,
+     "y": 3252
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "North of Ardougne",
+     "x": 2561,
+     "y": 3374
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South of Watson's house",
+     "x": 1644,
+     "y": 3558
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South-east of the Farming Guild",
+     "x": 1271,
+     "y": 3707
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Stalker Den",
+     "x": 1323,
+     "y": 9782
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1263,
+     "y": 3131
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw pysk fish (0)": {
+   "name": "Raw pysk fish (0)",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members Chambers of Xeric"
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw rainbow fish": {
+   "name": "Raw rainbow fish",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3191,
+     "y": 2432
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "South-western Tree Gnome Stronghold",
+     "x": 2382,
+     "y": 3414
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Water Ravine Dungeon",
+     "x": 3350,
+     "y": 9567
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South of Baxtorian Falls",
+     "x": 2508,
+     "y": 3421
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Iorwerth Camp",
+     "x": 2264,
+     "y": 3258
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Iorwerth Camp (Instanced)",
+     "x": 3288,
+     "y": 6010
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Observatory",
+     "x": 2461,
+     "y": 3150
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Entrana",
+     "x": 2840,
+     "y": 3356
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Iorwerth Camp",
+     "x": 2210,
+     "y": 3237
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Iorwerth Camp (Instanced)",
+     "x": 3234,
+     "y": 5989
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "North of Seers' Village",
+     "x": 2714,
+     "y": 3532
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Varlamore in the river Ortus",
+     "x": 1553,
+     "y": 3188
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Fisher Realm",
+     "x": 2668,
+     "y": 4710
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Nemus Retreat",
+     "x": 1394,
+     "y": 3313
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1720,
+     "y": 3683
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Shayzien",
+     "x": 1581,
+     "y": 3563
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Shilo Village",
+     "x": 2855,
+     "y": 2974
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Barbarian Village",
+     "x": 3104,
+     "y": 3424
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Custodia Pass",
+     "x": 1293,
+     "y": 3382
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1714,
+     "y": 3607
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Lumbridge in the river Lum",
+     "x": 3238,
+     "y": 3252
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "North of Ardougne",
+     "x": 2561,
+     "y": 3374
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South of Watson's house",
+     "x": 1644,
+     "y": 3558
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South-east of the Farming Guild",
+     "x": 1271,
+     "y": 3707
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Stalker Den",
+     "x": 1323,
+     "y": 9782
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1263,
+     "y": 3131
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw roqed fish (5)": {
+   "name": "Raw roqed fish (5)",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members Chambers of Xeric"
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw salmon": {
+   "name": "Raw salmon",
+   "places": [
+    {
+     "best": "Best if banking; Shilo Village quest",
+     "count": 3,
+     "members": true,
+     "place": "Shilo Village",
+     "x": 2855,
+     "y": 2974
+    },
+    {
+     "best": "F2P; permanent fire",
+     "count": 2,
+     "members": false,
+     "place": "Barbarian Village",
+     "x": 3104,
+     "y": 3424
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3191,
+     "y": 2432
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "South-western Tree Gnome Stronghold",
+     "x": 2382,
+     "y": 3414
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Water Ravine Dungeon",
+     "x": 3350,
+     "y": 9567
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South of Baxtorian Falls",
+     "x": 2508,
+     "y": 3421
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Iorwerth Camp",
+     "x": 2264,
+     "y": 3258
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Iorwerth Camp (Instanced)",
+     "x": 3288,
+     "y": 6010
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Observatory",
+     "x": 2461,
+     "y": 3150
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Entrana",
+     "x": 2840,
+     "y": 3356
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Iorwerth Camp",
+     "x": 2210,
+     "y": 3237
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Iorwerth Camp (Instanced)",
+     "x": 3234,
+     "y": 5989
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "North of Seers' Village",
+     "x": 2714,
+     "y": 3532
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Varlamore in the river Ortus",
+     "x": 1553,
+     "y": 3188
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Fisher Realm",
+     "x": 2668,
+     "y": 4710
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Nemus Retreat",
+     "x": 1394,
+     "y": 3313
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1720,
+     "y": 3683
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Shayzien",
+     "x": 1581,
+     "y": 3563
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Custodia Pass",
+     "x": 1293,
+     "y": 3382
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1714,
+     "y": 3607
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Lumbridge in the river Lum",
+     "x": 3238,
+     "y": 3252
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "North of Ardougne",
+     "x": 2561,
+     "y": 3374
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South of Watson's house",
+     "x": 1644,
+     "y": 3558
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South-east of the Farming Guild",
+     "x": 1271,
+     "y": 3707
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Stalker Den",
+     "x": 1323,
+     "y": 9782
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1263,
+     "y": 3131
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw sardine": {
+   "name": "Raw sardine",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1827,
+     "y": 3605
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "Lumbridge Swamp",
+     "x": 3246,
+     "y": 3155
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Aldarin",
+     "x": 1313,
+     "y": 2962
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Entrana",
+     "x": 2875,
+     "y": 3342
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Fishing Platform",
+     "x": 2790,
+     "y": 3273
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2161,
+     "y": 2782
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Barbarian Outpost",
+     "x": 2498,
+     "y": 3547
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Kastori",
+     "x": 1324,
+     "y": 3011
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Musa Point",
+     "x": 2924,
+     "y": 3181
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1761,
+     "y": 3796
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2633,
+     "y": 3687
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "The Pandemonium",
+     "x": 3033,
+     "y": 2999
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3431
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Al Kharid",
+     "x": 3267,
+     "y": 3148
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Catherby",
+     "x": 2838,
+     "y": 3431
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Draynor Village",
+     "x": 3086,
+     "y": 3227
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Land's End",
+     "x": 1536,
+     "y": 3414
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1776,
+     "y": 2984
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1565,
+     "y": 3327
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Southern Feldip Hills",
+     "x": 2515,
+     "y": 2838
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "West of Port Sarim",
+     "x": 2996,
+     "y": 3158
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Wilderness Bandit Camp",
+     "x": 3050,
+     "y": 3704
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw shark": {
+   "name": "Raw shark",
+   "places": [
+    {
+     "best": "68 Fishing; +7 invisible boost; bank next to it",
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "best": "Bank nearby",
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw shrimps": {
+   "name": "Raw shrimps",
+   "places": [
+    {
+     "best": "F2P",
+     "count": 5,
+     "members": false,
+     "place": "Lumbridge Swamp",
+     "x": 3246,
+     "y": 3155
+    },
+    {
+     "best": "F2P; south of the bank",
+     "count": 2,
+     "members": false,
+     "place": "Draynor Village",
+     "x": 3086,
+     "y": 3227
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1827,
+     "y": 3605
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Aldarin",
+     "x": 1313,
+     "y": 2962
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Entrana",
+     "x": 2875,
+     "y": 3342
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Fishing Platform",
+     "x": 2790,
+     "y": 3273
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2161,
+     "y": 2782
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Barbarian Outpost",
+     "x": 2498,
+     "y": 3547
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Kastori",
+     "x": 1324,
+     "y": 3011
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Musa Point",
+     "x": 2924,
+     "y": 3181
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1761,
+     "y": 3796
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2633,
+     "y": 3687
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "The Pandemonium",
+     "x": 3033,
+     "y": 2999
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Tutorial Island",
+     "x": 3099,
+     "y": 3090
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3431
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Al Kharid",
+     "x": 3267,
+     "y": 3148
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Catherby",
+     "x": 2838,
+     "y": 3431
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Land's End",
+     "x": 1536,
+     "y": 3414
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1776,
+     "y": 2984
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1565,
+     "y": 3327
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Southern Feldip Hills",
+     "x": 2515,
+     "y": 2838
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "West of Port Sarim",
+     "x": 2996,
+     "y": 3158
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Wilderness Bandit Camp",
+     "x": 3050,
+     "y": 3704
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw slimy eel": {
+   "name": "Raw slimy eel",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Dorgesh-Kaan South Dungeon",
+     "x": 2746,
+     "y": 5230
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Lumbridge Swamp Caves",
+     "x": 3245,
+     "y": 9570
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ruins of Camdozaal",
+     "x": 2925,
+     "y": 5810
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw suphi fish (1)": {
+   "name": "Raw suphi fish (1)",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members Chambers of Xeric"
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw swordfish": {
+   "name": "Raw swordfish",
+   "places": [
+    {
+     "best": "Bank nearby",
+     "count": 2,
+     "members": true,
+     "place": "Catherby",
+     "x": 2844,
+     "y": 3429
+    },
+    {
+     "best": "68 Fishing",
+     "count": 11,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2599,
+     "y": 3419
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "East of The Great Conch",
+     "x": 3265,
+     "y": 2427
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "North of The Great Conch",
+     "x": 3153,
+     "y": 2538
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Lledrith Island",
+     "x": 2075,
+     "y": 3185
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "North of Shimmering Atoll",
+     "x": 1542,
+     "y": 2814
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South of Ruins of Unkah",
+     "x": 3142,
+     "y": 2802
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2464,
+     "y": 2712
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2131,
+     "y": 3542
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2401,
+     "y": 3781
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Piscatoris Fishing Colony",
+     "x": 2310,
+     "y": 3697
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2233,
+     "y": 3424
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1841,
+     "y": 3627
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2639,
+     "y": 3694
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1893,
+     "y": 2970
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Corsair Cove Resource Area",
+     "x": 2453,
+     "y": 2891
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1577,
+     "y": 2962
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Miscellania",
+     "x": 2572,
+     "y": 3860
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Musa Point",
+     "x": 2923,
+     "y": 3180
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2278,
+     "y": 2976
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Mistrock",
+     "x": 1370,
+     "y": 2843
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1747,
+     "y": 3802
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2163,
+     "y": 3365
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Wilderness East Coast (Only on Free-to-play worlds)",
+     "x": 3347,
+     "y": 3814
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2573,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1493,
+     "y": 3442
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw swordtip squid": {
+   "name": "Raw swordtip squid",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1176,
+     "y": 2717
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "The Onyx Crest",
+     "x": 3002,
+     "y": 2271
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Wintumber Island",
+     "x": 2074,
+     "y": 2601
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Buccaneers' Haven",
+     "x": 2075,
+     "y": 3675
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw trout": {
+   "name": "Raw trout",
+   "places": [
+    {
+     "best": "Best if banking; Shilo Village quest",
+     "count": 3,
+     "members": true,
+     "place": "Shilo Village",
+     "x": 2855,
+     "y": 2974
+    },
+    {
+     "best": "F2P; permanent fire",
+     "count": 2,
+     "members": false,
+     "place": "Barbarian Village",
+     "x": 3104,
+     "y": 3424
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3191,
+     "y": 2432
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "South-western Tree Gnome Stronghold",
+     "x": 2382,
+     "y": 3414
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Water Ravine Dungeon",
+     "x": 3350,
+     "y": 9567
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South of Baxtorian Falls",
+     "x": 2508,
+     "y": 3421
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Iorwerth Camp",
+     "x": 2264,
+     "y": 3258
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Iorwerth Camp (Instanced)",
+     "x": 3288,
+     "y": 6010
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Observatory",
+     "x": 2461,
+     "y": 3150
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Entrana",
+     "x": 2840,
+     "y": 3356
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Iorwerth Camp",
+     "x": 2210,
+     "y": 3237
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Iorwerth Camp (Instanced)",
+     "x": 3234,
+     "y": 5989
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "North of Seers' Village",
+     "x": 2714,
+     "y": 3532
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Varlamore in the river Ortus",
+     "x": 1553,
+     "y": 3188
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Fisher Realm",
+     "x": 2668,
+     "y": 4710
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Nemus Retreat",
+     "x": 1394,
+     "y": 3313
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1720,
+     "y": 3683
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Shayzien",
+     "x": 1581,
+     "y": 3563
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Custodia Pass",
+     "x": 1293,
+     "y": 3382
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1714,
+     "y": 3607
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Lumbridge in the river Lum",
+     "x": 3238,
+     "y": 3252
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "North of Ardougne",
+     "x": 2561,
+     "y": 3374
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South of Watson's house",
+     "x": 1644,
+     "y": 3558
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South-east of the Farming Guild",
+     "x": 1271,
+     "y": 3707
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Stalker Den",
+     "x": 1323,
+     "y": 9782
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1263,
+     "y": 3131
+    }
+   ],
+   "skill": "Fishing"
+  },
+  "raw tuna": {
+   "name": "Raw tuna",
+   "places": [
+    {
+     "best": "West of the bank: the 2-tick harpoon spot",
+     "count": 2,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1747,
+     "y": 3802
+    },
+    {
+     "best": "Bank nearby",
+     "count": 2,
+     "members": true,
+     "place": "Catherby",
+     "x": 2844,
+     "y": 3429
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2599,
+     "y": 3419
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "East of The Great Conch",
+     "x": 3265,
+     "y": 2427
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "North of The Great Conch",
+     "x": 3153,
+     "y": 2538
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Lledrith Island",
+     "x": 2075,
+     "y": 3185
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "North of Shimmering Atoll",
+     "x": 1542,
+     "y": 2814
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South of Ruins of Unkah",
+     "x": 3142,
+     "y": 2802
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2464,
+     "y": 2712
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2131,
+     "y": 3542
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2401,
+     "y": 3781
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Piscatoris Fishing Colony",
+     "x": 2310,
+     "y": 3697
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2233,
+     "y": 3424
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1841,
+     "y": 3627
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2639,
+     "y": 3694
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1893,
+     "y": 2970
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Corsair Cove Resource Area",
+     "x": 2453,
+     "y": 2891
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1577,
+     "y": 2962
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Miscellania",
+     "x": 2572,
+     "y": 3860
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Musa Point",
+     "x": 2923,
+     "y": 3180
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2278,
+     "y": 2976
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Mistrock",
+     "x": 1370,
+     "y": 2843
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2163,
+     "y": 3365
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Wilderness East Coast (Only on Free-to-play worlds)",
+     "x": 3347,
+     "y": 3814
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2573,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1493,
+     "y": 3442
+    }
+   ],
+   "skill": "Fishing"
+  },
   "razor-backed kebbit": {
    "name": "Razor-backed kebbit",
    "places": [
@@ -4886,6 +8796,17 @@
     }
    ],
    "skill": "Hunter"
+  },
+  "red topaz": {
+   "name": "Red topaz",
+   "places": [
+    {
+     "count": 0,
+     "members": true,
+     "place": "link=Members South of the Cothon"
+    }
+   ],
+   "skill": "Fishing"
   },
   "redwood tree": {
    "name": "Redwood tree",
@@ -5257,6 +9178,187 @@
    ],
    "skill": "Hunter"
   },
+  "seaweed": {
+   "name": "Seaweed",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "Burgh de Rott",
+     "x": 3471,
+     "y": 3199
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3258,
+     "y": 2497
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of Shimmering Atoll",
+     "x": 1595,
+     "y": 2787
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3198,
+     "y": 2373
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2601,
+     "y": 3422
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2694
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1209,
+     "y": 3688
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2159,
+     "y": 3540
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Jatizso",
+     "x": 2403,
+     "y": 3778
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Prifddinas Coast",
+     "x": 2166,
+     "y": 3347
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1888,
+     "y": 3440
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2226,
+     "y": 3430
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1829,
+     "y": 3610
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1200,
+     "y": 2792
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2642,
+     "y": 3708
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2846,
+     "y": 3429
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3051,
+     "y": 2632
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Sunset Coast",
+     "x": 1571,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2780,
+     "y": 2741
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East of Stonecutter Outpost",
+     "x": 1771,
+     "y": 2966
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2280,
+     "y": 2837
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shipwreck Cove",
+     "x": 1594,
+     "y": 3296
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tal Teklan",
+     "x": 1219,
+     "y": 3149
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2572,
+     "y": 2219
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Land's End",
+     "x": 1485,
+     "y": 3433
+    }
+   ],
+   "skill": "Fishing"
+  },
   "seed stall": {
    "name": "Seed stall",
    "places": [
@@ -5544,6 +9646,33 @@
     }
    ],
    "skill": "Thieving"
+  },
+  "slimy eel": {
+   "name": "Slimy eel",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "North of the Abandoned Mine",
+     "x": 3437,
+     "y": 3272
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Western Morytania",
+     "x": 3431,
+     "y": 3415
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Eastern Morytania",
+     "x": 3490,
+     "y": 3444
+    }
+   ],
+   "skill": "Fishing"
   },
   "snowy knight": {
    "name": "Snowy knight",
@@ -6734,13 +10863,6 @@
      "place": "Catherby",
      "x": 2817,
      "y": 3443
-    },
-    {
-     "count": 1,
-     "members": false,
-     "place": "Draynor Village ()",
-     "x": 3097,
-     "y": 3269
     },
     {
      "count": 1,

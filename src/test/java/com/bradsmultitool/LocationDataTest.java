@@ -36,4 +36,13 @@ public class LocationDataTest {
         assertFalse(LOCATIONS.forAction("Thieving", "Master Farmer").isEmpty());
         assertEquals("Mining Guild (P2P)", LOCATIONS.forAction("Mining", "Iron ore").get(0).place);
     }
+
+    @Test
+    public void fishHaveTheirSpots() {
+        List<LocationData.Place> shark = LOCATIONS.forAction("Fishing", "Raw shark");
+        assertEquals("Fishing Guild", shark.get(0).place);
+        assertTrue(shark.size() > 3);
+        assertEquals("Barbarian Outpost", LOCATIONS.forAction("Fishing", "Leaping sturgeon").get(0).place);
+        assertFalse(LOCATIONS.forAction("Fishing", "Raw monkfish").isEmpty());
+    }
 }
