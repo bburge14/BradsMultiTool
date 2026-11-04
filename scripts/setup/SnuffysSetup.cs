@@ -1,6 +1,6 @@
 // Snuffy's Launcher Setup: the one file to send a friend. It downloads Snuffy's Launcher from GitHub into the user's
 // own folder (%LOCALAPPDATA%\Snuffy's Launcher: no admin rights), puts it on the desktop and opens it (with no window
-// of its own: the launcher's .vbs). Run again, it just opens the launcher (which updates itself from then on).
+// of its own: PowerShell running it hidden). Run again, it just opens the launcher (which updates itself from then on).
 // C# 5 for .NET Framework 4 (in every Windows 10 and 11); built by scripts/split_plugins.py with csc or mcs.
 using System;
 using System.Diagnostics;
@@ -214,14 +214,19 @@ namespace Snuffys
             }
         }
 
-        // The launcher, with no window of its own (its .vbs)
+        // The launcher, with no window of its own: PowerShell running it hidden, as the desktop shortcut does (not through
+        // its .vbs, so an install whose .vbs is old still opens; the launcher then updates itself)
         private static void Open()
         {
             try
             {
-                ProcessStartInfo start = new ProcessStartInfo("wscript.exe", "\"" + Path.Combine(Home, "Snuffy's Launcher.vbs") + "\"");
+                string powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),
+                    "WindowsPowerShell\\v1.0\\powershell.exe");
+                ProcessStartInfo start = new ProcessStartInfo(powershell, "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden "
+                    + "-File \"" + Path.Combine(Home, "scripts\\launcher.ps1") + "\"");
                 start.WorkingDirectory = Home;
                 start.UseShellExecute = false;
+                start.CreateNoWindow = true;
                 Process.Start(start);
             }
             catch (Exception e)

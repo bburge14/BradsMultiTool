@@ -463,26 +463,40 @@ LAUNCHER_BAT = r"""@echo off
 rem Opens Snuffy's Launcher (scripts\launcher.ps1): it downloads and updates Snuffy's plugins, checks your setup, lets
 rem you pick which plugins to load and starts RuneLite with them. The desktop shortcut it makes opens it with no window.
 cd /d "%~dp0"
-rem A script that can't be read (a broken update) opens its errors in Notepad instead of nothing happening
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile('%~dp0scripts\launcher.ps1', [ref]$null, [ref]$e); if ($e) { ($e | Out-String) | Set-Content (Join-Path $env:TEMP 'snuffys-launcher-error.log'); exit 1 }"
-if errorlevel 1 (
-  start "" notepad "%TEMP%\snuffys-launcher-error.log"
+rem A script that can't be read (a broken update) opens its errors in Notepad instead of nothing happening. (Its path
+rem goes in through a variable: a folder named with an apostrophe, "Snuffy's Launcher", can't break the check.)
+set "SNUFFYS_SCRIPT=%~dp0scripts\launcher.ps1"
+set "SNUFFYS_ERRORS=%TEMP%\snuffys-launcher-error.log"
+if exist "%SNUFFYS_ERRORS%" del "%SNUFFYS_ERRORS%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile($env:SNUFFYS_SCRIPT, [ref]$null, [ref]$e); if ($e) { ($e | Out-String) | Set-Content $env:SNUFFYS_ERRORS }"
+if exist "%SNUFFYS_ERRORS%" (
+  start "" notepad "%SNUFFYS_ERRORS%"
   exit /b 1
 )
-start "" /min powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0scripts\launcher.ps1"
+start "" /min powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%SNUFFYS_SCRIPT%"
 """
 
 LAUNCHER_VBS = r'''' Opens Snuffy's Launcher with no window at all (scripts\launcher.ps1, hidden): double-click this.
-' If the launcher's script can't be read (a broken update) its errors open in Notepad instead.
+' If the launcher's script can't be read (a broken update) its errors open in Notepad instead. Its path goes to the
+' check through a variable, so a folder named with an apostrophe ("Snuffy's Launcher") can't break it; and Notepad only
+' opens when there are errors to show (if the check itself fails, it opens the launcher anyway).
 Set shell = CreateObject("WScript.Shell")
-folder = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
+Set files = CreateObject("Scripting.FileSystemObject")
+folder = files.GetParentFolderName(WScript.ScriptFullName)
 script = folder & "\scripts\launcher.ps1"
+errors = shell.ExpandEnvironmentStrings("%TEMP%") & "\snuffys-launcher-error.log"
+shell.Environment("Process")("SNUFFYS_SCRIPT") = script
+shell.Environment("Process")("SNUFFYS_ERRORS") = errors
+If files.FileExists(errors) Then files.DeleteFile errors, True
 ps = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden "
-check = ps & "-Command ""$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile('" & script & _
-    "', [ref]$null, [ref]$e); if ($e) { ($e | Out-String) | Set-Content (Join-Path $env:TEMP 'snuffys-launcher-error.log'); exit 1 }"""
-If shell.Run(check, 0, True) <> 0 Then
-    shell.Run "notepad.exe """ & shell.ExpandEnvironmentStrings("%TEMP%") & "\snuffys-launcher-error.log""", 1, False
-    WScript.Quit 1
+check = ps & "-Command ""$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile($env:SNUFFYS_SCRIPT, " & _
+    "[ref]$null, [ref]$e); if ($e) { ($e | Out-String) | Set-Content $env:SNUFFYS_ERRORS }"""
+shell.Run check, 0, True
+If files.FileExists(errors) Then
+    If files.GetFile(errors).Size > 0 Then
+        shell.Run "notepad.exe """ & errors & """", 1, False
+        WScript.Quit 1
+    End If
 End If
 shell.Run ps & "-File """ & script & """", 0, False
 '''
