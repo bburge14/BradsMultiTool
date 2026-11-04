@@ -2790,20 +2790,21 @@ final class PlannerCalculatorView {
         Map<Skill, Integer> others = calc.planCounts(skills());
         others.remove(shown);
         if (!others.isEmpty()) {
-            JPanel row = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
+            // (a heading, then the skills two to a row: a row that wraps on its own can't grow, so it drew over what's below)
+            JPanel row = new JPanel(new BorderLayout(0, 2));
             row.setBackground(PlannerUi.BACKGROUND);
             row.setBorder(new EmptyBorder(0, 2, 6, 0));
-            row.add(PlannerUi.label("Other skills: ", PlannerUi.MUTED));
-            boolean first = true;
+            row.add(PlannerUi.label("Other skills' plans", PlannerUi.MUTED), BorderLayout.NORTH);
+            JPanel links = new JPanel(new GridLayout(0, 2, 6, 2));
+            links.setOpaque(false);
             for (Map.Entry<Skill, Integer> e : others.entrySet()) {
-                if (!first) {
-                    row.add(PlannerUi.label(" · ", PlannerUi.FAINT));
-                }
-                first = false;
                 Skill other = e.getKey();
-                row.add(PlannerUi.linkLabel(other.getName() + " (" + e.getValue() + ")", "Your " + other.getName() + " plans",
-                    () -> pick(other)));
+                JLabel link = PlannerUi.linkLabel(other.getName() + " (" + e.getValue() + ")", "Your " + other.getName() + " plans",
+                    () -> pick(other));
+                link.setMinimumSize(new Dimension(0, 0));
+                links.add(link);
             }
+            row.add(links, BorderLayout.CENTER);
             list.add(PlannerUi.fullWidth(row));
         }
     }
