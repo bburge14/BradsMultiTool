@@ -1130,7 +1130,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         SkillingData.Tool best = SkillingData.bestToolForLevel(tools, client.getRealSkillLevel(skill));
         // Each tool in its metal's colour
         line("Your Tool:", owned != null ? owned.name : "None", owned != null ? owned.color : HudColors.BAD);
-        if (best != null && best != owned) {
+        // (only a better tier: a felling or gilded axe of the same tier is as good)
+        if (best != null && (owned == null || best.level > owned.level)) {
             line("Best For You:", best.name, best.color);
         }
     }
