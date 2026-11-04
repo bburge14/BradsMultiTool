@@ -15,15 +15,15 @@ your own setup.
 ```xml
 <Configuration>
   <Networking>Enable</Networking>
-  <vGPU>Enable</vGPU>
-  <MemoryInMB>8192</MemoryInMB>
+  <MemoryInMB>6144</MemoryInMB>
   <LogonCommand>
     <Command>explorer.exe "https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe"</Command>
   </LogonCommand>
 </Configuration>
 ```
 
-Double-click it: a clean Windows opens and Edge starts downloading the installer.
+Double-click it: a clean Windows opens and Edge starts downloading the installer. (More memory, or `<vGPU>Enable</vGPU>`,
+can make the Sandbox close with "exited unexpectedly (0x80370106)" on some PCs: keep it as it is.)
 
 ## 1. Install
 
