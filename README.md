@@ -175,9 +175,9 @@ work a resource.
   solid pin to unpin, or right-click the overlay > **Unpin**.
 - **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 10 seconds by default) and resumes on your
   next XP.
-- **Active goal**: right-click a goal's card > **Set as active goal** (one at a time; a gold dot marks it). With
-  **Highlight For** set to "Only the active goal" (settings, Goals), the tree, rock and NPC outlines and the item
-  highlights are only for that goal; "Every goal" (the default) highlights for all of them.
+- **Active goal**: with **Highlight For** set to "Only the active goal" (settings, Goals), right-click a goal's card >
+  **Set as active goal** (one at a time; a gold dot marks it) and the tree, rock and NPC outlines and the item
+  highlights are only for that goal. On "Every goal" (the default) they're for all of them, and there's no active goal.
 - **Fold a card**: the **-** at a card's top-left folds it to its goal bar (**+** opens it again), remembered per
   skill; the GOALS and THIS SESSION headings fold their whole lists.
 - **Idle skills drop off**: a skill without a goal leaves the tracker after 30 minutes without XP (**Drop Idle Skills

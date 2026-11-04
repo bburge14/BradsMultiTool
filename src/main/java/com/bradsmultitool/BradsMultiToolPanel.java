@@ -881,8 +881,10 @@ public class BradsMultiToolPanel extends PluginPanel {
             setGoalItem.setVisible(!hasGoal);
             modifyGoalItem.setVisible(hasGoal);
             clearGoalItem.setVisible(hasGoal);
-            boolean active = skill == plugin.getActiveGoal();
-            activeItem.setVisible(hasGoal);
+            // (only with Highlight For on the active goal: otherwise there's nothing it changes)
+            boolean usesActive = config.highlightGoals() == SkillTrackerConfig.HighlightGoals.ACTIVE;
+            boolean active = usesActive && skill == plugin.getActiveGoal();
+            activeItem.setVisible(hasGoal && usesActive);
             activeItem.setText(active ? "Stop being the active goal" : "Set as active goal");
             if (active != wasActive) {
                 wasActive = active;
