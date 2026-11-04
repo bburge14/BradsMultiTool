@@ -30,6 +30,10 @@ class TrainingAdvisor {
     @Inject
     private MonsterData monsterData;
 
+    // Where to train (the places of a method's trees, rocks and creatures)
+    @Inject
+    private LocationData locations;
+
     /** A line for the card: "Train: Oak trees", and the method to outline (null if nothing to outline). */
     static final class Suggestion {
         final String label;
@@ -154,6 +158,7 @@ class TrainingAdvisor {
         if (method == null) {
             return null;
         }
+        addPlaces(method);
         // The guide's pick at your level from its table ("Strength potion (Tarromin potion (unf) + Limpwurt
         // root)", "Cutting gems: Ruby"), else what it trains on ("Fly fishing: Trout, Salmon")
         TrainingData.Option option = method.bestOption(level, o -> o.started.stream().allMatch(quests::isStarted));
@@ -176,7 +181,7 @@ class TrainingAdvisor {
      */
     TrainingData.Method planMethod(Skill skill, SkillPlans.Step step) {
         TrainingData.Method guide = SkillPlans.method(training, skill, step);
-        java.util.Set<Integer> ids = skilling.objectIds(skill.getName(), name -> MethodDetector.sameThing(name, step.action));
+        java.util.Set<Integer> ids = skilling.objectIds(skill.getName(), name -> LocationData.sameThing(name, step.action));
         com.google.gson.JsonObject o = new com.google.gson.JsonObject();
         o.addProperty("name", step.action);
         o.addProperty("from", step.from);
@@ -204,10 +209,18 @@ class TrainingAdvisor {
         }
         o.add("npcs", npcs);
         o.add("targets", targets);
-        if (guide != null) {
-            com.google.gson.JsonArray places = new com.google.gson.JsonArray();
+        // Where: the places of what it's from (best first), else the guide's
+        com.google.gson.JsonArray places = new com.google.gson.JsonArray();
+        if (locations != null) {
+            for (LocationData.Place place : locations.forAction(skill.getName(), step.action)) {
+                places.add(place.label());
+            }
+        }
+        if (places.size() == 0 && guide != null) {
             guide.places.forEach(places::add);
-            o.add("places", places);
+        }
+        o.add("places", places);
+        if (guide != null) {
             if (guide.about != null) {
                 o.addProperty("about", guide.about);
             }
@@ -216,6 +229,28 @@ class TrainingAdvisor {
             return null;
         }
         return new TrainingData.Method(o);
+    }
+
+    // A guide method the wiki gives no places for: those of its trees, rocks and creatures (best first; once, kept)
+    private void addPlaces(TrainingData.Method method) {
+        if (locations == null || !method.places.isEmpty()) {
+            return;
+        }
+        java.util.Set<String> names = new java.util.LinkedHashSet<>();
+        for (int id : method.objects) {
+            SkillingData.Resource resource = skilling.object(id, null);
+            if (resource != null) {
+                names.add(resource.name);
+            }
+        }
+        names.addAll(method.npcs);
+        for (String name : names) {
+            for (LocationData.Place place : locations.of(name)) {
+                if (!method.places.contains(place.label())) {
+                    method.places.add(place.label());
+                }
+            }
+        }
     }
 
     List<String> toolsFor(Skill skill, TrainingData.Method method) {

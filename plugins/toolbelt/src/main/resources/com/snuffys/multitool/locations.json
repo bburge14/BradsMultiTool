@@ -1,0 +1,7154 @@
+{
+ "source": "OSRS Wiki (oldschool.runescape.wiki), each thing's page and the skills' training guides; CC BY-NC-SA 3.0. Made by scripts/update_training_locations.py",
+ "things": {
+  "adamant ore vein": {
+   "name": "Adamant ore vein",
+   "places": [
+    {
+     "count": 13,
+     "members": true,
+     "place": "Abandoned Mine - level 6",
+     "x": 2772,
+     "y": 4425
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2770,
+     "y": 4595
+    }
+   ],
+   "skill": "Mining"
+  },
+  "adamantite rocks": {
+   "name": "Adamantite rocks",
+   "places": [
+    {
+     "count": 13,
+     "members": true,
+     "place": "Abandoned Mine - level 6",
+     "x": 2772,
+     "y": 4425
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Jatizso mine",
+     "x": 2392,
+     "y": 10222
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Deepfin Mine",
+     "x": 1933,
+     "y": 9204
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Mining Guild (P2P)",
+     "x": 3036,
+     "y": 9725
+    },
+    {
+     "count": 8,
+     "members": false,
+     "place": "Wilderness - Bandit Camp mine",
+     "x": 3075,
+     "y": 3759
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Ynysdail Cavern",
+     "x": 2262,
+     "y": 9893
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Trahaearn mine",
+     "x": 3285,
+     "y": 12459
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Desert Mining Camp (underground)",
+     "x": 3312,
+     "y": 9467
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Wilderness - Resource Area",
+     "x": 3193,
+     "y": 3935
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2770,
+     "y": 4595
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Fossil Island mine",
+     "x": 3773,
+     "y": 3819
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Isafdar mine",
+     "x": 2279,
+     "y": 3161
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Myths' Guild mine",
+     "x": 1936,
+     "y": 9021
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Sunbleak Cave",
+     "x": 2221,
+     "y": 8720
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1354,
+     "y": 3118
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Charred Dungeon",
+     "x": 2632,
+     "y": 8851
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Dwarven Mine",
+     "x": 3042,
+     "y": 9774
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Grand Tree mine (north-east)",
+     "x": 2494,
+     "y": 9916
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Grimstone",
+     "x": 2909,
+     "y": 4083
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Ralos' Rise mine",
+     "x": 1480,
+     "y": 3084
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "South Crandor mine",
+     "x": 2836,
+     "y": 3244
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3300,
+     "y": 3318
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Edgeville Dungeon mine",
+     "x": 3140,
+     "y": 9874
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Heroes' Guild mine",
+     "x": 2915,
+     "y": 9916
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls Dungeon",
+     "x": 2136,
+     "y": 9308
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Karamja Jungle mine",
+     "x": 2846,
+     "y": 3035
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Kebos Lowlands mine",
+     "x": 1210,
+     "y": 3659
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Mining Guild (F2P)",
+     "x": 3034,
+     "y": 9732
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shayzien mine",
+     "x": 1600,
+     "y": 3647
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South Mor Ul Rek mine",
+     "x": 2500,
+     "y": 5066
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South Salvager Overlook mine",
+     "x": 1630,
+     "y": 3276
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "West Lumbridge Swamp mine",
+     "x": 3147,
+     "y": 3146
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Cam Torum mine",
+     "x": 1512,
+     "y": 9544
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Corsair Cove Resource Area (underground)",
+     "x": 1979,
+     "y": 9041
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ruins of Ullek mine",
+     "x": 3380,
+     "y": 2773
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Wilderness - Pirates' Hideout mine",
+     "x": 3055,
+     "y": 3944
+    }
+   ],
+   "skill": "Mining"
+  },
+  "amethyst crystals": {
+   "name": "Amethyst crystals",
+   "places": [
+    {
+     "best": "92 Mining; AFK",
+     "count": 62,
+     "members": true,
+     "place": "Mining Guild",
+     "x": 3009,
+     "y": 9727
+    }
+   ],
+   "skill": "Mining"
+  },
+  "ancient essence crystals": {
+   "name": "Ancient essence crystals",
+   "places": [
+    {
+     "count": 3,
+     "members": true,
+     "place": "Ghorrock Dungeon mine",
+     "x": 2908,
+     "y": 10311
+    }
+   ],
+   "skill": "Mining"
+  },
+  "arctic pine tree": {
+   "name": "Arctic pine tree",
+   "places": [
+    {
+     "count": 37,
+     "members": true,
+     "place": "Neitiznot",
+     "x": 2319,
+     "y": 3816
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "South-west of Rellekka",
+     "x": 2609,
+     "y": 3641
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "ash pile": {
+   "name": "Ash pile",
+   "places": [
+    {
+     "count": 16,
+     "members": true,
+     "place": "Fossil Island Volcano",
+     "x": 3804,
+     "y": 3826
+    }
+   ],
+   "skill": "Mining"
+  },
+  "baby impling": {
+   "name": "Baby impling",
+   "places": [
+    {
+     "count": 13,
+     "members": true,
+     "place": "Puro Puro",
+     "x": 2563,
+     "y": 4291
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "bakery stall": {
+   "name": "Bakery stall",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ardougne Market",
+     "x": 2655,
+     "y": 3311
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Civitas illa Fortis",
+     "x": 1688,
+     "y": 3111
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Hosidius Farmers' Market",
+     "x": 1761,
+     "y": 3603
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Keldagrim Market",
+     "x": 2891,
+     "y": 10210
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Kourend Castle Courtyard",
+     "x": 1638,
+     "y": 3683
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "bandit": {
+   "name": "Bandit",
+   "places": [
+    {
+     "count": 23,
+     "members": false,
+     "place": "Bandit Camp (Wilderness)",
+     "x": 3024,
+     "y": 3696
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Wilderness Slayer Cave",
+     "x": 3430,
+     "y": 10070
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "barb-tailed kebbit": {
+   "name": "Barb-tailed kebbit",
+   "places": [
+    {
+     "count": 15,
+     "members": true,
+     "place": "Feldip Hunter area ()",
+     "x": 2572,
+     "y": 2931
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "barronite rocks": {
+   "name": "Barronite rocks",
+   "places": [
+    {
+     "count": 18,
+     "members": false,
+     "place": "Camdozaal Mines",
+     "x": 2905,
+     "y": 5812
+    }
+   ],
+   "skill": "Mining"
+  },
+  "basalt rocks (mining)": {
+   "name": "Basalt rocks (mining)",
+   "places": [
+    {
+     "count": 7,
+     "members": true,
+     "place": "Salt Mine",
+     "x": 2835,
+     "y": 10341
+    }
+   ],
+   "skill": "Mining"
+  },
+  "black chinchompa": {
+   "name": "Black chinchompa",
+   "places": [
+    {
+     "best": "Level 32-36 Wilderness: PKers; Eagles' Peak; hard Wilderness diary helps",
+     "count": 0,
+     "members": true,
+     "place": "Wilderness Hunter area"
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "black salamander": {
+   "name": "Black salamander",
+   "places": [
+    {
+     "best": "Wilderness: an extra trap there",
+     "count": 0,
+     "members": true,
+     "place": "Bone Yard"
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "black warlock": {
+   "name": "Black warlock",
+   "places": [
+    {
+     "count": 25,
+     "members": true,
+     "place": "The Great Conch ()",
+     "x": 3219,
+     "y": 2412
+    },
+    {
+     "count": 17,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1287,
+     "y": 3153
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "Crypt of Tonali hunter area",
+     "x": 1275,
+     "y": 3020
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Shimmering Atoll",
+     "x": 1564,
+     "y": 2774
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Feldip Hunter area ()",
+     "x": 2563,
+     "y": 2920
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "In and around the Farming Guild",
+     "x": 1224,
+     "y": 3764
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "blurite rocks": {
+   "name": "Blurite rocks",
+   "places": [
+    {
+     "count": 4,
+     "members": false,
+     "place": "Asgarnian Ice Dungeon",
+     "x": 3049,
+     "y": 9566
+    }
+   ],
+   "skill": "Mining"
+  },
+  "calcified rocks": {
+   "name": "Calcified rocks",
+   "places": [
+    {
+     "count": 16,
+     "members": true,
+     "place": "Cam Torum mine",
+     "x": 1499,
+     "y": 9546
+    }
+   ],
+   "skill": "Mining"
+  },
+  "camphor tree": {
+   "name": "Camphor tree",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Sacred Grove",
+     "x": 3189,
+     "y": 2481
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "North-west of Cape Conch",
+     "x": 3240,
+     "y": 2396
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West of The Summer Shore",
+     "x": 3106,
+     "y": 2410
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "cannonball stall": {
+   "name": "Cannonball stall",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1867,
+     "y": 3297
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "carnivorous chinchompa": {
+   "name": "Carnivorous chinchompa",
+   "places": [
+    {
+     "count": 15,
+     "members": true,
+     "note": "Requires completion of Hard Western Provinces Diary.",
+     "place": "Red chinchompa hunting ground",
+     "x": 2518,
+     "y": 9305
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Feldip Hunter area ()",
+     "x": 2557,
+     "y": 2936
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Gwenith Hunter area",
+     "x": 2266,
+     "y": 3411
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch Southern Hunting Area ()",
+     "x": 3255,
+     "y": 2378
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1316,
+     "y": 3168
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Chinchompa Island",
+     "x": 1887,
+     "y": 3431
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "cerulean twitch": {
+   "name": "Cerulean Twitch",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "Rellekka Hunter area (Ground level)",
+     "x": 2716,
+     "y": 3775
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Mons Gratia",
+     "x": 1452,
+     "y": 3246
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Rellekka Hunter area (Upper level)",
+     "x": 2723,
+     "y": 3836
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "chinchompa": {
+   "name": "Chinchompa",
+   "places": [
+    {
+     "best": "Box traps",
+     "count": 0,
+     "members": true,
+     "place": "Piscatoris Hunter area"
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "clay ore vein": {
+   "name": "Clay ore vein",
+   "places": [
+    {
+     "count": 4,
+     "members": true,
+     "place": "Abandoned Mine - level 1",
+     "x": 3429,
+     "y": 9634
+    }
+   ],
+   "skill": "Mining"
+  },
+  "clay rocks": {
+   "name": "Clay rocks",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Hosidius mine",
+     "x": 1775,
+     "y": 3492
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Uzer mine",
+     "x": 3419,
+     "y": 3166
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Grand Tree mine",
+     "x": 2490,
+     "y": 9917
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Tal Teok",
+     "x": 1279,
+     "y": 3158
+    },
+    {
+     "count": 6,
+     "members": false,
+     "place": "Crafting Guild mine",
+     "x": 2938,
+     "y": 3285
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "Dwarven Mine",
+     "x": 3054,
+     "y": 9819
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Stonecutter Outpost",
+     "x": 1749,
+     "y": 2965
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1888,
+     "y": 2985
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Abandoned Mine (level 1)",
+     "x": 3429,
+     "y": 9634
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Fight Arena mine",
+     "x": 2629,
+     "y": 3145
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Kebos Lowlands mine",
+     "x": 1208,
+     "y": 3658
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Rellekka mine",
+     "x": 2684,
+     "y": 3707
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Uzer Oasis",
+     "x": 3464,
+     "y": 3039
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Camdozaal Mines",
+     "x": 2933,
+     "y": 5816
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Isle of Souls mine",
+     "x": 2183,
+     "y": 2795
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Northern Conch mine",
+     "x": 3183,
+     "y": 2500
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Ruins of Ullek mine",
+     "x": 3376,
+     "y": 2781
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Shayzien mine",
+     "x": 1601,
+     "y": 3647
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "South-west Varrock mine",
+     "x": 3180,
+     "y": 3372
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Desert Quarry",
+     "x": 3174,
+     "y": 2916
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Piscatoris mine",
+     "x": 2339,
+     "y": 3645
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Rimmington mine",
+     "x": 2987,
+     "y": 3240
+    }
+   ],
+   "skill": "Mining"
+  },
+  "coal ore vein": {
+   "name": "Coal ore vein",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Abandoned Mine - level 6",
+     "x": 2762,
+     "y": 4438
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2775,
+     "y": 4595
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Abandoned Mine - level 5",
+     "x": 2719,
+     "y": 4434
+    }
+   ],
+   "skill": "Mining"
+  },
+  "coal rocks": {
+   "name": "Coal rocks",
+   "places": [
+    {
+     "best": "60 Mining",
+     "count": 24,
+     "members": true,
+     "place": "Mining Guild (P2P)",
+     "x": 3016,
+     "y": 9726
+    },
+    {
+     "best": "Near a bank",
+     "count": 51,
+     "members": true,
+     "place": "Lovakite mine",
+     "x": 1431,
+     "y": 3853
+    },
+    {
+     "count": 44,
+     "members": true,
+     "place": "Deepfin Mine",
+     "x": 1934,
+     "y": 9206
+    },
+    {
+     "count": 35,
+     "members": false,
+     "place": "Mining Guild (F2P)",
+     "x": 3051,
+     "y": 9750
+    },
+    {
+     "count": 34,
+     "members": false,
+     "place": "South-west Wilderness mine",
+     "x": 3016,
+     "y": 3598
+    },
+    {
+     "count": 31,
+     "members": false,
+     "place": "Bandit Camp mine",
+     "x": 3080,
+     "y": 3774
+    },
+    {
+     "count": 29,
+     "members": true,
+     "place": "Fossil Island mine",
+     "x": 3789,
+     "y": 3826
+    },
+    {
+     "count": 19,
+     "members": true,
+     "place": "Trahaearn mine",
+     "x": 3291,
+     "y": 12465
+    },
+    {
+     "count": 18,
+     "members": true,
+     "place": "Coal Trucks",
+     "x": 2579,
+     "y": 3485
+    },
+    {
+     "count": 14,
+     "members": true,
+     "place": "Sisterhood Sanctuary mine",
+     "x": 3890,
+     "y": 9752
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "Legends' Guild mine",
+     "x": 2689,
+     "y": 3335
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "Wyrmscraig mine",
+     "x": 2608,
+     "y": 2232
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Charred Island",
+     "x": 2637,
+     "y": 2393
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Grand Tree mine (east side)",
+     "x": 2486,
+     "y": 9910
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Heroes' Guild mine",
+     "x": 2923,
+     "y": 9903
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Resource Area",
+     "x": 3190,
+     "y": 3943
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Abandoned Mine - level 6",
+     "x": 2762,
+     "y": 4438
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Charred Dungeon",
+     "x": 2633,
+     "y": 8850
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Stonecutter Outpost",
+     "x": 1748,
+     "y": 2958
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Keldagrim north-east mine",
+     "x": 2938,
+     "y": 10235
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2775,
+     "y": 4595
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Abandoned Mine - level 5",
+     "x": 2719,
+     "y": 4434
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Central Fremennik Isles mine",
+     "x": 2373,
+     "y": 3852
+    },
+    {
+     "count": 7,
+     "members": false,
+     "place": "Dwarven Mine",
+     "x": 3037,
+     "y": 9799
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Grimstone",
+     "x": 2909,
+     "y": 4062
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Miscellania mine",
+     "x": 2528,
+     "y": 3895
+    },
+    {
+     "count": 7,
+     "members": false,
+     "place": "North Crandor mine",
+     "x": 2834,
+     "y": 3292
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Rellekka mine",
+     "x": 2684,
+     "y": 3704
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "South Salvager Overlook mine",
+     "x": 1629,
+     "y": 3278
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Sunbleak Cave",
+     "x": 2219,
+     "y": 8744
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Tlati Rainforest (south-west)",
+     "x": 1226,
+     "y": 3052
+    },
+    {
+     "count": 7,
+     "members": false,
+     "place": "West Lumbridge Swamp mine",
+     "x": 3145,
+     "y": 3153
+    },
+    {
+     "count": 6,
+     "members": false,
+     "place": "Edgeville Dungeon mine",
+     "x": 3134,
+     "y": 9878
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Isle of Souls mine",
+     "x": 2193,
+     "y": 2792
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Jatizso mine",
+     "x": 2414,
+     "y": 10208
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Lovakengj mine",
+     "x": 1479,
+     "y": 3781
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Mistrock mine",
+     "x": 1419,
+     "y": 2874
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Ardougne Sewers mine",
+     "x": 2668,
+     "y": 9683
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Corsair Cove Resource Area (underground)",
+     "x": 1978,
+     "y": 9042
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Keldagrim south-west mine",
+     "x": 2866,
+     "y": 10124
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Mount Karuulm mine",
+     "x": 1278,
+     "y": 3812
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "Barbarian Village mine",
+     "x": 3081,
+     "y": 3422
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Cam Torum mine",
+     "x": 1514,
+     "y": 9539
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "Citharede Abbey mine",
+     "x": 3404,
+     "y": 3172
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Desert Mining Camp (surface)",
+     "x": 3291,
+     "y": 3016
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "East Fremennik Isles mine",
+     "x": 2397,
+     "y": 3872
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Evil Chicken's Lair mine",
+     "x": 2484,
+     "y": 4370
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Miscellania and Etceteria dungeon mine",
+     "x": 2505,
+     "y": 10289
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Pandemonium Cave",
+     "x": 3050,
+     "y": 9368
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Pirates' Hideout mine",
+     "x": 3059,
+     "y": 3948
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Shayzien mine",
+     "x": 1605,
+     "y": 3647
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "South Mor Ul Rek mine",
+     "x": 2503,
+     "y": 5066
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "South-east Ardougne mine",
+     "x": 2603,
+     "y": 3224
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Tlati Rainforest (east)",
+     "x": 1358,
+     "y": 3103
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3304,
+     "y": 3300
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Custodia Mountains",
+     "x": 1278,
+     "y": 3409
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Ruins of Ullek mine",
+     "x": 3377,
+     "y": 2779
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "South Crandor mine",
+     "x": 2836,
+     "y": 3246
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "South Wilderness mine",
+     "x": 3104,
+     "y": 3567
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "The Stranglewood mine",
+     "x": 1169,
+     "y": 3317
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Cape Conch mine",
+     "x": 3243,
+     "y": 2355
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Northern Conch mine",
+     "x": 3179,
+     "y": 2500
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Quarry",
+     "x": 3173,
+     "y": 2915
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1889,
+     "y": 2973
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "West Falador mine",
+     "x": 2910,
+     "y": 3366
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig Cavern",
+     "x": 2618,
+     "y": 8592
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Fight Arena mine",
+     "x": 2626,
+     "y": 3131
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Karamja Jungle mine",
+     "x": 2847,
+     "y": 3032
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ruins of Unkah mine",
+     "x": 3171,
+     "y": 2873
+    }
+   ],
+   "skill": "Mining"
+  },
+  "common kebbit": {
+   "name": "Common kebbit",
+   "places": [
+    {
+     "count": 3,
+     "members": true,
+     "place": "Piscatoris Hunter area ()",
+     "x": 2322,
+     "y": 3576
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "copper longtail": {
+   "name": "Copper longtail",
+   "places": [
+    {
+     "count": 15,
+     "members": true,
+     "place": "Piscatoris Hunter area ()",
+     "x": 2341,
+     "y": 3604
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2203,
+     "y": 2963
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Kourend Woodland",
+     "x": 1555,
+     "y": 3442
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Aldarin",
+     "x": 1359,
+     "y": 2971
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2480,
+     "y": 2699
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Auburnvale",
+     "x": 1355,
+     "y": 3344
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "copper ore vein": {
+   "name": "Copper ore vein",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "Abandoned Mine - level 3",
+     "x": 2712,
+     "y": 4492
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Abandoned Mine - level 1",
+     "x": 3418,
+     "y": 9646
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2805,
+     "y": 4581
+    }
+   ],
+   "skill": "Mining"
+  },
+  "copper rocks": {
+   "name": "Copper rocks",
+   "places": [
+    {
+     "count": 20,
+     "members": false,
+     "place": "Tutorial Island mine",
+     "x": 3085,
+     "y": 9503
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "South-west Tlati Rainforest",
+     "x": 1231,
+     "y": 3054
+    },
+    {
+     "count": 11,
+     "members": false,
+     "place": "Dwarven Mine",
+     "x": 3027,
+     "y": 9802
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Hosidius mine",
+     "x": 1781,
+     "y": 3495
+    },
+    {
+     "count": 9,
+     "members": false,
+     "place": "South-east Varrock mine",
+     "x": 3282,
+     "y": 3369
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Abandoned Mine - level 3",
+     "x": 2712,
+     "y": 4492
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "East Lumbridge Swamp mine",
+     "x": 3230,
+     "y": 3147
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Piscarilius mine",
+     "x": 1764,
+     "y": 3719
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "Rimmington mine",
+     "x": 2978,
+     "y": 3248
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Abandoned Mine - level 1",
+     "x": 3418,
+     "y": 9646
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1943,
+     "y": 2800
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Desert Mining Camp (surface)",
+     "x": 3300,
+     "y": 3017
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Ralos' Rise mine",
+     "x": 1483,
+     "y": 3089
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3301,
+     "y": 3318
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Battlefield mine",
+     "x": 2472,
+     "y": 3256
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Camdozaal Mines",
+     "x": 2921,
+     "y": 5818
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East Fremennik Isles mine",
+     "x": 2406,
+     "y": 3869
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Isle of Souls mine",
+     "x": 2204,
+     "y": 2795
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Northern Conch mine",
+     "x": 3184,
+     "y": 2507
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Pandemonium Cave",
+     "x": 3051,
+     "y": 9365
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West Fremennik Isles mine",
+     "x": 2312,
+     "y": 3858
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2805,
+     "y": 4581
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Edgeville Dungeon mine",
+     "x": 3141,
+     "y": 9880
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Fight Arena mine",
+     "x": 2630,
+     "y": 3145
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Keldagrim south-west mine",
+     "x": 2872,
+     "y": 10115
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Piscatoris mine",
+     "x": 2338,
+     "y": 3642
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Port Khazard mine",
+     "x": 2640,
+     "y": 3153
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "West Falador mine",
+     "x": 2907,
+     "y": 3361
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ruins of Unkah mine",
+     "x": 3175,
+     "y": 2868
+    }
+   ],
+   "skill": "Mining"
+  },
+  "crafting stall": {
+   "name": "Crafting stall",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2781,
+     "y": 2794
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Keldagrim",
+     "x": 2886,
+     "y": 10206
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "crimson swift": {
+   "name": "Crimson swift",
+   "places": [
+    {
+     "count": 15,
+     "members": true,
+     "place": "Eastern Feldip Hunter area",
+     "x": 2614,
+     "y": 2938
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "North-east Tlati Rainforest|mapID=0|members=Yes|mtype=pin|Name=Crimson Swift|plane=0|x:1371,y:3127|x:1371,y:3134|x:1372,y:3131|x:1372,y:3133|x:1374,y:3134}}",
+     "x": 1371,
+     "y": 3135
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South-west Isle of Souls",
+     "x": 2153,
+     "y": 2829
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3045,
+     "y": 2650
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "South-west coast of the Kebos Lowlands",
+     "x": 1185,
+     "y": 3598
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South-east of the Ruins of Ullek",
+     "x": 3437,
+     "y": 2792
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "crossbow stall": {
+   "name": "Crossbow stall",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Keldagrim Market",
+     "x": 2886,
+     "y": 10201
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "daeyalt essence (rock)": {
+   "name": "Daeyalt Essence (rock)",
+   "places": [
+    {
+     "count": 3,
+     "members": true,
+     "place": "Daeyalt essence mine",
+     "x": 3674,
+     "y": 9765
+    }
+   ],
+   "skill": "Mining"
+  },
+  "daeyalt rocks": {
+   "name": "Daeyalt rocks",
+   "places": [
+    {
+     "count": 13,
+     "members": true,
+     "place": "Daeyalt essence mine",
+     "x": 3672,
+     "y": 9777
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "Meiyerditch mine",
+     "x": 2383,
+     "y": 4636
+    }
+   ],
+   "skill": "Mining"
+  },
+  "dark kebbit": {
+   "name": "Dark kebbit",
+   "places": [
+    {
+     "count": 7,
+     "members": true,
+     "place": "Piscatoris falconry area ()",
+     "x": 2389,
+     "y": 3598
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "dashing kebbit": {
+   "name": "Dashing kebbit",
+   "places": [
+    {
+     "count": 3,
+     "members": true,
+     "place": "Piscatoris falconry area ()",
+     "x": 2390,
+     "y": 3588
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "dense runestone": {
+   "name": "Dense runestone",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Dense essence mine",
+     "x": 1762,
+     "y": 3856
+    }
+   ],
+   "skill": "Mining"
+  },
+  "desert devil": {
+   "name": "Desert devil",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Uzer Hunter area",
+     "x": 3396,
+     "y": 3106
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "earth impling": {
+   "name": "Earth impling",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "Puro Puro",
+     "x": 2568,
+     "y": 4317
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "eclectic impling": {
+   "name": "Eclectic impling",
+   "places": [
+    {
+     "count": 4,
+     "members": true,
+     "place": "Puro Puro",
+     "x": 2567,
+     "y": 4319
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "efh salt rocks": {
+   "name": "Efh salt rocks",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "Salt Mine",
+     "x": 2838,
+     "y": 10342
+    }
+   ],
+   "skill": "Mining"
+  },
+  "elf": {
+   "name": "Elf",
+   "places": [
+    {
+     "best": "Song of the Elves",
+     "count": 0,
+     "members": true,
+     "place": "Prifddinas"
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "embertailed jerboa": {
+   "name": "Embertailed jerboa",
+   "places": [
+    {
+     "count": 11,
+     "members": true,
+     "place": "West of Hunter Guild",
+     "x": 1510,
+     "y": 3046
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "North-west of the Locus Oasis",
+     "x": 1664,
+     "y": 2998
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "essence impling": {
+   "name": "Essence impling",
+   "places": [
+    {
+     "count": 5,
+     "members": true,
+     "place": "Puro Puro",
+     "x": 2574,
+     "y": 4317
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "farmer": {
+   "name": "Farmer",
+   "places": [
+    {
+     "count": 6,
+     "members": false,
+     "place": "South Varrock farm",
+     "x": 3181,
+     "y": 3293
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ardougne farm",
+     "x": 2645,
+     "y": 3367
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Groats' farm",
+     "x": 3262,
+     "y": 3325
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "North of Lumbridge East Farm",
+     "x": 3233,
+     "y": 3308
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "North-west of Lumbridge",
+     "x": 3154,
+     "y": 3293
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "South of Watson's house",
+     "x": 1644,
+     "y": 3566
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "feldip weasel": {
+   "name": "Feldip Weasel",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Feldip Hunter area",
+     "x": 2525,
+     "y": 2889
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "fish stall": {
+   "name": "Fish stall",
+   "places": [
+    {
+     "count": 3,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2638,
+     "y": 3672
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Miscellania Castle courtyard",
+     "x": 2513,
+     "y": 3862
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Etceteria",
+     "x": 2606,
+     "y": 3876
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "The Warrens",
+     "x": 1826,
+     "y": 10145
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "fish stall (port roberts)": {
+   "name": "Fish stall (Port Roberts)",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1861,
+     "y": 3292
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "fruit stall": {
+   "name": "Fruit Stall",
+   "places": [
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius Town square",
+     "x": 1795,
+     "y": 3607
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Kourend Castle Courtyard",
+     "x": 1633,
+     "y": 3662
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "fur stall": {
+   "name": "Fur stall",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Rellekka",
+     "x": 2638,
+     "y": 3676
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ardougne Market",
+     "x": 2663,
+     "y": 3296
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Civitas illa Fortis Bazaar",
+     "x": 1673,
+     "y": 3111
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "fur stall (port roberts)": {
+   "name": "Fur stall (Port Roberts)",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1871,
+     "y": 3292
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "gem rocks": {
+   "name": "Gem rocks",
+   "places": [
+    {
+     "best": "Deposit chest; Shilo Village quest; a charged glory triples gems",
+     "count": 48,
+     "members": true,
+     "place": "Shilo Village mine (underground)",
+     "x": 2833,
+     "y": 9398
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Shilo Village mine (surface)",
+     "x": 2825,
+     "y": 3001
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "The Onyx Crest",
+     "x": 2982,
+     "y": 2258
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Lunar Isle mine",
+     "x": 2357,
+     "y": 10325
+    }
+   ],
+   "skill": "Mining"
+  },
+  "gem stall": {
+   "name": "Gem stall",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Civitas illa Fortis (completion of Children of the Sun)",
+     "x": 1674,
+     "y": 3101
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Great Kourend",
+     "x": 1634,
+     "y": 3684
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "East Ardougne",
+     "x": 2668,
+     "y": 3303
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Keldagrim (partial completion of The Giant Dwarf)",
+     "x": 2887,
+     "y": 10210
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Prifddinas (completion of Song of the Elves)",
+     "x": 3277,
+     "y": 6101
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "gem stall (port roberts)": {
+   "name": "Gem stall (Port Roberts)",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1870,
+     "y": 3289
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "gnome": {
+   "name": "Gnome",
+   "places": [
+    {
+     "count": 61,
+     "members": true,
+     "place": "Battlefield of Khazard",
+     "x": 2506,
+     "y": 3229
+    },
+    {
+     "count": 47,
+     "members": true,
+     "place": "Inside Tree Gnome Stronghold, outside the Grand Tree",
+     "x": 2377,
+     "y": 3442
+    },
+    {
+     "count": 23,
+     "members": true,
+     "place": "Inside the Grand Tree",
+     "x": 2447,
+     "y": 3502
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Tree Gnome Village",
+     "x": 2521,
+     "y": 3169
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West of the Outpost",
+     "x": 2399,
+     "y": 3356
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Inside the Grand Tree during Monkey Madness II",
+     "x": 2033,
+     "y": 5530
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "gold rocks": {
+   "name": "Gold rocks",
+   "places": [
+    {
+     "count": 147,
+     "members": true,
+     "place": "Dondakan's mine",
+     "x": 2580,
+     "y": 4988
+    },
+    {
+     "count": 14,
+     "members": true,
+     "place": "Trahaearn mine",
+     "x": 3293,
+     "y": 12467
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "Isle of Serpents (inaccessible)",
+     "x": 1818,
+     "y": 2415
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Mynydd mine",
+     "x": 2163,
+     "y": 3420
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "North Brimhaven mine",
+     "x": 2732,
+     "y": 3227
+    },
+    {
+     "count": 7,
+     "members": false,
+     "place": "Crafting Guild mine",
+     "x": 2938,
+     "y": 3280
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Lunar Isle mine",
+     "x": 2318,
+     "y": 10325
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "South Mor Ul Rek mine",
+     "x": 2516,
+     "y": 5075
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1929,
+     "y": 2793
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South Brimhaven mine",
+     "x": 2741,
+     "y": 3155
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Agility Pyramid mine",
+     "x": 3323,
+     "y": 2877
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East Salvager Overlook mine",
+     "x": 1670,
+     "y": 3285
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Mistrock mine",
+     "x": 1424,
+     "y": 2877
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1350,
+     "y": 3121
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Evil Chicken's Lair mine",
+     "x": 2487,
+     "y": 4379
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Grand Tree mine (east)",
+     "x": 2487,
+     "y": 9910
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Isle of Souls mine",
+     "x": 2194,
+     "y": 2800
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "Karamja Volcano mine",
+     "x": 2859,
+     "y": 9580
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "The Onyx Crest",
+     "x": 2977,
+     "y": 2254
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1891,
+     "y": 2973
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Wilderness - Resource Area",
+     "x": 3182,
+     "y": 3941
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Witchaven Dungeon ('perfect' gold ore)",
+     "x": 2740,
+     "y": 9700
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "North Crandor mine",
+     "x": 2861,
+     "y": 3287
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "North Mor Ul Rek mine",
+     "x": 2455,
+     "y": 5169
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Stonecutter Outpost",
+     "x": 1747,
+     "y": 2958
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3294,
+     "y": 3288
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Dwarven Mine",
+     "x": 3050,
+     "y": 9760
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Rimmington mine",
+     "x": 2977,
+     "y": 3233
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Keldagrim south-west mine",
+     "x": 2819,
+     "y": 10159
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Sunbleak Cave (inaccessible)",
+     "x": 2238,
+     "y": 8737
+    }
+   ],
+   "skill": "Mining"
+  },
+  "gold vein": {
+   "name": "Gold vein",
+   "places": [
+    {
+     "count": 77,
+     "members": true,
+     "place": "Dondakan's mine",
+     "x": 2580,
+     "y": 4988
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Keldagrim south-west mine",
+     "x": 2819,
+     "y": 10159
+    }
+   ],
+   "skill": "Mining"
+  },
+  "golden warbler": {
+   "name": "Golden warbler",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Uzer Hunter area",
+     "x": 3396,
+     "y": 3158
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "gourmet impling": {
+   "name": "Gourmet impling",
+   "places": [
+    {
+     "count": 11,
+     "members": true,
+     "place": "Puro Puro",
+     "x": 2602,
+     "y": 4346
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "granite rocks": {
+   "name": "Granite rocks",
+   "places": [
+    {
+     "best": "The best 3-tick (3t4g) spot: no desert heat; part of Troubled Tortugans",
+     "count": 9,
+     "members": true,
+     "place": "Cape Conch mine",
+     "x": 3243,
+     "y": 2353
+    },
+    {
+     "best": "3-tick (3t4g): fastest Mining XP; desert heat protection needed",
+     "count": 34,
+     "members": true,
+     "place": "Desert Quarry",
+     "x": 3172,
+     "y": 2920
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Necropolis mine",
+     "x": 3317,
+     "y": 2710
+    }
+   ],
+   "skill": "Mining"
+  },
+  "grubby sapling": {
+   "name": "Grubby sapling",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "Neypotzli (Earthbound Cavern)",
+     "x": 1379,
+     "y": 9714
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Neypotzli (Streambound Cavern)",
+     "x": 1523,
+     "y": 9692
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "guard": {
+   "name": "Guard",
+   "places": [
+    {
+     "count": 22,
+     "members": false,
+     "place": "Varrock Castle",
+     "x": 3206,
+     "y": 3462
+    },
+    {
+     "count": 18,
+     "members": false,
+     "place": "Falador",
+     "x": 2948,
+     "y": 3353
+    },
+    {
+     "count": 13,
+     "members": false,
+     "place": "Varrock",
+     "x": 3205,
+     "y": 3379
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Ardougne",
+     "x": 2651,
+     "y": 3307
+    },
+    {
+     "count": 9,
+     "members": false,
+     "place": "Falador Walls",
+     "x": 3031,
+     "y": 3389
+    },
+    {
+     "count": 6,
+     "members": false,
+     "place": "Edgeville",
+     "x": 3085,
+     "y": 3518
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Varrock Walls",
+     "x": 3175,
+     "y": 3403
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "herbiboar": {
+   "name": "Herbiboar",
+   "places": [
+    {
+     "count": 9,
+     "members": true,
+     "place": "Mushroom Forest on Fossil Island",
+     "x": 3710,
+     "y": 3883
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "hero": {
+   "name": "Hero",
+   "places": [
+    {
+     "count": 3,
+     "members": true,
+     "place": "Ardougne Market",
+     "x": 2630,
+     "y": 3288
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "hollow tree": {
+   "name": "Hollow tree",
+   "places": [
+    {
+     "count": 102,
+     "members": true,
+     "place": "Haunted Woods",
+     "x": 3630,
+     "y": 3511
+    },
+    {
+     "count": 62,
+     "members": true,
+     "place": "Slepe",
+     "x": 3746,
+     "y": 3403
+    },
+    {
+     "count": 20,
+     "members": true,
+     "place": "South of Port Phasmatys",
+     "x": 3614,
+     "y": 3406
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "horned graahk": {
+   "name": "Horned graahk",
+   "places": [
+    {
+     "count": 4,
+     "members": true,
+     "place": "Karamja Hunter area ()",
+     "x": 2766,
+     "y": 3008
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "imp": {
+   "name": "Imp",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "East of Ardougne Monastery",
+     "x": 2625,
+     "y": 3203
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Around the Monk camp",
+     "x": 1798,
+     "y": 3491
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Gloomthorn Trail",
+     "x": 1379,
+     "y": 3218
+    },
+    {
+     "count": 8,
+     "members": false,
+     "place": "Karamja Volcano",
+     "x": 2832,
+     "y": 3170
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "North of Yanille",
+     "x": 2595,
+     "y": 3131
+    },
+    {
+     "count": 8,
+     "members": false,
+     "place": "Scattered around Varrock",
+     "x": 3262,
+     "y": 3514
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "God Wars Dungeon",
+     "x": 2839,
+     "y": 5344
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Outside the Chasm of Fire",
+     "x": 1429,
+     "y": 3663
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South of Stonecutter Outpost",
+     "x": 1728,
+     "y": 2938
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East of Kingstown",
+     "x": 1734,
+     "y": 3700
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Citlalli's basement",
+     "x": 1381,
+     "y": 9451
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2269,
+     "y": 2853
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "South-west Civitas illa Fortis",
+     "x": 1651,
+     "y": 3086
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Edgeville",
+     "x": 3073,
+     "y": 3498
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Fortis Aqueduct",
+     "x": 1537,
+     "y": 3136
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "North of the Woodcutting Guild",
+     "x": 1623,
+     "y": 3527
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Outer Fortis",
+     "x": 1745,
+     "y": 3040
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "South of Falador",
+     "x": 3009,
+     "y": 3307
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Wilderness God Wars Dungeon",
+     "x": 2960,
+     "y": 10102
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Avium Savannah",
+     "x": 1620,
+     "y": 3032
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "North of Lumbridge",
+     "x": 3214,
+     "y": 3281
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South of Port Piscarilius",
+     "x": 1792,
+     "y": 3648
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Western Falador",
+     "x": 2951,
+     "y": 3360
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3299,
+     "y": 3273
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Draynor Village",
+     "x": 3073,
+     "y": 3250
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Farming Guild",
+     "x": 1283,
+     "y": 3720
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Lumbridge Castle",
+     "x": 3217,
+     "y": 3226
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "North of Kourend Castle",
+     "x": 1616,
+     "y": 3704
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Rimmington",
+     "x": 2941,
+     "y": 3236
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Sunset Coast",
+     "x": 1534,
+     "y": 2997
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "infernal shale deposit": {
+   "name": "Infernal shale deposit",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Chasm of Fire",
+     "x": 1467,
+     "y": 10098
+    }
+   ],
+   "skill": "Mining"
+  },
+  "infernal shale rocks": {
+   "name": "Infernal shale rocks",
+   "places": [
+    {
+     "count": 15,
+     "members": true,
+     "place": "Chasm of Fire",
+     "x": 1464,
+     "y": 10094
+    }
+   ],
+   "skill": "Mining"
+  },
+  "iron ore vein": {
+   "name": "Iron ore vein",
+   "places": [
+    {
+     "count": 9,
+     "members": true,
+     "place": "Abandoned Mine - level 5",
+     "x": 2747,
+     "y": 4442
+    }
+   ],
+   "skill": "Mining"
+  },
+  "iron rocks": {
+   "name": "Iron rocks",
+   "places": [
+    {
+     "best": "60 Mining; halved respawns, +7",
+     "count": 8,
+     "members": true,
+     "place": "Mining Guild (P2P)",
+     "x": 3025,
+     "y": 9725
+    },
+    {
+     "best": "3-tick iron (4 rocks)",
+     "count": 11,
+     "members": true,
+     "place": "Legends' Guild mine",
+     "x": 2713,
+     "y": 3332
+    },
+    {
+     "best": "3-tick iron (4 rocks)",
+     "count": 10,
+     "members": true,
+     "place": "Isle of Souls mine",
+     "x": 2192,
+     "y": 2801
+    },
+    {
+     "count": 26,
+     "members": true,
+     "place": "Trahaearn mine",
+     "x": 3287,
+     "y": 12465
+    },
+    {
+     "count": 16,
+     "members": false,
+     "place": "Wilderness - Bandit Camp mine",
+     "x": 3075,
+     "y": 3771
+    },
+    {
+     "count": 14,
+     "members": true,
+     "place": "Vampyrium",
+     "x": 2565,
+     "y": 7739
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "Deepfin Mine",
+     "x": 1929,
+     "y": 9184
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "South-east Ardougne mine",
+     "x": 2605,
+     "y": 3237
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Jatizso mine",
+     "x": 2403,
+     "y": 10230
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Tlati Rainforest (south-west)",
+     "x": 1236,
+     "y": 3056
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Abandoned Mine - level 5",
+     "x": 2747,
+     "y": 4442
+    },
+    {
+     "count": 9,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3295,
+     "y": 3311
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Dorgesh-Kaan mine",
+     "x": 3311,
+     "y": 9628
+    },
+    {
+     "count": 9,
+     "members": false,
+     "place": "Dwarven Mine",
+     "x": 3054,
+     "y": 9828
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Fight Arena mine",
+     "x": 2625,
+     "y": 3150
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Hosidius mine",
+     "x": 1782,
+     "y": 3494
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Keldagrim entrance mine",
+     "x": 2725,
+     "y": 3694
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Custodia Mountains",
+     "x": 1280,
+     "y": 3408
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Grand Tree mine",
+     "x": 2435,
+     "y": 9906
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Mistrock mine",
+     "x": 1421,
+     "y": 2878
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Northern Conch mine",
+     "x": 3179,
+     "y": 2498
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Onyx Crest",
+     "x": 2974,
+     "y": 2254
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Tlati Rainforest (east)",
+     "x": 1360,
+     "y": 3101
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Fossil Island mine",
+     "x": 3757,
+     "y": 3825
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Avium Savannah crevice",
+     "x": 1618,
+     "y": 2993
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1941,
+     "y": 2801
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Mount Karuulm mine",
+     "x": 1276,
+     "y": 3816
+    },
+    {
+     "count": 6,
+     "members": false,
+     "place": "Rimmington mine",
+     "x": 2969,
+     "y": 3240
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Sisterhood Sanctuary mine",
+     "x": 3883,
+     "y": 9749
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Stonecutter Outpost",
+     "x": 1744,
+     "y": 2958
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Wilderness - Resource Area",
+     "x": 3194,
+     "y": 3934
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Ardougne Sewers mine",
+     "x": 2672,
+     "y": 9685
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Cam Torum mine",
+     "x": 1515,
+     "y": 9541
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "East Salvager Overlook mine",
+     "x": 1669,
+     "y": 3283
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Pandemonium Cave",
+     "x": 3053,
+     "y": 9367
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Piscarilius mine",
+     "x": 1762,
+     "y": 3716
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Ruins of Ullek mine",
+     "x": 3379,
+     "y": 2780
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Ruins of Unkah mine",
+     "x": 3173,
+     "y": 2873
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Wyrmscraig mine",
+     "x": 2597,
+     "y": 2231
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Evil Chicken's Lair mine",
+     "x": 2487,
+     "y": 4375
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Keldagrim south-west mine",
+     "x": 2831,
+     "y": 10154
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Lovakengj mine",
+     "x": 1475,
+     "y": 3780
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "Mining Guild (F2P)",
+     "x": 3034,
+     "y": 9738
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Ralos' Rise mine",
+     "x": 1480,
+     "y": 3086
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "South-east Varrock mine",
+     "x": 3285,
+     "y": 3369
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "The Node mine",
+     "x": 3107,
+     "y": 3012
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Ynysdail",
+     "x": 2225,
+     "y": 3476
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Cape Conch mine",
+     "x": 3242,
+     "y": 2350
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Citharede Abbey mine",
+     "x": 3402,
+     "y": 3168
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Desert Mining Camp (surface)",
+     "x": 3285,
+     "y": 3017
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Edgeville Dungeon mine",
+     "x": 3143,
+     "y": 9876
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Piscatoris mine",
+     "x": 2339,
+     "y": 3640
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Shayzien mine",
+     "x": 1601,
+     "y": 3642
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "South Mor Ul Rek mine",
+     "x": 2505,
+     "y": 5062
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "South-west Varrock mine",
+     "x": 3181,
+     "y": 3373
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Verdant Valley",
+     "x": 3767,
+     "y": 3758
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West Falador mine",
+     "x": 2903,
+     "y": 3353
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "South Wilderness mine",
+     "x": 3104,
+     "y": 3570
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1895,
+     "y": 2977
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Karamja Jungle mine",
+     "x": 2848,
+     "y": 3037
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Wilderness - Pirates' Hideout mine",
+     "x": 3057,
+     "y": 3941
+    }
+   ],
+   "skill": "Mining"
+  },
+  "ironwood tree": {
+   "name": "Ironwood tree",
+   "places": [
+    {
+     "count": 14,
+     "members": true,
+     "place": "Sunbleak Island",
+     "x": 2200,
+     "y": 2328
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Isle of Serpents (inaccessible)",
+     "x": 1828,
+     "y": 2401
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "jatoba tree": {
+   "name": "Jatoba tree",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "The Summer Shore",
+     "x": 3102,
+     "y": 2407
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Abalone Cliffs",
+     "x": 3141,
+     "y": 2511
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "knight of ardougne": {
+   "name": "Knight of ardougne",
+   "places": [
+    {
+     "best": "The market: splashers keep the guards busy; medium Ardougne diary",
+     "count": 5,
+     "members": false,
+     "place": "East Ardougne",
+     "x": 2582,
+     "y": 3297
+    },
+    {
+     "count": 10,
+     "members": false,
+     "place": "West Ardougne",
+     "x": 2466,
+     "y": 3318
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Mourner Tunnels",
+     "x": 2039,
+     "y": 4636
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "knight of varlamore": {
+   "name": "Knight of varlamore",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "Sunrise Palace -",
+     "x": 1676,
+     "y": 3169
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Kualti Headquarters",
+     "x": 1641,
+     "y": 3144
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Kualti Headquarters - top level",
+     "x": 1651,
+     "y": 3147
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "lead rocks": {
+   "name": "Lead rocks",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "Pandemonium Cave",
+     "x": 3059,
+     "y": 9376
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Deepfin Mine",
+     "x": 1993,
+     "y": 9207
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1935,
+     "y": 2795
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Wyrmscraig Cavern",
+     "x": 2618,
+     "y": 8595
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "The Onyx Crest",
+     "x": 2975,
+     "y": 2255
+    }
+   ],
+   "skill": "Mining"
+  },
+  "limestone rock": {
+   "name": "Limestone rock",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "Silvarea mine",
+     "x": 3373,
+     "y": 3502
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Arandar mine",
+     "x": 2325,
+     "y": 3271
+    }
+   ],
+   "skill": "Mining"
+  },
+  "lovakite rocks": {
+   "name": "Lovakite rocks",
+   "places": [
+    {
+     "count": 81,
+     "members": true,
+     "place": "Lovakite mine",
+     "x": 1434,
+     "y": 3856
+    }
+   ],
+   "skill": "Mining"
+  },
+  "magic tree": {
+   "name": "Magic tree",
+   "places": [
+    {
+     "best": "60 Woodcutting; bank chest",
+     "count": 8,
+     "members": true,
+     "place": "Woodcutting Guild",
+     "x": 1577,
+     "y": 3482
+    },
+    {
+     "best": "Song of the Elves",
+     "count": 4,
+     "members": true,
+     "place": "Prifddinas",
+     "x": 3227,
+     "y": 6095
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Lledrith Island",
+     "x": 2092,
+     "y": 3182
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Forsaken Tower (location)",
+     "x": 1373,
+     "y": 3819
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "West of Kastori",
+     "x": 1328,
+     "y": 3061
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Arceuus",
+     "x": 1680,
+     "y": 3740
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1749,
+     "y": 3566
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Myths' Guild",
+     "x": 2442,
+     "y": 2844
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Sorcerer's Tower",
+     "x": 2698,
+     "y": 3396
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of the Ranging Guild",
+     "x": 2690,
+     "y": 3427
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "North-west shore of Aldarin",
+     "x": 1320,
+     "y": 2971
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "South of the Woodcutting Guild",
+     "x": 1607,
+     "y": 3444
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Tree Gnome Stronghold",
+     "x": 2433,
+     "y": 3410
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West of Lletya",
+     "x": 2284,
+     "y": 3137
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "West of Ralos' Rise",
+     "x": 1398,
+     "y": 3164
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Wilderness Resource Area",
+     "x": 3174,
+     "y": 3928
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East Auburn Valley",
+     "x": 1449,
+     "y": 3323
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Mage Training Arena",
+     "x": 3356,
+     "y": 3311
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South of Nemus Retreat",
+     "x": 1388,
+     "y": 3281
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Dognose Island",
+     "x": 3043,
+     "y": 2640
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Kourend Castle",
+     "x": 1681,
+     "y": 3688
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "mahogany tree": {
+   "name": "Mahogany tree",
+   "places": [
+    {
+     "best": "With the teaks; trading sticks",
+     "count": 4,
+     "members": true,
+     "note": "Players must pay 100 trading sticks to Murcaily in order to enter. Free entry if the Elite Karamja Diary is completed.",
+     "place": "Hardwood Grove",
+     "x": 2819,
+     "y": 3079
+    },
+    {
+     "count": 4,
+     "members": true,
+     "note": "Level 43 Agility required to access",
+     "place": "Tlati Rainforest",
+     "x": 1256,
+     "y": 3005
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Eastern Kharazi Jungle",
+     "x": 2946,
+     "y": 2905
+    },
+    {
+     "count": 3,
+     "members": true,
+     "note": "Mahogany trees can only be chopped in Etceteria with Queen Sigrid's approval upon completion of Royal Trouble and do not reward logs.",
+     "place": "Etceteria (no logs)",
+     "x": 2598,
+     "y": 3894
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Prifddinas",
+     "x": 3301,
+     "y": 6128
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2717,
+     "y": 2709
+    },
+    {
+     "count": 2,
+     "members": true,
+     "note": "Partial completion of Troubled Tortugans is required to access The Great Conch.",
+     "place": "East side of The Great Conch",
+     "x": 3248,
+     "y": 2396
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Islands north of Mos Le'Harmless",
+     "x": 3811,
+     "y": 3063
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2191,
+     "y": 2994
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "North of the Farming Guild",
+     "x": 1235,
+     "y": 3772
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shimmering Atoll",
+     "x": 1586,
+     "y": 2789
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Uzer Oasis",
+     "x": 3509,
+     "y": 3015
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "South-east of Tal Teklan",
+     "x": 1249,
+     "y": 3076
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "man": {
+   "name": "Man",
+   "places": [
+    {
+     "count": 11,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1806,
+     "y": 3710
+    },
+    {
+     "count": 9,
+     "members": false,
+     "place": "Lumbridge",
+     "x": 3207,
+     "y": 3227
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1777,
+     "y": 3655
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Kingstown",
+     "x": 1682,
+     "y": 3673
+    },
+    {
+     "count": 7,
+     "members": false,
+     "place": "Edgeville",
+     "x": 3092,
+     "y": 3510
+    },
+    {
+     "count": 7,
+     "members": false,
+     "place": "Varrock",
+     "x": 3234,
+     "y": 3398
+    },
+    {
+     "count": 6,
+     "members": false,
+     "place": "Al Kharid",
+     "x": 3293,
+     "y": 3205
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Shayzien Styles",
+     "x": 1508,
+     "y": 3585
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Seers' Village",
+     "x": 2713,
+     "y": 3480
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "Varrock ()",
+     "x": 3234,
+     "y": 3385
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Catherby",
+     "x": 2816,
+     "y": 3442
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Falador",
+     "x": 3029,
+     "y": 3352
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1894,
+     "y": 3318
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Lumbridge ()",
+     "x": 3206,
+     "y": 3219
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Port Piscarilius ()",
+     "x": 1749,
+     "y": 3761
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Yanille",
+     "x": 2596,
+     "y": 3104
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Blue Moon Inn ()",
+     "x": 3231,
+     "y": 3395
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Draynor Village",
+     "x": 3100,
+     "y": 3279
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Fishing Guild",
+     "x": 2603,
+     "y": 3421
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Hosidius ()",
+     "x": 1670,
+     "y": 3599
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Ice Mountain",
+     "x": 3006,
+     "y": 3458
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Jolly Boar Inn ()",
+     "x": 3277,
+     "y": 3495
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Karamja docks (Next to the banana plantation)",
+     "x": 2941,
+     "y": 3145
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Musa Point",
+     "x": 2889,
+     "y": 3173
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts ()",
+     "x": 1908,
+     "y": 3290
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Port Sarim",
+     "x": 3017,
+     "y": 3238
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "The Forgotten Cemetery",
+     "x": 2974,
+     "y": 3742
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Watson's house",
+     "x": 1630,
+     "y": 3581
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "maniacal monkey": {
+   "name": "Maniacal monkey",
+   "places": [
+    {
+     "count": 340,
+     "members": true,
+     "place": "Kruk's Dungeon (Lower Level)",
+     "x": 2506,
+     "y": 9047
+    },
+    {
+     "count": 59,
+     "members": true,
+     "place": "Kruk's Dungeon (Upper Level)",
+     "x": 2638,
+     "y": 9195
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "maple tree": {
+   "name": "Maple tree",
+   "places": [
+    {
+     "best": "North of the bank; +10% XP with the medium Kandarin diary",
+     "count": 9,
+     "members": true,
+     "place": "Seers' Village",
+     "x": 2720,
+     "y": 3475
+    },
+    {
+     "best": "Next to a deposit box (Varlamore)",
+     "count": 26,
+     "members": true,
+     "place": "Mistrock",
+     "x": 1403,
+     "y": 2884
+    },
+    {
+     "count": 69,
+     "members": true,
+     "place": "Woods west of Sinclair Mansion",
+     "x": 2650,
+     "y": 3517
+    },
+    {
+     "count": 68,
+     "members": true,
+     "place": "Auburnvale",
+     "x": 1402,
+     "y": 3387
+    },
+    {
+     "count": 15,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2245,
+     "y": 2798
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "Miscellania (provides no logs)",
+     "x": 2541,
+     "y": 3869
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "Woodcutting Guild",
+     "x": 1609,
+     "y": 3493
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "Watson's house in Hosidius",
+     "x": 1635,
+     "y": 3588
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2579,
+     "y": 2194
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1228,
+     "y": 3707
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Outside the Shayzien Encampment",
+     "x": 1559,
+     "y": 3639
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "West of the Legends' Guild",
+     "x": 2708,
+     "y": 3368
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Gwenith",
+     "x": 2207,
+     "y": 3426
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "Corsair Cove Resource Area",
+     "x": 2477,
+     "y": 2895
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South-east of the Forthos Ruin",
+     "x": 1686,
+     "y": 3549
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "East of the Lighthouse",
+     "x": 2592,
+     "y": 3593
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "master farmer": {
+   "name": "Master farmer",
+   "places": [
+    {
+     "best": "Hard Ardougne diary helps",
+     "count": 5,
+     "members": true,
+     "place": "Outer Fortis",
+     "x": 1635,
+     "y": 3051
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Farming Guild",
+     "x": 1236,
+     "y": 3727
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Kastori",
+     "x": 1366,
+     "y": 3022
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1761,
+     "y": 3633
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Draynor Village",
+     "x": 3080,
+     "y": 3250
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "North of East Ardougne{{refn|group=note|The Medium Ardougne Diary reward does not apply here}}",
+     "x": 2636,
+     "y": 3364
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ortus Farm",
+     "x": 1582,
+     "y": 3131
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Quetzacalli Gorge",
+     "x": 1495,
+     "y": 3234
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "South of Varrock",
+     "x": 3240,
+     "y": 3345
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "mature juniper tree": {
+   "name": "Mature juniper tree",
+   "places": [
+    {
+     "count": 13,
+     "members": true,
+     "place": "Hosidius, (saltpetre mine)",
+     "x": 1714,
+     "y": 3552
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Hosidius Vinery",
+     "x": 1816,
+     "y": 3570
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "menaphite thug": {
+   "name": "Menaphite thug",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Pollnivneach",
+     "x": 3333,
+     "y": 2952
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "mithril ore vein": {
+   "name": "Mithril ore vein",
+   "places": [
+    {
+     "count": 8,
+     "members": true,
+     "place": "Abandoned Mine - level 6",
+     "x": 2803,
+     "y": 4447
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2785,
+     "y": 4599
+    }
+   ],
+   "skill": "Mining"
+  },
+  "mithril rocks": {
+   "name": "Mithril rocks",
+   "places": [
+    {
+     "count": 19,
+     "members": false,
+     "place": "Wilderness - Bandit Camp mine",
+     "x": 3084,
+     "y": 3764
+    },
+    {
+     "count": 16,
+     "members": true,
+     "place": "Jatizso mine",
+     "x": 2402,
+     "y": 10229
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Mining Guild (P2P)",
+     "x": 3039,
+     "y": 9726
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Abandoned Mine - level 6",
+     "x": 2803,
+     "y": 4447
+    },
+    {
+     "count": 7,
+     "members": false,
+     "place": "South Crandor mine",
+     "x": 2820,
+     "y": 3247
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Trahaearn mine",
+     "x": 3294,
+     "y": 12456
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Ynysdail Cavern",
+     "x": 2249,
+     "y": 9880
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Custodia Mountains",
+     "x": 1280,
+     "y": 3406
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2785,
+     "y": 4599
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1944,
+     "y": 2802
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Desert Mining Camp (underground)",
+     "x": 3318,
+     "y": 9463
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Kebos Lowlands mine",
+     "x": 1215,
+     "y": 3658
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "Mining Guild (F2P)",
+     "x": 3053,
+     "y": 9737
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Sunbleak Cave",
+     "x": 2221,
+     "y": 8753
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "West Lumbridge Swamp mine",
+     "x": 3143,
+     "y": 3146
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Grand Tree mine",
+     "x": 2492,
+     "y": 9916
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Stonecutter Outpost",
+     "x": 1751,
+     "y": 2964
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1351,
+     "y": 3119
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Wilderness - Pirates' Hideout mine",
+     "x": 3055,
+     "y": 3947
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Deepfin Mine",
+     "x": 1930,
+     "y": 9188
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Fossil Island mine",
+     "x": 3770,
+     "y": 3821
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "South Salvager Overlook mine",
+     "x": 1626,
+     "y": 3278
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3304,
+     "y": 3305
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Cam Torum mine",
+     "x": 1511,
+     "y": 9539
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Corsair Cove Resource Area (underground)",
+     "x": 1977,
+     "y": 9042
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Dwarven Mine",
+     "x": 3035,
+     "y": 9771
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Evil Chicken's Lair mine",
+     "x": 2481,
+     "y": 4371
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Fight Arena mine",
+     "x": 2629,
+     "y": 3147
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Heroes' Guild mine",
+     "x": 2918,
+     "y": 9917
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isle of Souls mine",
+     "x": 2204,
+     "y": 2796
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Karamja Jungle mine",
+     "x": 2851,
+     "y": 3031
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Keldagrim entrance mine",
+     "x": 2727,
+     "y": 3694
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Northern Conch mine",
+     "x": 3178,
+     "y": 2500
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Port Khazard mine",
+     "x": 2652,
+     "y": 3170
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Shayzien mine",
+     "x": 1601,
+     "y": 3638
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig mine",
+     "x": 2616,
+     "y": 2231
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Edgeville Dungeon mine",
+     "x": 3134,
+     "y": 9871
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Lovakengj mine",
+     "x": 1477,
+     "y": 3779
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "North Crandor mine",
+     "x": 2832,
+     "y": 3297
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Piscarilius mine",
+     "x": 1758,
+     "y": 3715
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1893,
+     "y": 2985
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Wilderness - Resource Area",
+     "x": 3195,
+     "y": 3935
+    }
+   ],
+   "skill": "Mining"
+  },
+  "moonlight antelope": {
+   "name": "Moonlight antelope",
+   "places": [
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hunters' Guild (underground)",
+     "x": 1555,
+     "y": 9416
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "moonlight moth": {
+   "name": "Moonlight moth",
+   "places": [
+    {
+     "count": 29,
+     "members": true,
+     "place": "Neypotzli - Streambound Cavern",
+     "x": 1479,
+     "y": 9680
+    },
+    {
+     "count": 28,
+     "members": true,
+     "place": "Neypotzli - Earthbound Cavern",
+     "x": 1370,
+     "y": 9685
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Tonali Cavern - Southern Cavern",
+     "x": 1330,
+     "y": 9403
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Hunter Guild",
+     "x": 1554,
+     "y": 9433
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Neypotzli - Ancient Prison",
+     "x": 1349,
+     "y": 9574
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Ruins of Tapoyauik - bottom level",
+     "x": 1644,
+     "y": 9641
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Tonali Cavern - Central Section",
+     "x": 1315,
+     "y": 9425
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Tonali Cavern - Moon Chamber",
+     "x": 1298,
+     "y": 9437
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Tonali Cavern - Sun Chamber",
+     "x": 1326,
+     "y": 9440
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Tonali Cavern - Entrance Staircase",
+     "x": 1339,
+     "y": 9360
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "nickel rocks": {
+   "name": "Nickel rocks",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "Deepfin Mine",
+     "x": 2065,
+     "y": 9209
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1930,
+     "y": 2794
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Grimstone",
+     "x": 2911,
+     "y": 4084
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Wyrmscraig Cavern",
+     "x": 2616,
+     "y": 8592
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Ynysdail",
+     "x": 2224,
+     "y": 3478
+    }
+   ],
+   "skill": "Mining"
+  },
+  "oak tree": {
+   "name": "Oak tree",
+   "places": [
+    {
+     "best": "3 oaks south-west of Varrock West bank",
+     "count": 0,
+     "members": true,
+     "place": "Varrock"
+    },
+    {
+     "best": "Next to the bank",
+     "count": 0,
+     "members": true,
+     "place": "Draynor Village"
+    },
+    {
+     "best": "4 by the bank",
+     "count": 0,
+     "members": true,
+     "place": "Seers' Village"
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "orange salamander": {
+   "name": "Orange salamander",
+   "places": [
+    {
+     "best": "Fairy ring DLQ; desert heat protection",
+     "count": 0,
+     "members": true,
+     "place": "Uzer Hunter area"
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "ore stall (port roberts)": {
+   "name": "Ore stall (Port Roberts)",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1862,
+     "y": 3295
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "ore vein": {
+   "name": "Ore vein",
+   "places": [
+    {
+     "count": 226,
+     "members": true,
+     "place": "Motherlode Mine",
+     "x": 3745,
+     "y": 5684
+    }
+   ],
+   "skill": "Mining"
+  },
+  "paladin": {
+   "name": "Paladin",
+   "places": [
+    {
+     "count": 20,
+     "members": true,
+     "place": "East Ardougne Castle ()",
+     "x": 2571,
+     "y": 3307
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "West Ardougne (After Song of the Elves)",
+     "x": 2473,
+     "y": 3290
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "East Ardougne",
+     "x": 2653,
+     "y": 3315
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Mourner Tunnels (After Song of the Elves)",
+     "x": 2043,
+     "y": 4632
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "pile of rock": {
+   "name": "Pile of Rock",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Feldip Hills",
+     "x": 2577,
+     "y": 3000
+    }
+   ],
+   "skill": "Mining"
+  },
+  "pirate": {
+   "name": "Pirate",
+   "places": [
+    {
+     "count": 18,
+     "members": true,
+     "place": "Brimhaven",
+     "x": 2789,
+     "y": 3183
+    },
+    {
+     "count": 14,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1806,
+     "y": 3675
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "Pirates' Hideout",
+     "x": 3039,
+     "y": 3950
+    },
+    {
+     "count": 9,
+     "members": false,
+     "place": "Asgarnian Ice Dungeon",
+     "x": 2984,
+     "y": 9575
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Cabin Fever quest (deck)",
+     "x": 1822,
+     "y": 4835
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Cabin Fever quest (cabin)",
+     "x": 1823,
+     "y": 4831
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Pirates' Cove",
+     "x": 2194,
+     "y": 3806
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Port Sarim jail",
+     "x": 3014,
+     "y": 3191
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "polar kebbit": {
+   "name": "Polar kebbit",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Rellekka Hunter area ()",
+     "x": 2711,
+     "y": 3830
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "prickly kebbit": {
+   "name": "Prickly Kebbit",
+   "places": [
+    {
+     "count": 20,
+     "members": true,
+     "place": "Piscatoris Hunter area ()",
+     "x": 2321,
+     "y": 3644
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "razor-backed kebbit": {
+   "name": "Razor-backed kebbit",
+   "places": [
+    {
+     "count": 3,
+     "members": true,
+     "place": "Piscatoris hunter area ()",
+     "x": 2353,
+     "y": 3595
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "red salamander": {
+   "name": "Red salamander",
+   "places": [
+    {
+     "best": "Net traps; no requirements",
+     "count": 0,
+     "members": true,
+     "place": "South of the Ourania Cave"
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "redwood tree": {
+   "name": "Redwood tree",
+   "places": [
+    {
+     "best": "Upper floors; bank chest; AFK",
+     "count": 24,
+     "members": true,
+     "place": "Woodcutting Guild",
+     "x": 1571,
+     "y": 3494
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "rocks (the tourist trap)": {
+   "name": "Rocks (The Tourist Trap)",
+   "places": [
+    {
+     "count": 66,
+     "members": true,
+     "place": "Desert Mining Camp (underground)",
+     "x": 3285,
+     "y": 9453
+    }
+   ],
+   "skill": "Mining"
+  },
+  "rogue": {
+   "name": "Rogue",
+   "places": [
+    {
+     "count": 31,
+     "members": true,
+     "place": "Rogues' Castle ()",
+     "x": 3276,
+     "y": 3930
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South-west of Mage Arena",
+     "x": 3076,
+     "y": 3916
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "rosewood tree": {
+   "name": "Rosewood tree",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Drumstick Isle",
+     "x": 2135,
+     "y": 3548
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "ruby harvest": {
+   "name": "Ruby harvest",
+   "places": [
+    {
+     "count": 22,
+     "members": true,
+     "place": "Piscatoris Hunter area ()",
+     "x": 2315,
+     "y": 3613
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "Auburnvale",
+     "x": 1415,
+     "y": 3369
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Aldarin",
+     "x": 1341,
+     "y": 2935
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2472,
+     "y": 2714
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Kourend Woodland",
+     "x": 1503,
+     "y": 3484
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Auburn Valley",
+     "x": 1451,
+     "y": 3325
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Farming Guild",
+     "x": 1219,
+     "y": 3761
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "rune essence (rock)": {
+   "name": "Rune Essence (rock)",
+   "places": [
+    {
+     "count": 4,
+     "members": false,
+     "place": "Rune essence mine",
+     "x": 2925,
+     "y": 4848
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Lunar Isle mine",
+     "x": 2336,
+     "y": 10338
+    }
+   ],
+   "skill": "Mining"
+  },
+  "runite rocks": {
+   "name": "Runite rocks",
+   "places": [
+    {
+     "best": "85 Mining; 6-minute respawn",
+     "count": 2,
+     "members": true,
+     "place": "Mining Guild",
+     "x": 3056,
+     "y": 9721
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Deepfin Mine",
+     "x": 2083,
+     "y": 9200
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Trahaearn mine",
+     "x": 3284,
+     "y": 12459
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Frozen Waste Plateau",
+     "x": 2964,
+     "y": 3933
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Grimstone",
+     "x": 2901,
+     "y": 4084
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "South Mor Ul Rek mine",
+     "x": 2501,
+     "y": 5066
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Charred Dungeon",
+     "x": 2635,
+     "y": 8853
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Fossil Island mine",
+     "x": 3781,
+     "y": 3817
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Heroes' Guild mine",
+     "x": 2941,
+     "y": 9884
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Isafdar mine",
+     "x": 2280,
+     "y": 3160
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Lava Maze runite mine",
+     "x": 3059,
+     "y": 3885
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Myths' Guild mine",
+     "x": 1937,
+     "y": 9020
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ruins of Tapoyauik",
+     "x": 1581,
+     "y": 9659
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ynysdail Cavern",
+     "x": 2249,
+     "y": 9874
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Central Fremennik Isles mine",
+     "x": 2375,
+     "y": 3850
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Isle of Souls Dungeon",
+     "x": 2152,
+     "y": 9301
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Lava Maze Dungeon",
+     "x": 3046,
+     "y": 10265
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Mourner Tunnels",
+     "x": 1993,
+     "y": 4664
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "The Stranglewood mine",
+     "x": 1168,
+     "y": 3326
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Wyrmscraig Cavern",
+     "x": 2615,
+     "y": 8588
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Wyrmscraig mine",
+     "x": 2610,
+     "y": 2230
+    }
+   ],
+   "skill": "Mining"
+  },
+  "sabre-toothed kebbit": {
+   "name": "Sabre-toothed kebbit",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "Rellekka Hunter area ()",
+     "x": 2705,
+     "y": 3780
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "sabre-toothed kyatt": {
+   "name": "Sabre-toothed kyatt",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "Rellekka Hunter area ()",
+     "x": 2708,
+     "y": 3796
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "sandstone rocks": {
+   "name": "Sandstone rocks",
+   "places": [
+    {
+     "best": "3-tick with the granite; desert heat protection needed",
+     "count": 36,
+     "members": true,
+     "place": "Desert Quarry",
+     "x": 3169,
+     "y": 2922
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Cape Conch mine",
+     "x": 3244,
+     "y": 2351
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Necropolis mine",
+     "x": 3319,
+     "y": 2709
+    }
+   ],
+   "skill": "Mining"
+  },
+  "sapphire glacialis": {
+   "name": "Sapphire glacialis",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "Rellekka Hunter area",
+     "x": 2703,
+     "y": 3822
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Mons Gratia",
+     "x": 1437,
+     "y": 3235
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Farming Guild",
+     "x": 1237,
+     "y": 3746
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "seed stall": {
+   "name": "Seed stall",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Draynor Village",
+     "x": 3075,
+     "y": 3249
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "silk stall": {
+   "name": "Silk stall",
+   "places": [
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ardougne Market",
+     "x": 2662,
+     "y": 3314
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Civitas illa Fortis Bazaar",
+     "x": 1676,
+     "y": 3114
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Kourend Castle Courtyard",
+     "x": 1626,
+     "y": 3681
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Prifddinas",
+     "x": 3281,
+     "y": 6094
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "silk stall (port roberts)": {
+   "name": "Silk stall (Port Roberts)",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1870,
+     "y": 3295
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "silver rocks": {
+   "name": "Silver rocks",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "Dorgesh-Kaan mine",
+     "x": 3311,
+     "y": 9650
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Wyrmscraig Cavern",
+     "x": 2613,
+     "y": 8591
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Tal Teok Gemstone Crab mine",
+     "x": 1269,
+     "y": 3165
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Trahaearn mine",
+     "x": 3296,
+     "y": 12461
+    },
+    {
+     "count": 6,
+     "members": false,
+     "place": "Crafting Guild mine",
+     "x": 2942,
+     "y": 3291
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "South Mor Ul Rek mine",
+     "x": 2508,
+     "y": 5074
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3303,
+     "y": 3314
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1932,
+     "y": 2793
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Digsite Dungeon",
+     "x": 3384,
+     "y": 9749
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Lunar Isle mine",
+     "x": 2331,
+     "y": 10317
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Mistrock mine",
+     "x": 1421,
+     "y": 2880
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Grand Tree mine (west)",
+     "x": 2445,
+     "y": 9915
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Stonecutter Outpost",
+     "x": 1753,
+     "y": 2962
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Edgeville Dungeon mine",
+     "x": 3137,
+     "y": 9874
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Evil Chicken's Lair mine",
+     "x": 2485,
+     "y": 4378
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Isle of Souls mine",
+     "x": 2200,
+     "y": 2788
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "North Mor Ul Rek mine",
+     "x": 2462,
+     "y": 5173
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Rellekka mine",
+     "x": 2685,
+     "y": 3702
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "South-west Varrock mine",
+     "x": 3177,
+     "y": 3370
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "The Onyx Crest",
+     "x": 2980,
+     "y": 2252
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Hosidius mine",
+     "x": 1771,
+     "y": 3489
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Piscarilius mine",
+     "x": 1756,
+     "y": 3716
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ruins of Unkah mine",
+     "x": 3165,
+     "y": 2873
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Vatrachos Island",
+     "x": 1892,
+     "y": 2983
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Karamja Jungle mine",
+     "x": 2846,
+     "y": 3032
+    }
+   ],
+   "skill": "Mining"
+  },
+  "silver stall": {
+   "name": "Silver stall",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ardougne",
+     "x": 2657,
+     "y": 3314
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Keldagrim Market",
+     "x": 2886,
+     "y": 10195
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Kourend Castle Courtyard",
+     "x": 1626,
+     "y": 3664
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Prifddinas",
+     "x": 3281,
+     "y": 6097
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "silver stall (port roberts)": {
+   "name": "Silver stall (Port Roberts)",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1867,
+     "y": 3288
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "snowy knight": {
+   "name": "Snowy knight",
+   "places": [
+    {
+     "count": 6,
+     "members": true,
+     "place": "Mons Gratia",
+     "x": 1449,
+     "y": 3249
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Rellekka Hunter area ()",
+     "x": 2701,
+     "y": 3804
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Brittle Isle",
+     "x": 1951,
+     "y": 4074
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Weiss",
+     "x": 2864,
+     "y": 3957
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Rellekka Hunter area (Upper level) ()",
+     "x": 2725,
+     "y": 3833
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Farming Guild",
+     "x": 1238,
+     "y": 3740
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "soft clay rocks": {
+   "name": "Soft clay rocks",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Trahaearn mine",
+     "x": 3290,
+     "y": 12452
+    }
+   ],
+   "skill": "Mining"
+  },
+  "spice stall": {
+   "name": "Spice stall",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ardougne",
+     "x": 2658,
+     "y": 3297
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Civitas illa Fortis",
+     "x": 1685,
+     "y": 3098
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Prifddinas",
+     "x": 3276,
+     "y": 6094
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "spice stall (port roberts)": {
+   "name": "Spice stall (Port Roberts)",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1864,
+     "y": 3288
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "spined larupia": {
+   "name": "Spined larupia",
+   "places": [
+    {
+     "count": 5,
+     "members": true,
+     "place": "Feldip Hunter area ()",
+     "x": 2544,
+     "y": 2910
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "stalagmites (lunar isle)": {
+   "name": "Stalagmites (Lunar Isle)",
+   "places": [
+    {
+     "count": 19,
+     "members": true,
+     "place": "Lunar Isle mine",
+     "x": 2319,
+     "y": 10344
+    }
+   ],
+   "skill": "Mining"
+  },
+  "sunlight antelope": {
+   "name": "Sunlight antelope",
+   "places": [
+    {
+     "count": 9,
+     "members": true,
+     "place": "Avium Savannah ()",
+     "x": 1735,
+     "y": 3008
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "sunlight moth": {
+   "name": "Sunlight Moth",
+   "places": [
+    {
+     "count": 82,
+     "members": true,
+     "place": "Avium Savannah",
+     "x": 1568,
+     "y": 2995
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Neypotzli",
+     "x": 1434,
+     "y": 9632
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "sunstone rocks": {
+   "name": "Sunstone rocks",
+   "places": [
+    {
+     "count": 13,
+     "members": true,
+     "place": "Wyrmscraig mine",
+     "x": 2596,
+     "y": 2240
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "Wyrmscraig mine (across stepping stone)",
+     "x": 2616,
+     "y": 2241
+    }
+   ],
+   "skill": "Mining"
+  },
+  "te salt rocks": {
+   "name": "Te salt rocks",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "Salt Mine",
+     "x": 2843,
+     "y": 10335
+    }
+   ],
+   "skill": "Mining"
+  },
+  "tea stall": {
+   "name": "Tea stall",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Kourend Castle Courtyard",
+     "x": 1648,
+     "y": 3683
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Varrock",
+     "x": 3269,
+     "y": 3410
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "teak tree": {
+   "name": "Teak tree",
+   "places": [
+    {
+     "best": "No requirements; birds there make 2-tick possible; the bank is far",
+     "count": 3,
+     "members": true,
+     "place": "Isle of Souls",
+     "x": 2185,
+     "y": 2988
+    },
+    {
+     "best": "The wiki's 2-tick spot (2 birds); Monkey Madness I; jungle spiders",
+     "count": 3,
+     "members": true,
+     "place": "Ape Atoll",
+     "x": 2773,
+     "y": 2698
+    },
+    {
+     "best": "2-tick with rabbits (they can't hit you); Song of the Elves",
+     "count": 3,
+     "members": true,
+     "place": "Prifddinas",
+     "x": 3309,
+     "y": 6124
+    },
+    {
+     "best": "9 teaks; 100 trading sticks an entry (free with the elite Karamja diary); logs sent to the bank for 10 sticks each",
+     "count": 9,
+     "members": true,
+     "note": "Players must pay 100 trading sticks to Murcaily in order to enter. Free entry if the Elite Karamja Diary is completed.",
+     "place": "Hardwood Grove",
+     "x": 2822,
+     "y": 3078
+    },
+    {
+     "best": "Grown teaks (35 Farming): the 1.5-tick spot, fastest Woodcutting in the game; Bone Voyage",
+     "count": 3,
+     "members": true,
+     "note": "Up to 3 spawns depending on how many teak trees are fully grown in the patches.",
+     "place": "Fossil Island (hardwood patch)",
+     "x": 3702,
+     "y": 3837
+    },
+    {
+     "count": 9,
+     "members": true,
+     "note": "Teak trees can only be chopped in Etceteria with Queen Sigrid's approval upon completion of Royal Trouble, Miscellania approval rating less than 100%, and does not reward logs.",
+     "place": "Etceteria (no logs)",
+     "x": 2593,
+     "y": 3893
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "The Great Conch",
+     "x": 3122,
+     "y": 2444
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "North Tlati Rainforest",
+     "x": 1327,
+     "y": 3172
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "East of Locus Oasis",
+     "x": 1693,
+     "y": 2990
+    },
+    {
+     "count": 5,
+     "members": true,
+     "note": "Players must partially complete Legends' Quest and get directions to the jungle first.",
+     "place": "Kharazi Jungle",
+     "x": 2835,
+     "y": 2905
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Shimmering Atoll",
+     "x": 1544,
+     "y": 2809
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "South-east of Ruins of Ullek",
+     "x": 3436,
+     "y": 2790
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Ruins of Uzer",
+     "x": 3510,
+     "y": 3073
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "South Tlati Rainforest",
+     "x": 1258,
+     "y": 3010
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Islands north of Mos Le'Harmless",
+     "x": 3810,
+     "y": 3058
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Chompy Marsh",
+     "x": 2335,
+     "y": 3048
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Locus Oasis (hardwood patch)",
+     "x": 1686,
+     "y": 2971
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "tin ore vein": {
+   "name": "Tin ore vein",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Abandoned Mine - level 3",
+     "x": 2720,
+     "y": 4487
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2807,
+     "y": 4576
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Abandoned Mine - level 1",
+     "x": 3419,
+     "y": 9627
+    }
+   ],
+   "skill": "Mining"
+  },
+  "tin rocks": {
+   "name": "Tin rocks",
+   "places": [
+    {
+     "count": 18,
+     "members": false,
+     "place": "Tutorial Island mine",
+     "x": 3076,
+     "y": 9509
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Jatizso mine",
+     "x": 2405,
+     "y": 10209
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Abandoned Mine - level 3",
+     "x": 2720,
+     "y": 4487
+    },
+    {
+     "count": 10,
+     "members": false,
+     "place": "Dwarven Mine",
+     "x": 3052,
+     "y": 9813
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Abandoned Mine - level 2",
+     "x": 2807,
+     "y": 4576
+    },
+    {
+     "count": 8,
+     "members": false,
+     "place": "South-west Varrock mine",
+     "x": 3181,
+     "y": 3376
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Fight Arena mine",
+     "x": 2632,
+     "y": 3142
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Piscarilius mine",
+     "x": 1754,
+     "y": 3717
+    },
+    {
+     "count": 6,
+     "members": false,
+     "place": "South-east Varrock mine",
+     "x": 3288,
+     "y": 3366
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "West Falador mine",
+     "x": 2908,
+     "y": 3360
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Abandoned Mine - level 1",
+     "x": 3419,
+     "y": 9627
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "Barbarian Village mine",
+     "x": 3080,
+     "y": 3420
+    },
+    {
+     "count": 5,
+     "members": false,
+     "place": "East Lumbridge Swamp mine",
+     "x": 3225,
+     "y": 3148
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Keldagrim south-west mine",
+     "x": 2860,
+     "y": 10169
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Desert Mining Camp (surface)",
+     "x": 3304,
+     "y": 3025
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Desert Mining Camp (underground)",
+     "x": 3305,
+     "y": 9467
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Hosidius mine",
+     "x": 1785,
+     "y": 3492
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Ralos' Rise mine",
+     "x": 1484,
+     "y": 3093
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Camdozaal Mines",
+     "x": 2907,
+     "y": 5814
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1944,
+     "y": 2806
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East Fremennik Isles mine",
+     "x": 2394,
+     "y": 3850
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Isle of Souls mine",
+     "x": 2197,
+     "y": 2799
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Pandemonium Cave",
+     "x": 3059,
+     "y": 9366
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Edgeville Dungeon mine",
+     "x": 3134,
+     "y": 9879
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Northern Conch mine",
+     "x": 3186,
+     "y": 2509
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Piscatoris mine",
+     "x": 2334,
+     "y": 3639
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Port Khazard mine",
+     "x": 2655,
+     "y": 3168
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Rimmington mine",
+     "x": 2984,
+     "y": 3237
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Al Kharid mine",
+     "x": 3302,
+     "y": 3316
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Battlefield mine",
+     "x": 2479,
+     "y": 3233
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Ruins of Unkah mine",
+     "x": 3169,
+     "y": 2874
+    }
+   ],
+   "skill": "Mining"
+  },
+  "tree (tirannwn)": {
+   "name": "Tree (Tirannwn)",
+   "places": [
+    {
+     "count": 686,
+     "members": true,
+     "place": "Tirannwn",
+     "x": 2150,
+     "y": 3132
+    },
+    {
+     "count": 51,
+     "members": true,
+     "place": "The Eyes of Glouphrie Cutscene",
+     "x": 2121,
+     "y": 4946
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Ynysdail",
+     "x": 2216,
+     "y": 3475
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "tropical wagtail": {
+   "name": "Tropical wagtail",
+   "places": [
+    {
+     "count": 12,
+     "members": true,
+     "place": "Feldip Hunter area ()",
+     "x": 2523,
+     "y": 2939
+    },
+    {
+     "count": 9,
+     "members": true,
+     "place": "The Great Conch ()",
+     "x": 3138,
+     "y": 2480
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Shimmering Atoll",
+     "x": 1564,
+     "y": 2804
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Tlati Rainforest",
+     "x": 1261,
+     "y": 3104
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Minotaurs' Rest",
+     "x": 1959,
+     "y": 3105
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Isle of Serpents",
+     "x": 1855,
+     "y": 2410
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "tzhaar-hur": {
+   "name": "Tzhaar-hur",
+   "places": [
+    {
+     "count": 46,
+     "members": true,
+     "place": "Mor Ul Rek",
+     "x": 2508,
+     "y": 5071
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "urt salt rocks": {
+   "name": "Urt salt rocks",
+   "places": [
+    {
+     "count": 11,
+     "members": true,
+     "place": "Salt Mine",
+     "x": 2837,
+     "y": 10342
+    }
+   ],
+   "skill": "Mining"
+  },
+  "veg stall (port roberts)": {
+   "name": "Veg stall (Port Roberts)",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1864,
+     "y": 3297
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "vegetable stall": {
+   "name": "Vegetable stall",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Etceteria Castle courtyard",
+     "x": 2600,
+     "y": 3876
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Miscellania Castle courtyard",
+     "x": 2517,
+     "y": 3862
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "villager": {
+   "name": "Villager",
+   "places": [
+    {
+     "count": 14,
+     "members": true,
+     "place": "Pollnivneach",
+     "x": 3362,
+     "y": 2975
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "volcanic sulphur (rock)": {
+   "name": "Volcanic sulphur (rock)",
+   "places": [
+    {
+     "count": 5,
+     "members": true,
+     "place": "Sulphur mine",
+     "x": 1423,
+     "y": 3872
+    }
+   ],
+   "skill": "Mining"
+  },
+  "vyre": {
+   "name": "Vyre",
+   "places": [
+    {
+     "best": "Sins of the Father",
+     "count": 0,
+     "members": true,
+     "place": "Darkmeyer"
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "watchman": {
+   "name": "Watchman",
+   "places": [
+    {
+     "count": 4,
+     "members": true,
+     "place": "Watchtower ()",
+     "x": 2544,
+     "y": 3112
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "wild kebbit": {
+   "name": "Wild kebbit",
+   "places": [
+    {
+     "count": 20,
+     "members": true,
+     "place": "Piscatoris Hunter area()",
+     "x": 2362,
+     "y": 3578
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "Auburnvale",
+     "x": 1378,
+     "y": 3385
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "willow tree": {
+   "name": "Willow tree",
+   "places": [
+    {
+     "best": "South-west of the bank (dark wizards nearby)",
+     "count": 5,
+     "members": false,
+     "place": "Draynor Village",
+     "x": 3085,
+     "y": 3235
+    },
+    {
+     "best": "The closest willows to a bank",
+     "count": 8,
+     "members": true,
+     "place": "Barbarian Outpost",
+     "x": 2509,
+     "y": 3555
+    },
+    {
+     "count": 33,
+     "members": true,
+     "place": "Along the river between Castle Wars and Ardougne",
+     "x": 2443,
+     "y": 3117
+    },
+    {
+     "count": 23,
+     "members": true,
+     "place": "Around the Farming Guild",
+     "x": 1222,
+     "y": 3679
+    },
+    {
+     "count": 23,
+     "members": true,
+     "place": "South of the Woodcutting Guild",
+     "x": 1606,
+     "y": 3413
+    },
+    {
+     "count": 22,
+     "members": false,
+     "place": "Southern Port Sarim",
+     "x": 2987,
+     "y": 3186
+    },
+    {
+     "count": 21,
+     "members": true,
+     "place": "East of Ardougne and the Legends' Guild",
+     "x": 2697,
+     "y": 3293
+    },
+    {
+     "count": 20,
+     "members": true,
+     "place": "North of Hosidius Town square",
+     "x": 1736,
+     "y": 3657
+    },
+    {
+     "count": 20,
+     "members": true,
+     "place": "Southern Taverley",
+     "x": 2898,
+     "y": 3403
+    },
+    {
+     "count": 19,
+     "members": true,
+     "place": "Coal Trucks",
+     "x": 2572,
+     "y": 3494
+    },
+    {
+     "count": 16,
+     "members": true,
+     "place": "Entrana",
+     "x": 2831,
+     "y": 3387
+    },
+    {
+     "count": 13,
+     "members": true,
+     "place": "South-east of Ardougne",
+     "x": 2635,
+     "y": 3258
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "Nemus Retreat",
+     "x": 1393,
+     "y": 3306
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "South-east of Hosidius Town square",
+     "x": 1798,
+     "y": 3525
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "North of Ardougne",
+     "x": 2624,
+     "y": 3394
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "North of Seers' Village",
+     "x": 2704,
+     "y": 3506
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "West of Falador",
+     "x": 2883,
+     "y": 3349
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "South-west of The Grand Tree",
+     "x": 2375,
+     "y": 3445
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "Aldarin",
+     "x": 1315,
+     "y": 2964
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "North of The Grand Tree",
+     "x": 2469,
+     "y": 3543
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "North of The Grand Tree (Monkey Madness II)",
+     "x": 2021,
+     "y": 5591
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "North of the Fortis Aqueduct",
+     "x": 1537,
+     "y": 3183
+    },
+    {
+     "count": 8,
+     "members": false,
+     "place": "Outside of the Crafting Guild",
+     "x": 2911,
+     "y": 3304
+    },
+    {
+     "count": 8,
+     "members": false,
+     "place": "Rimmington",
+     "x": 2961,
+     "y": 3194
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "East of the Combat Training Camp",
+     "x": 2543,
+     "y": 3387
+    },
+    {
+     "count": 6,
+     "members": false,
+     "place": "Lumbridge West farm",
+     "x": 3165,
+     "y": 3265
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Woodcutting Guild",
+     "x": 1628,
+     "y": 3500
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Near Rantz",
+     "x": 2647,
+     "y": 2952
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "South of Yanille",
+     "x": 2604,
+     "y": 3054
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "West of Catherby",
+     "x": 2771,
+     "y": 3427
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "East of the Champions' Guild",
+     "x": 3203,
+     "y": 3357
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Lumbridge East farm",
+     "x": 3221,
+     "y": 3301
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Ardougne",
+     "x": 2597,
+     "y": 3313
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Edgeville",
+     "x": 3111,
+     "y": 3487
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Island north-east of the Coal Trucks",
+     "x": 2565,
+     "y": 3512
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Lumbridge",
+     "x": 3233,
+     "y": 3244
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Island next to the Champions' Guild",
+     "x": 3168,
+     "y": 3350
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Otto's Grotto",
+     "x": 2507,
+     "y": 3484
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "South-east of The Grand Tree",
+     "x": 2491,
+     "y": 3405
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "The Digsite",
+     "x": 3381,
+     "y": 3382
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "wine stall": {
+   "name": "Wine stall",
+   "places": [
+    {
+     "count": 1,
+     "members": true,
+     "place": "Draynor Village",
+     "x": 3083,
+     "y": 3251
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "woman": {
+   "name": "Woman",
+   "places": [
+    {
+     "count": 7,
+     "members": true,
+     "place": "Hosidius",
+     "x": 1771,
+     "y": 3615
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Kingstown",
+     "x": 1687,
+     "y": 3690
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Shayzien",
+     "x": 1550,
+     "y": 3542
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Seers' Village",
+     "x": 2690,
+     "y": 3489
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "Lumbridge",
+     "x": 3217,
+     "y": 3205
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Port Piscarilius",
+     "x": 1800,
+     "y": 3719
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Port Piscarilius ()",
+     "x": 1748,
+     "y": 3732
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Port Roberts",
+     "x": 1906,
+     "y": 3287
+    },
+    {
+     "count": 2,
+     "members": false,
+     "place": "Jolly Boar Inn",
+     "x": 3278,
+     "y": 3502
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Monk camp",
+     "x": 1724,
+     "y": 3502
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Blue Moon Inn",
+     "x": 3218,
+     "y": 3395
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Catherby",
+     "x": 2817,
+     "y": 3443
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Draynor Village ()",
+     "x": 3097,
+     "y": 3269
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Hosidius ()",
+     "x": 1671,
+     "y": 3600
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Lumbridge ()",
+     "x": 3211,
+     "y": 3213
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Port Roberts ()",
+     "x": 1894,
+     "y": 3315
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Port Sarim",
+     "x": 3011,
+     "y": 3236
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "West of Watson's house",
+     "x": 1630,
+     "y": 3567
+    }
+   ],
+   "skill": "Thieving"
+  },
+  "wyrmscraig goat": {
+   "name": "Wyrmscraig Goat",
+   "places": [
+    {
+     "count": 21,
+     "members": true,
+     "place": "South Wyrmscraig",
+     "x": 2563,
+     "y": 2193
+    }
+   ],
+   "skill": "Hunter"
+  },
+  "yew tree": {
+   "name": "Yew tree",
+   "places": [
+    {
+     "best": "60 Woodcutting; invisible +7 boost",
+     "count": 17,
+     "members": true,
+     "place": "Woodcutting Guild",
+     "x": 1581,
+     "y": 3496
+    },
+    {
+     "best": "Shortest walk to a bank",
+     "count": 2,
+     "members": false,
+     "place": "Edgeville",
+     "x": 3085,
+     "y": 3468
+    },
+    {
+     "count": 12,
+     "members": true,
+     "place": "Around Eagles' Peak (mountain)",
+     "x": 2304,
+     "y": 3466
+    },
+    {
+     "count": 11,
+     "members": true,
+     "place": "Shayzien",
+     "x": 1486,
+     "y": 3598
+    },
+    {
+     "count": 10,
+     "members": true,
+     "place": "Auburn Valley",
+     "x": 1380,
+     "y": 3322
+    },
+    {
+     "count": 8,
+     "members": true,
+     "place": "West of Catherby",
+     "x": 2754,
+     "y": 3433
+    },
+    {
+     "count": 7,
+     "members": true,
+     "place": "Tree Gnome Stronghold",
+     "x": 2432,
+     "y": 3440
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Abalone Cliffs",
+     "x": 3136,
+     "y": 2521
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Kourend Castle",
+     "x": 1625,
+     "y": 3668
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "North of the Woodcutting Guild",
+     "x": 1635,
+     "y": 3536
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Prifddinas",
+     "x": 3287,
+     "y": 6061
+    },
+    {
+     "count": 6,
+     "members": true,
+     "place": "Southern part of Isle of Souls",
+     "x": 2166,
+     "y": 2858
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Aldarin",
+     "x": 1411,
+     "y": 2994
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Civitas illa Fortis",
+     "x": 1733,
+     "y": 3127
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "Deepfin Point",
+     "x": 1945,
+     "y": 2782
+    },
+    {
+     "count": 5,
+     "members": true,
+     "place": "North of the Charcoal furnaces",
+     "x": 1708,
+     "y": 3488
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Custodia Mountains",
+     "x": 1291,
+     "y": 3408
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "East of Tyras Camp",
+     "x": 2215,
+     "y": 3137
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "North of Land's End",
+     "x": 1527,
+     "y": 3450
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "North-west of Slepe",
+     "x": 3678,
+     "y": 3380
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Northern part of Isle of Souls",
+     "x": 2142,
+     "y": 2970
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "Rimmington",
+     "x": 2933,
+     "y": 3233
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Shipyard",
+     "x": 2062,
+     "y": 2715
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "South of Falador",
+     "x": 2996,
+     "y": 3311
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "South of the Woodcutting Guild",
+     "x": 1590,
+     "y": 3423
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "South-west of the Farming Guild",
+     "x": 1212,
+     "y": 3695
+    },
+    {
+     "count": 4,
+     "members": false,
+     "place": "West of Lumbridge",
+     "x": 3146,
+     "y": 3254
+    },
+    {
+     "count": 4,
+     "members": true,
+     "place": "Wilderness Resource Area",
+     "x": 3174,
+     "y": 3933
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Cape Conch",
+     "x": 3273,
+     "y": 2337
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Corsair Cove Resource Area",
+     "x": 2471,
+     "y": 2886
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of Kourend Castle",
+     "x": 1712,
+     "y": 3687
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "East of the Farming Guild",
+     "x": 1348,
+     "y": 3724
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "In the grounds behind the Varrock Palace",
+     "x": 3205,
+     "y": 3503
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Laguna Aurorae",
+     "x": 1225,
+     "y": 2785
+    },
+    {
+     "count": 3,
+     "members": false,
+     "place": "Next to the Lumberyard",
+     "x": 3266,
+     "y": 3493
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Quetzacalli Gorge",
+     "x": 1495,
+     "y": 3244
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Seers' Village",
+     "x": 2705,
+     "y": 3459
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "South of Port Phasmatys",
+     "x": 3673,
+     "y": 3443
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Tear of the Soul",
+     "x": 2344,
+     "y": 2765
+    },
+    {
+     "count": 3,
+     "members": true,
+     "place": "Zanaris",
+     "x": 2412,
+     "y": 4463
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Anglers' Retreat",
+     "x": 2474,
+     "y": 2709
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Piscatoris Hunter area",
+     "x": 2315,
+     "y": 3609
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "South of the Legends' Guild",
+     "x": 2731,
+     "y": 3331
+    },
+    {
+     "count": 2,
+     "members": true,
+     "place": "Wyrmscraig",
+     "x": 2541,
+     "y": 2184
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Lumbridge Graveyard",
+     "x": 3250,
+     "y": 3202
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "Next to Varrock Church",
+     "x": 3248,
+     "y": 3472
+    },
+    {
+     "count": 1,
+     "members": true,
+     "place": "Otto's Grotto",
+     "x": 2496,
+     "y": 3490
+    },
+    {
+     "count": 1,
+     "members": false,
+     "place": "South of Varrock",
+     "x": 3253,
+     "y": 3364
+    }
+   ],
+   "skill": "Woodcutting"
+  },
+  "young impling": {
+   "name": "Young impling",
+   "places": [
+    {
+     "count": 10,
+     "members": true,
+     "place": "Puro Puro",
+     "x": 2590,
+     "y": 4348
+    }
+   ],
+   "skill": "Hunter"
+  }
+ }
+}

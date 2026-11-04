@@ -423,8 +423,9 @@ Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skill
   chinchompas, Serum 207); quests are read from the game's quest list.
 - **Where:** under the Train line, where the guide says to do it ("Where: Prifddinas (+4 more)" for fly fishing,
   "Kruk's Dungeon" for chinning, "Piscatoris Fishing Colony" for monkfish), also on the pinned overlay; hover the
-  Train line for all of them. Only places the guide names (and only real wiki location pages), so some methods
-  have none.
+  Train line for all of them. Where the guide names none, and for a plan's milestone, the places of its trees,
+  rocks, stalls or creatures from their wiki pages, best first: the training guides' picks ("Isle of Souls (3)" for
+  teaks), then the most of it ("Where: Isle of Souls (3) (+16 more)").
 - When a level-up moves a goal onto a new method (or Slayer master), chat says so.
 - **Skill plans** (with **Follow Skill Plans** on, the default): a plan exported from Snuffy's Planner's Calculator
   (Plan view > Export to tracker) sets the goal and its milestones. The goal card then shows the milestone you're on
@@ -721,6 +722,9 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   Ectofuntus, the bonecrusher, shark lures, Daeyalt essence, Goldsmith gauntlets...): tick the ones you use. They're
   remembered per skill; ticking one that can't go with another unticks it (one altar at a time); each counts only for
   the actions it applies to (the gilded altar for bones, not ashes).
+- **Where** (a milestone's tooltip): the best places for it, the training guides' picks first with why ("Isle of
+  Souls (3): no requirements; birds make 2-tick possible", "Hardwood Grove (9): 100 trading sticks an entry"), then the
+  places with the most of it, with what you need for them from the wiki ("partially complete Legends' Quest").
 - **Actions**: each with its picture, name and level (greyed out above your level), XP each with your bonuses and how
   many to your target. Underneath where it applies: the time at the XP rate the wiki's training guide gives for a
   matching method (Teak trees for Teak logs), else at an estimate marked "est." (the OSRS Wiki's count an hour for it, from

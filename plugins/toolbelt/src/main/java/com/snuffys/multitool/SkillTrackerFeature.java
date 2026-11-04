@@ -23,6 +23,7 @@ class SkillTrackerFeature {
     @Inject private QuestProgress questProgress;
     @Inject private KillTracker killTracker;
     @Inject private GoalItems goalItems;
+    @Inject private LocationData locationData;
     @Inject private GoalTargetMenu goalTargetMenu;
     @Inject private MethodDetector methodDetector;
     @Inject private AgilityTracker agilityTracker;
@@ -118,6 +119,7 @@ class SkillTrackerFeature {
         lifecycle.load(skillHelperData, skillHelperData::load);
         lifecycle.load(slayerData, slayerData::load);
         lifecycle.load(trainingData, trainingData::load);
+        lifecycle.load(locationData, locationData::load);
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(moneyData, moneyData::load);
         lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, arenaRoute, obstacleReps, skillingAlerts, forestryAlerts, motherlodeSack, wintertodtHelper,

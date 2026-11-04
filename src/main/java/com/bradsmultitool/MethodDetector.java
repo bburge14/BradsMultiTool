@@ -290,19 +290,9 @@ class MethodDetector {
         plugin.updatePanelUI();
     }
 
-    /** Whether a tree, rock, spot or creature is what an action gets ("Maple tree" and "Maple logs", "Iron rocks" and "Iron ore"). */
+    /** Whether a tree, rock, spot or creature is what an action gets (see {@link LocationData#sameThing}). */
     static boolean sameThing(String target, String action) {
-        String a = stem(target);
-        String b = stem(action);
-        return !a.isEmpty() && !b.isEmpty() && (a.equals(b) || a.startsWith(b + " ") || b.startsWith(a + " "));
-    }
-
-    private static String stem(String text) {
-        String t = text == null ? "" : text.toLowerCase(java.util.Locale.ROOT).trim();
-        t = t.replaceAll("^raw ", "");
-        t = t.replaceAll(" (logs?|trees?|rocks?|ore|deposit|stall|spot)$", "");
-        t = t.replaceAll("s$", "");
-        return t.trim();
+        return LocationData.sameThing(target, action);
     }
 
     // Whether the suggestion already covers it (so there's nothing to offer)

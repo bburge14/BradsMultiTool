@@ -48,6 +48,7 @@ class PlannerFeature {
     @Inject private CalculatorData calculatorData;
     @Inject private RecipeData recipeData;
     @Inject private TrainingData trainingData;
+    @Inject private LocationData locationData;
     @Inject private PlannerPlanOverlay planOverlay;
     @Inject private PlannerGeLimits geLimits;
 
@@ -74,6 +75,7 @@ class PlannerFeature {
         lifecycle.load(calculatorData, calculatorData::load);
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(trainingData, trainingData::load);
+        lifecycle.load(locationData, locationData::load);
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)
         lifecycle.subscribe(farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, geLimits, this);
@@ -83,7 +85,7 @@ class PlannerFeature {
         SwingUtilities.invokeLater(() -> {
             PlannerPanel.Icons pictures = icons();
             panel = new PlannerPanel(config, configManager, chores, timers, farmingTracker, slayer, drops, notes, geLimits, pictures,
-                new PlannerCalculatorView(calculator, calculatorData, recipeData, trainingData, pictures));
+                new PlannerCalculatorView(calculator, calculatorData, recipeData, trainingData, locationData, pictures));
             navButton = NavigationButton.builder()
                 .tooltip("Snuffy's Planner")
                 // The Planner's logo, made by update_icons.py

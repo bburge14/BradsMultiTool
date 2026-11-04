@@ -285,7 +285,7 @@ public class PlannerPreview {
                 ((WikiIcons) icons).add(calculatorData);
             }
             return new PlannerPanel(config, configManager, chores, timers, farming, slayer, drops, notes, geLimits, icons,
-                new PlannerCalculatorView(calculator, calculatorData, recipes, training, icons));
+                new PlannerCalculatorView(calculator, calculatorData, recipes, training, null, icons));
         }
 
         void set(String key, Object value) {

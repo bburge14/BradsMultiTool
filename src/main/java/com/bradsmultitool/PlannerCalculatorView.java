@@ -79,6 +79,8 @@ final class PlannerCalculatorView {
     private final PlannerCalculator calc;
     private final CalculatorData data;
     private final RecipeData recipes;
+    // Where to train each milestone (the places of its trees, rocks and creatures)
+    private final LocationData locations;
     private final TrainingData training;
     private final PlannerPanel.Icons icons;
 
@@ -122,8 +124,9 @@ final class PlannerCalculatorView {
     private Runnable redraw = () -> { };
 
     PlannerCalculatorView(PlannerCalculator calc, CalculatorData data, RecipeData recipes, TrainingData training,
-                          PlannerPanel.Icons icons) {
+                          LocationData locations, PlannerPanel.Icons icons) {
         this.calc = calc;
+        this.locations = locations;
         this.data = data;
         this.recipes = recipes;
         this.training = training;
@@ -3573,6 +3576,19 @@ final class PlannerCalculatorView {
                     tip.row("Cash so far", signed(done.cash()), done.cash() < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
                     tip.row("Net with unsold", signed(done.net()), done.net() < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
                 }
+            }
+        }
+        // Where: the best places for it (the guides' picks with why, then the most of it), what you need for them
+        List<LocationData.Place> places = locations == null ? java.util.Collections.emptyList()
+            : locations.forAction(shown.getName(), step.action);
+        if (!places.isEmpty() && !s.done) {
+            tip.section("Where");
+            for (LocationData.Place place : places.subList(0, Math.min(3, places.size()))) {
+                String why = place.best != null ? place.best : place.note;
+                tip.line(place.label() + (why != null ? ": " + why : ""), place.best != null ? null : PlannerUi.Tip.MUTED);
+            }
+            if (places.size() > 3) {
+                tip.line("+" + (places.size() - 3) + " more places", PlannerUi.Tip.MUTED);
             }
         }
         if (step.method != null) {
