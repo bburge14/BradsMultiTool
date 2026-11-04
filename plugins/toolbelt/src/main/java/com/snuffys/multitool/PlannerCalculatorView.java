@@ -3011,7 +3011,7 @@ final class PlannerCalculatorView {
         int made = calc.trackedPlan(shown) == null ? goalPlanIndex(shown) : -1;
         String changed = made >= 0 ? goalChanges(calc.plans(shown).get(made), goal, pick) : null;
         if (changed != null) {
-            JLabel[] note = card.line("Goal changed in the tracker: update the plan", "");
+            JLabel[] note = card.line("Goal changed: update the plan", "");
             note[0].setForeground(HudColors.WARN);
             note[0].setToolTipText(PlannerUi.fit("<html>" + PlannerUi.esc(changed).replace("\n", "<br>") + "<br>Right-click the goal > Update "
                 + "the plan</html>"));
@@ -3049,7 +3049,7 @@ final class PlannerCalculatorView {
             } else {
                 SkillPlans.Plan open = calc.plan(shown);
                 int openAt = calc.openIndex(shown);
-                JLabel[] note = card.line("Tracker has an older copy: right-click to sync", "");
+                JLabel[] note = card.line("Tracker has an older copy", "");
                 note[0].setForeground(HudColors.WARN);
                 note[0].setToolTipText(PlannerUi.fit("<html>The Skilling Helper follows a copy of a plan from before it was last changed: "
                     + tracked.steps.size() + " milestones to level " + tracked.goal
@@ -3091,7 +3091,7 @@ final class PlannerCalculatorView {
         }
         // Following a pick while a plan's sent: say so (the plan's still there to go back to)
         if (tracked != null && follows.startsWith("via ")) {
-            JLabel[] note = card.line("Following your pick, not the plan", "");
+            JLabel[] note = card.line("Following your pick", "");
             note[0].setForeground(HudColors.WARN);
             note[0].setToolTipText(PlannerUi.fit("<html>The tracker follows " + PlannerUi.esc(pick) + " for now; your plan's "
                 + "milestones still count your progress<br>Right-click the goal > Follow > Your plan to go back</html>"));
@@ -3339,7 +3339,7 @@ final class PlannerCalculatorView {
         // materials cost and what the products sell for; the net
         long supplyItems = step.supplies.isEmpty() ? 0 : suppliesToGet(step);
         String left = !step.supplies.isEmpty() && supplyItems > 0
-            ? "Get " + PlannerPanel.gp(supplyItems) + " for " + skillName(step.supplies.get(0).skill)
+            ? PlannerPanel.gp(supplyItems) + " to get"
             : s.done ? "Done (you're level " + level + ")"
             : row != null ? String.format("%,d", row.needed) + " to go" + (started ? " · " + percent + "%" : "")
             : (started ? percent + "% done" : "");
@@ -3368,7 +3368,7 @@ final class PlannerCalculatorView {
             card.line(step.note, "");
         }
         if (row != null && row.dropped && !s.done) {
-            JLabel[] drop = card.line("Powerlevelling: dropped, not sold", row.droppedFaster ? "+20% rate" : "");
+            JLabel[] drop = card.line("Dropped (powerlevel)", row.droppedFaster ? "+20% rate" : "");
             drop[0].setForeground(PlannerUi.MUTED);
             drop[0].setToolTipText(PlannerUi.fit("Its products count as dropped (worth nothing)" + (row.droppedFaster
                 ? ", and its estimated rate is about 20% quicker: no bank trips" : "") + ". Right-click > Sell by to sell or alch "
@@ -3380,8 +3380,7 @@ final class PlannerCalculatorView {
             boolean alchBetter = row.alchEach > row.geEach;
             if (alchBetter != row.alchWins && !row.dropped) {
                 long more = Math.round(Math.abs(row.alchEach - row.geEach) * Math.max(0, row.needed - row.kept));
-                JLabel[] better = card.line((alchBetter ? "High alch" : "The GE") + " pays " + PlannerPanel.gp(more) + " more",
-                    "Sell by");
+                JLabel[] better = card.line((alchBetter ? "Alch" : "GE") + " pays +" + PlannerPanel.gp(more), "");
                 better[0].setForeground(HudColors.WARN);
                 better[1].setForeground(HudColors.WARN);
                 better[0].setToolTipText(PlannerUi.fit("<html>" + (alchBetter ? "High alching" : "Selling on the GE") + " gets "
@@ -3391,7 +3390,7 @@ final class PlannerCalculatorView {
             }
         }
         if (!s.done && !step.supplies.isEmpty() && s.action != null && s.action.level > level) {
-            JLabel[] needs = card.line("Needs level " + s.action.level + " first (you're " + level + ")", "");
+            JLabel[] needs = card.line("Needs lvl " + s.action.level + " (you're " + level + ")", "");
             needs[0].setForeground(HudColors.WARN);
         }
         // Its materials got from another skill that isn't at their level yet: it waits on that skill
@@ -3420,19 +3419,18 @@ final class PlannerCalculatorView {
             JLabel[] kept;
             String tip;
             if (wanted <= 0) {
-                kept = card.line(supply.item + ": " + consumer + " needs none now", "");
+                kept = card.line(consumer + " needs none now", "");
                 kept[0].setForeground(PlannerUi.MUTED);
                 tip = "Your " + consumer + " plan no longer needs " + supply.item + " (it's past them, or uses something "
                     + "else): right-click > Stop keeping to sell what this makes";
             } else if (toGet == 0) {
-                kept = card.line("Have the " + PlannerPanel.gp(wanted) + " " + consumer + " needs", "");
+                kept = card.line("Have all " + consumer + " needs", "");
                 kept[0].setForeground(PlannerUi.READY);
                 tip = "You have the " + supply.item + " your " + consumer + " plan still needs";
             } else {
                 suppliesLeft = s.done;
-                kept = card.line(consumer + ": have " + PlannerPanel.gp(have) + " of " + PlannerPanel.gp(wanted), "kept");
+                kept = card.line(consumer + ": " + PlannerPanel.gp(have) + " / " + PlannerPanel.gp(wanted), "");
                 kept[0].setForeground(GATHER_BLUE);
-                kept[1].setForeground(PlannerUi.MUTED);
                 tip = "Your " + consumer + " plan still needs " + String.format("%,d", wanted) + " " + supply.item + " and you "
                     + "have " + String.format("%,d", have) + ": this milestone gets the other " + String.format("%,d", toGet)
                     + ", and ends wherever that takes your level (about " + step.to + "). They're kept, left out of its "

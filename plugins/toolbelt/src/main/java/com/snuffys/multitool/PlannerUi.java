@@ -386,6 +386,8 @@ final class PlannerUi {
             info.setLayout(new java.awt.GridLayout(info.getComponentCount() + 1, 1));
             JLabel l = label(leftText, MUTED);
             l.setMinimumSize(new Dimension(0, 0));
+            // (cut short with "..." on a narrow card: the whole of it on hover, unless the caller gives a tooltip)
+            l.setToolTipText(fit(leftText));
             JLabel r = label(rightText == null ? "" : rightText, MUTED);
             r.setHorizontalAlignment(SwingConstants.RIGHT);
             JPanel row = new JPanel(new BorderLayout(4, 0));
