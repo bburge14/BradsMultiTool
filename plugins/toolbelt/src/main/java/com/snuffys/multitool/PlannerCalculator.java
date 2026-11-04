@@ -1370,6 +1370,11 @@ class PlannerCalculator {
 
     private volatile Boolean accountIron;
 
+    /** What an hour of your time is worth (Suggest a plan's Balanced). */
+    long hourWorth() {
+        return Math.max(0, config.plannerHourWorth());
+    }
+
     /** Whether plans are an ironman's (Plan As Ironman: from the account, or always, or never). */
     boolean ironman() {
         switch (config.plannerIronman()) {
@@ -1854,6 +1859,115 @@ class PlannerCalculator {
         }
         plan.steps.sort((x, y) -> Integer.compare(x.from, y.from));
         return added;
+    }
+
+    /** What a suggested plan aims for. */
+    enum PlanAim {
+        FASTEST("Fastest", "the most XP an hour at each level"),
+        CHEAPEST("Cheapest", "the fewest gp lost for each XP"),
+        MONEY("Money maker", "the most profit (an hour where there's a rate)"),
+        BALANCED("Balanced", "the least gp and time together (your time at what you say an hour's worth)"),
+        AFK("AFK", "the wiki's AFK and other methods"),
+        GUIDE("Wiki guide", "the wiki's training guide's fastest methods");
+
+        final String label;
+        final String about;
+
+        PlanAim(String label, String about) {
+            this.label = label;
+            this.about = about;
+        }
+
+        /** Whether it goes by prices (not for an ironman). */
+        boolean priced() {
+            return this == CHEAPEST || this == MONEY || this == BALANCED;
+        }
+    }
+
+    /**
+     * A plan from {@code level} to {@code goal} picking, at each level, the best action you can do there by {@code aim}
+     * (its XP an hour, gp per XP or profit, from the training guides' rates and these prices; Balanced counts an hour as
+     * {@code hourWorth} gp), runs of the same one joined into milestones. A level where nothing has what the aim needs
+     * (no rate, no price) takes the training guide's method. AFK and Wiki guide are the guides' own.
+     */
+    static SkillPlans.Plan aimedPlan(Skill skill, List<CalculatorData.Action> actions, Collection<CalculatorData.Bonus> on,
+                                     TrainingData training, RecipeData recipes, int level, int goal, PlanAim aim,
+                                     long hourWorth, ToIntFunction<String> price, IntUnaryOperator itemPrice) {
+        if (aim == PlanAim.AFK || aim == PlanAim.GUIDE) {
+            return suggestedPlan(skill, actions, on, training, level, goal, aim == PlanAim.AFK);
+        }
+        SkillPlans.Plan guide = suggestedPlan(skill, actions, on, training, level, goal, false);
+        SkillPlans.Plan plan = new SkillPlans.Plan(goal);
+        SkillPlans.Step current = null;
+        Map<String, Integer> nothing = new HashMap<>();
+        for (int at = Math.max(1, level); at < goal; at++) {
+            int from = Experience.getXpForLevel(at);
+            int to = Experience.getXpForLevel(at + 1);
+            CalculatorData.Action best = null;
+            double bestScore = 0;
+            for (CalculatorData.Action action : actions) {
+                if (action.level > at) {
+                    continue;
+                }
+                Row row = row(skill, action, on, from, to, at, recipes, training, nothing, price, itemPrice);
+                Double score = score(row, aim, hourWorth);
+                if (score != null && (best == null || score > bestScore)) {
+                    best = action;
+                    bestScore = score;
+                }
+            }
+            String name = best != null ? best.name : guide.at(at) != null ? guide.at(at).action : null;
+            if (name == null) {
+                continue;
+            }
+            if (current != null && current.action.equals(name) && current.to == at) {
+                current.to = at + 1;
+                continue;
+            }
+            CalculatorData.Action action = best;
+            if (action == null) {
+                for (CalculatorData.Action a : actions) {
+                    if (a.name.equals(name)) {
+                        action = a;
+                    }
+                }
+            }
+            TrainingData.Method method = SkillPlans.methodFor(training, skill, name, at, goal);
+            current = new SkillPlans.Step(name, at, at + 1, method == null ? null : method.name,
+                action == null ? 0 : CalculatorData.xpEach(action, on));
+            plan.steps.add(current);
+        }
+        return plan;
+    }
+
+    // How good an action is for an aim (higher is better), or null when it hasn't what the aim needs
+    private static Double score(Row row, PlanAim aim, long hourWorth) {
+        Double perXp = row.perXp();
+        if (perXp == null && row.earnEach != null && row.xpEach > 0) {
+            // (gathering: what it sells for is its gain)
+            perXp = row.earnEach / row.xpEach;
+        }
+        switch (aim) {
+            case FASTEST:
+                return row.xpHour > 0 ? (double) row.xpHour : null;
+            case CHEAPEST:
+                return perXp;
+            case MONEY:
+                if (perXp == null) {
+                    return null;
+                }
+                // gp an hour where there's a rate (comparable), else gp per XP scaled down below any rated one
+                return row.xpHour > 0 ? perXp * row.xpHour : perXp - 1e9;
+            case BALANCED:
+                if (row.xpHour <= 0) {
+                    return null;
+                }
+                // The gp and the time one XP costs, together (negative: less is better)
+                double gp = perXp == null ? 0 : -perXp;
+                return -(gp + (double) hourWorth / row.xpHour);
+            default:
+                return null;
+        }
     }
 
     static SkillPlans.Plan suggestedPlan(Skill skill, List<CalculatorData.Action> actions, Collection<CalculatorData.Bonus> on,

@@ -560,6 +560,17 @@ public interface PlannerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "plannerHourWorth",
+        name = "What An Hour Is Worth",
+        description = "<div width='300'>For Suggest a plan's Balanced: what an hour of your time is worth in gp, so a faster method that costs more is picked only when the time it saves is worth what it costs",
+        section = plannerCalculatorSection,
+        position = 7
+    )
+    default int plannerHourWorth() {
+        return 3_000_000;
+    }
+
+    @ConfigItem(
         keyName = "plannerYourPrices",
         name = "Use Your Own Prices",
         description = "<div width='300'>In plans and the money plan, an item you've bought or sold on the Grand Exchange in the last week goes at what you really paid or got (your trades' average, as they filled), not the GE price; marked \"your price\". Trades are seen while RuneLite runs with the Planner on",

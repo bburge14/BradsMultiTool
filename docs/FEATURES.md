@@ -778,9 +778,12 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   **Delete...**. Under them, links to other skills' plans ("Other skills: Fletching (2)"). Plans made before there
   could be several become the first, unnamed ("Plan 1").
 - **Plan**: the open plan: a final goal (level 99, or your target) and milestones on the way, each with its
-  own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Wiki suggestions** fills the milestones from
-  the wiki's training guides from your level to the goal (the skill's AFK / Other focus if you picked it in the
-  Skilling Helper, else the fastest), each guide method as the Calculator action it means at that level; or build it
+  own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Suggest a plan...** works out a plan from your level to
+  the goal six ways and shows them side by side (time, gp after sales, milestones): **Fastest** (the most XP an hour
+  at each level), **Cheapest** (the fewest gp lost per XP), **Money maker** (the most profit), **Balanced** (the least
+  gp and time together, an hour counted at **What An Hour Is Worth**), **AFK** and **Wiki guide** (the wiki's training
+  guides, as before); an ironman gets Fastest, AFK and Wiki guide. Pick one and it fills the milestones (supply
+  milestones stay), each an ordinary milestone to change; or build it
   by hand: right-click an action > **Add to plan** (it starts where the last milestone ends, or at its own level, and
   the last one stretches or shortens to meet it; inside a milestone, it takes over from its own level to where that one ended: Atlatl
   darts (74) in Adamant darts 67-81 make Adamant 67-74 and Atlatl 74-81; when there's no room before the goal, it

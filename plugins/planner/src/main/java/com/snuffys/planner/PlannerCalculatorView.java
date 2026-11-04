@@ -1482,8 +1482,9 @@ final class PlannerCalculatorView {
                 + "Start one from the wiki's suggestions or empty; make as many as you like and export the one you follow "
                 + "to the tracker"));
             int goal = newGoal();
-            list.add(linkRow(PlannerUi.linkLabel("Wiki suggestions", "A new plan from the wiki's training guides, from "
-                + "your level to " + goal + "; then change any of it", () -> suggest(shown, actions, on, goal)),
+            list.add(linkRow(PlannerUi.linkLabel("Suggest a plan...", "A new plan to " + goal + ": fastest, cheapest, money "
+                + "maker, balanced, AFK or the wiki's guide (compare them, then pick); then change any of it",
+                () -> suggest(shown, actions, on, goal)),
                 PlannerUi.linkLabel("New plan", "An empty plan: add milestones by right-clicking actions, or +",
                     () -> newPlan(shown))));
             fillSupplies(shown);
@@ -1503,8 +1504,9 @@ final class PlannerCalculatorView {
                 "Change the plan's final goal", () -> changeGoal(shown))));
             list.add(PlannerUi.empty("No milestones yet: right-click an action > Add to plan, or start from the wiki's "
                 + "suggestions."));
-            list.add(linkRow(PlannerUi.linkLabel("Wiki suggestions", "Fill this plan from the wiki's training "
-                + "guides, from your level to " + goal + "; then change any of it", () -> suggest(shown, actions, on, goal)),
+            list.add(linkRow(PlannerUi.linkLabel("Suggest a plan...", "Fill this plan to " + goal + ": fastest, cheapest, "
+                + "money maker, balanced, AFK or the wiki's guide (compare them, then pick); then change any of it",
+                () -> suggest(shown, actions, on, goal)),
                 PlannerUi.linkLabel("Add a milestone", "Pick its method and levels", () -> stepDialog(shown, -1, goal))));
             return;
         }
@@ -1571,8 +1573,9 @@ final class PlannerCalculatorView {
         }
         fillMaterials(shown, steps);
         fillMoneyPlan(shown, steps);
-        list.add(linkRow(PlannerUi.linkLabel("Wiki suggestions", "Replace the milestones with the wiki's training "
-                + "guides' methods from your level to " + plan.goal, () -> suggest(shown, actions, on, plan.goal)),
+        list.add(linkRow(PlannerUi.linkLabel("Suggest a plan...", "Replace the milestones to " + plan.goal + ": "
+                + "fastest, cheapest, money maker, balanced, AFK or the wiki's guide (compare them, then pick; supply "
+                + "milestones stay)", () -> suggest(shown, actions, on, plan.goal)),
             PlannerUi.linkLabel("Delete plan", "Delete this plan (the tracker keeps it if you exported it)", () -> {
                 if (confirm("Delete the plan \"" + planName(plan, calc.openIndex(shown)) + "\"?")) {
                     calc.savePlan(shown, null);
@@ -3078,23 +3081,73 @@ final class PlannerCalculatorView {
         redraw.run();
     }
 
+    // Suggest a plan: each aim's plan worked out and compared (time, gp, milestones), then the one picked fills the plan
+    // (its name and supply milestones kept). An ironman gets the ones that don't go by prices
     private void suggest(Skill shown, List<CalculatorData.Action> actions, List<CalculatorData.Bonus> on, int goal) {
         SkillPlans.Plan old = calc.plan(shown);
-        if (old != null && !old.steps.isEmpty() && !confirm("Replace the milestones of \"" + planName(old, calc.openIndex(shown))
-            + "\" with the wiki's suggestions? (+ makes a new plan instead)")) {
-            return;
-        }
         int level = levelNow();
-        SkillPlans.Plan plan = PlannerCalculator.suggestedPlan(shown, actions, on, training, level, Math.max(goal, level + 1),
-            calc.otherMethods(shown));
-        if (plan.steps.isEmpty()) {
-            JOptionPane.showMessageDialog(list, "The wiki's training guides have nothing to suggest for " + shown.getName()
-                + " here: add milestones from the actions instead.", "Wiki suggestions", JOptionPane.INFORMATION_MESSAGE);
+        int to = Math.max(goal, level + 1);
+        int xp = planXp();
+        CalculatorData.Calc skillCalc = data.calc(shown);
+        boolean prices = calc.showPrices() && !calc.ironman();
+        List<PlannerCalculator.PlanAim> aims = new ArrayList<>();
+        for (PlannerCalculator.PlanAim aim : PlannerCalculator.PlanAim.values()) {
+            if (prices || !aim.priced()) {
+                aims.add(aim);
+            }
+        }
+        JPanel form = new JPanel(new GridLayout(0, 1, 2, 6));
+        form.add(new JLabel("<html><b>Suggest a " + shown.getName() + " plan</b>, level " + level + " to " + to
+            + (old != null && !old.steps.isEmpty() ? "<br><font color='#a0a0a0'>It replaces the milestones of \""
+            + PlannerUi.esc(planName(old, calc.openIndex(shown))) + "\" (its supply milestones stay)</font>" : "") + "</html>"));
+        javax.swing.ButtonGroup group = new javax.swing.ButtonGroup();
+        Map<javax.swing.JRadioButton, SkillPlans.Plan> picks = new java.util.LinkedHashMap<>();
+        for (PlannerCalculator.PlanAim aim : aims) {
+            SkillPlans.Plan plan = PlannerCalculator.aimedPlan(shown, actions, on, training, recipes, level, to, aim,
+                calc.hourWorth(), this::price, calc::itemPrice);
+            List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(shown, skillCalc, on, plan, xp, recipes, training,
+                this::price, calc::itemPrice);
+            PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, rows, xp);
+            StringBuilder about = new StringBuilder("<html><b>").append(aim.label).append("</b>: ");
+            about.append(totals.seconds > 0 ? "~" + PlannerPanel.formatDuration(totals.seconds) + (totals.untimed > 0
+                ? " (+" + totals.untimed + " without a rate)" : "") : "no XP rates");
+            if (prices && (totals.cost > 0 || totals.earn > 0)) {
+                about.append(" &middot; ").append(signed(totals.earn - totals.cost)).append(" gp");
+            }
+            about.append(" &middot; ").append(plan.steps.size()).append(plan.steps.size() == 1 ? " milestone" : " milestones");
+            about.append("<br><font color='#a0a0a0'>").append(aim.about)
+                .append(aim == PlannerCalculator.PlanAim.BALANCED ? ": " + PlannerPanel.gp(calc.hourWorth()) + " an hour (in the "
+                    + "settings)" : "").append("</font></html>");
+            javax.swing.JRadioButton choice = new javax.swing.JRadioButton(about.toString());
+            choice.setEnabled(!plan.steps.isEmpty());
+            group.add(choice);
+            picks.put(choice, plan);
+            form.add(choice);
+        }
+        picks.keySet().stream().filter(java.awt.Component::isEnabled).findFirst().ifPresent(first -> first.setSelected(true));
+        if (picks.keySet().stream().noneMatch(java.awt.Component::isEnabled)) {
+            JOptionPane.showMessageDialog(list, "Nothing to suggest for " + shown.getName() + " here: add milestones from the "
+                + "actions instead.", "Suggest a plan", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-        plan.name = old != null ? old.name : "Wiki suggestions";
-        // Its supply milestones stay as they are (the suggestions make room for them)
+        if (JOptionPane.showConfirmDialog(list, form, "Suggest a plan", JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
+            return;
+        }
+        SkillPlans.Plan plan = null;
+        for (Map.Entry<javax.swing.JRadioButton, SkillPlans.Plan> entry : picks.entrySet()) {
+            if (entry.getKey().isSelected()) {
+                plan = entry.getValue();
+            }
+        }
+        if (plan == null) {
+            return;
+        }
+        plan.name = old != null ? old.name : "Suggested";
         if (old != null) {
+            plan.fromGoal = old.fromGoal;
+            plan.fromPick = old.fromPick;
+            // Its supply milestones stay as they are (the suggestions make room for them)
             for (SkillPlans.Step step : old.steps) {
                 if (!step.supplies.isEmpty()) {
                     PlannerCalculator.insertStep(plan, step.copy());

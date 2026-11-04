@@ -551,4 +551,46 @@ public class SkillPlanTest {
         // A plan not made from a goal says nothing of one
         assertEquals(0, SkillPlans.decode(SkillPlans.encode(new SkillPlans.Plan(50))).fromGoal);
     }
+
+    @Test
+    public void suggestedPlansAimForWhatYouPick() {
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        List<CalculatorData.Action> actions = cooking.actions;
+        // Raw food costs, cooked sells; sharks lose money, lobsters make a little
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("raw lobster", 200);
+        prices.put("lobster", 260);
+        prices.put("raw shark", 1000);
+        prices.put("shark", 700);
+        prices.put("raw swordfish", 300);
+        prices.put("swordfish", 330);
+        java.util.function.ToIntFunction<String> price = n -> prices.getOrDefault(n.toLowerCase(), 0);
+        int xp = Experience.getXpForLevel(80);
+        Map<PlannerCalculator.PlanAim, PlannerCalculator.Totals> totals = new java.util.EnumMap<>(PlannerCalculator.PlanAim.class);
+        for (PlannerCalculator.PlanAim aim : new PlannerCalculator.PlanAim[] {PlannerCalculator.PlanAim.FASTEST,
+            PlannerCalculator.PlanAim.CHEAPEST, PlannerCalculator.PlanAim.MONEY, PlannerCalculator.PlanAim.BALANCED}) {
+            SkillPlans.Plan plan = PlannerCalculator.aimedPlan(Skill.COOKING, actions, Collections.emptyList(), TRAINING, RECIPES,
+                80, 90, aim, 3_000_000, price, id -> 0);
+            assertFalse(aim.label, plan.steps.isEmpty());
+            // Every level 80-90 covered once, each by an action you can do there
+            for (int level = 80; level < 90; level++) {
+                int at = level;
+                assertEquals(aim.label + " " + level, 1, plan.steps.stream().filter(st -> st.covers(at)).count());
+            }
+            for (SkillPlans.Step step : plan.steps) {
+                CalculatorData.Action action = CalculatorData.named(cooking, step.action);
+                assertTrue(aim.label + " " + step.action, action == null || action.level <= step.from);
+            }
+            List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.COOKING, cooking, Collections.emptyList(),
+                plan, xp, RECIPES, TRAINING, price, id -> 0);
+            totals.put(aim, PlannerCalculator.totals(plan, rows, xp));
+        }
+        // Cheapest loses no more than Fastest; Fastest takes no longer than Cheapest (where both have rates)
+        PlannerCalculator.Totals fast = totals.get(PlannerCalculator.PlanAim.FASTEST);
+        PlannerCalculator.Totals cheap = totals.get(PlannerCalculator.PlanAim.CHEAPEST);
+        assertTrue((cheap.earn - cheap.cost) >= (fast.earn - fast.cost) - 1);
+        if (fast.untimed == 0 && cheap.untimed == 0) {
+            assertTrue(fast.seconds <= cheap.seconds);
+        }
+    }
 }

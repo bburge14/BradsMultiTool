@@ -261,7 +261,9 @@ each can be hidden in the settings; everything is saved per account.
     shows its levels, your level and how far along it you are (a bar and a percentage); click one to open it (it
     unfolds under its card), click it again to fold it away; right-click to rename, duplicate or delete. Under the
     list, links to your other skills' plans. A plan is a goal and milestones on the way, each with its own method
-    ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"): start from the wiki's suggestions, or right-click an action >
+    ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"): **Suggest a plan...** compares six ways there side by side
+    (time, gp, milestones) and fills it with the one you pick: **Fastest**, **Cheapest**, **Money maker**, **Balanced**
+    (gp and time together, at **What An Hour Is Worth**), **AFK** or the **Wiki guide**; or right-click an action >
     **Add to plan** (it goes in at its own level: Atlatl darts at 74 inside Adamant darts 67-81 makes Adamant 67-74
     and Atlatl 74-81; when the plan's full it asks to raise its goal), or **+** to add one at levels you type (the
     milestones it overlaps make room). To fit something in (Atlatl darts 74-81 inside Onyx bolts 74-99), right-click the milestone > **Insert a milestone in it...**, or Add to plan from the list (it asks which levels when the plan's already full): the one it lands in makes room. Making a milestone shorter (Edit...) leaves a gap you can click to fill. **Money plan** (under the materials): how to do the plan

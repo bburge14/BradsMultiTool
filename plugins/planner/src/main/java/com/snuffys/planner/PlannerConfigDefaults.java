@@ -46,6 +46,7 @@ final class PlannerConfigDefaults {
         defaults.store("plannerCalcHideMembers", config.plannerCalcHideMembers());
         defaults.store("plannerPlanOverlay", config.plannerPlanOverlay());
         defaults.store("plannerIronman", config.plannerIronman());
+        defaults.store("plannerHourWorth", config.plannerHourWorth());
         defaults.store("plannerYourPrices", config.plannerYourPrices());
         defaults.store("chatPlanMilestone", config.chatPlanMilestone());
         defaults.store("compactOverlays", config.compactOverlays());
