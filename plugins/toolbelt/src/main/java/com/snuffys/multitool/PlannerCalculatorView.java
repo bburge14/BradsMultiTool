@@ -3297,25 +3297,25 @@ final class PlannerCalculatorView {
                 tip = "Your " + consumer + " plan no longer needs " + supply.item + " (it's past them, or uses something "
                     + "else): right-click > Stop keeping to sell what this makes";
             } else if (toGet == 0) {
-                kept = card.line("Have the " + PlannerPanel.gp(wanted) + " for " + consumer, "");
+                kept = card.line("Have the " + PlannerPanel.gp(wanted) + " " + consumer + " needs", "");
                 kept[0].setForeground(PlannerUi.READY);
                 tip = "You have the " + supply.item + " your " + consumer + " plan still needs";
             } else if (s.done) {
                 suppliesLeft = true;
-                kept = card.line("Levels done another way: get " + PlannerPanel.gp(toGet), "for " + consumer);
+                kept = card.line(consumer + " needs " + PlannerPanel.gp(toGet), "still to get");
                 kept[0].setForeground(HudColors.WARN);
                 kept[1].setForeground(HudColors.WARN);
                 tip = "You reached its levels with another method, so the " + supply.item + " for your " + consumer + " plan "
                     + "weren't made: " + String.format("%,d", toGet) + " still to get (you have " + String.format("%,d", have) + ")";
             } else if (toGet > levelsMake) {
-                kept = card.line(PlannerPanel.gp(toGet) + " for " + consumer, PlannerPanel.gp(toGet - levelsMake) + " past its levels");
+                kept = card.line(consumer + " needs " + PlannerPanel.gp(toGet), "+" + PlannerPanel.gp(toGet - levelsMake) + " after lvl " + step.to);
                 kept[0].setForeground(GATHER_BLUE);
                 kept[1].setForeground(HudColors.WARN);
-                tip = "Your " + consumer + " plan still needs " + String.format("%,d", toGet) + " " + supply.item + "; this "
-                    + "milestone's levels only take " + String.format("%,d", levelsMake) + ", so keep going past its end or get "
-                    + "the rest another way";
+                tip = "Your " + consumer + " plan still needs " + String.format("%,d", toGet) + " " + supply.item + ", but "
+                    + "reaching level " + step.to + " only makes " + String.format("%,d", levelsMake) + ": keep going for "
+                    + String.format("%,d", toGet - levelsMake) + " more after level " + step.to + ", or get the rest another way";
             } else {
-                kept = card.line(PlannerPanel.gp(toGet) + " of these for " + consumer, toGet < levelsMake ? "rest is levels" : "not sold");
+                kept = card.line(consumer + " needs " + PlannerPanel.gp(toGet), toGet < levelsMake ? "rest to sell" : "not sold");
                 kept[0].setForeground(GATHER_BLUE);
                 kept[1].setForeground(PlannerUi.MUTED);
                 tip = "Your " + consumer + " plan still needs " + String.format("%,d", toGet) + " " + supply.item + " (you have "
