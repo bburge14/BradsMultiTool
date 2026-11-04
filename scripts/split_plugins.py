@@ -666,6 +666,17 @@ java/
 SETUP_EXE = "Snuffys-Launcher-Setup.exe"
 
 
+def setup_fingerprint():
+    """The installer's source and icon, line endings evened out (a Windows checkout has CRLF): it's rebuilt when this changes."""
+    digest = hashlib.sha256()
+    for part in (os.path.join(ROOT, "scripts", "setup", "SnuffysSetup.cs"), os.path.join(ROOT, "assets", "launcher.ico")):
+        if os.path.exists(part):
+            with open(part, "rb") as f:
+                data = f.read()
+            digest.update(data.replace(b"\r\n", b"\n") if part.endswith(".cs") else data)
+    return digest.hexdigest()
+
+
 def compile_setup(source, target):
     """Builds the installer with mcs (Mono) or csc (.NET Framework, in every Windows); leaves the old one if neither."""
     icon = os.path.join(ROOT, "assets", "launcher.ico")
@@ -731,29 +742,9 @@ def build_launcher(publish_path=os.path.join(ROOT, "publish.json")):
     for name in ("gradlew", "gradlew.bat"):
         shutil.copy2(os.path.join(ROOT, name), os.path.join(runner, name))
     shutil.copytree(os.path.join(ROOT, "gradle"), os.path.join(runner, "gradle"))
-    # The one-file installer to send friends (Snuffys-Launcher-Setup.exe): built here when there's a C# compiler (mcs, or
-    # Windows' own csc), kept in scripts/setup/ for when there isn't
-    setup = os.path.join(ROOT, "scripts", "setup")
-    built = os.path.join(setup, SETUP_EXE)
-    # Rebuilt only when its source or icon changed: the same file every release, so Windows SmartScreen's download
-    # reputation (kept per file) builds up instead of starting over ("isn't commonly downloaded") each push
-    source = os.path.join(setup, "SnuffysSetup.cs")
-    stamp = os.path.join(setup, "source.sha256")
-    digest = hashlib.sha256()
-    for part in (source, os.path.join(ROOT, "assets", "launcher.ico")):
-        if os.path.exists(part):
-            with open(part, "rb") as f:
-                data = f.read()
-            # (the source with its line endings evened out: git on Windows checks it out with CRLF, which isn't a change)
-            digest.update(data.replace(b"\r\n", b"\n") if part.endswith(".cs") else data)
-    was = open(stamp).read().strip() if os.path.exists(stamp) else ""
-    if not os.path.exists(built) or was != digest.hexdigest():
-        compile_setup(source, built)
-        if os.path.exists(built):
-            with open(stamp, "w", newline="\n") as f:
-                f.write(digest.hexdigest() + "\n")
-    if os.path.exists(built):
-        shutil.copy2(built, os.path.join(out, SETUP_EXE))
+    # The one-file installer to send friends (Snuffys-Launcher-Setup.exe) isn't kept here: Push to repos builds it into
+    # the launcher's own repository (publish_plugins.setup_installer), only when its source changed, so this repository
+    # never has a generated program in it (a rebuild or a locked copy blocked updating on Windows)
     for name, text in (("README.md", LAUNCHER_README), (".gitignore", LAUNCHER_IGNORE)):
         with open(os.path.join(out, name), "w", newline="\n") as f:
             f.write(text)

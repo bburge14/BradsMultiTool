@@ -70,12 +70,7 @@ def git(*args, cwd=ROOT, capture=True, check=True):
 
 # Files the split makes that a rebuild on this PC can change (Windows' csc makes a different installer): never your
 # edits, so they're put back rather than stopping a push
-GENERATED = ["plugins/launcher/Snuffys-Launcher-Setup.exe", "scripts/setup/Snuffys-Launcher-Setup.exe",
-             "scripts/setup/source.sha256"]
-
-
 def preflight(dry_run):
-    git("checkout", "--", *GENERATED, check=False)
     changed = git("status", "--porcelain")
     if changed:
         files = "\n".join("  " + line[3:] for line in changed.splitlines()[:20])
@@ -121,8 +116,36 @@ def checkout(name, repo, branch, dry_run):
     return path
 
 
+def setup_installer(path):
+    """The friends' installer in the launcher's clone: the one it has, kept while its source is unchanged (the same file
+    each release, so Windows' download reputation builds up), else built anew (mcs, or Windows' own csc)."""
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    import split_plugins
+    stamp = os.path.join(path, "setup.sha256")
+    target = os.path.join(path, SETUP_EXE)
+    wanted = split_plugins.setup_fingerprint()
+    kept = KEPT.get(path)
+    if kept and kept[0] == wanted:
+        with open(target, "wb") as f:
+            f.write(kept[1])
+    else:
+        split_plugins.compile_setup(os.path.join(ROOT, "scripts", "setup", "SnuffysSetup.cs"), target)
+    if os.path.exists(target):
+        with open(stamp, "w", newline="\n") as f:
+            f.write(wanted + "\n")
+
+
+# The launcher clone's installer and its fingerprint from before its files were replaced (setup_installer keeps it)
+KEPT = {}
+
+
 def replace_contents(folder, path):
     """Make the clone's files exactly plugins/<folder> as committed at HEAD."""
+    setup = os.path.join(path, SETUP_EXE)
+    stamp = os.path.join(path, "setup.sha256")
+    if os.path.exists(setup) and os.path.exists(stamp):
+        with open(setup, "rb") as f, open(stamp) as g:
+            KEPT[path] = (g.read().strip(), f.read())
     for entry in os.listdir(path):
         if entry == ".git":
             continue
@@ -231,6 +254,12 @@ def push(folder, entry, dry_run, head, level):
         print("%-16s %s, no changes since the last push" % (folder, old or "up to date"))
         return
     if not os.path.exists(os.path.join(path, "runelite-plugin.properties")):
+        # (the friends launcher: its installer, built here, not kept in this repository)
+        setup_installer(path)
+        git("add", "-A", cwd=path)
+        if not git("status", "--porcelain", cwd=path):
+            print("%-16s %s, no changes since the last push" % (folder, old or "up to date"))
+            return
         # Not a plugin (the friends launcher): no version or changelog, just the update
         notes = changes_since(folder, last.group(1) if last else None)
         changed = len(git("status", "--porcelain", cwd=path).splitlines())
