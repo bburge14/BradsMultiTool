@@ -94,6 +94,9 @@ class PlannerCalculator {
     // GE prices by item id, looked up on the client thread when the panel asks for them
     private final Map<Integer, Integer> idPrices = new ConcurrentHashMap<>();
     private final Set<Integer> wantedPrices = ConcurrentHashMap.newKeySet();
+    // High alchemy values by item id (from its item composition, on the client thread), as the prices are
+    private final Map<Integer, Integer> alchPrices = new ConcurrentHashMap<>();
+    private final Set<Integer> wantedAlch = ConcurrentHashMap.newKeySet();
     private volatile int priceVersion;
     private boolean dirty = true;
     private boolean bankLoaded;
@@ -306,10 +309,14 @@ class PlannerCalculator {
             membersWorld = members;
             view.update();
         }
-        if (!wantedPrices.isEmpty()) {
+        if (!wantedPrices.isEmpty() || !wantedAlch.isEmpty()) {
             for (Integer id : new ArrayList<>(wantedPrices)) {
                 idPrices.put(id, (int) Math.max(0, Math.min(Integer.MAX_VALUE, itemManager.getItemPrice(id))));
                 wantedPrices.remove(id);
+            }
+            for (Integer id : new ArrayList<>(wantedAlch)) {
+                alchPrices.put(id, Math.max(0, itemManager.getItemComposition(id).getHaPrice()));
+                wantedAlch.remove(id);
             }
             priceVersion++;
             view.update();
@@ -404,6 +411,26 @@ class PlannerCalculator {
             return 0;
         }
         return price;
+    }
+
+    /** An item's high alchemy value by id (looked up on the next game tick the first time; 0 until then or none). */
+    int alchPrice(int itemId) {
+        if (itemId <= 0) {
+            return 0;
+        }
+        Integer value = alchPrices.get(itemId);
+        if (value == null) {
+            if (itemManager != null) {
+                wantedAlch.add(itemId);
+            }
+            return 0;
+        }
+        return value;
+    }
+
+    /** What the plans count products as worth (Sell Products By). */
+    PlannerConfig.SellBy sellBy() {
+        return config.plannerSellBy();
     }
 
     /** Goes up each time prices by id come in (so the list is redrawn with them). */
@@ -898,8 +925,16 @@ class PlannerCalculator {
         Double profit;
         /** What one's materials cost (GE), or null (no recipe, or a material without a price). */
         Double costEach;
-        /** What selling one product gets you (GE price less its 2% tax); null when it's nothing that sells. */
+        /**
+         * What one product gets you (GE price less its 2% tax, or its high alch value less a nature rune, as
+         * {@link #selling} says); null when it's nothing that sells.
+         */
         Double earnEach;
+        /** One sold on the GE (after tax), and one high alched (less a nature rune); null when it has none. */
+        Double geEach;
+        Double alchEach;
+        /** {@link #earnEach} is the alch value (alching pays more, or Sell Products By says to). */
+        boolean alchWins;
         /** How many you have or can make from what you own. */
         int have;
         /** The guide's method at your level is this. */
@@ -992,12 +1027,14 @@ class PlannerCalculator {
                 }
                 // The action is one item; a recipe can make several at once (10 darts from 10 tips and 10 feathers)
                 cost /= per;
-                double worth = consumed(recipe) ? 0 : afterTax(price.applyAsInt(recipe.name));
+                Sale sale = consumed(recipe) ? new Sale(0, 0) : new Sale(price.applyAsInt(recipe.name), selling.alch(recipe.name));
+                double worth = sale.worth();
                 double profit = worth - cost;
                 if (row.profit == null || profit > row.profit) {
                     row.profit = profit;
                     row.costEach = cost;
                     row.earnEach = worth > 0 ? worth : null;
+                    sale.fill(row);
                 }
             }
         } else {
@@ -1007,7 +1044,9 @@ class PlannerCalculator {
                 if (worth <= 0) {
                     worth = price.applyAsInt(action.name);
                 }
-                row.earnEach = worth > 0 ? afterTax(worth) : null;
+                Sale sale = new Sale(worth, selling.alch(action.name));
+                row.earnEach = sale.worth() > 0 ? sale.worth() : null;
+                sale.fill(row);
             }
         }
         TrainingData.Method method = training == null ? null : rated(training, skill, action, level);
@@ -1050,6 +1089,61 @@ class PlannerCalculator {
             out.put(way.name, (int) Math.round(way.perHour * each));
         }
         return out;
+    }
+
+    /**
+     * How the plans count products: the Sell Products By setting, each item's high alch value and a nature rune's
+     * price. Set by the Calculator before it works things out; on its own (the tests), GE prices only.
+     */
+    static final class Selling {
+        static final Selling GE_ONLY = new Selling(PlannerConfig.SellBy.GE, name -> 0, 0);
+
+        final PlannerConfig.SellBy by;
+        final ToIntFunction<String> alchValue;
+        final int nature;
+
+        Selling(PlannerConfig.SellBy by, ToIntFunction<String> alchValue, int nature) {
+            this.by = by;
+            this.alchValue = alchValue;
+            this.nature = nature;
+        }
+
+        /** One alched: its alch value less the nature rune it takes, or 0 (none, or it isn't worth the rune). */
+        double alch(String name) {
+            if (by == PlannerConfig.SellBy.GE) {
+                return 0;
+            }
+            int value = alchValue.applyAsInt(name);
+            return value > nature ? value - nature : 0;
+        }
+    }
+
+    /** The Calculator's selling now ({@link Selling}). */
+    static volatile Selling selling = Selling.GE_ONLY;
+
+    // One product's sale both ways, and which counts
+    private static final class Sale {
+        final double ge;
+        final double alch;
+
+        Sale(int gePrice, double alch) {
+            this.ge = gePrice > 0 ? afterTax(gePrice) : 0;
+            this.alch = alch;
+        }
+
+        boolean alchWins() {
+            return alch > 0 && (selling.by == PlannerConfig.SellBy.ALCH || alch > ge);
+        }
+
+        double worth() {
+            return alchWins() ? alch : ge;
+        }
+
+        void fill(Row row) {
+            row.geEach = ge > 0 ? ge : null;
+            row.alchEach = alch > 0 ? alch : null;
+            row.alchWins = alchWins();
+        }
     }
 
     /**

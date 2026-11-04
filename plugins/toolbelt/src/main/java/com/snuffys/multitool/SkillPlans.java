@@ -65,6 +65,9 @@ final class SkillPlans {
          * the wiki guide's rate where there is one, else the normal pace.
          */
         String pace;
+        /** What you've told it you did with what it made so far: sold on the GE, and high alched. */
+        long sold;
+        long alched;
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;
@@ -78,6 +81,8 @@ final class SkillPlans {
             Step copy = new Step(action, from, to, method, xp);
             copy.note = note;
             copy.pace = pace;
+            copy.sold = sold;
+            copy.alched = alched;
             for (Supply supply : supplies) {
                 copy.supplies.add(new Supply(supply.skill, supply.item, supply.quantity));
             }
@@ -285,18 +290,21 @@ final class SkillPlans {
             out.append(step.from).append('\t').append(step.to).append('\t').append(clean(step.action)).append('\t')
                 .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp);
             // (its supplies for other plans, when it has any: "FIREMAKING|Yew logs|30000;...", then its note)
-            if (!step.supplies.isEmpty() || step.note != null || step.pace != null) {
-                out.append('\t');
-                for (Supply supply : step.supplies) {
-                    out.append(supply.skill).append('|').append(clean(supply.item).replace("|", " ").replace(";", " "))
-                        .append('|').append(supply.quantity).append(';');
-                }
-                if (step.note != null || step.pace != null) {
-                    out.append('\t').append(step.note == null ? "" : clean(step.note));
-                }
-                if (step.pace != null) {
-                    out.append('\t').append(clean(step.pace));
-                }
+            // (then its supplies for other plans, "FIREMAKING|Yew logs|30000;...", its note, pace, and what you've sold
+            // and alched: each column only when it or one after it has something)
+            StringBuilder supplies = new StringBuilder();
+            for (Supply supply : step.supplies) {
+                supplies.append(supply.skill).append('|').append(clean(supply.item).replace("|", " ").replace(";", " "))
+                    .append('|').append(supply.quantity).append(';');
+            }
+            List<String> more = new ArrayList<>(java.util.Arrays.asList(supplies.toString(),
+                step.note == null ? "" : clean(step.note), step.pace == null ? "" : clean(step.pace),
+                step.sold > 0 ? String.valueOf(step.sold) : "", step.alched > 0 ? String.valueOf(step.alched) : ""));
+            while (!more.isEmpty() && more.get(more.size() - 1).isEmpty()) {
+                more.remove(more.size() - 1);
+            }
+            for (String column : more) {
+                out.append('\t').append(column);
             }
             out.append('\n');
         }
@@ -339,6 +347,12 @@ final class SkillPlans {
                         }
                         if (parts.length > 7 && !parts[7].trim().isEmpty()) {
                             step.pace = parts[7].trim();
+                        }
+                        if (parts.length > 8 && !parts[8].trim().isEmpty()) {
+                            step.sold = Math.max(0, Long.parseLong(parts[8].trim()));
+                        }
+                        if (parts.length > 9 && !parts[9].trim().isEmpty()) {
+                            step.alched = Math.max(0, Long.parseLong(parts[9].trim()));
                         }
                         plan.steps.add(step);
                     }

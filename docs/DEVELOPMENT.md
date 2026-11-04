@@ -23,7 +23,10 @@ Set-Location C:\dev\BradsMultiTool
 Then double-click `Launch-BradsMultiTool.bat` (its **Make a desktop shortcut** link puts it on the desktop). It's the
 same launcher friends get, built from `src/` (it updates from this repository) and with a Play | Dev switch.
 Its **Dev** tab (only in this repository's copy): **Push to repos** copies the plugins to their own GitHub repositories with
-  new versions for the ones that changed (**Check (dry run)** first shows what would change), and **Publish to
+  new versions for the ones that changed (**Check (dry run)** first shows what would change; the Patch / Minor / Major
+  choice gets a dot on the one the changes since each plugin's last push call for, picked for you when that changes:
+  **major** when a setting's `keyName` is gone, since players lose that saved value, **minor** for a new setting, a new
+  class or over 150 new lines, else **patch**; hover it for why), and **Publish to
   RuneLite** gets the Plugin Hub pull requests ready. Its **Plugin Hub** sub-tab keeps a card for each plugin's pull
   request (the Publish sub-tab has a summary card: how many in each state, how many new), checked in the background while the launcher is open (every 10 minutes when git is signed in to GitHub,
   else hourly; **Check now** any time): in review, building, build failed, changes asked, approved or published,

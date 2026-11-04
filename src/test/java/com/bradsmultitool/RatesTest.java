@@ -143,4 +143,45 @@ public class RatesTest {
         assertTrue(shape.toString(), shape.toString().equals("A 10-20;Mine 20-30;A 30-40;Mine 2 40-50;B 50-70;"));
         assertTrue(PlannerCalculator.added(out, mine) == 3 && out.goal == 70);
     }
+
+    @Test
+    public void alchingCountsWhenItPaysMore() {
+        PlannerCalculator.Selling before = PlannerCalculator.selling;
+        try {
+            // Rune platebody: worth more alched (39,000 less a 100 gp rune) than its 38,000 on the GE
+            PlannerCalculator.selling = new PlannerCalculator.Selling(PlannerConfig.SellBy.BEST,
+                name -> name.equals("Rune platebody") ? 39_000 : 0, 100);
+            java.util.Map<String, Integer> prices = new java.util.HashMap<>();
+            prices.put("Rune platebody", 38_000);
+            prices.put("Runite bar", 12_000);
+            CalculatorData.Action body = null;
+            for (CalculatorData.Action a : DATA.calc(Skill.SMITHING).actions) {
+                if (a.name.equals("Rune platebody")) {
+                    body = a;
+                }
+            }
+            PlannerCalculator.Row row = PlannerCalculator.rows(Skill.SMITHING, Collections.singletonList(body),
+                Collections.emptyList(), Experience.getXpForLevel(99) - 10_000, Experience.getXpForLevel(99), RECIPES, TRAINING,
+                Collections.emptyMap(), name -> prices.getOrDefault(name, 0), id -> 0).get(0);
+            assertTrue(row.alchWins);
+            assertTrue(row.earnEach == 38_900);
+            assertTrue(row.geEach == 38_000 - 760);
+            // GE only: the alch value doesn't count
+            PlannerCalculator.selling = new PlannerCalculator.Selling(PlannerConfig.SellBy.GE, name -> 39_000, 100);
+            row = PlannerCalculator.rows(Skill.SMITHING, Collections.singletonList(body), Collections.emptyList(),
+                Experience.getXpForLevel(99) - 10_000, Experience.getXpForLevel(99), RECIPES, TRAINING, Collections.emptyMap(),
+                name -> prices.getOrDefault(name, 0), id -> 0).get(0);
+            assertTrue(!row.alchWins && row.earnEach == 38_000 - 760);
+        } finally {
+            PlannerCalculator.selling = before;
+        }
+        // What you sold and alched is saved with the milestone
+        SkillPlans.Plan plan = new SkillPlans.Plan(99);
+        SkillPlans.Step step = new SkillPlans.Step("Rune platebody", 90, 99, null, 0);
+        step.sold = 120;
+        step.alched = 45;
+        plan.steps.add(step);
+        SkillPlans.Step back = SkillPlans.decode(SkillPlans.encode(plan)).steps.get(0);
+        assertTrue(back.sold == 120 && back.alched == 45 && back.pace == null && back.note == null);
+    }
 }

@@ -464,6 +464,8 @@ namespace Snuffys
     public class SegmentButton : RadioButton
     {
         private bool hover;
+        /** Marked with a dot: the choice suggested (the version bump the changes call for). */
+        public bool Suggested;
 
         public SegmentButton()
         {
@@ -496,6 +498,13 @@ namespace Snuffys
             {
                 TextRenderer.DrawText(g, Text, font, new Rectangle(0, 0, Width, Height), Checked ? Theme.Text : Theme.Muted,
                     TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            }
+            if (Suggested)
+            {
+                using (SolidBrush dot = new SolidBrush(Theme.Warn))
+                {
+                    g.FillEllipse(dot, Width - 11 * s, 4 * s, 6 * s, 6 * s);
+                }
             }
         }
     }
@@ -1374,6 +1383,28 @@ namespace Snuffys
             toggle.Dot = changed ? Theme.Warn : Theme.Good;
             versionTip.SetToolTip(toggle, tip);
             toggle.Invalidate();
+        }
+
+        /**
+         * Marks the version bump the changes call for (patch, minor or major; null: none) with a dot and says why on
+         * hover; {@code pick} also selects it.
+         */
+        public void SuggestLevel(string level, string why, bool pick)
+        {
+            SegmentButton[] all = { Patch, Minor, Major };
+            string[] names = { "patch", "minor", "major" };
+            string[] means = { "Patch: fixes and small changes", "Minor: new features or settings", "Major: changes that break "
+                + "something players have (a setting removed or renamed)" };
+            for (int i = 0; i < 3; i++)
+            {
+                all[i].Suggested = names[i] == level;
+                versionTip.SetToolTip(all[i], means[i] + (all[i].Suggested ? "\nSuggested: " + why : ""));
+                if (all[i].Suggested && pick)
+                {
+                    all[i].Checked = true;
+                }
+                all[i].Invalidate();
+            }
         }
 
         /** The Push card's line saying how many repositories have changes (empty: all checked off). */
@@ -2431,6 +2462,31 @@ function Check-RunningVersion {
 # them in .publish-cache), with a + when the code RuneLite runs (or, closed, your copy) has changed since then
 $hubKeys = [ordered]@{ 'skilling-helper' = 'skilling'; 'pvm-slayer' = 'pvm'; 'gemcrab-tracker' = 'gemcrab';
     'tick-counter' = 'tick'; 'planner' = 'planner'; 'alerts' = 'alerts'; 'toolbelt' = 'toolbelt' }
+# What a plugin's changes since its last push call for: major when a setting players have went (its keyName is no
+# longer there: their saved value is lost), minor for new settings, new classes or a lot of new code, else patch
+function Get-BumpSuggestion($from, $to, $folder) {
+    $src = "plugins/$folder/src/main/java"
+    $diff = @(git -C $root diff -U0 $from $to -- $src 2>$null)
+    $removed = @{}
+    $added = @{}
+    $plus = 0
+    foreach ($line in $diff) {
+        if ($line -match '^-[^-].*keyName\s*=\s*"([^"]+)"') { $removed[$Matches[1]] = $true }
+        elseif ($line -match '^\+[^+].*keyName\s*=\s*"([^"]+)"') { $added[$Matches[1]] = $true }
+        if ($line -match '^\+[^+]') { $plus++ }
+    }
+    $gone = @($removed.Keys | Where-Object { -not $added.ContainsKey($_) })
+    $new = @($added.Keys | Where-Object { -not $removed.ContainsKey($_) })
+    $files = @(git -C $root diff --name-only --diff-filter=A $from $to -- $src 2>$null)
+    if ($gone.Count -gt 0) { return @{ Level = 'major'; Why = "setting removed: " + ($gone -join ', ') } }
+    if ($new.Count -gt 0) { return @{ Level = 'minor'; Why = "new setting: " + ($new -join ', ') } }
+    if ($files.Count -gt 0) { return @{ Level = 'minor'; Why = "new: " + (($files | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_) }) -join ', ') } }
+    if ($plus -gt 150) { return @{ Level = 'minor'; Why = "$plus lines of new code" } }
+    return @{ Level = 'patch'; Why = "$plus changed lines, no new settings" }
+}
+$script:bumps = @{}
+$script:lastSuggest = $null
+
 function Update-Versions {
     if ($friends) {
         foreach ($plugin in $friendPlugins) {
@@ -2468,6 +2524,7 @@ function Update-Versions {
             if ($LASTEXITCODE -eq 0) {
                 git -C $root diff --quiet $lastPushed $head.Trim() -- "plugins/$folder" 2>$null
                 $behind = $LASTEXITCODE -eq 1
+                if ($behind) { $script:bumps[$folder] = Get-BumpSuggestion $lastPushed $head.Trim() $folder }
                 $repoTip = if ($behind) { "Changes to push: plugins\$folder changed since your last push to its repository" }
                            else { "Up to date: its repository has what's in plugins\$folder now (nothing to push)" }
             }
@@ -2506,7 +2563,19 @@ function Update-Versions {
         # (the Dev switch's own tooltip says the repository's state)
         $ui.SetRepoState($folder, $behind, $repoTip)
     }
-    $ui.RepoSummary.Text = if ($toPush) { "$($toPush.Count) to push: " + ($toPush -join ', ') } else { 'Every repository is up to date: nothing to push.' }
+    # The version bump the changes to push call for: the biggest any of them needs
+    $order = @{ 'patch' = 0; 'minor' = 1; 'major' = 2 }
+    $suggest = $null
+    $why = @()
+    foreach ($folder in $toPush) {
+        $bump = $script:bumps[$folder]
+        if (-not $bump) { continue }
+        if (-not $suggest -or $order[$bump.Level] -gt $order[$suggest]) { $suggest = $bump.Level }
+        $why += "${folder}: $($bump.Level) ($($bump.Why))"
+    }
+    $ui.SuggestLevel($suggest, ($why -join '; '), ($suggest -and $suggest -ne $script:lastSuggest))
+    $script:lastSuggest = $suggest
+    $ui.RepoSummary.Text = if ($toPush) { "$($toPush.Count) to push: " + ($toPush -join ', ') + $(if ($suggest) { "  $([char]0x00B7)  suggests $suggest" }) } else { 'Every repository is up to date: nothing to push.' }
     $ui.RepoSummary.ForeColor = if ($toPush) { [Snuffys.Theme]::Warn } else { $green }
 }
 $script:repoStates = @{}

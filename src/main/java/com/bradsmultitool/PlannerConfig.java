@@ -309,6 +309,24 @@ public interface PlannerConfig extends CommonConfig {
         return true;
     }
 
+    /** What a plan's products are worth: sold on the GE, high alched, or whichever pays more. */
+    enum SellBy {
+        BEST("Whichever pays more"),
+        GE("Grand Exchange"),
+        ALCH("High alchemy");
+
+        private final String label;
+
+        SellBy(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     /** Whether plans treat you as an ironman: from your account, or always, or never. */
     enum IronmanPlans {
         AUTO("From your account"),
@@ -568,6 +586,17 @@ public interface PlannerConfig extends CommonConfig {
     )
     default int plannerHourWorth() {
         return 3_000_000;
+    }
+
+    @ConfigItem(
+        keyName = "plannerSellBy",
+        name = "Sell Products By",
+        description = "<div width='300'>What a plan's products are worth: the Grand Exchange price after its 2% tax, high alchemy (the alch value less a nature rune), or whichever pays more for each item (marked \"alch\" where alching wins). A milestone's Record sales... says what you really did with them",
+        section = plannerCalculatorSection,
+        position = 8
+    )
+    default SellBy plannerSellBy() {
+        return SellBy.BEST;
     }
 
     @ConfigItem(
