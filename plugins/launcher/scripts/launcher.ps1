@@ -1981,7 +1981,9 @@ function Check-Setup {
         Set-Row 'session' $false 'No Jagex session saved yet.' 'Save one' 'Log in once through the Jagex Launcher to save it'
     }
 
-    if (Get-Command java -ErrorAction SilentlyContinue) {
+    # (friends: always its own Java 17, whatever else is installed: the build needs 17, and a newer Java on the PC, from
+    # Minecraft or the like, can't run it)
+    if (-not $friends -and (Get-Command java -ErrorAction SilentlyContinue)) {
         $version = (cmd /c 'java -version 2>&1' | Select-Object -First 1)
         Set-Row 'java' $true "Java: $version" $null
     } elseif (Get-JavaHome) {
@@ -2007,7 +2009,7 @@ function Check-Setup {
     } else {
         Set-Row 'git' $false "git isn't installed (no updates)." 'Get git'
     }
-    $launch.Enabled = [bool](Get-Command java -ErrorAction SilentlyContinue) -or [bool](Get-JavaHome)
+    $launch.Enabled = if ($friends) { [bool](Get-JavaHome) } else { [bool](Get-Command java -ErrorAction SilentlyContinue) -or [bool](Get-JavaHome) }
     $ui.UpdateSetupSummary()
 }
 
@@ -2292,7 +2294,8 @@ function Start-RuneLite {
             return
         }
         $javaHome = Get-JavaHome
-        $useJava = if ($javaHome -and -not (Get-Command java -ErrorAction SilentlyContinue)) { "set `"JAVA_HOME=$javaHome`" && set `"PATH=$javaHome\bin;%PATH%`" && " } else { '' }
+        # (its own Java 17 always, ahead of any other on the PC)
+        $useJava = if ($javaHome) { "set `"JAVA_HOME=$javaHome`" && set `"PATH=$javaHome\bin;%PATH%`" && " } else { '' }
         $command = "$useJava" + "gradlew.bat --console=plain runSnuffys `"-Pclasses=$classes`" > `"$logFile`" 2>&1"
         $script:runner = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -WorkingDirectory (Join-Path $root 'runner') -WindowStyle Hidden -PassThru
     } else {

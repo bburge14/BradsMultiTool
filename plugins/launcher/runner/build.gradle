@@ -65,5 +65,7 @@ tasks.register('runSnuffys', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.snuffys.launcher.SnuffysRunner'
     args = ['--developer-mode']
+    // (RuneLite's developer client won't load plugins without assertions on)
+    jvmArgs '-ea'
     systemProperty 'snuffys.classes', project.findProperty('classes') ?: ''
 }
