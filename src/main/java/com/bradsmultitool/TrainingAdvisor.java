@@ -118,6 +118,10 @@ class TrainingAdvisor {
         SkillPlans.Step step = skillPlan == null ? null : skillPlan.at(level);
         if (step != null) {
             TrainingData.Method method = SkillPlans.method(training, skill, step);
+            if (method == null) {
+                // (no guide method for it, Maple logs say: the trees, rocks or spots it's from, for the outlines and tools)
+                method = fromObjects(skill, step);
+            }
             Suggestion fromPlan = new Suggestion("Plan:", step.action, method, step.xp,
                 method == null ? new ArrayList<>() : toolsFor(skill, method));
             fromPlan.planStep = step;
@@ -168,6 +172,23 @@ class TrainingAdvisor {
 
     // What a guide method needs to hand: an axe or pickaxe for its trees or rocks, the trap for its creature,
     // a tinderbox to burn logs
+    // A method made from a plan milestone's action: the game objects that are it ("Maple tree" for "Maple logs"), or null
+    private TrainingData.Method fromObjects(Skill skill, SkillPlans.Step step) {
+        java.util.Set<Integer> ids = skilling.objectIds(skill.getName(), name -> MethodDetector.sameThing(name, step.action));
+        if (ids.isEmpty()) {
+            return null;
+        }
+        com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+        o.addProperty("name", step.action);
+        o.addProperty("from", step.from);
+        o.addProperty("to", step.to);
+        o.addProperty("fastest", false);
+        com.google.gson.JsonArray objects = new com.google.gson.JsonArray();
+        ids.forEach(objects::add);
+        o.add("objects", objects);
+        return new TrainingData.Method(o);
+    }
+
     private List<String> toolsFor(Skill skill, TrainingData.Method method) {
         List<String> tools = new ArrayList<>();
         for (int id : method.objects) {

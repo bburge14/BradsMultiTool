@@ -184,6 +184,17 @@ class SkillingData {
         return resource;
     }
 
+    /** Every object of a skill whose name passes the test ("Maple tree" for a plan's "Maple logs"). */
+    Set<Integer> objectIds(String skill, java.util.function.Predicate<String> name) {
+        Set<Integer> out = new HashSet<>();
+        for (Map.Entry<Integer, Resource> e : objects.entrySet()) {
+            if (skill.equalsIgnoreCase(e.getValue().skill) && name.test(e.getValue().name)) {
+                out.add(e.getKey());
+            }
+        }
+        return out;
+    }
+
     Pickpocket pickpocket(String npcName) {
         return npcName == null ? null : pickpockets.get(npcName.toLowerCase());
     }
