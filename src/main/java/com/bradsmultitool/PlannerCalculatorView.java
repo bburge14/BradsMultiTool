@@ -812,7 +812,7 @@ final class PlannerCalculatorView {
             .append('|').append(calc.tradesVersion()).append('|').append(openSteps).append('|').append(calc.gatherState());
         SkillPlans.Plan plan = calc.plan(shown);
         key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen).append(calc.pinnedPlanSkill())
-            .append(calc.goalPick(shown))
+            .append(calc.goalPick(shown)).append(':').append(calc.goal(shown))
             .append(calc.planCounts(skills()).keySet())
             .append('|').append(plan == null ? "" : SkillPlans.encode(plan)).append(calc.isTracked(shown, plan))
             .append(calc.trackedPlan(shown) != null);
@@ -2560,6 +2560,17 @@ final class PlannerCalculatorView {
         JPopupMenu menu = new JPopupMenu();
         menu.add(menuItem("Change goal...", () -> changeSkillGoal(shown)));
         menu.add(menuItem("Make a plan for it", () -> planFromGoal(shown, goal, pick)));
+        // A plan made from it when the goal (or its method) has changed since: update it
+        int made = calc.trackedPlan(shown) == null ? goalPlanIndex(shown) : -1;
+        String changed = made >= 0 ? goalChanges(calc.plans(shown).get(made), goal, pick) : null;
+        if (changed != null) {
+            JLabel[] note = card.line("Goal changed in the tracker: update the plan", "");
+            note[0].setForeground(HudColors.WARN);
+            note[0].setToolTipText("<html>" + PlannerUi.esc(changed).replace("\n", "<br>") + "<br>Right-click the goal > Update "
+                + "the plan</html>");
+            menu.add(menuItem("Update \"" + planName(calc.plans(shown).get(made), made) + "\" from the tracker...",
+                () -> updateFromGoal(shown, made, goal, pick)));
+        }
         menu.add(menuItem("Remove goal", () -> removeSkillGoal(shown)));
         list.add(PlannerUi.spaced(card.interactive(() -> {
             goalOpen = !goalOpen;
@@ -2593,20 +2604,93 @@ final class PlannerCalculatorView {
 
     // A new plan to the goal: one milestone from your level with what the goal trains, when that's a Calculator action
     private void planFromGoal(Skill shown, int goal, String pick) {
-        SkillPlans.Plan plan = new SkillPlans.Plan(Math.min(99, CalculatorData.level(goal, true)));
+        SkillPlans.Plan plan = goalPlan(shown, goal, pick);
         plan.name = "Goal to " + plan.goal;
-        CalculatorData.Calc skillCalc = data.calc(shown);
-        CalculatorData.Action action = pick == null ? null : CalculatorData.named(skillCalc, pick);
-        int level = levelNow();
-        if (action != null && level < plan.goal) {
-            List<CalculatorData.Bonus> on = CalculatorData.bonuses(skillCalc, calc.bonuses(shown));
-            TrainingData.Method method = SkillPlans.methodFor(training, shown, action.name, level, plan.goal);
-            plan.steps.add(new SkillPlans.Step(action.name, Math.max(level, 1), plan.goal, method == null ? null : method.name,
-                CalculatorData.xpEach(action, on)));
-        }
         calc.newPlan(shown, plan);
         calc.setPlanExpanded(true);
         calc.setMode(PlannerCalculator.Mode.PLAN);
+        redraw.run();
+    }
+
+    /**
+     * A plan to the Skilling Helper's goal as it's set: its method from your level (or from that method's level, with
+     * the climb to it from the wiki's suggestions), or with no method set, the suggestions all the way, as the tracker
+     * follows them. It remembers what it was made from (to tell when the goal changes).
+     */
+    private SkillPlans.Plan goalPlan(Skill shown, int goal, String pick) {
+        SkillPlans.Plan plan = new SkillPlans.Plan(Math.min(99, CalculatorData.level(goal, true)));
+        plan.fromGoal = goal;
+        plan.fromPick = pick;
+        CalculatorData.Calc skillCalc = data.calc(shown);
+        List<CalculatorData.Bonus> on = CalculatorData.bonuses(skillCalc, calc.bonuses(shown));
+        List<CalculatorData.Action> actions = CalculatorData.shown(skillCalc, calc.showMembers());
+        int level = Math.max(1, CalculatorData.level(Math.max(0, calc.xp(shown)), false));
+        if (level >= plan.goal) {
+            return plan;
+        }
+        CalculatorData.Action action = pick == null ? null : CalculatorData.named(skillCalc, pick);
+        if (action == null) {
+            SkillPlans.Plan suggested = PlannerCalculator.suggestedPlan(shown, actions, on, training, level, plan.goal,
+                calc.otherMethods(shown));
+            plan.steps.addAll(suggested.steps);
+            return plan;
+        }
+        int start = Math.min(plan.goal - 1, Math.max(level, action.level));
+        TrainingData.Method method = SkillPlans.methodFor(training, shown, action.name, start, plan.goal);
+        plan.steps.add(new SkillPlans.Step(action.name, start, plan.goal, method == null ? null : method.name,
+            CalculatorData.xpEach(action, on)));
+        if (start > level) {
+            PlannerCalculator.fillGaps(plan, PlannerCalculator.suggestedPlan(shown, actions, on, training, level, start,
+                calc.otherMethods(shown)), level, start, "to reach " + start + " for " + action.name);
+        }
+        return plan;
+    }
+
+    // The plan made from the Skilling Helper's goal (the open one if it is), or null; its index in [0]
+    private int goalPlanIndex(Skill shown) {
+        List<SkillPlans.Plan> plans = calc.plans(shown);
+        int open = calc.openIndex(shown);
+        if (open >= 0 && open < plans.size() && plans.get(open).fromGoal > 0) {
+            return open;
+        }
+        for (int i = 0; i < plans.size(); i++) {
+            if (plans.get(i).fromGoal > 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // What changed in the Skilling Helper since that plan was made from its goal ("Goal: level 90 -> 99"), or null
+    private String goalChanges(SkillPlans.Plan plan, int goal, String pick) {
+        List<String> out = new ArrayList<>();
+        if (plan.fromGoal != goal) {
+            out.add("Goal: " + goalText(plan.fromGoal) + " -> " + goalText(goal));
+        }
+        if (!java.util.Objects.equals(plan.fromPick == null ? null : plan.fromPick.toLowerCase(Locale.ROOT),
+            pick == null ? null : pick.toLowerCase(Locale.ROOT))) {
+            out.add("Method: " + (plan.fromPick == null ? "its suggestions" : plan.fromPick) + " -> "
+                + (pick == null ? "its suggestions" : pick));
+        }
+        return out.isEmpty() ? null : String.join("\n", out);
+    }
+
+    // Rebuilds that plan from the goal as it's set now (its name and supply milestones kept), after saying what changes
+    private void updateFromGoal(Skill shown, int index, int goal, String pick) {
+        SkillPlans.Plan old = calc.plans(shown).get(index);
+        String changes = goalChanges(old, goal, pick);
+        if (changes == null || !confirm("The Skilling Helper's goal changed since \"" + planName(old, index) + "\" was made:\n"
+            + changes + "\n\nRebuild its milestones from it? (Its name and supply milestones stay; change any method after.)")) {
+            return;
+        }
+        SkillPlans.Plan plan = goalPlan(shown, goal, pick);
+        plan.name = old.name;
+        for (SkillPlans.Step step : old.steps) {
+            if (!step.supplies.isEmpty()) {
+                PlannerCalculator.insertStep(plan, step.copy());
+            }
+        }
+        calc.replacePlan(shown, index, plan);
         redraw.run();
     }
 

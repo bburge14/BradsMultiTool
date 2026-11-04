@@ -536,4 +536,19 @@ public class SkillPlanTest {
         // The note is saved with it
         assertEquals("to reach 60 for the Firemaking supply", SkillPlans.decode(SkillPlans.encode(plan)).steps.get(0).note);
     }
+
+    @Test
+    public void aPlanRemembersTheGoalItWasMadeFrom() {
+        SkillPlans.Plan plan = new SkillPlans.Plan(99);
+        plan.fromGoal = Experience.getXpForLevel(99);
+        plan.fromPick = "Blessed bone shards";
+        SkillPlans.Plan back = SkillPlans.decode(SkillPlans.encode(plan));
+        assertEquals(plan.fromGoal, back.fromGoal);
+        assertEquals("Blessed bone shards", back.fromPick);
+        // (made from its suggestions: no method)
+        plan.fromPick = null;
+        assertNull(SkillPlans.decode(SkillPlans.encode(plan)).fromPick);
+        // A plan not made from a goal says nothing of one
+        assertEquals(0, SkillPlans.decode(SkillPlans.encode(new SkillPlans.Plan(50))).fromGoal);
+    }
 }

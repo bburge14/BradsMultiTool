@@ -99,6 +99,10 @@ final class SkillPlans {
         /** What you called it ("Darts to 99"), or null for an unnamed one. */
         String name;
         final List<Step> steps = new ArrayList<>();
+        /** Made from the Skilling Helper's goal: that goal's XP (0: not made from it) and the method it was set to then
+         *  (null: its suggestions), to tell when the goal changes after. */
+        int fromGoal;
+        String fromPick;
 
         Plan(int goal) {
             this.goal = goal;
@@ -107,6 +111,8 @@ final class SkillPlans {
         Plan copy() {
             Plan out = new Plan(goal);
             out.name = name;
+            out.fromGoal = fromGoal;
+            out.fromPick = fromPick;
             for (Step step : steps) {
                 out.steps.add(step.copy());
             }
@@ -258,6 +264,9 @@ final class SkillPlans {
         if (plan.name != null && !plan.name.trim().isEmpty()) {
             out.append("name\t").append(clean(plan.name.trim())).append('\n');
         }
+        if (plan.fromGoal > 0) {
+            out.append("from\t").append(plan.fromGoal).append('\t').append(plan.fromPick == null ? "" : clean(plan.fromPick)).append('\n');
+        }
         for (Step step : plan.steps) {
             out.append(step.from).append('\t').append(step.to).append('\t').append(clean(step.action)).append('\t')
                 .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp);
@@ -290,6 +299,9 @@ final class SkillPlans {
                     plan.goal = Integer.parseInt(parts[1].trim());
                 } else if (parts.length >= 2 && parts[0].equals("name")) {
                     plan.name = parts[1].trim().isEmpty() ? null : parts[1].trim();
+                } else if (parts.length >= 2 && parts[0].equals("from")) {
+                    plan.fromGoal = Integer.parseInt(parts[1].trim());
+                    plan.fromPick = parts.length > 2 && !parts[2].trim().isEmpty() ? parts[2].trim() : null;
                 } else if (parts.length >= 3 && !parts[2].isEmpty()) {
                     int from = Integer.parseInt(parts[0].trim());
                     int to = Integer.parseInt(parts[1].trim());
