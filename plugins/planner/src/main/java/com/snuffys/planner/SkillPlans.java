@@ -58,6 +58,8 @@ final class SkillPlans {
         double xp;
         /** What of its products is kept for other skills' plans (none: all of it's sold). */
         final List<Supply> supplies = new ArrayList<>();
+        /** Why it's there, when it was added for something ("to reach 60 for the Firemaking supply"), or null. */
+        String note;
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;
@@ -69,6 +71,7 @@ final class SkillPlans {
 
         Step copy() {
             Step copy = new Step(action, from, to, method, xp);
+            copy.note = note;
             for (Supply supply : supplies) {
                 copy.supplies.add(new Supply(supply.skill, supply.item, supply.quantity));
             }
@@ -258,12 +261,15 @@ final class SkillPlans {
         for (Step step : plan.steps) {
             out.append(step.from).append('\t').append(step.to).append('\t').append(clean(step.action)).append('\t')
                 .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp);
-            // (its supplies for other plans, when it has any: "FIREMAKING|Yew logs|30000;...")
-            if (!step.supplies.isEmpty()) {
+            // (its supplies for other plans, when it has any: "FIREMAKING|Yew logs|30000;...", then its note)
+            if (!step.supplies.isEmpty() || step.note != null) {
                 out.append('\t');
                 for (Supply supply : step.supplies) {
                     out.append(supply.skill).append('|').append(clean(supply.item).replace("|", " ").replace(";", " "))
                         .append('|').append(supply.quantity).append(';');
+                }
+                if (step.note != null) {
+                    out.append('\t').append(clean(step.note));
                 }
             }
             out.append('\n');
@@ -296,6 +302,9 @@ final class SkillPlans {
                             if (bits.length == 3) {
                                 step.supplies.add(new Supply(bits[0], bits[1], Long.parseLong(bits[2].trim())));
                             }
+                        }
+                        if (parts.length > 6 && !parts[6].trim().isEmpty()) {
+                            step.note = parts[6].trim();
                         }
                         plan.steps.add(step);
                     }

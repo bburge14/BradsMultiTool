@@ -509,4 +509,31 @@ public class SkillPlanTest {
         assertEquals(70, plan.goal);
         assertEquals(70, supply.to);
     }
+
+    @Test
+    public void theClimbToASupplyFillsOnlyEmptyLevels() {
+        // You're 50, a supply of yew logs at 60-70, and your own Willow logs 52-55 already planned
+        SkillPlans.Plan plan = new SkillPlans.Plan(70);
+        SkillPlans.Step supply = new SkillPlans.Step("Yew logs", 60, 70, null, 175);
+        supply.supplies.add(new SkillPlans.Supply("FIREMAKING", "Yew logs", 5000));
+        plan.steps.add(supply);
+        SkillPlans.Step mine = new SkillPlans.Step("Willow logs", 52, 55, null, 67.5);
+        plan.steps.add(mine);
+        SkillPlans.Plan suggestions = new SkillPlans.Plan(60);
+        suggestions.steps.add(new SkillPlans.Step("Maple logs", 45, 60, null, 100));
+        int added = PlannerCalculator.fillGaps(plan, suggestions, 50, 60, "to reach 60 for the Firemaking supply");
+        assertEquals(2, added);
+        // 50-52 and 55-60 filled, Willow and the supply as they were, every level from 50 to 70 covered
+        assertEquals(52, mine.from);
+        assertEquals(55, mine.to);
+        for (int level = 50; level < 70; level++) {
+            int at = level;
+            assertEquals("level " + level, 1, plan.steps.stream().filter(st -> st.covers(at)).count());
+        }
+        SkillPlans.Step first = plan.steps.get(0);
+        assertEquals("Maple logs", first.action);
+        assertEquals("to reach 60 for the Firemaking supply", first.note);
+        // The note is saved with it
+        assertEquals("to reach 60 for the Firemaking supply", SkillPlans.decode(SkillPlans.encode(plan)).steps.get(0).note);
+    }
 }

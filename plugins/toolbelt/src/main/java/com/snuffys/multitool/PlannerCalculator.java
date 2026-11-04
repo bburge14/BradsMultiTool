@@ -1813,6 +1813,49 @@ class PlannerCalculator {
      * fastest, or with {@code other} its other methods first) as the Calculator's action it means at that level; a
      * new milestone wherever that action changes. Empty steps when nothing matches.
      */
+    /**
+     * Fills the levels from {@code from} to {@code to} that no milestone covers yet with {@code suggestions}' milestones
+     * there (cut to fit), each with this note: the climb to a supply's level. Milestones already in the plan stay as
+     * they are; what's added is ordinary (its method can be changed). How many it added.
+     */
+    static int fillGaps(SkillPlans.Plan plan, SkillPlans.Plan suggestions, int from, int to, String note) {
+        int added = 0;
+        int level = from;
+        while (level < to) {
+            // The next uncovered stretch
+            boolean covered = false;
+            for (SkillPlans.Step step : plan.steps) {
+                if (step.covers(level)) {
+                    level = step.to;
+                    covered = true;
+                    break;
+                }
+            }
+            if (covered) {
+                continue;
+            }
+            int end = to;
+            for (SkillPlans.Step step : plan.steps) {
+                if (step.from > level && step.from < end) {
+                    end = step.from;
+                }
+            }
+            for (SkillPlans.Step suggested : suggestions.steps) {
+                int a = Math.max(level, suggested.from);
+                int b = Math.min(end, suggested.to);
+                if (b > a) {
+                    SkillPlans.Step part = new SkillPlans.Step(suggested.action, a, b, suggested.method, suggested.xp);
+                    part.note = note;
+                    plan.steps.add(part);
+                    added++;
+                }
+            }
+            level = end;
+        }
+        plan.steps.sort((x, y) -> Integer.compare(x.from, y.from));
+        return added;
+    }
+
     static SkillPlans.Plan suggestedPlan(Skill skill, List<CalculatorData.Action> actions, Collection<CalculatorData.Bonus> on,
                                          TrainingData training, int level, int goal, boolean other) {
         SkillPlans.Plan plan = new SkillPlans.Plan(goal);

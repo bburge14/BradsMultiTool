@@ -1994,6 +1994,19 @@ final class PlannerCalculatorView {
 
     private static final Color GATHER_BLUE = new Color(138, 180, 248);
 
+    // For a material got from another skill: "Woodcutting 60 (you're 50)" when that skill isn't at its level yet, else null
+    private String waitingOn(Skill shown, PlannerCalculator.Need need) {
+        if (need.tool || need.enough() || !calc.gathers(shown, need.name)) {
+            return null;
+        }
+        PlannerCalculator.Source source = PlannerCalculator.sourceOf(need.name, shown, data, recipes);
+        if (source == null) {
+            return null;
+        }
+        int at = CalculatorData.level(Math.max(0, calc.xp(source.skill)), false);
+        return source.action.level > at ? source.skill.getName() + " " + source.action.level + " (you're " + at + ")" : null;
+    }
+
     // "Firemaking" from a saved skill's name
     private static String skillName(String saved) {
         try {
@@ -2159,6 +2172,11 @@ final class PlannerCalculatorView {
             card.third("You have them all", "");
             card.lower.setForeground(PlannerUi.READY);
         }
+        int at = CalculatorData.level(Math.max(0, calc.xp(source.skill)), false);
+        if (shortBy > 0 && source.action.level > at) {
+            JLabel[] needs = card.line("Needs " + source.skill.getName() + " " + source.action.level + " (you're " + at + ")", "");
+            needs[0].setForeground(HudColors.WARN);
+        }
         card.bar(new PlannerUi.Bar(Math.max(0.02, Math.min(1, need.needed > 0 ? (double) need.have / need.needed : 1)),
             need.enough() ? PlannerUi.READY : PlannerUi.GROWING));
         picture(card.icon, source.action);
@@ -2235,6 +2253,15 @@ final class PlannerCalculatorView {
         target.supplies.removeIf(s -> s.skill.equals(consumer.name()) && s.item.equalsIgnoreCase(item));
         target.supplies.add(new SkillPlans.Supply(consumer.name(), item, quantity));
         plan.goal = Math.max(plan.goal, target.to);
+        // Below its level: the climb to it, from the wiki's suggestions, in the levels no milestone covers (ordinary
+        // milestones: change their methods as you like)
+        if (target.from > level) {
+            List<CalculatorData.Bonus> bonuses = CalculatorData.bonuses(data.calc(skill), calc.bonuses(skill));
+            SkillPlans.Plan climb = PlannerCalculator.suggestedPlan(skill, CalculatorData.shown(data.calc(skill), calc.showMembers()),
+                bonuses, training, level, target.from, calc.otherMethods(skill));
+            PlannerCalculator.fillGaps(plan, climb, level, target.from, "to reach " + target.from + " for the "
+                + consumer.getName() + " supply");
+        }
         calc.savePlan(skill, plan);
         redraw.run();
     }
@@ -2307,7 +2334,8 @@ final class PlannerCalculatorView {
             // Got yourself (gathered or made in another skill) or bought
             PlannerCalculator.Source source = need.tool ? null : PlannerCalculator.sourceOf(need.name, shown, data, recipes);
             boolean gather = source != null && calc.gathers(shown, need.name);
-            Color colour = need.enough() ? PlannerUi.READY : gather ? GATHER_BLUE : COSTS;
+            String waiting = waitingOn(shown, need);
+            Color colour = need.enough() ? PlannerUi.READY : waiting != null ? HudColors.WARN : gather ? GATHER_BLUE : COSTS;
             String amounts = need.tool ? (need.enough() ? "have it" : "missing")
                 : String.format("%,d / %,d", need.have, need.needed) + (gather && !need.enough() ? " " + shortSkill(source.skill) : "");
             String tip = need.tool ? need.name + ": a tool the plan's methods need" + (need.enough() ? " (you have one)"
@@ -2315,6 +2343,7 @@ final class PlannerCalculatorView {
                 : "<html>" + PlannerUi.esc(need.name) + ": the plan needs " + String.format("%,d", need.needed)
                 + ", you have " + String.format("%,d", need.have) + (need.enough() ? "" : "<br><font color='#e66e64'>"
                 + String.format("%,d", need.needed - need.have) + " short</font>") + (gather ? "" : buyTime(need))
+                + (waiting != null ? "<br><font color='#f2b450'>" + PlannerUi.esc(waiting) + " first</font>" : "")
                 + gatherTip(shown, need, source, gather)
                 + "<br>(bank as last opened plus inventory)</html>";
             JPanel row = new JPanel(new BorderLayout(6, 0));
@@ -2698,6 +2727,26 @@ final class PlannerCalculatorView {
             }
             if (calc.showPrices()) {
                 priceLines(card, row.cost(row.needed), row.earn(row.needed));
+            }
+        }
+        if (step.note != null) {
+            card.line(step.note, "");
+        }
+        if (!s.done && !step.supplies.isEmpty() && s.action != null && s.action.level > level) {
+            JLabel[] needs = card.line("Needs level " + s.action.level + " first (you're " + level + ")", "");
+            needs[0].setForeground(HudColors.WARN);
+        }
+        // Its materials got from another skill that isn't at their level yet: it waits on that skill
+        if (!s.done && row != null) {
+            for (PlannerCalculator.Need need : PlannerCalculator.planMaterials(shown, java.util.Collections.singletonList(s),
+                recipes, calc.owned())) {
+                String waiting = waitingOn(shown, need);
+                if (waiting != null) {
+                    JLabel[] wait = card.line("Waiting on " + waiting, "");
+                    wait[0].setForeground(HudColors.WARN);
+                    wait[0].setToolTipText(PlannerUi.esc(need.name) + " comes from " + waiting + ": train that first");
+                    break;
+                }
             }
         }
         // What it makes for other plans: kept, not sold (left out of its sales and net)
