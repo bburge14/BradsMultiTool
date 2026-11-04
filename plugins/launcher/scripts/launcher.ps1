@@ -2562,23 +2562,34 @@ function Update-Versions {
     }
     $head = (git -C $root rev-parse HEAD 2>$null)
     $toPush = @()
+    $script:unknown = @()
     foreach ($folder in $config.plugins.PSObject.Properties.Name) {
         $key = $hubKeys[$folder]
         $cache = Join-Path $root ".publish-cache\$($config.plugins.$folder.hubName)"
-        # Its repository: up to date with plugins\<folder> here, or with changes to push. What it has comes from GitHub
-        # (repo-state.ps1, in the background), so every PC says the same; this PC's push cache until that's in
+        # Its repository: up to date with plugins\<folder> here, or with changes to push. What it has comes only from
+        # GitHub (repo-state.ps1, in the background), never this PC's push cache, so every PC with the same code says
+        # the same; until GitHub answers (or when it can't be asked) it's left unknown, not "to push"
         $remote = if ($script:repoState) { $script:repoState.$folder } else { $null }
-        $last = if ($remote -and $remote.ok -and $remote.from) { "From BradsMultiTool $($remote.from)" }
-                elseif (Test-Path (Join-Path $cache '.git')) { (git -C $cache log -1 --grep='From BradsMultiTool' --format=%B 2>$null | Out-String) } else { '' }
-        $behind = $true
+        $last = if ($remote -and $remote.ok -and $remote.from) { "From BradsMultiTool $($remote.from)" } else { '' }
+        $behind = $false
         $lastPushed = $null
-        $repoTip = if ($remote -and $remote.ok) { "Its repository has never been pushed to from here: Push to repos sends it" }
-                   elseif ($script:repoState) { "Couldn't ask GitHub what its repository has (offline?): Push to repos sends it" }
-                   else { "Asking GitHub what its repository has..." }
+        $repoTip = if ($remote -and $remote.ok) { $behind = $true; "Its repository has never been pushed to from BradsMultiTool: Push to repos sends it" }
+                   elseif ($remote) { $script:unknown += $folder; "Couldn't ask GitHub what its repository has: $($remote.problem)" }
+                   elseif ($script:repoState) { $script:unknown += $folder; "GitHub didn't say what its repository has: Push to repos sends it if it needs it" }
+                   else { $script:unknown += $folder; "Asking GitHub what its repository has..." }
         if ($head -and $last -match 'BradsMultiTool ([0-9a-f]{7,40})') {
             $lastPushed = $Matches[1]
             git -C $root cat-file -e "$lastPushed^{commit}" 2>$null
-            if ($LASTEXITCODE -eq 0) {
+            $known = $LASTEXITCODE -eq 0
+            if ($known) {
+                # (pushed from this copy's commit or a later one: nothing here it doesn't have)
+                git -C $root merge-base --is-ancestor $head.Trim() $lastPushed 2>$null
+                $newer = $LASTEXITCODE -eq 0
+            }
+            if (-not $known -or $newer) {
+                $behind = $false
+                $repoTip = "Up to date: its repository was pushed from this copy's code or newer (nothing to push from here)"
+            } else {
                 git -C $root diff --quiet $lastPushed $head.Trim() -- "plugins/$folder" 2>$null
                 $behind = $LASTEXITCODE -eq 1
                 if ($behind) { $script:bumps[$folder] = Get-BumpSuggestion $lastPushed $head.Trim() $folder }
@@ -2638,8 +2649,11 @@ function Update-Versions {
     }
     $ui.SuggestLevel($suggest, ($why -join '; '), ($suggest -and $suggest -ne $script:lastSuggest))
     $script:lastSuggest = $suggest
-    $ui.RepoSummary.Text = if ($toPush) { "$($toPush.Count) to push: " + ($toPush -join ', ') + $(if ($suggest) { "  $([char]0x00B7)  suggests $suggest" }) } else { 'Every repository is up to date: nothing to push.' }
-    $ui.RepoSummary.ForeColor = if ($toPush) { [Snuffys.Theme]::Warn } else { $green }
+    $ui.RepoSummary.Text = if ($toPush) { "$($toPush.Count) to push: " + ($toPush -join ', ') + $(if ($suggest) { "  $([char]0x00B7)  suggests $suggest" }) }
+                           elseif ($script:unknown -and -not $script:repoState) { 'Asking GitHub what the repositories have...' }
+                           elseif ($script:unknown) { "Couldn't check with GitHub: " + ($script:unknown -join ', ') + ' (hover for why)' }
+                           else { 'Every repository is up to date: nothing to push.' }
+    $ui.RepoSummary.ForeColor = if ($toPush -or $script:unknown) { [Snuffys.Theme]::Warn } else { $green }
     # --- end dev only ---
 }
 $script:repoStates = @{}

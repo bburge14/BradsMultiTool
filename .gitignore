@@ -20,5 +20,6 @@ plugins/*/.gradle/
 .publish-cache/
 .hub-seen
 .repo-state.json
+.repo-state-git/
 # The friends installer: built by Push to repos into the launcher repository only
 Snuffys-Launcher-Setup.exe

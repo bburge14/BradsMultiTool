@@ -20,6 +20,33 @@ try {
     if ($login -match 'password=(\S+)') { $headers['Authorization'] = 'Bearer ' + $Matches[1] }
 } catch { }
 
+# The last commit's message on a repository's branch: GitHub's API (with git's login, then without it: a stale saved
+# login is refused even for a public repository), else git itself (a shallow fetch into .repo-state-git, the same
+# login git pulls with), so a PC whose login GitHub's API turns down still gets the real answer
+function Get-Message($repo, $url, $branch) {
+    $problems = @()
+    $tries = if ($headers.ContainsKey('Authorization')) { @($headers, $plain) } else { @($plain) }
+    foreach ($try in $tries) {
+        try {
+            $commit = Invoke-RestMethod -UseBasicParsing -Uri "https://api.github.com/repos/$repo/commits/$branch" -Headers $try
+            return [string]$commit.commit.message
+        } catch { $problems += $_.Exception.Message }
+    }
+    $git = Join-Path $Root '.repo-state-git'
+    try {
+        if (-not (Test-Path (Join-Path $git 'HEAD'))) { git init --quiet --bare $git 2>&1 | Out-Null }
+        $ErrorActionPreference = 'Continue'
+        git -C $git fetch --quiet --depth 1 $url "refs/heads/${branch}" 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $message = (git -C $git log -1 --format=%B FETCH_HEAD 2>$null | Out-String)
+            if ($LASTEXITCODE -eq 0 -and $message.Trim()) { return $message }
+        }
+        $problems += "git couldn't fetch $url"
+    } catch { $problems += $_.Exception.Message } finally { $ErrorActionPreference = 'Stop' }
+    throw ($problems -join '; ')
+}
+
+$plain = @{ 'User-Agent' = $headers['User-Agent']; 'Accept' = $headers['Accept'] }
 $state = [ordered]@{}
 foreach ($folder in $config.plugins.PSObject.Properties.Name) {
     $entry = $config.plugins.$folder
@@ -27,8 +54,7 @@ foreach ($folder in $config.plugins.PSObject.Properties.Name) {
     $repo = $Matches[1]
     $branch = if ($entry.branch) { $entry.branch } else { 'master' }
     try {
-        $commit = Invoke-RestMethod -UseBasicParsing -Uri "https://api.github.com/repos/$repo/commits/$branch" -Headers $headers
-        $message = [string]$commit.commit.message
+        $message = Get-Message $repo $entry.repo $branch
         $title = ($message -split "`n")[0].Trim()
         $from = if ($message -match 'From BradsMultiTool ([0-9a-f]{7,40})') { $Matches[1] } else { $null }
         $version = if ($title -match '(\d+\.\d+\.\d+)\s*$') { $Matches[1] } else { $null }
