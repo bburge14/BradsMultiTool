@@ -50,7 +50,7 @@ card (it closes and opens again silently, RuneLite stays open). The parts of `sc
 uses sit between `dev only` / `end dev only` comments: when those are all that changed since the last push, the Dev
 tab leaves the launcher's switch off (nothing friends see changed, so no needless update or release; switch it on to
 send it anyway). Keep new Dev-only code inside them. To test it all the way to playing on a clean Windows, see
-[TESTING.md](TESTING.md).
+[TESTING-LAUNCHER.md](TESTING-LAUNCHER.md).
 
 ### Gradle
 
