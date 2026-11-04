@@ -124,6 +124,98 @@ final class PlannerUi {
         return text == null ? "" : text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
+    /**
+     * A tooltip laid out like the game's: a bold title (and a muted line under it), gold section headers, rows of a
+     * label and its value lined up in columns (values coloured: gains green, losses red), plain lines, and a muted hint
+     * at the bottom. Text given is plain (escaped here); {@link #build} gives the HTML.
+     */
+    static final class Tip {
+        static final String GOOD = "#5ac85a";
+        static final String BAD = "#e66e64";
+        static final String WARN = "#f2b450";
+        static final String MUTED = "#a0a0a0";
+        static final String GOLD = "#ff981f";
+        static final String BLUE = "#8ab4f8";
+
+        private final StringBuilder out = new StringBuilder("<html>");
+        private boolean inTable;
+        private boolean afterTable;
+
+        Tip(String title, String under) {
+            out.append("<b><font color='#ffffff'>").append(esc(title)).append("</font></b>");
+            if (under != null && !under.isEmpty()) {
+                out.append("&nbsp;&nbsp;<font color='").append(MUTED).append("'>").append(esc(under)).append("</font>");
+            }
+        }
+
+        /** A gold header starting a group of rows. */
+        Tip section(String name) {
+            newLine();
+            out.append("<font color='").append(GOLD).append("'><b>").append(esc(name)).append("</b></font>");
+            return this;
+        }
+
+        /** A label and its value (coloured, or plain white with null). */
+        Tip row(String label, String value, String color) {
+            if (!inTable) {
+                afterTable = false;
+                out.append("<table cellpadding='0' cellspacing='0'>");
+                inTable = true;
+            }
+            // (the label column the same width in every section, so the values line up down the whole tip)
+            out.append("<tr><td width='130'><font color='#c8c8c8'>").append(esc(label)).append("</font></td>")
+                .append("<td align='right'><font color='").append(color == null ? "#ffffff" : color).append("'>")
+                .append(esc(value).replace("  ", "&nbsp;&nbsp;")).append("</font></td></tr>");
+            return this;
+        }
+
+        Tip row(String label, String value) {
+            return row(label, value, null);
+        }
+
+        /** A line of its own (coloured, or plain with null). */
+        Tip line(String text, String color) {
+            newLine();
+            if (color != null) {
+                out.append("<font color='").append(color).append("'>").append(esc(text)).append("</font>");
+            } else {
+                out.append("<font color='#dcdcdc'>").append(esc(text)).append("</font>");
+            }
+            return this;
+        }
+
+        Tip line(String text) {
+            return line(text, null);
+        }
+
+        /** What clicking does, muted, at the bottom. */
+        Tip hint(String text) {
+            return line(text, MUTED);
+        }
+
+        String build() {
+            close();
+            return out.append("</html>").toString();
+        }
+
+        // Ends a table of rows; the next line then starts below it without a <br> (a table is a block of its own)
+        private void close() {
+            if (inTable) {
+                out.append("</table>");
+                inTable = false;
+                afterTable = true;
+            }
+        }
+
+        private void newLine() {
+            close();
+            if (!afterTable) {
+                out.append("<br>");
+            }
+            afterTable = false;
+        }
+    }
+
     // ---- Headers ----
 
     /**

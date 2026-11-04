@@ -183,5 +183,9 @@ public class RatesTest {
         plan.steps.add(step);
         SkillPlans.Step back = SkillPlans.decode(SkillPlans.encode(plan)).steps.get(0);
         assertTrue(back.sold == 120 && back.alched == 45 && back.pace == null && back.note == null);
+        step.soldEach = 245.5;
+        step.sellBy = "ALCH";
+        back = SkillPlans.decode(SkillPlans.encode(plan)).steps.get(0);
+        assertTrue(back.soldEach == 245.5 && back.alchedEach == 0 && "ALCH".equals(back.sellBy) && back.sold == 120);
     }
 }

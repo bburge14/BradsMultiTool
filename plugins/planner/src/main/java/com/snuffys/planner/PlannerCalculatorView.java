@@ -1354,64 +1354,73 @@ final class PlannerCalculatorView {
 
     private String actionTip(Skill shown, PlannerCalculator.Row row, int now, int target) {
         CalculatorData.Action action = row.action;
-        StringBuilder tip = new StringBuilder("<html><b>").append(PlannerUi.esc(action.name)).append("</b> (level ")
-            .append(action.level).append(action.members ? ", members" : "").append(")");
-        tip.append("<br>").append(xp(row.xpEach)).append(" xp each");
-        if (row.xpEach != action.xp) {
-            tip.append(" with your bonuses (").append(xp(action.xp)).append(" without)");
-        }
+        PlannerUi.Tip tip = new PlannerUi.Tip(action.name, "level " + action.level + (action.members ? ", members" : ""));
+        tip.section("Training");
+        tip.row("XP each", xp(row.xpEach) + (row.xpEach != action.xp ? " (" + xp(action.xp) + " without bonuses)" : ""));
         if (target > now) {
-            tip.append("<br>").append(String.format("%,d", row.needed)).append(row.needed == 1 ? " action" : " actions")
-                .append(" for ").append(String.format("%,d", target - now)).append(" xp");
+            tip.row("To your target", String.format("%,d", row.needed) + (row.needed == 1 ? " action" : " actions"));
+        }
+        if (row.xpHour > 0) {
+            tip.row("Rate", String.format("%,d", row.xpHour) + " xp/hr" + (row.estimated ? " (est.)" : ""),
+                row.estimated ? PlannerUi.Tip.WARN : null);
         }
         if (row.seconds > 0) {
-            tip.append("<br>About ").append(PlannerPanel.formatDuration(row.seconds)).append(" at ")
-                .append(String.format("%,d", row.xpHour)).append(rateSource(row));
+            tip.row("Time", "~" + PlannerPanel.formatDuration(row.seconds));
         }
         // Faster ways to do it (1-tick, 3-tick, clicking fast): a milestone of it can be timed at one (its Pace)
+        boolean faster = false;
         for (PlannerRates.Way way : PlannerRates.ways(shown, action, PlannerCalculator.recipesFor(shown, action, recipes))) {
             if (!PlannerRates.NORMAL.equals(way.name)) {
-                tip.append("<br>").append(PlannerUi.esc(way.name)).append(": about ")
-                    .append(String.format("%,d", Math.round(way.perHour * row.xpEach))).append(" xp an hour (")
-                    .append(PlannerUi.esc(way.about)).append("; a milestone's Pace)");
+                if (!faster) {
+                    tip.section("Faster ways (a milestone's Pace)");
+                    faster = true;
+                }
+                tip.row(way.name, "~" + String.format("%,d", Math.round(way.perHour * row.xpEach)) + " xp/hr", PlannerUi.Tip.BLUE);
+                tip.line(way.about, PlannerUi.Tip.MUTED);
             }
         }
-        if (calc.showPrices()) {
+        if (row.estimated) {
+            tip.line("The rate is an estimate: a typical pace, banking included; yours may differ", PlannerUi.Tip.MUTED);
+        }
+        if (calc.showPrices() && (row.costEach != null || row.earnEach != null)) {
+            tip.section("Money, each");
             if (row.costEach != null && row.costEach > 0) {
-                tip.append("<br>Materials: worth ").append(String.format("%,.0f", row.costEach)).append(" gp each on the GE");
+                tip.row("Materials", String.format("%,.0f", row.costEach) + " gp", PlannerUi.Tip.BAD);
             }
-            if (row.earnEach != null && row.earnEach > 0) {
-                tip.append("<br>Sells for: ").append(String.format("%,.0f", row.earnEach)).append(" gp each ").append(saleWay(row));
-                if (row.alchWins && row.geEach != null) {
-                    tip.append(" (the GE pays ").append(String.format("%,.0f", row.geEach)).append(" after tax)");
-                } else if (!row.alchWins && row.alchEach != null) {
-                    tip.append(" (alching gets ").append(String.format("%,.0f", row.alchEach)).append(" less a nature rune)");
-                }
+            if (row.geEach != null) {
+                boolean more = row.alchEach != null && row.geEach > row.alchEach;
+                tip.row("On the GE (after tax)", String.format("%,.0f", row.geEach) + " gp" + (more ? ", pays more" : "")
+                    + (!row.alchWins && row.earnEach != null ? "  \u2190 counted" : ""), more ? PlannerUi.Tip.GOOD : PlannerUi.Tip.MUTED);
+            }
+            if (row.alchEach != null) {
+                boolean more = row.geEach == null || row.alchEach > row.geEach;
+                tip.row("High alched (less a rune)", String.format("%,.0f", row.alchEach) + " gp" + (more && row.geEach != null
+                    ? ", pays more" : "") + (row.alchWins ? "  \u2190 counted" : ""), more ? PlannerUi.Tip.GOOD : PlannerUi.Tip.MUTED);
             }
             Double perXp = row.perXp();
             if (perXp != null) {
-                tip.append("<br>Net: ").append(row.profit < 0 ? "<font color='#e05a5a'>loses " : "<font color='#5ac85a'>makes ").append(String.format("%.2f", Math.abs(perXp)))
-                    .append(" gp per xp</font>");
+                tip.row("Net per xp", (row.profit < 0 ? "-" : "+") + String.format("%.2f", Math.abs(perXp)) + " gp",
+                    row.profit < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
                 if (target > now) {
-                    tip.append(" (").append(row.profit < 0 ? "a loss of " : "a gain of ").append(String.format("%,.0f",
-                        Math.abs(row.profit * row.needed))).append(" gp to your target)");
+                    tip.row("Net to your target", signed(row.profit * row.needed),
+                        row.profit < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
                 }
             }
         }
         if (row.have > 0) {
-            tip.append("<br>You have ").append(String.format("%,d", row.have)).append(" (bank as last seen and inventory)");
+            tip.line("You have " + String.format("%,d", row.have) + " (bank as last seen and inventory)");
         }
         if (row.locked) {
-            tip.append("<br><font color='#a0a0a0'>Needs level ").append(action.level).append("</font>");
+            tip.line("Needs level " + action.level, PlannerUi.Tip.BAD);
         } else if (row.suggested) {
-            tip.append("<br><font color='#a0a0a0'>The wiki's suggested method at your level</font>");
+            tip.line("The wiki's suggested method at your level", PlannerUi.Tip.GOOD);
         }
         if (picking != null) {
-            tip.append("<br><font color='#a0a0a0'>Click to use it for the milestone</font>");
+            tip.hint("Click to use it for the milestone");
         } else if (calc.canPlan()) {
-            tip.append("<br><font color='#a0a0a0'>Right-click: Add to plan</font>");
+            tip.hint("Right-click: Add to plan");
         }
-        return tip.append("</html>").toString();
+        return tip.build();
     }
 
     // In Banked view: how many you own, the XP in them, the level that gets you to, and what they're worth
@@ -1658,7 +1667,19 @@ final class PlannerCalculatorView {
         long left;
         double sold;
         double alched;
+        /** What the ones not sold yet are worth now (as Sell Products By counts them). */
+        double unsold;
         double cost;
+
+        /** Sold and alched less the materials used: the gp it's really brought in. */
+        double cash() {
+            return sold + alched - cost;
+        }
+
+        /** With what's not sold yet at what it's worth now. */
+        double net() {
+            return cash() + unsold;
+        }
     }
 
     // Null when nothing's recorded for it
@@ -1669,39 +1690,87 @@ final class PlannerCalculatorView {
         }
         SoFar out = new SoFar();
         out.made = s.made();
-        double ge = row.geEach != null ? row.geEach : row.earnEach != null && !row.alchWins ? row.earnEach : 0;
-        double alch = row.alchEach != null ? row.alchEach : 0;
+        // (what you said you got each, else the prices now)
+        double ge = s.step.soldEach > 0 ? s.step.soldEach
+            : row.geEach != null ? row.geEach : row.earnEach != null && !row.alchWins ? row.earnEach : 0;
+        double alch = s.step.alchedEach > 0 ? s.step.alchedEach : row.alchEach != null ? row.alchEach : 0;
         out.sold = s.step.sold * ge;
         out.alched = s.step.alched * alch;
         out.left = Math.max(0, out.made - s.step.sold - s.step.alched);
+        out.unsold = row.earnEach == null ? 0 : out.left * row.earnEach;
         out.cost = row.costEach == null ? 0 : row.costEach * out.made;
         return out;
     }
 
-    // Record sales...: how many of what the milestone made you sold on the GE and how many you high alched
+    // Record sales...: how many of what the milestone made you sold on the GE and how many you high alched, and what
+    // you got for each (filled in with the prices now: your trades', else the GE's, and the alch value less a rune)
     private void recordSales(Skill shown, int index, PlannerCalculator.StepRow s) {
+        PlannerCalculator.Row row = s.row;
         javax.swing.JTextField sold = new javax.swing.JTextField(s.step.sold > 0 ? String.valueOf(s.step.sold) : "", 10);
+        javax.swing.JTextField soldEach = new javax.swing.JTextField(each(s.step.soldEach > 0 ? s.step.soldEach
+            : row.geEach != null ? row.geEach : 0), 10);
         javax.swing.JTextField alched = new javax.swing.JTextField(s.step.alched > 0 ? String.valueOf(s.step.alched) : "", 10);
-        JPanel form = new JPanel(new GridLayout(0, 1, 2, 4));
-        form.add(new JLabel("<html><b>" + PlannerUi.esc(s.step.action) + "</b>: what you did with them (you've made about "
-            + String.format("%,d", s.made()) + " so far)<br><font color='#a0a0a0'>The net so far uses these; what's not "
-            + "recorded counts as Sell Products By says</font></html>"));
-        form.add(new JLabel("Sold on the Grand Exchange:"));
+        javax.swing.JTextField alchedEach = new javax.swing.JTextField(each(s.step.alchedEach > 0 ? s.step.alchedEach
+            : row.alchEach != null ? row.alchEach : 0), 10);
+        JPanel form = new JPanel(new GridLayout(0, 2, 6, 4));
+        JLabel head = new JLabel("<html><b>" + PlannerUi.esc(s.step.action) + "</b>: what you did with them<br>"
+            + "<font color='#a0a0a0'>You've made about " + String.format("%,d", s.made()) + " so far. The prices start at "
+            + "today's (GE after tax; alch less a nature rune): change them to what you really got</font></html>");
+        JPanel all = new JPanel(new BorderLayout(0, 8));
+        all.add(head, BorderLayout.NORTH);
+        form.add(new JLabel("Sold on the GE (how many)"));
         form.add(sold);
-        form.add(new JLabel("High alched:"));
+        form.add(new JLabel("Got each (gp, after tax)"));
+        form.add(soldEach);
+        form.add(new JLabel("High alched (how many)"));
         form.add(alched);
-        if (JOptionPane.showConfirmDialog(list, form, "Record sales", JOptionPane.OK_CANCEL_OPTION,
+        form.add(new JLabel("Got each (gp, less the rune)"));
+        form.add(alchedEach);
+        all.add(form, BorderLayout.CENTER);
+        if (JOptionPane.showConfirmDialog(list, all, "Record sales", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
             return;
         }
         long soldCount = Math.max(0, parse(sold.getText().replace(",", "").trim()));
         long alchedCount = Math.max(0, parse(alched.getText().replace(",", "").trim()));
+        double soldPrice = gpEach(soldEach.getText());
+        double alchedPrice = gpEach(alchedEach.getText());
+        // (a price left at today's isn't kept: it follows the prices; one you changed is)
+        double soldNow = row.geEach != null ? row.geEach : 0;
+        double alchNow = row.alchEach != null ? row.alchEach : 0;
         change(shown, p -> {
             if (index < p.steps.size()) {
-                p.steps.get(index).sold = soldCount;
-                p.steps.get(index).alched = alchedCount;
+                SkillPlans.Step step = p.steps.get(index);
+                step.sold = soldCount;
+                step.alched = alchedCount;
+                step.soldEach = Math.abs(soldPrice - soldNow) < 0.5 ? 0 : soldPrice;
+                step.alchedEach = Math.abs(alchedPrice - alchNow) < 0.5 ? 0 : alchedPrice;
             }
         });
+    }
+
+    // A price for a text field ("1,234"), or empty for none
+    private static String each(double gp) {
+        return gp > 0 ? String.format("%,.0f", gp) : "";
+    }
+
+    // The gp each typed ("1,234", "1.2k", "3m"), 0 for none
+    private static double gpEach(String text) {
+        String t = text.replace(",", "").trim().toLowerCase(Locale.ROOT);
+        double times = 1;
+        if (t.endsWith("k")) {
+            times = 1_000;
+        } else if (t.endsWith("m")) {
+            times = 1_000_000;
+        }
+        if (times > 1) {
+            t = t.substring(0, t.length() - 1);
+        }
+        try {
+            return Math.max(0, Double.parseDouble(t) * times);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     // An item's high alch value (0 until the game has said it, or when it has none)
@@ -1813,14 +1882,17 @@ final class PlannerCalculatorView {
                         PlannerPanel.gp(Math.round(done.alched)), PlannerUi.MUTED, new Color(150, 210, 150)));
                 }
                 if (done.left > 0) {
-                    box.add(breakdownLine("  Not sold yet " + String.format("%,d", done.left), "", PlannerUi.MUTED, PlannerUi.MUTED));
+                    box.add(breakdownLine("  Not sold yet " + String.format("%,d", done.left) + " (worth now)",
+                        PlannerPanel.gp(Math.round(done.unsold)), PlannerUi.MUTED, PlannerUi.MUTED));
                 }
                 if (done.cost > 0) {
                     box.add(breakdownLine("  Materials used", PlannerPanel.gp(Math.round(done.cost)), PlannerUi.MUTED,
                         new Color(220, 150, 140)));
                 }
-                double net = done.sold + done.alched - done.cost;
-                box.add(breakdownLine("  Net so far", signed(net), PlannerUi.MUTED, net < 0 ? COSTS : PlannerUi.READY));
+                box.add(breakdownLine("  Cash so far (sold less materials)", signed(done.cash()), PlannerUi.MUTED,
+                    done.cash() < 0 ? COSTS : PlannerUi.READY));
+                box.add(breakdownLine("  Net so far (with what's not sold)", signed(done.net()), PlannerUi.MUTED,
+                    done.net() < 0 ? COSTS : PlannerUi.READY));
             }
         }
         JComponent wrapped = PlannerUi.fullWidth(box);
@@ -3016,6 +3088,22 @@ final class PlannerCalculatorView {
         if (step.note != null) {
             card.line(step.note, "");
         }
+        // The other way pays more for what it makes (high alch over the GE, or the other way round): say so; the
+        // milestone's Sell by picks
+        if (!s.done && row != null && calc.showPrices() && row.geEach != null && row.alchEach != null && row.needed > 0) {
+            boolean alchBetter = row.alchEach > row.geEach;
+            if (alchBetter != row.alchWins) {
+                long more = Math.round(Math.abs(row.alchEach - row.geEach) * Math.max(0, row.needed - row.kept));
+                JLabel[] better = card.line((alchBetter ? "High alch" : "The GE") + " pays " + PlannerPanel.gp(more) + " more",
+                    "Sell by");
+                better[0].setForeground(HudColors.WARN);
+                better[1].setForeground(HudColors.WARN);
+                better[0].setToolTipText("<html>" + (alchBetter ? "High alching" : "Selling on the GE") + " gets "
+                    + String.format("%,.0f", Math.max(row.alchEach, row.geEach)) + " each against "
+                    + String.format("%,.0f", Math.min(row.alchEach, row.geEach)) + "<br>Right-click the milestone > Sell by to "
+                    + "switch</html>");
+            }
+        }
         if (!s.done && !step.supplies.isEmpty() && s.action != null && s.action.level > level) {
             JLabel[] needs = card.line("Needs level " + s.action.level + " first (you're " + level + ")", "");
             needs[0].setForeground(HudColors.WARN);
@@ -3109,6 +3197,27 @@ final class PlannerCalculatorView {
             }
         }
         if (row != null && calc.showPrices() && (row.geEach != null || row.alchEach != null)) {
+            // How its products count: on the GE, high alched, or the setting's way (the better one marked)
+            if (row.geEach != null && row.alchEach != null && !s.done) {
+                javax.swing.JMenu sell = new javax.swing.JMenu("Sell by");
+                boolean alchBetter = row.alchEach > row.geEach;
+                String[][] ways = {
+                    {null, "The setting (" + calc.sellBy() + ")"},
+                    {"GE", "Grand Exchange: " + String.format("%,.0f", row.geEach) + " each" + (alchBetter ? "" : "  (pays more)")},
+                    {"ALCH", "High alch: " + String.format("%,.0f", row.alchEach) + " each" + (alchBetter ? "  (pays more)" : "")},
+                };
+                for (String[] way : ways) {
+                    javax.swing.JCheckBoxMenuItem item = new javax.swing.JCheckBoxMenuItem(way[1],
+                        java.util.Objects.equals(way[0], step.sellBy));
+                    item.addActionListener(e -> change(shown, p -> {
+                        if (index < p.steps.size()) {
+                            p.steps.get(index).sellBy = way[0];
+                        }
+                    }));
+                    sell.add(item);
+                }
+                menu.add(sell);
+            }
             menu.add(menuItem("Record sales...", () -> recordSales(shown, index, s)));
         }
         menu.add(menuItem("Delete", () -> change(shown, p -> PlannerCalculator.removeStep(p, index))));
@@ -3144,47 +3253,67 @@ final class PlannerCalculatorView {
                     }));
             }
         }
-        StringBuilder tip = new StringBuilder("<html><b>").append(PlannerUi.esc(step.action)).append("</b>: level ")
-            .append(step.from).append(" to ").append(step.to);
-        if (s.done) {
-            tip.append(" (done)");
-        } else if (row != null) {
+        PlannerUi.Tip tip = new PlannerUi.Tip(step.action, "level " + step.from + " \u2192 " + step.to + (s.done ? " (done)" : ""));
+        if (!s.done && row != null) {
+            tip.section("Progress");
             if (started) {
-                tip.append("<br>").append(percent).append("% done: ").append(String.format("%,d", s.made())).append(" of ")
-                    .append(String.format("%,d", s.total)).append(" actions");
+                tip.row("Done", percent + "%  (" + String.format("%,d", s.made()) + " of " + String.format("%,d", s.total) + ")");
             }
-            tip.append("<br>").append(String.format("%,d", s.xp)).append(" xp: ").append(String.format("%,d", row.needed))
-                .append(" actions at ").append(xp(row.xpEach)).append(" xp each");
-            SoFar done = soFar(s);
-            if (done != null && calc.showPrices()) {
-                double net = done.sold + done.alched - done.cost;
-                tip.append("<br>So far: sold ").append(String.format("%,d", s.step.sold)).append(", alched ")
-                    .append(String.format("%,d", s.step.alched)).append(" of ").append(String.format("%,d", done.made))
-                    .append(" made: ").append(signed(net)).append(" gp net (Record sales... to change)");
-            }
-            if (row.alchWins && calc.showPrices()) {
-                tip.append("<br>Its products count as high alched (they get more than on the GE)");
-            }
+            tip.row("To go", String.format("%,d", row.needed) + " actions");
+            tip.row("XP", String.format("%,d", s.xp) + " at " + xp(row.xpEach) + " each");
             if (row.seconds > 0) {
-                tip.append("<br>About ").append(PlannerPanel.formatDuration(row.seconds)).append(" at ")
-                    .append(String.format("%,d", row.xpHour)).append(rateSource(row));
+                tip.row("Time", "~" + PlannerPanel.formatDuration(row.seconds) + (row.estimated ? " (est.)" : ""));
+                tip.row("Rate", String.format("%,d", row.xpHour) + " xp/hr", row.estimated ? PlannerUi.Tip.WARN : null);
+                tip.row("Rate from", row.estimated ? (row.pace != null && !PlannerRates.NORMAL.equals(row.pace)
+                    ? row.pace + " pace (estimate)" : "a typical pace (estimate)") : "the wiki's training guide",
+                    PlannerUi.Tip.MUTED);
             }
             if (s.tooLow()) {
-                tip.append("<br><font color='#e66e64'>Needs level ").append(s.action.level).append(" to start</font>");
+                tip.line("Needs level " + s.action.level + " to start", PlannerUi.Tip.BAD);
+            }
+            if (calc.showPrices()) {
+                Double cost = row.cost(row.needed);
+                Double earn = row.earn(row.needed);
+                if (cost != null || earn != null) {
+                    tip.section("Money to go");
+                    if (cost != null && cost > 0) {
+                        tip.row("Materials", PlannerPanel.gp(Math.round(cost)), PlannerUi.Tip.BAD);
+                    }
+                    if (earn != null) {
+                        tip.row(row.alchWins ? "High alched" : "Sells for", PlannerPanel.gp(Math.round(earn)), PlannerUi.Tip.GOOD);
+                    }
+                    double net = (earn == null ? 0 : earn) - (cost == null ? 0 : cost);
+                    tip.row("Net", signed(net), net < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+                }
+                SoFar done = soFar(s);
+                if (done != null) {
+                    tip.section("So far (recorded)");
+                    tip.row("Made", String.format("%,d", done.made));
+                    tip.row("Sold on the GE", String.format("%,d", s.step.sold) + "  " + PlannerPanel.gp(Math.round(done.sold)),
+                        PlannerUi.Tip.GOOD);
+                    tip.row("High alched", String.format("%,d", s.step.alched) + "  " + PlannerPanel.gp(Math.round(done.alched)),
+                        PlannerUi.Tip.GOOD);
+                    if (done.left > 0) {
+                        tip.row("Not sold yet", String.format("%,d", done.left) + "  worth " + PlannerPanel.gp(Math.round(done.unsold)),
+                            PlannerUi.Tip.MUTED);
+                    }
+                    tip.row("Materials used", PlannerPanel.gp(Math.round(done.cost)), PlannerUi.Tip.BAD);
+                    tip.row("Cash so far", signed(done.cash()), done.cash() < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+                    tip.row("Net with unsold", signed(done.net()), done.net() < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+                }
             }
         }
         if (step.method != null) {
-            tip.append("<br><font color='#a0a0a0'>Guide method: ").append(PlannerUi.esc(step.method)).append("</font>");
+            tip.line("Guide method: " + step.method, PlannerUi.Tip.MUTED);
         }
-        tip.append("<br><font color='#a0a0a0'>Click for its breakdown (each material and its price); right-click to edit, "
-            + "move or delete</font></html>");
+        tip.hint("Click: breakdown \u00b7 right-click: edit, pace, record sales, move or delete");
         String open = stepKey(shown, step);
         return card.interactive(() -> {
             if (!openSteps.remove(open)) {
                 openSteps.add(open);
             }
             redraw.run();
-        }, menu, tip.toString());
+        }, menu, tip.build());
     }
 
     // Exporting to the Skilling Helper: only offered when it (or the Toolbelt) is installed

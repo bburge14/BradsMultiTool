@@ -1007,13 +1007,15 @@ class PlannerCalculator {
     private static Row row(Skill skill, CalculatorData.Action action, Collection<CalculatorData.Bonus> on, int xp, int target,
                            int level, RecipeData recipes, TrainingData training, Map<String, Integer> have,
                            ToIntFunction<String> price, IntUnaryOperator itemPrice) {
-        return row(skill, action, on, xp, target, level, recipes, training, have, price, itemPrice, null);
+        return row(skill, action, on, xp, target, level, recipes, training, have, price, itemPrice, null, null);
     }
 
     // ... at this pace (a step's; null: the guide's rate, else the normal pace)
     private static Row row(Skill skill, CalculatorData.Action action, Collection<CalculatorData.Bonus> on, int xp, int target,
                            int level, RecipeData recipes, TrainingData training, Map<String, Integer> have,
-                           ToIntFunction<String> price, IntUnaryOperator itemPrice, String pace) {
+                           ToIntFunction<String> price, IntUnaryOperator itemPrice, String pace, String sellBy) {
+        PlannerConfig.SellBy sell = sellBy == null ? null : "ALCH".equals(sellBy) ? PlannerConfig.SellBy.ALCH
+            : "GE".equals(sellBy) ? PlannerConfig.SellBy.GE : null;
         Row row = new Row(action, CalculatorData.xpEach(action, on), CalculatorData.needed(action, on, xp, target),
             action.level > level);
         List<RecipeData.Recipe> made = recipes == null ? Collections.emptyList() : recipesFor(skill, action, recipes);
@@ -1027,7 +1029,8 @@ class PlannerCalculator {
                 }
                 // The action is one item; a recipe can make several at once (10 darts from 10 tips and 10 feathers)
                 cost /= per;
-                Sale sale = consumed(recipe) ? new Sale(0, 0) : new Sale(price.applyAsInt(recipe.name), selling.alch(recipe.name));
+                Sale sale = consumed(recipe) ? new Sale(0, 0, sell)
+                    : new Sale(price.applyAsInt(recipe.name), selling.alch(recipe.name), sell);
                 double worth = sale.worth();
                 double profit = worth - cost;
                 if (row.profit == null || profit > row.profit) {
@@ -1044,7 +1047,7 @@ class PlannerCalculator {
                 if (worth <= 0) {
                     worth = price.applyAsInt(action.name);
                 }
-                Sale sale = new Sale(worth, selling.alch(action.name));
+                Sale sale = new Sale(worth, selling.alch(action.name), sell);
                 row.earnEach = sale.worth() > 0 ? sale.worth() : null;
                 sale.fill(row);
             }
@@ -1110,9 +1113,6 @@ class PlannerCalculator {
 
         /** One alched: its alch value less the nature rune it takes, or 0 (none, or it isn't worth the rune). */
         double alch(String name) {
-            if (by == PlannerConfig.SellBy.GE) {
-                return 0;
-            }
             int value = alchValue.applyAsInt(name);
             return value > nature ? value - nature : 0;
         }
@@ -1125,14 +1125,17 @@ class PlannerCalculator {
     private static final class Sale {
         final double ge;
         final double alch;
+        // The milestone's own choice, else the setting's
+        final PlannerConfig.SellBy by;
 
-        Sale(int gePrice, double alch) {
+        Sale(int gePrice, double alch, PlannerConfig.SellBy by) {
             this.ge = gePrice > 0 ? afterTax(gePrice) : 0;
             this.alch = alch;
+            this.by = by != null ? by : selling.by;
         }
 
         boolean alchWins() {
-            return alch > 0 && (selling.by == PlannerConfig.SellBy.ALCH || alch > ge);
+            return alch > 0 && by != PlannerConfig.SellBy.GE && (by == PlannerConfig.SellBy.ALCH || alch > ge);
         }
 
         double worth() {
@@ -1373,7 +1376,7 @@ class PlannerCalculator {
             CalculatorData.Action action = CalculatorData.named(calc, step.action);
             boolean done = xpNow >= end;
             Row row = action == null ? null : row(skill, action, on, start, end, Math.max(step.from,
-                CalculatorData.level(xpNow, false)), recipes, training, Collections.emptyMap(), price, itemPrice, step.pace);
+                CalculatorData.level(xpNow, false)), recipes, training, Collections.emptyMap(), price, itemPrice, step.pace, step.sellBy);
             if (row != null) {
                 // (what it makes for other skills' plans isn't sold)
                 row.kept = Math.min(step.supplied(), row.needed);

@@ -68,6 +68,11 @@ final class SkillPlans {
         /** What you've told it you did with what it made so far: sold on the GE, and high alched. */
         long sold;
         long alched;
+        /** What you got for each you sold, and for each alched (less the rune), when you said; 0: the prices now. */
+        double soldEach;
+        double alchedEach;
+        /** How its products count: "GE" or "ALCH" ({@link PlannerConfig.SellBy}), or null for the setting's way. */
+        String sellBy;
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;
@@ -83,6 +88,9 @@ final class SkillPlans {
             copy.pace = pace;
             copy.sold = sold;
             copy.alched = alched;
+            copy.soldEach = soldEach;
+            copy.alchedEach = alchedEach;
+            copy.sellBy = sellBy;
             for (Supply supply : supplies) {
                 copy.supplies.add(new Supply(supply.skill, supply.item, supply.quantity));
             }
@@ -299,7 +307,9 @@ final class SkillPlans {
             }
             List<String> more = new ArrayList<>(java.util.Arrays.asList(supplies.toString(),
                 step.note == null ? "" : clean(step.note), step.pace == null ? "" : clean(step.pace),
-                step.sold > 0 ? String.valueOf(step.sold) : "", step.alched > 0 ? String.valueOf(step.alched) : ""));
+                step.sold > 0 ? String.valueOf(step.sold) : "", step.alched > 0 ? String.valueOf(step.alched) : "",
+                step.soldEach > 0 ? String.valueOf(step.soldEach) : "", step.alchedEach > 0 ? String.valueOf(step.alchedEach) : "",
+                step.sellBy == null ? "" : step.sellBy));
             while (!more.isEmpty() && more.get(more.size() - 1).isEmpty()) {
                 more.remove(more.size() - 1);
             }
@@ -353,6 +363,15 @@ final class SkillPlans {
                         }
                         if (parts.length > 9 && !parts[9].trim().isEmpty()) {
                             step.alched = Math.max(0, Long.parseLong(parts[9].trim()));
+                        }
+                        if (parts.length > 10 && !parts[10].trim().isEmpty()) {
+                            step.soldEach = Math.max(0, Double.parseDouble(parts[10].trim()));
+                        }
+                        if (parts.length > 11 && !parts[11].trim().isEmpty()) {
+                            step.alchedEach = Math.max(0, Double.parseDouble(parts[11].trim()));
+                        }
+                        if (parts.length > 12 && !parts[12].trim().isEmpty()) {
+                            step.sellBy = parts[12].trim();
                         }
                         plan.steps.add(step);
                     }
