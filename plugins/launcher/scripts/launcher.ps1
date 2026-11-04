@@ -2561,11 +2561,16 @@ function Update-Versions {
     foreach ($folder in $config.plugins.PSObject.Properties.Name) {
         $key = $hubKeys[$folder]
         $cache = Join-Path $root ".publish-cache\$($config.plugins.$folder.hubName)"
-        # Its repository: up to date with plugins\<folder> here, or with changes to push (never pushed counts as changes)
-        $last = if (Test-Path (Join-Path $cache '.git')) { (git -C $cache log -1 --grep='From BradsMultiTool' --format=%B 2>$null | Out-String) } else { '' }
+        # Its repository: up to date with plugins\<folder> here, or with changes to push. What it has comes from GitHub
+        # (repo-state.ps1, in the background), so every PC says the same; this PC's push cache until that's in
+        $remote = if ($script:repoState) { $script:repoState.$folder } else { $null }
+        $last = if ($remote -and $remote.ok -and $remote.from) { "From BradsMultiTool $($remote.from)" }
+                elseif (Test-Path (Join-Path $cache '.git')) { (git -C $cache log -1 --grep='From BradsMultiTool' --format=%B 2>$null | Out-String) } else { '' }
         $behind = $true
         $lastPushed = $null
-        $repoTip = "Not pushed from this PC yet: Push to repos sends it"
+        $repoTip = if ($remote -and $remote.ok) { "Its repository has never been pushed to from here: Push to repos sends it" }
+                   elseif ($script:repoState) { "Couldn't ask GitHub what its repository has (offline?): Push to repos sends it" }
+                   else { "Asking GitHub what its repository has..." }
         if ($head -and $last -match 'BradsMultiTool ([0-9a-f]{7,40})') {
             $lastPushed = $Matches[1]
             git -C $root cat-file -e "$lastPushed^{commit}" 2>$null
@@ -2591,8 +2596,8 @@ function Update-Versions {
         }
         $script:repoStates[$folder] = $behind
         $gradle = Join-Path $cache 'build.gradle'
-        $version = $null
-        if (Test-Path $gradle) {
+        $version = if ($remote -and $remote.ok -and $remote.version) { $remote.version } else { $null }
+        if (-not $version -and (Test-Path $gradle)) {
             $found = Select-String -Path $gradle -Pattern "^version = '([^']+)'" | Select-Object -First 1
             if ($found) { $version = $found.Matches[0].Groups[1].Value }
         }
@@ -2601,7 +2606,7 @@ function Update-Versions {
             continue
         }
         # The commit it was last pushed from, and whether this plugin's code changed after it
-        $from = (git -C $cache log -1 --grep='From BradsMultiTool' --format=%B 2>$null | Out-String)
+        $from = $last
         $changed = $false
         if ($code -and $from -match 'BradsMultiTool ([0-9a-f]{7,40})') {
             $pushed = $Matches[1]
@@ -2784,6 +2789,8 @@ $devPoll.Add_Tick({
         }
         $script:publishRun = $null
         Update-Versions
+        # A push changes what the repositories have: ask GitHub again
+        $script:repoNext = Get-Date
         # A publish changes the pull requests: check them again
         if ($script:devStep -eq 'hub') { $script:hubNext = Get-Date }
     }
@@ -2903,9 +2910,29 @@ function Read-HubCheck {
     }
 }
 
+# What each plugin's repository has, asked of GitHub in the background (on opening, after a push, then every 30
+# minutes): the Dev tab's up-to-date dots and versions come from it, the same on every PC
+$repoStateFile = Join-Path $root '.repo-state.json'
+$script:repoState = $null
+$script:repoRun = $null
+$script:repoNext = Get-Date
+function Start-RepoState {
+    if ($friends -or ($script:repoRun -and -not $script:repoRun.HasExited) -or -not (Test-Path $publishConfig)) { return }
+    $script:repoNext = (Get-Date).AddMinutes(30)
+    $script:repoRun = Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass',
+        '-WindowStyle', 'Hidden', '-File', "`"$(Join-Path $root 'scripts\repo-state.ps1')`"", '-Root', "`"$root`"" -WindowStyle Hidden -PassThru
+}
+function Read-RepoState {
+    $script:repoRun = $null
+    try { $script:repoState = (Get-Content $repoStateFile -Raw | ConvertFrom-Json).repos } catch { }
+    Update-Versions
+}
+
 $hubTimer = New-Object System.Windows.Forms.Timer
 $hubTimer.Interval = 2000
 $hubTimer.Add_Tick({
+    if ($script:repoRun -and $script:repoRun.HasExited) { Read-RepoState }
+    elseif (-not $script:repoRun -and (Get-Date) -ge $script:repoNext) { Start-RepoState }
     if ($script:hubRun) {
         if ($script:hubRun.HasExited) { Read-HubCheck }
         return

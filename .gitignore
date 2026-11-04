@@ -19,3 +19,4 @@ plugins/*/.gradle/
 .claude/worktrees/
 .publish-cache/
 .hub-seen
+.repo-state.json
