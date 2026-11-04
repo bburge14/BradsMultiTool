@@ -1778,21 +1778,22 @@ function Update-Plugins {
         return
     }
     $old = (git -C $root rev-parse HEAD 2>$null)
-    # The friends' installer is built by the split (Push to repos, or the split by hand): a copy rebuilt here (Windows'
-    # csc makes a different file) is never a change of yours, so it goes back before updating instead of blocking it
-    git -C $root checkout -- 'plugins/launcher/Snuffys-Launcher-Setup.exe' 'scripts/setup/Snuffys-Launcher-Setup.exe' 'scripts/setup/source.sha256' 2>$null | Out-Null
-    # From the branch's upstream, else origin's branch of the same name (a checkout without one set still updates)
-    git -C $root rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) {
-        $out = (git -C $root pull --ff-only 2>&1 | Out-String)
-    } else {
-        $branch = (git -C $root rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
-        $out = (git -C $root pull --ff-only origin $branch 2>&1 | Out-String)
+    # This copy is always the repository's: fetch it and match it exactly. Anything changed here in git's files (a
+    # rebuilt installer, an edit) is put back to the repository's; files git doesn't track (settings, caches, logs) stay
+    $upstream = Get-Upstream
+    $out = (git -C $root fetch --quiet origin 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0 -or -not $upstream) {
+        $updateStatus.Text = "Code: couldn't update"
+        $updateStatus.ForeColor = $red
+        $updateLog.Text = "Couldn't reach the repository (offline?): launching the version you have.`r`n" + $out.Trim()
+        return
     }
+    $local = @(git -C $root status --porcelain --untracked-files=no 2>$null | Where-Object { $_ })
+    $out = (git -C $root reset --hard $upstream 2>&1 | Out-String)
     if ($LASTEXITCODE -ne 0) {
         $updateStatus.Text = "Code: couldn't update"
         $updateStatus.ForeColor = $red
-        $updateLog.Text = "Couldn't update (offline, or files changed here):`r`n" + $out.Trim()
+        $updateLog.Text = "Couldn't match the repository:`r`n" + $out.Trim()
         return
     }
     $new = (git -C $root rev-parse HEAD 2>$null)
@@ -1804,6 +1805,9 @@ function Update-Plugins {
         $updateStatus.Text = 'Code: just updated'
         $updateStatus.ForeColor = $green
         $updateLog.Text = "Just updated:`r`n" + (Get-Changes "$old..$new").Text
+    }
+    if ($local) {
+        $updateLog.Text = "Put back to match the repository: " + (($local | ForEach-Object { $_.Substring(3) }) -join ', ') + "`r`n" + $updateLog.Text
     }
 }
 $checkAgain.Add_LinkClicked({ Update-Plugins })
@@ -2672,6 +2676,8 @@ $autoUpdate.Add_Tick({
             $behind = (git -C $dir rev-list --count "HEAD..$($upstream.Trim())" 2>$null)
             if ($LASTEXITCODE -eq 0 -and [int]$behind -gt 0) { $behindAny = $true }
         }
+        # (and anything changed here in git's files: this copy is always the repository's)
+        if (@(git -C $root status --porcelain --untracked-files=no 2>$null | Where-Object { $_ }).Count -gt 0) { $behindAny = $true }
         if ($behindAny) { Update-Plugins }
         Check-RunningVersion
         Update-Versions
