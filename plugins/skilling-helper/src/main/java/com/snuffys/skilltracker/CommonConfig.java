@@ -300,7 +300,7 @@ public interface CommonConfig extends Config {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyRestoredAt",
-        name = "Run Energy Restored At",
+        name = "Run Restored At",
         description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
         section = idleSection,
         position = 16

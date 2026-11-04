@@ -212,7 +212,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         List<Skill> goals = plugin.getGoalSkills();
         List<Skill> session = new ArrayList<>();
         for (Skill skill : tracked) {
-            // Skills without a goal drop off after a while without XP (Drop Idle Skills After)
+            // Skills without a goal drop off after a while without XP (Drop Idle After)
             if (!goals.contains(skill) && plugin.isRecentlyTrained(skill)) {
                 session.add(skill);
             }

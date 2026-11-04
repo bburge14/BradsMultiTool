@@ -1709,7 +1709,7 @@ final class PlannerCalculatorView {
         long left;
         double sold;
         double alched;
-        /** What the ones not sold yet are worth now (as Sell Products By counts them). */
+        /** What the ones not sold yet are worth now (as Sell By counts them). */
         double unsold;
         double cost;
 

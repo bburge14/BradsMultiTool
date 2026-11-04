@@ -102,8 +102,8 @@ public interface TickConfig extends Config {
 
     /** Timing patterns for the tick boxes (see TickMethods); Custom: one box per tick from Ticks Per Cycle. */
     enum TickMethod {
-        CUSTOM("Custom (Ticks Per Cycle)"),
-        ONE_TICK_HALVES("1-tick: two halves");
+        CUSTOM("Custom cycle"),
+        ONE_TICK_HALVES("1-tick halves");
 
         private final String label;
 

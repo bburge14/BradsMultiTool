@@ -151,7 +151,7 @@ default:
   quiet, and monsters with more than one style (or dragonfire, typeless hits) never count: it never guesses what
   a monster does next.
 - **Unpotted Reminder:** you start a fight (after a minute without one) with no combat boost. **Boosts That
-  Count:** Any Combat Stat (Attack, Strength, Defence, Ranged or Magic above your level) or Your Style's (Attack
+  Count:** Any stat (Attack, Strength, Defence, Ranged or Magic above your level) or Your style (Attack
   or Strength for melee, Ranged, Magic). At most once every two minutes.
 - **Death alert:** when you die, a voice line and a chat message saying where (coordinates; "in the Wilderness" or
   "in an instance" when so). **Gravestone Timer:** an info box (bones icon) counting down the 15 minutes your
@@ -291,7 +291,7 @@ When a tree can fall on the next log it turns into a full red pie that pulses.
 **Good to know:** Fishing spots and fires go at a random time the game picks (Jagex: fishing spots 250-530
 ticks), so no plugin can count down to the moment; their timers show the window (fire timers are off by default). Each kind's setting (Tree Timers, Mining Timers, Fishing Spot Timers, Trap Timers, Fire
 Timers, Campfire Timers, Shipwreck Timers) picks when it shows: **Always** (as soon as you're near, before you
-start), **While training** (the default: from the moment you start fishing a spot, chopping or mining, or once you've had an XP drop in its skill in the last two minutes:
+start), **Training** (the default: from the moment you start fishing a spot, chopping or mining, or once you've had an XP drop in its skill in the last two minutes:
 trees while you chop, rocks while you mine, fires and campfires while you cook or burn logs) or **Off**. With
 the tile style, fishing spots that have no timer (there before you arrived, or ones that never move like
 karambwan) still get their tile and fish picture, without a timer. Above every timer sit its time (time left; a star's layer health; a trap's "Caught"; for fishing spots and fires,
@@ -380,14 +380,14 @@ for combat skills), XP/hr, XP/min, time to level, and a red/orange/green progres
   (each XP drop): "Steals:", "Made:", "Crafts:", "Casts:", "Catches:", "Burned:", "Offered:"... Combat skills count
   kills instead. Per hour is worked out at the skill's XP rate, so it matches the card's XP/hr. Reset rate or Reset
   clears them (**Show Items Gathered**).
-- **Keep Session After Restart** (30 minutes by default; 0 turns it off): close the client and log back in to the
+- **Keep Session For** (30 minutes by default; 0 turns it off): close the client and log back in to the
   same account within that time of logging out (or of your last XP, if the client closed without logging out) and
   the tracker carries on with that session's XP, rates, actions and items, quietly. XP gained elsewhere in
   between (mobile) isn't added. Reset all skills starts afresh. Like RuneLite's XP Tracker keeping its session.
 
 **Settings (Skill Tracker):** a switch for each field; **Compact Overlays** (General) trims the cards (see below); Actions Until Goal; Show Goal; Suggested Method,
 Training Focus, Highlight Suggested Method and its colour; Auto-Pause Idle Skills and After
-(minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up; Show Items Gathered; Keep Session After Restart.
+(minutes); Ignored Skills (comma-separated); Voice/Chat: Level Up; Show Items Gathered; Keep Session For.
 
 ---
 
@@ -731,7 +731,7 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   what the materials to your target are worth ("Mats 1.24M", for what you make, burn or bury) and what the products
   sell for ("Sells 2.10M": what you make, or the logs, ore, fish or catch you gather, priced by the item's id); neither
   is profit (products count as sold on the GE after tax, or as high alched less a nature rune when that pays more:
-  **Sell Products By**, or per milestone its right-click **Sell by**, or **drop them** to powerlevel (worth
+  **Sell By**, or per milestone its right-click **Sell by**, or **drop them** to powerlevel (worth
   nothing: the net is what the materials cost), with the better way marked and an orange line on
   the milestone when the other way pays more; a milestone's **Record sales...** says how many you really sold and
   alched and what you got each, for its cash and net so far).
@@ -789,7 +789,7 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Suggest a plan...** works out a plan from your level to
   the goal six ways and shows them side by side (time, gp after sales, milestones): **Fastest** (the most XP an hour
   at each level), **Cheapest** (the fewest gp lost per XP), **Money maker** (the most profit), **Balanced** (the least
-  gp and time together, an hour counted at **What An Hour Is Worth**), **AFK** and **Wiki guide** (the wiki's training
+  gp and time together, an hour counted at **Hour Worth (gp)**), **AFK** and **Wiki guide** (the wiki's training
   guides, as before); an ironman gets Fastest, AFK and Wiki guide. Pick one and it fills the milestones (supply
   milestones stay), each an ordinary milestone to change. When the plan has milestones already, **Keep my milestones,
   suggest only the levels they leave open** (ticked) adds the suggestions before, between and after yours ("adds 3
@@ -898,14 +898,14 @@ isn't said twice. (The daily reminders that used to be here are the Planner's TO
   spinning blades, darts) are each in the Agility card's **Method** list from their level to 99, with their best XP
   per hour; pick one and it's your suggestion and gets outlined. Right-click one in the arena and **Track for goal**
   picks it too (while Agility has a goal).
-- **Run Energy Alert Below:** while you're training Agility, an alert ("Your run energy is low") when your run
+- **Run Alert Below:** while you're training Agility, an alert ("Your run energy is low") when your run
   energy drops below this (15%; 0 turns it off).
 - **Obstacle Hover:** hovering an obstacle or shortcut shows its level, the course XP per lap and laps to level.
 
 RuneLite's own Agility plugin has an arena timer and a lap counter too, and its Show Clickboxes outlines most arena
 obstacles (Snuffy's colours leave those to it); with any of them on, Snuffy's clash warning says so.
 **Settings (Agility):** Obstacle Hover, Course Card, Brimhaven Arena Card, Pillar Warning At, Voice/Chat: Pillar
-About to Move (both on), Arena Obstacle Colours, Arena Route, Arena Route on Minimap, Arena Route Readout, One Obstacle Training, Run Energy Alert Below,
+About to Move (both on), Arena Obstacle Colours, Arena Route, Arena Route on Minimap, Arena Route Readout, One Obstacle Training, Run Alert Below,
 Voice/Chat: Run Energy Low.
 
 ## Minigames: Wintertodt, Tempoross, Guardians of the Rift

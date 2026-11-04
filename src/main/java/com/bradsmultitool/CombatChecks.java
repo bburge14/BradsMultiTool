@@ -124,7 +124,7 @@ class CombatChecks {
         }
     }
 
-    // Any boost that counts: any combat stat, or (Your Style's) Attack or Strength for melee, Ranged, or Magic
+    // Any boost that counts: any combat stat, or (Your style) Attack or Strength for melee, Ranged, or Magic
     private boolean boosted(PvmConfig.UnpottedBoosts which, MonsterWeakness.Type styleType) {
         Skill[] skills;
         if (which == PvmConfig.UnpottedBoosts.YOUR_STYLE && styleType == MonsterWeakness.Type.RANGED) {

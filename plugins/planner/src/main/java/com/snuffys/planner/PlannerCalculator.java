@@ -428,7 +428,7 @@ class PlannerCalculator {
         return value;
     }
 
-    /** What the plans count products as worth (Sell Products By). */
+    /** What the plans count products as worth (Sell By). */
     PlannerConfig.SellBy sellBy() {
         return config.plannerSellBy();
     }
@@ -965,7 +965,7 @@ class PlannerCalculator {
         /** One sold on the GE (after tax), and one high alched (less a nature rune); null when it has none. */
         Double geEach;
         Double alchEach;
-        /** {@link #earnEach} is the alch value (alching pays more, or Sell Products By says to). */
+        /** {@link #earnEach} is the alch value (alching pays more, or Sell By says to). */
         boolean alchWins;
         /** Its products are dropped (powerlevelling): worth nothing. */
         boolean dropped;
@@ -1143,7 +1143,7 @@ class PlannerCalculator {
     }
 
     /**
-     * How the plans count products: the Sell Products By setting, each item's high alch value and a nature rune's
+     * How the plans count products: the Sell By setting, each item's high alch value and a nature rune's
      * price. Set by the Calculator before it works things out; on its own (the tests), GE prices only.
      */
     static final class Selling {

@@ -99,7 +99,7 @@ downloads each plugin from its own repository, keeps them up to date and starts 
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), resource
-timers (each kind set to show Always, While training or Off; by default each timed tree, rock or
+timers (each kind set to show Always, Training or Off; by default each timed tree, rock or
 fishing spot gets its tile outlined with a picture of what it gives, the outline changing colour as its timer runs out; traps and fires keep a small pie), and alerts that only fire for the resource you're working:
 
 | Skill | What you get |
@@ -175,9 +175,9 @@ work a resource.
   solid pin to unpin, or right-click the overlay > **Unpin**.
 - **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 10 seconds by default) and resumes on your
   next XP.
-- **Active goal**: with **Highlight For** set to "Only the active goal" (settings, Goals), right-click a goal's card >
+- **Active goal**: with **Highlight For** set to "Active goal" (settings, Goals), right-click a goal's card >
   **Set as active goal** (one at a time; a gold dot marks it) and the tree, rock and NPC outlines and the item
-  highlights are only for that goal. On "Every goal" (the default) they're for all of them, and there's no active goal.
+  highlights are only for that goal. On "All goals" (the default) they're for all of them, and there's no active goal.
 - **Fold a card**: the **-** at a card's top-left folds it to its goal bar (**+** opens it again), remembered per
   skill; the GOALS and THIS SESSION headings fold their whole lists.
 - **Idle skills drop off**: a skill without a goal leaves the tracker after 30 minutes without XP (**Drop Idle Skills
@@ -188,7 +188,7 @@ work a resource.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
 - **Items gathered**: logs, fish, ore and gems, food cooked and burnt this session, with how many an hour, on the card and the pinned skill.
-- **Keeps your session** after a restart: log back in within 30 minutes (**Keep Session After Restart**) and the tracker carries on.
+- **Keeps your session** after a restart: log back in within 30 minutes (**Keep Session For**) and the tracker carries on.
 - **Skills tab goal bars**: a thin gold bar on the game's Skills tab under each skill with a goal.
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.
 
@@ -272,7 +272,7 @@ each can be hidden in the settings; everything is saved per account.
     ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"): **Suggest a plan...** compares six ways there side by side
     (time, gp, milestones) and fills it with the one you pick (with milestones already in the plan, **Keep my
     milestones** fills only the levels yours leave open, before, between and after them; untick it to replace them): **Fastest**, **Cheapest**, **Money maker**, **Balanced**
-    (gp and time together, at **What An Hour Is Worth**), **AFK** or the **Wiki guide**; or right-click an action >
+    (gp and time together, at **Hour Worth (gp)**), **AFK** or the **Wiki guide**; or right-click an action >
     **Add to plan** (it goes in at its own level: Atlatl darts at 74 inside Adamant darts 67-81 makes Adamant 67-74
     and Atlatl 74-81; when the plan's full it asks to raise its goal), or **+** to add one at levels you type (the
     milestones it overlaps make room). To fit something in (Atlatl darts 74-81 inside Onyx bolts 74-99), right-click the milestone > **Insert a milestone in it...**, or Add to plan from the list (it asks which levels when the plan's already full): the one it lands in makes room. Making a milestone shorter (Edit...) leaves a gap you can click to fill. **Money plan** (under the materials): how to do the plan
@@ -282,7 +282,7 @@ each can be hidden in the settings; everything is saved per account.
     if it can't carry the plan; on top, whether a budget is set (else it uses your coins), what the plan costs after
     sales, the **budget it needs** to reach the goal, and what's left (or how short it is). Milestones, Materials needed
     and Money plan each fold away (click the header). Sales are after the Grand Exchange's 2% tax everywhere; with
-    **Sell Products By** on "Whichever pays more" (the default), something worth more **high alched** (its alch value
+    **Sell By** on "Best price" (the default), something worth more **high alched** (its alch value
     less a nature rune) counts that way instead (the breakdown shows both). Each milestone can pick its own way:
     right-click > **Sell by** (the setting's way, the GE, high alch, or **drop them** to powerlevel, worth nothing, each
     with what it pays, the better one marked);

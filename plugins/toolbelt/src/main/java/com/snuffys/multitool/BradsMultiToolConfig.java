@@ -668,7 +668,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyRestoredAt",
-        name = "Run Energy Restored At",
+        name = "Run Restored At",
         description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
         section = idleSection,
         position = 16
@@ -930,7 +930,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigItem(
         keyName = "campfireTimers",
-        name = "Firemaking: Campfire Timers",
+        name = "Campfire Timers",
         description = "<div width='300'>A timer on each Forester's Campfire showing how long it has left: set by the log that made it, topped up by each log you add, corrected when you Check it Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = otherSkillsSection,
         position = 9
@@ -978,7 +978,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
 
     @ConfigItem(
         keyName = "shipwreckTimers",
-        name = "Sailing: Shipwreck Timers",
+        name = "Shipwreck Timers",
         description = "<div width='300'>A timer on each Sailing shipwreck you saw surface, showing how long it has left before it sinks Always: as soon as you're near; While training: once you're training the skill (an XP drop in the last two minutes); Off: never.",
         section = otherSkillsSection,
         position = 14
@@ -1016,7 +1016,7 @@ public interface BradsMultiToolConfig extends SkillTrackerConfig, PvmConfig, Gem
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "boatHealthPercent",
-        name = "Sailing: Boat Health Low At",
+        name = "Boat Health Low At",
         description = "<div width='300'>Boat hitpoints (percent of its most) below which Boat Health Low warns you",
         section = otherSkillsSection,
         position = 17

@@ -128,7 +128,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     /** When a kind of resource timer shows: always, only while you train its skill, or never. */
     enum TimerShow {
         ALWAYS("Always"),
-        TRAINING("While training"),
+        TRAINING("Training"),
         OFF("Off");
 
         private final String name;
@@ -897,7 +897,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyBelow",
-        name = "Run Energy Alert Below",
+        name = "Run Alert Below",
         description = "<div width='300'>While you're training Agility, alert when your run energy drops below this (0: off). Quiet while the Idle section's Run Energy Low Below is on (that one alerts anywhere, Agility included)",
         section = agilitySection,
         position = 11
@@ -1490,8 +1490,8 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     enum HighlightGoals {
-        ALL("Every goal"),
-        ACTIVE("Only the active goal");
+        ALL("All goals"),
+        ACTIVE("Active goal");
 
         private final String label;
 
@@ -1580,7 +1580,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Units(Units.MINUTES)
     @ConfigItem(
         keyName = "dropIdleSkillsAfter",
-        name = "Drop Idle Skills After",
+        name = "Drop Idle After",
         description = "<div width='300'>A skill without a goal leaves the tracker after this long without XP (0: never), and comes back with its session numbers when you gain XP in it again. Skills with a goal and the pinned skill always stay",
         section = trackerSection,
         position = 9
@@ -1659,7 +1659,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Units(Units.MINUTES)
     @ConfigItem(
         keyName = "keepSessionMinutes",
-        name = "Keep Session After Restart",
+        name = "Keep Session For",
         description = "<div width='300'>When you restart the client and log back in to the same account within this long of logging out (or of your last XP, if the client closed without logging out), the tracker carries on with that session's XP, rates and items instead of starting again (0: always start again)",
         section = trackerSection,
         position = 14
@@ -2005,7 +2005,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyRestoredAt",
-        name = "Run Energy Restored At",
+        name = "Run Restored At",
         description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
         section = idleSection,
         position = 16

@@ -311,10 +311,10 @@ public interface PlannerConfig extends CommonConfig {
 
     /** What a plan's products are worth: sold on the GE, high alched, or whichever pays more. */
     enum SellBy {
-        BEST("Whichever pays more"),
+        BEST("Best price"),
         GE("Grand Exchange"),
-        ALCH("High alchemy"),
-        DROP("Drop them (powerlevel)");
+        ALCH("High alch"),
+        DROP("Drop (powerlevel)");
 
         private final String label;
 
@@ -330,7 +330,7 @@ public interface PlannerConfig extends CommonConfig {
 
     /** Whether plans treat you as an ironman: from your account, or always, or never. */
     enum IronmanPlans {
-        AUTO("From your account"),
+        AUTO("From account"),
         ALWAYS("Always"),
         NEVER("Never");
 
@@ -580,7 +580,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "plannerHourWorth",
-        name = "What An Hour Is Worth",
+        name = "Hour Worth (gp)",
         description = "<div width='300'>For Suggest a plan's Balanced: what an hour of your time is worth in gp, so a faster method that costs more is picked only when the time it saves is worth what it costs",
         section = plannerCalculatorSection,
         position = 7
@@ -591,7 +591,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigItem(
         keyName = "plannerSellBy",
-        name = "Sell Products By",
+        name = "Sell By",
         description = "<div width='300'>What a plan's products are worth: the Grand Exchange price after its 2% tax, high alchemy (the alch value less a nature rune), nothing when you drop them to powerlevel, or whichever pays more for each item (marked \"alch\" where alching wins). A milestone's Record sales... says what you really did with them",
         section = plannerCalculatorSection,
         position = 8
@@ -926,7 +926,7 @@ public interface PlannerConfig extends CommonConfig {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyRestoredAt",
-        name = "Run Energy Restored At",
+        name = "Run Restored At",
         description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
         section = idleSection,
         position = 16

@@ -296,7 +296,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @Range(min = 10, max = 48)
     @ConfigItem(
         keyName = "outOfPrayerTextSize",
-        name = "'Out of Prayer' Text Size",
+        name = "Out of Prayer Size",
         description = "<div width='300'>How big the flashing OUT OF PRAYER message over your head is (16 is the game's bold text size)",
         section = prayerSection,
         position = 4
@@ -918,7 +918,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @Alpha
     @ConfigItem(
         keyName = "taskMonsterColor",
-        name = "Task Monster Colour",
+        name = "Task Colour",
         description = "Outline colour for task monsters",
         section = slayerMonstersSection,
         position = 2
@@ -1284,8 +1284,8 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
 
     /** Which boosts count for the unpotted reminder. */
     enum UnpottedBoosts {
-        ANY_COMBAT("Any Combat Stat"),
-        YOUR_STYLE("Your Style's");
+        ANY_COMBAT("Any stat"),
+        YOUR_STYLE("Your style");
 
         private final String label;
 
@@ -1708,7 +1708,7 @@ public interface PvmConfig extends CommonConfig, BuffConfig {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyRestoredAt",
-        name = "Run Energy Restored At",
+        name = "Run Restored At",
         description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
         section = idleSection,
         position = 16

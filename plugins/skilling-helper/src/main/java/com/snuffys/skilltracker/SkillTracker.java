@@ -227,7 +227,7 @@ class SkillTracker {
             }
             restoreSession();
         }
-        // Kept with your profile every half a minute, for Keep Session After Restart
+        // Kept with your profile every half a minute, for Keep Session For
         if (reachedChecked && client.getTickCount() % SAVE_TICKS == 0) {
             saveSession();
         }
@@ -774,7 +774,7 @@ class SkillTracker {
         return lastXpMillis.getOrDefault(skill, 0L);
     }
 
-    /** Whether a skill gained XP recently enough to stay in the tracker (see Drop Idle Skills After). */
+    /** Whether a skill gained XP recently enough to stay in the tracker (see Drop Idle After). */
     public boolean isRecentlyTrained(Skill skill) {
         int minutes = config.dropIdleSkillsAfter();
         Long last = lastXpMillis.get(skill);
@@ -1024,7 +1024,7 @@ class SkillTracker {
         return skills;
     }
 
-    // ---- Keep Session After Restart (like RuneLite's XP Tracker keeping its session) ----
+    // ---- Keep Session For (like RuneLite's XP Tracker keeping its session) ----
 
     static final String SESSION_KEY = "trackerSession";
     private static final int SAVE_TICKS = 50;
@@ -1082,7 +1082,7 @@ class SkillTracker {
         }
     }
 
-    /** Whether a session saved then can be carried on now (Keep Session After Restart, 0: never). */
+    /** Whether a session saved then can be carried on now (Keep Session For, 0: never). */
     static boolean recentEnough(long savedAt, long now, int minutes) {
         return minutes > 0 && savedAt <= now && now - savedAt <= minutes * 60_000L;
     }

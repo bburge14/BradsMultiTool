@@ -65,7 +65,7 @@ class SkillTrackerFeature {
     @Inject private PluginIdentity identity;
 
     // The resource timers' on/off switches (and the one Timers When Not Training switch) became an Always /
-    // While training / Off choice per kind under new keys: carry your old choice over the first time
+    // Training / Off choice per kind under new keys: carry your old choice over the first time
     private static final String[][] TIMER_KEYS = {
         {"showTreeTimer", "treeTimers"}, {"showMiningTimer", "miningTimers"}, {"showFishingSpotTimer", "fishingSpotTimers"},
         {"showTrapTimer", "trapTimers"}, {"showFireTimer", "fireTimers"}, {"showCampfireTimer", "campfireTimers"},
