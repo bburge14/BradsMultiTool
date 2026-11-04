@@ -810,7 +810,13 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   tracker keeps the version you sent until **Send changes** (or **Undo** puts the plan back as the tracker has it), so
   trying things never moves your goal; the plan's card says "Unsent changes" and the goal card "Changes to ... not
   sent" (right-click it to send or undo). When the tracker has a different plan, **Send** makes it follow the open one and
-  **Take** replaces the open one with the tracker's (its name stays); **Remove** takes it out of the tracker (the goal
+  **Take** replaces the open one with the tracker's (its name stays). **Follow** (the tracker's goal card, and the
+  Planner's goal card): **Your plan**, **Your pick** (a Track for goal or a picked method, for a one-off) or **The
+  wiki's suggestion**, or the usual order (a pick, then the plan, then the wiki); the others stay saved to switch back
+  to. Sending a plan sets it to the plan; making a pick sets it to the pick. The milestones go by your XP whatever you
+  train with. A supply milestone (logs kept for Firemaking) goes by what the other plan still needs: its levels
+  reached another way, it says "Levels done, supplies to get" and how many; and it says how many are for the other
+  plan and how many just for its levels, or that the other plan needs none now; **Remove** takes it out of the tracker (the goal
   stays). An older copy that none of your plans match any more shows on the goal card ("Tracker has an older copy"):
   right-click it to send your open plan, bring the copy in as a plan, or take it out of the tracker.
 - Information only: nothing is done in the game.

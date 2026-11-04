@@ -282,7 +282,7 @@ class SkillTracker {
      * group, so its goals stay where they were; bird houses and compost are kept there too.)
      */
     static final String SHARED_GROUP = SkillGoals.GROUP;
-    private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "goalMethod.", "trainingFocus.", "prayerMethod."};
+    private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "goalMethod.", "trainingFocus.", "prayerMethod.", "goalFollow."};
 
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
     // which changes when synced settings arrive), so redraw the tracker then
@@ -433,7 +433,7 @@ class SkillTracker {
     public SkillPlans.Plan getSkillPlan(Skill skill) {
         // Plans are the Planner's: followed only while it runs too (installed and on)
         if (!config.followSkillPlans() || configManager.getRSProfileKey() == null || getSkillGoal(skill) <= 0
-            || family == null || !family.hasPlanner()) {
+            || family == null || !family.hasPlanner() || !following(skill, SkillGoals.Follow.PLAN)) {
             return null;
         }
         return SkillPlans.tracked(configManager, skill);
@@ -492,13 +492,52 @@ class SkillTracker {
      * "object:Teak tree", see {@link GoalTarget}), or null to follow the suggestion.
      */
     public String getGoalTarget(Skill skill) {
-        return configManager.getRSProfileKey() == null ? null
-            : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+        if (configManager.getRSProfileKey() == null || !following(skill, SkillGoals.Follow.PICK)) {
+            return null;
+        }
+        return configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
     }
 
     /** The guide method you picked for this skill's suggestion (its name), or null to have it picked for you. */
     public String getChosenMethod(Skill skill) {
-        return configManager.getRSProfileKey() == null ? null
+        if (configManager.getRSProfileKey() == null || !following(skill, SkillGoals.Follow.PICK)) {
+            return null;
+        }
+        return configManager.getRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name());
+    }
+
+    /**
+     * What the goal follows (Follow on the goal card): your plan, your pick (Track for goal or a picked method) or the
+     * wiki's suggestion; null for the usual order (a pick, then the plan, then the wiki). The others stay saved.
+     */
+    public SkillGoals.Follow getFollow(Skill skill) {
+        return configManager.getRSProfileKey() == null ? null : SkillGoals.follow(configManager, skill);
+    }
+
+    public void setFollow(Skill skill, SkillGoals.Follow follow) {
+        SkillGoals.setFollow(configManager, skill, follow);
+        updatePanelUI();
+    }
+
+    // Whether the goal may use this kind of suggestion (always, with Follow on its usual order)
+    private boolean following(Skill skill, SkillGoals.Follow kind) {
+        SkillGoals.Follow follow = SkillGoals.follow(configManager, skill);
+        return follow == null || follow == kind;
+    }
+
+    /** Whether a plan was sent to the tracker for this skill (whatever Follow says), with the Planner running. */
+    public boolean hasSentPlan(Skill skill) {
+        return configManager.getRSProfileKey() != null && family != null && family.hasPlanner()
+            && SkillPlans.tracked(configManager, skill) != null;
+    }
+
+    /** The Track for goal pick or picked method saved for the skill, whatever Follow says (for the Follow menu). */
+    public String getSavedPick(Skill skill) {
+        if (configManager.getRSProfileKey() == null) {
+            return null;
+        }
+        String target = configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+        return target != null ? describeTarget(skill, target)
             : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name());
     }
 
@@ -509,6 +548,8 @@ class SkillTracker {
         } else {
             configManager.setRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name(), method);
             configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+            // (picking it means following it, for now: Follow > Plan goes back)
+            SkillGoals.setFollow(configManager, skill, SkillGoals.Follow.PICK);
         }
         updatePanelUI();
     }
@@ -518,6 +559,7 @@ class SkillTracker {
             configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
         } else {
             configManager.setRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name(), target);
+            SkillGoals.setFollow(configManager, skill, SkillGoals.Follow.PICK);
         }
         updatePanelUI();
     }

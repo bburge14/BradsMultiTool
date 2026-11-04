@@ -814,7 +814,7 @@ final class PlannerCalculatorView {
             .append('|').append(calc.tradesVersion()).append('|').append(openSteps).append('|').append(calc.gatherState());
         SkillPlans.Plan plan = calc.plan(shown);
         key.append('|').append(SkillPlans.encodeAll(calc.plans(shown))).append(calc.openIndex(shown)).append(calc.planExpanded()).append(goalOpen).append(calc.pinnedPlanSkill())
-            .append(calc.goalPick(shown)).append(':').append(calc.goal(shown))
+            .append(calc.goalPick(shown)).append(calc.follow(shown)).append(':').append(calc.goal(shown))
             .append(calc.planCounts(skills()).keySet())
             .append('|').append(plan == null ? "" : SkillPlans.encode(plan)).append(calc.isTracked(shown, plan))
             .append(calc.trackedPlan(shown) != null);
@@ -2367,6 +2367,33 @@ final class PlannerCalculatorView {
 
     // In this skill's Plan view: what the other skills' plans need from it (yew logs for Firemaking), how much you have,
     // the XP and time it is; a click goes to that plan
+    /**
+     * What another skill's plan still needs of an item it gets from here ([0]) and how many you have ([1]): its
+     * materials from your XP there on, so what it's already made or burned isn't counted again.
+     */
+    private long[] stillNeeded(String consumerName, String item) {
+        Skill consumer;
+        try {
+            consumer = Skill.valueOf(consumerName);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+        SkillPlans.Plan plan = calc.plan(consumer);
+        if (plan == null) {
+            return new long[]{0, 0};
+        }
+        CalculatorData.Calc consumerCalc = data.calc(consumer);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(consumer, consumerCalc,
+            CalculatorData.bonuses(consumerCalc, calc.bonuses(consumer)), plan, Math.max(0, calc.xp(consumer)), recipes,
+            training, this::price, calc::itemPrice);
+        for (PlannerCalculator.Need need : PlannerCalculator.planMaterials(consumer, rows, recipes, calc.owned())) {
+            if (need.name.equalsIgnoreCase(item)) {
+                return new long[]{need.needed, need.have};
+            }
+        }
+        return new long[]{0, 0};
+    }
+
     private void fillSupplies(Skill shown) {
         // Each skill's plan's materials got yourself, followed all the way down; the steps in this skill
         Map<String, long[]> totals = new java.util.LinkedHashMap<>();
@@ -2844,9 +2871,13 @@ final class PlannerCalculatorView {
         double done = goal > start ? Math.max(0, Math.min(1, (double) (xp - start) / (goal - start))) : 1;
         SkillPlans.Plan tracked = calc.trackedPlan(shown);
         String pick = calc.goalPick(shown);
-        // (the tracker puts a Track for goal or method pick ahead of a plan: say so)
-        String follows = pick != null ? "via " + pick : tracked != null ? "follows "
-            + (tracked.name != null ? tracked.name : planNameOf(shown, tracked)) : "the wiki's methods";
+        // What the tracker follows (its Follow: the plan, your pick, the wiki; or the usual order, a pick first)
+        SkillGoals.Follow following = calc.follow(shown);
+        String planText = tracked == null ? null : "follows " + (tracked.name != null ? tracked.name : planNameOf(shown, tracked));
+        String follows = following == SkillGoals.Follow.WIKI ? "the wiki's methods"
+            : following == SkillGoals.Follow.PLAN && planText != null ? planText
+            : following == SkillGoals.Follow.PICK && pick != null ? "via " + pick
+            : pick != null ? "via " + pick : planText != null ? planText : "the wiki's methods";
         PlannerUi.Card card = new PlannerUi.Card((goalOpen ? "▾ " : "▸ ") + "Goal: " + goalText(goal),
             CalculatorData.level(start, false) + " → " + CalculatorData.level(goal, true) + " · " + follows,
             "lvl " + level + " · " + (int) Math.floor(done * 100) + "%");
@@ -2941,16 +2972,31 @@ final class PlannerCalculatorView {
             }));
             menu.addSeparator();
         }
-        if (tracked != null && pick != null) {
-            JLabel[] note = card.line("Tracker follows " + pick + ", not the plan", "");
+        // Following a pick while a plan's sent: say so (the plan's still there to go back to)
+        if (tracked != null && follows.startsWith("via ")) {
+            JLabel[] note = card.line("Following your pick, not the plan", "");
             note[0].setForeground(HudColors.WARN);
-            note[0].setToolTipText(PlannerUi.fit("<html>A Track for goal or method pick in the Skilling Helper comes before the "
-                + "plan you sent<br>Right-click the goal: Follow the plan instead</html>"));
-            menu.add(menuItem("Follow the plan instead of " + pick, () -> {
-                calc.clearGoalPick(shown);
-                redraw.run();
-            }));
+            note[0].setToolTipText(PlannerUi.fit("<html>The tracker follows " + PlannerUi.esc(pick) + " for now; your plan's "
+                + "milestones still count your progress<br>Right-click the goal > Follow > Your plan to go back</html>"));
         }
+        javax.swing.JMenu followMenu = new javax.swing.JMenu("Follow");
+        Object[][] choices = {
+            {null, "Usual order (pick, plan, wiki)", true},
+            {SkillGoals.Follow.PLAN, tracked != null ? "Your plan" : "Your plan (none sent)", tracked != null},
+            {SkillGoals.Follow.PICK, pick != null ? "Your pick: " + pick : "Your pick (none saved)", pick != null},
+            {SkillGoals.Follow.WIKI, "The wiki's suggestion", true},
+        };
+        for (Object[] choice : choices) {
+            SkillGoals.Follow follow = (SkillGoals.Follow) choice[0];
+            javax.swing.JCheckBoxMenuItem item = new javax.swing.JCheckBoxMenuItem((String) choice[1], follow == following);
+            item.setEnabled((Boolean) choice[2]);
+            item.addActionListener(e -> {
+                calc.setFollow(shown, follow);
+                redraw.run();
+            });
+            followMenu.add(item);
+        }
+        menu.add(followMenu);
         menu.add(menuItem("Remove goal", () -> removeSkillGoal(shown)));
         list.add(PlannerUi.spaced(card.interactive(() -> {
             goalOpen = !goalOpen;
@@ -3233,23 +3279,62 @@ final class PlannerCalculatorView {
                 }
             }
         }
-        // What it makes for other plans: kept, not sold (left out of its sales and net)
+        // Its supplies go by what the other plan still needs, not by its levels: train the levels another way (willows
+        // instead of teaks) and the supplies are still to get; train the other skill on and it needs fewer
+        boolean suppliesLeft = false;
         for (SkillPlans.Supply supply : step.supplies) {
-            boolean short_ = row != null && !s.done && step.supplied() > row.needed;
-            JLabel[] kept = card.line(PlannerPanel.gp(supply.quantity) + " kept for " + skillName(supply.skill),
-                short_ ? "makes " + PlannerPanel.gp(row.needed) : "not sold");
-            kept[0].setForeground(GATHER_BLUE);
-            kept[1].setForeground(short_ ? HudColors.WARN : GATHER_BLUE);
-            kept[0].setToolTipText(PlannerUi.fit(PlannerUi.esc(supply.item) + " for your " + skillName(supply.skill) + " plan: kept, so "
-                + "they're left out of this milestone's sales and net" + (short_ ? "; it only makes " + String.format("%,d",
-                row.needed) + " more, so make it longer or get the rest another way" : "")));
+            long[] still = stillNeeded(supply.skill, supply.item);
+            long wanted = still == null ? supply.quantity : Math.min(supply.quantity, still[0]);
+            long have = still == null ? 0 : still[1];
+            long toGet = Math.max(0, wanted - have);
+            long levelsMake = row == null || s.done ? 0 : row.needed;
+            String consumer = skillName(supply.skill);
+            JLabel[] kept;
+            String tip;
+            if (wanted <= 0) {
+                kept = card.line(supply.item + ": " + consumer + " needs none now", "");
+                kept[0].setForeground(PlannerUi.MUTED);
+                tip = "Your " + consumer + " plan no longer needs " + supply.item + " (it's past them, or uses something "
+                    + "else): right-click > Stop keeping to sell what this makes";
+            } else if (toGet == 0) {
+                kept = card.line("Have the " + PlannerPanel.gp(wanted) + " for " + consumer, "");
+                kept[0].setForeground(PlannerUi.READY);
+                tip = "You have the " + supply.item + " your " + consumer + " plan still needs";
+            } else if (s.done) {
+                suppliesLeft = true;
+                kept = card.line("Levels done another way: get " + PlannerPanel.gp(toGet), "for " + consumer);
+                kept[0].setForeground(HudColors.WARN);
+                kept[1].setForeground(HudColors.WARN);
+                tip = "You reached its levels with another method, so the " + supply.item + " for your " + consumer + " plan "
+                    + "weren't made: " + String.format("%,d", toGet) + " still to get (you have " + String.format("%,d", have) + ")";
+            } else if (toGet > levelsMake) {
+                kept = card.line(PlannerPanel.gp(toGet) + " for " + consumer, PlannerPanel.gp(toGet - levelsMake) + " past its levels");
+                kept[0].setForeground(GATHER_BLUE);
+                kept[1].setForeground(HudColors.WARN);
+                tip = "Your " + consumer + " plan still needs " + String.format("%,d", toGet) + " " + supply.item + "; this "
+                    + "milestone's levels only take " + String.format("%,d", levelsMake) + ", so keep going past its end or get "
+                    + "the rest another way";
+            } else {
+                kept = card.line(PlannerPanel.gp(toGet) + " of these for " + consumer, toGet < levelsMake ? "rest is levels" : "not sold");
+                kept[0].setForeground(GATHER_BLUE);
+                kept[1].setForeground(PlannerUi.MUTED);
+                tip = "Your " + consumer + " plan still needs " + String.format("%,d", toGet) + " " + supply.item + " (you have "
+                    + String.format("%,d", have) + "); they're kept, left out of this milestone's sales and net"
+                    + (toGet < levelsMake ? "; the other " + String.format("%,d", levelsMake - toGet) + " are for its levels" : "");
+            }
+            kept[0].setToolTipText(PlannerUi.fit(tip));
         }
         if (s.action != null) {
             picture(card.icon, s.action);
         } else {
             image(card.icon, icons.skill(shown, false));
         }
-        if (s.done) {
+        if (s.done && suppliesLeft) {
+            // (its levels are done, its supplies aren't: not ticked off)
+            card.left.setText("Levels done, supplies to get");
+            card.left.setForeground(HudColors.WARN);
+            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, HudColors.WARN));
+        } else if (s.done) {
             card.dim();
             card.left.setForeground(PlannerUi.READY);
             card.bar(new PlannerUi.Bar(1, PlannerUi.READY));

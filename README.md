@@ -296,7 +296,9 @@ each can be hidden in the settings; everything is saved per account.
     before plans remembered which one it was shows as "Tracker has an older copy": right-click the goal to send your
     open plan, **use the tracker's plan** for your open one (replacing its milestones), bring the copy in as a new plan,
     or take it out of the tracker. The plan's tracker row has the same: **Send** (yours to the tracker) or **Take** (the
-    tracker's into yours).
+    tracker's into yours). **Follow** on either goal card picks what the goal follows: your plan, your pick (a Track
+    for goal or a method, for a one-off) or the wiki; the others stay saved. Milestones count your XP whatever you
+    train with; a supply milestone you passed another way says "Levels done, supplies to get" with how many.
   - **Plan overlay** (without the Skilling Helper installed; its pinned skill card shows the plan otherwise): a
     card on the game screen for the plan of the skill you're training (the one open in the Calculator), or the plan
     you **pin** (the pin on its card in the Plan view, or right-click > Pin to screen; it stays up whatever you

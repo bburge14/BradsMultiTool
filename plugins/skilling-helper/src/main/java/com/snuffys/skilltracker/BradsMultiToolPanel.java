@@ -538,6 +538,8 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JMenu focusMenu = new JMenu("Suggest");
         // Pick the guide method the suggestion uses (filled in each time the menu opens, for your level)
         private final JMenu methodMenu = new JMenu("Method");
+        // What the goal follows: your plan, your pick, or the wiki (filled in each time the menu opens)
+        private final JMenu followMenu = new JMenu("Follow");
         private final Map<SkillTrackerConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(SkillTrackerConfig.TrainingFocus.class);
         private final JRadioButtonMenuItem defaultFocusItem = new JRadioButtonMenuItem();
 
@@ -645,12 +647,14 @@ public class BradsMultiToolPanel extends PluginPanel {
                 focusMenu.add(item);
                 focusItems.put(f, item);
             }
+            menu.add(followMenu);
             menu.add(focusMenu);
             menu.add(methodMenu);
             menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
                 @Override
                 public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
                     fillMethods();
+                    fillFollow();
                 }
 
                 @Override
@@ -856,6 +860,30 @@ public class BradsMultiToolPanel extends PluginPanel {
             (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);
             focusMenu.setVisible(skill != Skill.SLAYER);
             methodMenu.setVisible(skill != Skill.SLAYER && hasGoal);
+            followMenu.setVisible(skill != Skill.SLAYER && hasGoal);
+        }
+
+        // Follow: the plan (when one's sent), your pick (when one's saved) or the wiki; the others stay saved
+        private void fillFollow() {
+            followMenu.removeAll();
+            SkillGoals.Follow now = plugin.getFollow(skill);
+            ButtonGroup group = new ButtonGroup();
+            String pick = plugin.getSavedPick(skill);
+            boolean plan = plugin.hasSentPlan(skill);
+            Object[][] choices = {
+                {null, "Usual order (pick, plan, wiki)", true},
+                {SkillGoals.Follow.PLAN, plan ? "Your plan" : "Your plan (none sent)", plan},
+                {SkillGoals.Follow.PICK, pick != null ? "Your pick: " + pick : "Your pick (none saved)", pick != null},
+                {SkillGoals.Follow.WIKI, "The wiki's suggestion", true},
+            };
+            for (Object[] choice : choices) {
+                SkillGoals.Follow follow = (SkillGoals.Follow) choice[0];
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem((String) choice[1], follow == now);
+                item.setEnabled((Boolean) choice[2]);
+                item.addActionListener(e -> plugin.setFollow(skill, follow));
+                group.add(item);
+                followMenu.add(item);
+            }
         }
 
         // The plan's milestone you're on: a bar from its start to its end, with the time to it
