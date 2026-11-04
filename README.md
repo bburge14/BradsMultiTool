@@ -293,7 +293,9 @@ each can be hidden in the settings; everything is saved per account.
     **Send changes** (or **Undo** to go back to it), so you can try things without moving your goal. The plan's card
     says "Unsent changes" and the goal card "Changes to ... not sent" (right-click it to send or undo them). A copy sent
     before plans remembered which one it was shows as "Tracker has an older copy": right-click the goal to send your
-    open plan, bring the copy in as a plan, or take it out of the tracker.
+    open plan, **use the tracker's plan** for your open one (replacing its milestones), bring the copy in as a new plan,
+    or take it out of the tracker. The plan's tracker row has the same: **Send** (yours to the tracker) or **Take** (the
+    tracker's into yours).
   - **Plan overlay** (without the Skilling Helper installed; its pinned skill card shows the plan otherwise): a
     card on the game screen for the plan of the skill you're training (the one open in the Calculator), or the plan
     you **pin** (the pin on its card in the Plan view, or right-click > Pin to screen; it stays up whatever you

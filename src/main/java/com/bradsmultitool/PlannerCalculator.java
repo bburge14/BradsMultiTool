@@ -871,6 +871,15 @@ class PlannerCalculator {
         replacePlan(skill, index, back);
     }
 
+    /**
+     * Replaces the plan at {@code index} with the tracker's (its milestones and goal; the plan's name stays): the one
+     * your goal follows becomes your plan, and the one sent.
+     */
+    void takeTracked(Skill skill, int index) {
+        undoChanges(skill, index);
+        markSent(skill, index);
+    }
+
     /** The last plan in the list (one just added) becomes the one sent. */
     void markSentLast(Skill skill) {
         if (canPlan()) {

@@ -808,8 +808,8 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   Helper the milestones, which its goal card then follows (see Goals). Edits to the plan you sent are a draft: the
   tracker keeps the version you sent until **Send changes** (or **Undo** puts the plan back as the tracker has it), so
   trying things never moves your goal; the plan's card says "Unsent changes" and the goal card "Changes to ... not
-  sent" (right-click it to send or undo). When the tracker has a different plan, **Send this one** makes it follow the
-  open one; **Remove** takes it out of the tracker (the goal
+  sent" (right-click it to send or undo). When the tracker has a different plan, **Send** makes it follow the open one and
+  **Take** replaces the open one with the tracker's (its name stays); **Remove** takes it out of the tracker (the goal
   stays). An older copy that none of your plans match any more shows on the goal card ("Tracker has an older copy"):
   right-click it to send your open plan, bring the copy in as a plan, or take it out of the tracker.
 - Information only: nothing is done in the game.

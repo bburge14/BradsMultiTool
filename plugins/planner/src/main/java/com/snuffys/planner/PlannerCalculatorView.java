@@ -2905,6 +2905,15 @@ final class PlannerCalculatorView {
                 note[0].setToolTipText("<html>The Skilling Helper follows a copy of a plan from before it was last changed: "
                     + tracked.steps.size() + " milestones to level " + tracked.goal
                     + "<br>Right-click the goal: send your open plan to it, or bring its copy in as a plan</html>");
+                if (open != null) {
+                    menu.add(menuItem("Use the tracker's plan for \"" + planName(open, openAt) + "\"", () -> {
+                        if (confirm("Replace \"" + planName(open, openAt) + "\" with the plan the tracker has (the one your "
+                            + "goal follows)? Its milestones here go.")) {
+                            calc.takeTracked(shown, openAt);
+                            redraw.run();
+                        }
+                    }));
+                }
                 if (open != null && !open.steps.isEmpty()) {
                     menu.add(menuItem("Send \"" + planName(open, openAt) + "\" to the tracker", () -> {
                         CalculatorData.Calc skillCalc = data.calc(shown);
@@ -3447,9 +3456,21 @@ final class PlannerCalculatorView {
                     }
                 }));
         } else if (!same) {
-            links.add(PlannerUi.linkLabel(any ? "Send this one" : "Export to tracker", "Set level " + plan.goal + " as the "
+            links.add(PlannerUi.linkLabel(any ? "Send" : "Export to tracker", "Set level " + plan.goal + " as the "
                 + "skill's goal and give the Skilling Helper these milestones: its goal card shows the one you're on, with "
                 + "its own bar, and suggests and outlines its method" + (any ? " (replaces the plan it has)" : ""), send));
+            if (any) {
+                // The other way round: this plan becomes what the tracker has
+                links.add(PlannerUi.label("  ·  ", PlannerUi.FAINT));
+                links.add(PlannerUi.linkLabel("Take", "Replace this plan's milestones with the tracker's (the plan your goal "
+                    + "follows); its name stays", () -> {
+                        if (confirm("Replace \"" + planName(plan, index) + "\" with the plan the tracker has (the one your goal "
+                            + "follows)? Its milestones here go.")) {
+                            calc.takeTracked(shown, index);
+                            redraw.run();
+                        }
+                    }));
+            }
         }
         if (any && !draft) {
             if (!same) {
@@ -3463,7 +3484,8 @@ final class PlannerCalculatorView {
         row.add(links, BorderLayout.EAST);
         PlannerUi.tips(row, "<html>Snuffy's Skilling Helper: " + (same ? "it follows this plan" : draft
             ? "it follows this plan as you sent it: your changes since are a draft until you send them" : any
-            ? "it follows another plan (or an older copy of this one): Send this one makes it follow this plan" : "it doesn't "
+            ? "it follows another plan (or an older copy of this one): Send makes it follow this plan; Take makes this plan "
+            + "what it has" : "it doesn't "
             + "have this plan yet") + "<br>Edits stay here until you send them, so you can try things without changing "
             + "your goal</html>");
         return PlannerUi.spaced(row);
