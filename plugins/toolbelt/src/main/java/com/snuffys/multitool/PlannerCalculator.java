@@ -969,6 +969,8 @@ class PlannerCalculator {
         boolean alchWins;
         /** Its products are dropped (powerlevelling): worth nothing. */
         boolean dropped;
+        /** Its estimated rate is the quicker dropping one (no bank trips). */
+        boolean droppedFaster;
         /** How many you have or can make from what you own. */
         int have;
         /** The guide's method at your level is this. */
@@ -999,6 +1001,10 @@ class PlannerCalculator {
             return earnEach == null ? null : earnEach * Math.max(0, count - kept);
         }
     }
+
+    /** Gathering that's quicker dropping than banking, and by how much (no bank trips). */
+    private static final Set<Skill> DROP_FASTER = java.util.EnumSet.of(Skill.WOODCUTTING, Skill.MINING, Skill.FISHING);
+    static final double DROP_SPEEDUP = 1.2;
 
     /** Skills whose actions gather what they're named after (logs, ore, fish, creatures), worth its GE price. */
     private static final Set<Skill> GATHERING = java.util.EnumSet.of(Skill.WOODCUTTING, Skill.MINING, Skill.FISHING,
@@ -1098,7 +1104,15 @@ class PlannerCalculator {
                 way = ways.isEmpty() ? null : ways.get(0);
             }
             if (way != null && row.xpEach > 0) {
-                row.xpHour = (int) Math.round(way.perHour * row.xpEach);
+                double perHour = way.perHour;
+                // Dropping what you gather (powerlevelling) skips the bank trips: about a fifth quicker for logs, ore
+                // and fish (the normal pace counts banking; the faster ways already drop)
+                PlannerConfig.SellBy by = sell != null ? sell : selling.by;
+                if (by == PlannerConfig.SellBy.DROP && DROP_FASTER.contains(skill) && PlannerRates.NORMAL.equals(way.name)) {
+                    perHour *= DROP_SPEEDUP;
+                    row.droppedFaster = true;
+                }
+                row.xpHour = (int) Math.round(perHour * row.xpEach);
                 row.estimated = row.xpHour > 0;
                 row.pace = row.estimated ? way.name : null;
             }

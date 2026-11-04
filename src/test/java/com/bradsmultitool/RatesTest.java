@@ -204,4 +204,28 @@ public class RatesTest {
         assertTrue(normal + "", normal > 1_000_000 && normal < 1_500_000);
         assertTrue(ways.size() > 1 && ways.get(1).perHour * dart.xp > 1_500_000);
     }
+
+    @Test
+    public void droppingIsQuickerForGathering() {
+        PlannerCalculator.Selling before = PlannerCalculator.selling;
+        try {
+            CalculatorData.Action maple = null;
+            for (CalculatorData.Action a : DATA.calc(Skill.WOODCUTTING).actions) {
+                if (a.name.equals("Maple logs")) {
+                    maple = a;
+                }
+            }
+            int xp = Experience.getXpForLevel(50);
+            int to = Experience.getXpForLevel(55);
+            PlannerCalculator.selling = PlannerCalculator.Selling.GE_ONLY;
+            PlannerCalculator.Row banked = PlannerCalculator.rows(Skill.WOODCUTTING, Collections.singletonList(maple),
+                Collections.emptyList(), xp, to, RECIPES, null, Collections.emptyMap(), n -> 0, id -> 0).get(0);
+            PlannerCalculator.selling = new PlannerCalculator.Selling(PlannerConfig.SellBy.DROP, n -> 0, 0);
+            PlannerCalculator.Row dropped = PlannerCalculator.rows(Skill.WOODCUTTING, Collections.singletonList(maple),
+                Collections.emptyList(), xp, to, RECIPES, null, Collections.emptyMap(), n -> 0, id -> 0).get(0);
+            assertTrue(dropped.droppedFaster && dropped.xpHour > banked.xpHour * 1.15 && dropped.seconds < banked.seconds);
+        } finally {
+            PlannerCalculator.selling = before;
+        }
+    }
 }

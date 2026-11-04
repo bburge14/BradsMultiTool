@@ -3312,10 +3312,11 @@ final class PlannerCalculatorView {
             card.line(step.note, "");
         }
         if (row != null && row.dropped && !s.done) {
-            JLabel[] drop = card.line("Powerlevelling: dropped, not sold", "");
+            JLabel[] drop = card.line("Powerlevelling: dropped, not sold", row.droppedFaster ? "+20% rate" : "");
             drop[0].setForeground(PlannerUi.MUTED);
-            drop[0].setToolTipText(PlannerUi.fit("Its products count as dropped (worth nothing): right-click > Sell by to sell "
-                + "or alch them instead"));
+            drop[0].setToolTipText(PlannerUi.fit("Its products count as dropped (worth nothing)" + (row.droppedFaster
+                ? ", and its estimated rate is about 20% quicker: no bank trips" : "") + ". Right-click > Sell by to sell or alch "
+                + "them instead"));
         }
         // The other way pays more for what it makes (high alch over the GE, or the other way round): say so; the
         // milestone's Sell by picks
