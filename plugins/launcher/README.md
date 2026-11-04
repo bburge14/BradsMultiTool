@@ -8,8 +8,12 @@ nothing else to install: it gets what it needs itself.
 
 **Download [Snuffys-Launcher-Setup.exe](https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe)
 and double-click it.** It installs Snuffy's Launcher in your own folder (no admin rights needed), puts it on your
-desktop and opens it. Windows may warn that it doesn't know the file (it isn't signed): choose **More info > Run
-anyway**. ([All releases](https://github.com/bburge14/snuffys-launcher/releases).)
+desktop and opens it. ([All releases](https://github.com/bburge14/snuffys-launcher/releases).)
+
+Your browser and Windows may warn about it, because it's new and not code-signed (paid certificates are what make
+that go away): in **Edge**, "isn't commonly downloaded": hover the download, click **...** > **Keep** > **Show more** >
+**Keep anyway**; in **Chrome**, click **Keep**. When you open it, if Windows says "Windows protected your PC": **More
+info** > **Run anyway**. You only need to do this once: the launcher updates itself after that.
 
 Or without the installer: download the [zip](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip),
 unzip it where you'd like to keep it, double-click **Snuffy's Launcher** in the folder, and click **Make a desktop

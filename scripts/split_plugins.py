@@ -16,6 +16,7 @@ Hub's layout), runelite-plugin.properties, icon, licence and README, so each fol
 folders are committed: regenerate them after changing src/, and don't edit them by hand.
 """
 import json
+import hashlib
 import os
 import re
 import shutil
@@ -602,8 +603,12 @@ nothing else to install: it gets what it needs itself.
 
 **Download [Snuffys-Launcher-Setup.exe](https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe)
 and double-click it.** It installs Snuffy's Launcher in your own folder (no admin rights needed), puts it on your
-desktop and opens it. Windows may warn that it doesn't know the file (it isn't signed): choose **More info > Run
-anyway**. ([All releases](https://github.com/bburge14/snuffys-launcher/releases).)
+desktop and opens it. ([All releases](https://github.com/bburge14/snuffys-launcher/releases).)
+
+Your browser and Windows may warn about it, because it's new and not code-signed (paid certificates are what make
+that go away): in **Edge**, "isn't commonly downloaded": hover the download, click **...** > **Keep** > **Show more** >
+**Keep anyway**; in **Chrome**, click **Keep**. When you open it, if Windows says "Windows protected your PC": **More
+info** > **Run anyway**. You only need to do this once: the launcher updates itself after that.
 
 Or without the installer: download the [zip](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip),
 unzip it where you'd like to keep it, double-click **Snuffy's Launcher** in the folder, and click **Make a desktop
@@ -714,7 +719,21 @@ def build_launcher(publish_path=os.path.join(ROOT, "publish.json")):
     # Windows' own csc), kept in scripts/setup/ for when there isn't
     setup = os.path.join(ROOT, "scripts", "setup")
     built = os.path.join(setup, SETUP_EXE)
-    compile_setup(os.path.join(setup, "SnuffysSetup.cs"), built)
+    # Rebuilt only when its source or icon changed: the same file every release, so Windows SmartScreen's download
+    # reputation (kept per file) builds up instead of starting over ("isn't commonly downloaded") each push
+    source = os.path.join(setup, "SnuffysSetup.cs")
+    stamp = os.path.join(setup, "source.sha256")
+    digest = hashlib.sha256()
+    for part in (source, os.path.join(ROOT, "assets", "launcher.ico")):
+        if os.path.exists(part):
+            with open(part, "rb") as f:
+                digest.update(f.read())
+    was = open(stamp).read().strip() if os.path.exists(stamp) else ""
+    if not os.path.exists(built) or was != digest.hexdigest():
+        compile_setup(source, built)
+        if os.path.exists(built):
+            with open(stamp, "w", newline="\n") as f:
+                f.write(digest.hexdigest() + "\n")
     if os.path.exists(built):
         shutil.copy2(built, os.path.join(out, SETUP_EXE))
     for name, text in (("README.md", LAUNCHER_README), (".gitignore", LAUNCHER_IGNORE)):

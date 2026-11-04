@@ -402,7 +402,10 @@ def release(repo, branch, path, notes):
     stamp = time.strftime("%Y.%m.%d-%H%M")
     body = json.dumps({"tag_name": "v" + stamp, "target_commitish": branch, "name": "Snuffy's Launcher " + stamp,
                        "body": "Download **%s** below and double-click it: it installs Snuffy's Launcher, puts it on your "
-                               "desktop and opens it. Already have it? It updates itself.\n\nChanges:\n%s"
+                               "desktop and opens it. Already have it? It updates itself.\n\n"
+                               "Edge says it \"isn't commonly downloaded\"? Hover the download, click ... > Keep > Show more > "
+                               "Keep anyway (Chrome: Keep). Windows says \"Windows protected your PC\"? More info > Run "
+                               "anyway. It's new and not code-signed; only the first time.\n\nChanges:\n%s"
                                % (SETUP_EXE, "\n".join(notes)), "make_latest": "true"}).encode("utf-8")
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "snuffys-publish", "Authorization": "Bearer " + token}
     try:

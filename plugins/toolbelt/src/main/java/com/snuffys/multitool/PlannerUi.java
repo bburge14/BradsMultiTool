@@ -163,7 +163,7 @@ final class PlannerUi {
                 inTable = true;
             }
             // (the label column the same width in every section, so the values line up down the whole tip)
-            out.append("<tr><td width='130'><font color='#c8c8c8'>").append(esc(label)).append("</font></td>")
+            out.append("<tr><td width='130'><font color='#c8c8c8'>").append(esc(label).replace("  ", "&nbsp;&nbsp;")).append("</font></td>")
                 .append("<td align='right'><font color='").append(color == null ? "#ffffff" : color).append("'>")
                 .append(esc(value).replace("  ", "&nbsp;&nbsp;")).append("</font></td></tr>");
             return this;

@@ -706,7 +706,7 @@ final class PlannerCalculatorView {
         row.add(name, BorderLayout.CENTER);
         row.add(PlannerUi.label(bonus.label(), ticked ? PlannerUi.READY : PlannerUi.MUTED), BorderLayout.EAST);
         row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        StringBuilder tip = new StringBuilder("<html>").append(PlannerUi.esc(bonus.name)).append(": XP ").append(bonus.label());
+        PlannerUi.Tip tip = new PlannerUi.Tip(bonus.name, "XP " + bonus.label());
         List<String> clash = new ArrayList<>();
         for (CalculatorData.Bonus other : skillCalc.bonuses) {
             if (other != bonus && !other.stacks.contains(bonus.id)) {
@@ -714,9 +714,9 @@ final class PlannerCalculatorView {
             }
         }
         if (!clash.isEmpty() && skillCalc.bonuses.size() > 1) {
-            tip.append("<br><font color='#a0a0a0'>Not with ").append(PlannerUi.esc(String.join(", ", clash))).append("</font>");
+            tip.line("Not with " + String.join(", ", clash), PlannerUi.Tip.WARN);
         }
-        tip.append("<br><font color='#a0a0a0'>Only counts for the actions it applies to.</font></html>");
+        tip.hint("Only counts for the actions it applies to");
         MouseAdapter mouse = new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -739,7 +739,7 @@ final class PlannerCalculatorView {
             }
         };
         PlannerUi.everywhere(row, c -> c.addMouseListener(mouse));
-        PlannerUi.tips(row, tip.toString());
+        PlannerUi.tips(row, tip.build());
         return row;
     }
 
@@ -1449,21 +1449,36 @@ final class PlannerCalculatorView {
         if (row.locked || usedUp) {
             card.dim();
         }
-        return card.interactive(null, null, "<html><b>" + PlannerUi.esc(action.name) + "</b>: you have "
-            + String.format("%,d", row.have) + " (bank as last seen and inventory)<br>"
-            + (count < row.have && !row.locked ? (usedUp ? "Its materials go to the ones above it (more XP each)<br>"
-            : "Makes " + String.format("%,d", count) + ": the rest of its materials go to the ones above it<br>") : "") + String.format("%,d", (long) gained)
-            + " xp" + (row.locked ? "" : ": with the ones above it, level " + before + " → " + after
-            + (reaches ? " (reaches your target)" : ", " + String.format("%,d", (long) (target - now - gained))
-            + " xp short of your target"))
-            + (calc.showPrices() && row.costEach != null && count > 0 ? "<br>Materials: worth " + String.format("%,.0f",
-            row.costEach * count) + " gp on the GE (" + String.format("%,.0f", row.costEach) + " each)" : "")
-            + (calc.showPrices() && row.earnEach != null && count > 0 ? "<br>Sells for: " + String.format("%,.0f",
-            row.earnEach * count) + " gp on the GE (" + String.format("%,.0f", row.earnEach) + " each)" : "")
-            + (calc.showPrices() && count > 0 && (row.costEach != null || row.earnEach != null) ? "<br>"
-            + netTip(row.cost(count), row.earn(count)) : "")
-            + (row.locked ? "<br><font color='#a0a0a0'>Needs level " + action.level + "</font>" : "")
-            + "</html>");
+        PlannerUi.Tip tip = new PlannerUi.Tip(action.name, "you have " + String.format("%,d", row.have));
+        if (count < row.have && !row.locked) {
+            tip.line(usedUp ? "Its materials go to the ones above it (more XP each)"
+                : "Makes " + String.format("%,d", count) + ": the rest of its materials go to the ones above it", PlannerUi.Tip.MUTED);
+        }
+        tip.row("XP", String.format("%,d", (long) gained), PlannerUi.Tip.GOOD);
+        if (!row.locked) {
+            tip.row("Level", before + " \u2192 " + after);
+            tip.row(reaches ? "Your target" : "Short of your target", reaches ? "reached"
+                : String.format("%,d", (long) (target - now - gained)) + " xp", reaches ? PlannerUi.Tip.GOOD : PlannerUi.Tip.WARN);
+        }
+        if (calc.showPrices() && count > 0 && (row.costEach != null || row.earnEach != null)) {
+            tip.section("Money");
+            if (row.costEach != null) {
+                tip.row("Materials", PlannerPanel.gp(Math.round(row.costEach * count)), PlannerUi.Tip.BAD);
+            }
+            if (row.earnEach != null) {
+                tip.row(row.alchWins ? "High alched" : "Sells for", PlannerPanel.gp(Math.round(row.earnEach * count)),
+                    PlannerUi.Tip.GOOD);
+            }
+            Double cost = row.cost(count);
+            Double earn = row.earn(count);
+            double net = (earn == null ? 0 : earn) - (cost == null ? 0 : cost);
+            tip.row("Net", signed(net), net < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+        }
+        if (row.locked) {
+            tip.line("Needs level " + action.level, PlannerUi.Tip.BAD);
+        }
+        tip.hint("Bank as last seen plus inventory");
+        return card.interactive(null, null, tip.build());
     }
 
     // ---- Plan view ----
@@ -1642,23 +1657,49 @@ final class PlannerCalculatorView {
         card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CALCULATOR, 20,
             new Color(200, 200, 200)))));
         card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, PlannerUi.GROWING));
-        StringBuilder tip = new StringBuilder("<html><b>The whole plan</b> (the milestones added up; each card above is "
-            + "its own levels only)<br>").append(String.format("%,d", totals.xp)).append(" xp from level ").append(level)
-            .append(" to ").append(endLevel);
+        PlannerUi.Tip tip = new PlannerUi.Tip("The whole plan", "level " + level + " \u2192 " + endLevel);
+        tip.line("The milestones added up (each card above is its own levels only)", PlannerUi.Tip.MUTED);
+        tip.section("To go");
+        tip.row("XP", String.format("%,d", totals.xp));
+        tip.row("Milestones", String.valueOf(milestones));
         if (totals.seconds > 0) {
-            tip.append("<br>About ").append(PlannerPanel.formatDuration(totals.seconds)).append(" at the wiki's training guides' "
-                + "rates (").append(String.format("%,d", perHour)).append(" xp an hour on average)").append(estimatedNote(totals));
+            tip.row("Time", "~" + PlannerPanel.formatDuration(totals.seconds) + (totals.untimed > 0 ? " (+ " + totals.untimed
+                + " without a rate)" : ""), totals.estimated > 0 ? PlannerUi.Tip.WARN : null);
+            tip.row("Average", String.format("%,d", perHour) + " xp/hr");
+        }
+        if (totals.estimated > 0) {
+            tip.line(totals.estimated + (totals.estimated == 1 ? " milestone's rate is an estimate" : " milestones' rates are "
+                + "estimates") + " (a typical pace): take the time as rough", PlannerUi.Tip.MUTED);
         }
         if (totals.untimed > 0) {
-            tip.append("<br>").append(totals.untimed).append(totals.untimed == 1 ? " milestone has" : " milestones have")
-                .append(" no XP rate, so the time leaves ").append(totals.untimed == 1 ? "it" : "them").append(" out");
+            tip.line(totals.untimed + (totals.untimed == 1 ? " milestone has" : " milestones have") + " no XP rate, so the "
+                + "time leaves " + (totals.untimed == 1 ? "it" : "them") + " out", PlannerUi.Tip.MUTED);
         }
         if (prices) {
-            tip.append("<br>Materials: worth ").append(String.format("%,.0f", totals.cost)).append(" gp on the GE")
-                .append("<br>Sells for: ").append(String.format("%,.0f", totals.earn)).append(" gp")
-                .append("<br>").append(netTip(totals.cost, totals.earn));
+            tip.section("Money to go");
+            tip.row("Materials", PlannerPanel.gp(Math.round(totals.cost)), PlannerUi.Tip.BAD);
+            tip.row("Products", PlannerPanel.gp(Math.round(totals.earn)), PlannerUi.Tip.GOOD);
+            tip.row("Net", signed(net), net < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+            tip.row("Per xp", gpPerXp(net / Math.max(1, totals.xp)), net < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
         }
-        return card.interactive(null, null, tip.append("</html>").toString());
+        // What the milestones' recorded sales came to (Record sales...)
+        double cash = 0;
+        double withUnsold = 0;
+        int recorded = 0;
+        for (PlannerCalculator.StepRow s : steps) {
+            SoFar done = soFar(s);
+            if (done != null) {
+                cash += done.cash();
+                withUnsold += done.net();
+                recorded++;
+            }
+        }
+        if (calc.showPrices() && recorded > 0) {
+            tip.section("So far (" + recorded + (recorded == 1 ? " milestone" : " milestones") + " recorded)");
+            tip.row("Cash so far", signed(cash), cash < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+            tip.row("Net with unsold", signed(withUnsold), withUnsold < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+        }
+        return card.interactive(null, null, tip.build());
     }
 
     /** What a milestone's products came to so far, from what you've recorded selling and alching. */
@@ -2054,17 +2095,21 @@ final class PlannerCalculatorView {
         }
         card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CALCULATOR, 20,
             new Color(200, 200, 200)))));
-        String tip = "<html><b>Money plan</b>: buy what each milestone needs that you don't have, make it, sell it, and "
-            + "buy the next lot with what it brought in, so you only need a round's worth at once<br>"
-            + (set > 0 ? "Your budget: " + String.format("%,d", set) + " gp" : "No budget set: it uses all your coins ("
-            + String.format("%,d", coins) + " gp, bank as last opened plus inventory)")
-            + "<br>The whole plan needs a budget of about " + String.format("%,d", needed) + " gp"
-            + "<br>The most one round needs: " + String.format("%,d", money.peak) + " gp"
-            + (money.limitHours > 0 ? "<br>The buy limits make it take at least " + PlannerPanel.formatDuration(money.limitHours * 3600) : "")
-            + "<br>Sales are after the Grand Exchange's 2% tax; prices are today's, so it's a guide"
-            + yourPricesLine(planItems(money))
-            + "<br><font color='#a0a0a0'>Click to set the budget</font></html>";
-        return card.interactive(() -> askBudget(shown, coins), null, tip);
+        PlannerUi.Tip tip = new PlannerUi.Tip("Money plan", "buy, make, sell, repeat");
+        tip.line("Buy what each milestone needs that you don't have, make it, sell it, and buy the next lot with what it "
+            + "brought in: you only need a round's worth at once", PlannerUi.Tip.MUTED);
+        tip.section("Budget");
+        tip.row(set > 0 ? "Your budget" : "Your coins (no budget set)", PlannerPanel.gp(set > 0 ? set : coins));
+        tip.row("The whole plan needs", PlannerPanel.gp(needed), needed > money.budget ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+        tip.row("The most one round needs", PlannerPanel.gp(money.peak));
+        tip.row("Costs after sales", signed(-money.loss), money.loss > 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
+        if (money.limitHours > 0) {
+            tip.row("Buy limits: at least", PlannerPanel.formatDuration(money.limitHours * 3600), PlannerUi.Tip.WARN);
+        }
+        yourPriceRows(tip, planItems(money));
+        tip.line("Sales after the GE's 2% tax; today's prices, so it's a guide", PlannerUi.Tip.MUTED);
+        tip.hint("Click to set the budget");
+        return card.interactive(() -> askBudget(shown, coins), null, tip.build());
     }
 
     // What you've really spent and sold for the plan since the budget was set (your GE trades of its materials and
@@ -2089,14 +2134,16 @@ final class PlannerCalculatorView {
         card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CLOCK, 20,
             new Color(200, 200, 200)))));
         card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, PlannerUi.GROWING));
-        String tip = "<html><b>Your real trades</b> for this plan since you set its budget ("
-            + java.time.format.DateTimeFormatter.ofPattern("MMM d, h:mm a").format(java.time.LocalDateTime.ofInstant(
-                java.time.Instant.ofEpochMilli(since), java.time.ZoneId.systemDefault()))
-            + "): buys of its materials and sales of what it makes, as they filled on the Grand Exchange<br>"
-            + "Spent " + String.format("%,d", traded[0]) + " gp, brought in " + String.format("%,d", traded[1])
-            + " gp after the 2% tax<br>Budget " + String.format("%,d", set) + " gp: " + String.format("%,d", left)
-            + " gp left<br><font color='#a0a0a0'>Only trades made while RuneLite ran with the Planner on</font></html>";
-        return card.interactive(null, null, tip);
+        PlannerUi.Tip tip = new PlannerUi.Tip("Your real trades", "since " + java.time.format.DateTimeFormatter
+            .ofPattern("MMM d, h:mm a").format(java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(since),
+                java.time.ZoneId.systemDefault())));
+        tip.line("Buys of the plan's materials and sales of what it makes, as they filled on the GE", PlannerUi.Tip.MUTED);
+        tip.row("Spent", PlannerPanel.gp(traded[0]), PlannerUi.Tip.BAD);
+        tip.row("Brought in (after tax)", PlannerPanel.gp(traded[1]), PlannerUi.Tip.GOOD);
+        tip.row("Budget", PlannerPanel.gp(set));
+        tip.row("Left", PlannerPanel.gp(left), left >= 0 ? PlannerUi.Tip.GOOD : PlannerUi.Tip.BAD);
+        tip.hint("Only trades made while RuneLite ran with the Planner on");
+        return card.interactive(null, null, tip.build());
     }
 
     // The items a money plan buys and sells: its materials and each milestone's product
@@ -2114,16 +2161,19 @@ final class PlannerCalculatorView {
     }
 
     // "Your prices: Adamant dart tip 185, Adamant dart 190" for a tooltip (empty when none)
-    private String yourPricesLine(java.util.Collection<String> items) {
-        List<String> parts = new ArrayList<>();
+    // The items going at your own price (your trades this week), as rows
+    private void yourPriceRows(PlannerUi.Tip tip, java.util.Collection<String> items) {
+        boolean first = true;
         for (String item : items) {
             Long yours = calc.yourPrice(item);
             if (yours != null) {
-                parts.add(PlannerUi.esc(item) + " " + String.format("%,d", yours));
+                if (first) {
+                    tip.section("Your own prices (your trades this week)");
+                    first = false;
+                }
+                tip.row(item, String.format("%,d", yours) + " gp", PlannerUi.Tip.BLUE);
             }
         }
-        return parts.isEmpty() ? "" : "<br>Your own prices (your trades this week): " + String.join(", ", parts)
-            + "; GE prices for the rest";
     }
 
     // A milestone's money: how much to buy, in how many rounds, what it sells for, and the budget after it
@@ -2153,25 +2203,32 @@ final class PlannerCalculatorView {
         if (m.step.action != null) {
             picture(card.icon, m.step.action);
         }
-        StringBuilder tip = new StringBuilder("<html><b>").append(PlannerUi.esc(step.action)).append("</b> ").append(step.from)
-            .append(" to ").append(step.to);
-        for (PlannerCalculator.Buy buy : m.buys) {
-            tip.append("<br>Buy ").append(String.format("%,d", buy.quantity)).append(" ").append(PlannerUi.esc(buy.name))
-                .append(": ").append(String.format("%,d", buy.cost)).append(" gp")
-                .append(buy.limit > 0 ? " (limit " + String.format("%,d", buy.limit) + " a 4 hours)" : "");
+        PlannerUi.Tip tip = new PlannerUi.Tip(step.action, "level " + step.from + " \u2192 " + step.to);
+        if (!m.buys.isEmpty()) {
+            tip.section("To buy");
+            for (PlannerCalculator.Buy buy : m.buys) {
+                tip.row(String.format("%,d", buy.quantity) + " " + buy.name, PlannerPanel.gp(buy.cost)
+                    + (buy.limit > 0 ? "  (limit " + String.format("%,d", buy.limit) + " / 4h)" : ""), PlannerUi.Tip.BAD);
+            }
+        }
+        tip.section("Money");
+        if (m.earn > 0) {
+            tip.row("Sells for", PlannerPanel.gp(m.earn), PlannerUi.Tip.GOOD);
         }
         if (m.runsOut) {
-            tip.append("<br><font color='#e66e64'>It loses ").append(String.format("%,d", m.loss())).append(" gp; the budget has ")
-                .append(String.format("%,d", Math.max(0, m.budgetBefore))).append(" gp left here</font>");
+            tip.row("It loses", PlannerPanel.gp(m.loss()), PlannerUi.Tip.BAD);
+            tip.line("The budget has " + PlannerPanel.gp(Math.max(0, m.budgetBefore)) + " left here: not enough", PlannerUi.Tip.BAD);
         } else if (m.rounds > 1) {
-            tip.append("<br>").append(m.rounds).append(" rounds: buy about ").append(String.format("%,d", m.perRound))
-                .append(" gp of it, make it, sell it, again")
-                .append(m.limitRounds > 1 ? "<br>The buy limits allow one round a 4 hours: at least "
-                    + PlannerPanel.formatDuration((m.limitRounds - 1) * 4 * 3600) : "");
+            tip.row("Rounds", m.rounds + " of about " + PlannerPanel.gp(m.perRound));
+            if (m.limitRounds > 1) {
+                tip.row("Buy limits: at least", PlannerPanel.formatDuration((m.limitRounds - 1) * 4 * 3600), PlannerUi.Tip.WARN);
+            }
         }
-        tip.append("<br>Budget: ").append(String.format("%,d", Math.max(0, m.budgetBefore))).append(" gp before")
-            .append(m.runsOut ? "" : ", " + String.format("%,d", Math.max(0, m.budgetAfter)) + " after").append("</html>");
-        return card.interactive(null, null, tip.toString());
+        tip.row("Budget before", PlannerPanel.gp(Math.max(0, m.budgetBefore)));
+        if (!m.runsOut) {
+            tip.row("Budget after", PlannerPanel.gp(Math.max(0, m.budgetAfter)));
+        }
+        return card.interactive(null, null, tip.build());
     }
 
     private static final Color GATHER_BLUE = new Color(138, 180, 248);
@@ -2224,46 +2281,42 @@ final class PlannerCalculatorView {
 
     // For a material you could get yourself: what gathering (or making) what's short takes, the XP it gives that skill,
     // and what buying it would cost, so you can see if it's worth it
-    private String gatherTip(Skill shown, PlannerCalculator.Need need, PlannerCalculator.Source source, boolean gather) {
+    private void gatherRows(PlannerUi.Tip tip, Skill shown, PlannerCalculator.Need need, PlannerCalculator.Source source,
+                            boolean gather) {
         if (source == null) {
-            return "";
+            return;
         }
         long shortBy = Math.max(0, need.needed - need.have);
-        StringBuilder tip = new StringBuilder("<br>");
-        tip.append(gather ? "<font color='#8ab4f8'>You get it yourself: " : "Or get it yourself: ")
-            .append(source.gathered ? "gathered" : "made").append(" in ").append(source.skill.getName())
-            .append(" (level ").append(source.action.level).append(")").append(gather ? "</font>" : "");
+        tip.section(gather ? "You get it yourself" : "Or get it yourself");
+        tip.row((source.gathered ? "Gathered" : "Made") + " in", source.skill.getName() + " (level " + source.action.level + ")",
+            gather ? PlannerUi.Tip.BLUE : null);
         if (gather && shortBy > 0) {
             List<PlannerCalculator.Link> links = PlannerCalculator.chain(need.name, need.needed, shown, data, recipes,
                 new java.util.HashMap<>(calc.owned()), calc::gathers);
             if (links.size() > 1) {
-                tip.append("<br>All the way down:");
                 for (PlannerCalculator.Link link : links) {
-                    tip.append("<br>").append(repeat("&nbsp;&nbsp;", link.depth + 1)).append(String.format("%,d", link.toGet()))
-                        .append(" ").append(PlannerUi.esc(link.item)).append(link.skill == null ? " (get it yourself: a drop or shop)"
-                        : " from " + link.skill.getName());
+                    tip.row(repeat("  ", link.depth) + String.format("%,d", link.toGet()) + " " + link.item,
+                        link.skill == null ? "a drop or shop" : link.skill.getName(), PlannerUi.Tip.MUTED);
                 }
             }
         }
         if (shortBy > 0) {
             Supply supply = supply(source, shortBy);
-            tip.append("<br>").append(String.format("%,d", shortBy)).append(" more: ")
-                .append(PlannerPanel.gp(supply.xp)).append(" ").append(source.skill.getName()).append(" xp");
+            tip.row(String.format("%,d", shortBy) + " more gives", PlannerPanel.gp(supply.xp) + " " + source.skill.getName() + " xp",
+                PlannerUi.Tip.GOOD);
             if (supply.seconds > 0) {
-                tip.append(", ").append(duration(supply.seconds, supply.estimated));
+                tip.row("Time", duration(supply.seconds, supply.estimated), supply.estimated ? PlannerUi.Tip.WARN : null);
             }
             long buying = shortBy * (long) price(need.name);
             if (buying > 0) {
-                tip.append("<br>Buying them: ").append(PlannerPanel.gp(buying));
+                tip.row("Buying them", PlannerPanel.gp(buying), PlannerUi.Tip.BAD);
                 if (supply.seconds > 0) {
-                    tip.append(" (getting them yourself saves about ").append(PlannerPanel.gp(buying * 3600 / supply.seconds))
-                        .append(" an hour)");
+                    tip.row("Yourself saves", "~" + PlannerPanel.gp(buying * 3600 / supply.seconds) + " an hour",
+                        PlannerUi.Tip.GOOD);
                 }
             }
         }
-        tip.append("<br><font color='#a0a0a0'>Right-click to ").append(gather ? "buy it instead" : (source.gathered ? "gather" : "make")
-            + " it yourself").append("</font>");
-        return tip.toString();
+        tip.hint("Right-click: " + (gather ? "buy it instead" : (source.gathered ? "gather" : "make") + " it yourself"));
     }
 
     /** "~2h 10m", with "est." when the rate behind it is an estimate rather than a training guide's. */
@@ -2387,13 +2440,22 @@ final class PlannerCalculatorView {
         card.bar(new PlannerUi.Bar(Math.max(0.02, Math.min(1, need.needed > 0 ? (double) need.have / need.needed : 1)),
             need.enough() ? PlannerUi.READY : PlannerUi.GROWING));
         picture(card.icon, source.action);
-        String tip = "<html><b>" + PlannerUi.esc(need.name) + "</b> for your " + consumer.getName() + " plan: it needs "
-            + String.format("%,d", need.needed) + ", you have " + String.format("%,d", need.have)
-            + (shortBy > 0 ? "<br>" + (source.gathered ? "Gathering" : "Making") + " the " + String.format("%,d", shortBy)
-            + " more gives " + String.format("%,d", supply.xp) + " " + source.skill.getName() + " xp"
-            + (supply.seconds > 0 ? ", about " + PlannerPanel.formatDuration(supply.seconds) : "") : "")
-            + "<br><font color='#a0a0a0'>Click to go to the " + consumer.getName() + " plan; right-click to add it to "
-            + "your " + source.skill.getName() + " plan</font></html>";
+        PlannerUi.Tip supplyTip = new PlannerUi.Tip(need.name, "for your " + consumer.getName() + " plan")
+            .row("It needs", String.format("%,d", need.needed))
+            .row("You have", String.format("%,d", need.have), need.enough() ? PlannerUi.Tip.GOOD : PlannerUi.Tip.WARN);
+        if (shortBy > 0) {
+            supplyTip.section((source.gathered ? "Gathering" : "Making") + " the " + String.format("%,d", shortBy) + " more")
+                .row(source.skill.getName() + " xp", String.format("%,d", supply.xp), PlannerUi.Tip.GOOD);
+            if (supply.seconds > 0) {
+                supplyTip.row("Time", duration(supply.seconds, supply.estimated), supply.estimated ? PlannerUi.Tip.WARN : null);
+            }
+            long buying = shortBy * (long) price(need.name);
+            if (buying > 0) {
+                supplyTip.row("Buying them instead", PlannerPanel.gp(buying), PlannerUi.Tip.BAD);
+            }
+        }
+        String tip = supplyTip.hint("Click: go to the " + consumer.getName() + " plan \u00b7 right-click: add it to your "
+            + source.skill.getName() + " plan").build();
         // Right-click: make it a milestone of this skill's plan (its action, from your level to where its XP gets you)
         JPopupMenu menu = new JPopupMenu();
         if (shortBy > 0) {
@@ -2490,14 +2552,22 @@ final class PlannerCalculatorView {
     }
 
     // How long what's short takes to buy at the item's Grand Exchange buy limit (and what's left of it now)
-    private String buyTime(PlannerCalculator.Need need) {
+    private void buyRows(PlannerUi.Tip tip, PlannerCalculator.Need need) {
         if (calc.ironman()) {
-            return "";
+            return;
         }
         Long yours = calc.yourPrice(need.name);
-        String own = yours == null ? "" : "<br>Your price: " + String.format("%,d", yours) + " gp (your trades this week; GE "
-            + String.format("%,d", icons.price(need.name)) + ")";
-        return own + buyLimitTime(need);
+        tip.section("Buying it");
+        if (yours != null) {
+            tip.row("Your price (trades this week)", String.format("%,d", yours) + " gp", PlannerUi.Tip.BLUE);
+            tip.row("GE price", String.format("%,d", icons.price(need.name)) + " gp", PlannerUi.Tip.MUTED);
+        } else if (icons.price(need.name) > 0) {
+            tip.row("GE price", String.format("%,d", icons.price(need.name)) + " gp");
+        }
+        String limit = buyLimitTime(need);
+        if (!limit.isEmpty()) {
+            tip.line(limit, PlannerUi.Tip.MUTED);
+        }
     }
 
     private String buyLimitTime(PlannerCalculator.Need need) {
@@ -2510,7 +2580,7 @@ final class PlannerCalculatorView {
         int left = calc.buyLimitLeft(id);
         long now = left < 0 ? limit : left;
         long windows = shortBy <= now ? 0 : (shortBy - now + limit - 1) / limit;
-        return "<br>Buy limit " + String.format("%,d", limit) + " every 4 hours"
+        return "Buy limit " + String.format("%,d", limit) + " every 4 hours"
             + (left >= 0 ? " (" + String.format("%,d", left) + " left now)" : "")
             + (windows == 0 ? ": you can buy it all now" : ": about " + PlannerPanel.formatDuration(windows * 4 * 3600)
             + " to buy it all");
@@ -2545,14 +2615,27 @@ final class PlannerCalculatorView {
             Color colour = need.enough() ? PlannerUi.READY : waiting != null ? HudColors.WARN : gather ? GATHER_BLUE : COSTS;
             String amounts = need.tool ? (need.enough() ? "have it" : "missing")
                 : String.format("%,d / %,d", need.have, need.needed) + (gather && !need.enough() ? " " + shortSkill(source.skill) : "");
-            String tip = need.tool ? need.name + ": a tool the plan's methods need" + (need.enough() ? " (you have one)"
-                : " (not in your bank or inventory)")
-                : "<html>" + PlannerUi.esc(need.name) + ": the plan needs " + String.format("%,d", need.needed)
-                + ", you have " + String.format("%,d", need.have) + (need.enough() ? "" : "<br><font color='#e66e64'>"
-                + String.format("%,d", need.needed - need.have) + " short</font>") + (gather ? "" : buyTime(need))
-                + (waiting != null ? "<br><font color='#f2b450'>" + PlannerUi.esc(waiting) + " first</font>" : "")
-                + gatherTip(shown, need, source, gather)
-                + "<br>(bank as last opened plus inventory)</html>";
+            String tip;
+            if (need.tool) {
+                tip = new PlannerUi.Tip(need.name, "a tool the plan's methods need")
+                    .line(need.enough() ? "You have one" : "Not in your bank or inventory",
+                        need.enough() ? PlannerUi.Tip.GOOD : PlannerUi.Tip.BAD).build();
+            } else {
+                PlannerUi.Tip materialTip = new PlannerUi.Tip(need.name, "a material")
+                    .row("The plan needs", String.format("%,d", need.needed))
+                    .row("You have", String.format("%,d", need.have), need.enough() ? PlannerUi.Tip.GOOD : null);
+                if (!need.enough()) {
+                    materialTip.row("Short", String.format("%,d", need.needed - need.have), PlannerUi.Tip.BAD);
+                }
+                if (!gather) {
+                    buyRows(materialTip, need);
+                }
+                if (waiting != null) {
+                    materialTip.line(waiting + " first", PlannerUi.Tip.WARN);
+                }
+                gatherRows(materialTip, shown, need, source, gather);
+                tip = materialTip.hint("Bank as last opened plus inventory").build();
+            }
             JPanel row = new JPanel(new BorderLayout(6, 0));
             row.setOpaque(false);
             JLabel name = PlannerUi.label(need.name, Color.WHITE);
@@ -2685,12 +2768,17 @@ final class PlannerCalculatorView {
                 calc.setPlanExpanded(true);
                 openPlan(shown, index);
             };
-            list.add(indent(hasGoal, card.interactive(click, menu, "<html><b>"
-                + PlannerUi.esc(planName(plan, i)) + "</b>: level " + start + " to " + plan.goal + ", " + plan.steps.size()
-                + (plan.steps.size() == 1 ? " milestone" : " milestones") + "<br>" + (int) Math.floor(done * 100)
-                + "% of the way (you're level " + level + ")" + (unfolded ? "<br>Click to fold it away" : "<br>Click to open it")
-                + (tracked ? "<br>Followed: the plan your goal follows in the tracker" : "")
-                + "<br>Right-click to rename, duplicate or delete</html>")));
+            PlannerUi.Tip tip = new PlannerUi.Tip(planName(plan, i), "level " + start + " \u2192 " + plan.goal);
+            tip.row("Milestones", String.valueOf(plan.steps.size()));
+            tip.row("Done", (int) Math.floor(done * 100) + "% (you're level " + level + ")",
+                done >= 1 ? PlannerUi.Tip.GOOD : null);
+            if (tracked) {
+                tip.line("Followed: your goal follows it in the tracker", PlannerUi.Tip.GOOD);
+            } else if (plan.sent && calc.trackedPlan(shown) != null) {
+                tip.line("Unsent changes: the tracker has it as you last sent it", PlannerUi.Tip.WARN);
+            }
+            tip.hint((unfolded ? "Click to fold it away" : "Click to open it") + " \u00b7 right-click: rename, duplicate or delete");
+            list.add(indent(hasGoal, card.interactive(click, menu, tip.build())));
             if (unfolded && openPlan != null) {
                 showOpen = true;
             }
@@ -2846,10 +2934,13 @@ final class PlannerCalculatorView {
         list.add(PlannerUi.spaced(card.interactive(() -> {
             goalOpen = !goalOpen;
             redraw.run();
-        }, menu, "<html><b>Your " + shown.getName() + " goal</b>: " + goalText(goal) + ", " + String.format("%,d", goal - xp)
-            + " xp to go (" + (int) Math.floor(done * 100) + "% from where it was set)<br>Training: " + PlannerUi.esc(follows)
-            + "<br>The same goal as the Skilling Helper's: change it in either<br>Click to " + (goalOpen ? "fold away" : "show")
-            + " its plans; right-click to change it, make a plan for it or remove it</html>")));
+        }, menu, new PlannerUi.Tip("Your " + shown.getName() + " goal", goalText(goal))
+            .row("To go", String.format("%,d", goal - xp) + " xp")
+            .row("Done", (int) Math.floor(done * 100) + "% since it was set")
+            .row("Training", follows)
+            .line("The same goal as the Skilling Helper's: change it in either", PlannerUi.Tip.MUTED)
+            .hint("Click: " + (goalOpen ? "fold away" : "show") + " its plans \u00b7 right-click: change, make a plan, remove")
+            .build())));
     }
 
     private void changeSkillGoal(Skill shown) {
