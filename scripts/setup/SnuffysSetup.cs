@@ -206,7 +206,7 @@ namespace Snuffys
                     {
                         return;
                     }
-                    problems.Add("PowerShell: " + (error.Trim().Length > 0 ? error.Trim().Split('\n')[0] : "exit " + get.ExitCode));
+                    problems.Add("PowerShell: " + (error.Trim().Length > 0 ? error.Trim().Split(new char[] { '\n' })[0] : "exit " + get.ExitCode));
                 }
             }
             catch (Exception e)
