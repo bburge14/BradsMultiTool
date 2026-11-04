@@ -1559,6 +1559,9 @@ final class PlannerCalculatorView {
             this::price, calc::itemPrice);
         PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, steps, now);
 
+        int endLevel = Math.min(plan.goal, Math.max(totals.endLevel, level));
+        // The whole plan's totals: a strip of tiles at the top (hover any for all of it), not another card
+        String wholeTip = totals.xp > 0 ? planSummaryTip(steps, totals, level, endLevel) : null;
         JPanel tiles = new JPanel(new GridLayout(0, 2, PlannerUi.GAP, PlannerUi.GAP));
         tiles.setBackground(PlannerUi.BACKGROUND);
         tiles.add(tile("XP to go", PlannerPanel.gp(totals.xp) + " xp", String.format("%,d", totals.xp)
@@ -1567,7 +1570,6 @@ final class PlannerCalculatorView {
             : "-", (totals.untimed > 0 ? totals.untimed + " milestone" + (totals.untimed == 1 ? " has" : "s have") + " no XP rate, "
             + "so the time leaves " + (totals.untimed == 1 ? "it" : "them") + " out" : "At the wiki's training guides' XP rates")
             + estimatedNote(totals), Color.WHITE));
-        int endLevel = Math.min(plan.goal, Math.max(totals.endLevel, level));
         tiles.add(tile("Level", level + " → " + endLevel, endLevel < plan.goal ? "The milestones end at level " + endLevel
             + "; the goal is " + plan.goal : "Your level now, and where the plan ends (its goal)", Color.WHITE));
         boolean cost = calc.showPrices() && totals.cost > 0;
@@ -1588,6 +1590,10 @@ final class PlannerCalculatorView {
         } else {
             tiles.add(tile("Milestones", String.valueOf(plan.steps.size()), "The plan's milestones", Color.WHITE));
         }
+        if (wholeTip != null) {
+            PlannerUi.tips(tiles, wholeTip);
+        }
+        list.add(PlannerUi.group("Whole plan", "to level " + endLevel));
         list.add(PlannerUi.spaced(tiles));
 
         JLabel goalLink = PlannerUi.linkLabel("Goal: level " + plan.goal, "Change the plan's final goal", () -> changeGoal(shown));
@@ -1613,9 +1619,6 @@ final class PlannerCalculatorView {
         if (expected < plan.goal && !milestonesFolded) {
             list.add(gap(shown, plan, expected, plan.goal));
         }
-        if (totals.xp > 0) {
-            list.add(PlannerUi.spaced(planSummary(steps, totals, level, endLevel)));
-        }
         fillMaterials(shown, steps);
         fillMoneyPlan(shown, steps);
         list.add(linkRow(PlannerUi.linkLabel("Suggest a plan...", "Replace the milestones to " + plan.goal + ": "
@@ -1632,7 +1635,7 @@ final class PlannerCalculatorView {
 
     // The whole plan added up, under its milestones (each card above is its own levels only): XP, time to the goal,
     // the average XP an hour over it, and the money
-    private JComponent planSummary(List<PlannerCalculator.StepRow> steps, PlannerCalculator.Totals totals, int level, int endLevel) {
+    private String planSummaryTip(List<PlannerCalculator.StepRow> steps, PlannerCalculator.Totals totals, int level, int endLevel) {
         long timedXp = 0;
         for (PlannerCalculator.StepRow s : steps) {
             if (!s.done && s.row != null && s.row.seconds > 0) {
@@ -1650,21 +1653,10 @@ final class PlannerCalculatorView {
         String time = totals.seconds > 0 ? duration(totals.seconds, totals.estimated > 0)
             + (totals.untimed > 0 ? " for " + (milestones - totals.untimed) + " of " + milestones : "")
             : "no XP rates";
-        PlannerUi.Card card = new PlannerUi.Card("Whole plan: " + level + " → " + endLevel,
-            milestones + " milestone" + (milestones == 1 ? "" : "s") + " to go", PlannerPanel.gp(totals.xp) + " xp");
-        card.right.setForeground(Color.WHITE);
         boolean prices = calc.showPrices() && (totals.cost > 0 || totals.earn > 0);
         double net = totals.earn - totals.cost;
-        card.third(time, prices ? gpPerXp(net / totals.xp) : "");
-        if (prices) {
-            card.lowerRight.setForeground(net < 0 ? COSTS : PlannerUi.READY);
-            priceLines(card, totals.cost, totals.earn);
-        }
-        card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CALCULATOR, 20,
-            new Color(200, 200, 200)))));
-        card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, PlannerUi.GROWING));
         PlannerUi.Tip tip = new PlannerUi.Tip("The whole plan", "level " + level + " \u2192 " + endLevel);
-        tip.line("The milestones added up (each card above is its own levels only)", PlannerUi.Tip.MUTED);
+        tip.line("The milestones added up", PlannerUi.Tip.MUTED);
         tip.section("To go");
         tip.row("XP", String.format("%,d", totals.xp));
         tip.row("Milestones", String.valueOf(milestones));
@@ -1705,7 +1697,7 @@ final class PlannerCalculatorView {
             tip.row("Cash so far", signed(cash), cash < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
             tip.row("Net with unsold", signed(withUnsold), withUnsold < 0 ? PlannerUi.Tip.BAD : PlannerUi.Tip.GOOD);
         }
-        return card.interactive(null, null, tip.build());
+        return tip.build();
     }
 
     /** What a milestone's products came to so far, from what you've recorded selling and alching. */
@@ -1964,9 +1956,38 @@ final class PlannerCalculatorView {
     }
 
     // A section of the open plan with a fold arrow: click its header to fold it away or open it (remembered)
+    // Each section's own colour, on its header and down the left of what's in it, so you always know where you are
+    static final Color MILESTONES = new Color(90, 190, 110);
+    static final Color MONEY = new Color(230, 180, 60);
+    static final Color MATERIALS = new Color(110, 160, 235);
+    static final Color SUPPLIES = new Color(180, 140, 230);
+
+    private static Color sectionColour(String key) {
+        switch (key) {
+            case "milestones":
+                return MILESTONES;
+            case "money":
+                return MONEY;
+            case "materials":
+                return MATERIALS;
+            case "supplies":
+                return SUPPLIES;
+            default:
+                return PlannerUi.MUTED;
+        }
+    }
+
     private JComponent section(String key, String title, String summary, JComponent... actions) {
         boolean folded = calc.planFolded(key);
-        JComponent row = PlannerUi.group((folded ? "\u25B6 " : "\u25BC ") + title, summary, actions);
+        JPanel row = PlannerUi.group((folded ? "\u25B6 " : "\u25BC ") + title, summary, actions);
+        Color colour = sectionColour(key);
+        java.awt.Component name = ((java.awt.BorderLayout) row.getLayout()).getLayoutComponent(BorderLayout.WEST);
+        if (name instanceof JLabel) {
+            name.setForeground(colour);
+            ((JLabel) name).setFont(FontManager.getRunescapeBoldFont());
+        }
+        row.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 3, 0, 0, colour),
+            new EmptyBorder(8, 5, 4, 0)));
         row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
         row.setToolTipText(PlannerUi.fit(folded ? "Click to open" : "Click to fold away"));
         MouseAdapter click = new MouseAdapter() {
@@ -2044,6 +2065,46 @@ final class PlannerCalculatorView {
         }
     }
 
+    // A money ledger: lines of a label and an amount, no picture, the section's colour down its left
+    private static JPanel ledger(Color edge) {
+        JPanel box = new JPanel(new GridLayout(0, 1, 0, 1));
+        box.setBackground(PlannerUi.CARD);
+        box.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 3, 0, 0, edge),
+            new EmptyBorder(4, 7, 4, 7)));
+        return box;
+    }
+
+    private static void ledgerLine(JPanel ledger, String left, String right, Color rightColour, boolean first) {
+        JPanel row = new JPanel(new BorderLayout(6, 0));
+        row.setOpaque(false);
+        JLabel name = PlannerUi.label(left, first ? Color.WHITE : PlannerUi.MUTED);
+        name.setMinimumSize(new Dimension(0, 0));
+        row.add(name, BorderLayout.CENTER);
+        if (!right.isEmpty()) {
+            row.add(PlannerUi.label(right, rightColour), BorderLayout.EAST);
+        }
+        ledger.add(row);
+    }
+
+    // A panel with a tooltip, and a click (or none)
+    private static JComponent clickable(JPanel panel, Runnable click, String tooltip) {
+        PlannerUi.tips(panel, tooltip);
+        if (click != null) {
+            panel.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+            MouseAdapter mouse = new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    click.run();
+                }
+            };
+            panel.addMouseListener(mouse);
+            for (java.awt.Component child : panel.getComponents()) {
+                child.addMouseListener(mouse);
+            }
+        }
+        return PlannerUi.fullWidth(panel);
+    }
+
     private void askBudget(Skill shown, long coins) {
         String typed = JOptionPane.showInputDialog(list, "How much should this plan use? (like 50m, 1.2b, 750k)\n"
             + "Leave it empty to use all your coins (" + PlannerPanel.gp(coins) + " seen in your bank and inventory).",
@@ -2083,24 +2144,15 @@ final class PlannerCalculatorView {
     // The budget (set, or your coins), what the plan costs after sales, the budget the whole plan needs, and what's left
     // at the goal or how short it falls; a click sets the budget
     private JComponent moneySummary(Skill shown, PlannerCalculator.MoneyPlan money, long set, long coins, long needed) {
-        PlannerUi.Card card = new PlannerUi.Card(set > 0 ? "Budget: " + PlannerPanel.gp(set) : "Budget: not set",
-            set > 0 ? "Your coins" : "Using your coins", PlannerPanel.gp(coins));
-        card.third("Plan costs after sales", signed(-money.loss));
-        card.lowerRight.setForeground(money.loss > 0 ? COSTS : PlannerUi.READY);
-        card.fourth("Budget it needs", PlannerPanel.gp(needed));
-        card.lastRight.setForeground(needed > money.budget ? COSTS : PlannerUi.READY);
-        if (money.runsOut != null) {
-            card.fifth("Short by", PlannerPanel.gp(Math.max(0, needed - money.budget)));
-            card.fifth.setForeground(COSTS);
-            card.fifthRight.setForeground(COSTS);
-            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, COSTS));
-        } else {
-            card.fifth("Left at the goal", PlannerPanel.gp(Math.max(0, money.end())));
-            card.fifthRight.setForeground(PlannerUi.READY);
-            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, PlannerUi.READY));
-        }
-        card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CALCULATOR, 20,
-            new Color(200, 200, 200)))));
+        // A ledger, not a card: the budget's lines in the money section's colour
+        boolean short_ = money.runsOut != null;
+        JPanel ledger = ledger(short_ ? COSTS : MONEY);
+        ledgerLine(ledger, set > 0 ? "Budget" : "Budget (your coins)", PlannerPanel.gp(set > 0 ? set : coins), Color.WHITE, true);
+        ledgerLine(ledger, "Costs after sales", signed(-money.loss), money.loss > 0 ? COSTS : PlannerUi.READY, false);
+        ledgerLine(ledger, "The plan needs", PlannerPanel.gp(needed), needed > money.budget ? COSTS : PlannerUi.READY, false);
+        ledgerLine(ledger, short_ ? "Short by" : "Left at the goal",
+            PlannerPanel.gp(short_ ? Math.max(0, needed - money.budget) : Math.max(0, money.end())),
+            short_ ? COSTS : PlannerUi.READY, false);
         PlannerUi.Tip tip = new PlannerUi.Tip("Money plan", "buy, make, sell, repeat");
         tip.line("Buy what each milestone needs that you don't have, make it, sell it, and buy the next lot with what it "
             + "brought in: you only need a round's worth at once", PlannerUi.Tip.MUTED);
@@ -2115,7 +2167,7 @@ final class PlannerCalculatorView {
         yourPriceRows(tip, planItems(money));
         tip.line("Sales after the GE's 2% tax; today's prices, so it's a guide", PlannerUi.Tip.MUTED);
         tip.hint("Click to set the budget");
-        return card.interactive(() -> askBudget(shown, coins), null, tip.build());
+        return clickable(ledger, () -> askBudget(shown, coins), tip.build());
     }
 
     // What you've really spent and sold for the plan since the budget was set (your GE trades of its materials and
@@ -2131,15 +2183,11 @@ final class PlannerCalculatorView {
             return null;
         }
         long left = set - traded[0] + traded[1];
-        PlannerUi.Card card = new PlannerUi.Card("Since you set the budget", "Spent buying", PlannerPanel.gp(traded[0]));
-        card.right.setForeground(new Color(220, 150, 140));
-        card.third("Sold for (after tax)", PlannerPanel.gp(traded[1]));
-        card.lowerRight.setForeground(new Color(150, 210, 150));
-        card.fourth("Budget left", PlannerPanel.gp(Math.max(0, left)));
-        card.lastRight.setForeground(left >= 0 ? Color.WHITE : COSTS);
-        card.icon.setIcon(new ImageIcon(PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.CLOCK, 20,
-            new Color(200, 200, 200)))));
-        card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, PlannerUi.GROWING));
+        JPanel ledger = ledger(MONEY);
+        ledgerLine(ledger, "Since you set the budget", "", Color.WHITE, true);
+        ledgerLine(ledger, "Spent buying", PlannerPanel.gp(traded[0]), new Color(220, 150, 140), false);
+        ledgerLine(ledger, "Sold for (after tax)", PlannerPanel.gp(traded[1]), new Color(150, 210, 150), false);
+        ledgerLine(ledger, "Budget left", PlannerPanel.gp(Math.max(0, left)), left >= 0 ? Color.WHITE : COSTS, false);
         PlannerUi.Tip tip = new PlannerUi.Tip("Your real trades", "since " + java.time.format.DateTimeFormatter
             .ofPattern("MMM d, h:mm a").format(java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(since),
                 java.time.ZoneId.systemDefault())));
@@ -2149,7 +2197,7 @@ final class PlannerCalculatorView {
         tip.row("Budget", PlannerPanel.gp(set));
         tip.row("Left", PlannerPanel.gp(left), left >= 0 ? PlannerUi.Tip.GOOD : PlannerUi.Tip.BAD);
         tip.hint("Only trades made while RuneLite ran with the Planner on");
-        return card.interactive(null, null, tip.build());
+        return clickable(ledger, null, tip.build());
     }
 
     // The items a money plan buys and sells: its materials and each milestone's product
@@ -2186,28 +2234,16 @@ final class PlannerCalculatorView {
     private JComponent moneyCard(PlannerCalculator.MoneyStep m) {
         SkillPlans.Step step = m.step.step;
         int kinds = m.buys.size();
-        PlannerUi.Card card = new PlannerUi.Card(step.action, kinds == 0 ? "Nothing to buy"
-            : "Buys " + kinds + (kinds == 1 ? " material" : " materials"), m.cost > 0 ? PlannerPanel.gp(m.cost) : "");
-        card.corner.setText(step.from + " → " + step.to);
-        card.right.setForeground(new Color(220, 150, 140));
+        // One short row a milestone (its card is above, with its picture): what to buy, then the budget after it
+        JPanel ledger = ledger(m.runsOut ? COSTS : MONEY);
+        ledgerLine(ledger, step.action + "  " + step.from + "\u2192" + step.to,
+            kinds == 0 ? "nothing to buy" : "buy " + PlannerPanel.gp(m.cost), kinds == 0 ? PlannerUi.MUTED : new Color(220, 150, 140), true);
         if (m.runsOut) {
-            card.third("Not enough budget", "");
-            card.lower.setForeground(COSTS);
-            card.fourth("It loses", PlannerPanel.gp(m.loss()));
-            card.lastRight.setForeground(COSTS);
-            card.fifth("Budget left", PlannerPanel.gp(Math.max(0, m.budgetBefore)));
-            card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, COSTS));
+            ledgerLine(ledger, "Not enough budget: loses " + PlannerPanel.gp(m.loss()), "", COSTS, false);
         } else {
-            boolean byLimit = m.limitRounds >= m.cashRounds;
-            card.third(m.rounds == 1 ? "In one go" : m.rounds + " rounds of " + PlannerPanel.gp(m.perRound),
-                m.rounds > 1 ? (byLimit ? "buy limit" : "budget") : "");
-            card.fourth(m.earn > 0 ? "Sells " + PlannerPanel.gp(m.earn) : "Nothing to sell", "");
-            net(card.lastRight, (double) m.cost, (double) m.earn, true);
-            card.fifth("Budget after", PlannerPanel.gp(Math.max(0, m.budgetAfter)));
-            card.fifthRight.setForeground(Color.WHITE);
-        }
-        if (m.step.action != null) {
-            picture(card.icon, m.step.action);
+            String how = m.rounds == 1 ? "in one go" : m.rounds + " rounds (" + (m.limitRounds >= m.cashRounds ? "buy limit" : "budget") + ")";
+            ledgerLine(ledger, how + (m.earn > 0 ? " \u00b7 sells " + PlannerPanel.gp(m.earn) : ""),
+                PlannerPanel.gp(Math.max(0, m.budgetAfter)) + " after", PlannerUi.MUTED, false);
         }
         PlannerUi.Tip tip = new PlannerUi.Tip(step.action, "level " + step.from + " \u2192 " + step.to);
         if (!m.buys.isEmpty()) {
@@ -2234,7 +2270,7 @@ final class PlannerCalculatorView {
         if (!m.runsOut) {
             tip.row("Budget after", PlannerPanel.gp(Math.max(0, m.budgetAfter)));
         }
-        return card.interactive(null, null, tip.build());
+        return clickable(ledger, null, tip.build());
     }
 
     private static final Color GATHER_BLUE = new Color(138, 180, 248);
@@ -2528,6 +2564,8 @@ final class PlannerCalculatorView {
             String.format("%,d / %,d", need.have, need.needed), shortBy > 0 ? "+" + PlannerPanel.gp(supply.xp) + " xp" : "");
         card.left.setForeground(need.enough() ? PlannerUi.READY : Color.WHITE);
         card.right.setForeground(PlannerUi.READY);
+        // (the supplies section's purple down the left)
+        card.setBorder(BorderFactory.createMatteBorder(0, 3, 0, 0, SUPPLIES));
         if (shortBy > 0) {
             long buying = shortBy * (long) price(need.name);
             card.third(supply.seconds > 0 ? duration(supply.seconds, supply.estimated) : "no XP rate",
@@ -2711,7 +2749,8 @@ final class PlannerCalculatorView {
         JPanel box = new JPanel();
         box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
         box.setBackground(PlannerUi.CARD);
-        box.setBorder(new EmptyBorder(5, 7, 5, 7));
+        box.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 3, 0, 0, MATERIALS),
+            new EmptyBorder(5, 7, 5, 7)));
         for (PlannerCalculator.Need need : needs) {
             // Got yourself (gathered or made in another skill) or bought
             PlannerCalculator.Source source = need.tool ? null : PlannerCalculator.sourceOf(need.name, shown, data, recipes);
@@ -3416,9 +3455,9 @@ final class PlannerCalculatorView {
             card.left.setForeground(PlannerUi.READY);
             card.bar(new PlannerUi.Bar(1, PlannerUi.READY));
         } else {
-            if (now) {
-                card.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, SUGGESTED));
-            }
+            // (the milestones' green down the left: brighter and wider for the one you're on)
+            card.setBorder(now ? BorderFactory.createMatteBorder(0, 4, 0, 0, SUGGESTED)
+                : BorderFactory.createMatteBorder(0, 3, 0, 0, MILESTONES.darker()));
             if (started) {
                 card.bar(new PlannerUi.Bar(Math.max(0.02, s.progress), PlannerUi.GROWING));
             }
