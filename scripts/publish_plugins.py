@@ -68,9 +68,19 @@ def git(*args, cwd=ROOT, capture=True, check=True):
     return (result.stdout or "").strip()
 
 
+# Files the split makes that a rebuild on this PC can change (Windows' csc makes a different installer): never your
+# edits, so they're put back rather than stopping a push
+GENERATED = ["plugins/launcher/Snuffys-Launcher-Setup.exe", "scripts/setup/Snuffys-Launcher-Setup.exe",
+             "scripts/setup/source.sha256"]
+
+
 def preflight(dry_run):
-    if git("status", "--porcelain"):
-        sys.exit("Commit (or stash) your changes first: publishing uses what's committed.")
+    git("checkout", "--", *GENERATED, check=False)
+    changed = git("status", "--porcelain")
+    if changed:
+        files = "\n".join("  " + line[3:] for line in changed.splitlines()[:20])
+        sys.exit("Commit (or stash) your changes first: publishing uses what's committed. Changed here:\n" + files
+                 + "\n(Not yours? git checkout -- <file> puts one back as it was.)")
     check = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "split_plugins.py"), "--check"], cwd=ROOT)
     if check.returncode != 0:
         sys.exit("plugins/ is out of date: run python3 scripts/split_plugins.py --verify, commit, and try again.")

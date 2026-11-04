@@ -1,4 +1,3 @@
 *.bat text eol=crlf
 gradlew text eol=lf
 *.exe binary
-scripts/setup/*.cs text eol=lf
