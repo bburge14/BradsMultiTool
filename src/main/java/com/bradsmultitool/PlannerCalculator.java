@@ -858,9 +858,12 @@ class PlannerCalculator {
             return costEach == null ? null : costEach * count;
         }
 
-        /** The products' worth for this many, or null. */
+        /** How many of its products are kept for other plans (not sold). */
+        long kept;
+
+        /** The products' worth for this many (less what's kept for other plans), or null. */
         Double earn(int count) {
-            return earnEach == null ? null : earnEach * count;
+            return earnEach == null ? null : earnEach * Math.max(0, count - kept);
         }
     }
 
@@ -1170,6 +1173,10 @@ class PlannerCalculator {
             boolean done = xpNow >= end;
             Row row = action == null ? null : row(skill, action, on, start, end, Math.max(step.from,
                 CalculatorData.level(xpNow, false)), recipes, training, Collections.emptyMap(), price, itemPrice);
+            if (row != null) {
+                // (what it makes for other skills' plans isn't sold)
+                row.kept = Math.min(step.supplied(), row.needed);
+            }
             StepRow s = new StepRow(step, action, row, done ? 0 : Math.max(0, end - start), done);
             int from = Experience.getXpForLevel(Math.max(1, step.from));
             s.progress = done ? 1 : end > from ? Math.max(0, Math.min(1, (double) (xpNow - from) / (end - from))) : 0;

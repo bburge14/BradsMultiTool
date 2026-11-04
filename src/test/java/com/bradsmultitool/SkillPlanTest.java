@@ -464,4 +464,25 @@ public class SkillPlanTest {
             pool, (skill, item) -> true);
         assertTrue(owned.stream().noneMatch(l -> l.item.equalsIgnoreCase("Adamantite ore")));
     }
+
+    @Test
+    public void suppliesAreSavedAndLeftOutOfSales() {
+        SkillPlans.Plan plan = new SkillPlans.Plan(75);
+        SkillPlans.Step yews = new SkillPlans.Step("Yew logs", 60, 75, null, 175);
+        yews.supplies.add(new SkillPlans.Supply("FIREMAKING", "Yew logs", 1000));
+        plan.steps.add(yews);
+        // Saved and read back (and a plan saved before supplies existed still reads)
+        SkillPlans.Plan back = SkillPlans.decode(SkillPlans.encode(plan));
+        assertEquals(1, back.steps.get(0).supplies.size());
+        assertEquals("FIREMAKING", back.steps.get(0).supplies.get(0).skill);
+        assertEquals(1000, back.steps.get(0).supplied());
+        assertEquals(1, SkillPlans.decode("goal\t75\n60\t75\tYew logs\t\t175.0\n").steps.size());
+        // The kept logs aren't sold: the milestone's sales are for the rest
+        CalculatorData.Calc woodcutting = DATA.calc(Skill.WOODCUTTING);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.WOODCUTTING, woodcutting, Collections.emptyList(),
+            back, Experience.getXpForLevel(60), RECIPES, TRAINING, n -> 0, id -> 300);
+        PlannerCalculator.Row row = rows.get(0).row;
+        assertEquals(1000, row.kept);
+        assertEquals(row.earnEach * (row.needed - 1000), row.earn(row.needed), 0.01);
+    }
 }

@@ -263,6 +263,22 @@ final class PlannerUi {
             return this;
         }
 
+        /** Another line of text under the ones it has (any number): its left and right labels. */
+        JLabel[] line(String leftText, String rightText) {
+            JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            info.setLayout(new java.awt.GridLayout(info.getComponentCount() + 1, 1));
+            JLabel l = label(leftText, MUTED);
+            l.setMinimumSize(new Dimension(0, 0));
+            JLabel r = label(rightText == null ? "" : rightText, MUTED);
+            r.setHorizontalAlignment(SwingConstants.RIGHT);
+            JPanel row = new JPanel(new BorderLayout(4, 0));
+            row.setOpaque(false);
+            row.add(l, BorderLayout.CENTER);
+            row.add(r, BorderLayout.EAST);
+            info.add(row);
+            return new JLabel[] {l, r};
+        }
+
         /** Adds a fourth line of muted text under the third (after {@link #third}). */
         Card fourth(String leftText, String rightText) {
             JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);

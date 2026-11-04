@@ -1994,6 +1994,15 @@ final class PlannerCalculatorView {
 
     private static final Color GATHER_BLUE = new Color(138, 180, 248);
 
+    // "Firemaking" from a saved skill's name
+    private static String skillName(String saved) {
+        try {
+            return Skill.valueOf(saved).getName();
+        } catch (IllegalArgumentException e) {
+            return saved;
+        }
+    }
+
     private static String repeat(String text, int times) {
         StringBuilder out = new StringBuilder();
         for (int i = 0; i < times; i++) {
@@ -2106,7 +2115,7 @@ final class PlannerCalculatorView {
                 }
                 for (PlannerCalculator.Link link : PlannerCalculator.chain(need.name, need.needed, consumer, data, recipes, pool,
                     calc::gathers)) {
-                    if (link.skill != shown) {
+                    if (link.skill != shown || planned(shown, consumer, link.item)) {
                         continue;
                     }
                     String key = link.item + "|" + consumer.name();
@@ -2163,35 +2172,87 @@ final class PlannerCalculatorView {
         // Right-click: make it a milestone of this skill's plan (its action, from your level to where its XP gets you)
         JPopupMenu menu = new JPopupMenu();
         if (shortBy > 0) {
-            int from = Math.max(CalculatorData.level(Math.max(0, calc.xp(source.skill)), false), source.action.level);
-            int to = Math.min(99, CalculatorData.level((int) Math.min(Experience.MAX_SKILL_XP,
-                (long) Math.max(calc.xp(source.skill), Experience.getXpForLevel(from)) + supply.xp), false));
-            if (to <= from) {
-                to = Math.min(99, from + 1);
-            }
-            int start = from;
-            int end = to;
-            menu.add(menuItem("Add to the " + source.skill.getName() + " plan (" + start + "-" + end + ")",
-                () -> addSupplyMilestone(source, start, end)));
+            menu.add(menuItem("Add to the " + source.skill.getName() + " plan",
+                () -> addSupplyMilestone(source, consumer, need.name, shortBy, supply.xp)));
         }
         menu.add(menuItem("Go to the " + consumer.getName() + " plan", () -> pick(consumer)));
         return card.interactive(() -> pick(consumer), menu, tip);
     }
 
     // A supply as a milestone of its skill's plan (a new plan to its end if there isn't one): the milestones there make room
-    private void addSupplyMilestone(PlannerCalculator.Source source, int from, int to) {
+    /**
+     * A supply into its skill's plan: onto a milestone there with the same method if it has one (its count of them is
+     * kept for the other plan), else a new milestone after the other supplies, from your level for as long as its XP
+     * takes. Either way the milestone says what's kept for whom, and it's left out of that milestone's sales.
+     */
+    private void addSupplyMilestone(PlannerCalculator.Source source, Skill consumer, String item, long quantity, long xp) {
         Skill skill = source.skill;
         SkillPlans.Plan plan = calc.plan(skill);
         if (plan == null) {
-            plan = new SkillPlans.Plan(to);
+            plan = new SkillPlans.Plan(1);
             plan.name = "Supplies";
         }
-        List<CalculatorData.Bonus> on = CalculatorData.bonuses(data.calc(skill), calc.bonuses(skill));
-        TrainingData.Method method = SkillPlans.methodFor(training, skill, source.action.name, from, to);
-        PlannerCalculator.insertStep(plan, new SkillPlans.Step(source.action.name, from, to, method == null ? null : method.name,
-            CalculatorData.xpEach(source.action, on)));
+        int level = CalculatorData.level(Math.max(0, calc.xp(skill)), false);
+        SkillPlans.Step onto = null;
+        for (SkillPlans.Step step : plan.steps) {
+            if (step.action.equalsIgnoreCase(source.action.name) && step.to > level) {
+                onto = step;
+                break;
+            }
+        }
+        if (onto == null) {
+            // After every milestone that's already a supply (so a second one doesn't take the first one's place)
+            int start = Math.max(level, source.action.level);
+            boolean moved = true;
+            while (moved) {
+                moved = false;
+                for (SkillPlans.Step step : plan.steps) {
+                    if (!step.supplies.isEmpty() && step.from <= start && start < step.to) {
+                        start = step.to;
+                        moved = true;
+                    }
+                }
+            }
+            if (start >= 99) {
+                JOptionPane.showMessageDialog(list, "The " + skill.getName() + " plan has no room left before 99 for it.",
+                    "Supplies", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            long from = Math.max(calc.xp(skill), Experience.getXpForLevel(start));
+            int end = Math.min(99, CalculatorData.level((int) Math.min(Experience.MAX_SKILL_XP, from + xp), false));
+            if (end <= start) {
+                end = start + 1;
+            }
+            List<CalculatorData.Bonus> on = CalculatorData.bonuses(data.calc(skill), calc.bonuses(skill));
+            TrainingData.Method method = SkillPlans.methodFor(training, skill, source.action.name, start, end);
+            onto = new SkillPlans.Step(source.action.name, start, end, method == null ? null : method.name,
+                CalculatorData.xpEach(source.action, on));
+            PlannerCalculator.insertStep(plan, onto);
+            // (insertStep made room; the step itself is the one in the plan)
+        }
+        // The supply on it (this plan's again replaces its earlier count)
+        SkillPlans.Step target = onto;
+        target.supplies.removeIf(s -> s.skill.equals(consumer.name()) && s.item.equalsIgnoreCase(item));
+        target.supplies.add(new SkillPlans.Supply(consumer.name(), item, quantity));
+        plan.goal = Math.max(plan.goal, target.to);
         calc.savePlan(skill, plan);
         redraw.run();
+    }
+
+    // Whether this skill's open plan already carries a supply for that plan's item
+    private boolean planned(Skill shown, Skill consumer, String item) {
+        SkillPlans.Plan plan = calc.plan(shown);
+        if (plan == null) {
+            return false;
+        }
+        for (SkillPlans.Step step : plan.steps) {
+            for (SkillPlans.Supply supply : step.supplies) {
+                if (supply.skill.equals(consumer.name()) && supply.item.equalsIgnoreCase(item)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // How long what's short takes to buy at the item's Grand Exchange buy limit (and what's left of it now)
@@ -2639,6 +2700,17 @@ final class PlannerCalculatorView {
                 priceLines(card, row.cost(row.needed), row.earn(row.needed));
             }
         }
+        // What it makes for other plans: kept, not sold (left out of its sales and net)
+        for (SkillPlans.Supply supply : step.supplies) {
+            boolean short_ = row != null && !s.done && step.supplied() > row.needed;
+            JLabel[] kept = card.line(PlannerPanel.gp(supply.quantity) + " kept for " + skillName(supply.skill),
+                short_ ? "makes " + PlannerPanel.gp(row.needed) : "not sold");
+            kept[0].setForeground(GATHER_BLUE);
+            kept[1].setForeground(short_ ? HudColors.WARN : GATHER_BLUE);
+            kept[0].setToolTipText(PlannerUi.esc(supply.item) + " for your " + skillName(supply.skill) + " plan: kept, so "
+                + "they're left out of this milestone's sales and net" + (short_ ? "; it only makes " + String.format("%,d",
+                row.needed) + " more, so make it longer or get the rest another way" : ""));
+        }
         if (s.action != null) {
             picture(card.icon, s.action);
         } else {
@@ -2674,6 +2746,17 @@ final class PlannerCalculatorView {
             menu.add(menuItem("Move down", () -> change(shown, p -> PlannerCalculator.swapSteps(p, index, index + 1))));
         }
         menu.add(menuItem("Delete", () -> change(shown, p -> PlannerCalculator.removeStep(p, index))));
+        // Supplies it carries for other plans: each can be dropped (they're sold again)
+        if (!step.supplies.isEmpty()) {
+            menu.addSeparator();
+            for (SkillPlans.Supply supply : new ArrayList<>(step.supplies)) {
+                menu.add(menuItem("Stop keeping " + supply.item + " for " + skillName(supply.skill), () -> change(shown, p -> {
+                    if (index < p.steps.size()) {
+                        p.steps.get(index).supplies.removeIf(x -> x.skill.equals(supply.skill) && x.item.equalsIgnoreCase(supply.item));
+                    }
+                })));
+            }
+        }
         // Its materials: get each yourself (gathered or made in another skill) or buy it
         if (row != null && !s.done) {
             boolean first = true;

@@ -34,6 +34,19 @@ final class SkillPlans {
     /** The plan exported to the Skilling Helper's tracker. */
     static final String TRACKED_KEY = "goalPlan.";
 
+    /** Some of a milestone's products set aside for another skill's plan (yew logs for Firemaking): not sold. */
+    static final class Supply {
+        final String skill;
+        final String item;
+        long quantity;
+
+        Supply(String skill, String item, long quantity) {
+            this.skill = skill;
+            this.item = item;
+            this.quantity = quantity;
+        }
+    }
+
     /** One milestone: train {@link #action} from level {@link #from} until level {@link #to}. */
     static final class Step {
         String action;
@@ -43,6 +56,8 @@ final class SkillPlans {
         String method;
         /** XP for one action (with the Calculator's bonuses when exported), 0 if unknown. */
         double xp;
+        /** What of its products is kept for other skills' plans (none: all of it's sold). */
+        final List<Supply> supplies = new ArrayList<>();
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;
@@ -53,7 +68,20 @@ final class SkillPlans {
         }
 
         Step copy() {
-            return new Step(action, from, to, method, xp);
+            Step copy = new Step(action, from, to, method, xp);
+            for (Supply supply : supplies) {
+                copy.supplies.add(new Supply(supply.skill, supply.item, supply.quantity));
+            }
+            return copy;
+        }
+
+        /** How many of its products are kept for other plans, in all. */
+        long supplied() {
+            long total = 0;
+            for (Supply supply : supplies) {
+                total += supply.quantity;
+            }
+            return total;
         }
 
         /** Whether you train it at this level. */
@@ -229,7 +257,16 @@ final class SkillPlans {
         }
         for (Step step : plan.steps) {
             out.append(step.from).append('\t').append(step.to).append('\t').append(clean(step.action)).append('\t')
-                .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp).append('\n');
+                .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp);
+            // (its supplies for other plans, when it has any: "FIREMAKING|Yew logs|30000;...")
+            if (!step.supplies.isEmpty()) {
+                out.append('\t');
+                for (Supply supply : step.supplies) {
+                    out.append(supply.skill).append('|').append(clean(supply.item).replace("|", " ").replace(";", " "))
+                        .append('|').append(supply.quantity).append(';');
+                }
+            }
+            out.append('\n');
         }
         return out.toString();
     }
@@ -253,7 +290,14 @@ final class SkillPlans {
                     String method = parts.length > 3 && !parts[3].isEmpty() ? parts[3] : null;
                     double xp = parts.length > 4 && !parts[4].isEmpty() ? Double.parseDouble(parts[4]) : 0;
                     if (from >= 1 && to > from) {
-                        plan.steps.add(new Step(parts[2], from, to, method, xp));
+                        Step step = new Step(parts[2], from, to, method, xp);
+                        for (String supply : parts.length > 5 ? parts[5].split(";") : new String[0]) {
+                            String[] bits = supply.split("\\|");
+                            if (bits.length == 3) {
+                                step.supplies.add(new Supply(bits[0], bits[1], Long.parseLong(bits[2].trim())));
+                            }
+                        }
+                        plan.steps.add(step);
                     }
                 }
             } catch (NumberFormatException e) {
