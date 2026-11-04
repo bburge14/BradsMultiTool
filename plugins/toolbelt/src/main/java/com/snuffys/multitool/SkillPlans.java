@@ -73,6 +73,11 @@ final class SkillPlans {
         double alchedEach;
         /** How its products count: "GE" or "ALCH" ({@link PlannerConfig.SellBy}), or null for the setting's way. */
         String sellBy;
+        /**
+         * Not saved: where a supply milestone really ends, in XP (the Planner works it out from what's still to get each
+         * time it draws), so it runs exactly as far as its supplies, partway into its last level; 0: at level {@code to}.
+         */
+        transient long endXp;
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;

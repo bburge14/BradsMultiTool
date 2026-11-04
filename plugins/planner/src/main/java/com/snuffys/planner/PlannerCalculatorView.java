@@ -2430,29 +2430,40 @@ final class PlannerCalculatorView {
         int previousEnd = 0;
         for (SkillPlans.Step step : supplies) {
             CalculatorData.Action action = CalculatorData.named(skillCalc, step.action);
-            long items = suppliesToGet(step);
-            if (action == null || items <= 0) {
+            if (action == null) {
                 previousEnd = Math.max(previousEnd, step.to);
                 continue;
             }
+            long items = suppliesToGet(step);
             int from = previousEnd > 0 ? Math.max(action.level, previousEnd) : step.from;
-            int per = 1;
-            for (RecipeData.Recipe recipe : PlannerCalculator.recipesFor(shown, action, recipes)) {
-                per = Math.max(per, PlannerCalculator.perMake(recipe, action));
+            int to;
+            step.endXp = 0;
+            if (items <= 0) {
+                // Nothing left to get (you have them all, bought or banked): it keeps its length but still follows on
+                // from the one before, so when that one gets shorter it moves up with it
+                to = Math.min(99, from + Math.max(1, step.to - step.from));
+            } else {
+                int per = 1;
+                for (RecipeData.Recipe recipe : PlannerCalculator.recipesFor(shown, action, recipes)) {
+                    per = Math.max(per, PlannerCalculator.perMake(recipe, action));
+                }
+                long actions = (items + per - 1) / per;
+                double each = CalculatorData.xpEach(action, on);
+                long start = Math.max(now, Experience.getXpForLevel(Math.max(1, from)));
+                long end = Math.min(Experience.MAX_SKILL_XP, start + (long) Math.ceil(actions * each));
+                to = Math.min(99, Math.max(from + 1, CalculatorData.level((int) end, false)));
+                // (exactly as far as the supplies: the rest of the way into its last level)
+                step.endXp = end > Experience.getXpForLevel(to) ? end : 0;
             }
-            long actions = (items + per - 1) / per;
-            double each = CalculatorData.xpEach(action, on);
-            long start = Math.max(now, Experience.getXpForLevel(Math.max(1, from)));
-            long end = Math.min(Experience.MAX_SKILL_XP, start + (long) Math.ceil(actions * each));
-            int to = Math.min(99, Math.max(from + 1, CalculatorData.level((int) end, false)));
             previousEnd = to;
             if (to == step.to && from == step.from) {
                 continue;
             }
             int oldTo = step.to;
-            // (shorter: an ordinary milestone after it starts where it ends now)
+            // (an ordinary milestone that started where it ended starts where it ends now, as long as that leaves it
+            // a level)
             for (SkillPlans.Step next : plan.steps) {
-                if (next != step && next.supplies.isEmpty() && next.from == oldTo && to < oldTo) {
+                if (next != step && next.supplies.isEmpty() && next.from == oldTo && to < next.to) {
                     next.from = to;
                 }
             }
@@ -2467,6 +2478,11 @@ final class PlannerCalculatorView {
             plan.steps.sort((a, b) -> Integer.compare(a.from, b.from));
             calc.savePlanQuietly(shown, plan, before);
         }
+    }
+
+    // A count exactly ("1,323") up to 99,999 so the numbers on a line add up; past that, short ("123K")
+    private static String count(long n) {
+        return n < 100_000 ? String.format("%,d", n) : PlannerPanel.gp(n);
     }
 
     // How many of a supply milestone's items the other plans still need that you don't have
@@ -3339,7 +3355,7 @@ final class PlannerCalculatorView {
         // materials cost and what the products sell for; the net
         long supplyItems = step.supplies.isEmpty() ? 0 : suppliesToGet(step);
         String left = !step.supplies.isEmpty() && supplyItems > 0
-            ? PlannerPanel.gp(supplyItems) + " to get"
+            ? count(supplyItems) + " to get"
             : s.done ? "Done (you're level " + level + ")"
             : row != null ? String.format("%,d", row.needed) + " to go" + (started ? " · " + percent + "%" : "")
             : (started ? percent + "% done" : "");
@@ -3429,7 +3445,7 @@ final class PlannerCalculatorView {
                 tip = "You have the " + supply.item + " your " + consumer + " plan still needs";
             } else {
                 suppliesLeft = s.done;
-                kept = card.line(consumer + ": " + PlannerPanel.gp(have) + " / " + PlannerPanel.gp(wanted), "");
+                kept = card.line(consumer + ": " + count(have) + " / " + count(wanted), "");
                 kept[0].setForeground(GATHER_BLUE);
                 tip = "Your " + consumer + " plan still needs " + String.format("%,d", wanted) + " " + supply.item + " and you "
                     + "have " + String.format("%,d", have) + ": this milestone gets the other " + String.format("%,d", toGet)

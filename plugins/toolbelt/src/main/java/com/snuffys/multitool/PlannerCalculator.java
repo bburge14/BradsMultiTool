@@ -1421,9 +1421,18 @@ class PlannerCalculator {
                                   int xpNow, RecipeData recipes, TrainingData training, ToIntFunction<String> price,
                                   IntUnaryOperator itemPrice) {
         List<StepRow> out = new ArrayList<>();
+        // (a supply milestone ends partway into a level, exactly where its supplies take you: the one after it starts
+        // there, so no XP is counted twice)
+        SkillPlans.Step previous = null;
         for (SkillPlans.Step step : plan.steps) {
             int start = Math.max(xpNow, Experience.getXpForLevel(step.from));
-            int end = Experience.getXpForLevel(Math.min(99, step.to));
+            if (previous != null && previous.endXp > 0 && previous.to == step.from) {
+                start = (int) Math.max(start, Math.min(Experience.MAX_SKILL_XP, previous.endXp));
+            }
+            int end = step.endXp > 0 ? (int) Math.min(Experience.MAX_SKILL_XP, step.endXp)
+                : Experience.getXpForLevel(Math.min(99, step.to));
+            end = Math.max(end, start);
+            previous = step;
             CalculatorData.Action action = CalculatorData.named(calc, step.action);
             boolean done = xpNow >= end;
             Row row = action == null ? null : row(skill, action, on, start, end, Math.max(step.from,
