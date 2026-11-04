@@ -2730,19 +2730,24 @@ final class PlannerCalculatorView {
         }
         JPopupMenu menu = new JPopupMenu();
         menu.add(menuItem("Edit...", () -> stepDialog(shown, index, plan.goal)));
-        if (!s.done) {
+        if (!s.done && step.supplies.isEmpty()) {
             int insertFrom = Math.max(step.from, Math.min(step.to - 1, level));
             menu.add(menuItem("Insert a milestone in it...", () -> stepDialog(shown, -1, plan.goal, null, insertFrom, step.to)));
         }
-        menu.add(menuItem("Find a better method...", () -> {
-            picking = index;
-            search.setText("");
-            redraw.run();
-        }));
-        if (index > 0) {
+        // (a supply milestone's method and XP are fixed: it can move, not change)
+        boolean fixed = !step.supplies.isEmpty();
+        if (!fixed) {
+            menu.add(menuItem("Find a better method...", () -> {
+                picking = index;
+                search.setText("");
+                redraw.run();
+            }));
+        }
+        // (moving swaps two milestones' methods over their levels: not with a supply's, whose work is fixed; Edit moves it)
+        if (index > 0 && !fixed && plan.steps.get(index - 1).supplies.isEmpty()) {
             menu.add(menuItem("Move up", () -> change(shown, p -> PlannerCalculator.swapSteps(p, index, index - 1))));
         }
-        if (index < plan.steps.size() - 1) {
+        if (index < plan.steps.size() - 1 && !fixed && plan.steps.get(index + 1).supplies.isEmpty()) {
             menu.add(menuItem("Move down", () -> change(shown, p -> PlannerCalculator.swapSteps(p, index, index + 1))));
         }
         menu.add(menuItem("Delete", () -> change(shown, p -> PlannerCalculator.removeStep(p, index))));
@@ -2955,6 +2960,14 @@ final class PlannerCalculatorView {
             return;
         }
         plan.name = old != null ? old.name : "Wiki suggestions";
+        // Its supply milestones stay as they are (the suggestions make room for them)
+        if (old != null) {
+            for (SkillPlans.Step step : old.steps) {
+                if (!step.supplies.isEmpty()) {
+                    PlannerCalculator.insertStep(plan, step.copy());
+                }
+            }
+        }
         calc.savePlan(shown, plan);
         redraw.run();
     }
@@ -3024,6 +3037,15 @@ final class PlannerCalculatorView {
         form.add(from);
         form.add(new JLabel("To level"));
         form.add(to);
+        // A supply milestone: its method and XP are fixed (it can start elsewhere; its end follows)
+        boolean fixed = editing != null && !editing.supplies.isEmpty();
+        long fixedXp = fixed ? Experience.getXpForLevel(Math.min(99, editing.to)) - Experience.getXpForLevel(editing.from) : 0;
+        if (fixed) {
+            method.setEnabled(false);
+            to.setEnabled(false);
+            form.add(new JLabel("<html><font color='#a0a0a0'>It's a supply for another plan: its method and XP stay;<br>"
+                + "change where it starts and its end follows</font></html>"));
+        }
         if (editing == null && !plan.steps.isEmpty()) {
             JLabel hint = new JLabel("<html><font color='#a0a0a0'>Milestones it overlaps make room: inside one, it's<br>"
                 + "split around it (74-81 in 74-99 leaves 81-99)</font></html>");
@@ -3035,6 +3057,11 @@ final class PlannerCalculatorView {
         }
         int start = parse(from.getText());
         int end = parse(to.getText());
+        if (fixed && start >= 1 && start < 99) {
+            end = Math.min(99, CalculatorData.level((int) Math.min(Experience.MAX_SKILL_XP,
+                Experience.getXpForLevel(start) + fixedXp), false));
+            end = Math.max(end, start + 1);
+        }
         String name = (String) method.getSelectedItem();
         if (name == null || start < 1 || end <= start || end > 99) {
             JOptionPane.showMessageDialog(list, "The levels need to go up, from 1 to 99.", "Milestone", JOptionPane.WARNING_MESSAGE);

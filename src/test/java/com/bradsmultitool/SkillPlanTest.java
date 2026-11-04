@@ -485,4 +485,28 @@ public class SkillPlanTest {
         assertEquals(1000, row.kept);
         assertEquals(row.earnEach * (row.needed - 1000), row.earn(row.needed), 0.01);
     }
+
+    @Test
+    public void supplyMilestonesAreFixed() {
+        // Logs 1-15, then a supply of yew logs 60-70: a new milestone over 50-80 fits around the supply, never over it
+        SkillPlans.Plan plan = new SkillPlans.Plan(99);
+        SkillPlans.Step supply = new SkillPlans.Step("Yew logs", 60, 70, null, 175);
+        supply.supplies.add(new SkillPlans.Supply("FIREMAKING", "Yew logs", 5000));
+        plan.steps.add(supply);
+        PlannerCalculator.insertStep(plan, new SkillPlans.Step("Maple logs", 50, 80, null, 100));
+        assertTrue(plan.steps.contains(supply));
+        assertEquals(60, supply.from);
+        assertEquals(70, supply.to);
+        assertTrue(plan.steps.stream().noneMatch(s -> s != supply && s.from < 70 && s.to > 60));
+        // Add to plan where it starts goes past it
+        CalculatorData.Action magic = DATA.calc(Skill.WOODCUTTING).actions.stream().filter(a -> a.name.equals("Magic logs"))
+            .findFirst().orElse(null);
+        PlannerCalculator.addStep(plan, magic, 250, null, 60);
+        assertEquals(60, supply.from);
+        assertEquals(70, supply.to);
+        // The goal can't go below it
+        PlannerCalculator.raiseGoal(plan, 65);
+        assertEquals(70, plan.goal);
+        assertEquals(70, supply.to);
+    }
 }

@@ -1240,7 +1240,7 @@ class PlannerCalculator {
                     covering = step;
                 }
             }
-            if (covering == null || covering.from < start) {
+            if (covering == null || (covering.from < start && covering.supplies.isEmpty())) {
                 break;
             }
             start = covering.to;
@@ -1713,9 +1713,27 @@ class PlannerCalculator {
      * two around it, or gone when it covers them). The step may already be in the plan (one being edited).
      */
     static void insertStep(SkillPlans.Plan plan, SkillPlans.Step step) {
+        // A supply milestone (kept for another plan) is fixed: a new one fits around it, never over it
+        if (step.supplies.isEmpty()) {
+            for (SkillPlans.Step other : plan.steps) {
+                if (other == step || other.supplies.isEmpty() || other.to <= step.from || other.from >= step.to) {
+                    continue;
+                }
+                if (other.from <= step.from) {
+                    step.from = other.to;
+                } else {
+                    step.to = other.from;
+                }
+            }
+            if (step.to <= step.from) {
+                plan.steps.remove(step);
+                return;
+            }
+        }
         List<SkillPlans.Step> after = new ArrayList<>();
         for (SkillPlans.Step other : plan.steps) {
-            if (other == step || other.to <= step.from || other.from >= step.to) {
+            // (supply milestones are never cut)
+            if (other == step || other.to <= step.from || other.from >= step.to || !other.supplies.isEmpty()) {
                 continue;
             }
             if (other.from < step.from && other.to > step.to) {
@@ -1751,10 +1769,17 @@ class PlannerCalculator {
 
     /** Sets the plan's goal, leaving the milestones' levels as they are (cut to it when it's lower). */
     static void raiseGoal(SkillPlans.Plan plan, int goal) {
-        plan.goal = goal;
-        plan.steps.removeIf(step -> step.from >= goal);
+        // (never below a supply milestone's end: those are fixed)
         for (SkillPlans.Step step : plan.steps) {
-            step.to = Math.min(step.to, goal);
+            if (!step.supplies.isEmpty()) {
+                goal = Math.max(goal, step.to);
+            }
+        }
+        int end = goal;
+        plan.goal = end;
+        plan.steps.removeIf(step -> step.from >= end);
+        for (SkillPlans.Step step : plan.steps) {
+            step.to = Math.min(step.to, end);
         }
     }
 
