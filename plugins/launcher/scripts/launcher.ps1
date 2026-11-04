@@ -1091,7 +1091,7 @@ namespace Snuffys
             PushCard.Title = "1   Push to repos";
             PushCard.Size = new Size(448, 246);
             PushCard.Margin = new Padding(0, 0, 0, 12);
-            PushCard.Controls.Add(Text("Sends each plugin switched on to its own repository (changed ones get a new version).",
+            PushCard.Controls.Add(Text("Plugins switched on go to their repositories (a new version each).",
                 16, 34, 416, 18, Theme.Muted, Theme.Body(8.5f)));
             RepoSummary = Text("", 16, 50, 416, 18, Theme.Muted, Theme.Body(8.5f));
             PushCard.Controls.Add(RepoSummary);
