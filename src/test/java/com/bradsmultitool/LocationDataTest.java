@@ -45,4 +45,17 @@ public class LocationDataTest {
         assertEquals("Barbarian Outpost", LOCATIONS.forAction("Fishing", "Leaping sturgeon").get(0).place);
         assertFalse(LOCATIONS.forAction("Fishing", "Raw monkfish").isEmpty());
     }
+
+    @Test
+    public void placesSayTheQuestsTheyNeed() {
+        List<LocationData.Place> teak = LOCATIONS.forAction("Woodcutting", "Teak logs");
+        LocationData.Place prif = teak.stream().filter(p -> p.place.equals("Prifddinas")).findFirst().orElse(null);
+        assertNotNull(prif);
+        assertTrue(prif.quests.stream().anyMatch(q -> q.quest.equals("Song of the Elves") && !q.started));
+        LocationData.Place ape = teak.stream().filter(p -> p.place.equals("Ape Atoll")).findFirst().orElse(null);
+        assertTrue(ape.quests.stream().anyMatch(q -> q.quest.equals("Monkey Madness I") && q.started));
+        assertTrue(teak.get(0).quests.isEmpty());
+        // Without quest progress (the panel before login), nothing's held back
+        assertTrue(prif.missing(null).isEmpty());
+    }
 }

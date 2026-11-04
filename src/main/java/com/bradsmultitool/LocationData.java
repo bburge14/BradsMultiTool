@@ -37,6 +37,8 @@ class LocationData {
         final String note;
         /** Why the training guides pick it ("The wiki's 2-tick spot"), or null when it isn't one of their picks. */
         final String best;
+        /** The quests you need to reach it (Song of the Elves for Prifddinas); started: only begun. */
+        final List<Need> quests = new ArrayList<>();
 
         Place(JsonObject o) {
             place = o.get("place").getAsString();
@@ -44,12 +46,60 @@ class LocationData {
             members = o.has("members") && o.get("members").getAsBoolean();
             note = o.has("note") ? o.get("note").getAsString() : null;
             best = o.has("best") ? o.get("best").getAsString() : null;
+            if (o.has("quests")) {
+                for (JsonElement e : o.getAsJsonArray("quests")) {
+                    JsonObject q = e.getAsJsonObject();
+                    quests.add(new Need(q.get("quest").getAsString(), q.has("started") && q.get("started").getAsBoolean()));
+                }
+            }
+        }
+
+        /** The quests you haven't done (or started, where that's enough) to reach it; empty: you can. */
+        List<String> missing(QuestProgress progress) {
+            List<String> out = new ArrayList<>();
+            if (progress == null) {
+                return out;
+            }
+            for (Need need : quests) {
+                if (need.started ? !progress.isStarted(need.quest) : !progress.isFinished(need.quest)) {
+                    out.add(need.started ? need.quest + " (started)" : need.quest);
+                }
+            }
+            return out;
         }
 
         /** "Isle of Souls (3)". */
         String label() {
             return count > 0 ? place + " (" + count + ")" : place;
         }
+    }
+
+    /** A quest a place needs. */
+    static final class Need {
+        final String quest;
+        final boolean started;
+
+        Need(String quest, boolean started) {
+            this.quest = quest;
+            this.started = started;
+        }
+    }
+
+    /**
+     * The places with the ones you can reach first (in their order: the guides' picks, then the most), then the rest;
+     * a place you can't reach yet says which quests it needs.
+     */
+    static List<Place> reachableFirst(List<Place> places, QuestProgress progress) {
+        if (progress == null) {
+            return places;
+        }
+        List<Place> out = new ArrayList<>();
+        List<Place> later = new ArrayList<>();
+        for (Place place : places) {
+            (place.missing(progress).isEmpty() ? out : later).add(place);
+        }
+        out.addAll(later);
+        return out;
     }
 
     private static final class Thing {

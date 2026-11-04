@@ -81,6 +81,7 @@ final class PlannerCalculatorView {
     private final RecipeData recipes;
     // Where to train each milestone (the places of its trees, rocks and creatures)
     private final LocationData locations;
+    private final QuestProgress quests;
     private final TrainingData training;
     private final PlannerPanel.Icons icons;
 
@@ -124,9 +125,10 @@ final class PlannerCalculatorView {
     private Runnable redraw = () -> { };
 
     PlannerCalculatorView(PlannerCalculator calc, CalculatorData data, RecipeData recipes, TrainingData training,
-                          LocationData locations, PlannerPanel.Icons icons) {
+                          LocationData locations, QuestProgress quests, PlannerPanel.Icons icons) {
         this.calc = calc;
         this.locations = locations;
+        this.quests = quests;
         this.data = data;
         this.recipes = recipes;
         this.training = training;
@@ -3579,11 +3581,17 @@ final class PlannerCalculatorView {
             }
         }
         // Where: the best places for it (the guides' picks with why, then the most of it), what you need for them
+        // (the ones you can reach first; one that needs a quest you haven't done says which)
         List<LocationData.Place> places = locations == null ? java.util.Collections.emptyList()
-            : locations.forAction(shown.getName(), step.action);
+            : LocationData.reachableFirst(locations.forAction(shown.getName(), step.action), quests);
         if (!places.isEmpty() && !s.done) {
             tip.section("Where");
             for (LocationData.Place place : places.subList(0, Math.min(3, places.size()))) {
+                List<String> missing = place.missing(quests);
+                if (!missing.isEmpty()) {
+                    tip.line(place.label() + ": needs " + String.join(", ", missing), PlannerUi.Tip.BAD);
+                    continue;
+                }
                 String why = place.best != null ? place.best : place.note;
                 tip.line(place.label() + (why != null ? ": " + why : ""), place.best != null ? null : PlannerUi.Tip.MUTED);
             }

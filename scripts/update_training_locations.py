@@ -30,10 +30,11 @@ OUT = os.path.join(RES, "locations.json")
 BEST = {
     "Teak tree": [
         ("Isle of Souls", "No requirements; birds there make 2-tick possible; the bank is far"),
-        ("Ape Atoll", "The wiki's 2-tick spot (2 birds); Monkey Madness I; jungle spiders"),
-        ("Prifddinas", "2-tick with rabbits (they can't hit you); Song of the Elves"),
+        ("Prifddinas", "Safe: rabbits can't hit you (2-tick with them); Song of the Elves"),
         ("Hardwood Grove", "9 teaks; 100 trading sticks an entry (free with the elite Karamja diary); logs sent to the bank for 10 sticks each"),
         ("Fossil Island", "Grown teaks (35 Farming): the 1.5-tick spot, fastest Woodcutting in the game; Bone Voyage"),
+        # (players find the aggressive jungle spiders keep them in combat: the wiki's 2-tick spot, but last)
+        ("Ape Atoll", "Aggressive jungle spiders keep you in combat (poison, max hit 10): the wiki's 2-tick spot, but only once they leave you alone; Monkey Madness I"),
     ],
     "Mahogany tree": [("Hardwood Grove", "With the teaks; trading sticks"), ("Fossil Island", "Grown mahoganies; Bone Voyage")],
     "Oak tree": [("Varrock", "3 oaks south-west of Varrock West bank"), ("Draynor Village", "Next to the bank"),
@@ -95,6 +96,75 @@ FALLBACK = {
     "Moonlight moth": [("Neypotzli", "The northern Earthbound Cavern; Perilous Moons"),
                        ("Hunter Guild", "The basement: closer to a bank")],
 }
+
+
+# Areas that always need a quest to reach, whatever their location row says (Song of the Elves for Prifddinas...):
+# a place whose name has the key needs the quest (True: only started)
+REGIONS = [
+    ("Prifddinas", "Song of the Elves", False), ("Trahaearn", "Song of the Elves", False),
+    ("Ape Atoll", "Monkey Madness I", True), ("Kruk's Dungeon", "Monkey Madness II", True),
+    ("Fossil Island", "Bone Voyage", False), ("Tar Swamp", "Bone Voyage", False), ("House on the Hill", "Bone Voyage", False),
+    ("Mushroom Forest", "Bone Voyage", False), ("Volcanic Mine", "Bone Voyage", False),
+    ("Kharazi Jungle", "Legends' Quest", True), ("Legends' Guild", "Legends' Quest", False),
+    ("Shilo Village", "Shilo Village", False), ("Piscatoris Fishing Colony", "Swan Song", False),
+    ("Darkmeyer", "Sins of the Father", True), ("Vampyrium", "The Blood Moon Rises", False),
+    ("Lletya", "Mourning's End Part I", True), ("Iorwerth", "Regicide", False), ("Isafdar", "Regicide", False),
+    ("Zul-Andra", "Regicide", False), ("Port Tyras", "Regicide", False), ("Gwenith", "Regicide", False),
+    ("Mos Le'Harmless", "Cabin Fever", False), ("Lunar Isle", "Lunar Diplomacy", False),
+    ("Neitiznot", "The Fremennik Isles", True), ("Jatizso", "The Fremennik Isles", True),
+    ("Keldagrim", "The Giant Dwarf", True), ("Zanaris", "Lost City", False), ("Lost City", "Lost City", False),
+    ("Canifis", "Priest in Peril", False), ("Burgh de Rott", "In Aid of the Myreque", False),
+    ("Mort'ton", "Shades of Mort'ton", True), ("Port Phasmatys", "Priest in Peril", False),
+    ("Mor Ul Rek", "TzHaar Fight Cave", False), ("Myths' Guild", "Dragon Slayer II", False),
+    ("Corsair Cove", "The Corsair Curse", False), ("Waterbirth", "The Fremennik Trials", False),
+    ("Hardwood Grove", "Jungle Potion", False), ("Miscellania", "The Fremennik Trials", False),
+    ("Etceteria", "Royal Trouble", False), ("Sophanem", "Icthlarin's Little Helper", True),
+    # Varlamore
+    ("Civitas illa Fortis", "Children of the Sun", False), ("Outer Fortis", "Children of the Sun", False),
+    ("Aldarin", "Children of the Sun", False), ("Mistrock", "Children of the Sun", False),
+    ("Auburnvale", "Children of the Sun", False), ("Auburn Valley", "Children of the Sun", False),
+    ("Kastori", "Children of the Sun", False), ("Nemus Retreat", "Children of the Sun", False),
+    ("Tal Teklan", "Children of the Sun", False), ("Tlati Rainforest", "Children of the Sun", False),
+    ("Locus Oasis", "Children of the Sun", False), ("Quetzacalli Gorge", "Children of the Sun", False),
+    ("Ortus Farm", "Children of the Sun", False), ("Hunter Guild", "Children of the Sun", False),
+    ("Sunset Coast", "Children of the Sun", False), ("Cam Torum", "Perilous Moons", True), ("Neypotzli", "Perilous Moons", True),
+]
+
+# The quests and miniquests the wiki lists (names matched in a place's notes), longest first
+QUESTS = []
+
+
+def quest_names():
+    names = []
+    for category in ("Category:Quests", "Category:Miniquests"):
+        data = api({"action": "query", "list": "categorymembers", "cmtitle": category, "cmlimit": 500, "cmnamespace": 0})
+        for member in data.get("query", {}).get("categorymembers", []):
+            title = member["title"]
+            if "/" not in title and title not in ("Quests", "Miniquests", "Quest", "Miniquest"):
+                names.append(title)
+    return sorted(set(names), key=len, reverse=True)
+
+
+def requirements(place, texts):
+    """The quests a place needs: named in its notes ("partially complete Legends' Quest": only started), and its area's."""
+    out = {}
+    # (the area's own rule first: it knows whether starting the quest is enough)
+    for key, quest, started in REGIONS:
+        if key.lower() in place.lower():
+            out.setdefault(quest, started)
+    text = " ".join(t for t in texts if t)
+    for name in QUESTS:
+        at = text.find(name)
+        if at < 0:
+            continue
+        sentence = text[max(0, text.rfind(".", 0, at)):text.find(".", at) if text.find(".", at) > 0 else len(text)]
+        started = bool(re.search(r"partial|start|begun|part of", sentence, re.I))
+        out.setdefault(name, started)
+        text = text.replace(name, "")
+    for key, quest, started in REGIONS:
+        if key.lower() in place.lower():
+            out.setdefault(quest, started)
+    return [{"quest": q, "started": st} for q, st in out.items()]
 
 
 def api(params):
@@ -171,10 +241,11 @@ def places(page):
 def ordered(page, found):
     """The guide's picks first (with why), then the rest by how many there are; a page with none, the guides' places."""
     fallback = {k.lower(): v for k, v in FALLBACK.items()}.get(page.lower())
-    if not found and fallback:
-        return [{"place": name, "count": 0, "members": True, "best": why} for name, why in fallback]
     best = {k.lower(): v for k, v in BEST.items()}.get(page.lower(), [])
     out, used = [], set()
+    if not found and fallback:
+        out = [{"place": name, "count": 0, "members": True, "best": why} for name, why in fallback]
+        best = []
     for name, why in best:
         exact = [e for e in found if e["place"] == name and e["place"] not in used]
         loose = [e for e in found if e["place"].startswith(name) and e["place"] not in used]
@@ -182,7 +253,12 @@ def ordered(page, found):
             out.append(dict(entry, best=why) if why else dict(entry))
             used.add(entry["place"])
     rest = sorted((e for e in found if e["place"] not in used), key=lambda e: (-e["count"], e["place"]))
-    return out + rest
+    listed = out + rest
+    for entry in listed:
+        needs = requirements(entry["place"], [entry.get("note"), entry.get("best")])
+        if needs:
+            entry["quests"] = needs
+    return listed
 
 
 def fish_places(things):
@@ -232,6 +308,7 @@ def main():
     for name, creature in (helpers.get("hunter") or {}).items():
         if "bird house" not in name and "birdhouse" not in name:
             pages.setdefault(creature.get("name", name), "Hunter")
+    QUESTS.extend(quest_names())
     things = {}
     fish_places(things)
     for i, (page, skill) in enumerate(sorted(pages.items())):
