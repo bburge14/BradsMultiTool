@@ -743,7 +743,9 @@ def build_launcher(publish_path=os.path.join(ROOT, "publish.json")):
     for part in (source, os.path.join(ROOT, "assets", "launcher.ico")):
         if os.path.exists(part):
             with open(part, "rb") as f:
-                digest.update(f.read())
+                data = f.read()
+            # (the source with its line endings evened out: git on Windows checks it out with CRLF, which isn't a change)
+            digest.update(data.replace(b"\r\n", b"\n") if part.endswith(".cs") else data)
     was = open(stamp).read().strip() if os.path.exists(stamp) else ""
     if not os.path.exists(built) or was != digest.hexdigest():
         compile_setup(source, built)

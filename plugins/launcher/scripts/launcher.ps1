@@ -1778,6 +1778,9 @@ function Update-Plugins {
         return
     }
     $old = (git -C $root rev-parse HEAD 2>$null)
+    # The friends' installer is built by the split (Push to repos, or the split by hand): a copy rebuilt here (Windows'
+    # csc makes a different file) is never a change of yours, so it goes back before updating instead of blocking it
+    git -C $root checkout -- 'plugins/launcher/Snuffys-Launcher-Setup.exe' 'scripts/setup/Snuffys-Launcher-Setup.exe' 'scripts/setup/source.sha256' 2>$null | Out-Null
     # From the branch's upstream, else origin's branch of the same name (a checkout without one set still updates)
     git -C $root rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
