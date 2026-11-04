@@ -44,7 +44,12 @@ plugin repositories the launcher downloaded into `plugins/` (each in its own pac
 chosen classes (`runSnuffys -Pclasses=...`). In friends mode the launcher clones or pulls each plugin repository (and
 fetches them every minute in the background), shows each repository's `build.gradle` version, and its "what's new" and
 "RuneLite is behind" come from those repositories' commits. `Snuffys-Launcher-Setup.exe` (built from `scripts/setup/SnuffysSetup.cs` by the split, with mcs or Windows' csc; a prebuilt copy is kept in `scripts/setup/`) installs it into `%LOCALAPPDATA%\\Snuffy's Launcher` and makes the desktop shortcut; pushing the launcher also makes a GitHub release with it attached (git's GitHub login), so `https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe` is always the newest. Friends get only what's been pushed to the plugin
-repositories (which are public anyway, as the Plugin Hub needs), not this repository.
+repositories (which are public anyway, as the Plugin Hub needs), not this repository. The launcher updates itself
+from its repository too (when opened and every 15 minutes); a new launcher shows **Restart launcher** on its What's new
+card (it closes and opens again silently, RuneLite stays open). The parts of `scripts/launcher.ps1` only the Dev tab
+uses sit between `dev only` / `end dev only` comments: when those are all that changed since the last push, the Dev
+tab leaves the launcher's switch off (nothing friends see changed, so no needless update or release; switch it on to
+send it anyway). Keep new Dev-only code inside them.
 
 ### Gradle
 

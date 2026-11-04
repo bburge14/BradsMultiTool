@@ -599,6 +599,8 @@ namespace Snuffys
         public Panel Play;
         public TextBox UpdateLog;
         public Card NewsCard;
+        /** (friends) Shown when the launcher itself was updated: closes it and opens the new one. */
+        public Link RestartLauncher;
         public Card SetupCard;
         public Label SetupSummary;
         public Link SetupToggle;
@@ -851,6 +853,10 @@ namespace Snuffys
             showAll.Location = new Point(380, 12);
             showAll.LinkClicked += delegate { ShowText("What's new", UpdateLog.Text); };
             news.Controls.Add(showAll);
+            RestartLauncher = new Link("Restart launcher");
+            RestartLauncher.Location = new Point(250, 12);
+            RestartLauncher.Visible = false;
+            news.Controls.Add(RestartLauncher);
             UpdateLog.Size = new Size(420, 46);
             UpdateLog.TabStop = false;
             news.Controls.Add(UpdateLog);
@@ -1030,6 +1036,7 @@ namespace Snuffys
             ShowSetup(problems > 0);
         }
 
+        // --- dev only (the friends launcher never shows it; a change only here is not an update for them) ---
         // ---- Dev: 1 push, 2 publish, 3 status, with each plugin's pull request as a card ----
 
         private void BuildDev()
@@ -1339,6 +1346,8 @@ namespace Snuffys
 
         private readonly ToolTip versionTip = new ToolTip();
 
+        // --- end dev only ---
+
         // A plugin's version beside its name: on Play (its key: skilling, pvm, ..., or toolbelt) and on Dev (its
         // folder), with what it means on hover
         public void SetPluginVersion(string key, string folder, string version, string tip)
@@ -1372,6 +1381,7 @@ namespace Snuffys
             }
         }
 
+        // --- dev only (the friends launcher never shows it; a change only here is not an update for them) ---
         // A plugin's repository on the Dev tab: up to date with what's here (a green dot), or with changes to push (orange)
         public void SetRepoState(string folder, bool changed, string tip)
         {
@@ -1652,6 +1662,7 @@ namespace Snuffys
             new ToolTip().SetToolTip(card, "Click to open " + (unread.Count > 0 ? "the new comment" : "it") + ": " + page);
             return card;
         }
+        // --- end dev only ---
     }
 }
 '@
@@ -1829,7 +1840,10 @@ function Finish-Friends {
         $updateLog.Text = "Just updated:`r`n" + (Get-FriendsChanges $script:updateBefore).Text
     }
     if ($result -and @($result.changed) -contains 'launcher') {
-        $updateLog.Text = "The launcher itself was updated: close it and open it again to use the new one.`r`n" + $updateLog.Text
+        $updateLog.Text = "The launcher itself was updated: Restart launcher (above) to use the new one.`r`n" + $updateLog.Text
+        $ui.RestartLauncher.Visible = $true
+        $updateStatus.Text = 'Launcher: restart it'
+        $updateStatus.ForeColor = [Snuffys.Theme]::Warn
     }
     Check-RunningVersion
     Update-Versions
@@ -1839,6 +1853,14 @@ function Finish-Friends {
         Start-RuneLite
     }
 }
+
+# (friends) Restart launcher: the window closes, then the new launcher opens the same silent way (its .vbs); RuneLite
+# stays open
+$script:restartLauncher = $false
+$ui.RestartLauncher.Add_LinkClicked({
+    $script:restartLauncher = $true
+    $form.Close()
+})
 
 # ---- Setup checklist: RuneLite, its session setting, the saved session, Java, git ----
 $runeLiteChoice = Join-Path $root '.launch-runelite'
@@ -2462,6 +2484,7 @@ function Check-RunningVersion {
 # them in .publish-cache), with a + when the code RuneLite runs (or, closed, your copy) has changed since then
 $hubKeys = [ordered]@{ 'skilling-helper' = 'skilling'; 'pvm-slayer' = 'pvm'; 'gemcrab-tracker' = 'gemcrab';
     'tick-counter' = 'tick'; 'planner' = 'planner'; 'alerts' = 'alerts'; 'toolbelt' = 'toolbelt' }
+# --- dev only (the friends launcher never runs it; a change only here is not an update for them) ---
 # What a plugin's changes since its last push call for: major when a setting players have went (its keyName is no
 # longer there: their saved value is lost), minor for new settings, new classes or a lot of new code, else patch
 function Get-BumpSuggestion($from, $to, $folder) {
@@ -2487,6 +2510,23 @@ function Get-BumpSuggestion($from, $to, $folder) {
 $script:bumps = @{}
 $script:lastSuggest = $null
 
+# The launcher's text as the friends' copy uses it: without its "dev only" parts
+function Get-FriendsView($text) {
+    return [regex]::Replace($text, '(?s)[ \t]*(#|//) --- dev only .*?(#|//) --- end dev only ---[^\n]*\n?', '')
+}
+
+# Whether plugins\launcher changed since that commit only inside launcher.ps1's Dev-only parts
+function Test-DevOnlyChange($from, $to) {
+    $files = @(git -C $root diff --name-only $from $to -- 'plugins/launcher' 2>$null)
+    $script_ = 'plugins/launcher/scripts/launcher.ps1'
+    if ($files.Count -ne 1 -or $files[0] -ne $script_) { return $false }
+    $old = (git -C $root show "${from}:$script_" 2>$null | Out-String)
+    $new = (git -C $root show "${to}:$script_" 2>$null | Out-String)
+    if (-not $old -or -not $new) { return $false }
+    return (Get-FriendsView $old) -eq (Get-FriendsView $new)
+}
+# --- end dev only ---
+
 function Update-Versions {
     if ($friends) {
         foreach ($plugin in $friendPlugins) {
@@ -2501,6 +2541,7 @@ function Update-Versions {
         }
         return
     }
+    # --- dev only (the friends launcher never runs it; a change only here is not an update for them) ---
     if (-not (Test-Path $publishConfig)) { return }
     $config = Get-Content $publishConfig -Raw | ConvertFrom-Json
     $code = Running-Commit
@@ -2517,6 +2558,7 @@ function Update-Versions {
         # Its repository: up to date with plugins\<folder> here, or with changes to push (never pushed counts as changes)
         $last = if (Test-Path (Join-Path $cache '.git')) { (git -C $cache log -1 --grep='From BradsMultiTool' --format=%B 2>$null | Out-String) } else { '' }
         $behind = $true
+        $lastPushed = $null
         $repoTip = "Not pushed from this PC yet: Push to repos sends it"
         if ($head -and $last -match 'BradsMultiTool ([0-9a-f]{7,40})') {
             $lastPushed = $Matches[1]
@@ -2528,6 +2570,12 @@ function Update-Versions {
                 $repoTip = if ($behind) { "Changes to push: plugins\$folder changed since your last push to its repository" }
                            else { "Up to date: its repository has what's in plugins\$folder now (nothing to push)" }
             }
+        }
+        # The friends launcher: changed only in its Dev-only parts (nothing your friends see or run) isn't an update for
+        # them, so its switch stays off (switch it on to send it anyway)
+        if ($behind -and $folder -eq 'launcher' -and $lastPushed -and (Test-DevOnlyChange $lastPushed $head.Trim())) {
+            $behind = $false
+            $repoTip = "Only Dev-tab changes since your last push: nothing your friends see, so it's left off (switch it on to send it anyway)"
         }
         if ($behind) { $toPush += $folder }
         $ui.SetRepoState($folder, $behind, $repoTip)
@@ -2577,6 +2625,7 @@ function Update-Versions {
     $script:lastSuggest = $suggest
     $ui.RepoSummary.Text = if ($toPush) { "$($toPush.Count) to push: " + ($toPush -join ', ') + $(if ($suggest) { "  $([char]0x00B7)  suggests $suggest" }) } else { 'Every repository is up to date: nothing to push.' }
     $ui.RepoSummary.ForeColor = if ($toPush) { [Snuffys.Theme]::Warn } else { $green }
+    # --- end dev only ---
 }
 $script:repoStates = @{}
 
@@ -2654,6 +2703,7 @@ $shortcut.Add_LinkClicked({
     [System.Windows.Forms.MessageBox]::Show("Snuffy's Launcher is on your desktop.", "Snuffy's") | Out-Null
 })
 
+# --- dev only (the friends launcher never runs it; a change only here is not an update for them) ---
 # ---- Dev tab: push the plugins to their own repositories, then publish them to RuneLite (Plugin Hub pull
 # request). Runs scripts\publish_plugins.py (repositories in publish.json; docs\ROLLOUT.md) hidden, output live. ----
 
@@ -2865,6 +2915,7 @@ if (-not (Test-Path $publishConfig)) {
     $devPublish.Enabled = $false
     $devStatusButton.Enabled = $false
 }
+# --- end dev only ---
 
 
 
@@ -2889,3 +2940,12 @@ try {
     Show-Problem ($_.Exception.ToString())
 }
 Write-Host "Window closed $(Get-Date)"
+if ($script:restartLauncher) {
+    try { Stop-Transcript | Out-Null } catch { }
+    $vbs = Join-Path $root "Snuffy's Launcher.vbs"
+    if (Test-Path $vbs) {
+        Start-Process -FilePath 'wscript.exe' -ArgumentList ('"' + $vbs + '"') -WorkingDirectory $root
+    } else {
+        Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -WorkingDirectory $root -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $PSCommandPath + '"')
+    }
+}

@@ -338,7 +338,8 @@ unzip it, double-click **Snuffy's Launcher** in the folder and click **Make a de
 
 **4. Using Snuffy's Launcher.** It's a small dark window that:
 
-- **updates** the plugins each time you open it, and while it's open checks every minute in the background and
+- **updates itself and the plugins**: when the launcher itself has a new version, **Restart launcher** on its What's
+  new card closes it and opens the new one (RuneLite stays open). It updates the plugins each time you open it, and while it's open checks every minute in the background and
   pulls any update straight away: two chips under its name say where your copy of the code is ("Code: up to date") and what the open RuneLite is running ("RuneLite: latest code", or in red "RuneLite: 3 updates behind, Relaunch"), and **What's new** lists the changes, each with what it touches (the plugins it changes, which need a Relaunch, or the launcher and docs only, which don't; the RuneLite chip only counts the ones that need a Relaunch) (**Check again** to retry; when you're offline or have changed
   files here, it says so and you launch the version you have);
 - **warns you when the open RuneLite is out of date**: it remembers which version each launch was built from (even
