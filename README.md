@@ -280,9 +280,11 @@ each can be hidden in the settings; everything is saved per account.
     still need in full against what you have ("27,800 / 24,610"), green when you have it all, red when you're
     short, and the tools. A plan goes by your real XP: typing in Current doesn't mark milestones done. With the
     Skilling Helper installed, **Export to tracker** makes its goal card follow the plan (one plan per skill at a
-    time); changes you make to that plan reach the tracker as you make them. If the tracker still has an older copy
-    (from before), the goal card says "Tracker has an older copy": right-click it to send your open plan, bring its copy
-    in as a plan, or take it out of the tracker.
+    time). Your edits to that plan after are a **draft**: the tracker keeps the version you sent until you click
+    **Send changes** (or **Undo** to go back to it), so you can try things without moving your goal. The plan's card
+    says "Unsent changes" and the goal card "Changes to ... not sent" (right-click it to send or undo them). A copy sent
+    before plans remembered which one it was shows as "Tracker has an older copy": right-click the goal to send your
+    open plan, bring the copy in as a plan, or take it out of the tracker.
   - **Plan overlay** (without the Skilling Helper installed; its pinned skill card shows the plan otherwise): a
     card on the game screen for the plan of the skill you're training (the one open in the Calculator), or the plan
     you **pin** (the pin on its card in the Plan view, or right-click > Pin to screen; it stays up whatever you

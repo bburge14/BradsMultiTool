@@ -2451,8 +2451,10 @@ final class PlannerCalculatorView {
                 + " · " + plan.steps.size() + (plan.steps.size() == 1 ? " milestone" : " milestones"),
                 "lvl " + level + " · " + (int) Math.floor(done * 100) + "%");
             card.right.setForeground(Color.WHITE);
-            card.corner.setText(tracked ? "Followed" : "");
-            card.corner.setForeground(PlannerUi.READY);
+            // (the plan you sent, changed since: a draft until you send it)
+            boolean draft = !tracked && plan.sent && calc.trackedPlan(shown) != null;
+            card.corner.setText(tracked ? "Followed" : draft ? "Unsent changes" : "");
+            card.corner.setForeground(draft ? HudColors.WARN : PlannerUi.READY);
             card.noIcon();
             card.bar(new PlannerUi.Bar(done, done >= 1 ? PlannerUi.READY : PlannerUi.GROWING));
             if (isOpen) {
@@ -2607,33 +2609,62 @@ final class PlannerCalculatorView {
             menu.add(menuItem("Update \"" + planName(calc.plans(shown).get(made), made) + "\" from the tracker...",
                 () -> updateFromGoal(shown, made, goal, pick)));
         }
-        // The tracker follows a copy that none of your plans match any more (changed before plans kept it in step):
-        // say so, and let you pick which one wins
+        // The tracker follows what you sent: the plan you sent, changed since, is a draft (send or undo it); a copy
+        // none of your plans is linked to (sent before plans remembered it) can be synced either way
         boolean drifted = tracked != null && plans.stream().noneMatch(p -> calc.isTracked(shown, p));
         if (drifted) {
-            SkillPlans.Plan open = calc.plan(shown);
-            JLabel[] note = card.line("Tracker has an older copy: right-click to sync", "");
-            note[0].setForeground(HudColors.WARN);
-            note[0].setToolTipText("<html>The Skilling Helper follows a copy of a plan from before it was last changed: "
-                + PlannerUi.esc(String.valueOf(tracked.steps.size())) + " milestones to level " + tracked.goal
-                + "<br>Right-click the goal: send your open plan to it, or bring its copy in as a plan</html>");
+            int sentAt = calc.sentIndex(shown);
             menu.addSeparator();
-            if (open != null && !open.steps.isEmpty()) {
-                menu.add(menuItem("Send \"" + planName(open, calc.openIndex(shown)) + "\" to the tracker", () -> {
+            if (sentAt >= 0) {
+                SkillPlans.Plan sentPlan = plans.get(sentAt);
+                String name = planName(sentPlan, sentAt);
+                JLabel[] note = card.line("Changes to " + name + " not sent", "");
+                note[0].setForeground(HudColors.WARN);
+                note[0].setToolTipText("<html>The goal follows \"" + PlannerUi.esc(name) + "\" as you sent it; you've changed "
+                    + "it since. Your changes stay a draft until you send them<br>Right-click the goal: send them, or "
+                    + "undo them</html>");
+                menu.add(menuItem("Send changes to \"" + name + "\"", () -> {
                     CalculatorData.Calc skillCalc = data.calc(shown);
-                    SkillPlans.Plan withXp = withXp(shown, open, CalculatorData.bonuses(skillCalc, calc.bonuses(shown)), skillCalc);
+                    SkillPlans.Plan withXp = withXp(shown, sentPlan, CalculatorData.bonuses(skillCalc, calc.bonuses(shown)),
+                        skillCalc);
                     int game = calc.xp(shown);
-                    calc.export(shown, withXp, game >= 0 ? game : current());
+                    calc.export(shown, sentAt, withXp, game >= 0 ? game : current());
+                    redraw.run();
+                }));
+                menu.add(menuItem("Undo changes to \"" + name + "\"", () -> {
+                    if (confirm("Undo your changes to \"" + name + "\" since you sent it?")) {
+                        calc.undoChanges(shown, sentAt);
+                        redraw.run();
+                    }
+                }));
+            } else {
+                SkillPlans.Plan open = calc.plan(shown);
+                int openAt = calc.openIndex(shown);
+                JLabel[] note = card.line("Tracker has an older copy: right-click to sync", "");
+                note[0].setForeground(HudColors.WARN);
+                note[0].setToolTipText("<html>The Skilling Helper follows a copy of a plan from before it was last changed: "
+                    + tracked.steps.size() + " milestones to level " + tracked.goal
+                    + "<br>Right-click the goal: send your open plan to it, or bring its copy in as a plan</html>");
+                if (open != null && !open.steps.isEmpty()) {
+                    menu.add(menuItem("Send \"" + planName(open, openAt) + "\" to the tracker", () -> {
+                        CalculatorData.Calc skillCalc = data.calc(shown);
+                        SkillPlans.Plan withXp = withXp(shown, open, CalculatorData.bonuses(skillCalc, calc.bonuses(shown)),
+                            skillCalc);
+                        int game = calc.xp(shown);
+                        calc.export(shown, openAt, withXp, game >= 0 ? game : current());
+                        redraw.run();
+                    }));
+                }
+                menu.add(menuItem("Bring the tracker's copy in as a plan", () -> {
+                    SkillPlans.Plan copy = tracked.copy();
+                    copy.name = "From the tracker";
+                    calc.newPlan(shown, copy);
+                    // (it's the one sent now: the tracker has it as it is)
+                    calc.markSentLast(shown);
+                    calc.setMode(PlannerCalculator.Mode.PLAN);
                     redraw.run();
                 }));
             }
-            menu.add(menuItem("Bring the tracker's copy in as a plan", () -> {
-                SkillPlans.Plan copy = tracked.copy();
-                copy.name = "From the tracker";
-                calc.newPlan(shown, copy);
-                calc.setMode(PlannerCalculator.Mode.PLAN);
-                redraw.run();
-            }));
             menu.add(menuItem("Take the plan out of the tracker", () -> {
                 calc.untrack(shown);
                 redraw.run();
@@ -3056,23 +3087,38 @@ final class PlannerCalculatorView {
         SkillPlans.Plan withXp = withXp(shown, plan, on, skillCalc);
         boolean same = calc.isTracked(shown, withXp);
         boolean any = calc.trackedPlan(shown) != null;
-        JLabel status = PlannerUi.label(same ? "In the tracker" : any ? "Tracker has a different plan" : "Not in the tracker",
-            same ? PlannerUi.READY : any ? PlannerUi.GROWING : PlannerUi.MUTED);
+        int index = calc.openIndex(shown);
+        // The plan you sent, changed since: a draft until you send it (or undo back to what the tracker has)
+        boolean draft = plan.sent && any && !same;
+        JLabel status = PlannerUi.label(same ? "In the tracker" : draft ? "Changes not sent" : any ? "Tracker has a different plan"
+            : "Not in the tracker", same ? PlannerUi.READY : draft ? HudColors.WARN : any ? PlannerUi.GROWING : PlannerUi.MUTED);
         status.setMinimumSize(new Dimension(0, 0));
         row.add(status, BorderLayout.CENTER);
         JPanel links = new JPanel();
         links.setLayout(new BoxLayout(links, BoxLayout.X_AXIS));
         links.setOpaque(false);
-        if (!same) {
-            links.add(PlannerUi.linkLabel(any ? "Send this one" : "Export to tracker", "Set level " + plan.goal + " as the skill's goal "
-                + "and give the Skilling Helper these milestones: its goal card shows the one you're on, with its own bar, "
-                + "and suggests and outlines its method" + (any ? " (replaces the plan it has)" : ""), () -> {
-                    int game = calc.xp(shown);
-                    calc.export(shown, withXp, game >= 0 ? game : current());
-                    redraw.run();
+        Runnable send = () -> {
+            int game = calc.xp(shown);
+            calc.export(shown, index, withXp, game >= 0 ? game : current());
+            redraw.run();
+        };
+        if (draft) {
+            links.add(PlannerUi.linkLabel("Send changes", "Give the Skilling Helper this plan as it is now (its goal card "
+                + "follows it; the goal becomes level " + plan.goal + ")", send));
+            links.add(PlannerUi.label("  ·  ", PlannerUi.FAINT));
+            links.add(PlannerUi.linkLabel("Undo", "Put this plan back as the tracker has it (your changes since you sent "
+                + "it go)", () -> {
+                    if (confirm("Undo your changes to \"" + planName(plan, index) + "\" since you sent it?")) {
+                        calc.undoChanges(shown, index);
+                        redraw.run();
+                    }
                 }));
+        } else if (!same) {
+            links.add(PlannerUi.linkLabel(any ? "Send this one" : "Export to tracker", "Set level " + plan.goal + " as the "
+                + "skill's goal and give the Skilling Helper these milestones: its goal card shows the one you're on, with "
+                + "its own bar, and suggests and outlines its method" + (any ? " (replaces the plan it has)" : ""), send));
         }
-        if (any) {
+        if (any && !draft) {
             if (!same) {
                 links.add(PlannerUi.label("  ·  ", PlannerUi.FAINT));
             }
@@ -3082,9 +3128,11 @@ final class PlannerCalculatorView {
             }));
         }
         row.add(links, BorderLayout.EAST);
-        PlannerUi.tips(row, "<html>Snuffy's Skilling Helper: " + (same ? "it follows this plan" : any
+        PlannerUi.tips(row, "<html>Snuffy's Skilling Helper: " + (same ? "it follows this plan" : draft
+            ? "it follows this plan as you sent it: your changes since are a draft until you send them" : any
             ? "it follows another plan (or an older copy of this one): Send this one makes it follow this plan" : "it doesn't "
-            + "have this plan yet") + "<br>Once it follows a plan, your changes to that plan reach it as you make them</html>");
+            + "have this plan yet") + "<br>Edits stay here until you send them, so you can try things without changing "
+            + "your goal</html>");
         return PlannerUi.spaced(row);
     }
 

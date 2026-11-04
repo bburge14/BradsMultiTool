@@ -801,9 +801,11 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   your level to the goal (**Goal: level 99** to change it). Saved per account (`plan.<SKILL>` in the shared group).
 - **Export to tracker** (only when Snuffy's Skilling Helper or the Toolbelt is installed; otherwise a note says
   installing it lets you): sets the plan's final goal as the skill's goal (as Set as goal does) and gives the Skilling
-  Helper the milestones, which its goal card then follows (see Goals). Changes to the plan it follows reach it as you
-  make them (its goal too, when the plan's goal moves; a method picked on the tracker card stays). When the tracker
-  has a different plan, **Send this one** makes it follow the open one; **Remove** takes it out of the tracker (the goal
+  Helper the milestones, which its goal card then follows (see Goals). Edits to the plan you sent are a draft: the
+  tracker keeps the version you sent until **Send changes** (or **Undo** puts the plan back as the tracker has it), so
+  trying things never moves your goal; the plan's card says "Unsent changes" and the goal card "Changes to ... not
+  sent" (right-click it to send or undo). When the tracker has a different plan, **Send this one** makes it follow the
+  open one; **Remove** takes it out of the tracker (the goal
   stays). An older copy that none of your plans match any more shows on the goal card ("Tracker has an older copy"):
   right-click it to send your open plan, bring the copy in as a plan, or take it out of the tracker.
 - Information only: nothing is done in the game.

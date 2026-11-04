@@ -728,19 +728,10 @@ class PlannerCalculator {
             plans.add(plan);
             SkillPlans.savePlans(configManager, skill, plans, 0);
         } else {
-            SkillPlans.Plan before = plans.get(open);
+            // (a change to the plan you sent stays a draft: it's still the one you sent)
+            plan.sent = plans.get(open).sent;
             plans.set(open, plan);
             SkillPlans.savePlans(configManager, skill, plans, open);
-            keepTracked(skill, before, plan);
-        }
-    }
-
-    // When the plan you changed is the one the tracker follows, the tracker gets the change too (so the goal and
-    // the Planner never drift apart)
-    private void keepTracked(Skill skill, SkillPlans.Plan before, SkillPlans.Plan after) {
-        if (before != null && after != null && isTracked(skill, before) && !isTracked(skill, after)) {
-            int now = xp(skill);
-            SkillPlans.sync(configManager, skill, after, Math.max(0, now));
         }
     }
 
@@ -781,10 +772,9 @@ class PlannerCalculator {
         }
         List<SkillPlans.Plan> plans = plans(skill);
         if (index >= 0 && index < plans.size()) {
-            SkillPlans.Plan before = plans.get(index);
+            plan.sent = plans.get(index).sent;
             plans.set(index, plan);
             SkillPlans.savePlans(configManager, skill, plans, SkillPlans.open(configManager, skill, plans.size()));
-            keepTracked(skill, before, plan);
         }
     }
 
@@ -810,15 +800,69 @@ class PlannerCalculator {
         return canPlan() && trackerInstalled() && SkillPlans.isTracked(configManager, skill, plan);
     }
 
-    void export(Skill skill, SkillPlans.Plan plan, int xpNow) {
+    /** Sends the plan at {@code index} of the skill's list to the tracker; it becomes the one you sent. */
+    void export(Skill skill, int index, SkillPlans.Plan plan, int xpNow) {
         if (canPlan()) {
             SkillPlans.export(configManager, skill, plan, xpNow);
+            markSent(skill, index);
         }
     }
 
     void untrack(Skill skill) {
         if (canPlan()) {
             SkillPlans.untrack(configManager, skill);
+            markSent(skill, -1);
+        }
+    }
+
+    /** The plan you sent to the tracker (its index in the list), or -1. */
+    int sentIndex(Skill skill) {
+        List<SkillPlans.Plan> plans = plans(skill);
+        for (int i = 0; i < plans.size(); i++) {
+            if (plans.get(i).sent) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Puts the plan you sent back as the tracker has it (your unsent changes go; its name stays), or does nothing when
+     * the tracker has none.
+     */
+    void undoChanges(Skill skill, int index) {
+        SkillPlans.Plan tracked = trackedPlan(skill);
+        List<SkillPlans.Plan> plans = plans(skill);
+        if (tracked == null || index < 0 || index >= plans.size()) {
+            return;
+        }
+        SkillPlans.Plan back = tracked.copy();
+        SkillPlans.Plan old = plans.get(index);
+        back.name = old.name;
+        back.fromGoal = old.fromGoal;
+        back.fromPick = old.fromPick;
+        replacePlan(skill, index, back);
+    }
+
+    /** The last plan in the list (one just added) becomes the one sent. */
+    void markSentLast(Skill skill) {
+        if (canPlan()) {
+            markSent(skill, plans(skill).size() - 1);
+        }
+    }
+
+    // Only one plan a skill is the one sent
+    private void markSent(Skill skill, int index) {
+        List<SkillPlans.Plan> plans = plans(skill);
+        boolean changed = false;
+        for (int i = 0; i < plans.size(); i++) {
+            if (plans.get(i).sent != (i == index)) {
+                plans.get(i).sent = i == index;
+                changed = true;
+            }
+        }
+        if (changed) {
+            SkillPlans.savePlans(configManager, skill, plans, SkillPlans.open(configManager, skill, plans.size()));
         }
     }
 

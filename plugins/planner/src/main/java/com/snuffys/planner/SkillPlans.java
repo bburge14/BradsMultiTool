@@ -109,6 +109,11 @@ final class SkillPlans {
          *  (null: its suggestions), to tell when the goal changes after. */
         int fromGoal;
         String fromPick;
+        /**
+         * The plan you sent to the tracker (Export to tracker): your edits to it are a draft until you send them
+         * again. Copies don't carry it (a duplicate is a new plan).
+         */
+        boolean sent;
 
         Plan(int goal) {
             this.goal = goal;
@@ -258,17 +263,6 @@ final class SkillPlans {
         configManager.unsetRSProfileConfiguration(GROUP, "goalMethod." + skill.name());
     }
 
-    /**
-     * Keeps the tracker on a plan it follows after you change it in the Planner: its milestones (and its goal, when
-     * the plan's final goal moved) are sent again. Unlike {@link #export}, a method picked on the tracker card stays.
-     */
-    static void sync(ConfigManager configManager, Skill skill, Plan plan, int xpNow) {
-        if (SkillGoals.goal(configManager, skill) != plan.goalXp()) {
-            SkillGoals.setGoal(configManager, skill, plan.goalXp(), xpNow);
-        }
-        configManager.setRSProfileConfiguration(GROUP, TRACKED_KEY + skill.name(), encode(plan));
-    }
-
     /** Removes the exported plan (the goal stays). */
     static void untrack(ConfigManager configManager, Skill skill) {
         configManager.unsetRSProfileConfiguration(GROUP, TRACKED_KEY + skill.name());
@@ -280,6 +274,9 @@ final class SkillPlans {
         StringBuilder out = new StringBuilder("goal\t").append(plan.goal).append('\n');
         if (plan.name != null && !plan.name.trim().isEmpty()) {
             out.append("name\t").append(clean(plan.name.trim())).append('\n');
+        }
+        if (plan.sent) {
+            out.append("sent\t1\n");
         }
         if (plan.fromGoal > 0) {
             out.append("from\t").append(plan.fromGoal).append('\t').append(plan.fromPick == null ? "" : clean(plan.fromPick)).append('\n');
@@ -319,6 +316,8 @@ final class SkillPlans {
                     plan.goal = Integer.parseInt(parts[1].trim());
                 } else if (parts.length >= 2 && parts[0].equals("name")) {
                     plan.name = parts[1].trim().isEmpty() ? null : parts[1].trim();
+                } else if (parts.length >= 2 && parts[0].equals("sent")) {
+                    plan.sent = "1".equals(parts[1].trim());
                 } else if (parts.length >= 2 && parts[0].equals("from")) {
                     plan.fromGoal = Integer.parseInt(parts[1].trim());
                     plan.fromPick = parts.length > 2 && !parts[2].trim().isEmpty() ? parts[2].trim() : null;
