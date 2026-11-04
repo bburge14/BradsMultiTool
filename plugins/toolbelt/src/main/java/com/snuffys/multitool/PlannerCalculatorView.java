@@ -2844,8 +2844,9 @@ final class PlannerCalculatorView {
         double done = goal > start ? Math.max(0, Math.min(1, (double) (xp - start) / (goal - start))) : 1;
         SkillPlans.Plan tracked = calc.trackedPlan(shown);
         String pick = calc.goalPick(shown);
-        String follows = tracked != null ? "follows " + (tracked.name != null ? tracked.name : planNameOf(shown, tracked))
-            : pick != null ? "via " + pick : "the wiki's methods";
+        // (the tracker puts a Track for goal or method pick ahead of a plan: say so)
+        String follows = pick != null ? "via " + pick : tracked != null ? "follows "
+            + (tracked.name != null ? tracked.name : planNameOf(shown, tracked)) : "the wiki's methods";
         PlannerUi.Card card = new PlannerUi.Card((goalOpen ? "▾ " : "▸ ") + "Goal: " + goalText(goal),
             CalculatorData.level(start, false) + " → " + CalculatorData.level(goal, true) + " · " + follows,
             "lvl " + level + " · " + (int) Math.floor(done * 100) + "%");
@@ -2939,6 +2940,16 @@ final class PlannerCalculatorView {
                 redraw.run();
             }));
             menu.addSeparator();
+        }
+        if (tracked != null && pick != null) {
+            JLabel[] note = card.line("Tracker follows " + pick + ", not the plan", "");
+            note[0].setForeground(HudColors.WARN);
+            note[0].setToolTipText(PlannerUi.fit("<html>A Track for goal or method pick in the Skilling Helper comes before the "
+                + "plan you sent<br>Right-click the goal: Follow the plan instead</html>"));
+            menu.add(menuItem("Follow the plan instead of " + pick, () -> {
+                calc.clearGoalPick(shown);
+                redraw.run();
+            }));
         }
         menu.add(menuItem("Remove goal", () -> removeSkillGoal(shown)));
         list.add(PlannerUi.spaced(card.interactive(() -> {

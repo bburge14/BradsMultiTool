@@ -460,6 +460,14 @@ class PlannerCalculator {
      * What the goal is set to train in the Skilling Helper: its Track for goal pick ("Blessed bone shards") or the
      * method picked on its card; null for neither (it follows the suggestion, or an exported plan).
      */
+    /** Clears the Skilling Helper's Track for goal and method picks for the skill, so it follows the plan. */
+    void clearGoalPick(Skill skill) {
+        if (canPlan() && trackerInstalled()) {
+            configManager.unsetRSProfileConfiguration(GROUP, "goalTarget." + skill.name());
+            configManager.unsetRSProfileConfiguration(GROUP, "goalMethod." + skill.name());
+        }
+    }
+
     String goalPick(Skill skill) {
         if (!canPlan() || !trackerInstalled()) {
             return null;

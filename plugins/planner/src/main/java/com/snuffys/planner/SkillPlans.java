@@ -267,13 +267,14 @@ final class SkillPlans {
 
     /**
      * Exports the plan to the tracker: its final goal becomes the skill's goal (as Set as goal does, keeping where
-     * a goal underway started) and its milestones replace any exported before. A method picked on the tracker card
-     * is cleared (the plan says what to train); a Track for goal pick stays and still comes first.
+     * a goal underway started) and its milestones replace any exported before. A method picked on the tracker card and
+     * a Track for goal pick are cleared: the plan says what to train (either would come first and hide it).
      */
     static void export(ConfigManager configManager, Skill skill, Plan plan, int xpNow) {
         SkillGoals.setGoal(configManager, skill, plan.goalXp(), xpNow);
         configManager.setRSProfileConfiguration(GROUP, TRACKED_KEY + skill.name(), encode(plan));
         configManager.unsetRSProfileConfiguration(GROUP, "goalMethod." + skill.name());
+        configManager.unsetRSProfileConfiguration(GROUP, "goalTarget." + skill.name());
     }
 
     /** Removes the exported plan (the goal stays). */
