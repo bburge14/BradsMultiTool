@@ -115,13 +115,10 @@ class TrainingAdvisor {
         // Your skill plan's milestone at this level (exported from the Planner): ahead of the wiki's suggestion and
         // the Training Focus, behind a method you pick (and a Track for goal pick, which callers check first)
         SkillPlans.Plan skillPlan = picked == null ? plugin.getSkillPlan(skill) : null;
-        SkillPlans.Step step = skillPlan == null ? null : skillPlan.at(level);
+        // The milestone you're on, else the next one (between milestones, or before the first, you're heading there)
+        SkillPlans.Step step = skillPlan == null ? null : skillPlan.milestone(level);
         if (step != null) {
-            TrainingData.Method method = SkillPlans.method(training, skill, step);
-            if (method == null) {
-                // (no guide method for it, Maple logs say: the trees, rocks or spots it's from, for the outlines and tools)
-                method = fromObjects(skill, step);
-            }
+            TrainingData.Method method = planMethod(skill, step);
             Suggestion fromPlan = new Suggestion("Plan:", step.action, method, step.xp,
                 method == null ? new ArrayList<>() : toolsFor(skill, method));
             fromPlan.planStep = step;
@@ -172,12 +169,14 @@ class TrainingAdvisor {
 
     // What a guide method needs to hand: an axe or pickaxe for its trees or rocks, the trap for its creature,
     // a tinderbox to burn logs
-    // A method made from a plan milestone's action: the game objects that are it ("Maple tree" for "Maple logs"), or null
-    private TrainingData.Method fromObjects(Skill skill, SkillPlans.Step step) {
+    /**
+     * A plan milestone in the goal's terms, from its action: the trees or rocks it's from ("Maple logs": every maple
+     * tree, so an axe), the fish it catches (its rod and bait), the creature it hunts (its trap); what the wiki's guide
+     * says of the same method (its places, its about) added where it has one. Null when there's nothing to go on.
+     */
+    TrainingData.Method planMethod(Skill skill, SkillPlans.Step step) {
+        TrainingData.Method guide = SkillPlans.method(training, skill, step);
         java.util.Set<Integer> ids = skilling.objectIds(skill.getName(), name -> MethodDetector.sameThing(name, step.action));
-        if (ids.isEmpty()) {
-            return null;
-        }
         com.google.gson.JsonObject o = new com.google.gson.JsonObject();
         o.addProperty("name", step.action);
         o.addProperty("from", step.from);
@@ -185,11 +184,41 @@ class TrainingAdvisor {
         o.addProperty("fastest", false);
         com.google.gson.JsonArray objects = new com.google.gson.JsonArray();
         ids.forEach(objects::add);
+        if (ids.isEmpty() && guide != null) {
+            guide.objects.forEach(objects::add);
+        }
         o.add("objects", objects);
+        com.google.gson.JsonArray npcs = new com.google.gson.JsonArray();
+        com.google.gson.JsonArray targets = new com.google.gson.JsonArray();
+        String what = step.action.replaceFirst("(?i)^raw ", "");
+        if (skill == Skill.FISHING) {
+            targets.add(what);
+        } else if (skill == Skill.HUNTER || skill == Skill.THIEVING) {
+            npcs.add(step.action);
+        }
+        if (guide != null) {
+            guide.npcs.forEach(npcs::add);
+            if (skill != Skill.FISHING) {
+                guide.targets.forEach(targets::add);
+            }
+        }
+        o.add("npcs", npcs);
+        o.add("targets", targets);
+        if (guide != null) {
+            com.google.gson.JsonArray places = new com.google.gson.JsonArray();
+            guide.places.forEach(places::add);
+            o.add("places", places);
+            if (guide.about != null) {
+                o.addProperty("about", guide.about);
+            }
+        }
+        if (objects.size() == 0 && npcs.size() == 0 && targets.size() == 0 && guide == null) {
+            return null;
+        }
         return new TrainingData.Method(o);
     }
 
-    private List<String> toolsFor(Skill skill, TrainingData.Method method) {
+    List<String> toolsFor(Skill skill, TrainingData.Method method) {
         List<String> tools = new ArrayList<>();
         for (int id : method.objects) {
             SkillingData.Resource resource = skilling.object(id, null);
