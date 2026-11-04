@@ -290,14 +290,34 @@ class MethodDetector {
         plugin.updatePanelUI();
     }
 
+    /** Whether a tree, rock, spot or creature is what an action gets ("Maple tree" and "Maple logs", "Iron rocks" and "Iron ore"). */
+    static boolean sameThing(String target, String action) {
+        String a = stem(target);
+        String b = stem(action);
+        return !a.isEmpty() && !b.isEmpty() && (a.equals(b) || a.startsWith(b + " ") || b.startsWith(a + " "));
+    }
+
+    private static String stem(String text) {
+        String t = text == null ? "" : text.toLowerCase(java.util.Locale.ROOT).trim();
+        t = t.replaceAll("^raw ", "");
+        t = t.replaceAll(" (logs?|trees?|rocks?|ore|deposit|stall|spot)$", "");
+        t = t.replaceAll("s$", "");
+        return t.trim();
+    }
+
     // Whether the suggestion already covers it (so there's nothing to offer)
     private boolean suggested(Skill skill, String target) {
         TrainingAdvisor.Suggestion suggestion = plugin.getTrainingAdvisor().suggest(skill, client.getRealSkillLevel(skill));
+        String name = GoalTarget.parts(target)[0];
+        // Your plan's milestone: what you're training is it when it's the same thing ("Maple tree" for "Maple logs",
+        // "Iron rocks" for "Iron ore"), whether or not the wiki's guide has a method for it
+        if (suggestion != null && suggestion.planStep != null && sameThing(name, suggestion.planStep.action)) {
+            return true;
+        }
         TrainingData.Method method = suggestion != null ? suggestion.method : null;
         if (method == null) {
             return false;
         }
-        String name = GoalTarget.parts(target)[0];
         if (target.startsWith(GoalTarget.FISH)) {
             List<SkillHelperData.Catch> catches = plugin.getTrainingAdvisor().fishCatches(target);
             if (catches.isEmpty()) {
