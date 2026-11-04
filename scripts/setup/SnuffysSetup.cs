@@ -190,6 +190,13 @@ namespace Snuffys
                 object shell = Activator.CreateInstance(shellType);
                 object shortcut = shellType.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, new object[] { link });
                 Type type = shortcut.GetType();
+                // A "Snuffy's Launcher" shortcut to another copy (a developer's own) stays: this one gets its own name
+                string args = (string) type.InvokeMember("Arguments", BindingFlags.GetProperty, null, shortcut, null);
+                if (File.Exists(link) && (args == null || args.IndexOf(Home, StringComparison.OrdinalIgnoreCase) < 0))
+                {
+                    link = Path.Combine(desktop, "Snuffy's Launcher (installed).lnk");
+                    shortcut = shellType.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, new object[] { link });
+                }
                 string powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),
                     "WindowsPowerShell\\v1.0\\powershell.exe");
                 type.InvokeMember("TargetPath", BindingFlags.SetProperty, null, shortcut, new object[] { powershell });

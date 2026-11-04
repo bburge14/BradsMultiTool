@@ -346,6 +346,8 @@ namespace Snuffys
     public class ToggleSwitch : CheckBox
     {
         public Image Icon;
+        /** A status dot at its right end (Color.Empty: none): the Dev tab's up to date (green) or changes to push. */
+        public Color Dot = Color.Empty;
 
         public ToggleSwitch()
         {
@@ -396,7 +398,17 @@ namespace Snuffys
                 g.DrawImage(Icon, left, (Height - size) / 2, size, size);
                 left += size + 6 * s;
             }
-            TextRenderer.DrawText(g, Text, Font, new Rectangle((int) left, 0, Width - (int) left, Height),
+            int right = Width;
+            if (Dot != Color.Empty)
+            {
+                float dot = 8 * s;
+                using (SolidBrush brush = new SolidBrush(Dot))
+                {
+                    g.FillEllipse(brush, Width - dot - 2 * s, (Height - dot) / 2, dot, dot);
+                }
+                right = (int) (Width - dot - 8 * s);
+            }
+            TextRenderer.DrawText(g, Text, Font, new Rectangle((int) left, 0, Math.Max(1, right - (int) left), Height),
                 Enabled ? Theme.Text : Theme.Muted, TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
     }
@@ -1079,8 +1091,10 @@ namespace Snuffys
             PushCard.Title = "1   Push to repos";
             PushCard.Size = new Size(448, 246);
             PushCard.Margin = new Padding(0, 0, 0, 12);
-            PushCard.Controls.Add(Text("Copies each plugin switched on to its own GitHub repository; the changed ones get a new version.",
-                16, 34, 416, 34, Theme.Muted, Theme.Body(8.5f)));
+            PushCard.Controls.Add(Text("Sends each plugin switched on to its own repository (changed ones get a new version).",
+                16, 34, 416, 18, Theme.Muted, Theme.Body(8.5f)));
+            RepoSummary = Text("", 16, 50, 416, 18, Theme.Muted, Theme.Body(8.5f));
+            PushCard.Controls.Add(RepoSummary);
             SegmentTrack level = new SegmentTrack();
             level.BackColor = Theme.Window;
             level.Location = new Point(14, 162);
@@ -1348,6 +1362,22 @@ namespace Snuffys
                 versionTip.SetToolTip(DevTicks[folder], tip);
             }
         }
+
+        // A plugin's repository on the Dev tab: up to date with what's here (a green dot), or with changes to push (orange)
+        public void SetRepoState(string folder, bool changed, string tip)
+        {
+            ToggleSwitch toggle;
+            if (!DevTicks.TryGetValue(folder, out toggle))
+            {
+                return;
+            }
+            toggle.Dot = changed ? Theme.Warn : Theme.Good;
+            versionTip.SetToolTip(toggle, tip);
+            toggle.Invalidate();
+        }
+
+        /** The Push card's line saying how many repositories have changes (empty: all checked off). */
+        public Label RepoSummary;
 
         // The version bump picked: patch, minor or major
         public string Level()
@@ -2423,9 +2453,32 @@ function Update-Versions {
         $code = (git -C $root rev-parse HEAD 2>$null)
         $which = 'your copy of the code'
     }
+    $head = (git -C $root rev-parse HEAD 2>$null)
+    $toPush = @()
     foreach ($folder in $config.plugins.PSObject.Properties.Name) {
         $key = $hubKeys[$folder]
         $cache = Join-Path $root ".publish-cache\$($config.plugins.$folder.hubName)"
+        # Its repository: up to date with plugins\<folder> here, or with changes to push (never pushed counts as changes)
+        $last = if (Test-Path (Join-Path $cache '.git')) { (git -C $cache log -1 --grep='From BradsMultiTool' --format=%B 2>$null | Out-String) } else { '' }
+        $behind = $true
+        $repoTip = "Not pushed from this PC yet: Push to repos sends it"
+        if ($head -and $last -match 'BradsMultiTool ([0-9a-f]{7,40})') {
+            $lastPushed = $Matches[1]
+            git -C $root cat-file -e "$lastPushed^{commit}" 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                git -C $root diff --quiet $lastPushed $head.Trim() -- "plugins/$folder" 2>$null
+                $behind = $LASTEXITCODE -eq 1
+                $repoTip = if ($behind) { "Changes to push: plugins\$folder changed since your last push to its repository" }
+                           else { "Up to date: its repository has what's in plugins\$folder now (nothing to push)" }
+            }
+        }
+        if ($behind) { $toPush += $folder }
+        $ui.SetRepoState($folder, $behind, $repoTip)
+        # Switched on when it has changes, off when it's up to date (when that changes, so your own picks stay)
+        if ($script:repoStates[$folder] -ne $behind -and $devTicks.Contains($folder)) {
+            $devTicks[$folder].Checked = $behind
+        }
+        $script:repoStates[$folder] = $behind
         $gradle = Join-Path $cache 'build.gradle'
         $version = $null
         if (Test-Path $gradle) {
@@ -2450,8 +2503,13 @@ function Update-Versions {
         $tip = if ($changed) { "v$version is the last version pushed to its repository; $which has changes since then (Push to repos makes the next version)" }
                 else { "v${version}: the last version pushed to its repository, the same as $which" }
         $ui.SetPluginVersion($key, $folder, "v$version$(if ($changed) { '+' })", $tip)
+        # (the Dev switch's own tooltip says the repository's state)
+        $ui.SetRepoState($folder, $behind, $repoTip)
     }
+    $ui.RepoSummary.Text = if ($toPush) { "$($toPush.Count) to push: " + ($toPush -join ', ') } else { 'Every repository is up to date: nothing to push.' }
+    $ui.RepoSummary.ForeColor = if ($toPush) { [Snuffys.Theme]::Warn } else { $green }
 }
+$script:repoStates = @{}
 
 $autoUpdate = New-Object System.Windows.Forms.Timer
 $autoUpdate.Interval = 5000
