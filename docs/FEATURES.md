@@ -723,9 +723,10 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   the actions it applies to (the gilded altar for bones, not ashes).
 - **Actions**: each with its picture, name and level (greyed out above your level), XP each with your bonuses and how
   many to your target. Underneath where it applies: the time at the XP rate the wiki's training guide gives for a
-  matching method (Teak trees for Teak logs), else at an estimate marked "est." (a typical count an hour for it,
-  banking included, times its XP each: within about 20-30% for an average player; faster ways such as 1-tick
-  karambwans, 2-tick teaks, 3-tick granite or clicking darts fast are in the tooltip and a milestone's **Pace**), how many you have (bank as last opened plus inventory: of the item, or
+  matching method (Teak trees for Teak logs), else at an estimate marked "est." (the OSRS Wiki's count an hour for it, from
+  its training and money making guides or its tick timings with banking, times its XP each; faster ways such as 1-tick
+  karambwans, 2-tick teaks, 3-tick granite, clicking darts, the Smiths' uniform or the Blast Furnace are in the
+  tooltip and a milestone's **Pace**), how many you have (bank as last opened plus inventory: of the item, or
   how many you can make from your materials), and with **Show GE Prices** one line of money at Grand Exchange prices:
   what the materials to your target are worth ("Mats 1.24M", for what you make, burn or bury) and what the products
   sell for ("Sells 2.10M": what you make, or the logs, ore, fish or catch you gather, priced by the item's id); neither

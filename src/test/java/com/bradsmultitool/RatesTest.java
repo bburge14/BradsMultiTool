@@ -188,4 +188,20 @@ public class RatesTest {
         back = SkillPlans.decode(SkillPlans.encode(plan)).steps.get(0);
         assertTrue(back.soldEach == 245.5 && back.alchedEach == 0 && "ALCH".equals(back.sellBy) && back.sold == 120);
     }
+
+    @Test
+    public void dartsGoAsFastAsPeopleMakeThem() {
+        // A slow player's adamant darts: about 1.3M xp an hour (87,000 darts); the normal pace is close, clicking fast more
+        CalculatorData.Action dart = null;
+        for (CalculatorData.Action a : DATA.calc(Skill.FLETCHING).actions) {
+            if (a.name.equals("Adamant dart")) {
+                dart = a;
+            }
+        }
+        List<PlannerRates.Way> ways = PlannerRates.ways(Skill.FLETCHING, dart, PlannerCalculator.recipesFor(Skill.FLETCHING,
+            dart, RECIPES));
+        double normal = ways.get(0).perHour * dart.xp;
+        assertTrue(normal + "", normal > 1_000_000 && normal < 1_500_000);
+        assertTrue(ways.size() > 1 && ways.get(1).perHour * dart.xp > 1_500_000);
+    }
 }

@@ -240,9 +240,10 @@ each can be hidden in the settings; everything is saved per account.
   Goal). Tick the XP bonuses you use (skilling outfits, diaries, altars, the bonecrusher...; ones that can't go
   together untick each other). Three views:
   - **Actions**: every action with its XP each, how many to your target, the time (at the wiki's training guide's XP
-    rate where it has one, else an **estimate**: a typical pace for it with banking, times its XP, marked "est."; it
-    lands within about 20-30% for an average player, and the tooltip lists faster ways like 1-tick karambwans or
-    3-tick granite), and how many you have (bank as last opened plus inventory). With **Show GE Prices**, the money:
+    rate where it has one, else an **estimate** marked "est.": the OSRS Wiki's own counts an hour for it, from its
+    training and money making guides (or its tick timings with banking), times its XP; the tooltip lists the faster
+    ways with theirs, like 1-tick karambwans, 2-tick teaks, 3-tick granite, clicking darts, the Smiths' uniform or the
+    Blast Furnace), and how many you have (bank as last opened plus inventory). With **Show GE Prices**, the money:
     "Mats 254K · Sells 226K" is what the materials and the products are worth on the Grand Exchange (neither is
     profit), and the net beside it, with a **green plus** for a gain or a **red minus** for a loss ("-28K"), plus the
     net gp per XP. Hover a card for all of it in words. Darts, arrows and bolts count per item (10 darts a go, each
