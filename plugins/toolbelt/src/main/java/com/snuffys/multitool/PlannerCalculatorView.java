@@ -333,7 +333,7 @@ final class PlannerCalculatorView {
             tab.setBackground(on ? new Color(60, 60, 60) : PlannerUi.CARD);
             tab.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0,
                 on ? ColorScheme.BRAND_ORANGE : PlannerUi.CARD), new EmptyBorder(4, 0, 3, 0)));
-            tab.setToolTipText(tips[i]);
+            tab.setToolTipText(PlannerUi.fit(tips[i]));
             if (!on) {
                 tab.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 tab.addMouseListener(new MouseAdapter() {
@@ -392,8 +392,8 @@ final class PlannerCalculatorView {
                 cell.setIcon(new ImageIcon(picked ? icon : fade(icon, 0.7f)));
             }
             int xp = calc.xp(s);
-            cell.setToolTipText(s.getName() + (xp >= 0 ? ": level " + CalculatorData.level(xp, false) : "")
-                + (hasGoal ? ", goal " + goalText(calc.goal(s)) : ""));
+            cell.setToolTipText(PlannerUi.fit(s.getName() + (xp >= 0 ? ": level " + CalculatorData.level(xp, false) : "")
+                + (hasGoal ? ", goal " + goalText(calc.goal(s)) : "")));
             cell.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             cell.addMouseListener(new MouseAdapter() {
                 @Override
@@ -465,9 +465,9 @@ final class PlannerCalculatorView {
             }
             row.add(name, BorderLayout.CENTER);
             row.add(PlannerUi.label((int) Math.floor(done * 100) + "%", GOAL_GOLD), BorderLayout.EAST);
-            row.setToolTipText("<html>" + s.getName() + ": goal " + goalText(goal) + ", " + String.format("%,d", goal - xp)
+            row.setToolTipText(PlannerUi.fit("<html>" + s.getName() + ": goal " + goalText(goal) + ", " + String.format("%,d", goal - xp)
                 + " xp to go" + (plans > 0 ? "<br>" + plans + (plans == 1 ? " plan" : " plans") : "")
-                + (s == shown ? "" : "<br>Click to open " + s.getName()) + "</html>");
+                + (s == shown ? "" : "<br>Click to open " + s.getName()) + "</html>"));
             row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             row.addMouseListener(new MouseAdapter() {
                 @Override
@@ -619,7 +619,7 @@ final class PlannerCalculatorView {
         field.setCaretColor(Color.WHITE);
         field.setBackground(FIELD);
         field.setBorder(new CompoundBorder(PlannerUi.line(FIELD_LINE), new EmptyBorder(0, 5, 0, 5)));
-        field.setToolTipText(tooltip);
+        field.setToolTipText(PlannerUi.fit(tooltip));
         field.setPreferredSize(new Dimension(40, 21));
         field.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
@@ -754,7 +754,7 @@ final class PlannerCalculatorView {
         search.setCaretColor(Color.WHITE);
         search.setFont(FontManager.getRunescapeSmallFont());
         search.setBorder(new EmptyBorder(6, 6, 6, 4));
-        search.setToolTipText("Show only the actions with this in their name");
+        search.setToolTipText(PlannerUi.fit("Show only the actions with this in their name"));
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -954,7 +954,7 @@ final class PlannerCalculatorView {
         line.setForeground(new Color(220, 220, 220));
         box.add(line);
         JLabel numbers = PlannerUi.label("   " + detail, PlannerUi.MUTED);
-        numbers.setToolTipText(line.getToolTipText());
+        numbers.setToolTipText(PlannerUi.fit(line.getToolTipText()));
         box.add(numbers);
     }
 
@@ -1044,7 +1044,7 @@ final class PlannerCalculatorView {
         JLabel label = new JLabel(PlannerUi.wrap(text, PlannerUi.WRAP + 16, false, false));
         label.setFont(FontManager.getRunescapeSmallFont());
         label.setForeground(PlannerUi.MUTED);
-        label.setToolTipText(tooltip);
+        label.setToolTipText(PlannerUi.fit(tooltip));
         JPanel box = new JPanel(new BorderLayout());
         box.setBackground(PlannerUi.BACKGROUND);
         box.setBorder(new EmptyBorder(0, 2, 6, 2));
@@ -1087,7 +1087,7 @@ final class PlannerCalculatorView {
         JLabel toggle = PlannerUi.label(title, Color.WHITE);
         toggle.setMinimumSize(new Dimension(0, 0));
         toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        toggle.setToolTipText(open ? "Fold the plan away" : "Show your plan's milestones here, to compare as you scroll");
+        toggle.setToolTipText(PlannerUi.fit(open ? "Fold the plan away" : "Show your plan's milestones here, to compare as you scroll"));
         toggle.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -1172,7 +1172,7 @@ final class PlannerCalculatorView {
         row.add(from, BorderLayout.WEST);
         row.add(name, BorderLayout.CENTER);
         row.add(PlannerUi.label(left, PlannerUi.MUTED), BorderLayout.EAST);
-        row.setToolTipText(tip);
+        row.setToolTipText(PlannerUi.fit(tip));
         row.setAlignmentX(JComponent.LEFT_ALIGNMENT);
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
         return row;
@@ -1186,7 +1186,7 @@ final class PlannerCalculatorView {
             new EmptyBorder(5, 6, 5, 7)));
         JLabel label = PlannerUi.label(text, Color.WHITE);
         label.setMinimumSize(new Dimension(0, 0));
-        label.setToolTipText(text);
+        label.setToolTipText(PlannerUi.fit(text));
         row.add(label, BorderLayout.CENTER);
         row.add(PlannerUi.linkLabel(link, linkTip, action), BorderLayout.EAST);
         return PlannerUi.spaced(row);
@@ -1937,8 +1937,8 @@ final class PlannerCalculatorView {
             }
         }
         JComponent wrapped = PlannerUi.fullWidth(box);
-        wrapped.setToolTipText("<html>Each material for one, and for all of this milestone, at "
-            + "Grand Exchange prices (* your price, from your trades this week); sales after the 2% tax</html>");
+        wrapped.setToolTipText(PlannerUi.fit("<html>Materials and sales for one, then for the whole milestone<br>"
+            + "<font color='#a0a0a0'>GE prices (* your own); sales after the 2% tax</font></html>"));
         return wrapped;
     }
 
@@ -1962,7 +1962,7 @@ final class PlannerCalculatorView {
         boolean folded = calc.planFolded(key);
         JComponent row = PlannerUi.group((folded ? "\u25B6 " : "\u25BC ") + title, summary, actions);
         row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-        row.setToolTipText(folded ? "Click to open" : "Click to fold away");
+        row.setToolTipText(PlannerUi.fit(folded ? "Click to open" : "Click to fold away"));
         MouseAdapter click = new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -2642,7 +2642,7 @@ final class PlannerCalculatorView {
             name.setMinimumSize(new Dimension(0, 0));
             row.add(name, BorderLayout.CENTER);
             row.add(PlannerUi.label(amounts, colour), BorderLayout.EAST);
-            row.setToolTipText(tip);
+            row.setToolTipText(PlannerUi.fit(tip));
             if (source != null) {
                 // Right-click: get it yourself in the other skill, or buy it
                 JPopupMenu menu = new JPopupMenu();
@@ -2864,8 +2864,8 @@ final class PlannerCalculatorView {
         if (changed != null) {
             JLabel[] note = card.line("Goal changed in the tracker: update the plan", "");
             note[0].setForeground(HudColors.WARN);
-            note[0].setToolTipText("<html>" + PlannerUi.esc(changed).replace("\n", "<br>") + "<br>Right-click the goal > Update "
-                + "the plan</html>");
+            note[0].setToolTipText(PlannerUi.fit("<html>" + PlannerUi.esc(changed).replace("\n", "<br>") + "<br>Right-click the goal > Update "
+                + "the plan</html>"));
             menu.add(menuItem("Update \"" + planName(calc.plans(shown).get(made), made) + "\" from the tracker...",
                 () -> updateFromGoal(shown, made, goal, pick)));
         }
@@ -2880,9 +2880,9 @@ final class PlannerCalculatorView {
                 String name = planName(sentPlan, sentAt);
                 JLabel[] note = card.line("Changes to " + name + " not sent", "");
                 note[0].setForeground(HudColors.WARN);
-                note[0].setToolTipText("<html>The goal follows \"" + PlannerUi.esc(name) + "\" as you sent it; you've changed "
+                note[0].setToolTipText(PlannerUi.fit("<html>The goal follows \"" + PlannerUi.esc(name) + "\" as you sent it; you've changed "
                     + "it since. Your changes stay a draft until you send them<br>Right-click the goal: send them, or "
-                    + "undo them</html>");
+                    + "undo them</html>"));
                 menu.add(menuItem("Send changes to \"" + name + "\"", () -> {
                     CalculatorData.Calc skillCalc = data.calc(shown);
                     SkillPlans.Plan withXp = withXp(shown, sentPlan, CalculatorData.bonuses(skillCalc, calc.bonuses(shown)),
@@ -2902,9 +2902,9 @@ final class PlannerCalculatorView {
                 int openAt = calc.openIndex(shown);
                 JLabel[] note = card.line("Tracker has an older copy: right-click to sync", "");
                 note[0].setForeground(HudColors.WARN);
-                note[0].setToolTipText("<html>The Skilling Helper follows a copy of a plan from before it was last changed: "
+                note[0].setToolTipText(PlannerUi.fit("<html>The Skilling Helper follows a copy of a plan from before it was last changed: "
                     + tracked.steps.size() + " milestones to level " + tracked.goal
-                    + "<br>Right-click the goal: send your open plan to it, or bring its copy in as a plan</html>");
+                    + "<br>Right-click the goal: send your open plan to it, or bring its copy in as a plan</html>"));
                 if (open != null) {
                     menu.add(menuItem("Use the tracker's plan for \"" + planName(open, openAt) + "\"", () -> {
                         if (confirm("Replace \"" + planName(open, openAt) + "\" with the plan the tracker has (the one your "
@@ -3199,10 +3199,10 @@ final class PlannerCalculatorView {
                     "Sell by");
                 better[0].setForeground(HudColors.WARN);
                 better[1].setForeground(HudColors.WARN);
-                better[0].setToolTipText("<html>" + (alchBetter ? "High alching" : "Selling on the GE") + " gets "
+                better[0].setToolTipText(PlannerUi.fit("<html>" + (alchBetter ? "High alching" : "Selling on the GE") + " gets "
                     + String.format("%,.0f", Math.max(row.alchEach, row.geEach)) + " each against "
                     + String.format("%,.0f", Math.min(row.alchEach, row.geEach)) + "<br>Right-click the milestone > Sell by to "
-                    + "switch</html>");
+                    + "switch</html>"));
             }
         }
         if (!s.done && !step.supplies.isEmpty() && s.action != null && s.action.level > level) {
@@ -3217,7 +3217,7 @@ final class PlannerCalculatorView {
                 if (waiting != null) {
                     JLabel[] wait = card.line("Waiting on " + waiting, "");
                     wait[0].setForeground(HudColors.WARN);
-                    wait[0].setToolTipText(PlannerUi.esc(need.name) + " comes from " + waiting + ": train that first");
+                    wait[0].setToolTipText(PlannerUi.fit(PlannerUi.esc(need.name) + " comes from " + waiting + ": train that first"));
                     break;
                 }
             }
@@ -3229,9 +3229,9 @@ final class PlannerCalculatorView {
                 short_ ? "makes " + PlannerPanel.gp(row.needed) : "not sold");
             kept[0].setForeground(GATHER_BLUE);
             kept[1].setForeground(short_ ? HudColors.WARN : GATHER_BLUE);
-            kept[0].setToolTipText(PlannerUi.esc(supply.item) + " for your " + skillName(supply.skill) + " plan: kept, so "
+            kept[0].setToolTipText(PlannerUi.fit(PlannerUi.esc(supply.item) + " for your " + skillName(supply.skill) + " plan: kept, so "
                 + "they're left out of this milestone's sales and net" + (short_ ? "; it only makes " + String.format("%,d",
-                row.needed) + " more, so make it longer or get the rest another way" : ""));
+                row.needed) + " more, so make it longer or get the rest another way" : "")));
         }
         if (s.action != null) {
             picture(card.icon, s.action);
@@ -3407,7 +3407,7 @@ final class PlannerCalculatorView {
         if (step.method != null) {
             tip.line("Guide method: " + step.method, PlannerUi.Tip.MUTED);
         }
-        tip.hint("Click: breakdown \u00b7 right-click: edit, pace, record sales, move or delete");
+        tip.hint("Click: breakdown \u00b7 right-click: more");
         String open = stepKey(shown, step);
         return card.interactive(() -> {
             if (!openSteps.remove(open)) {

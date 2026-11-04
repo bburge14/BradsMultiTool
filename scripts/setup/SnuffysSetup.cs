@@ -83,9 +83,18 @@ namespace Snuffys
                     {
                         if (problem != null)
                         {
+                            // (also saved, to send: %TEMP%\snuffys-launcher-setup-error.txt)
+                            try
+                            {
+                                File.WriteAllText(Path.Combine(Path.GetTempPath(), "snuffys-launcher-setup-error.txt"), problem);
+                            }
+                            catch (Exception)
+                            {
+                                // the message says it
+                            }
                             MessageBox.Show(form, "Couldn't install Snuffy's Launcher:\n\n" + problem
-                                + "\n\nCheck your internet connection and run this again.", "Snuffy's Launcher Setup",
-                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                + "\n\nCheck your internet connection and run this again. (Saved in %TEMP%\\snuffys-launcher-setup-error.txt)",
+                                "Snuffy's Launcher Setup", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
                         else
                         {
@@ -108,12 +117,7 @@ namespace Snuffys
             string unzipped = Path.Combine(Path.GetTempPath(), "snuffys-launcher-setup");
             try
             {
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType) 3072;
-                using (WebClient web = new WebClient())
-                {
-                    web.Headers.Add("User-Agent", "snuffys-launcher-setup");
-                    web.DownloadFile(Zip, zip);
-                }
+                Download(zip, say);
                 say("Unpacking...");
                 if (Directory.Exists(unzipped))
                 {
@@ -129,7 +133,7 @@ namespace Snuffys
             }
             catch (Exception e)
             {
-                return e.Message;
+                return Why(e);
             }
             finally
             {
@@ -146,6 +150,89 @@ namespace Snuffys
                     // left for Windows to clear
                 }
             }
+        }
+
+        // The zip, three ways in turn: from codeload, from github.com (which sends it on to codeload), and through
+        // PowerShell (Windows' own web stack, its proxy and TLS settings); what each said when all fail
+        private static void Download(string zip, Action<string> say)
+        {
+            // TLS 1.2, and 1.3 where this Windows has it
+            try
+            {
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType) (3072 | 12288);
+            }
+            catch (Exception)
+            {
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType) 3072;
+            }
+            string[] urls = { Zip, "https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip" };
+            System.Collections.Generic.List<string> problems = new System.Collections.Generic.List<string>();
+            foreach (string url in urls)
+            {
+                try
+                {
+                    using (WebClient web = new WebClient())
+                    {
+                        web.Headers.Add("User-Agent", "snuffys-launcher-setup");
+                        web.Proxy = WebRequest.GetSystemWebProxy();
+                        web.Proxy.Credentials = CredentialCache.DefaultCredentials;
+                        web.DownloadFile(url, zip);
+                    }
+                    if (new FileInfo(zip).Length > 0)
+                    {
+                        return;
+                    }
+                    problems.Add("the download was empty");
+                }
+                catch (Exception e)
+                {
+                    problems.Add(Why(e));
+                }
+                say("Downloading (trying another way)...");
+            }
+            try
+            {
+                ProcessStartInfo start = new ProcessStartInfo("powershell.exe", "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden "
+                    + "-Command \"$ProgressPreference = 'SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol = 3072; "
+                    + "Invoke-WebRequest -UseBasicParsing -Uri '" + urls[1] + "' -OutFile '" + zip.Replace("'", "''") + "'\"");
+                start.UseShellExecute = false;
+                start.CreateNoWindow = true;
+                start.RedirectStandardError = true;
+                using (Process get = Process.Start(start))
+                {
+                    string error = get.StandardError.ReadToEnd();
+                    get.WaitForExit();
+                    if (get.ExitCode == 0 && File.Exists(zip) && new FileInfo(zip).Length > 0)
+                    {
+                        return;
+                    }
+                    problems.Add("PowerShell: " + (error.Trim().Length > 0 ? error.Trim().Split('\n')[0] : "exit " + get.ExitCode));
+                }
+            }
+            catch (Exception e)
+            {
+                problems.Add("PowerShell: " + Why(e));
+            }
+            throw new IOException("the download didn't work:\n- " + string.Join("\n- ", problems.ToArray()));
+        }
+
+        // An error with what's behind it ("An exception occurred during a WebClient request" says nothing by itself)
+        private static string Why(Exception e)
+        {
+            string text = e.Message;
+            for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
+            {
+                if (text.IndexOf(inner.Message, StringComparison.Ordinal) < 0)
+                {
+                    text += " (" + inner.Message + ")";
+                }
+            }
+            WebException web = e as WebException;
+            if (web != null && web.Response is HttpWebResponse)
+            {
+                text += " [HTTP " + (int) ((HttpWebResponse) web.Response).StatusCode + "]";
+            }
+            return text;
         }
 
         // Windows PowerShell's Expand-Archive (in every Windows 10 and 11), with no window

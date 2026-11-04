@@ -124,6 +124,31 @@ final class PlannerUi {
         return text == null ? "" : text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
+    /** About the widest a tooltip's line may be, in characters, before it's wrapped (at {@link #TIP_WIDTH}). */
+    private static final int TIP_CHARS = 46;
+    private static final int TIP_WIDTH = 225;
+
+    /**
+     * A tooltip that's never wider than about {@value #TIP_WIDTH} px: one with a line longer than that wraps (plain text
+     * too); short ones keep their own width. Every Planner tooltip goes through this.
+     */
+    static String fit(String tip) {
+        if (tip == null || tip.isEmpty()) {
+            return tip;
+        }
+        boolean html = tip.regionMatches(true, 0, "<html>", 0, 6);
+        String body = html ? tip.substring(6).replaceFirst("(?i)</html>\\s*$", "") : esc(tip).replace("\n", "<br>");
+        int longest = 0;
+        for (String line : body.split("(?i)<br>|</tr>|</table>|</div>|<table")) {
+            String text = line.replaceAll("<[^>]*>", "").replace("&nbsp;", " ").replaceAll("&[a-z]+;", "x");
+            longest = Math.max(longest, text.length());
+        }
+        if (longest <= TIP_CHARS) {
+            return html ? tip : tip;
+        }
+        return "<html><body style='width:" + TIP_WIDTH + "px'>" + body + "</body></html>";
+    }
+
     /**
      * A tooltip laid out like the game's: a bold title (and a muted line under it), gold section headers, rows of a
      * label and its value lined up in columns (values coloured: gains green, losses red), plain lines, and a muted hint
@@ -163,7 +188,7 @@ final class PlannerUi {
                 inTable = true;
             }
             // (the label column the same width in every section, so the values line up down the whole tip)
-            out.append("<tr><td width='130'><font color='#c8c8c8'>").append(esc(label).replace("  ", "&nbsp;&nbsp;")).append("</font></td>")
+            out.append("<tr><td width='105'><font color='#c8c8c8'>").append(esc(label).replace("  ", "&nbsp;&nbsp;")).append("</font></td>")
                 .append("<td align='right'><font color='").append(color == null ? "#ffffff" : color).append("'>")
                 .append(esc(value).replace("  ", "&nbsp;&nbsp;")).append("</font></td></tr>");
             return this;
@@ -586,7 +611,7 @@ final class PlannerUi {
             setPreferredSize(new Dimension(20, 20));
             setMinimumSize(new Dimension(20, 20));
             setMaximumSize(new Dimension(20, 20));
-            setToolTipText(tooltip);
+            setToolTipText(fit(tooltip));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             addMouseListener(new MouseAdapter() {
                 @Override
@@ -634,7 +659,7 @@ final class PlannerUi {
     /** The link's text alone, to put in a header. */
     static JLabel linkLabel(String text, String tooltip, Runnable action) {
         JLabel label = label(text, MUTED);
-        label.setToolTipText(tooltip);
+        label.setToolTipText(fit(tooltip));
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         label.addMouseListener(new MouseAdapter() {
             @Override
@@ -710,7 +735,7 @@ final class PlannerUi {
     static void tips(Container root, String tooltip) {
         everywhere(root, c -> {
             if (c instanceof JComponent && !(c instanceof IconButton)) {
-                ((JComponent) c).setToolTipText(tooltip);
+                ((JComponent) c).setToolTipText(fit(tooltip));
             }
         });
     }

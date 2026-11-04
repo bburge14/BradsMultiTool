@@ -208,7 +208,7 @@ class PlannerPanel extends PluginPanel {
             for (Page page : shown) {
                 MaterialTab tab = new MaterialTab(tabIcon(page.shape), group, page.body);
                 tab.setPreferredSize(new Dimension(30, 27));
-                tab.setToolTipText(page.name);
+                tab.setToolTipText(PlannerUi.fit(page.name));
                 tab.setOnSelectEvent(() -> {
                     selected = page;
                     if (!page.id.equals(configManager.getConfiguration(GROUP, TAB_KEY))) {
@@ -1451,7 +1451,7 @@ class PlannerPanel extends PluginPanel {
             todoField.setCaretColor(Color.WHITE);
             todoField.setFont(FontManager.getRunescapeSmallFont());
             todoField.setBorder(new EmptyBorder(6, 8, 6, 4));
-            todoField.setToolTipText("A new to-do: type it and press Enter");
+            todoField.setToolTipText(PlannerUi.fit("A new to-do: type it and press Enter"));
             todoField.addActionListener(e -> addTodo());
             focusBorder(todoField, row);
             row.add(todoField, BorderLayout.CENTER);
@@ -1472,7 +1472,7 @@ class PlannerPanel extends PluginPanel {
             notesBox.setForeground(Color.WHITE);
             notesBox.setCaretColor(Color.WHITE);
             notesBox.setBorder(new EmptyBorder(6, 8, 6, 8));
-            notesBox.setToolTipText("Notes for this account (saved as you type)");
+            notesBox.setToolTipText(PlannerUi.fit("Notes for this account (saved as you type)"));
             notesBox.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
                 public void insertUpdate(DocumentEvent e) {
@@ -1677,7 +1677,7 @@ class PlannerPanel extends PluginPanel {
     }
 
     private static JLabel tip(JLabel label, String tooltip) {
-        label.setToolTipText(tooltip);
+        label.setToolTipText(PlannerUi.fit(tooltip));
         return label;
     }
 
