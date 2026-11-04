@@ -838,6 +838,18 @@ class PlannerCalculator {
         return canPlan() && trackerInstalled() && SkillPlans.isTracked(configManager, skill, plan);
     }
 
+    /**
+     * Saves a change the Planner made by itself (a supply milestone's end following its supplies): when the tracker had
+     * the plan as it was, it gets the change too, so it isn't left as an unsent edit of yours.
+     */
+    void savePlanQuietly(Skill skill, SkillPlans.Plan plan, SkillPlans.Plan before) {
+        boolean wasTracked = isTracked(skill, before);
+        savePlan(skill, plan);
+        if (wasTracked) {
+            configManager.setRSProfileConfiguration(GROUP, SkillPlans.TRACKED_KEY + skill.name(), SkillPlans.encode(plan));
+        }
+    }
+
     /** Sends the plan at {@code index} of the skill's list to the tracker; it becomes the one you sent. */
     void export(Skill skill, int index, SkillPlans.Plan plan, int xpNow) {
         if (canPlan()) {
