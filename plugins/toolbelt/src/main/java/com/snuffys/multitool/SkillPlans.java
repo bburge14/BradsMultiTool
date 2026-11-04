@@ -78,6 +78,11 @@ final class SkillPlans {
          * time it draws), so it runs exactly as far as its supplies, partway into its last level; 0: at level {@code to}.
          */
         transient long endXp;
+        /**
+         * Not saved: a supply milestone whose supplies you have all of (cut, bought or banked): it's done, takes no levels,
+         * and the milestone after it starts where the one before it ended. Worked out each time the Planner draws.
+         */
+        transient boolean gotAll;
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;

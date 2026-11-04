@@ -1426,6 +1426,12 @@ class PlannerCalculator {
         SkillPlans.Step previous = null;
         for (SkillPlans.Step step : plan.steps) {
             int start = Math.max(xpNow, Experience.getXpForLevel(step.from));
+            if (step.gotAll) {
+                // (all its supplies got: done, and no XP of its own)
+                out.add(new StepRow(step, CalculatorData.named(calc, step.action), null, 0, true));
+                out.get(out.size() - 1).progress = 1;
+                continue;
+            }
             if (previous != null && previous.endXp > 0 && previous.to == step.from) {
                 start = (int) Math.max(start, Math.min(Experience.MAX_SKILL_XP, previous.endXp));
             }
@@ -1434,7 +1440,7 @@ class PlannerCalculator {
             end = Math.max(end, start);
             previous = step;
             CalculatorData.Action action = CalculatorData.named(calc, step.action);
-            boolean done = xpNow >= end;
+            boolean done = xpNow >= end || step.gotAll;
             Row row = action == null ? null : row(skill, action, on, start, end, Math.max(step.from,
                 CalculatorData.level(xpNow, false)), recipes, training, Collections.emptyMap(), price, itemPrice, step.pace, step.sellBy);
             if (row != null) {

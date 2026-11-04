@@ -2438,10 +2438,12 @@ final class PlannerCalculatorView {
             int from = previousEnd > 0 ? Math.max(action.level, previousEnd) : step.from;
             int to;
             step.endXp = 0;
-            if (items <= 0) {
-                // Nothing left to get (you have them all, bought or banked): it keeps its length but still follows on
-                // from the one before, so when that one gets shorter it moves up with it
-                to = Math.min(99, from + Math.max(1, step.to - step.from));
+            step.gotAll = items <= 0;
+            if (step.gotAll) {
+                // You have all its supplies (cut, bought or banked): it's done and takes no levels. It sits where the one
+                // before it ends (one level long, so it stays in the plan in case you use them up), and what comes after
+                // starts there too
+                to = Math.min(99, from + 1);
             } else {
                 int per = 1;
                 for (RecipeData.Recipe recipe : PlannerCalculator.recipesFor(shown, action, recipes)) {
@@ -2455,27 +2457,37 @@ final class PlannerCalculatorView {
                 // (exactly as far as the supplies: the rest of the way into its last level)
                 step.endXp = end > Experience.getXpForLevel(to) ? end : 0;
             }
-            previousEnd = to;
+            // (where the next one starts: its end, or its start when it's done and takes no levels)
+            int nextFrom = step.gotAll ? from : to;
+            previousEnd = nextFrom;
+            int oldTo = step.to;
+            // (an ordinary milestone that started where it ended starts where the next one should now, as long as that
+            // leaves it a level)
+            for (SkillPlans.Step next : plan.steps) {
+                if (next != step && next.supplies.isEmpty() && next.from == oldTo && nextFrom < next.to && next.from != nextFrom) {
+                    next.from = nextFrom;
+                    changed = true;
+                }
+            }
             if (to == step.to && from == step.from) {
                 continue;
             }
-            int oldTo = step.to;
-            // (an ordinary milestone that started where it ended starts where it ends now, as long as that leaves it
-            // a level)
-            for (SkillPlans.Step next : plan.steps) {
-                if (next != step && next.supplies.isEmpty() && next.from == oldTo && to < next.to) {
-                    next.from = to;
-                }
+            if (step.gotAll) {
+                // (done: just moved, nothing made room for it)
+                step.from = from;
+                step.to = to;
+            } else {
+                plan.steps.remove(step);
+                step.from = from;
+                step.to = to;
+                PlannerCalculator.insertStep(plan, step);
             }
-            plan.steps.remove(step);
-            step.from = from;
-            step.to = to;
-            PlannerCalculator.insertStep(plan, step);
             plan.goal = Math.max(plan.goal, to);
             changed = true;
         }
+        // (a done one first among those starting at the same level: it comes before what follows it)
+        plan.steps.sort((a, b) -> a.from != b.from ? Integer.compare(a.from, b.from) : Boolean.compare(!a.gotAll, !b.gotAll));
         if (changed) {
-            plan.steps.sort((a, b) -> Integer.compare(a.from, b.from));
             calc.savePlanQuietly(shown, plan, before);
         }
     }
@@ -3347,7 +3359,7 @@ final class PlannerCalculatorView {
     private JComponent stepCard(Skill shown, SkillPlans.Plan plan, int index, PlannerCalculator.StepRow s, int level) {
         SkillPlans.Step step = s.step;
         PlannerCalculator.Row row = s.row;
-        boolean now = step.covers(level);
+        boolean now = !step.gotAll && step.covers(level);
         // Ticked off once you're past its end; on the way, how far through it you are
         int percent = (int) Math.floor(s.progress * 100);
         boolean started = !s.done && s.progress > 0;
@@ -3356,12 +3368,13 @@ final class PlannerCalculatorView {
         long supplyItems = step.supplies.isEmpty() ? 0 : suppliesToGet(step);
         String left = !step.supplies.isEmpty() && supplyItems > 0
             ? count(supplyItems) + " to get"
+            : step.gotAll ? "Done: have all the supplies"
             : s.done ? "Done (you're level " + level + ")"
             : row != null ? String.format("%,d", row.needed) + " to go" + (started ? " · " + percent + "%" : "")
             : (started ? percent + "% done" : "");
         PlannerUi.Card card = new PlannerUi.Card(step.action, left, s.done ? "" : PlannerPanel.gp(s.xp) + " xp");
         // (a supply milestone's end is where its supplies take you: about)
-        card.corner.setText(step.from + " → " + (step.supplies.isEmpty() ? "" : "~") + step.to);
+        card.corner.setText(step.gotAll ? "no levels" : step.from + " → " + (step.supplies.isEmpty() ? "" : "~") + step.to);
         card.corner.setForeground(now ? Color.WHITE : PlannerUi.MUTED);
         card.right.setForeground(Color.WHITE);
         if (row != null && !s.done) {
