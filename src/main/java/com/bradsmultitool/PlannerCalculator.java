@@ -967,6 +967,8 @@ class PlannerCalculator {
         Double alchEach;
         /** {@link #earnEach} is the alch value (alching pays more, or Sell Products By says to). */
         boolean alchWins;
+        /** Its products are dropped (powerlevelling): worth nothing. */
+        boolean dropped;
         /** How many you have or can make from what you own. */
         int have;
         /** The guide's method at your level is this. */
@@ -1047,7 +1049,7 @@ class PlannerCalculator {
                            int level, RecipeData recipes, TrainingData training, Map<String, Integer> have,
                            ToIntFunction<String> price, IntUnaryOperator itemPrice, String pace, String sellBy) {
         PlannerConfig.SellBy sell = sellBy == null ? null : "ALCH".equals(sellBy) ? PlannerConfig.SellBy.ALCH
-            : "GE".equals(sellBy) ? PlannerConfig.SellBy.GE : null;
+            : "GE".equals(sellBy) ? PlannerConfig.SellBy.GE : "DROP".equals(sellBy) ? PlannerConfig.SellBy.DROP : null;
         Row row = new Row(action, CalculatorData.xpEach(action, on), CalculatorData.needed(action, on, xp, target),
             action.level > level);
         List<RecipeData.Recipe> made = recipes == null ? Collections.emptyList() : recipesFor(skill, action, recipes);
@@ -1167,17 +1169,20 @@ class PlannerCalculator {
         }
 
         boolean alchWins() {
-            return alch > 0 && by != PlannerConfig.SellBy.GE && (by == PlannerConfig.SellBy.ALCH || alch > ge);
+            return alch > 0 && by != PlannerConfig.SellBy.GE && by != PlannerConfig.SellBy.DROP
+                && (by == PlannerConfig.SellBy.ALCH || alch > ge);
         }
 
         double worth() {
-            return alchWins() ? alch : ge;
+            // (dropped to powerlevel: worth nothing)
+            return by == PlannerConfig.SellBy.DROP ? 0 : alchWins() ? alch : ge;
         }
 
         void fill(Row row) {
             row.geEach = ge > 0 ? ge : null;
             row.alchEach = alch > 0 ? alch : null;
             row.alchWins = alchWins();
+            row.dropped = by == PlannerConfig.SellBy.DROP;
         }
     }
 

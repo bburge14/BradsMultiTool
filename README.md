@@ -281,7 +281,8 @@ each can be hidden in the settings; everything is saved per account.
     and Money plan each fold away (click the header). Sales are after the Grand Exchange's 2% tax everywhere; with
     **Sell Products By** on "Whichever pays more" (the default), something worth more **high alched** (its alch value
     less a nature rune) counts that way instead (the breakdown shows both). Each milestone can pick its own way:
-    right-click > **Sell by** (the setting's way, the GE or high alch, each with what it pays, the better one marked);
+    right-click > **Sell by** (the setting's way, the GE, high alch, or **drop them** to powerlevel, worth nothing, each
+    with what it pays, the better one marked);
     when the other way pays more, the milestone says so in orange ("High alch pays 1.2M more"). Right-click a milestone >
     **Record sales...** to say what you really did with what it made: how many you sold on the GE and what you got
     each, and how many you alched and for what (both start at today's prices). Its breakdown and tooltip then have

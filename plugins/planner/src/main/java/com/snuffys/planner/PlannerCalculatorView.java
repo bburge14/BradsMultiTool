@@ -3311,11 +3311,17 @@ final class PlannerCalculatorView {
         if (step.note != null) {
             card.line(step.note, "");
         }
+        if (row != null && row.dropped && !s.done) {
+            JLabel[] drop = card.line("Powerlevelling: dropped, not sold", "");
+            drop[0].setForeground(PlannerUi.MUTED);
+            drop[0].setToolTipText(PlannerUi.fit("Its products count as dropped (worth nothing): right-click > Sell by to sell "
+                + "or alch them instead"));
+        }
         // The other way pays more for what it makes (high alch over the GE, or the other way round): say so; the
         // milestone's Sell by picks
         if (!s.done && row != null && calc.showPrices() && row.geEach != null && row.alchEach != null && row.needed > 0) {
             boolean alchBetter = row.alchEach > row.geEach;
-            if (alchBetter != row.alchWins) {
+            if (alchBetter != row.alchWins && !row.dropped) {
                 long more = Math.round(Math.abs(row.alchEach - row.geEach) * Math.max(0, row.needed - row.kept));
                 JLabel[] better = card.line((alchBetter ? "High alch" : "The GE") + " pays " + PlannerPanel.gp(more) + " more",
                     "Sell by");
@@ -3448,13 +3454,16 @@ final class PlannerCalculatorView {
         }
         if (row != null && calc.showPrices() && (row.geEach != null || row.alchEach != null)) {
             // How its products count: on the GE, high alched, or the setting's way (the better one marked)
-            if (row.geEach != null && row.alchEach != null && !s.done) {
+            if (!s.done) {
                 javax.swing.JMenu sell = new javax.swing.JMenu("Sell by");
-                boolean alchBetter = row.alchEach > row.geEach;
+                double geNow = row.geEach == null ? 0 : row.geEach;
+                double alchNow = row.alchEach == null ? 0 : row.alchEach;
+                boolean alchBetter = alchNow > geNow;
                 String[][] ways = {
                     {null, "The setting (" + calc.sellBy() + ")"},
-                    {"GE", "Grand Exchange: " + String.format("%,.0f", row.geEach) + " each" + (alchBetter ? "" : "  (pays more)")},
-                    {"ALCH", "High alch: " + String.format("%,.0f", row.alchEach) + " each" + (alchBetter ? "  (pays more)" : "")},
+                    {"GE", "Grand Exchange: " + String.format("%,.0f", geNow) + " each" + (alchBetter ? "" : "  (pays more)")},
+                    {"ALCH", "High alch: " + String.format("%,.0f", alchNow) + " each" + (alchBetter ? "  (pays more)" : "")},
+                    {"DROP", "Drop them (powerlevel): nothing"},
                 };
                 for (String[] way : ways) {
                     javax.swing.JCheckBoxMenuItem item = new javax.swing.JCheckBoxMenuItem(way[1],

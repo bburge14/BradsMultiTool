@@ -313,7 +313,8 @@ public interface PlannerConfig extends CommonConfig {
     enum SellBy {
         BEST("Whichever pays more"),
         GE("Grand Exchange"),
-        ALCH("High alchemy");
+        ALCH("High alchemy"),
+        DROP("Drop them (powerlevel)");
 
         private final String label;
 
@@ -591,7 +592,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "plannerSellBy",
         name = "Sell Products By",
-        description = "<div width='300'>What a plan's products are worth: the Grand Exchange price after its 2% tax, high alchemy (the alch value less a nature rune), or whichever pays more for each item (marked \"alch\" where alching wins). A milestone's Record sales... says what you really did with them",
+        description = "<div width='300'>What a plan's products are worth: the Grand Exchange price after its 2% tax, high alchemy (the alch value less a nature rune), nothing when you drop them to powerlevel, or whichever pays more for each item (marked \"alch\" where alching wins). A milestone's Record sales... says what you really did with them",
         section = plannerCalculatorSection,
         position = 8
     )

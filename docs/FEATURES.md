@@ -731,7 +731,8 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
   what the materials to your target are worth ("Mats 1.24M", for what you make, burn or bury) and what the products
   sell for ("Sells 2.10M": what you make, or the logs, ore, fish or catch you gather, priced by the item's id); neither
   is profit (products count as sold on the GE after tax, or as high alched less a nature rune when that pays more:
-  **Sell Products By**, or per milestone its right-click **Sell by**, with the better way marked and an orange line on
+  **Sell Products By**, or per milestone its right-click **Sell by**, or **drop them** to powerlevel (worth
+  nothing: the net is what the materials cost), with the better way marked and an orange line on
   the milestone when the other way pays more; a milestone's **Record sales...** says how many you really sold and
   alched and what you got each, for its cash and net so far).
   The net beside them is: a green plus badge and "+860K" for a gain, a red minus and "-28K" for a loss
