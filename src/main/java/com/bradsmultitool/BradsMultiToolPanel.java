@@ -67,13 +67,14 @@ public class BradsMultiToolPanel extends PluginPanel {
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Color ACCENT_COLOR = new Color(0, 220, 220);
     // Level progress bar: red under a third of the way, orange under two thirds, then green
-    static final Color BAR_LOW = new Color(190, 45, 40);
-    static final Color BAR_MID = new Color(225, 135, 25);
-    static final Color BAR_HIGH = new Color(15, 165, 105);
-    static final Color BAR_BACKGROUND = new Color(60, 60, 60);
-    static final Color GOAL_FILL = new Color(200, 160, 40);
+    // (bright, so they stand out on the dark card; the text on them is white with a black shadow)
+    static final Color BAR_LOW = new Color(232, 72, 60);
+    static final Color BAR_MID = new Color(250, 165, 40);
+    static final Color BAR_HIGH = new Color(40, 205, 130);
+    static final Color BAR_BACKGROUND = new Color(48, 48, 48);
+    static final Color GOAL_FILL = new Color(238, 192, 55);
     /** A skill plan's milestone bar (under the goal's gold). */
-    static final Color MILESTONE_FILL = new Color(70, 140, 200);
+    static final Color MILESTONE_FILL = new Color(90, 170, 240);
 
     private final SkillTracker plugin;
     private final SkillTrackerConfig config;
