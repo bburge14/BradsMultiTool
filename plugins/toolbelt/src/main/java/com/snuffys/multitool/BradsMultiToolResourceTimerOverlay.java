@@ -234,6 +234,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 // Sprung with nothing in it: reset it
                 return timer.trapState == ResourceTimers.TrapState.FAILED ? "Empty" : clock(timer.ticksToLatest());
             case TREE:
+                // (to about when it falls: its timer, then your next log)
+                return timer.due() ? "Due" : clock(Math.max(0, (int) Math.round(timer.ticksLeft + timer.nextLogTicks())));
             case CALCIFIED:
             case CAMPFIRE:
                 return timer.due() ? "Due" : clock(Math.max(0, timer.ticksLeft));

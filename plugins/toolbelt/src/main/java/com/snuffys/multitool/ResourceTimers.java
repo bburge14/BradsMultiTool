@@ -49,7 +49,8 @@ import net.runelite.client.util.Text;
  * Timer, Daeyalt Mining Timer, Fishing Spot Timer):
  * <ul>
  * <li>Trees (Forestry): the wiki's timer starts with the first log, drops 1 a tick while anyone chops and
- * recovers 1 a tick while nobody does; at zero the tree falls with the next log. Every player chopping is
+ * recovers 1 a tick while nobody does; at zero the tree falls with the next log, so the bar also counts your usual
+ * time between logs (shared by everyone chopping) and empties about when it falls. Every player chopping is
  * counted. A tree already being chopped when you arrived is left blank, since its time can't be known.</li>
  * <li>Motherlode Mine ore veins: deplete 23-27s (upper floor 36-40s) after mining starts; no recovery.</li>
  * <li>Calcified rocks: about 70s once mining starts; reset after ~34s with nobody mining.</li>
@@ -90,6 +91,11 @@ class ResourceTimers {
         // Trees
         boolean youCutLog;
         int choppers;
+        /**
+         * Ticks between your logs, on average (0 until two logs): at zero the tree falls with the next log, so the
+         * bar runs that much longer and empties about when it falls, not when the wiki's timer does.
+         */
+        double logGap;
         // Calcified rocks
         int unminedTicks;
         // Veins, Daeyalt, fishing spots, shipwrecks
@@ -116,7 +122,10 @@ class ResourceTimers {
 
         double progress() {
             switch (kind) {
-                case TREE:
+                case TREE: {
+                    double extra = nextLogTicks();
+                    return Math.max(0, (ticksLeft + extra) / (maxTicks + extra));
+                }
                 case CALCIFIED:
                 case CAMPFIRE:
                     return Math.max(0, (double) ticksLeft / maxTicks);
@@ -157,10 +166,16 @@ class ResourceTimers {
             return max <= min ? (elapsed >= max ? 1 : 0) : Math.max(0, Math.min(1, (double) (elapsed - min) / (max - min)));
         }
 
+        /** A tree: about how long until the next log once its timer's out (yours, shared by everyone chopping). */
+        double nextLogTicks() {
+            return logGap <= 0 ? 0 : logGap / Math.max(1, choppers);
+        }
+
         /** Past its earliest time: it can go any moment (or, for a tree, with the next log). */
         boolean due() {
             switch (kind) {
                 case TREE:
+                    return ticksLeft + nextLogTicks() <= 0;
                 case CALCIFIED:
                 case CAMPFIRE:
                     return ticksLeft <= 0;
@@ -193,6 +208,9 @@ class ResourceTimers {
     }
 
     private static final double TICK_SECONDS = 0.6;
+    // Your logs: the tick of the last, and the ticks between them on average
+    private int lastLogTick = -1;
+    private double logGap;
     // Forester's Campfires (OSRS Wiki, Forester's Campfire): burn up to 300 ticks; the log that turns a fire
     // into one sets its time, and each log added after adds more. By the log's Firemaking XP:
     // {xp, ticks when it starts the campfire, ticks it adds}; the wiki's unknowns are filled in between
@@ -835,6 +853,14 @@ class ResourceTimers {
             Timer tree = local != null && CHOP_ANIMATIONS.contains(local.getAnimation()) ? facing(local, Kind.TREE) : null;
             if (tree != null) {
                 tree.youCutLog = true;
+                // How often your logs come (it settles over a few logs; a long break starts it again)
+                int now = client.getTickCount();
+                int gap = now - lastLogTick;
+                if (lastLogTick > 0 && gap > 0 && gap < 60) {
+                    logGap = logGap <= 0 ? gap : logGap * 0.7 + gap * 0.3;
+                }
+                lastLogTick = now;
+                tree.logGap = logGap;
             }
         }
     }

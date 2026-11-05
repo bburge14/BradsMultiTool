@@ -83,4 +83,21 @@ public class ResourceTimersTest {
         fire.cookedOn = true;
         org.junit.Assert.assertTrue(fire.visible());
     }
+
+    @Test
+    public void treeRunsOnToYourNextLog() {
+        ResourceTimers.Timer tree = tree(100);
+        tree.logGap = 10;
+        tree.ticksLeft = 0;
+        tree.choppers = 1;
+        // The wiki's timer is out, but the tree falls with the next log: about 10 ticks more
+        assertFalse(tree.due());
+        assertTrue(tree.progress() > 0);
+        tree.ticksLeft = -10;
+        assertTrue(tree.due());
+        // Two chopping: logs come twice as often
+        tree.ticksLeft = -5;
+        tree.choppers = 2;
+        assertTrue(tree.due());
+    }
 }
