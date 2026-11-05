@@ -126,17 +126,25 @@ final class GoalLines {
         int remaining = toGoal ? goalXp - xp : toNextLevel;
         String until = toGoal ? "until your goal" : "until the next level";
         // A supply milestone counts its supplies still to get (what it's for), not the actions to its level
+        // (switching every few seconds with the actions to the next level, as the other counts do)
         SkillPlans.SupplyState supply = toGoal ? plugin.getSupplyState(skill, milestone) : null;
+        boolean nextPhase = (System.currentTimeMillis() / 5000) % 2 == 1;
         if (supply != null && supply.toGet > 0) {
-            String consumer = milestone.supplies.get(0).skill;
-            try {
-                consumer = Skill.valueOf(consumer).getName();
-            } catch (IllegalArgumentException e) {
-                // (as saved)
+            if (!nextPhase || toNextLevel <= 0) {
+                String consumer = milestone.supplies.get(0).skill;
+                try {
+                    consumer = Skill.valueOf(consumer).getName();
+                } catch (IllegalArgumentException e) {
+                    // (as saved)
+                }
+                return new Actions("To get", String.format("%,d", supply.toGet), "<html>" + milestone.action + " still to get for your "
+                    + consumer + " plan (what's in your bank and inventory counted)<br>The Planner works this out as you go: buy or "
+                    + "bank some and it goes down<br>Switches with the actions to the next level</html>");
             }
-            return new Actions("To get", String.format("%,d", supply.toGet), "<html>" + milestone.action + " still to get for your "
-                + consumer + " plan (what's in your bank and inventory counted)<br>The Planner works this out as you go: buy or "
-                + "bank some and it goes down</html>");
+            // The other half of the time: the actions to the next level
+            toGoal = false;
+            remaining = toNextLevel;
+            until = "until the next level";
         }
         if (toGoal && milestone != null) {
             int milestoneXp = plugin.getMilestoneEndXp(skill, milestone);
