@@ -225,7 +225,9 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         bar.setValue(Math.max(0, Math.min(1, progress)) * 1000);
         bar.setLabelDisplayMode(ProgressBarComponent.LabelDisplayMode.TEXT_ONLY);
         bar.setLeftLabel(left);
-        bar.setCenterLabel(centre);
+        // (the overlay's bar puts its middle text in the middle whatever: a long left label ("Goal: Supplies") would run
+        // into it, so then it's left out, as the sidebar's bar does)
+        bar.setCenterLabel(left.length() > 12 ? "" : centre);
         bar.setRightLabel(right);
         bar.setForegroundColor(fill);
         bar.setBackgroundColor(BradsMultiToolPanel.BAR_BACKGROUND);
