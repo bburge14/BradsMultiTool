@@ -81,7 +81,7 @@ final class GoalLines {
             String tip = "Your plan's milestone: " + step.action + " for your " + consumer + " plan<br>You have "
                 + String.format("%,d", Math.min(supply.have, supply.wanted)) + " of the " + String.format("%,d", supply.wanted)
                 + " it wants (bank and inventory)<br>It ends when you have them all, whatever level that is";
-            return new StepBar("Step: Supplies", supply.progress(), right, tip);
+            return new StepBar("Supplies", supply.progress(), right, tip);
         }
         int start = Experience.getXpForLevel(Math.max(1, step.from));
         int end = plugin.getMilestoneEndXp(skill, step);

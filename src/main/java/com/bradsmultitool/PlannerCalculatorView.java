@@ -2497,8 +2497,9 @@ final class PlannerCalculatorView {
                 long start = Math.max(now, Experience.getXpForLevel(Math.max(1, from)));
                 long end = Math.min(Experience.MAX_SKILL_XP, start + (long) Math.ceil(actions * each));
                 to = Math.min(99, Math.max(from + 1, CalculatorData.level((int) end, false)));
-                // (exactly as far as the supplies: the rest of the way into its last level)
-                step.endXp = end > Experience.getXpForLevel(to) ? end : 0;
+                // (exactly as far as the supplies, wherever in a level that is: even short of its end level, when
+                // what's left is less than a level)
+                step.endXp = end;
             }
             if (from != step.from || to != step.to) {
                 step.from = from;

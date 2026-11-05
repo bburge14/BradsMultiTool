@@ -183,7 +183,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         }
         TrainingAdvisor.Suggestion now = plan.get(0).suggestion;
         if (now.planStep != null) {
-            return "Plan: " + now.text + " (to " + now.planStep.to + ")";
+            return "Plan: " + now.text + (now.planStep.supplies.isEmpty() ? " (to " + now.planStep.to + ")" : " (supplies)");
         }
         return now.label + " " + now.text + (plan.size() > 1 ? " (to " + plan.get(0).to + ")" : "");
     }
