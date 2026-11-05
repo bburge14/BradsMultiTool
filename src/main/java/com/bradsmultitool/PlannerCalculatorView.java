@@ -1554,7 +1554,10 @@ final class PlannerCalculatorView {
                 PlannerUi.linkLabel("Add a milestone", "Pick its method and levels", () -> stepDialog(shown, -1, goal))));
             return;
         }
-        fitSupplyMilestones(shown, skillCalc, on, plan, now);
+        SkillPlans.Plan unfitted = plan.copy();
+        if (fitSupplyMilestones(shown, skillCalc, on, plan, now)) {
+            calc.savePlanQuietly(shown, plan, unfitted);
+        }
         List<PlannerCalculator.StepRow> steps = PlannerCalculator.stepRows(shown, skillCalc, on, plan, now, recipes, training,
             this::price, calc::itemPrice);
         PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, steps, now);
@@ -2414,9 +2417,8 @@ final class PlannerCalculatorView {
      * your XP now, or its start), so its levels follow them; the milestones after it make room. Saved when it moves (the
      * tracker's copy too, when it has this plan).
      */
-    private void fitSupplyMilestones(Skill shown, CalculatorData.Calc skillCalc, List<CalculatorData.Bonus> on,
-                                     SkillPlans.Plan plan, int now) {
-        SkillPlans.Plan before = plan.copy();
+    private boolean fitSupplyMilestones(Skill shown, CalculatorData.Calc skillCalc, List<CalculatorData.Bonus> on,
+                                        SkillPlans.Plan plan, int now) {
         boolean changed = false;
         // In order: each starts where the one before it ends (or at its own level, if that's later), so they follow on
         // from each other instead of overlapping, and runs as far as getting its supplies takes you
@@ -2487,14 +2489,73 @@ final class PlannerCalculatorView {
         }
         // (a done one first among those starting at the same level: it comes before what follows it)
         plan.steps.sort((a, b) -> a.from != b.from ? Integer.compare(a.from, b.from) : Boolean.compare(!a.gotAll, !b.gotAll));
-        if (changed) {
-            calc.savePlanQuietly(shown, plan, before);
-        }
+        return changed;
     }
 
     // A count exactly ("1,323") up to 99,999 so the numbers on a line add up; past that, short ("123K")
     private static String count(long n) {
         return n < 100_000 ? String.format("%,d", n) : PlannerPanel.gp(n);
+    }
+
+    /**
+     * The live link for supplies: on each refresh (bank, inventory, XP) every plan's supply milestones follow what you
+     * still need to get, in your copy and in the tracker's (a plan you sent, or took from it), since what you have keeps
+     * changing their levels; and which ones you have all the supplies of goes to the Skilling Helper, so its goal goes
+     * past them to the next milestone. Whichever plan is open here.
+     */
+    void followSupplies() {
+        try {
+            for (Skill s : skills()) {
+                SkillPlans.Plan plan = calc.plan(s);
+                SkillPlans.Plan tracked = calc.trackedPlan(s);
+                int xp = calc.xp(s);
+                java.util.Set<String> got = new java.util.HashSet<>();
+                if (xp >= 0 && (hasSupplies(plan) || hasSupplies(tracked))) {
+                    CalculatorData.Calc skillCalc = data.calc(s);
+                    List<CalculatorData.Bonus> on = CalculatorData.bonuses(skillCalc, calc.bonuses(s));
+                    boolean linked = tracked != null && plan != null && calc.isTracked(s, plan);
+                    if (hasSupplies(plan)) {
+                        SkillPlans.Plan before = plan.copy();
+                        if (fitSupplyMilestones(s, skillCalc, on, plan, xp)) {
+                            // (the tracker's copy too, when it's this plan)
+                            calc.savePlanQuietly(s, plan, before);
+                        }
+                        addGot(plan, got);
+                    }
+                    // The tracker's copy when it differs from yours (your unsent edits stay yours): its supply
+                    // milestones follow your supplies all the same
+                    if (hasSupplies(tracked) && !linked && fitSupplyMilestones(s, skillCalc, on, tracked, xp)) {
+                        calc.saveTrackedSupplies(s, tracked);
+                    }
+                    if (tracked != null && !linked) {
+                        addGot(tracked, got);
+                    }
+                }
+                calc.saveSuppliesGot(s, got);
+            }
+        } catch (RuntimeException e) {
+            // (never stops the Planner drawing: the next refresh tries again)
+        }
+    }
+
+    private static boolean hasSupplies(SkillPlans.Plan plan) {
+        if (plan != null) {
+            for (SkillPlans.Step step : plan.steps) {
+                if (!step.supplies.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // (fitSupplyMilestones worked out which ones you have all of)
+    private static void addGot(SkillPlans.Plan plan, java.util.Set<String> got) {
+        for (SkillPlans.Step step : plan.steps) {
+            if (step.gotAll) {
+                got.add(step.action.toLowerCase(java.util.Locale.ROOT));
+            }
+        }
     }
 
     // How many of a supply milestone's items the other plans still need that you don't have

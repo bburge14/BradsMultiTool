@@ -178,6 +178,29 @@ final class SkillPlans {
             return next;
         }
 
+        /**
+         * Like {@link #milestone(int)}, but past the supply milestones whose supplies you have all of ({@code got}: their
+         * actions, from {@link #suppliesGot}): those are done whatever your level, so it's the next one.
+         */
+        Step milestone(int level, Set<String> got) {
+            if (got == null || got.isEmpty()) {
+                return milestone(level);
+            }
+            Step next = null;
+            for (Step step : steps) {
+                if (!step.supplies.isEmpty() && got.contains(step.action.toLowerCase(Locale.ROOT))) {
+                    continue;
+                }
+                if (step.covers(level)) {
+                    return step;
+                }
+                if (step.from > level && (next == null || step.from < next.from)) {
+                    next = step;
+                }
+            }
+            return next;
+        }
+
         /** Where the last milestone ends (the start level when there are none). */
         int end() {
             int end = 0;
@@ -284,6 +307,39 @@ final class SkillPlans {
         SkillGoals.setGoal(configManager, skill, plan.goalXp(), xpNow);
         configManager.setRSProfileConfiguration(GROUP, TRACKED_KEY + skill.name(), encode(plan));
         SkillGoals.setFollow(configManager, skill, SkillGoals.Follow.PLAN);
+    }
+
+    static final String GOT_KEY = "goalPlanGot.";
+
+    /**
+     * The supply milestones of a skill's plan whose supplies you have all of (their actions, lower case), as the Planner
+     * last worked it out (it saves them for the Skilling Helper, which goes past them); empty when none.
+     */
+    static Set<String> suppliesGot(ConfigManager configManager, Skill skill) {
+        String text = configManager.getRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
+        Set<String> out = new HashSet<>();
+        if (text != null) {
+            for (String part : text.split("\\|")) {
+                if (!part.trim().isEmpty()) {
+                    out.add(part.trim().toLowerCase(Locale.ROOT));
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Saves {@link #suppliesGot} (only when it changed). */
+    static void setSuppliesGot(ConfigManager configManager, Skill skill, Set<String> got) {
+        String text = String.join("|", new java.util.TreeSet<>(got));
+        String old = configManager.getRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
+        if (text.equals(old == null ? "" : old)) {
+            return;
+        }
+        if (text.isEmpty()) {
+            configManager.unsetRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(GROUP, GOT_KEY + skill.name(), text);
+        }
     }
 
     /** Removes the exported plan (the goal stays). */

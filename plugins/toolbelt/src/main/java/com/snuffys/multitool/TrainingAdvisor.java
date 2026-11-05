@@ -120,7 +120,8 @@ class TrainingAdvisor {
         // the Training Focus, behind a method you pick (and a Track for goal pick, which callers check first)
         SkillPlans.Plan skillPlan = picked == null ? plugin.getSkillPlan(skill) : null;
         // The milestone you're on, else the next one (between milestones, or before the first, you're heading there)
-        SkillPlans.Step step = skillPlan == null ? null : skillPlan.milestone(level);
+        // (past supply milestones whose supplies you have all of: the Planner says which)
+        SkillPlans.Step step = skillPlan == null ? null : plugin.getPlanMilestone(skill, level);
         if (step != null) {
             TrainingData.Method method = planMethod(skill, step);
             Suggestion fromPlan = new Suggestion("Plan:", step.action, method, step.xp,

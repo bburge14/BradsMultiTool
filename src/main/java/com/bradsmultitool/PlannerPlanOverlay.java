@@ -82,7 +82,14 @@ class PlannerPlanOverlay extends OverlayPanel {
         String name = plan.name != null ? plan.name : "plan";
         panelComponent.getChildren().add(TitleComponent.builder().text(skill.getName() + ": " + name).color(TITLE).build());
 
-        SkillPlans.Step step = plan.milestone(level);
+        // (past supply milestones whose supplies you have all of)
+        java.util.Set<String> got = new java.util.HashSet<>();
+        for (SkillPlans.Step s : plan.steps) {
+            if (s.gotAll) {
+                got.add(s.action.toLowerCase(java.util.Locale.ROOT));
+            }
+        }
+        SkillPlans.Step step = plan.milestone(level, got);
         if (step == null) {
             line("Plan done", "level " + level, HudColors.GOOD);
             return super.render(graphics);
@@ -116,7 +123,7 @@ class PlannerPlanOverlay extends OverlayPanel {
         if (!full) {
             return super.render(graphics);
         }
-        SkillPlans.Step next = on ? plan.milestone(step.to) : null;
+        SkillPlans.Step next = on ? plan.milestone(step.to, got) : null;
         if (next != null && next != step) {
             line("Next:", next.action + " (" + next.from + " → " + next.to + ")", SOFT);
         }

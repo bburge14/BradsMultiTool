@@ -178,6 +178,10 @@ class PlannerPanel extends PluginPanel {
             tabsLayout = layout.toString();
             buildTabs(profile != null);
         }
+        if (profile != null) {
+            // (the supply milestones follow your bank and inventory whichever tab is open, for the Skilling Helper too)
+            calcPage.view.followSupplies();
+        }
         if (selected != null && profile != null) {
             selected.refresh();
         }

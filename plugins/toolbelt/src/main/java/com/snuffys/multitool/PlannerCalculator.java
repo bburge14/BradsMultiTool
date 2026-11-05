@@ -838,6 +838,23 @@ class PlannerCalculator {
         return canPlan() && trackerInstalled() && SkillPlans.isTracked(configManager, skill, plan);
     }
 
+    /** Saves which supply milestones you have all the supplies of, for the Skilling Helper (only when it changed). */
+    void saveSuppliesGot(Skill skill, java.util.Set<String> got) {
+        if (configManager.getRSProfileKey() != null) {
+            SkillPlans.setSuppliesGot(configManager, skill, got);
+        }
+    }
+
+    /**
+     * Saves the tracker's copy of a plan after the Planner moved its supply milestones to follow your supplies (the link
+     * a send or take made stays live for them, even while your own copy has unsent edits).
+     */
+    void saveTrackedSupplies(Skill skill, SkillPlans.Plan tracked) {
+        if (canPlan() && trackerInstalled()) {
+            configManager.setRSProfileConfiguration(GROUP, SkillPlans.TRACKED_KEY + skill.name(), SkillPlans.encode(tracked));
+        }
+    }
+
     /**
      * Saves a change the Planner made by itself (a supply milestone's end following its supplies): when the tracker had
      * the plan as it was, it gets the change too, so it isn't left as an unsent edit of yours.

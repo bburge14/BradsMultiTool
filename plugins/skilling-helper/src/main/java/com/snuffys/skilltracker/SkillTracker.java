@@ -444,7 +444,7 @@ class SkillTracker {
     /** The plan's milestone you're on at this level (else the next one ahead), or null without a plan or past it. */
     public SkillPlans.Step getPlanMilestone(Skill skill, int level) {
         SkillPlans.Plan plan = getSkillPlan(skill);
-        return plan == null ? null : plan.milestone(level);
+        return plan == null ? null : plan.milestone(level, SkillPlans.suppliesGot(configManager, skill));
     }
 
     /** What to train for a goal, by the Training Focus setting. */
