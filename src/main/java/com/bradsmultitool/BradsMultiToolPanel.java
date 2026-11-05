@@ -866,7 +866,12 @@ public class BradsMultiToolPanel extends PluginPanel {
                 double progress = goalXp > start ? (double) (xp - start) / (goalXp - start) : 1;
                 int goalLevel = Experience.getLevelForXp(goalXp);
                 String target = "Goal: " + plugin.getGoalLabel(skill, goalXp);
-                String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " left";
+                String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " xp left";
+                // (a supplies goal counts what's still to get, as its step does)
+                SkillPlans.SupplyState supplies = plugin.getGoalSupplies(skill, goalXp);
+                if (supplies != null && remaining > 0 && (xpPerHour <= 0 || paused)) {
+                    eta = String.format("%,d", supplies.toGet) + " to get";
+                }
                 goalBar.set(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta);
             }
             updateMilestone(level, goalXp, xp, xpPerHour, paused);

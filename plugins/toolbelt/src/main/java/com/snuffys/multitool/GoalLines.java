@@ -88,7 +88,7 @@ final class GoalLines {
         double progress = end > start ? (double) (xp - start) / (end - start) : 1;
         int left = Math.max(0, end - xp);
         String right = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate)
-            : BradsMultiToolPanel.shortNumber(left) + " left";
+            : BradsMultiToolPanel.shortNumber(left) + " xp left";
         return new StepBar("Step: Lvl " + step.to, Math.max(0, Math.min(1, progress)), right,
             "Your plan's milestone: level " + step.to + " with " + step.action + " (from " + step.from + ")");
     }

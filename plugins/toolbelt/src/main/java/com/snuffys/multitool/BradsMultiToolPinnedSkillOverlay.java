@@ -98,7 +98,12 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             int goalLevel = Experience.getLevelForXp(goalXp);
             String target = "Goal: " + plugin.getGoalLabel(skill, goalXp);
             int left = Math.max(0, goalXp - xp);
-            String eta = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate) : BradsMultiToolPanel.shortNumber(left) + " left";
+            String eta = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate) : BradsMultiToolPanel.shortNumber(left) + " xp left";
+            // (a supplies goal counts what's still to get, as its step does)
+            SkillPlans.SupplyState supplies = plugin.getGoalSupplies(skill, goalXp);
+            if (supplies != null && left > 0 && (rate <= 0 || paused)) {
+                eta = String.format("%,d", supplies.toGet) + " to get";
+            }
             panelComponent.getChildren().add(bar(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta, BradsMultiToolPanel.GOAL_FILL));
             // Your skill plan's milestone (exported from the Planner): its own bar, from its start to its end
             SkillPlans.Step milestone = left > 0 ? plugin.getPlanMilestone(skill, level) : null;
