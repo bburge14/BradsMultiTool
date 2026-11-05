@@ -104,14 +104,14 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             SkillPlans.Step milestone = left > 0 ? plugin.getPlanMilestone(skill, level) : null;
             if (milestone != null) {
                 int from = Experience.getXpForLevel(milestone.from);
-                int to = Experience.getXpForLevel(milestone.to);
+                int to = plugin.getMilestoneEndXp(skill, milestone);
                 double done = to > from ? (double) (xp - from) / (to - from) : 1;
                 int toGo = Math.max(0, to - xp);
                 String when = toGo == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(toGo * 3600L / rate)
                     : BradsMultiToolPanel.shortNumber(toGo) + " left";
                 // (a little room between it and the goal bar, as on the sidebar card)
                 panelComponent.getChildren().add(new Spacer(2));
-                panelComponent.getChildren().add(bar(done, "Step: Lvl " + milestone.to,
+                panelComponent.getChildren().add(bar(done, "Step: " + (plugin.getSupplyState(skill, milestone) != null ? "~" : "") + "Lvl " + milestone.to,
                     String.format("%.1f%%", Math.max(0, Math.min(1, done)) * 100), when, BradsMultiToolPanel.MILESTONE_FILL));
             }
             String suggestion = suggestion(skill, level);

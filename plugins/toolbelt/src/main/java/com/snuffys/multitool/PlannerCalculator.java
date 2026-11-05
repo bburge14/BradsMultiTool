@@ -838,10 +838,10 @@ class PlannerCalculator {
         return canPlan() && trackerInstalled() && SkillPlans.isTracked(configManager, skill, plan);
     }
 
-    /** Saves which supply milestones you have all the supplies of, for the Skilling Helper (only when it changed). */
-    void saveSuppliesGot(Skill skill, java.util.Set<String> got) {
+    /** Saves where each supply milestone stands, for the Skilling Helper (only when it changed). */
+    void saveSupplyStates(Skill skill, Map<String, SkillPlans.SupplyState> states) {
         if (configManager.getRSProfileKey() != null) {
-            SkillPlans.setSuppliesGot(configManager, skill, got);
+            SkillPlans.setSupplyStates(configManager, skill, states);
         }
     }
 

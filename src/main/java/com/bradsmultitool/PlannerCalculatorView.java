@@ -2509,32 +2509,42 @@ final class PlannerCalculatorView {
                 SkillPlans.Plan plan = calc.plan(s);
                 SkillPlans.Plan tracked = calc.trackedPlan(s);
                 int xp = calc.xp(s);
-                java.util.Set<String> got = new java.util.HashSet<>();
+                Map<String, SkillPlans.SupplyState> states = new java.util.HashMap<>();
                 if (xp >= 0 && (hasSupplies(plan) || hasSupplies(tracked))) {
                     CalculatorData.Calc skillCalc = data.calc(s);
                     List<CalculatorData.Bonus> on = CalculatorData.bonuses(skillCalc, calc.bonuses(s));
                     boolean linked = tracked != null && plan != null && calc.isTracked(s, plan);
+                    // The tracker's copy when it differs from yours (your unsent edits stay yours): its supply
+                    // milestones follow your supplies all the same (first, so yours wins where both have one)
+                    if (hasSupplies(tracked) && !linked) {
+                        if (fitSupplyMilestones(s, skillCalc, on, tracked, xp)) {
+                            calc.saveTrackedSupplies(s, tracked);
+                        }
+                        addStates(tracked, states);
+                    }
                     if (hasSupplies(plan)) {
                         SkillPlans.Plan before = plan.copy();
                         if (fitSupplyMilestones(s, skillCalc, on, plan, xp)) {
                             // (the tracker's copy too, when it's this plan)
                             calc.savePlanQuietly(s, plan, before);
                         }
-                        addGot(plan, got);
-                    }
-                    // The tracker's copy when it differs from yours (your unsent edits stay yours): its supply
-                    // milestones follow your supplies all the same
-                    if (hasSupplies(tracked) && !linked && fitSupplyMilestones(s, skillCalc, on, tracked, xp)) {
-                        calc.saveTrackedSupplies(s, tracked);
-                    }
-                    if (tracked != null && !linked) {
-                        addGot(tracked, got);
+                        addStates(plan, states);
                     }
                 }
-                calc.saveSuppliesGot(s, got);
+                calc.saveSupplyStates(s, states);
             }
         } catch (RuntimeException e) {
             // (never stops the Planner drawing: the next refresh tries again)
+        }
+    }
+
+    // Each supply milestone's supplies still to get and where they take you (fitSupplyMilestones just worked out its end)
+    private void addStates(SkillPlans.Plan plan, Map<String, SkillPlans.SupplyState> states) {
+        for (SkillPlans.Step step : plan.steps) {
+            if (!step.supplies.isEmpty()) {
+                states.put(step.action.toLowerCase(java.util.Locale.ROOT),
+                    new SkillPlans.SupplyState(step.gotAll ? 0 : Math.max(0, suppliesToGet(step)), step.endXp));
+            }
         }
     }
 
@@ -2547,15 +2557,6 @@ final class PlannerCalculatorView {
             }
         }
         return false;
-    }
-
-    // (fitSupplyMilestones worked out which ones you have all of)
-    private static void addGot(SkillPlans.Plan plan, java.util.Set<String> got) {
-        for (SkillPlans.Step step : plan.steps) {
-            if (step.gotAll) {
-                got.add(step.action.toLowerCase(java.util.Locale.ROOT));
-            }
-        }
     }
 
     // How many of a supply milestone's items the other plans still need that you don't have

@@ -311,34 +311,78 @@ final class SkillPlans {
 
     static final String GOT_KEY = "goalPlanGot.";
 
+    /** Where a supply milestone stands, as the Planner last worked it out from your bank and inventory. */
+    static final class SupplyState {
+        /** How many of its supplies are still to get (0: you have them all, it's done). */
+        final long toGet;
+        /** The XP getting them takes you to (it ends there, partway into a level), 0 when unknown. */
+        final long endXp;
+
+        SupplyState(long toGet, long endXp) {
+            this.toGet = toGet;
+            this.endXp = endXp;
+        }
+    }
+
     /**
-     * The supply milestones of a skill's plan whose supplies you have all of (their actions, lower case), as the Planner
-     * last worked it out (it saves them for the Skilling Helper, which goes past them); empty when none.
+     * Each supply milestone's state by its action (lower case), as the Planner last saved it for the Skilling Helper
+     * ("arctic pine logs=0:0|maple logs=227:1263000"); empty when none.
      */
-    static Set<String> suppliesGot(ConfigManager configManager, Skill skill) {
+    static Map<String, SupplyState> supplyStates(ConfigManager configManager, Skill skill) {
         String text = configManager.getRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
-        Set<String> out = new HashSet<>();
+        Map<String, SupplyState> out = new java.util.HashMap<>();
         if (text != null) {
             for (String part : text.split("\\|")) {
-                if (!part.trim().isEmpty()) {
-                    out.add(part.trim().toLowerCase(Locale.ROOT));
+                String[] kv = part.split("=", 2);
+                String action = kv[0].trim().toLowerCase(Locale.ROOT);
+                if (action.isEmpty()) {
+                    continue;
                 }
+                long toGet = 0;
+                long endXp = 0;
+                if (kv.length > 1) {
+                    String[] nums = kv[1].split(":");
+                    try {
+                        toGet = Long.parseLong(nums[0].trim());
+                        endXp = nums.length > 1 ? Long.parseLong(nums[1].trim()) : 0;
+                    } catch (NumberFormatException e) {
+                        continue;
+                    }
+                }
+                out.put(action, new SupplyState(toGet, endXp));
             }
         }
         return out;
     }
 
-    /** Saves {@link #suppliesGot} (only when it changed). */
-    static void setSuppliesGot(ConfigManager configManager, Skill skill, Set<String> got) {
-        String text = String.join("|", new java.util.TreeSet<>(got));
+    /** The supply milestones you have all the supplies of (their actions, lower case). */
+    static Set<String> suppliesGot(ConfigManager configManager, Skill skill) {
+        Set<String> out = new HashSet<>();
+        for (Map.Entry<String, SupplyState> e : supplyStates(configManager, skill).entrySet()) {
+            if (e.getValue().toGet <= 0) {
+                out.add(e.getKey());
+            }
+        }
+        return out;
+    }
+
+    /** Saves {@link #supplyStates} (only when it changed). */
+    static void setSupplyStates(ConfigManager configManager, Skill skill, Map<String, SupplyState> states) {
+        StringBuilder text = new StringBuilder();
+        for (Map.Entry<String, SupplyState> e : new java.util.TreeMap<>(states).entrySet()) {
+            if (text.length() > 0) {
+                text.append('|');
+            }
+            text.append(e.getKey()).append('=').append(e.getValue().toGet).append(':').append(e.getValue().endXp);
+        }
         String old = configManager.getRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
-        if (text.equals(old == null ? "" : old)) {
+        if (text.toString().equals(old == null ? "" : old)) {
             return;
         }
-        if (text.isEmpty()) {
+        if (text.length() == 0) {
             configManager.unsetRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
         } else {
-            configManager.setRSProfileConfiguration(GROUP, GOT_KEY + skill.name(), text);
+            configManager.setRSProfileConfiguration(GROUP, GOT_KEY + skill.name(), text.toString());
         }
     }
 

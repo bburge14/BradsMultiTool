@@ -447,6 +447,29 @@ class SkillTracker {
         return plan == null ? null : plan.milestone(level, SkillPlans.suppliesGot(configManager, skill));
     }
 
+    /**
+     * Where a plan's supply milestone stands (its supplies still to get and where they take you), as the Planner
+     * worked it out from your bank and inventory; null for an ordinary milestone or when the Planner hasn't said.
+     */
+    public SkillPlans.SupplyState getSupplyState(Skill skill, SkillPlans.Step step) {
+        if (step == null || step.supplies.isEmpty() || configManager.getRSProfileKey() == null) {
+            return null;
+        }
+        return SkillPlans.supplyStates(configManager, skill).get(step.action.toLowerCase(java.util.Locale.ROOT));
+    }
+
+    /**
+     * The XP a plan milestone ends at: a supply milestone where getting its supplies takes you (partway into a level),
+     * any other at its end level.
+     */
+    public int getMilestoneEndXp(Skill skill, SkillPlans.Step step) {
+        SkillPlans.SupplyState state = getSupplyState(skill, step);
+        if (state != null && state.endXp > 0) {
+            return (int) Math.min(Experience.MAX_SKILL_XP, state.endXp);
+        }
+        return Experience.getXpForLevel(Math.min(Experience.MAX_REAL_LEVEL, step.to));
+    }
+
     /** What to train for a goal, by the Training Focus setting. */
     public TrainingAdvisor getTrainingAdvisor() {
         return trainingAdvisor.get();
