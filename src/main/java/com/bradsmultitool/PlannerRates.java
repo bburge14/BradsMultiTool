@@ -20,6 +20,12 @@ import net.runelite.api.Skill;
  * hour, that over the XP each; where they give a tick timing (an anvil item 5 ticks, cooking 4, leather 3...), from
  * that with a bank trip. Farming runs and bird houses are timed by their crops and houses, not by the hour, so they get
  * none.
+ *
+ * <p>The faster ways (FASTER) were checked again in November 2026 against the wiki and recent community guides: darts
+ * at about 3 sets of 10 a tick (Dragon dart tip: "approaching 2,250,000 experience per hour", 90,000 darts at 25 XP;
+ * players report about 1.3M with adamant), javelins at the wiki's 4,000 sets an hour, anglerfish with diabolic worms
+ * at its money making guide's 400 an hour, elves at Thieving training's 150K at 99, black salamanders at its 140K at
+ * 79, orange salamanders at its 145K at 80 (Necropolis); vyres' rate is with every boost, so it says so.
  */
 final class PlannerRates {
     private PlannerRates() {
@@ -120,12 +126,12 @@ final class PlannerRates {
         {Skill.FISHING, "tuna", "2-tick", 1500.0, "2-tick harpooning (crystal harpoon)"},
         {Skill.FISHING, "swordfish", "2-tick", 1500.0, "2-tick harpooning (crystal harpoon)"},
         {Skill.FISHING, "karambwan", "Efficient", 900.0, "karambwans with the best setup"},
-        {Skill.FISHING, "anglerfish", "Diabolic worms", 290.0, "anglerfish with diabolic worms"},
+        {Skill.FISHING, "anglerfish", "Diabolic worms", 400.0, "anglerfish with diabolic worms (82+)"},
         {Skill.COOKING, "karambwan", "1-tick", 5000.0, "1-tick karambwans (clicking each in turn)"},
         {Skill.FIREMAKING, "pyre", "1-tick", 4600.0, "1-tick pyre logs"},
-        {Skill.FLETCHING, " dart", "Click fast", 150000.0, "darts, 2-3 sets of 10 a tick by clicking"},
+        {Skill.FLETCHING, " dart", "Click fast", 90000.0, "darts, about 3 sets of 10 a tick by clicking"},
         {Skill.FLETCHING, " bolts", "Click fast", 60000.0, "bolts, a set every tick by clicking"},
-        {Skill.FLETCHING, " javelin", "1-tick", 90000.0, "1-tick javelins"},
+        {Skill.FLETCHING, " javelin", "1-tick", 60000.0, "1-tick javelins (the wiki's 4,000 sets an hour)"},
         {Skill.FLETCHING, "(u)", "Fletching knife", 2700.0, "cutting bows with a fletching knife (2 ticks)"},
         {Skill.FLETCHING, "battlestaff", "Fletching knife", 1787.0, "with a fletching knife"},
         {Skill.FLETCHING, "shield", "Fletching knife", 893.0, "with a fletching knife"},
@@ -141,16 +147,16 @@ final class PlannerRates {
         {Skill.PRAYER, "shard", "Sunfire wine", 228000.0, "blessed bone shards with sunfire wine"},
         {Skill.THIEVING, "knight", "Tick-perfect", 3000.0, "Ardougne knights tick-perfect (95+)"},
         {Skill.THIEVING, "master farmer", "Efficient", 3000.0, "the best setup"},
-        {Skill.THIEVING, "elf", "Efficient", 560.0, "the best setup"},
-        {Skill.THIEVING, "vyre", "Efficient", 722.0, "the best setup (99)"},
+        {Skill.THIEVING, "elf", "Efficient", 425.0, "at 99 with dodgy necklaces and rogue equipment"},
+        {Skill.THIEVING, "vyre", "Max boosts", 722.0, "at 99 with every boost (Thieving cape, Ardougne hard)"},
         {Skill.THIEVING, "bandit", "Blackjacking", 1930.0, "blackjacking"},
         {Skill.THIEVING, "menaphite thug", "Blackjacking", 1930.0, "blackjacking"},
         {Skill.THIEVING, "fruit stall", "Two stalls", 1500.0, "stealing from two stalls"},
         {Skill.HUNTER, "black chinchompa", "Tick manipulation", 840.0, "tick-perfect trap resets"},
         {Skill.HUNTER, "carnivorous chinchompa", "Tick manipulation", 830.0, "tick-perfect trap resets"},
-        {Skill.HUNTER, "orange salamander", "Efficient", 650.0, "the best setup"},
+        {Skill.HUNTER, "orange salamander", "Efficient", 650.0, "at 80, in the Necropolis hunter area"},
         {Skill.HUNTER, "red salamander", "Efficient", 377.0, "the best setup"},
-        {Skill.HUNTER, "black salamander", "Efficient", 470.0, "six traps"},
+        {Skill.HUNTER, "black salamander", "Efficient", 440.0, "at 79, an extra trap in the Wilderness"},
         {Skill.RUNECRAFT, "nature", "Diary cape", 7680.0, "with the Achievement diary cape's teleports"},
         {Skill.RUNECRAFT, "wrath", "Efficient", 5610.0, "the best setup"},
         {Skill.RUNECRAFT, "astral", "Efficient", 6320.0, "at 99, the best setup"},
