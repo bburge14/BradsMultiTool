@@ -445,18 +445,16 @@ final class PlannerCalculatorView {
         SkillPlans.Plan tracked = calc.trackedPlan(skill);
         int level = CalculatorData.level(goal, true);
         if (tracked != null && goal != Experience.getXpForLevel(Math.min(level, 126)) && endsInSupplies(tracked)) {
-            SkillPlans.Step last = null;
+            // (the next level a supply needs that you don't have yet: from level 1, the first one's, then the next...)
+            int now = CalculatorData.level(Math.max(0, calc.xp(skill)), false);
+            int need = 0;
             for (SkillPlans.Step step : tracked.steps) {
-                if (!step.supplies.isEmpty() && (last == null || step.to >= last.to)) {
-                    last = step;
+                CalculatorData.Action action = step.supplies.isEmpty() ? null : CalculatorData.named(data.calc(skill), step.action);
+                if (action != null && action.level > now && (need == 0 || action.level < need)) {
+                    need = action.level;
                 }
             }
-            CalculatorData.Action action = last == null ? null : CalculatorData.named(data.calc(skill), last.action);
-            int now = CalculatorData.level(Math.max(0, calc.xp(skill)), false);
-            if (action != null && now < action.level) {
-                return "level " + action.level + ", then supplies";
-            }
-            return "supplies";
+            return need > 0 ? "level " + need + ", then supplies" : "supplies";
         }
         return goalText(goal);
     }
