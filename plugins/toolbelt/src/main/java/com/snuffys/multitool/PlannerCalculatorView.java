@@ -3779,6 +3779,26 @@ final class PlannerCalculatorView {
                 ? ", and its estimated rate is about 20% quicker: no bank trips" : "") + ". Right-click > Sell by to sell or alch "
                 + "them instead"));
         }
+        // You've been dropping what it makes (seen as you drop them) while it's timed and priced as sold: suggest timing
+        // it as dropped (quicker: no bank trips); a click does it
+        if (row != null && !row.dropped && !s.done && step.dropped >= 28 && step.dropped > step.sold + step.alched) {
+            JLabel[] hint = card.line("Dropping these? Use Drop", "");
+            hint[0].setForeground(HudColors.WARN);
+            hint[0].setToolTipText(PlannerUi.fit("You've dropped " + String.format("%,d", step.dropped) + " of what it made"
+                + " (sold " + String.format("%,d", step.sold) + ", alched " + String.format("%,d", step.alched) + "). Click to"
+                + " count them as dropped: its time uses the quicker drop rate (no bank trips) and it sells nothing"));
+            hint[0].setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+            hint[0].addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    change(shown, p -> {
+                        if (index < p.steps.size()) {
+                            p.steps.get(index).sellBy = "DROP";
+                        }
+                    });
+                }
+            });
+        }
         // The other way pays more for what it makes (high alch over the GE, or the other way round): say so; the
         // milestone's Sell by picks
         if (!s.done && row != null && calc.showPrices() && row.geEach != null && row.alchEach != null && row.needed > 0) {
