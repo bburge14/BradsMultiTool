@@ -398,7 +398,7 @@ final class PlannerCalculatorView {
             }
             int xp = calc.xp(s);
             cell.setToolTipText(PlannerUi.fit(s.getName() + (xp >= 0 ? ": level " + CalculatorData.level(xp, false) : "")
-                + (hasGoal ? ", goal " + goalText(calc.goal(s)) : "")));
+                + (hasGoal ? ", goal " + goalText(s, calc.goal(s)) : "")));
             cell.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             cell.addMouseListener(new MouseAdapter() {
                 @Override
@@ -436,6 +436,31 @@ final class PlannerCalculatorView {
     private static final Color GOAL_GOLD = new Color(220, 180, 50);
 
     // "level 99", or the XP when it's not a level's
+    /**
+     * A skill's goal in words: when it's the supplies the plan you sent ends getting (the goal is where getting them
+     * takes you, not a level), "supplies", or "level 60, then supplies" while you're below the level they need; else
+     * as {@link #goalText(int)}.
+     */
+    private String goalText(Skill skill, int goal) {
+        SkillPlans.Plan tracked = calc.trackedPlan(skill);
+        int level = CalculatorData.level(goal, true);
+        if (tracked != null && goal != Experience.getXpForLevel(Math.min(level, 126)) && endsInSupplies(tracked)) {
+            SkillPlans.Step last = null;
+            for (SkillPlans.Step step : tracked.steps) {
+                if (!step.supplies.isEmpty() && (last == null || step.to >= last.to)) {
+                    last = step;
+                }
+            }
+            CalculatorData.Action action = last == null ? null : CalculatorData.named(data.calc(skill), last.action);
+            int now = CalculatorData.level(Math.max(0, calc.xp(skill)), false);
+            if (action != null && now < action.level) {
+                return "level " + action.level + ", then supplies";
+            }
+            return "supplies";
+        }
+        return goalText(goal);
+    }
+
     private static String goalText(int goal) {
         int level = CalculatorData.level(goal, true);
         return goal == Experience.getXpForLevel(Math.min(level, 126)) ? "level " + level : String.format("%,d xp", goal);
@@ -460,7 +485,7 @@ final class PlannerCalculatorView {
             int plans = calc.plans(s).size();
             JPanel row = new JPanel(new BorderLayout(6, 0));
             row.setOpaque(false);
-            JLabel name = PlannerUi.label(s.getName() + " → " + goalText(goal).replace("level ", ""), s == shown ? Color.WHITE
+            JLabel name = PlannerUi.label(s.getName() + " → " + goalText(s, goal).replace("level ", ""), s == shown ? Color.WHITE
                 : new Color(200, 200, 200));
             name.setMinimumSize(new Dimension(0, 0));
             BufferedImage icon = icons.skill(s, true);
@@ -470,7 +495,7 @@ final class PlannerCalculatorView {
             }
             row.add(name, BorderLayout.CENTER);
             row.add(PlannerUi.label((int) Math.floor(done * 100) + "%", GOAL_GOLD), BorderLayout.EAST);
-            row.setToolTipText(PlannerUi.fit("<html>" + s.getName() + ": goal " + goalText(goal) + ", " + String.format("%,d", goal - xp)
+            row.setToolTipText(PlannerUi.fit("<html>" + s.getName() + ": goal " + goalText(s, goal) + ", " + String.format("%,d", goal - xp)
                 + " xp to go" + (plans > 0 ? "<br>" + plans + (plans == 1 ? " plan" : " plans") : "")
                 + (s == shown ? "" : "<br>Click to open " + s.getName()) + "</html>"));
             row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -3329,7 +3354,7 @@ final class PlannerCalculatorView {
             : following == SkillGoals.Follow.PLAN && planText != null ? planText
             : following == SkillGoals.Follow.PICK && pick != null ? "via " + pick
             : pick != null ? "via " + pick : planText != null ? planText : "the wiki's methods";
-        PlannerUi.Card card = new PlannerUi.Card((goalOpen ? "▾ " : "▸ ") + "Goal: " + goalText(goal),
+        PlannerUi.Card card = new PlannerUi.Card((goalOpen ? "▾ " : "▸ ") + "Goal: " + goalText(shown, goal),
             CalculatorData.level(start, false) + " → " + CalculatorData.level(goal, true) + " · " + follows,
             "lvl " + level + " · " + (int) Math.floor(done * 100) + "%");
         card.right.setForeground(Color.WHITE);
@@ -3452,7 +3477,7 @@ final class PlannerCalculatorView {
         list.add(PlannerUi.spaced(card.interactive(() -> {
             goalOpen = !goalOpen;
             redraw.run();
-        }, menu, new PlannerUi.Tip("Your " + shown.getName() + " goal", goalText(goal))
+        }, menu, new PlannerUi.Tip("Your " + shown.getName() + " goal", goalText(shown, goal))
             .row("To go", String.format("%,d", goal - xp) + " xp")
             .row("Done", (int) Math.floor(done * 100) + "% since it was set")
             .row("Training", follows)
