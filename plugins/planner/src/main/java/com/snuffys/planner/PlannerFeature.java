@@ -80,6 +80,8 @@ class PlannerFeature {
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(trainingData, trainingData::load);
         lifecycle.load(locationData, locationData::load);
+        // The guides' minigames with the wiki's rates (Wintertodt, Tempoross...) as Calculator actions, by the hour
+        calculatorData.addMinigames(trainingData);
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)
         lifecycle.subscribe(questProgress, farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, geLimits, origins, this);

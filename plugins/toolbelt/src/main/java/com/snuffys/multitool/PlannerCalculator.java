@@ -1205,7 +1205,8 @@ class PlannerCalculator {
         PlannerRates.Way way = pace == null || PlannerRates.GUIDE.equals(pace) ? null
             : PlannerRates.way(PlannerRates.ways(skill, action, made), pace);
         if (method != null && way == null) {
-            row.xpHour = method.xpHour;
+            // (a minigame's rate by your level: the wiki's at the levels it gives, in a straight line between)
+            row.xpHour = method.xpHourAt(Math.max(level, action.level));
             row.pace = PlannerRates.GUIDE;
         } else {
             if (way == null) {
@@ -1241,7 +1242,7 @@ class PlannerCalculator {
         Map<String, Integer> out = new java.util.LinkedHashMap<>();
         TrainingData.Method method = training == null ? null : rated(training, skill, action, level);
         if (method != null) {
-            out.put(PlannerRates.GUIDE, method.xpHour);
+            out.put(PlannerRates.GUIDE, method.xpHourAt(Math.max(level, action.level)));
         }
         List<RecipeData.Recipe> made = recipes == null ? Collections.emptyList() : recipesFor(skill, action, recipes);
         double each = CalculatorData.xpEach(action, on);

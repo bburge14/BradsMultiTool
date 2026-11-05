@@ -3740,6 +3740,9 @@ final class PlannerCalculatorView {
             : step.gotAll ? "Done: have all the supplies"
             : step.covered ? "Done by the supplies before it"
             : s.done ? "Done (you're level " + level + ")"
+            // (a minigame is timed by the hour: what's left of it, in play time)
+            : row != null && s.action != null && s.action.minigame && row.seconds > 0
+                ? "~" + PlannerPanel.formatDuration(row.seconds) + " to play" + (started ? " · " + percent + "%" : "")
             : row != null ? String.format("%,d", row.needed) + " to go" + (started ? " · " + percent + "%" : "")
             : (started ? percent + "% done" : "");
         PlannerUi.Card card = new PlannerUi.Card(step.action, left, s.done ? "" : PlannerPanel.gp(s.xp) + " xp");
