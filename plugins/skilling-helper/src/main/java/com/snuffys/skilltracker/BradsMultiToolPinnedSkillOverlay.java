@@ -96,7 +96,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             int goalStart = Math.min(plugin.getSkillGoalStart(skill), xp);
             double progress = goalXp > goalStart ? (double) (xp - goalStart) / (goalXp - goalStart) : 1;
             int goalLevel = Experience.getLevelForXp(goalXp);
-            String target = goalXp == Experience.getXpForLevel(goalLevel) ? "Goal: Lvl " + goalLevel : "Goal: " + BradsMultiToolPanel.shortNumber(goalXp);
+            String target = "Goal: " + plugin.getGoalLabel(skill, goalXp);
             int left = Math.max(0, goalXp - xp);
             String eta = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate) : BradsMultiToolPanel.shortNumber(left) + " left";
             panelComponent.getChildren().add(bar(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta, BradsMultiToolPanel.GOAL_FILL));
@@ -111,7 +111,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
                     : BradsMultiToolPanel.shortNumber(toGo) + " left";
                 // (a little room between it and the goal bar, as on the sidebar card)
                 panelComponent.getChildren().add(new Spacer(2));
-                panelComponent.getChildren().add(bar(done, "Step: " + (plugin.getSupplyState(skill, milestone) != null ? "~" : "") + "Lvl " + milestone.to,
+                panelComponent.getChildren().add(bar(done, plugin.getSupplyState(skill, milestone) != null ? "Step: Supplies" : "Step: Lvl " + milestone.to,
                     String.format("%.1f%%", Math.max(0, Math.min(1, done)) * 100), when, BradsMultiToolPanel.MILESTONE_FILL));
             }
             String suggestion = suggestion(skill, level);

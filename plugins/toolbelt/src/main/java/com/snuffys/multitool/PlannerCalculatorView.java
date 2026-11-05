@@ -2566,6 +2566,19 @@ final class PlannerCalculatorView {
                 SkillGoals.Follow follow = calc.follow(s);
                 if (now != null && xp >= 0 && (follow == null || follow == SkillGoals.Follow.PLAN)) {
                     int goalXp = now.goalXp();
+                    // (a plan ending in a supply milestone: the goal is exactly where getting those supplies takes you,
+                    // not the level it's in)
+                    SkillPlans.Step last = null;
+                    for (SkillPlans.Step step : now.steps) {
+                        if (last == null || step.to >= last.to) {
+                            last = step;
+                        }
+                    }
+                    SkillPlans.SupplyState end = last == null || last.supplies.isEmpty() ? null
+                        : states.get(last.action.toLowerCase(java.util.Locale.ROOT));
+                    if (end != null && end.toGet > 0 && end.endXp > xp && last.to == now.goal) {
+                        goalXp = (int) Math.min(Experience.MAX_SKILL_XP, end.endXp);
+                    }
                     int goal = calc.goal(s);
                     if (goal > 0 && goal != goalXp) {
                         calc.setGoal(s, goalXp, xp);
