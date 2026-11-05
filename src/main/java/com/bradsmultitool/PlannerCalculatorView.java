@@ -2085,7 +2085,8 @@ final class PlannerCalculatorView {
         JLabel budgetLink = PlannerUi.linkLabel(set > 0 ? "Budget: " + PlannerPanel.gp(set) : "Set a budget",
             "How much this plan may use (the rest of your cash is left alone)", () -> askBudget(shown, coins));
         boolean folded = calc.planFolded("money");
-        String summary = money.runsOut != null ? "short " + PlannerPanel.gp(Math.max(0, needed - budget)) : "enough";
+        // (short: the header has the budget link too)
+        String summary = money.runsOut != null ? "short " + PlannerPanel.gp(Math.max(0, needed - budget)) : "ok";
         list.add(section("money", "Money plan", summary, budgetLink));
         if (folded) {
             return;
@@ -2334,7 +2335,7 @@ final class PlannerCalculatorView {
             return null;
         }
         int at = CalculatorData.level(Math.max(0, calc.xp(source.skill)), false);
-        return source.action.level > at ? source.skill.getName() + " " + source.action.level + " (you're " + at + ")" : null;
+        return source.action.level > at ? source.skill.getName() + " " + source.action.level + " (now " + at + ")" : null;
     }
 
     // "Firemaking" from a saved skill's name
@@ -3160,6 +3161,20 @@ final class PlannerCalculatorView {
         }
     }
 
+    // A milestone's note short enough for its card ("to reach 60 for the Firemaking supply": "Climb for Firemaking
+    // (60)"); the whole note is in its tooltip
+    static String shortNote(String note) {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("^to reach (\\d+) for the (.+) supply$").matcher(note);
+        if (m.matches()) {
+            return "Climb for " + m.group(2) + " (" + m.group(1) + ")";
+        }
+        m = java.util.regex.Pattern.compile("^to reach (\\d+) for (.+)$").matcher(note);
+        if (m.matches()) {
+            return "Climb to " + m.group(1) + " for " + m.group(2);
+        }
+        return note;
+    }
+
     // Whether the plan ends with a supply milestone, its goal where that ends (the goal is the supplies, not a level)
     private static boolean endsInSupplies(SkillPlans.Plan plan) {
         SkillPlans.Step last = null;
@@ -3730,8 +3745,13 @@ final class PlannerCalculatorView {
         card.right.setForeground(Color.WHITE);
         if (row != null && !s.done) {
             Double perXp = calc.showPrices() ? row.perXp() : null;
+            // (the rate's source word only when there's room: with a gp/xp beside it, the tooltip says it)
+            String source = s.yourRate ? " yours" : row.estimated ? " est." : "";
+            if (perXp != null) {
+                source = "";
+            }
             String time = row.seconds > 0 ? "~" + PlannerPanel.formatDuration(row.seconds)
-                + (row.xpHour > 0 ? " (" + PlannerPanel.gp(row.xpHour) + "/hr" + (s.yourRate ? " yours" : row.estimated ? " est." : "") + ")" : "")
+                + (row.xpHour > 0 ? " (" + PlannerPanel.gp(row.xpHour) + "/hr" + source + ")" : "")
                 : "no XP rate";
             card.third(s.tooLow() ? "needs level " + s.action.level : time, perXp == null ? "" : gpPerXp(perXp));
             if (s.tooLow()) {
@@ -3745,7 +3765,8 @@ final class PlannerCalculatorView {
             }
         }
         if (step.note != null) {
-            card.line(step.note, "");
+            JLabel[] noteLine = card.line(shortNote(step.note), "");
+            noteLine[0].setToolTipText(PlannerUi.fit(step.note));
         }
         if (row != null && row.dropped && !s.done) {
             JLabel[] drop = card.line("Dropped (powerlevel)", row.droppedFaster ? "+20% rate" : "");
@@ -3779,7 +3800,7 @@ final class PlannerCalculatorView {
                 recipes, calc.owned())) {
                 String waiting = waitingOn(shown, need);
                 if (waiting != null) {
-                    JLabel[] wait = card.line("Waiting on " + waiting, "");
+                    JLabel[] wait = card.line("Needs " + waiting, "");
                     wait[0].setForeground(HudColors.WARN);
                     wait[0].setToolTipText(PlannerUi.fit(PlannerUi.esc(need.name) + " comes from " + waiting + ": train that first"));
                     break;
