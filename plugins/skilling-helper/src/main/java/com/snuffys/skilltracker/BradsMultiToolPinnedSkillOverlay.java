@@ -232,7 +232,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         bar.setLeftLabel(left);
         // (the overlay's bar puts its middle text in the middle whatever: a long left label ("Goal: Supplies") would run
         // into it, so then it's left out, as the sidebar's bar does)
-        bar.setCenterLabel(left.length() > 12 ? "" : centre);
+        bar.setCenterLabel(left.length() > 12 || left.length() + right.length() > 20 ? "" : centre);
         bar.setRightLabel(right);
         bar.setForegroundColor(fill);
         bar.setBackgroundColor(BradsMultiToolPanel.BAR_BACKGROUND);
