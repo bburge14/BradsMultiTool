@@ -297,6 +297,9 @@ class PlannerGeLimits {
                     // (and where your items came from: bought, at what you paid)
                     if (now.buy() && origins != null) {
                         origins.bought(now.item, filled, gp);
+                    } else if (now.sell() && origins != null) {
+                        // (and what your plan's milestone made, sold: after the GE's tax)
+                        origins.sold(now.item, filled, gp - Math.min((long) Math.floor(gp * 0.02), 5_000_000L * filled));
                     }
                 }
                 added = true;

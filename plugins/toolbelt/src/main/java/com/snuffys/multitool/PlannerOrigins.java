@@ -14,6 +14,7 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
@@ -67,6 +68,19 @@ class PlannerOrigins {
     private int tick;
     private int xpTick = -10;
     private final Map<Skill, Integer> seenXp = new HashMap<>();
+    /** What you did with something you had: sold it (GE), high alched it, dropped it. */
+    enum Gone { SOLD, ALCHED, DROPPED }
+
+    /** Told when you sell, alch or drop something: its id, how many, and the gp it brought in (0 for a drop). */
+    interface GoneListener {
+        void gone(int itemId, long quantity, long gp, Gone how);
+    }
+
+    private volatile GoneListener goneListener;
+    // A Drop or an alch you just chose: {item, tick}; it counts once the item leaves your inventory
+    private int[] pendingDrop;
+    private int[] pendingAlch;
+
     // The trade screen's two sides as last seen (recorded when it's accepted)
     private Map<Integer, Integer> tradeMine = new HashMap<>();
     private Map<Integer, Integer> tradeTheirs = new HashMap<>();
@@ -104,11 +118,43 @@ class PlannerOrigins {
         }
     }
 
+    /** Where to tell when you sell, alch or drop something (the Calculator counts it on your plan's milestone). */
+    void onGone(GoneListener listener) {
+        goneListener = listener;
+    }
+
+    /** A GE sale filled (from {@link PlannerGeLimits}): how many and what it brought in after tax. */
+    void sold(int itemId, long quantity, long gp) {
+        GoneListener listener = goneListener;
+        if (listener != null && quantity > 0) {
+            listener.gone(itemId, quantity, gp, Gone.SOLD);
+        }
+    }
+
+    // What you click (only read: which item you chose to drop or alch, so its leaving your inventory is known)
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event) {
+        String option = event.getMenuOption() == null ? "" : event.getMenuOption();
+        String target = event.getMenuTarget() == null ? "" : event.getMenuTarget();
+        int item = event.getItemId();
+        if (item <= 0) {
+            return;
+        }
+        if ("Drop".equalsIgnoreCase(option)) {
+            pendingDrop = new int[] {itemManager.canonicalize(item), tick};
+        } else if ("Cast".equalsIgnoreCase(option) && target.contains("Level Alchemy")) {
+            pendingAlch = new int[] {itemManager.canonicalize(item), tick};
+        }
+    }
+
     @Subscribe
     public void onItemContainerChanged(ItemContainerChanged event) {
         int id = event.getContainerId();
         if (id == InventoryID.INV) {
             Map<Integer, Integer> now = counts(event.getItemContainer());
+            if (inventory != null) {
+                goneFromInventory(inventory, now);
+            }
             if (inventory != null && tick - xpTick <= 1) {
                 // Turned up with XP (this tick or the last): got yourself
                 for (Map.Entry<Integer, Integer> e : now.entrySet()) {
@@ -150,6 +196,30 @@ class PlannerOrigins {
             dirty = false;
             save();
             view.update();
+        }
+    }
+
+    // Something you chose to drop or alch left your inventory: dropped (all that left), or alched (one, for the coins
+    // that came in)
+    private void goneFromInventory(Map<Integer, Integer> before, Map<Integer, Integer> now) {
+        GoneListener listener = goneListener;
+        if (listener == null) {
+            return;
+        }
+        if (pendingDrop != null && tick - pendingDrop[1] <= 3) {
+            int less = before.getOrDefault(pendingDrop[0], 0) - now.getOrDefault(pendingDrop[0], 0);
+            if (less > 0) {
+                listener.gone(pendingDrop[0], less, 0, Gone.DROPPED);
+                pendingDrop = null;
+            }
+        }
+        if (pendingAlch != null && tick - pendingAlch[1] <= 5) {
+            int less = before.getOrDefault(pendingAlch[0], 0) - now.getOrDefault(pendingAlch[0], 0);
+            int coins = now.getOrDefault(ItemID.COINS, 0) - before.getOrDefault(ItemID.COINS, 0);
+            if (less > 0 && coins > 0) {
+                listener.gone(pendingAlch[0], less, coins, Gone.ALCHED);
+                pendingAlch = null;
+            }
         }
     }
 

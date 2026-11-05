@@ -181,6 +181,62 @@ class PlannerCalculator {
         return origins == null || itemId <= 0 ? null : origins.of(itemId);
     }
 
+    /**
+     * You sold, alched or dropped something (client thread, from {@link PlannerOrigins}): counted on the plan
+     * milestone that makes it (in the skill you're training it in: the one you're on, else the latest you've reached),
+     * as Record sales... does by hand, so its money so far is what really happened.
+     */
+    void recordGone(int itemId, long quantity, long gp, PlannerOrigins.Gone how) {
+        if (!canPlan() || itemManager == null || quantity <= 0) {
+            return;
+        }
+        String name;
+        try {
+            name = itemManager.getItemComposition(itemId).getName();
+        } catch (RuntimeException e) {
+            return;
+        }
+        for (Skill skill : Skill.values()) {
+            SkillPlans.Plan plan = plan(skill);
+            if (plan == null) {
+                continue;
+            }
+            int level = Experience.getLevelForXp(Math.max(0, xp(skill)));
+            SkillPlans.Step best = null;
+            for (SkillPlans.Step step : plan.steps) {
+                if (step.action == null || !step.action.equalsIgnoreCase(name) || step.from > level) {
+                    continue;
+                }
+                if (best == null || step.covers(level) || !best.covers(level) && step.from > best.from) {
+                    best = step;
+                }
+            }
+            if (best == null) {
+                continue;
+            }
+            SkillPlans.Plan before = plan.copy();
+            switch (how) {
+                case SOLD:
+                    // (what each went for, averaged with what was recorded before)
+                    best.soldEach = ((best.soldEach > 0 ? best.soldEach : (double) gp / quantity) * best.sold + gp)
+                        / (best.sold + quantity);
+                    best.sold += quantity;
+                    break;
+                case ALCHED:
+                    best.alchedEach = ((best.alchedEach > 0 ? best.alchedEach : (double) gp / quantity) * best.alched + gp)
+                        / (best.alched + quantity);
+                    best.alched += quantity;
+                    break;
+                default:
+                    best.dropped += quantity;
+                    break;
+            }
+            savePlanQuietly(skill, plan, before);
+            view.update();
+            return;
+        }
+    }
+
     /** Records by hand where some of an item came from: bought for {@code gp} in all, or got yourself. */
     void recordOrigin(int itemId, long quantity, long gp, boolean bought) {
         if (origins == null || itemId <= 0 || !canPlan()) {

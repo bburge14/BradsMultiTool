@@ -85,6 +85,8 @@ class PlannerFeature {
         lifecycle.subscribe(questProgress, farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, geLimits, origins, this);
         // The plan on the game screen (unless it's linked to a Skilling Helper goal: its pinned card shows the plan then)
         lifecycle.overlay(planOverlay);
+        // What you sell, alch and drop counts on your plan's milestones, as Record sales... does by hand
+        origins.onGone(calculator::recordGone);
         chores.start();
         SwingUtilities.invokeLater(() -> {
             PlannerPanel.Icons pictures = icons();
@@ -101,6 +103,7 @@ class PlannerFeature {
             view.setPanel(panel::refresh);
         });
         lifecycle.onStop(() -> {
+            origins.onGone(null);
             view.setPanel(null);
             SwingUtilities.invokeLater(() -> {
                 if (navButton != null) {

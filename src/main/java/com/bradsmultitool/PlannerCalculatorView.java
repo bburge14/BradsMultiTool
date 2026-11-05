@@ -1767,7 +1767,7 @@ final class PlannerCalculatorView {
     // Null when nothing's recorded for it
     private static SoFar soFar(PlannerCalculator.StepRow s) {
         PlannerCalculator.Row row = s.row;
-        if (row == null || s.step.sold <= 0 && s.step.alched <= 0) {
+        if (row == null || s.step.sold <= 0 && s.step.alched <= 0 && s.step.dropped <= 0) {
             return null;
         }
         SoFar out = new SoFar();
@@ -1778,7 +1778,7 @@ final class PlannerCalculatorView {
         double alch = s.step.alchedEach > 0 ? s.step.alchedEach : row.alchEach != null ? row.alchEach : 0;
         out.sold = s.step.sold * ge;
         out.alched = s.step.alched * alch;
-        out.left = Math.max(0, out.made - s.step.sold - s.step.alched);
+        out.left = Math.max(0, out.made - s.step.sold - s.step.alched - s.step.dropped);
         out.unsold = row.earnEach == null ? 0 : out.left * row.earnEach;
         out.cost = row.costEach == null ? 0 : row.costEach * out.made;
         return out;
@@ -1962,6 +1962,10 @@ final class PlannerCalculatorView {
                 if (s.step.alched > 0) {
                     box.add(breakdownLine("  Alched " + String.format("%,d", s.step.alched),
                         PlannerPanel.gp(Math.round(done.alched)), PlannerUi.MUTED, new Color(150, 210, 150)));
+                }
+                if (s.step.dropped > 0) {
+                    box.add(breakdownLine("  Dropped " + String.format("%,d", s.step.dropped), "0", PlannerUi.MUTED,
+                        PlannerUi.MUTED));
                 }
                 if (done.left > 0) {
                     box.add(breakdownLine("  Not sold yet " + String.format("%,d", done.left) + " (worth now)",
@@ -4006,12 +4010,15 @@ final class PlannerCalculatorView {
                 }
                 SoFar done = soFar(s);
                 if (done != null) {
-                    tip.section("So far (recorded)");
+                    tip.section("So far (seen, or recorded)");
                     tip.row("Made", String.format("%,d", done.made));
                     tip.row("Sold on the GE", String.format("%,d", s.step.sold) + "  " + PlannerPanel.gp(Math.round(done.sold)),
                         PlannerUi.Tip.GOOD);
                     tip.row("High alched", String.format("%,d", s.step.alched) + "  " + PlannerPanel.gp(Math.round(done.alched)),
                         PlannerUi.Tip.GOOD);
+                    if (s.step.dropped > 0) {
+                        tip.row("Dropped", String.format("%,d", s.step.dropped) + "  0", PlannerUi.Tip.MUTED);
+                    }
                     if (done.left > 0) {
                         tip.row("Not sold yet", String.format("%,d", done.left) + "  worth " + PlannerPanel.gp(Math.round(done.unsold)),
                             PlannerUi.Tip.MUTED);

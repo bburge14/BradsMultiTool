@@ -71,6 +71,8 @@ final class SkillPlans {
         /** What you got for each you sold, and for each alched (less the rune), when you said; 0: the prices now. */
         double soldEach;
         double alchedEach;
+        /** How many of what it made you dropped (worth nothing): seen as you drop them, or told. */
+        long dropped;
         /** How its products count: "GE" or "ALCH" ({@link PlannerConfig.SellBy}), or null for the setting's way. */
         String sellBy;
         /**
@@ -105,6 +107,7 @@ final class SkillPlans {
             copy.alched = alched;
             copy.soldEach = soldEach;
             copy.alchedEach = alchedEach;
+            copy.dropped = dropped;
             copy.sellBy = sellBy;
             for (Supply supply : supplies) {
                 copy.supplies.add(new Supply(supply.skill, supply.item, supply.quantity));
@@ -444,7 +447,7 @@ final class SkillPlans {
                 step.note == null ? "" : clean(step.note), step.pace == null ? "" : clean(step.pace),
                 step.sold > 0 ? String.valueOf(step.sold) : "", step.alched > 0 ? String.valueOf(step.alched) : "",
                 step.soldEach > 0 ? String.valueOf(step.soldEach) : "", step.alchedEach > 0 ? String.valueOf(step.alchedEach) : "",
-                step.sellBy == null ? "" : step.sellBy));
+                step.sellBy == null ? "" : step.sellBy, step.dropped > 0 ? String.valueOf(step.dropped) : ""));
             while (!more.isEmpty() && more.get(more.size() - 1).isEmpty()) {
                 more.remove(more.size() - 1);
             }
@@ -507,6 +510,9 @@ final class SkillPlans {
                         }
                         if (parts.length > 12 && !parts[12].trim().isEmpty()) {
                             step.sellBy = parts[12].trim();
+                        }
+                        if (parts.length > 13 && !parts[13].trim().isEmpty()) {
+                            step.dropped = Math.max(0, Long.parseLong(parts[13].trim()));
                         }
                         plan.steps.add(step);
                     }
