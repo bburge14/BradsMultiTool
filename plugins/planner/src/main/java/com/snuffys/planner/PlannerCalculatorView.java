@@ -1991,6 +1991,12 @@ final class PlannerCalculatorView {
         }
         row.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 3, 0, 0, colour),
             new EmptyBorder(8, 5, 4, 0)));
+        // (tall enough for the bold title and this border: the group's height was for its plain one, which cut the
+        // tops of the letters off)
+        int height = Math.max(name == null ? 0 : name.getPreferredSize().height, row.getComponentCount() > 1
+            ? row.getComponent(row.getComponentCount() - 1).getPreferredSize().height : 0) + 8 + 4 + 2;
+        row.setPreferredSize(new Dimension(10, height));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
         row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
         row.setToolTipText(PlannerUi.fit(folded ? "Click to open" : "Click to fold away"));
         MouseAdapter click = new MouseAdapter() {
@@ -2663,6 +2669,8 @@ final class PlannerCalculatorView {
                 }
             }
         }
+        // (what you have all of already drops off: nothing to get for it)
+        totals.values().removeIf(sum -> sum[1] >= sum[0]);
         if (totals.isEmpty()) {
             return;
         }
