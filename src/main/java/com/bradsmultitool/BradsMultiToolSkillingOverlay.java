@@ -1128,8 +1128,10 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         SkillingData.Tool owned = SkillingData.bestOwnedTool(tools, ownedItemNames());
         SkillingData.Tool best = SkillingData.bestToolForLevel(tools, client.getRealSkillLevel(skill));
-        // Each tool in its metal's colour
-        line("Your Tool:", owned != null ? owned.name : "None", owned != null ? owned.color : HudColors.BAD);
+        // Yours: green when it's the best you can use, orange when there's a better one for your level, red only when
+        // you have none (a tool's metal colour read as a warning: dragon is red); the better one in its metal's colour
+        boolean better = best != null && (owned == null || best.level > owned.level);
+        line("Your Tool:", owned != null ? owned.name : "None", owned == null ? HudColors.BAD : better ? HudColors.WARN : HudColors.GOOD);
         // (only a better tier: a felling or gilded axe of the same tier is as good)
         if (best != null && (owned == null || best.level > owned.level)) {
             line("Best For You:", best.name, best.color);
