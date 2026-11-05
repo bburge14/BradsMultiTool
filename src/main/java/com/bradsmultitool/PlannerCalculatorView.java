@@ -2420,6 +2420,14 @@ final class PlannerCalculatorView {
     private boolean fitSupplyMilestones(Skill shown, CalculatorData.Calc skillCalc, List<CalculatorData.Bonus> on,
                                         SkillPlans.Plan plan, int now) {
         boolean changed = false;
+        // (when the plan ends with a supply milestone and its goal is there, the goal moves with it, up or down)
+        SkillPlans.Step last = null;
+        for (SkillPlans.Step step : plan.steps) {
+            if (last == null || step.to > last.to || step.to == last.to && !step.supplies.isEmpty()) {
+                last = step;
+            }
+        }
+        boolean goalFromSupplies = last != null && !last.supplies.isEmpty() && plan.goal >= last.from && plan.goal <= last.to;
         // In order: each starts where the one before it ends (or at its own level, if that's later), so they follow on
         // from each other instead of overlapping, and runs as far as getting its supplies takes you
         List<SkillPlans.Step> supplies = new ArrayList<>();
@@ -2484,8 +2492,21 @@ final class PlannerCalculatorView {
                 step.to = to;
                 PlannerCalculator.insertStep(plan, step);
             }
-            plan.goal = Math.max(plan.goal, to);
+            if (!goalFromSupplies) {
+                plan.goal = Math.max(plan.goal, to);
+            }
             changed = true;
+        }
+        if (goalFromSupplies) {
+            // The end of the plan: the last milestone's end (a done supply milestone takes no levels: its start)
+            int end = 0;
+            for (SkillPlans.Step step : plan.steps) {
+                end = Math.max(end, step.gotAll ? step.from : step.to);
+            }
+            if (end > 0 && end != plan.goal) {
+                plan.goal = end;
+                changed = true;
+            }
         }
         // (a done one first among those starting at the same level: it comes before what follows it)
         plan.steps.sort((a, b) -> a.from != b.from ? Integer.compare(a.from, b.from) : Boolean.compare(!a.gotAll, !b.gotAll));
@@ -2507,7 +2528,9 @@ final class PlannerCalculatorView {
         try {
             for (Skill s : skills()) {
                 SkillPlans.Plan plan = calc.plan(s);
-                SkillPlans.Plan tracked = calc.trackedPlan(s);
+                SkillPlans.Plan shared = calc.trackedPlan(s);
+                // (a copy: the tracker's decoded plan is shared, never changed in place)
+                SkillPlans.Plan tracked = shared == null ? null : shared.copy();
                 int xp = calc.xp(s);
                 Map<String, SkillPlans.SupplyState> states = new java.util.HashMap<>();
                 if (xp >= 0 && (hasSupplies(plan) || hasSupplies(tracked))) {
@@ -2532,6 +2555,16 @@ final class PlannerCalculatorView {
                     }
                 }
                 calc.saveSupplyStates(s, states);
+                // Linked (the goal follows the plan you sent): the plan is the master, so the goal is its end level
+                SkillPlans.Plan now = calc.trackedPlan(s);
+                SkillGoals.Follow follow = calc.follow(s);
+                if (now != null && xp >= 0 && (follow == null || follow == SkillGoals.Follow.PLAN)) {
+                    int goalXp = now.goalXp();
+                    int goal = calc.goal(s);
+                    if (goal > 0 && goal != goalXp) {
+                        calc.setGoal(s, goalXp, xp);
+                    }
+                }
             }
         } catch (RuntimeException e) {
             // (never stops the Planner drawing: the next refresh tries again)
