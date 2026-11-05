@@ -182,6 +182,9 @@ class PlannerGeLimits {
     private final Set<String> told = new HashSet<>();
     private String loadedFor;
     private int loggedInTicks;
+    // Where your items came from (a GE buy is one); null in tests
+    @Inject
+    private PlannerOrigins origins;
     private int ticks;
 
     @Inject
@@ -291,6 +294,10 @@ class PlannerGeLimits {
                 if (gp > 0) {
                     fills.add(new Fill(now.item, filled, gp, seen.at, now.sell()));
                     fillCount++;
+                    // (and where your items came from: bought, at what you paid)
+                    if (now.buy() && origins != null) {
+                        origins.bought(now.item, filled, gp);
+                    }
                 }
                 added = true;
             }

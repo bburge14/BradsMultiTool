@@ -53,6 +53,8 @@ class PlannerFeature {
     @Inject private QuestProgress questProgress;
     @Inject private PlannerPlanOverlay planOverlay;
     @Inject private PlannerGeLimits geLimits;
+    // Where your items came from (bought, traded, got yourself), for the plans' money
+    @Inject private PlannerOrigins origins;
 
     private NavigationButton navButton;
     private PlannerPanel panel;
@@ -80,7 +82,7 @@ class PlannerFeature {
         lifecycle.load(locationData, locationData::load);
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)
-        lifecycle.subscribe(questProgress, farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, geLimits, this);
+        lifecycle.subscribe(questProgress, farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, geLimits, origins, this);
         // The plan on the game screen (unless it's linked to a Skilling Helper goal: its pinned card shows the plan then)
         lifecycle.overlay(planOverlay);
         chores.start();

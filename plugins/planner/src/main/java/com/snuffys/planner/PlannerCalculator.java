@@ -159,9 +159,37 @@ class PlannerCalculator {
         return geLimits == null ? new long[2] : geLimits.traded(names, since);
     }
 
-    /** Changes when a trade is recorded. */
+    /** Changes when a trade is recorded (or where an item came from). */
     int tradesVersion() {
-        return geLimits == null ? 0 : geLimits.tradesVersion();
+        return (geLimits == null ? 0 : geLimits.tradesVersion()) * 31 + (origins == null ? 0 : origins.version());
+    }
+
+    // Where your items came from (bought, traded, got yourself); null in the preview
+    @Inject
+    private PlannerOrigins origins;
+
+    /** Where an item you have came from, as far as it knows (null: nothing known). */
+    PlannerOrigins.Origin origin(int itemId) {
+        return origins == null || itemId <= 0 ? null : origins.of(itemId);
+    }
+
+    /** Records by hand where some of an item came from: bought for {@code gp} in all, or got yourself. */
+    void recordOrigin(int itemId, long quantity, long gp, boolean bought) {
+        if (origins == null || itemId <= 0 || !canPlan()) {
+            return;
+        }
+        if (bought) {
+            origins.bought(itemId, quantity, gp);
+        } else {
+            origins.gathered(itemId, quantity);
+        }
+    }
+
+    /** Clears what it knows of where an item came from. */
+    void forgetOrigin(int itemId) {
+        if (origins != null && itemId > 0 && canPlan()) {
+            origins.forget(itemId);
+        }
     }
 
     /** How many buy limits are known so far (for redrawing when one comes in). */

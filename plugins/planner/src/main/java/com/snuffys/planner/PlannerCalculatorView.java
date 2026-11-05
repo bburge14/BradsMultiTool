@@ -1575,9 +1575,18 @@ final class PlannerCalculatorView {
             + estimatedNote(totals), Color.WHITE));
         tiles.add(tile("Level", level + " → " + endLevel, endLevel < plan.goal ? "The milestones end at level " + endLevel
             + "; the goal is " + plan.goal : "Your level now, and where the plan ends (its goal)", Color.WHITE));
+        // What the materials really cost you: what you have at what it cost you (bought, got yourself, or not known: GE
+        // price), what's still to get at the GE price unless you get it yourself
+        PlannerUi.Tip materialsTip = new PlannerUi.Tip("Materials", "what they really cost you");
+        long[] real = calc.showPrices() ? materialsCost(shown, steps, materialsTip) : new long[2];
+        if (real[1] > 0) {
+            totals.cost = real[0];
+        }
         boolean cost = calc.showPrices() && totals.cost > 0;
         boolean earn = calc.showPrices() && totals.earn > 0;
-        String costTip = "What the milestones' materials cost at Grand Exchange prices (" + String.format("%,.0f", totals.cost) + " gp)";
+        String costTip = real[1] > 0 ? materialsTip.line("All of them at GE prices: " + PlannerPanel.gp(real[1]), PlannerUi.Tip.MUTED)
+            .hint("Right-click one under Materials needed: where some came from").build()
+            : "What the milestones' materials cost at Grand Exchange prices (" + String.format("%,.0f", totals.cost) + " gp)";
         String earnTip = "What the milestones' products are worth at Grand Exchange prices (" + String.format("%,.0f", totals.earn) + " gp)";
         if (cost && earn) {
             // Costs and earnings both: the net here, each of them on a row of their own below
@@ -2952,7 +2961,8 @@ final class PlannerCalculatorView {
                     materialTip.line(waiting + " first", PlannerUi.Tip.WARN);
                 }
                 gatherRows(materialTip, shown, need, source, gather);
-                tip = materialTip.hint("Bank as last opened plus inventory").build();
+                originRows(materialTip, need.name, Math.min(need.have, need.needed));
+                tip = materialTip.hint("Bank as last opened plus inventory \u00b7 right-click: where some came from").build();
             }
             JPanel row = new JPanel(new BorderLayout(6, 0));
             row.setOpaque(false);
@@ -2961,9 +2971,9 @@ final class PlannerCalculatorView {
             row.add(name, BorderLayout.CENTER);
             row.add(PlannerUi.label(amounts, colour), BorderLayout.EAST);
             row.setToolTipText(PlannerUi.fit(tip));
+            JPopupMenu menu = new JPopupMenu();
             if (source != null) {
                 // Right-click: get it yourself in the other skill, or buy it
-                JPopupMenu menu = new JPopupMenu();
                 String verb = source.gathered ? "Gather" : "Make";
                 menu.add(gather ? menuItem("Buy it instead", () -> {
                     calc.setGathers(shown, need.name, false);
@@ -2972,6 +2982,20 @@ final class PlannerCalculatorView {
                     calc.setGathers(shown, need.name, true);
                     redraw.run();
                 }));
+            }
+            if (!need.tool) {
+                // Where what you have came from, for the plan's money (what the Planner didn't see: trades while it was
+                // off, ones from before)
+                menu.add(menuItem("Where some came from...", () -> recordOriginDialog(need.name)));
+                menu.add(menuItem("Forget where they came from", () -> {
+                    if (confirm("Forget where your " + need.name + " came from? What you have counts at its GE price "
+                        + "until it sees more.")) {
+                        calc.forgetOrigin(icons.itemId(need.name));
+                        redraw.run();
+                    }
+                }));
+            }
+            if (menu.getComponentCount() > 0) {
                 row.setComponentPopupMenu(menu);
             }
             row.setAlignmentX(JComponent.LEFT_ALIGNMENT);
@@ -2983,6 +3007,123 @@ final class PlannerCalculatorView {
             list.add(note("Open your bank once to count it", "Open your bank once so these count what's in it; until then "
                 + "it's your inventory"));
         }
+    }
+
+    // Where what you have of a material came from, for its tooltip
+    private void originRows(PlannerUi.Tip tip, String name, long have) {
+        int id = icons.itemId(name);
+        PlannerOrigins.Origin origin = calc.origin(id);
+        long[] split = PlannerOrigins.ownedCost(origin, have, price(name));
+        if (have <= 0) {
+            return;
+        }
+        tip.section("What you have");
+        if (split[1] > 0) {
+            tip.row("Bought", String.format("%,d", split[1]) + " (paid " + PlannerPanel.gp(Math.round(split[1]
+                * origin.paidEach())) + ")", PlannerUi.Tip.BAD);
+        }
+        if (split[2] > 0) {
+            tip.row("Got yourself", String.format("%,d", split[2]) + " (free)", PlannerUi.Tip.GOOD);
+        }
+        if (split[3] > 0) {
+            tip.row("Not known", String.format("%,d", split[3]) + " (at GE price)", PlannerUi.Tip.MUTED);
+        }
+    }
+
+    // Tell it where some of an item came from: how many, bought (and what you paid for them in all) or got yourself
+    private void recordOriginDialog(String name) {
+        int id = icons.itemId(name);
+        if (id <= 0) {
+            JOptionPane.showMessageDialog(list, "Couldn't find " + name + "'s item.", "Where they came from",
+                JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        javax.swing.JSpinner count = new javax.swing.JSpinner(new javax.swing.SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+        javax.swing.JSpinner each = new javax.swing.JSpinner(new javax.swing.SpinnerNumberModel(Math.max(0, price(name)), 0, Integer.MAX_VALUE, 1));
+        javax.swing.JRadioButton bought = new javax.swing.JRadioButton("Bought them", true);
+        javax.swing.JRadioButton yourself = new javax.swing.JRadioButton("Got them myself (free)");
+        javax.swing.ButtonGroup group = new javax.swing.ButtonGroup();
+        group.add(bought);
+        group.add(yourself);
+        yourself.addActionListener(e -> each.setEnabled(false));
+        bought.addActionListener(e -> each.setEnabled(true));
+        JPanel form = new JPanel(new GridLayout(0, 1, 0, 4));
+        form.add(new JLabel("How many " + name + ":"));
+        form.add(count);
+        form.add(bought);
+        form.add(yourself);
+        form.add(new JLabel("Paid each (gp):"));
+        form.add(each);
+        if (JOptionPane.showConfirmDialog(list, form, "Where they came from", JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
+            return;
+        }
+        long n = ((Number) count.getValue()).longValue();
+        long paid = n * ((Number) each.getValue()).longValue();
+        calc.recordOrigin(id, n, paid, bought.isSelected());
+        redraw.run();
+    }
+
+    /**
+     * What a plan's materials really cost you: what you have of each at what it cost you (bought at what you paid, got
+     * yourself free, not known at its GE price), and what's still to get at its GE price unless you get it yourself
+     * (Gather it yourself, or another skill's plan has a supply milestone for it). {@code [0]}: gp; {@code [1]}: all
+     * of them at GE prices.
+     */
+    private long[] materialsCost(Skill shown, List<PlannerCalculator.StepRow> steps, PlannerUi.Tip tip) {
+        long gp = 0;
+        long market = 0;
+        int shownRows = 0;
+        for (PlannerCalculator.Need need : PlannerCalculator.planMaterials(shown, steps, recipes, calc.owned())) {
+            if (need.tool || need.needed <= 0) {
+                continue;
+            }
+            int each = price(need.name);
+            long have = Math.min(need.have, need.needed);
+            long toGet = need.needed - have;
+            long[] owned = PlannerOrigins.ownedCost(calc.origin(icons.itemId(need.name)), have, each);
+            boolean yourself = (calc.gathers(shown, need.name) && PlannerCalculator.sourceOf(need.name, shown, data, recipes) != null)
+                || suppliedFor(shown, need.name);
+            long getting = yourself ? 0 : toGet * (long) each;
+            gp += owned[0] + getting;
+            market += need.needed * (long) each;
+            if (tip != null && shownRows++ < 6) {
+                StringBuilder how = new StringBuilder();
+                if (owned[1] > 0) {
+                    how.append(String.format("%,d", owned[1])).append(" bought");
+                }
+                if (owned[2] > 0) {
+                    how.append(how.length() > 0 ? ", " : "").append(String.format("%,d", owned[2])).append(" yours");
+                }
+                if (owned[3] > 0) {
+                    how.append(how.length() > 0 ? ", " : "").append(String.format("%,d", owned[3])).append(" at GE");
+                }
+                if (toGet > 0) {
+                    how.append(how.length() > 0 ? ", " : "").append(String.format("%,d", toGet)).append(yourself ? " to get" : " to buy");
+                }
+                tip.row(need.name, PlannerPanel.gp(owned[0] + getting));
+                tip.line(how.toString(), PlannerUi.Tip.MUTED);
+            }
+        }
+        return new long[] {gp, market};
+    }
+
+    // Whether another skill's plan has a supply milestone getting this item for this skill's plan
+    private boolean suppliedFor(Skill shown, String item) {
+        for (Skill other : skills()) {
+            SkillPlans.Plan plan = other == shown ? null : calc.plan(other);
+            if (plan == null) {
+                continue;
+            }
+            for (SkillPlans.Step step : plan.steps) {
+                for (SkillPlans.Supply supply : step.supplies) {
+                    if (supply.skill.equals(shown.name()) && supply.item.equalsIgnoreCase(item)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     // ---- Saved plans ----
