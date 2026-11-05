@@ -559,7 +559,7 @@ public interface PlannerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "plannerPlanOverlay",
         name = "Plan Overlay",
-        description = "<div width='300'>A card on the game screen for the plan of the skill you're training (the plan open in the Calculator): the milestone you're on, its method, a bar to its end with the XP and actions left, the next milestone and your materials for this one. Only when the Skilling Helper isn't installed: its pinned skill card shows the plan then",
+        description = "<div width='300'>A card on the game screen for the plan of the skill you're training (the plan open in the Calculator): the milestone you're on, its method, a bar to its end with the XP and actions left, the next milestone and your materials for this one. Not for a plan linked to a Skilling Helper goal: its pinned skill card shows that one",
         section = plannerCalculatorSection,
         position = 3
     )

@@ -305,7 +305,7 @@ each can be hidden in the settings; everything is saved per account.
     tracker's into yours). **Follow** on either goal card picks what the goal follows: your plan, your pick (a Track
     for goal or a method, for a one-off) or the wiki; the others stay saved. Milestones count your XP whatever you
     train with; a supply milestone you passed another way says "Levels done, supplies to get" with how many.
-  - **Plan overlay** (without the Skilling Helper installed; its pinned skill card shows the plan otherwise): a
+  - **Plan overlay** (for any plan not linked to a Skilling Helper goal; a plan you sent to a goal that follows it shows on the Skilling Helper's pinned skill card instead): a
     card on the game screen for the plan of the skill you're training (the one open in the Calculator), or the plan
     you **pin** (the pin on its card in the Plan view, or right-click > Pin to screen; it stays up whatever you
     train until you unpin it, there or by right-clicking the overlay): the

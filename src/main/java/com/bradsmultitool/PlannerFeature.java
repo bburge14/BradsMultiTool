@@ -81,7 +81,7 @@ class PlannerFeature {
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)
         lifecycle.subscribe(questProgress, farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, geLimits, this);
-        // The plan on the game screen (only without the Skilling Helper: its pinned card shows the plan then)
+        // The plan on the game screen (unless it's linked to a Skilling Helper goal: its pinned card shows the plan then)
         lifecycle.overlay(planOverlay);
         chores.start();
         SwingUtilities.invokeLater(() -> {

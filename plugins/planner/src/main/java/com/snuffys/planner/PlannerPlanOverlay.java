@@ -59,17 +59,27 @@ class PlannerPlanOverlay extends OverlayPanel {
         addMenuEntry(net.runelite.api.MenuAction.RUNELITE_OVERLAY, "Unpin", "Plan", e -> calc.setPinnedPlanSkill(null));
     }
 
+    // Only when the plan is linked to a Skilling Helper goal (sent to it, and the goal follows the plan) does its pinned
+    // skill card show it instead; any other plan has this card, Skilling Helper or not
+    private boolean linkedToGoal(Skill skill) {
+        if (!calc.trackerInstalled() || calc.trackedPlan(skill) == null) {
+            return false;
+        }
+        // (no Follow set: the usual order, where a sent plan is what it follows)
+        SkillGoals.Follow follow = calc.follow(skill);
+        return follow == null || follow == SkillGoals.Follow.PLAN;
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!config.plannerPlanOverlay() || client.getGameState() != GameState.LOGGED_IN || calc.trackerInstalled()
-            || !calc.canPlan()) {
+        if (!config.plannerPlanOverlay() || client.getGameState() != GameState.LOGGED_IN || !calc.canPlan()) {
             return null;
         }
         // A pinned plan stays up; otherwise the plan of the skill you're training
         Skill pinned = calc.pinnedPlanSkill();
         Skill skill = pinned != null ? pinned : calc.lastTrained();
         SkillPlans.Plan plan = skill == null ? null : calc.plan(skill);
-        if (plan == null || plan.steps.isEmpty()) {
+        if (plan == null || plan.steps.isEmpty() || linkedToGoal(skill)) {
             return null;
         }
         if (runeLiteConfig != null) {
