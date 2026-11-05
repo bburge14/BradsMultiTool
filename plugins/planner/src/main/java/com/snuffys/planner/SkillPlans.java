@@ -317,10 +317,24 @@ final class SkillPlans {
         final long toGet;
         /** The XP getting them takes you to (it ends there, partway into a level), 0 when unknown. */
         final long endXp;
+        /** How many the other plans want of them in all, and how many of those you have (0 and 0 when unknown). */
+        final long wanted;
+        final long have;
 
         SupplyState(long toGet, long endXp) {
+            this(toGet, endXp, 0, 0);
+        }
+
+        SupplyState(long toGet, long endXp, long wanted, long have) {
             this.toGet = toGet;
             this.endXp = endXp;
+            this.wanted = wanted;
+            this.have = have;
+        }
+
+        /** How far through getting them you are, 0 to 1 (by count, not levels). */
+        double progress() {
+            return wanted <= 0 ? (toGet <= 0 ? 1 : 0) : Math.max(0, Math.min(1, (double) Math.min(have, wanted) / wanted));
         }
     }
 
@@ -338,18 +352,18 @@ final class SkillPlans {
                 if (action.isEmpty()) {
                     continue;
                 }
-                long toGet = 0;
-                long endXp = 0;
+                long[] n = new long[4];
                 if (kv.length > 1) {
                     String[] nums = kv[1].split(":");
                     try {
-                        toGet = Long.parseLong(nums[0].trim());
-                        endXp = nums.length > 1 ? Long.parseLong(nums[1].trim()) : 0;
+                        for (int i = 0; i < Math.min(4, nums.length); i++) {
+                            n[i] = Long.parseLong(nums[i].trim());
+                        }
                     } catch (NumberFormatException e) {
                         continue;
                     }
                 }
-                out.put(action, new SupplyState(toGet, endXp));
+                out.put(action, new SupplyState(n[0], n[1], n[2], n[3]));
             }
         }
         return out;
@@ -373,7 +387,9 @@ final class SkillPlans {
             if (text.length() > 0) {
                 text.append('|');
             }
-            text.append(e.getKey()).append('=').append(e.getValue().toGet).append(':').append(e.getValue().endXp);
+            SupplyState v = e.getValue();
+            text.append(e.getKey()).append('=').append(v.toGet).append(':').append(v.endXp).append(':').append(v.wanted)
+                .append(':').append(v.have);
         }
         String old = configManager.getRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
         if (text.toString().equals(old == null ? "" : old)) {

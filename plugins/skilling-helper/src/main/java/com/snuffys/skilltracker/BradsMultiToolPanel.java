@@ -959,14 +959,9 @@ public class BradsMultiToolPanel extends PluginPanel {
             if (!show) {
                 return;
             }
-            int start = Experience.getXpForLevel(step.from);
-            int end = plugin.getMilestoneEndXp(skill, step);
-            double progress = end > start ? (double) (xp - start) / (end - start) : 1;
-            int left = Math.max(0, end - xp);
-            String eta = left == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(left * 3600L / xpPerHour) : shortNumber(left) + " left";
-            milestoneBar.set(progress, plugin.getSupplyState(skill, step) != null ? "Step: Supplies" : "Step: Lvl " + step.to, String.format("%.1f%%", Math.max(0, Math.min(1, progress)) * 100), eta);
-            String tip = "<html>Your plan's milestone: level " + step.to + " with " + step.action + " (from " + step.from + ")"
-                + planTip(plugin.getSkillPlan(skill), level) + "</html>";
+            GoalLines.StepBar bar = GoalLines.stepBar(plugin, skill, step, xp, xpPerHour, paused);
+            milestoneBar.set(bar.progress, bar.label, String.format("%.1f%%", bar.progress * 100), bar.right);
+            String tip = "<html>" + bar.tip + planTip(plugin.getSkillPlan(skill), level) + "</html>";
             if (!Objects.equals(milestoneBar.getToolTipText(), tip)) {
                 milestoneBar.setToolTipText(tip);
             }

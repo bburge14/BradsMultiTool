@@ -48,6 +48,51 @@ final class GoalLines {
     private GoalLines() {
     }
 
+    /** A plan milestone's bar: its name, how far through (0 to 1), the right-hand text and its tooltip. */
+    static final class StepBar {
+        final String label;
+        final double progress;
+        final String right;
+        final String tip;
+
+        StepBar(String label, double progress, String right, String tip) {
+            this.label = label;
+            this.progress = progress;
+            this.right = right;
+            this.tip = tip;
+        }
+    }
+
+    /**
+     * The bar for the plan milestone you're on. A supply milestone is the supplies, not levels: filled by how many you
+     * have of what the other plan wants, and done when you have them all, whatever level that is. Any other runs from
+     * its start level to its end level.
+     */
+    static StepBar stepBar(SkillTracker plugin, Skill skill, SkillPlans.Step step, int xp, int rate, boolean paused) {
+        SkillPlans.SupplyState supply = plugin.getSupplyState(skill, step);
+        if (supply != null && supply.wanted > 0) {
+            String consumer = step.supplies.get(0).skill;
+            try {
+                consumer = Skill.valueOf(consumer).getName();
+            } catch (IllegalArgumentException e) {
+                // (as saved)
+            }
+            String right = supply.toGet <= 0 ? "Done!" : String.format("%,d", supply.toGet) + " to get";
+            String tip = "Your plan's milestone: " + step.action + " for your " + consumer + " plan<br>You have "
+                + String.format("%,d", Math.min(supply.have, supply.wanted)) + " of the " + String.format("%,d", supply.wanted)
+                + " it wants (bank and inventory)<br>It ends when you have them all, whatever level that is";
+            return new StepBar("Step: Supplies", supply.progress(), right, tip);
+        }
+        int start = Experience.getXpForLevel(Math.max(1, step.from));
+        int end = plugin.getMilestoneEndXp(skill, step);
+        double progress = end > start ? (double) (xp - start) / (end - start) : 1;
+        int left = Math.max(0, end - xp);
+        String right = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate)
+            : BradsMultiToolPanel.shortNumber(left) + " left";
+        return new StepBar("Step: Lvl " + step.to, Math.max(0, Math.min(1, progress)), right,
+            "Your plan's milestone: level " + step.to + " with " + step.action + " (from " + step.from + ")");
+    }
+
     /**
      * Actions left until the next level, or (with Actions Until Goal) until the goal or the end of the plan's
      * step you're on ({@code stepEndLevel}, 0 if the method doesn't change before the goal). Per action: your

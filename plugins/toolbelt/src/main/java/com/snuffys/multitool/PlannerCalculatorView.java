@@ -2594,8 +2594,16 @@ final class PlannerCalculatorView {
     private void addStates(SkillPlans.Plan plan, Map<String, SkillPlans.SupplyState> states) {
         for (SkillPlans.Step step : plan.steps) {
             if (!step.supplies.isEmpty()) {
-                states.put(step.action.toLowerCase(java.util.Locale.ROOT),
-                    new SkillPlans.SupplyState(step.gotAll ? 0 : Math.max(0, suppliesToGet(step)), step.endXp));
+                long wanted = 0;
+                long have = 0;
+                for (SkillPlans.Supply supply : step.supplies) {
+                    long[] still = stillNeeded(supply.skill, supply.item);
+                    long w = still == null ? supply.quantity : still[0];
+                    wanted += w;
+                    have += still == null ? 0 : Math.min(w, still[1]);
+                }
+                states.put(step.action.toLowerCase(java.util.Locale.ROOT), new SkillPlans.SupplyState(
+                    step.gotAll ? 0 : Math.max(0, wanted - have), step.endXp, wanted, have));
             }
         }
     }
@@ -2609,6 +2617,22 @@ final class PlannerCalculatorView {
             }
         }
         return false;
+    }
+
+    // How far through getting a supply milestone's supplies you are (0 to 1, by count), or -1 for any other milestone
+    private double supplyProgress(SkillPlans.Step step) {
+        if (step.supplies.isEmpty()) {
+            return -1;
+        }
+        long wanted = 0;
+        long have = 0;
+        for (SkillPlans.Supply supply : step.supplies) {
+            long[] still = stillNeeded(supply.skill, supply.item);
+            long w = still == null ? supply.quantity : still[0];
+            wanted += w;
+            have += still == null ? 0 : Math.min(w, still[1]);
+        }
+        return wanted <= 0 ? 1 : (double) have / wanted;
     }
 
     // How many of a supply milestone's items the other plans still need that you don't have
@@ -3602,7 +3626,11 @@ final class PlannerCalculatorView {
             // (the milestones' green down the left: brighter and wider for the one you're on)
             card.setBorder(now ? BorderFactory.createMatteBorder(0, 4, 0, 0, SUGGESTED)
                 : BorderFactory.createMatteBorder(0, 3, 0, 0, MILESTONES.darker()));
-            if (started) {
+            // (a supply milestone fills by how many you have of what the other plans want, not by levels)
+            double supplied = supplyProgress(step);
+            if (supplied >= 0) {
+                card.bar(new PlannerUi.Bar(Math.max(0.02, supplied), PlannerUi.GROWING));
+            } else if (started) {
                 card.bar(new PlannerUi.Bar(Math.max(0.02, s.progress), PlannerUi.GROWING));
             }
         }
