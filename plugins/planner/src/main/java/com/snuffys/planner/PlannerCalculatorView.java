@@ -1573,7 +1573,9 @@ final class PlannerCalculatorView {
             : "-", (totals.untimed > 0 ? totals.untimed + " milestone" + (totals.untimed == 1 ? " has" : "s have") + " no XP rate, "
             + "so the time leaves " + (totals.untimed == 1 ? "it" : "them") + " out" : "At the wiki's training guides' XP rates")
             + estimatedNote(totals), Color.WHITE));
-        tiles.add(tile("Level", level + " → " + endLevel, endLevel < plan.goal ? "The milestones end at level " + endLevel
+        tiles.add(tile("Level", level + " → " + (endsInSupplies(plan) ? "~" : "") + endLevel, endsInSupplies(plan)
+            ? "Your level now, and about where getting the plan's supplies takes you (it moves as you get or buy them)"
+            : endLevel < plan.goal ? "The milestones end at level " + endLevel
             + "; the goal is " + plan.goal : "Your level now, and where the plan ends (its goal)", Color.WHITE));
         // What the materials really cost you: what you have at what it cost you (bought, got yourself, or not known: GE
         // price), what's still to get at the GE price unless you get it yourself
@@ -1605,10 +1607,15 @@ final class PlannerCalculatorView {
         if (wholeTip != null) {
             PlannerUi.tips(tiles, wholeTip);
         }
-        list.add(PlannerUi.group("Whole plan", "to level " + endLevel));
+        list.add(PlannerUi.group("Whole plan", endsInSupplies(plan) ? "to the supplies (~" + endLevel + ")" : "to level " + endLevel));
         list.add(PlannerUi.spaced(tiles));
 
-        JLabel goalLink = PlannerUi.linkLabel("Goal: level " + plan.goal, "Change the plan's final goal", () -> changeGoal(shown));
+        // (a plan ending in a supply milestone is for the supplies: its goal is getting them, wherever that takes you)
+        boolean forSupplies = endsInSupplies(plan);
+        JLabel goalLink = PlannerUi.linkLabel(forSupplies ? "Goal: supplies (~" + plan.goal + ")" : "Goal: level " + plan.goal,
+            forSupplies ? "The plan ends getting supplies for another plan: its goal is having them all, about level "
+                + plan.goal + " (it moves as you get or buy them); click to set a level instead" : "Change the plan's final goal",
+            () -> changeGoal(shown));
         boolean milestonesFolded = calc.planFolded("milestones");
         list.add(section("milestones", "Milestones", milestonesFolded ? plan.steps.size() + " in all" : "", goalLink,
             new PlannerUi.IconButton(new PlannerUi.Glyph(PlannerUi.Shape.PLUS, 14, ColorScheme.LIGHT_GRAY_COLOR),
@@ -3107,6 +3114,17 @@ final class PlannerCalculatorView {
             }
         }
         return new long[] {gp, market};
+    }
+
+    // Whether the plan ends with a supply milestone, its goal where that ends (the goal is the supplies, not a level)
+    private static boolean endsInSupplies(SkillPlans.Plan plan) {
+        SkillPlans.Step last = null;
+        for (SkillPlans.Step step : plan.steps) {
+            if (!step.covered && (last == null || step.to > last.to || step.to == last.to && !step.supplies.isEmpty())) {
+                last = step;
+            }
+        }
+        return last != null && !last.supplies.isEmpty() && plan.goal >= last.from && plan.goal <= last.to;
     }
 
     // Whether another skill's plan has a supply milestone getting this item for this skill's plan
