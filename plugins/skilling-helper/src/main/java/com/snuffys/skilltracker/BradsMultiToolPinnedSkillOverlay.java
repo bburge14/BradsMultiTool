@@ -151,7 +151,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         // Actions (or kills) left, as on the tracker card
         if (full && config.showTrackerActions() && (goalXp > 0 || !GoalLines.KILL_SKILLS.contains(skill))) {
             GoalLines.Actions count = GoalLines.actions(plugin, config, skill, xp, stepEndLevel(skill, level, goalXp));
-            line(count.name + ":", count.value, Color.WHITE);
+            line(count.longName() + ":", count.value, Color.WHITE);
         }
         return super.render(graphics);
     }

@@ -992,7 +992,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             if (!Objects.equals(actions.getToolTipText(), count.tip)) {
                 actions.setToolTipText(count.tip);
             }
-            setStat(actions, count.name, count.value);
+            setStat(actions, count.name, count.shortValue());
         }
 
         // "Logs: 342 (1,050/hr)" for each kind of item counted (Show Items Gathered)
