@@ -2603,7 +2603,7 @@ final class PlannerCalculatorView {
         long total = 0;
         for (SkillPlans.Supply supply : step.supplies) {
             long[] still = stillNeeded(supply.skill, supply.item);
-            long wanted = still == null ? supply.quantity : Math.min(supply.quantity, still[0]);
+            long wanted = still == null ? supply.quantity : still[0];
             long have = still == null ? 0 : still[1];
             total += Math.max(0, wanted - have);
         }
@@ -2734,7 +2734,8 @@ final class PlannerCalculatorView {
         JPopupMenu menu = new JPopupMenu();
         if (shortBy > 0) {
             menu.add(menuItem("Add to the " + source.skill.getName() + " plan",
-                () -> addSupplyMilestone(source, consumer, need.name, shortBy, supply.xp)));
+                // (it keeps all the plan needs: what you have counts against that, live)
+                () -> addSupplyMilestone(source, consumer, need.name, need.needed, supply.xp)));
         }
         menu.add(menuItem("Go to the " + consumer.getName() + " plan", () -> pick(consumer)));
         return card.interactive(() -> pick(consumer), menu, tip);
@@ -3543,7 +3544,7 @@ final class PlannerCalculatorView {
         boolean suppliesLeft = false;
         for (SkillPlans.Supply supply : step.supplies) {
             long[] still = stillNeeded(supply.skill, supply.item);
-            long wanted = still == null ? supply.quantity : Math.min(supply.quantity, still[0]);
+            long wanted = still == null ? supply.quantity : still[0];
             long have = still == null ? 0 : still[1];
             long toGet = Math.max(0, wanted - have);
             long levelsMake = row == null || s.done ? 0 : row.needed;
