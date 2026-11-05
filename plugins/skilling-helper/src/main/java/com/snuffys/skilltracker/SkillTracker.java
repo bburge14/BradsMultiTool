@@ -235,6 +235,13 @@ class SkillTracker {
             if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
                 long current = skillActiveTicks.getOrDefault(s, 0L);
                 skillActiveTicks.put(s, current + 1);
+                // Your XP an hour, for the Planner to time your plan by (every few seconds, while it counts)
+                if (family != null && client.getTickCount() % 5 == 0) {
+                    int rate = getSkillXpPerHour(s);
+                    if (rate > 0) {
+                        family.shareXpRate(s, rate);
+                    }
+                }
             }
         }
         updatePanelUI();

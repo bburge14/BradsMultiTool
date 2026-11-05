@@ -1583,6 +1583,7 @@ final class PlannerCalculatorView {
         }
         List<PlannerCalculator.StepRow> steps = PlannerCalculator.stepRows(shown, skillCalc, on, plan, now, recipes, training,
             this::price, calc::itemPrice);
+        yourRate(shown, plan, steps, level);
         PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, steps, now);
 
         int endLevel = Math.min(plan.goal, Math.max(totals.endLevel, level));
@@ -3139,6 +3140,26 @@ final class PlannerCalculatorView {
         return new long[] {gp, market};
     }
 
+    // The milestone you're on, in a plan linked to your Skilling Helper goal (you sent it, the goal follows it): timed
+    // at your XP an hour as the tracker counts it while you train, not the guide's rate
+    private void yourRate(Skill shown, SkillPlans.Plan plan, List<PlannerCalculator.StepRow> steps, int level) {
+        int rate = currentOverride == null ? calc.trackerXpRate(shown) : 0;
+        SkillPlans.Plan tracked = rate > 0 ? calc.trackedPlan(shown) : null;
+        SkillGoals.Follow follow = tracked == null ? null : calc.follow(shown);
+        if (tracked == null || !(plan.sent || calc.isTracked(shown, plan))
+            || follow != null && follow != SkillGoals.Follow.PLAN) {
+            return;
+        }
+        for (PlannerCalculator.StepRow s : steps) {
+            if (!s.done && s.row != null && s.step.covers(level)) {
+                s.row.seconds = (long) Math.ceil(s.xp * 3600.0 / rate);
+                s.row.xpHour = rate;
+                s.row.estimated = false;
+                s.yourRate = true;
+            }
+        }
+    }
+
     // Whether the plan ends with a supply milestone, its goal where that ends (the goal is the supplies, not a level)
     private static boolean endsInSupplies(SkillPlans.Plan plan) {
         SkillPlans.Step last = null;
@@ -3710,7 +3731,7 @@ final class PlannerCalculatorView {
         if (row != null && !s.done) {
             Double perXp = calc.showPrices() ? row.perXp() : null;
             String time = row.seconds > 0 ? "~" + PlannerPanel.formatDuration(row.seconds)
-                + (row.xpHour > 0 ? " (" + PlannerPanel.gp(row.xpHour) + "/hr" + (row.estimated ? " est." : "") + ")" : "")
+                + (row.xpHour > 0 ? " (" + PlannerPanel.gp(row.xpHour) + "/hr" + (s.yourRate ? " yours" : row.estimated ? " est." : "") + ")" : "")
                 : "no XP rate";
             card.third(s.tooLow() ? "needs level " + s.action.level : time, perXp == null ? "" : gpPerXp(perXp));
             if (s.tooLow()) {
@@ -3941,7 +3962,7 @@ final class PlannerCalculatorView {
             if (row.seconds > 0) {
                 tip.row("Time", "~" + PlannerPanel.formatDuration(row.seconds) + (row.estimated ? " (est.)" : ""));
                 tip.row("Rate", String.format("%,d", row.xpHour) + " xp/hr", row.estimated ? PlannerUi.Tip.WARN : null);
-                tip.row("Rate from", row.estimated ? (row.pace != null && !PlannerRates.NORMAL.equals(row.pace)
+                tip.row("Rate from", s.yourRate ? "your XP/hr now (Skilling Helper)" : row.estimated ? (row.pace != null && !PlannerRates.NORMAL.equals(row.pace)
                     ? row.pace + " pace (estimate)" : "a typical pace (estimate)") : "the wiki's training guide",
                     PlannerUi.Tip.MUTED);
             }

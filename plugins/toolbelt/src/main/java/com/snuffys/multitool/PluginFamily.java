@@ -22,6 +22,8 @@ import net.runelite.client.events.PluginMessage;
  * <li>"bye": a plugin stopped.</li>
  * <li>"skilling-card" (from the Skilling Helper): "npc", the index of the NPC its skilling card shows (-1 for none),
  * so PvM's monster card steps aside for it, as in the Toolbelt.</li>
+ * <li>"xp-rate" (from the Skilling Helper): "skill" and "rate" (your XP an hour while you train it), every few
+ * seconds; the Planner times the milestone you're on by it, only while it keeps coming.</li>
  * <li>"voice-settings" (from the Alerts plugin): "persona" (a VoicePersona name), "volume" (0-100) and
  * "enabled". While the Alerts plugin is installed, every plugin speaks with its voice and volume; each
  * plugin's own switches for its lines still apply.</li>
@@ -146,6 +148,31 @@ class PluginFamily {
         return npcIndex >= 0 && npcIndex == skillingCardNpc && others.contains("skilltracker");
     }
 
+    // Your XP an hour in each skill you're training, from the Skilling Helper's tracker: {rate, when (ms)}
+    private final Map<String, long[]> xpRates = new ConcurrentHashMap<>();
+    private static final long RATE_FRESH_MS = 30_000;
+
+    /**
+     * The Skilling Helper's tracker shares your XP an hour in a skill you're training (every few seconds while it
+     * counts), for the Planner to time your plan's milestone by it. Kept here too (the Toolbelt has both).
+     */
+    void shareXpRate(net.runelite.api.Skill skill, int xpHour) {
+        xpRates.put(skill.name(), new long[] {xpHour, System.currentTimeMillis()});
+        if (!"multitool".equals(self)) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("plugin", self);
+            data.put("skill", skill.name());
+            data.put("rate", xpHour);
+            eventBus.post(new PluginMessage(NAMESPACE, "xp-rate", data));
+        }
+    }
+
+    /** Your XP an hour in a skill from the Skilling Helper's tracker, while it's running and counting it; else 0. */
+    int xpRate(net.runelite.api.Skill skill) {
+        long[] rate = xpRates.get(skill.name());
+        return rate == null || !hasSkillTracker() || System.currentTimeMillis() - rate[1] > RATE_FRESH_MS ? 0 : (int) rate[0];
+    }
+
     /** Called when another of ours says hello (the Alerts plugin answers with its voice settings). */
     void onHello(Runnable action) {
         helloListeners.add(action);
@@ -182,6 +209,13 @@ class PluginFamily {
             case "skilling-card":
                 others.add(plugin);
                 skillingCardNpc = data.get("npc") instanceof Number ? ((Number) data.get("npc")).intValue() : -1;
+                break;
+            case "xp-rate":
+                others.add(plugin);
+                if (data.get("skill") instanceof String && data.get("rate") instanceof Number) {
+                    xpRates.put((String) data.get("skill"), new long[] {((Number) data.get("rate")).longValue(),
+                        System.currentTimeMillis()});
+                }
                 break;
             case "voice-settings":
                 others.add(plugin);

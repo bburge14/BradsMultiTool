@@ -159,6 +159,14 @@ class PlannerCalculator {
         return geLimits == null ? new long[2] : geLimits.traded(names, since);
     }
 
+    /**
+     * Your XP an hour in a skill from the Skilling Helper's tracker (it runs, and you're training it now), for a plan
+     * linked to its goal; 0 otherwise. The Planner never shows a rate of its own: it times the plan by this.
+     */
+    int trackerXpRate(Skill skill) {
+        return family == null || !canPlan() ? 0 : family.xpRate(skill);
+    }
+
     /** Changes when a trade is recorded (or where an item came from). */
     int tradesVersion() {
         return (geLimits == null ? 0 : geLimits.tradesVersion()) * 31 + (origins == null ? 0 : origins.version());
@@ -1425,6 +1433,8 @@ class PlannerCalculator {
         double progress;
         /** Actions for the whole milestone, start to end (0 without an action): with {@code row.needed}, how many are done. */
         long total;
+        /** Its time is at your XP an hour from the Skilling Helper (the milestone you're on, its plan linked to your goal). */
+        boolean yourRate;
 
         StepRow(SkillPlans.Step step, CalculatorData.Action action, Row row, int xp, boolean done) {
             this.step = step;
