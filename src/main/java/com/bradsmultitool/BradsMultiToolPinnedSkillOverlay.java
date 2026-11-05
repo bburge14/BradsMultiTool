@@ -117,7 +117,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             String suggestion = suggestion(skill, level);
             if (suggestion != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(suggestion, SOFT, false));
-                String where = plugin.getGoalTarget(skill) == null ? GoalLines.where(currentSuggestion(skill, level)) : null;
+                String where = plugin.getGoalTarget(skill) == null ? GoalLines.where(plugin, skill, currentSuggestion(skill, level)) : null;
                 if (where != null) {
                     panelComponent.getChildren().add(new TextBlockComponent("Where: " + where, SOFT, false));
                 }

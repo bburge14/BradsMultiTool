@@ -58,4 +58,14 @@ public class LocationDataTest {
         // Without quest progress (the panel before login), nothing's held back
         assertTrue(prif.missing(null).isEmpty());
     }
+
+    @Test
+    public void knowsWhereYouTrain() {
+        LocationData data = new LocationData();
+        data.load(new com.google.gson.Gson());
+        // Among the Woodcutting Guild's yews
+        org.junit.Assert.assertEquals("Woodcutting Guild", data.placeAt("Woodcutting", 1595, 3487, 0));
+        // Nowhere a tree is listed: the middle of the sea
+        org.junit.Assert.assertNull(data.placeAt("Woodcutting", 2000, 2000, 0));
+    }
 }

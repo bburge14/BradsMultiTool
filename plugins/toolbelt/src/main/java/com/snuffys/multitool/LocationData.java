@@ -39,6 +39,8 @@ class LocationData {
         final String best;
         /** The quests you need to reach it (Song of the Elves for Prifddinas); started: only begun. */
         final List<Need> quests = new ArrayList<>();
+        /** Its area on the map: west, south, east, north and plane (every row of it), or null when the wiki has none. */
+        final int[] area;
 
         Place(JsonObject o) {
             place = o.get("place").getAsString();
@@ -46,6 +48,14 @@ class LocationData {
             members = o.has("members") && o.get("members").getAsBoolean();
             note = o.has("note") ? o.get("note").getAsString() : null;
             best = o.has("best") ? o.get("best").getAsString() : null;
+            if (o.has("area") && o.getAsJsonArray("area").size() >= 5) {
+                area = new int[5];
+                for (int i = 0; i < 5; i++) {
+                    area[i] = o.getAsJsonArray("area").get(i).getAsInt();
+                }
+            } else {
+                area = null;
+            }
             if (o.has("quests")) {
                 for (JsonElement e : o.getAsJsonArray("quests")) {
                     JsonObject q = e.getAsJsonObject();
@@ -66,6 +76,12 @@ class LocationData {
                 }
             }
             return out;
+        }
+
+        /** Whether a tile is in it (or within a few tiles of its edge: you stand beside the tree, not on it). */
+        boolean contains(int x, int y, int plane) {
+            return area != null && plane == area[4] && x >= area[0] - NEAR && x <= area[2] + NEAR
+                && y >= area[1] - NEAR && y <= area[3] + NEAR;
         }
 
         /** "Isle of Souls (3)". */
@@ -100,6 +116,33 @@ class LocationData {
         }
         out.addAll(later);
         return out;
+    }
+
+    // How far outside a place's trees, rocks or spots still counts as being there
+    private static final int NEAR = 8;
+
+    /**
+     * Which place of a skill's things a tile is in ("Woodcutting Guild"), the smallest that has it (a guild inside a
+     * town); null when none.
+     */
+    String placeAt(String skill, int x, int y, int plane) {
+        Place best = null;
+        long bestSize = Long.MAX_VALUE;
+        for (Thing thing : things.values()) {
+            if (!thing.skill.equalsIgnoreCase(skill)) {
+                continue;
+            }
+            for (Place place : thing.places) {
+                if (place.contains(x, y, plane)) {
+                    long size = (long) (place.area[2] - place.area[0] + 1) * (place.area[3] - place.area[1] + 1);
+                    if (size < bestSize) {
+                        best = place;
+                        bestSize = size;
+                    }
+                }
+            }
+        }
+        return best == null ? null : best.place;
     }
 
     private static final class Thing {

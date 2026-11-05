@@ -235,6 +235,17 @@ def places(page):
             entry["note"] = notes[0]
         if coords and "x" not in entry:
             entry["x"], entry["y"] = int(coords.group(1)), int(coords.group(2))
+        # Its area on the map (every row of it: west, south, east, north, plane), so the Skilling Helper can tell
+        # you're there while you train
+        points = [(int(a), int(b)) for a, b in re.findall(r"\|\s*(?:x:)?(\d{3,5}),\s*(?:y:)?(\d{3,5})", block)]
+        plane = re.search(r"\|\s*plane\s*=\s*(\d)", block)
+        if points:
+            xs = [p[0] for p in points]
+            ys = [p[1] for p in points]
+            box = [min(xs), min(ys), max(xs), max(ys), int(plane.group(1)) if plane else 0]
+            old = entry.get("area")
+            entry["area"] = box if not old else [min(old[0], box[0]), min(old[1], box[1]), max(old[2], box[2]),
+                                                 max(old[3], box[3]), old[4]]
     return list(merged.values())
 
 
@@ -286,6 +297,10 @@ def fish_places(things):
             for entry in found:
                 have = merged.setdefault(entry["place"], dict(entry, count=0))
                 have["count"] += entry.get("count", 0)
+                # (one place's spots of each kind: one area round them all)
+                if entry.get("area") and have.get("area") and have["area"] is not entry["area"]:
+                    a, b = have["area"], entry["area"]
+                    have["area"] = [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3]), a[4]]
         print("fishing %-40s %d places" % (spot.group(1), len(found)), file=sys.stderr)
         time.sleep(0.2)
     for fish, merged in by_fish.items():

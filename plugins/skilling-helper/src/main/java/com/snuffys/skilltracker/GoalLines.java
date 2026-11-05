@@ -211,13 +211,24 @@ final class GoalLines {
         return new Actions(name, value, tip, target);
     }
 
-    /** Where to do the suggested method: "Prifddinas (+4 more)", or null when the guide doesn't say. */
-    static String where(TrainingAdvisor.Suggestion suggestion) {
+    /**
+     * Where to do the suggested method: where you've been training it, when that's one of its places, else the best
+     * of them ("Woodcutting Guild (17)"); null when there are none. (The rest are in the Planner's Where.)
+     */
+    static String where(SkillTracker plugin, Skill skill, TrainingAdvisor.Suggestion suggestion) {
         if (suggestion == null || suggestion.method == null || suggestion.method.places.isEmpty()) {
             return null;
         }
         List<String> places = suggestion.method.places;
-        return places.get(0) + (places.size() > 1 ? " (+" + (places.size() - 1) + " more)" : "");
+        String trained = plugin == null ? null : plugin.getTrainedAt(skill);
+        if (trained != null) {
+            for (String place : places) {
+                if (place.equals(trained) || place.startsWith(trained + " (") || place.startsWith(trained + ":")) {
+                    return place;
+                }
+            }
+        }
+        return places.get(0);
     }
 
     /**

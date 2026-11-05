@@ -67,6 +67,10 @@ class SkillTracker {
     private Provider<MethodDetector> methodDetector;
     @Inject
     private Provider<HunterRumours> hunterRumours;
+    // Where to train each thing (the wiki's places with their areas), for where you train
+    @Inject
+    private LocationData locationData;
+    private static final String TRAINED_AT = "trainedAt.";
 
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
@@ -261,6 +265,9 @@ class SkillTracker {
         }
 
         int gained = currentXp - baseSkillXp.get(skill);
+        if (gained > 0 && currentXp > lastXp(skill)) {
+            noteWhereTrained(skill);
+        }
         if (gained > 0) {
             int previousGained = gainedSkillXp.getOrDefault(skill, 0);
             int drop = gained - previousGained;
@@ -505,6 +512,37 @@ class SkillTracker {
         }
         SkillPlans.SupplyState state = getSupplyState(skill, last);
         return state != null && state.endXp > 0 && Math.abs(state.endXp - goalXp) <= 1 ? state : null;
+    }
+
+    // The XP each skill was at when its place was last looked at (only a real gain counts, not the login's report)
+    private final java.util.Map<Skill, Integer> placeXp = new java.util.EnumMap<>(Skill.class);
+
+    private int lastXp(Skill skill) {
+        Integer at = placeXp.put(skill, client.getSkillExperience(skill));
+        return at == null ? Integer.MAX_VALUE : at;
+    }
+
+    // You gained XP: if you're at one of the skill's places (the wiki's, by their areas on the map), that's where you
+    // train it now, kept until you train it somewhere else
+    private void noteWhereTrained(Skill skill) {
+        Player player = client.getLocalPlayer();
+        if (player == null || locationData == null || configManager.getRSProfileKey() == null) {
+            return;
+        }
+        WorldPoint at = WorldPoint.fromLocalInstance(client, player.getLocalLocation());
+        if (at == null) {
+            return;
+        }
+        String place = locationData.placeAt(skill.getName(), at.getX(), at.getY(), at.getPlane());
+        if (place != null && !place.equals(getTrainedAt(skill))) {
+            configManager.setRSProfileConfiguration(SHARED_GROUP, TRAINED_AT + skill.name(), place);
+        }
+    }
+
+    /** Where you last trained a skill at one of its places ("Woodcutting Guild"), or null. */
+    public String getTrainedAt(Skill skill) {
+        return configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, TRAINED_AT + skill.name());
     }
 
     /** What to train for a goal, by the Training Focus setting. */

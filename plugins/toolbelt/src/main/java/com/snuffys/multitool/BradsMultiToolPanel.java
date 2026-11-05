@@ -1027,7 +1027,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                     if (!plan.isEmpty() && plan.get(0).suggestion.planStep != null) {
                         SkillPlans.Step step = plan.get(0).suggestion.planStep;
                         lines.add(label("Milestone:") + "level " + step.to + " " + label("(" + step.action + ")"));
-                        String where = GoalLines.where(plan.get(0).suggestion);
+                        String where = GoalLines.where(plugin, skill, plan.get(0).suggestion);
                         if (where != null) {
                             lines.add(label("Where:") + where);
                         }
@@ -1035,7 +1035,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                         TrainingAdvisor.Stage first = plan.get(0);
                         lines.add(label(first.suggestion.label) + first.suggestion.text
                             + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
-                        String where = GoalLines.where(first.suggestion);
+                        String where = GoalLines.where(plugin, skill, first.suggestion);
                         if (where != null) {
                             lines.add(label("Where:") + where);
                         }
