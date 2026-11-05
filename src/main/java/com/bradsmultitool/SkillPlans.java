@@ -83,6 +83,11 @@ final class SkillPlans {
          * and the milestone after it starts where the one before it ended. Worked out each time the Planner draws.
          */
         transient boolean gotAll;
+        /**
+         * Not saved: a level milestone the supply milestones before it take you past (its target level is reached
+         * getting them): done by them. Worked out each time the Planner draws.
+         */
+        transient boolean covered;
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;
@@ -188,7 +193,9 @@ final class SkillPlans {
             }
             Step next = null;
             for (Step step : steps) {
-                if (!step.supplies.isEmpty() && got.contains(step.action.toLowerCase(Locale.ROOT))) {
+                String name = step.action.toLowerCase(Locale.ROOT);
+                // (a supply milestone you have all of, or a level one the supplies before it take you past)
+                if (step.supplies.isEmpty() ? got.contains(COVERED + name) : got.contains(name)) {
                     continue;
                 }
                 if (step.covers(level)) {
@@ -310,6 +317,8 @@ final class SkillPlans {
     }
 
     static final String GOT_KEY = "goalPlanGot.";
+    /** In {@link #supplyStates}: a level milestone the supply milestones before it take you past ("covered:yew logs"). */
+    static final String COVERED = "covered:";
 
     /** Where a supply milestone stands, as the Planner last worked it out from your bank and inventory. */
     static final class SupplyState {

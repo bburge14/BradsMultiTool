@@ -1443,8 +1443,8 @@ class PlannerCalculator {
         SkillPlans.Step previous = null;
         for (SkillPlans.Step step : plan.steps) {
             int start = Math.max(xpNow, Experience.getXpForLevel(step.from));
-            if (step.gotAll) {
-                // (all its supplies got: done, and no XP of its own)
+            if (step.gotAll || step.covered) {
+                // (all its supplies got, or a level the supplies before it take you past: done, and no XP of its own)
                 out.add(new StepRow(step, CalculatorData.named(calc, step.action), null, 0, true));
                 out.get(out.size() - 1).progress = 1;
                 continue;
