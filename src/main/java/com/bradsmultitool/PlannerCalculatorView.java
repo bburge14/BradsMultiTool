@@ -1612,7 +1612,7 @@ final class PlannerCalculatorView {
 
         // (a plan ending in a supply milestone is for the supplies: its goal is getting them, wherever that takes you)
         boolean forSupplies = endsInSupplies(plan);
-        JLabel goalLink = PlannerUi.linkLabel(forSupplies ? "Goal: supplies (~" + plan.goal + ")" : "Goal: level " + plan.goal,
+        JLabel goalLink = PlannerUi.linkLabel(forSupplies ? "Goal: supplies" : "Goal: level " + plan.goal,
             forSupplies ? "The plan ends getting supplies for another plan: its goal is having them all, about level "
                 + plan.goal + " (it moves as you get or buy them); click to set a level instead" : "Change the plan's final goal",
             () -> changeGoal(shown));
