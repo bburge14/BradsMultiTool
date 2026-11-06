@@ -2952,7 +2952,9 @@ final class PlannerCalculatorView {
     // What the plan's milestones still need, in full, green when your bank and inventory have all of it, red when not
     private void fillMaterials(Skill shown, List<PlannerCalculator.StepRow> steps) {
         Map<String, Integer> owned = calc.owned();
-        List<PlannerCalculator.Need> needs = PlannerCalculator.planMaterials(shown, steps, recipes, owned);
+        List<PlannerCalculator.Need> needs = new ArrayList<>(PlannerCalculator.planMaterials(shown, steps, recipes, owned));
+        // (tools first: what you need to have once, then what the plan uses up)
+        needs.sort((a, b) -> Boolean.compare(!a.tool, !b.tool));
         if (needs.isEmpty()) {
             return;
         }
