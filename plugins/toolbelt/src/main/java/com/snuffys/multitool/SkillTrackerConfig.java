@@ -136,6 +136,15 @@ public interface SkillTrackerConfig extends CommonConfig {
         @Override public String toString() { return name; }
     }
 
+    enum TreeTimerStyle {
+        LIGHT("Status light"),
+        TIMER("Timer");
+
+        private final String name;
+        TreeTimerStyle(String name) { this.name = name; }
+        @Override public String toString() { return name; }
+    }
+
     enum PieStyle {
         TILE("Tile and icon"),
         PIE("Floating timer");
@@ -184,6 +193,17 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     default boolean deferToOtherTimerPlugins() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "treeTimerStyle",
+        name = "Tree Timer",
+        description = "<div width='300'>Status light: a full circle on each tree being chopped, green, then yellow, then red as it nears falling, flashing red once it can fall with the next log (a tree's real timer can't be seen, so this doesn't pretend to the second). Timer: a pie that empties as it runs down",
+        section = resourceTimersSection,
+        position = 0
+    )
+    default TreeTimerStyle treeTimerStyle() {
+        return TreeTimerStyle.LIGHT;
     }
 
     @ConfigItem(

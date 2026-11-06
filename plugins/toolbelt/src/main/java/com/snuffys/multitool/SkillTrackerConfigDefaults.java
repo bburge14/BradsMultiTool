@@ -16,6 +16,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("showSkillingHover", config.showSkillingHover());
         defaults.store("showSkillingRates", config.showSkillingRates());
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());
+        defaults.store("treeTimerStyle", config.treeTimerStyle());
         defaults.store("pieStyle", config.pieStyle());
         defaults.store("timerOpacity", config.timerOpacity());
         defaults.store("timerText", config.timerText());

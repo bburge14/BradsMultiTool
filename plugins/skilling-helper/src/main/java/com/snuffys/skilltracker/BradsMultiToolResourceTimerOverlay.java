@@ -130,6 +130,15 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 alpha = (int) (60 + 140 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
                 left = 1;
             }
+            // A tree as a status light: a full circle, green, yellow, red by thirds, flashing red once it's due (its
+            // timer can't be seen exactly, so no countdown to the second)
+            if (timer.kind == ResourceTimers.Kind.TREE && config.treeTimerStyle() == SkillTrackerConfig.TreeTimerStyle.LIGHT) {
+                if (!timer.due()) {
+                    color = left > 2 / 3.0 ? HudColors.GOOD : left > 1 / 3.0 ? HudColors.WARN : HudColors.BAD;
+                    alpha = 170;
+                }
+                left = 1;
+            }
             drawPie(graphics, at, left, color, color, alpha);
             if (!plain) {
                 drawLabels(graphics, timer, at);
