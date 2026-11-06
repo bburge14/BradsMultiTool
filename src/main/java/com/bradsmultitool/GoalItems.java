@@ -278,9 +278,41 @@ class GoalItems {
             bankSeen = true;
             saveBank();
         }
+        if (event.getContainerId() == InventoryID.INV) {
+            // At a deposit box: what leaves your inventory goes into the bank (which it doesn't show)
+            Map<String, Integer> now = new HashMap<>();
+            count(event.getItemContainer(), now);
+            if (depositBox && lastCarried != null) {
+                Map<String, Integer> in = SkillGoals.deposited(lastCarried, now);
+                if (!in.isEmpty()) {
+                    in.forEach((name, n) -> bank.merge(name, n, Integer::sum));
+                    bankSeen = true;
+                    saveBank();
+                }
+            }
+            lastCarried = now;
+        }
         if (event.getContainerId() == InventoryID.BANK || event.getContainerId() == InventoryID.INV
             || event.getContainerId() == InventoryID.WORN) {
             dirty = true;
+        }
+    }
+
+    // A deposit box is open, and the inventory as last seen
+    private boolean depositBox;
+    private Map<String, Integer> lastCarried;
+
+    @Subscribe
+    public void onWidgetLoaded(net.runelite.api.events.WidgetLoaded event) {
+        if (event.getGroupId() == net.runelite.api.gameval.InterfaceID.BANK_DEPOSITBOX) {
+            depositBox = true;
+        }
+    }
+
+    @Subscribe
+    public void onWidgetClosed(net.runelite.api.events.WidgetClosed event) {
+        if (event.getGroupId() == net.runelite.api.gameval.InterfaceID.BANK_DEPOSITBOX) {
+            depositBox = false;
         }
     }
 

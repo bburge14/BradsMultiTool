@@ -352,6 +352,41 @@ class PlannerCalculator {
             view.update();
         } else if (event.getContainerId() == InventoryID.INV) {
             dirty = true;
+            // At a deposit box (the Woodcutting Guild's): what leaves your inventory goes into the bank, which it
+            // doesn't show, so it's added to the bank as last seen
+            Map<String, Integer> now = new HashMap<>();
+            count(event.getItemContainer(), now);
+            if (depositBox && lastCarried != null) {
+                Map<String, Integer> in = SkillGoals.deposited(lastCarried, now);
+                if (!in.isEmpty()) {
+                    Map<String, Integer> more = new HashMap<>(bank);
+                    in.forEach((name, count) -> more.merge(name, count, Integer::sum));
+                    bank = more;
+                    if (configManager.getRSProfileKey() != null) {
+                        SkillGoals.saveBank(configManager, more);
+                    }
+                    view.update();
+                }
+            }
+            lastCarried = now;
+        }
+    }
+
+    // A deposit box is open, and the inventory as last seen (what leaves it there goes into the bank)
+    private boolean depositBox;
+    private Map<String, Integer> lastCarried;
+
+    @Subscribe
+    public void onWidgetLoaded(net.runelite.api.events.WidgetLoaded event) {
+        if (event.getGroupId() == net.runelite.api.gameval.InterfaceID.BANK_DEPOSITBOX) {
+            depositBox = true;
+        }
+    }
+
+    @Subscribe
+    public void onWidgetClosed(net.runelite.api.events.WidgetClosed event) {
+        if (event.getGroupId() == net.runelite.api.gameval.InterfaceID.BANK_DEPOSITBOX) {
+            depositBox = false;
         }
     }
 
