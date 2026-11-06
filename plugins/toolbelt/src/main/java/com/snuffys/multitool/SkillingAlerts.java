@@ -273,8 +273,7 @@ class SkillingAlerts {
     @Subscribe
     public void onGameObjectDespawned(GameObjectDespawned event) {
         GameObject object = event.getGameObject();
-        if (resourceObjectId < 0 || object.getId() != resourceObjectId
-            || !object.getWorldLocation().equals(resourceLocation) || !isWorking()) {
+        if (resourceObjectId < 0 || object.getId() != resourceObjectId || !covers(object, resourceLocation) || !isWorking()) {
             return;
         }
         resourceObjectId = -1;
@@ -290,6 +289,26 @@ class SkillingAlerts {
                 alert(VoiceAlertService.VoiceLine.ROCK_DEPLETED, null);
             }
         }
+    }
+
+    // Whether a tree or rock takes up this tile: a click names its south-west tile, while a big one's own location is
+    // its middle (a 2x2 yew), so the whole of it counts
+    private boolean covers(GameObject object, WorldPoint tile) {
+        if (tile == null) {
+            return false;
+        }
+        if (object.getWorldLocation().equals(tile)) {
+            return true;
+        }
+        net.runelite.api.Point min = object.getSceneMinLocation();
+        net.runelite.api.Point max = object.getSceneMaxLocation();
+        if (min == null || max == null) {
+            return false;
+        }
+        WorldPoint sw = WorldPoint.fromScene(client.getTopLevelWorldView(), min.getX(), min.getY(), object.getPlane());
+        WorldPoint ne = WorldPoint.fromScene(client.getTopLevelWorldView(), max.getX(), max.getY(), object.getPlane());
+        return tile.getPlane() == sw.getPlane() && tile.getX() >= sw.getX() && tile.getX() <= ne.getX()
+            && tile.getY() >= sw.getY() && tile.getY() <= ne.getY();
     }
 
     @Subscribe
