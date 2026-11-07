@@ -1676,7 +1676,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     }
 
     @Range(max = 720)
-    @Units(Units.HOURS)
+    @Units(" hrs")
     @ConfigItem(
         keyName = "keepSessionHours",
         name = "Keep Session For",
