@@ -686,11 +686,12 @@ namespace Snuffys
             this.root = root;
             this.dev = dev;
             Form = new Form();
+            // (WinForms scales a window to the screen's DPI when its layout resumes, and at once when the scale is set
+            // on one that isn't suspended: so suspended first, then the scale, then everything, then resumed; or at
+            // 150% the text grows and the boxes don't)
+            Form.SuspendLayout();
             Form.AutoScaleDimensions = new SizeF(96F, 96F);
             Form.AutoScaleMode = AutoScaleMode.Dpi;
-            // (WinForms only scales a window to the screen's DPI when its layout resumes: built in code, it has to be
-            // suspended while it's made and resumed after, or at 150% the text grows and the boxes don't)
-            Form.SuspendLayout();
             Form.Text = "Snuffy's Launcher";
             Form.FormBorderStyle = FormBorderStyle.FixedSingle;
             Form.MaximizeBox = false;
@@ -717,8 +718,15 @@ namespace Snuffys
             BuildPlay();
             BuildHeader();
             PlayNav.Checked = true;
-            Theme.Px = Form.CurrentAutoScaleDimensions.Width / 96f;
+            float scale = Form.CurrentAutoScaleDimensions.Width / 96f;
             Form.ResumeLayout(true);
+            // (and if WinForms still didn't, scaled here: the window is 480 wide at 100%)
+            float done = Form.ClientSize.Width / 480f;
+            if (scale > 1.01f && done < scale * 0.97f && done > 0)
+            {
+                Form.Scale(new SizeF(scale / done, scale / done));
+            }
+            Theme.Px = scale;
             // The focus on Launch (Enter launches), not on a text box with its text all selected
             Form.Shown += delegate { Form.ActiveControl = Launch; UpdateLog.Select(0, 0); };
         }
@@ -1238,9 +1246,9 @@ namespace Snuffys
             window.Text = title;
             window.Icon = Form.Icon;
             window.StartPosition = FormStartPosition.CenterParent;
+            window.SuspendLayout();
             window.AutoScaleDimensions = new SizeF(96F, 96F);
             window.AutoScaleMode = AutoScaleMode.Dpi;
-            window.SuspendLayout();
             window.ClientSize = new Size(640, 520);
             window.MinimizeBox = false;
             window.BackColor = Theme.Window;
@@ -1267,6 +1275,10 @@ namespace Snuffys
             window.CancelButton = close;
             window.Shown += delegate { box.Select(0, 0); window.ActiveControl = close; };
             window.ResumeLayout(true);
+            if (Theme.Px > 1.01f && window.ClientSize.Width < 640 * Theme.Px * 0.97f)
+            {
+                window.Scale(new SizeF(640 * Theme.Px / window.ClientSize.Width, 640 * Theme.Px / window.ClientSize.Width));
+            }
             window.ShowDialog(Form);
             window.Dispose();
         }
