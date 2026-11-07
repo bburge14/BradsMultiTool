@@ -175,6 +175,25 @@ namespace Snuffys
             return g.DpiX / 96f;
         }
 
+        // The window's scale once it's laid out (1.5 at 150%): sizes set later (folding a card, a control added
+        // after) are multiplied by it, as the window's own were
+        public static float Px = 1f;
+
+        public static int P(int pixels)
+        {
+            return (int) Math.Round(pixels * Px);
+        }
+
+        // A control made after the window was scaled: scaled the same (its size, place and what's in it)
+        public static T Fit<T>(T control) where T : Control
+        {
+            if (Px > 1.01f || Px < 0.99f)
+            {
+                control.Scale(new SizeF(Px, Px));
+            }
+            return control;
+        }
+
         // The colour behind a control (for its rounded corners)
         public static Color Behind(Control control)
         {
@@ -669,6 +688,9 @@ namespace Snuffys
             Form = new Form();
             Form.AutoScaleDimensions = new SizeF(96F, 96F);
             Form.AutoScaleMode = AutoScaleMode.Dpi;
+            // (WinForms only scales a window to the screen's DPI when its layout resumes: built in code, it has to be
+            // suspended while it's made and resumed after, or at 150% the text grows and the boxes don't)
+            Form.SuspendLayout();
             Form.Text = "Snuffy's Launcher";
             Form.FormBorderStyle = FormBorderStyle.FixedSingle;
             Form.MaximizeBox = false;
@@ -695,6 +717,8 @@ namespace Snuffys
             BuildPlay();
             BuildHeader();
             PlayNav.Checked = true;
+            Theme.Px = Form.CurrentAutoScaleDimensions.Width / 96f;
+            Form.ResumeLayout(true);
             // The focus on Launch (Enter launches), not on a text box with its text all selected
             Form.Shown += delegate { Form.ActiveControl = Launch; UpdateLog.Select(0, 0); };
         }
@@ -1013,10 +1037,10 @@ namespace Snuffys
             {
                 row.Button.Parent = open ? SetupCard : null;
             }
-            SetupCard.Height = open ? 182 : 44;
+            SetupCard.Height = Theme.P(open ? 182 : 44);
             // What's new takes the room the checklist leaves when it's folded
-            NewsCard.Height = open ? 96 : 96 + 138;
-            UpdateLog.Height = NewsCard.Height - 50;
+            NewsCard.Height = Theme.P(open ? 96 : 96 + 138);
+            UpdateLog.Height = NewsCard.Height - Theme.P(50);
             SetupToggle.Text = open ? "Hide" : "Show";
         }
 
@@ -1216,6 +1240,7 @@ namespace Snuffys
             window.StartPosition = FormStartPosition.CenterParent;
             window.AutoScaleDimensions = new SizeF(96F, 96F);
             window.AutoScaleMode = AutoScaleMode.Dpi;
+            window.SuspendLayout();
             window.ClientSize = new Size(640, 520);
             window.MinimizeBox = false;
             window.BackColor = Theme.Window;
@@ -1241,6 +1266,7 @@ namespace Snuffys
             window.Controls.Add(close);
             window.CancelButton = close;
             window.Shown += delegate { box.Select(0, 0); window.ActiveControl = close; };
+            window.ResumeLayout(true);
             window.ShowDialog(Form);
             window.Dispose();
         }
@@ -1284,15 +1310,15 @@ namespace Snuffys
             int unread = Unread();
             if (unread > 0)
             {
-                HubChips.Controls.Add(SummaryChip(unread + " new", Theme.Accent));
+                HubChips.Controls.Add(Theme.Fit(SummaryChip(unread + " new", Theme.Accent)));
             }
             foreach (string label in order)
             {
-                HubChips.Controls.Add(SummaryChip(counts[label] + " " + label.Replace(" \u00b7 build OK", ""), Tone(label)));
+                HubChips.Controls.Add(Theme.Fit(SummaryChip(counts[label] + " " + label.Replace(" \u00b7 build OK", ""), Tone(label))));
             }
             if (pulls.Count == 0)
             {
-                HubChips.Controls.Add(SummaryChip("No pull requests yet", Theme.Muted));
+                HubChips.Controls.Add(Theme.Fit(SummaryChip("No pull requests yet", Theme.Muted)));
             }
             // One row of chips, or two when they don't fit
             int width = 0;
@@ -1301,9 +1327,9 @@ namespace Snuffys
                 width += chip.Width + 6;
             }
             int rows = width > HubChips.Width ? 2 : 1;
-            HubChips.Height = rows * 28;
-            HubSummaryLine.Top = 46 + rows * 28;
-            HubSummary.Height = 76 + rows * 28;
+            HubChips.Height = Theme.P(rows * 28);
+            HubSummaryLine.Top = Theme.P(46 + rows * 28);
+            HubSummary.Height = Theme.P(76 + rows * 28);
             HubChips.ResumeLayout();
             HubSummary.Accent = unread > 0;
             HubSummary.Invalidate();
@@ -1338,6 +1364,7 @@ namespace Snuffys
             toggle.Location = new Point(16 + (devTickCount % 2) * 210, 70 + (devTickCount / 2) * 22);
             toggle.Size = new Size(206, 20);
             toggle.Font = Theme.Body(8.5f);
+            Theme.Fit(toggle);
             PushCard.Controls.Add(toggle);
             DevTicks[folder] = toggle;
             devTickCount++;
@@ -1596,7 +1623,7 @@ namespace Snuffys
             PrList.Controls.Clear();
             foreach (Pull pull in pulls)
             {
-                PrList.Controls.Add(PullCard(pull));
+                PrList.Controls.Add(Theme.Fit(PullCard(pull)));
             }
             PrList.ResumeLayout();
             int unread = Unread();
