@@ -199,6 +199,15 @@ class SkillTracker {
         actionCounts.remove(skill);
     }
 
+    // Closing RuneLite while logged in (it doesn't turn plugins off first): the session as of now, so Keep Session For
+    // counts from closing, not from your last XP (an idle half hour before closing lost it)
+    @Subscribe
+    public void onClientShutdown(net.runelite.client.events.ClientShutdown event) {
+        if (client.getGameState() == GameState.LOGGED_IN) {
+            saveSession(true);
+        }
+    }
+
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
         if (event.getGameState() == GameState.LOGIN_SCREEN) {
