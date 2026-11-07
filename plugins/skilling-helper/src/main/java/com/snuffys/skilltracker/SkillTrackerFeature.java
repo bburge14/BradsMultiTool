@@ -105,11 +105,24 @@ class SkillTrackerFeature {
         }
     }
 
+    // Auto-pause went back to a minute (10 seconds paused between slow logs, a yew at 60): once, for players who still
+    // have the old 10 seconds
+    private void autoPauseMinute() {
+        String group = identity.configGroup;
+        if (configManager.getConfiguration(group, "autoPauseMinute") == null) {
+            configManager.setConfiguration(group, "autoPauseMinute", true);
+            if ("10".equals(configManager.getConfiguration(group, "autoPauseSeconds"))) {
+                configManager.setConfiguration(group, "autoPauseSeconds", 60);
+            }
+        }
+    }
+
     void start(Lifecycle lifecycle) {
         configDefaults.add(() -> {
             migrateTimerSettings();
             turnOnPillarChat();
             shortenAutoPause();
+            autoPauseMinute();
             SkillTrackerConfigDefaults.store(configDefaults, config);
         });
         // Kill counts use monster hitpoints; Slayer goals suggest a Slayer master

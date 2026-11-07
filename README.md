@@ -173,7 +173,7 @@ work a resource.
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
   time: the pinned card's pin is solid, the others faint, and clicking a faint one moves the pin there. Click the
   solid pin to unpin, or right-click the overlay > **Unpin**.
-- **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 10 seconds by default) and resumes on your
+- **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; a minute by default) and resumes on your
   next XP.
 - **Active goal**: with **Highlight For** set to "Active goal" (settings, Goals), right-click a goal's card >
   **Set as active goal** (one at a time; a gold dot marks it) and the tree, rock and NPC outlines and the item

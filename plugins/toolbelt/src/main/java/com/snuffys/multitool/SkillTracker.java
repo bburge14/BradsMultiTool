@@ -155,8 +155,9 @@ class SkillTracker {
     @Subscribe
     public void onChatMessage(net.runelite.api.events.ChatMessage event) {
         ItemsGathered.Kind kind = ItemsGathered.of(event.getType(), event.getMessage());
-        // Not while the skill's clock is paused: the per-hour rate leaves that time out
-        if (kind != null && !isSkillIgnored(kind.skill) && !isSkillPaused(kind.skill)) {
+        // Not while you've paused the skill yourself; auto-paused it counts (the log's message comes just before its
+        // XP drop, which is what wakes the skill: a slow log after a pause was missed)
+        if (kind != null && !isSkillIgnored(kind.skill) && !(isSkillPaused(kind.skill) && !isSkillAutoPaused(kind.skill))) {
             itemCounts.merge(kind, 1, Integer::sum);
         }
     }
