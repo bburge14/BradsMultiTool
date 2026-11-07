@@ -30,6 +30,7 @@ import net.runelite.client.game.ItemManager;
  * last saw when it was open.
  */
 @Singleton
+@lombok.extern.slf4j.Slf4j
 class GoalItems {
 
     private final Client client;
@@ -277,9 +278,41 @@ class GoalItems {
             bankSeen = true;
             saveBank();
         }
+        if (event.getContainerId() == InventoryID.INV) {
+            // At a deposit box: what leaves your inventory goes into the bank (which it doesn't show)
+            Map<String, Integer> now = new HashMap<>();
+            count(event.getItemContainer(), now);
+            if (depositBox && lastCarried != null) {
+                Map<String, Integer> in = SkillGoals.deposited(lastCarried, now);
+                if (!in.isEmpty()) {
+                    in.forEach((name, n) -> bank.merge(name, n, Integer::sum));
+                    bankSeen = true;
+                    saveBank();
+                }
+            }
+            lastCarried = now;
+        }
         if (event.getContainerId() == InventoryID.BANK || event.getContainerId() == InventoryID.INV
             || event.getContainerId() == InventoryID.WORN) {
             dirty = true;
+        }
+    }
+
+    // A deposit box is open, and the inventory as last seen
+    private boolean depositBox;
+    private Map<String, Integer> lastCarried;
+
+    @Subscribe
+    public void onWidgetLoaded(net.runelite.api.events.WidgetLoaded event) {
+        if (event.getGroupId() == net.runelite.api.gameval.InterfaceID.BANK_DEPOSITBOX) {
+            depositBox = true;
+        }
+    }
+
+    @Subscribe
+    public void onWidgetClosed(net.runelite.api.events.WidgetClosed event) {
+        if (event.getGroupId() == net.runelite.api.gameval.InterfaceID.BANK_DEPOSITBOX) {
+            depositBox = false;
         }
     }
 
@@ -318,17 +351,43 @@ class GoalItems {
         Map<Skill, Double> banked = new HashMap<>();
         Map<Skill, Long> materialsValue = new HashMap<>();
         Map<String, String> tools = new HashMap<>();
-        for (Skill skill : plugin.getGoalSkills()) {
-            if (plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
+        // Gathering skills use nothing up but bait: outline the tools and bait the method needs instead. First, and on
+        // their own, so a problem working out another goal's materials can't take these with it
+        for (Skill skill : plugin.getHighlightSkills()) {
+            if (recipes.covers(skill) || plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
                 continue;
             }
-            // Gathering skills use nothing up but bait: outline the tools and bait the method needs instead
-            if (!recipes.covers(skill)) {
+            try {
                 for (String tool : plugin.getTrainingAdvisor().goalTools(skill, client.getRealSkillLevel(skill))) {
                     tools.putIfAbsent(tool.toLowerCase(), "Needed for your " + skill.getName() + " goal: " + tool);
                 }
+            } catch (RuntimeException e) {
+                log.warn("Goal tools for {}", skill, e);
+            }
+        }
+        this.tools = tools;
+        for (Skill skill : plugin.getHighlightSkills()) {
+            if (!recipes.covers(skill) || plugin.getSkillGoal(skill) <= client.getSkillExperience(skill)) {
                 continue;
             }
+            try {
+                productionGoal(skill, have, suggestions, highlighted, counts, banked, materialsValue);
+            } catch (RuntimeException e) {
+                log.warn("Goal items for {}", skill, e);
+            }
+        }
+        this.suggestions = suggestions;
+        this.counts = counts;
+        this.banked = banked;
+        this.materialsValue = materialsValue;
+        this.highlighted = highlighted;
+    }
+
+    // A production goal's suggestion (what to make from what you have), its materials to highlight and banked XP
+    private void productionGoal(Skill skill, Map<String, Integer> have, Map<Skill, RecipeData.Recipe> suggestions,
+                                Map<String, String> highlighted, Map<Skill, Integer> counts, Map<Skill, Double> banked,
+                                Map<Skill, Long> materialsValue) {
+        {
             // The skill's training focus picks the score: cheapest = most profit per XP, money maker = most
             // profit; otherwise the Best Choice setting (most XP or most profit)
             SkillTrackerConfig.TrainingFocus focus = plugin.getTrainingFocus(skill);
@@ -370,7 +429,7 @@ class GoalItems {
                 best = recipes.best(skill, level, null, score, allowed);
             }
             if (best == null) {
-                continue;
+                return;
             }
             suggestions.put(skill, best);
             // How many items: a go of a recipe can make several (10 darts), the milestone's XP is one of them
@@ -380,12 +439,6 @@ class GoalItems {
                 highlighted.putIfAbsent(material.toLowerCase(), "Suggested for your " + skill.getName() + " goal: " + best.name);
             }
         }
-        this.suggestions = suggestions;
-        this.counts = counts;
-        this.banked = banked;
-        this.materialsValue = materialsValue;
-        this.highlighted = highlighted;
-        this.tools = tools;
     }
 
     /** Whether a recipe uses this item (lower-case name) as a material. */

@@ -10,11 +10,15 @@ split_plugins.py and committed). Two steps:
            A plugin that didn't change is left alone.
   hub      Writes each plugin's Plugin Hub entry (repository= and commit=, the commit its repository is at now) to
            releases/plugin-hub/, and puts them on a branch of your runelite/plugin-hub fork; prints the link to
-           open the pull request. This is what makes RuneLite build the new version for players.
+           open the pull request. This is what makes RuneLite build the new version for players. While your pull
+           request is open, publishing again updates it (the same branch) rather than needing a new one.
+  status   Your Plugin Hub pull request: open, published (merged) or closed; RuneLite's build checks on it; and
+           reviewers' comments. Reads GitHub's public API, no login needed.
 
 Usage:
     python3 scripts/publish_plugins.py push [folders...] [--bump patch|minor|major] [--dry-run]
     python3 scripts/publish_plugins.py hub  [folders...] [--dry-run]
+    python3 scripts/publish_plugins.py status
     (no folders: every plugin with "publish": true in publish.json; --config other.json for another mapping)
 
 push first checks the working tree is clean, pushed, and plugins/ matches src/. Needs git and Python 3; pushing
@@ -30,6 +34,8 @@ import subprocess
 import sys
 import time
 import tarfile
+import urllib.error
+import urllib.request
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CONFIG = os.path.join(ROOT, "publish.json")
@@ -37,7 +43,24 @@ CACHE = os.path.join(ROOT, ".publish-cache")
 HUB_OUT = os.path.join(ROOT, "releases", "plugin-hub")
 
 
+# Who the plugin repositories' commits and tags are by, when git has no name or email set on this PC (filled in by
+# main() from publish.json); empty: git's own
+IDENTITY = []
+
+
+def identity(config):
+    """git -c options for the author, only where git has none of its own (so your own setting always wins)."""
+    out = []
+    if not git("config", "user.name", check=False):
+        out += ["-c", "user.name=" + config.get("authorName", "SgtSnufffy")]
+    if not git("config", "user.email", check=False):
+        out += ["-c", "user.email=" + config.get("authorEmail", "bburge14@users.noreply.github.com")]
+    return out
+
+
 def git(*args, cwd=ROOT, capture=True, check=True):
+    if args and args[0] in ("commit", "tag"):
+        args = tuple(IDENTITY) + args
     result = subprocess.run(["git", *args], cwd=cwd, check=False, text=True,
                             stdout=subprocess.PIPE if capture else None, stderr=subprocess.PIPE if capture else None)
     if check and result.returncode != 0:
@@ -45,9 +68,14 @@ def git(*args, cwd=ROOT, capture=True, check=True):
     return (result.stdout or "").strip()
 
 
+# Files the split makes that a rebuild on this PC can change (Windows' csc makes a different installer): never your
+# edits, so they're put back rather than stopping a push
 def preflight(dry_run):
-    if git("status", "--porcelain"):
-        sys.exit("Commit (or stash) your changes first: publishing uses what's committed.")
+    changed = git("status", "--porcelain")
+    if changed:
+        files = "\n".join("  " + line[3:] for line in changed.splitlines()[:20])
+        sys.exit("Commit (or stash) your changes first: publishing uses what's committed. Changed here:\n" + files
+                 + "\n(Not yours? git checkout -- <file> puts one back as it was.)")
     check = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "split_plugins.py"), "--check"], cwd=ROOT)
     if check.returncode != 0:
         sys.exit("plugins/ is out of date: run python3 scripts/split_plugins.py --verify, commit, and try again.")
@@ -73,6 +101,8 @@ def checkout(name, repo, branch, dry_run):
         if subprocess.run(["git", "clone", "--quiet", repo, path], stderr=subprocess.DEVNULL).returncode != 0:
             sys.exit("Couldn't clone %s. Make the repository on GitHub first (it can be empty)." % repo)
     git("remote", "set-url", "origin", repo, cwd=path)
+    # (file permissions aren't a change: Windows doesn't keep them)
+    git("config", "core.fileMode", "false", cwd=path)
     git("fetch", "--quiet", "origin", cwd=path, check=False)
     if git("ls-remote", "--heads", "origin", branch, cwd=path):
         git("checkout", "--quiet", "-f", "-B", branch, "origin/" + branch, cwd=path)
@@ -86,8 +116,36 @@ def checkout(name, repo, branch, dry_run):
     return path
 
 
+def setup_installer(path):
+    """The friends' installer in the launcher's clone: the one it has, kept while its source is unchanged (the same file
+    each release, so Windows' download reputation builds up), else built anew (mcs, or Windows' own csc)."""
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    import split_plugins
+    stamp = os.path.join(path, "setup.sha256")
+    target = os.path.join(path, SETUP_EXE)
+    wanted = split_plugins.setup_fingerprint()
+    kept = KEPT.get(path)
+    if kept and kept[0] == wanted:
+        with open(target, "wb") as f:
+            f.write(kept[1])
+    else:
+        split_plugins.compile_setup(os.path.join(ROOT, "scripts", "setup", "SnuffysSetup.cs"), target)
+    if os.path.exists(target):
+        with open(stamp, "w", newline="\n") as f:
+            f.write(wanted + "\n")
+
+
+# The launcher clone's installer and its fingerprint from before its files were replaced (setup_installer keeps it)
+KEPT = {}
+
+
 def replace_contents(folder, path):
     """Make the clone's files exactly plugins/<folder> as committed at HEAD."""
+    setup = os.path.join(path, SETUP_EXE)
+    stamp = os.path.join(path, "setup.sha256")
+    if os.path.exists(setup) and os.path.exists(stamp):
+        with open(setup, "rb") as f, open(stamp) as g:
+            KEPT[path] = (g.read().strip(), f.read())
     for entry in os.listdir(path):
         if entry == ".git":
             continue
@@ -193,7 +251,26 @@ def push(folder, entry, dry_run, head, level):
         write_changelog(path, history)
     git("add", "-A", cwd=path)
     if not git("status", "--porcelain", cwd=path):
-        print("%-16s %s, no changes since the last push" % (folder, old))
+        print("%-16s %s, no changes since the last push" % (folder, old or "up to date"))
+        return
+    if not os.path.exists(os.path.join(path, "runelite-plugin.properties")):
+        # (the friends launcher: its installer, built here, not kept in this repository)
+        setup_installer(path)
+        git("add", "-A", cwd=path)
+        if not git("status", "--porcelain", cwd=path):
+            print("%-16s %s, no changes since the last push" % (folder, old or "up to date"))
+            return
+        # Not a plugin (the friends launcher): no version or changelog, just the update
+        notes = changes_since(folder, last.group(1) if last else None)
+        changed = len(git("status", "--porcelain", cwd=path).splitlines())
+        message = "Update\n\nFrom BradsMultiTool %s.\n\nChanges:\n%s\n" % (head[:12], "\n".join(notes))
+        git("commit", "--quiet", "-m", message, cwd=path)
+        if dry_run:
+            print("%-16s %d file(s) would change (dry run: not pushed)" % (folder, changed))
+            return
+        git("push", "--quiet", "origin", branch, cwd=path, capture=False)
+        print("%-16s pushed (%d file(s) changed) to %s" % (folder, changed, repo))
+        release(repo, branch, path, notes)
         return
     new = bump(old, level) if old else read_version(path)
     write_version(path, new)
@@ -232,8 +309,224 @@ def hub_entry(entry):
     return entry["hubName"]
 
 
+# ---- Your Plugin Hub pull request, from GitHub's public API ----
+
+HUB_REPO = "runelite/plugin-hub"
+BRANCH_PREFIX = "snuffys-"
+
+
+# GitHub's answers: how many more it allows this hour, and whether we're signed in (a token: 5,000 an hour, else 60)
+RATE = {"remaining": None, "authenticated": False, "failed": None}
+_TOKEN = []
+
+
+def github_token():
+    """A GitHub token for reading: GITHUB_TOKEN or GH_TOKEN, else the login git keeps for github.com (the one it
+    pushes with; never shown or saved). None without one: GitHub's public limit then."""
+    if not _TOKEN:
+        token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+        if not token:
+            try:
+                env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GCM_INTERACTIVE="never")
+                out = subprocess.run(["git", "credential", "fill"], input="protocol=https\nhost=github.com\n\n",
+                                     capture_output=True, text=True, timeout=15, env=env).stdout
+                token = next((line[9:] for line in out.splitlines() if line.startswith("password=")), None)
+            except (OSError, subprocess.SubprocessError):
+                token = None
+        _TOKEN.append(token)
+    return _TOKEN[0]
+
+
+def github(path):
+    """GET a GitHub API path, signed in when there's a token (else as anyone); None when it fails (offline,
+    rate-limited). Messages go to stderr, so status --json's output stays JSON."""
+    token = github_token()
+    for auth in ([token, None] if token else [None]):
+        headers = {"Accept": "application/vnd.github+json", "User-Agent": "snuffys-publish"}
+        if auth:
+            headers["Authorization"] = "Bearer " + auth
+        request = urllib.request.Request("https://api.github.com/" + path, headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                remaining = response.headers.get("X-RateLimit-Remaining")
+                RATE["remaining"] = int(remaining) if remaining and remaining.isdigit() else RATE["remaining"]
+                RATE["authenticated"] = bool(auth)
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code == 401 and auth:
+                # A login GitHub doesn't take for this: as anyone instead
+                _TOKEN[0] = None
+                continue
+            RATE["failed"] = "GitHub said %d %s" % (e.code, e.reason) + (
+                " (its limit for this hour is used up)" if e.code in (403, 429) else "")
+        except (urllib.error.URLError, ValueError, OSError) as e:
+            RATE["failed"] = "GitHub didn't answer (%s)" % e
+        print(RATE["failed"] + ": try again in a minute.", file=sys.stderr)
+        return None
+    return None
+
+
+def hub_pulls(owner):
+    """Your pull requests to runelite/plugin-hub from a Snuffy's branch of your fork, open ones first then newest
+    (a few API calls: your fork's branches, then each Snuffy's branch's pull requests)."""
+    branches = github("repos/%s/plugin-hub/branches?per_page=100" % owner) or []
+    out = []
+    for branch in branches:
+        if branch["name"].startswith(BRANCH_PREFIX):
+            out += github("repos/%s/pulls?state=all&head=%s:%s" % (HUB_REPO, owner, branch["name"])) or []
+    out.sort(key=lambda p: (p["state"] != "open", p.get("updated_at") or ""), reverse=False)
+    opened = [p for p in out if p["state"] == "open"]
+    closed = sorted((p for p in out if p["state"] != "open"), key=lambda p: p.get("updated_at") or "", reverse=True)
+    return opened + closed
+
+
+def fork_owner(fork):
+    return fork.rstrip("/").removesuffix(".git").split("/")[-2]
+
+
+def status(fork):
+    """Each plugin's Plugin Hub pull request (one plugin per pull request, as the Plugin Hub asks): open, published
+    (merged) or closed; for open ones RuneLite's build checks and the latest comment."""
+    owner = fork_owner(fork)
+    pulls = hub_pulls(owner)
+    if not pulls:
+        print("No pull request to RuneLite's Plugin Hub found yet. Publish to RuneLite, then open each pull request "
+              "from the links it shows.")
+        return
+    # The newest pull request of each branch (a plugin's branch is snuffys-<plugin>)
+    seen = set()
+    for pull in pulls:
+        branch = pull["head"]["ref"]
+        if branch in seen:
+            continue
+        seen.add(branch)
+        print("\n#%d %s\n  %s" % (pull["number"], pull["title"], pull["html_url"]))
+        if pull.get("merged_at"):
+            print("  PUBLISHED: merged %s. Players get it in the Plugin Hub within a few hours." % pull["merged_at"][:10])
+            continue
+        if pull["state"] == "closed":
+            print("  Closed without merging (%s)." % (pull.get("closed_at") or "")[:10])
+            continue
+        print("  OPEN: waiting for RuneLite to review and merge it.")
+        checks = github("repos/%s/commits/%s/check-runs" % (HUB_REPO, pull["head"]["sha"])) or {}
+        for run in checks.get("check_runs", []):
+            result = run.get("conclusion") or run.get("status")
+            mark = {"success": "OK", "failure": "FAILED", "cancelled": "cancelled", "in_progress": "running...",
+                    "queued": "waiting to start", "skipped": "skipped"}.get(result, result)
+            if result != "skipped":
+                print("  Check %-10s %s%s" % (run["name"], mark, ("  " + run["html_url"]) if result == "failure" else ""))
+        comments = github("repos/%s/issues/%d/comments" % (HUB_REPO, pull["number"])) or []
+        others = [c for c in comments if c["user"]["login"] != owner]
+        if others:
+            last = others[-1]
+            print("  Latest comment, %s (%s): %s" % (last["user"]["login"], last["created_at"][:10],
+                                                     " ".join(re.sub(r"<!--.*?-->", "", last["body"], flags=re.S).split())[:400]))
+    print("\nA FAILED check or a comment asking for changes: send it to Claude.")
+
+
+SETUP_EXE = "Snuffys-Launcher-Setup.exe"
+
+
+def release(repo, branch, path, notes):
+    """A GitHub release of the launcher with its installer attached, so there's a page (and a link that's always the
+    newest: .../releases/latest/download/Snuffys-Launcher-Setup.exe) to send friends. Needs git's GitHub login."""
+    setup = os.path.join(path, SETUP_EXE)
+    token = github_token()
+    if not os.path.exists(setup):
+        return
+    if not token:
+        print("release: no GitHub login in git on this PC, so no release made (the zip still updates)")
+        return
+    owner_repo = re.search(r"github\.com[/:]([^/]+/[^/.]+)", repo).group(1)
+    stamp = time.strftime("%Y.%m.%d-%H%M")
+    body = json.dumps({"tag_name": "v" + stamp, "target_commitish": branch, "name": "Snuffy's Launcher " + stamp,
+                       "body": "Download **%s** below and double-click it: it installs Snuffy's Launcher, puts it on your "
+                               "desktop and opens it. Already have it? It updates itself.\n\n"
+                               "Edge says it \"isn't commonly downloaded\"? Hover the download, click ... > Keep > Show more > "
+                               "Keep anyway (Chrome: Keep). Windows says \"Windows protected your PC\"? More info > Run "
+                               "anyway. It's new and not code-signed; only the first time.\n\nChanges:\n%s"
+                               % (SETUP_EXE, "\n".join(notes)), "make_latest": "true"}).encode("utf-8")
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "snuffys-publish", "Authorization": "Bearer " + token}
+    try:
+        request = urllib.request.Request("https://api.github.com/repos/%s/releases" % owner_repo, data=body,
+                                         headers=dict(headers, **{"Content-Type": "application/json"}), method="POST")
+        with urllib.request.urlopen(request, timeout=30) as response:
+            made = json.loads(response.read().decode("utf-8"))
+        upload = made["upload_url"].split("{")[0] + "?name=" + SETUP_EXE
+        with open(setup, "rb") as f:
+            data = f.read()
+        request = urllib.request.Request(upload, data=data, method="POST",
+                                         headers=dict(headers, **{"Content-Type": "application/octet-stream"}))
+        with urllib.request.urlopen(request, timeout=120):
+            pass
+        print("release: %s\n  send friends: https://github.com/%s/releases/latest/download/%s"
+              % (made["html_url"], owner_repo, SETUP_EXE))
+    except (urllib.error.URLError, ValueError, OSError, KeyError) as e:
+        print("release: couldn't make it (%s); the zip still updates" % e)
+
+
+def plain(text, limit=300):
+    """A comment's text on one line, without its HTML comments."""
+    return " ".join(re.sub(r"<!--.*?-->", "", text or "", flags=re.S).split())[:limit]
+
+
+def status_json(fork):
+    """status --json, for the launcher: each plugin's newest Plugin Hub pull request with its state, build check and
+    everyone else's comments and reviews (each with its id and link), and GitHub's limit left."""
+    owner = fork_owner(fork)
+    pulls = hub_pulls(owner)
+    out = []
+    seen = set()
+    for pull in pulls:
+        branch = pull["head"]["ref"]
+        if branch in seen:
+            continue
+        seen.add(branch)
+        # Each update after a merge is a new pull request from the same branch: the newest (an open one first) is
+        # the plugin's card, the ones before it listed under it
+        earlier = [{"number": p["number"], "state": "merged" if p.get("merged_at") else p["state"], "url": p["html_url"],
+                    "date": (p.get("merged_at") or p.get("closed_at") or "")[:10]}
+                   for p in pulls if p["head"]["ref"] == branch and p["number"] != pull["number"]]
+        earlier.sort(key=lambda p: p["number"], reverse=True)
+        state = "merged" if pull.get("merged_at") else pull["state"]
+        entry = {"plugin": branch, "number": pull["number"], "title": pull["title"], "url": pull["html_url"],
+                 "state": state, "date": (pull.get("merged_at") or pull.get("closed_at") or pull.get("updated_at") or "")[:10],
+                 "check": "none", "checkUrl": "", "comments": [], "earlier": earlier}
+        n = pull["number"]
+        if state == "open":
+            checks = github("repos/%s/commits/%s/check-runs" % (HUB_REPO, pull["head"]["sha"])) or {}
+            results = [(run.get("conclusion") or run.get("status"), run.get("html_url", ""))
+                       for run in checks.get("check_runs", []) if (run.get("conclusion") or run.get("status")) != "skipped"]
+            failed = [u for result, u in results if result in ("failure", "timed_out", "cancelled")]
+            if failed:
+                entry["check"], entry["checkUrl"] = "failed", failed[0]
+            elif any(result in ("in_progress", "queued", "pending") for result, _ in results):
+                entry["check"] = "running"
+            elif results:
+                entry["check"] = "ok"
+        comments = []
+        for c in github("repos/%s/issues/%d/comments" % (HUB_REPO, n)) or []:
+            comments.append(("c%d" % c["id"], c["user"]["login"], c["created_at"], c["body"], c["html_url"]))
+        for c in github("repos/%s/pulls/%d/comments" % (HUB_REPO, n)) or []:
+            comments.append(("l%d" % c["id"], c["user"]["login"], c["created_at"], c["body"], c["html_url"]))
+        for review in github("repos/%s/pulls/%d/reviews" % (HUB_REPO, n)) or []:
+            verdict = {"APPROVED": "approved", "CHANGES_REQUESTED": "asked for changes"}.get(review.get("state"), "")
+            if review.get("body") or verdict:
+                text = (verdict + (": " if verdict and review.get("body") else "") + (review.get("body") or "")).strip()
+                comments.append(("r%d" % review["id"], review["user"]["login"], review.get("submitted_at") or "", text,
+                                 review["html_url"]))
+        comments.sort(key=lambda c: c[2])
+        entry["comments"] = [{"id": cid, "user": user, "date": date[:10], "text": plain(body), "url": url}
+                             for cid, user, date, body, url in comments if user != owner]
+        out.append(entry)
+    print(json.dumps({"ok": RATE["failed"] is None or bool(out), "problem": RATE["failed"], "remaining": RATE["remaining"],
+                      "authenticated": RATE["authenticated"], "pulls": out}))
+
+
 def update_hub_fork(fork, names, dry_run, head):
-    """Put the Plugin Hub entries on a branch of your plugin-hub fork, ready for a pull request."""
+    """Put each plugin's Plugin Hub entry on its own branch of your plugin-hub fork (snuffys-<plugin>), one pull
+    request per plugin as the Plugin Hub asks. A plugin whose pull request is open gets it updated; for the others,
+    the link to open one."""
     path = os.path.join(CACHE, "plugin-hub")
     if not os.path.isdir(os.path.join(path, ".git")):
         os.makedirs(CACHE, exist_ok=True)
@@ -242,22 +535,38 @@ def update_hub_fork(fork, names, dry_run, head):
     if not git("remote", cwd=path).count("upstream"):
         git("remote", "add", "upstream", "https://github.com/runelite/plugin-hub.git", cwd=path)
     git("fetch", "--quiet", "upstream", "master", cwd=path)
-    branch = "snuffys-" + head[:7]
-    git("checkout", "--quiet", "-B", branch, "upstream/master", cwd=path)
+    owner = fork_owner(fork)
+    open_pulls = {} if dry_run else {p["head"]["ref"]: p for p in hub_pulls(owner) if p["state"] == "open"}
+    links = []
     for name in names:
+        branch = name if name.startswith(BRANCH_PREFIX) else BRANCH_PREFIX + name
+        git("checkout", "--quiet", "-f", "-B", branch, "upstream/master", cwd=path)
         shutil.copy(os.path.join(HUB_OUT, name), os.path.join(path, "plugins", name))
-    git("add", "-A", cwd=path)
-    if not git("status", "--porcelain", cwd=path):
-        print("plugin-hub: entries already up to date")
-        return
-    git("commit", "--quiet", "-m", "Update Snuffy's plugins (" + ", ".join(names) + ")", cwd=path)
-    if dry_run:
-        print("plugin-hub: branch %s ready (dry run: not pushed)" % branch)
-        return
-    git("push", "--quiet", "-f", "origin", branch, cwd=path, capture=False)
-    owner = fork.rstrip("/").removesuffix(".git").split("/")[-2]
-    print("plugin-hub: pushed branch %s. Open the pull request:\n  https://github.com/runelite/plugin-hub/compare/"
-          "master...%s:plugin-hub:%s" % (branch, owner, branch))
+        git("add", "-A", cwd=path)
+        if not git("status", "--porcelain", cwd=path):
+            print("plugin-hub: %s already up to date in RuneLite's list" % name)
+            continue
+        title = ("Add " if name not in existing_hub_entries(path) else "Update ") + name
+        git("commit", "--quiet", "-m", title, cwd=path)
+        if dry_run:
+            print("plugin-hub: %s ready on branch %s (dry run: not pushed)" % (name, branch))
+            continue
+        git("push", "--quiet", "-f", "origin", branch, cwd=path, capture=False)
+        pull = open_pulls.get(branch)
+        if pull:
+            print("plugin-hub: %s: updated its open pull request #%d\n  %s" % (name, pull["number"], pull["html_url"]))
+        else:
+            link = "https://github.com/runelite/plugin-hub/compare/master...%s:plugin-hub:%s" % (owner, branch)
+            links.append(link)
+            print("plugin-hub: %s: open its pull request (title: %s):\n  %s" % (name, title, link))
+    if links:
+        print("\n%d pull request(s) to open, one per plugin (the Plugin Hub takes one plugin per pull request). Close "
+              "any older pull request with several plugins in it." % len(links))
+
+
+def existing_hub_entries(path):
+    """The plugins already in RuneLite's list (upstream master), so a new one is "Add", a listed one "Update"."""
+    return set(git("ls-tree", "--name-only", "upstream/master", "plugins/", cwd=path).replace("plugins/", "").split())
 
 
 def main():
@@ -275,12 +584,18 @@ def main():
         if level not in ("patch", "minor", "major"):
             sys.exit("--bump is patch, minor or major")
     words = [a for a in argv if not a.startswith("--")]
-    if not words or words[0] not in ("push", "hub"):
+    if not words or words[0] not in ("push", "hub", "status"):
         sys.exit(__doc__)
     step, args = words[0], words[1:]
+    if step == "status":
+        with open(config_path) as f:
+            fork = json.load(f)["pluginHubFork"]
+        status_json(fork) if "--json" in argv else status(fork)
+        return
     dry_run = "--dry-run" in argv
     with open(config_path) as f:
         config = json.load(f)
+    IDENTITY[:] = identity(config)
     plugins = config["plugins"]
     chosen = args or [folder for folder, entry in plugins.items() if entry.get("publish")]
     unknown = [c for c in chosen if c not in plugins]
@@ -295,6 +610,13 @@ def main():
             push(folder, plugins[folder], dry_run, head, level)
         print("Done. When you're ready for players to get it: publish to RuneLite (the hub step).")
         return
+    # "hub": false keeps a plugin off the Plugin Hub (its repository still gets pushed): the Toolbelt for now
+    skipped = [folder for folder in chosen if not plugins[folder].get("hub", True)]
+    if skipped:
+        print("Not on the Plugin Hub (\"hub\": false in publish.json): " + ", ".join(skipped))
+    chosen = [folder for folder in chosen if folder not in skipped]
+    if not chosen:
+        sys.exit("Nothing to publish to RuneLite.")
     names = [hub_entry(plugins[folder]) for folder in chosen]
     print("Plugin Hub entries written to releases/plugin-hub/")
     fork = config.get("pluginHubFork")

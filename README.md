@@ -5,7 +5,7 @@ a skill tracker and a planner for your dailies, timers and drops into one place.
 
 - [Installing](#installing): the all-in-one, or just the parts you want
 - [Features](#features) (full guide with how-tos: [docs/FEATURES.md](docs/FEATURES.md))
-- [Setup (Windows)](#first-time-setup-windows-powershell)
+- [Setup (Windows)](#first-time-setup-windows)
 - [Logging in with a Jagex Account](#logging-in-with-a-jagex-account)
 - [Settings guide](#settings-guide)
 - [Credits](#credits)
@@ -31,15 +31,11 @@ at the bottom of the configuration panel), search **Snuffy's**, and install eith
 or the separate plugins you want. Don't install the Toolbelt together with the separate ones: you'd get
 everything twice. Every plugin has the idle and logout warnings; with several installed they're said once.
 
-**Before they're on the Plugin Hub**, run them from this repository with **Snuffy's Launcher**: see
-[First-time setup](#first-time-setup-windows-powershell). Each plugin also has its own folder under
-[`plugins/`](plugins) (`toolbelt`, `skilling-helper`, `pvm-slayer`, `gemcrab-tracker`, `tick-counter`, `planner`, `alerts`) that builds
-on its own. `python3 scripts/split_plugins.py --build` makes all seven jars in `releases/`.
-
-**Trying the jars with friends:** put the jar(s) in `.runelite/sideloaded-plugins` (create it next to
-`.runelite/settings.properties`) and start RuneLite in developer mode: in **RuneLite (configure)** add
-`--developer-mode` to the client arguments and `-ea` to the JVM options. RuneLite only loads sideloaded jars in
-developer mode.
+**Before they're on the Plugin Hub** (or to get updates the day they're made), use **Snuffy's Launcher**:
+[github.com/bburge14/snuffys-launcher](https://github.com/bburge14/snuffys-launcher). It's only the launcher: it
+downloads each plugin from its own repository, keeps them up to date and starts RuneLite with the ones you pick. See
+[First-time setup](#first-time-setup-windows). (Working on the plugins themselves: see
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).)
 
 ## Features
 
@@ -103,7 +99,7 @@ developer mode.
 
 ### Skilling
 Hover cards (they follow the left-click option the game shows, so nothing else gets in the way), resource
-timers (each kind set to show Always, While training or Off; by default each timed tree, rock or
+timers (each kind set to show Always, Training or Off; by default each timed tree, rock or
 fishing spot gets its tile outlined with a picture of what it gives, the outline changing colour as its timer runs out; traps and fires keep a small pie), and alerts that only fire for the resource you're working:
 
 | Skill | What you get |
@@ -177,8 +173,13 @@ work a resource.
   bar, XP/hr, gained, time to level, actions left, goal and suggested method) without the sidebar open. One skill at a
   time: the pinned card's pin is solid, the others faint, and clicking a faint one moves the pin there. Click the
   solid pin to unpin, or right-click the overlay > **Unpin**.
-- **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; 10 seconds by default) and resumes on your
+- **Auto-pause**: a skill's rate clock stops after a while without XP (10 seconds to an hour; a minute by default) and resumes on your
   next XP.
+- **Active goal**: with **Highlight For** set to "Active goal" (settings, Goals), right-click a goal's card >
+  **Set as active goal** (one at a time; a gold dot marks it) and the tree, rock and NPC outlines and the item
+  highlights are only for that goal. On "All goals" (the default) they're for all of them, and there's no active goal.
+- **Fold a card**: the **-** at a card's top-left folds it to its goal bar (**+** opens it again), remembered per
+  skill; the GOALS and THIS SESSION headings fold their whole lists.
 - **Idle skills drop off**: a skill without a goal leaves the tracker after 30 minutes without XP (**Drop Idle Skills
   After**, 0 for never) and comes back, with its session numbers, when you gain XP in it again. Skills with a goal
   and the pinned skill always stay; there's no other limit on how many cards it shows. **TRAINED** at the top counts
@@ -187,7 +188,7 @@ work a resource.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
 - **Items gathered**: logs, fish, ore and gems, food cooked and burnt this session, with how many an hour, on the card and the pinned skill.
-- **Keeps your session** after a restart: log back in within 30 minutes (**Keep Session After Restart**) and the tracker carries on.
+- **Keeps your session** after a restart: log back in within 30 minutes (**Keep Session For**) and the tracker carries on.
 - **Skills tab goal bars**: a thin gold bar on the game's Skills tab under each skill with a goal.
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.
 
@@ -209,16 +210,24 @@ work a resource.
 ### Snuffy's Planner (sidebar)
 Its own sidebar tab (the calendar icon), also in the Toolbelt. Six lists, each folds away under its heading and
 each can be hidden in the settings; everything is saved per account.
-- **Today**: the daily rewards you've unlocked (battlestaves, herb boxes, essence, runes, sand, bowstrings,
-  bonemeal, dynamite, ogre arrows), ticked off as you collect them, with the time to the daily reset. Add your own
-  dailies (they untick at the reset), rename or hide any. One voice line at login and at the reset if there are
+- **Today**: your own dailies with the time to the daily reset: press **+** to add one (they untick at the reset),
+  click to tick, right-click to edit or delete. While a list is empty it shows a few preset tasks as examples
+  (greyed, not tracked; click one to add it). One voice line at login and at the reset if there are
   dailies to do; no chat spam.
-- **Weekly**: Tears of Guthix (when Juna lets you back), your own weeklies, the Kingdom of Miscellania's approval and
-  coffer, and your farming contract, with the time to the weekly reset (Wednesday).
+- **Weekly**: your own weeklies, the same way, with the time to the weekly reset (Wednesday). Adding a daily or
+  weekly can start from a preset task (Battlestaves, Herb run, Tears of Guthix, Kingdom of Miscellania...: name, where
+  and picture filled in), and each can have a picture. Nothing is read from the game.
 - **Timers**: every farming patch, compost bin and Hespori you've been to and when it's grown (moved here from the
   Skilling Helper), your bird houses, and timers of your own; each with a ready alert in the game chat. When you add
   or edit a timer you pick what it does when it's done: the voice line or a sound (Bell, Chime, Anvil, Boop, Door;
   picking one plays it) and how many times; Default follows the **Ready Sound** setting.
+  **GE buy limits** there too: each item you've bought on the Grand Exchange in the last 4 hours, how much of its buy
+  limit that's used ("7,000 / 7,000 bought") and when it resets, and for a buy offer that isn't filling whether it's
+  the limit ("At the limit: more in 2h 48m") or your price ("Under the limit: it's your price", yours against the GE
+  price). It goes by your own offers as they fill (the game keeps no times for trades): what filled while you were
+  logged out counts from when it was seen, so it resets "by" that time. A chat message when a limit you'd used
+  resets (**Chat: Buy Limit Reset**), and a plan's **Materials needed** says how long what's short takes to buy at
+  the limit.
 - Only the dailies and weeklies reminders go to the split private chat (they fade); every other alert uses the game
   chat.
 - **Slayer**: your task, kills left, points and streak, straight from the game.
@@ -229,13 +238,17 @@ each can be hidden in the settings; everything is saved per account.
 - **Notes & to-do**: a to-do list and a notes box.
 - **Calculator**: a skill calculator. Pick a skill from the grid; your level and XP fill in from the game (type over
   them to plan ahead). Skills with a goal have a gold line in the grid, and **Goals** under it lists them all with how
-  far along you are (click one to open it). Goals are shared with the Skilling Helper: one set in either shows in
-  both, and each plugin works on its own. The target starts at the skill's goal, or the next level; a target you type is kept for that
+  far along you are (click one to open it). Goals are the Skilling Helper's: with it running (installed and on),
+  the Planner shows and edits the same goals; without it, the Planner doesn't look at them at all. Likewise the
+  Skilling Helper only follows a plan from the Planner while the Planner runs. The target starts at the skill's goal, or the next level; a target you type is kept for that
   skill until **Reset** (next to it) or **Set as goal** (sets the skill's goal just like the Skilling Helper's Set
   Goal). Tick the XP bonuses you use (skilling outfits, diaries, altars, the bonecrusher...; ones that can't go
   together untick each other). Three views:
-  - **Actions**: every action with its XP each, how many to your target, the time where the wiki's training guides
-    give an XP rate, and how many you have (bank as last opened plus inventory). With **Show GE Prices**, the money:
+  - **Actions**: every action with its XP each, how many to your target, the time (at the wiki's training guide's XP
+    rate where it has one, else an **estimate** marked "est.": the OSRS Wiki's own counts an hour for it, from its
+    training and money making guides (or its tick timings with banking), times its XP; the tooltip lists the faster
+    ways with theirs, like 1-tick karambwans, 2-tick teaks, 3-tick granite, clicking darts, the Smiths' uniform or the
+    Blast Furnace), and how many you have (bank as last opened plus inventory). With **Show GE Prices**, the money:
     "Mats 254K · Sells 226K" is what the materials and the products are worth on the Grand Exchange (neither is
     profit), and the net beside it, with a **green plus** for a gain or a **red minus** for a loss ("-28K"), plus the
     net gp per XP. Hover a card for all of it in words. Darts, arrows and bolts count per item (10 darts a go, each
@@ -251,20 +264,54 @@ each can be hidden in the settings; everything is saved per account.
   - **Plan**: the skill's **goal** comes first, as a card like a plan's (gold): its levels, what it's set to train
     (your Track for goal pick, the plan the tracker follows, or the wiki's suggestion) and how far along you are.
     It's the same goal as the Skilling Helper's: click it (or right-click) to **Change goal**, **Remove goal** or
-    **Make a plan for it** (a new plan to that level, starting with what the goal trains). Then
+    **Make a plan** (a new plan to that level from what the goal trains: the method set in the Skilling Helper, with the climb to its level filled in when it needs a higher one, or its suggestions all the way when none is set; when the goal or its method changes in the tracker after, the goal card says so and right-click > **Update the plan** rebuilds it, after saying what changes, keeping its name and supply milestones). Then
     as many **plans** per skill as you like, each with a name. **+** makes a new one; each plan's card
     shows its levels, your level and how far along it you are (a bar and a percentage); click one to open it (it
     unfolds under its card), click it again to fold it away; right-click to rename, duplicate or delete. Under the
     list, links to your other skills' plans. A plan is a goal and milestones on the way, each with its own method
-    ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"): start from the wiki's suggestions, or right-click an action >
+    ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"): **Suggest a plan...** compares six ways there side by side
+    (time, gp, milestones) and fills it with the one you pick (with milestones already in the plan, **Keep my
+    milestones** fills only the levels yours leave open, before, between and after them; untick it to replace them): **Fastest**, **Cheapest**, **Money maker**, **Balanced**
+    (gp and time together, at **Hour Worth (gp)**), **AFK** or the **Wiki guide**; or right-click an action >
     **Add to plan** (it goes in at its own level: Atlatl darts at 74 inside Adamant darts 67-81 makes Adamant 67-74
     and Atlatl 74-81; when the plan's full it asks to raise its goal), or **+** to add one at levels you type (the
-    milestones it overlaps make room). Each milestone shows its XP, actions, time and money; **Whole plan** adds them
+    milestones it overlaps make room). To fit something in (Atlatl darts 74-81 inside Onyx bolts 74-99), right-click the milestone > **Insert a milestone in it...**, or Add to plan from the list (it asks which levels when the plan's already full): the one it lands in makes room. Making a milestone shorter (Edit...) leaves a gap you can click to fill. **Money plan** (under the materials): how to do the plan
+    within a **budget** you set for it (like 50m; empty uses all your coins): for each milestone what to buy that you
+    don't own, in how many rounds of buy, make and sell (what each sale brings in buys the next lot, so you only need a
+    round's worth at once; the buy limits allow a round every 4 hours), the budget left after it, and where it runs out
+    if it can't carry the plan; on top, whether a budget is set (else it uses your coins), what the plan costs after
+    sales, the **budget it needs** to reach the goal, and what's left (or how short it is). Milestones, Materials needed
+    and Money plan each fold away (click the header). Sales are after the Grand Exchange's 2% tax everywhere; with
+    **Sell By** on "Best price" (the default), something worth more **high alched** (its alch value
+    less a nature rune) counts that way instead (the breakdown shows both). Each milestone can pick its own way:
+    right-click > **Sell by** (the setting's way, the GE, high alch, or **drop them** to powerlevel, worth nothing, each
+    with what it pays, the better one marked);
+    when the other way pays more, the milestone says so in orange ("High alch pays 1.2M more"). Right-click a milestone >
+    **Record sales...** to say what you really did with what it made: how many you sold on the GE and what you got
+    each, and how many you alched and for what (both start at today's prices). Its breakdown and tooltip then have
+    **So far**: made, sold, alched, not sold yet (and what they're worth now), the materials used, the cash so far
+    and the net counting what's not sold yet. Tooltips are laid out in sections (gold headers, values in columns,
+    gains green and losses red). Your **real trades** count too: an item you've bought or sold on the GE in the last week goes at what you really paid or got (**Use Your Own Prices**; the tooltips say "your price"), and with a budget set, **Since you set the budget** shows what you've really spent on the plan's materials and got for its products, and the budget that leaves. **Where your materials came from**: the plan's Materials and Net count what you really paid. It keeps track of what you buy on the GE, get in trades with other players (what you gave for it), and get yourself (turned up in your inventory with XP: cut, mined, caught, made): ones you bought at what you paid, ones you got yourself free, ones it doesn't know about at the GE price, and what's still to get at the GE price unless you get it yourself. Hover a material under Materials needed to see where yours came from; right-click > **Where some came from...** to add what it didn't see (trades while the Planner was off, ones from before), or **Forget where they came from** to start again. **Get materials yourself**: right-click a material in Materials needed > **Gather it yourself** (logs from Woodcutting, fish from Fishing, ore from Mining) or **Make it yourself** (bars in Smithing): it shows which skill, is left out of the money plan's buying, and its tooltip says the XP and time that takes against what buying costs ("saves about 310K an hour"). A milestone's right-click menu has the same choice for its materials. **Ironman** (**Plan As Ironman**: from your account, always or never): everything you can gather or make is got yourself by default, all the way down (dart tips from Smithing, their bars from Smithing too, the ore and coal from Mining), and the money plan is left out. That skill's Plan view lists it under **Supplies for other plans** (right-click a supply > **Add to the Woodcutting plan** makes it a milestone there: onto one of the same method, or a new one after the other supplies; the milestone says what it keeps for which plan, left out of its sales and net, and supplies already in the plan aren't listed again. A supply milestone is fixed: its method and XP stay (Edit... moves where it starts, its end follows) and other milestones fit around it rather than over it). When a supply needs a higher level than you have, the climb to it is filled in from the wiki's suggestions ("to reach 60 for the Firemaking supply": ordinary milestones, change their methods as you like), and until you're there the supply and the plan that needs it say so ("Needs Woodcutting 60 (you're 50)", "Waiting on Woodcutting 60")) ("Raw shark for Cooking 96 / 6,060", the XP and time, what it saves; click to go to that plan). Hover a milestone for **Where** to train it: the best places first, the training guides' picks with why ("Isle of Souls: no requirements; birds make 2-tick possible", "Hardwood Grove: 100 trading sticks an entry"), then the places with the most of it and what you need for them; places you can't reach yet (a quest you haven't done: Song of the Elves for Prifddinas, Bone Voyage for Fossil Island) go last, in red, saying which (the tracker's goal card and pinned skill show one place on their Where line: where you've been training it when that's one of its places, noticed as you gain XP there and kept until you train it somewhere else, else the best one you can reach). Click a milestone for its **breakdown**: for one of what it makes, each material (how many x its price) and what it sells for, and the net, then the same for the whole milestone. With the Skilling Helper running and the plan sent to your goal, the milestone you're on is timed at your own XP/hr as its tracker counts it while you train ("45.5K/hr yours"). What a milestone makes and you then sell on the GE, high alch or drop is counted on it as you do it (what each went for, or nothing for a drop), so its money so far is what really happened; **Record sales...** fixes the counts by hand. **Minigames** (Wintertodt, Tempoross, Hunters' Rumours, Pyramid Plunder, Volcanic Mine) are in each skill's Actions list to add to a plan: timed by the hour at the wiki's XP rate for your level ("~14h 20m to play"). Right-click a milestone > **Pace** to time it at the wiki guide's rate, a normal pace or a faster way (1-tick, 3-tick, clicking fast), each with its XP an hour. Right-click a milestone > **Find a better method...** to price every action over its levels, with the best picks on top (cheapest per XP, fastest, most profit, most XP each): click one to use it. Each milestone shows what's left of it, one thing a line (how many to go and the XP; the time and gp per XP; what the materials **cost** and what the products **sell for**; the **net**), counting down as you train, with a bar and how far through it you are ("147K xp left · 65%"); once you pass its end it's ticked off as Done, and a game chat message says so and names the next one (and when you reach the plan's goal; **Chat: Milestone Done**); **Whole plan** adds them
     up (XP to the goal, time to it, average XP an hour, net); **Materials needed** lists everything the milestones
     still need in full against what you have ("27,800 / 24,610"), green when you have it all, red when you're
     short, and the tools. A plan goes by your real XP: typing in Current doesn't mark milestones done. With the
     Skilling Helper installed, **Export to tracker** makes its goal card follow the plan (one plan per skill at a
-    time).
+    time). Your edits to that plan after are a **draft**: the tracker keeps the version you sent until you click
+    **Send changes** (or **Undo** to go back to it), so you can try things without moving your goal. The plan's card
+    says "Unsent changes" and the goal card "Changes to ... not sent" (right-click it to send or undo them). A copy sent
+    before plans remembered which one it was shows as "Tracker has an older copy": right-click the goal to send your
+    open plan, **use the tracker's plan** for your open one (replacing its milestones), bring the copy in as a new plan,
+    or take it out of the tracker. The plan's tracker row has the same: **Send** (yours to the tracker) or **Take** (the
+    tracker's into yours). **Follow** on either goal card picks what the goal follows: your plan, your pick (a Track
+    for goal or a method, for a one-off) or the wiki; the others stay saved. Milestones count your XP whatever you
+    train with; a supply milestone you passed another way says "Levels done, supplies to get" with how many.
+  - **Plan overlay** (for any plan not linked to a Skilling Helper goal; a plan you sent to a goal that follows it shows on the Skilling Helper's pinned skill card instead): a
+    card on the game screen for the plan of the skill you're training (the one open in the Calculator), or the plan
+    you **pin** (the pin on its card in the Plan view, or right-click > Pin to screen; it stays up whatever you
+    train until you unpin it, there or by right-clicking the overlay): the
+    milestone's bar with the XP left, its method, actions left, the next milestone, and your materials for it in
+    green or red. **Plan Overlay** (Calculator settings) turns it off; **Compact Overlays** (General) keeps just the
+    plan, the bar and the actions left.
   - **Your plan bar**: under the Actions and Banked lists, the open plan's milestones (and the skill's goal) stay in
     view while you scroll, to compare; click its title to fold it, **Edit** to open the Plan view.
 
@@ -292,49 +339,35 @@ each can be hidden in the settings; everything is saved per account.
 - **Speak Only When Unfocused** (General, off at first): voice only while you're in another window; chat
   messages still post.
 
-## First-time setup (Windows, PowerShell)
+## First-time setup (Windows)
 
-**1. Install Java and Git** (skip what you already have; check with `java -version` and `git --version`):
+No commands and nothing to install: the launcher gets what it needs (the plugins, and a Java of its own if your PC has
+none) by itself.
 
-```powershell
-winget install --id EclipseAdoptium.Temurin.17.JDK -e
-winget install --id Git.Git -e
-```
+**Download [Snuffys-Launcher-Setup.exe](https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe)
+and double-click it.** It installs Snuffy's Launcher in your own folder (no admin rights needed), puts it on your
+desktop and opens it.
+Your browser and Windows may warn about it, because it's new and not code-signed (paid certificates are what make
+that go away): in **Edge**, "isn't commonly downloaded": hover the download, click **...** > **Keep** > **Show more** >
+**Keep anyway**; in **Chrome**, click **Keep**. When you open it, if Windows says "Windows protected your PC": **More
+info** > **Run anyway**. You only need to do this once: the launcher updates itself after that.
+The first time, the launcher downloads every plugin (a minute or two), and Java if you have none (about 190 MB, once).
 
-Close and reopen PowerShell afterwards so `java` and `git` are on your PATH.
+(Without the installer: download the [zip](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip),
+unzip it, double-click **Snuffy's Launcher** in the folder and click **Make a desktop shortcut**.)
 
-**2. Download the project:**
+**4. Using Snuffy's Launcher.** It's a small dark window that:
 
-```powershell
-New-Item -ItemType Directory -Force C:\dev | Out-Null
-Set-Location C:\dev
-git clone https://github.com/bburge14/bradsmultitool.git BradsMultiTool
-Set-Location C:\dev\BradsMultiTool
-git checkout claude/nifty-feynman-izouon   # skip once this branch is merged into main
-```
-
-If the repo is private, Git opens a browser window to sign in to GitHub.
-
-**3. Put the launcher on your desktop** (run once; or open `Launch-BradsMultiTool.bat` and click **Make a
-desktop shortcut** at the bottom of the window):
-
-```powershell
-$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Snuffy's Launcher.lnk")
-$s.TargetPath = "C:\dev\BradsMultiTool\Launch-BradsMultiTool.bat"
-$s.WorkingDirectory = "C:\dev\BradsMultiTool"
-$s.IconLocation = "C:\dev\BradsMultiTool\assets\launcher.ico,0"
-$s.Save()
-```
-
-**4. Open Snuffy's Launcher** (the shortcut, or double-click `Launch-BradsMultiTool.bat`). It's a small window that:
-
-- **updates** the plugins each time you open it, and while it's open checks every minute in the background and
-  pulls any update straight away, listing what's new (**Check again** to retry; when you're offline or have changed
-  files here, it says so and you launch the version you have);
+- **updates itself and the plugins**: when the launcher itself has a new version, **Restart launcher** on its What's
+  new card closes it and opens the new one (RuneLite stays open). It updates the plugins each time you open it, and while it's open checks every minute in the background and
+  pulls any update straight away: two chips under its name say where your copy of the code is ("Code: up to date") and what the open RuneLite is running ("RuneLite: latest code", or in red "RuneLite: 3 updates behind, Relaunch"), and **What's new** lists the changes, each with what it touches (the plugins it changes, which need a Relaunch, or the launcher and docs only, which don't; the RuneLite chip only counts the ones that need a Relaunch) (**Check again** to retry; offline, it says so and you launch the version you have). Your
+  copy is always exactly the repository's: anything changed here in its files is put back to match (What's new says
+  which), so every PC runs the same code; your settings and anything git doesn't track stay;
 - **warns you when the open RuneLite is out of date**: it remembers which version each launch was built from (even
-  if you close and reopen the launcher), and when there's a newer one it turns red ("RuneLite is out of date: press
-  Relaunch", with what's new listed below), makes **Relaunch** bold and pops up a Windows notification;
-- checks your **setup**, each row with a button to fix it:
+  if you close and reopen the launcher), and when there's a newer one its chip turns red ("RuneLite: 3 updates
+  behind, Relaunch", with what's not in it yet listed below), makes **Relaunch** bold and pops up a Windows notification;
+- checks your **setup**, each row with a button to fix it (once everything's ticked the Setup card folds to
+  "All set"; **Show** opens it again):
   - **RuneLite** installed (it looks in RuneLite's usual folders, its uninstall entry, Start menu shortcuts and
     the Jagex Launcher's folder; **Find it...** lets you point to `RuneLite.exe` if it's somewhere else);
   - **session saving** on in RuneLite (configure): **Turn it on** adds `--insecure-write-credentials` for you
@@ -342,15 +375,12 @@ $s.Save()
   - a **Jagex session** saved, for which character and when: **Save one** opens the Jagex Launcher, tells you
     what to do (press Play, log in once) and ticks the row as soon as the session is saved. It only reads the
     character's name and the date, never the session itself;
-  - **Java** (needed to build) and **git** (for updates);
+  - **Java** (needed to build: the launcher gets one of its own if your PC has none);
 - lets you pick the **plugins to load**: **Snuffy's Toolbelt** on its own (it already includes every separate
-  plugin), or **Separate plugins** with a checkbox each. Your pick is ticked again next time;
-- a **Dev** tab (for the plugins' owner): **Push to repos** copies the plugins to their own GitHub repositories with
-  new versions for the ones that changed (**Check (dry run)** first shows what would change), and **Publish to
-  RuneLite** gets the Plugin Hub pull request ready (see docs/ROLLOUT.md);
+  plugin), or **Separate plugins** with a switch each. Your pick is remembered for next time. Each one shows its version (from its GitHub repository);
 - **Relaunch** closes RuneLite (as its X button would, answering OK to RuneLite's "Are you sure you want to exit?"
   for you; forced if it hangs), updates, and starts it again with your pick;
-- **Launch RuneLite** builds and starts it silently (no console window): a progress bar shows it building,
+- **Launch RuneLite** builds and starts it silently (no console window): the button fills as it goes, building,
   starting RuneLite and then "RuneLite is running", and the launcher stays open (it says when RuneLite closes,
   and **Launch** works again). If something goes wrong it says so in red; **Show log** opens the full output.
   The first launch downloads Gradle and RuneLite, so it takes a few minutes.
@@ -414,7 +444,7 @@ clash with it, and switch on **Open the Guide** to open the full feature guide. 
 setting of it that clashes), every one of Snuffy's plugins shows a small yellow warning icon among RuneLite's info
 boxes (top left of the game; hover it for the clashes and what they mean); nothing is posted in chat. It's live: turn the clashing plugin or setting off and the icon goes within a few seconds. Don't want
 any of it? Turn off **About > Clash Warnings** in that plugin's settings. Clashes include the dedicated timer plugins, RuneLite's Hunter, Mining, Fishing (spot icons, tiles,
-minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome, Idle Notifier, Daily Task Indicator and
+minnows), Motherlode Mine (veins), Wintertodt, Slayer (task highlight), Metronome, Idle Notifier and
 Loot Tracker, and the Tempoross,
 Guardians of the Rift Helper and Sailing plugins' notifications.
 

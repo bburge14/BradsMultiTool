@@ -26,7 +26,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
       with melee) once; switching to Protect from Melee stays quiet; no prayer on stays quiet; a mixed-style
       monster (Graardor) never sets it off.
 - [ ] Unpotted Reminder on: attacking with no boost says "No combat boost active", not again within 2 minutes;
-      after a super combat it stays quiet. Your Style's: a Magic boost doesn't count while meleeing.
+      after a super combat it stays quiet. Your style: a Magic boost doesn't count while meleeing.
 - [ ] Loot line: after a kill with drops, "Loot:" shows their GE value; "/h" appears after a minute; HUD Reset clears it.
 - [ ] Death (e.g. somewhere safe-ish with cheap items): chat/voice says where; the gravestone info box counts down from
   15:00, pauses while logged out, and goes when you're back at the spot. No box after a death in an instance, the
@@ -161,7 +161,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [x] Cards, fields switch on/off without gaps, progress bar colours.
 - [ ] Items: chop, fish, mine, cook: the card (and pinned skill) shows "Logs: 342 (1,050/hr)", "Fish:", "Ore:"/"Gems:",
       "Cooked: ..., 4 burnt (3%)"; Reset rate / Reset clears them; Show Items Gathered off hides them.
-- [ ] Keep Session After Restart: train, close the client, reopen and log in within 30 minutes: the cards carry on
+- [ ] Keep Session For: train, close the client, reopen and log in within 30 minutes: the cards carry on
       (no chat line), XP/hr about the same; after longer (or with it at 0), a fresh session. Reset all skills, restart: fresh.
 - [ ] Skills Tab Goal Bars: a thin gold bar along the bottom of each goal skill on the Skills tab, matching the card's
       goal bar; none with the setting off or on other tabs.
@@ -247,7 +247,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Run Energy Low Below 30: run below 30%: "Your run energy is low" once, again only after it's back above 40.
 - [ ] Training Agility with Run Energy Low Below on: only one run energy alert (the Agility one stays quiet);
       with it 0, Agility's own alert works as before.
-- [ ] Run Energy Restored At 100: drop below 90, rest: "Your run energy is restored" at 100; a few steps of
+- [ ] Run Restored At 100: drop below 90, rest: "Your run energy is restored" at 100; a few steps of
       running at 100 don't set it off; nothing at login.
 - [ ] With two of Snuffy's plugins running separately, each run energy alert is said once.
 - [ ] Speak Only When Unfocused: with RuneLite focused alerts post in chat but aren't spoken; click another
@@ -319,7 +319,7 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
 - [ ] Members-only: on a free world the Calculator leaves out Teak logs, agility courses and so on, with the note
       "Members-only actions hidden on this free world"; on a members world and logged out everything shows; Hide
       Members On Free Worlds off shows all.
-- [ ] Plan view: Start from suggestions fills milestones from your level to the goal; right-click an action > Add to
+- [ ] Plan view: Wiki suggestions fills milestones from your level to the goal; right-click an action > Add to
       plan adds one (the last milestone stretches or shortens to meet it); a milestone's Edit..., Change method (pick
       an action: the Actions list with a banner, click one), Move up/down, Delete; Goal: level N changes the goal;
       totals follow; kept after a restart and per account.
@@ -339,20 +339,20 @@ did and what you saw (a screenshot helps), or use the **Issues?** button at the 
   drops the card offers it with Track it / Dismiss and a chat line; Track it switches the goal to it; Dismiss hides it for the session.
 - [ ] Every tracker card has a pin: solid when pinned, faint otherwise; clicking a faint pin moves the pin there (tooltip names the skill it replaces); clicking the solid one unpins.
 - [ ] Card right-click: Set goal... only with no goal; Modify goal... (prefilled, keeps the goal bar's progress) and Clear goal only with one.
-- [ ] Launcher: Relaunch closes RuneLite and starts it again (forced after 20 s if it hangs); a new version found while open says "Update ready: Relaunch to use it". Launcher window: Toolbelt icon on the window and desktop shortcut (Make a desktop shortcut; an existing shortcut gets the icon). Setup rows (RuneLite found wherever it is installed, Find it... otherwise, session saving with Turn it on, session with Save one / Refresh it ticking itself once saved, Java, git); update status (Up to date / Updated with the list / Couldn't update), session line with your character and date (or the set-up link), Toolbelt vs Separate plugins checkboxes (greyed while Toolbelt is picked), Launch runs hidden with the progress bar (building, starting, "RuneLite is running"), stays open, says when RuneLite closes, Show log opens the output; remembers the pick.
+- [ ] Launcher: Relaunch closes RuneLite and starts it again (forced after 20 s if it hangs); a new version found while open says "Update ready: Relaunch to use it". Launcher window: Toolbelt icon on the window and desktop shortcut (Make a desktop shortcut; an existing shortcut gets the icon). Setup rows (RuneLite found wherever it is installed, Find it... otherwise, session saving with Turn it on, session with Save one / Refresh it ticking itself once saved, Java, git); update status (Up to date / Updated with the list / Couldn't update), session line with your character and date (or the set-up link), Setup card folds to "All set" when every row is ticked (Show/Hide), Toolbelt vs Separate plugins switches (greyed while Toolbelt is picked), Launch runs hidden with the Launch button filling as progress (building, starting, "RuneLite is running"); Dev tab: Push (Patch/Minor/Major), Publish, Check status shows a card per pull request (click opens it), Show output; sharp at 125%/150% display scaling, stays open, says when RuneLite closes, Show log opens the output; remembers the pick.
 - [ ] Fishing/Mining/Woodcutting goal: tools and bait outlined in the inventory and bank (fly fishing rod + feathers, any axe/pickaxe), not the fish/ore/logs; the spots/rocks/trees outlined in the world. Fish only outlined with a Cooking goal.
 
 - [ ] Set a goal in the Toolbelt, launch the Skilling Helper alone: the same goal (and Track for goal pick, Suggest choice, pinned skill) is there, and the other way round.
 - [ ] Fishing spot tiles: fly fishing shows trout and salmon stacked (only those your level catches); right as you click Lure with feathers (no catch needed); with stripy feathers it shows rainbow fish; Bait shows pike.
 - [ ] Fishing goal with a fishing suggestion (e.g. Fly fishing: Trout, Salmon): every spot that catches those fish is outlined in the world, before you start fishing.
-- [ ] Each timer kind's setting is Always / While training / Off (old on/off choices carried over: off stays Off, on becomes While training, or Always if Timers When Not Training was on). Fishing Spot Timers on Always: spots show their tile and fish before you start fishing (untimed spots without a timer).
+- [ ] Each timer kind's setting is Always / Training / Off (old on/off choices carried over: off stays Off, on becomes Training, or Always if Timers When Not Training was on). Fishing Spot Timers on Always: spots show their tile and fish before you start fishing (untimed spots without a timer).
 
 - [ ] Hide Outlines While Working: only the spot/tree/rock you're working loses its goal outline (and plain spot outline); other spots, trees and rocks and the tools stay outlined; back a few seconds after stopping.
 - [ ] Card right-click > Method: lists the guide methods for your level (fastest marked, hover for the guide text); picking one changes the card to "Your method: ..." with its outlines/tools/estimate; Suggested (automatic) goes back; shared with the Skilling Helper.
 - [ ] Mining: mine out any rock (iron, lead, coal...): the depleted rock's tile counts down to the ore coming back (red, yellow, green), with the ore picture and time; lead rocks can be tracked for a Mining goal and the guide's Lead rocks method outlines them.
 - [ ] Lead rocks: mine one out: its depleted tile gets the respawn timer; grey lead rocks are never outlined for a goal.
 - [ ] Card > Method: methods show ~XP/hr where the guide gives one; with Suggest on Money Maker it lists money makers with GP/hr, and picking one shows "Your money maker: ...".
-- [ ] Tracker: a skill without a goal leaves after Drop Idle Skills After (30 min) without XP and returns on new XP; goal skills and the pinned skill stay; header shows TRAINED with a tooltip.
+- [ ] Tracker: a skill without a goal leaves after Drop Idle After (30 min) without XP and returns on new XP; goal skills and the pinned skill stay; header shows TRAINED with a tooltip.
 - [ ] Tracker: GOALS and THIS SESSION each list the skill with the latest XP first; Attack/Hitpoints from one hit don't swap back and forth.
 - [ ] Tracker: click the GOALS / THIS SESSION heading to fold the list ("+ GOALS (3)") and again to open it; remembered after a relaunch.
 - [ ] Settings > About: heading tooltip lists the plugin and its clashes; Open the Guide opens the guide and switches off. clashes show only as the warning icon (hover for the list), never in chat.

@@ -16,6 +16,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("showSkillingHover", config.showSkillingHover());
         defaults.store("showSkillingRates", config.showSkillingRates());
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());
+        defaults.store("treeTimerStyle", config.treeTimerStyle());
         defaults.store("pieStyle", config.pieStyle());
         defaults.store("timerOpacity", config.timerOpacity());
         defaults.store("timerText", config.timerText());
@@ -122,6 +123,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("showTrainingSuggestion", config.showTrainingSuggestion());
         defaults.store("trainingFocus", config.trainingFocus());
         defaults.store("highlightSuggestedTraining", config.highlightSuggestedTraining());
+        defaults.store("highlightGoals", config.highlightGoals());
         defaults.store("highlightGoalItems", config.highlightGoalItems());
         defaults.store("hideOutlinesWhileWorking", config.hideOutlinesWhileWorking());
         defaults.store("trainingHighlightColor", config.trainingHighlightColor());

@@ -121,7 +121,8 @@ public class CalculatorTest {
         assertNotNull(dart);
         assertEquals(1000, dart.have);
         assertEquals(52, dart.costEach, 0.01);
-        assertEquals(60, dart.earnEach, 0.01);
+        // 60 gp each, less the GE's 2% tax (1 gp)
+        assertEquals(59, dart.earnEach, 0.01);
         Map<String, Integer> made = PlannerCalculator.bankedMade(Skill.FLETCHING, fletching, Collections.emptyList(), 60,
             RECIPES, have);
         assertEquals(Integer.valueOf(1000), PlannerCalculator.bankedTimes(Skill.FLETCHING, dart.action, RECIPES, made));

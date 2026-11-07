@@ -28,7 +28,9 @@ src/  --split_plugins.py-->  plugins/skilling-helper/  --publish-->  bburge14/sn
     commits that changed that plugin's folder). Unchanged plugins are
     left alone. You can push as often as you like: players don't get anything until you publish.
   - **Publish to RuneLite** (`hub`): writes each plugin's Plugin Hub entry (its repository and the commit it's at
-    now) and puts them on a branch of your `plugin-hub` fork; the tab then shows the link to open the pull request.
+    now) and puts each on its own branch of your `plugin-hub` fork (`snuffys-<plugin>`): the Plugin Hub takes **one
+    plugin per pull request**. A plugin whose pull request is open gets it updated; for the others the tab shows the
+    link to open one (the link under the output opens them all).
 
 ## Versions
 
@@ -44,7 +46,9 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
    change them there if you pick others). Already made the first six? Just add `snuffys-planner`.
 2. Fork `runelite/plugin-hub` to your account (`bburge14/plugin-hub`, as in `publish.json`).
 3. On your PC: Python 3 (`py` on Windows) and git logged in to GitHub (the same login the launcher's updates use,
-   with permission to push).
+   with permission to push). Git needs no name or email set up: when it has none, the plugin repositories' commits are by
+   `authorName` / `authorEmail` from `publish.json` (SgtSnufffy, with GitHub's private no-reply address so your real
+   email isn't public). How you log in to the GitHub website (Google, say) doesn't matter here.
 4. Launcher, **Dev** tab: **Check (dry run)** once to see it work, then **Push to repos**.
 
 ## Before the first submission (checklist)
@@ -64,11 +68,23 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 ## Submitting
 
 1. Dev tab: **Push to repos** (all seven), then **Publish to RuneLite**.
-2. Open the pull request from the link it shows. Title like "Add Snuffy's plugins"; in the description, one line
-   per plugin saying what it does, and mention they share settings/voices when installed together.
+2. Open each plugin's pull request from the links it shows (one per plugin). Title "Add snuffys-<plugin>"; in the
+   description, a line or two on what it does.
 3. The reviewers comment on the pull request; fix things here, publish again (the same command updates the
    repositories and the pull request branch), and reply.
 4. Once merged, the plugins appear in RuneLite's Plugin Hub within a few hours.
+
+## Checking on it
+
+Launcher, Dev tab, **Plugin Hub** at the top: a card for each plugin's pull request, kept up to date while the
+launcher is open, a "new" badge and a Windows notification for a comment you haven't opened or a change (published,
+build failed); click a card to open it (the new comment first). Signed in to GitHub (git's saved login, or
+GITHUB_TOKEN) it checks every 10 minutes, else hourly (GitHub's limit without one). Or `Publish-Plugins.bat status` / `python3 scripts/publish_plugins.py status`):
+your Plugin Hub pull request's link and whether it's **OPEN** (waiting for review), **PUBLISHED** (merged: players get
+it within a few hours) or **CLOSED**; RuneLite's build checks on it (a failed one with its link); and reviewers'
+verdicts and their latest comment. It reads GitHub's public API, so no login is needed (GitHub allows 60 such requests
+an hour; one check uses a handful). While the pull request is open, **Publish to RuneLite** updates it (same branch)
+instead of needing a new one.
 
 ## Updating a live plugin
 
@@ -81,7 +97,8 @@ changes (2.0.0). The version in this repository's `build.gradle` is only the sta
 
 - **The six separate plugins** (Skilling Helper, PvM/Slayer, GemCrab Tracker, Tick Counter, Planner, Alerts). Each
   stands alone, and they work together when installed side by side (shared goals, one voice, no double alerts).
-- **The Toolbelt** too: its own plugin with everything in one, for players who'd rather install one thing. Say
+- **The Toolbelt: not for now.** It's `"hub": false` in `publish.json`, so Publish to RuneLite leaves it out while
+  Push to repos still keeps its repository up to date (set it to true, or remove the line, to include it later). It was planned as: its own plugin with everything in one, for players who'd rather install one thing. Say
   in the pull request that it's the all-in-one of the six (same code), so the reviewers don't take it for a
   copy. It's the biggest jar (about 19 MB); if size is a problem it can ship with fewer voices. Players should
   install either the Toolbelt or the separate ones, not both (its clash warning says so if they do).

@@ -25,7 +25,7 @@ public interface CommonConfig extends Config {
     @ConfigItem(
         keyName = "voicePersona",
         name = "Voice Persona",
-        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
+        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, John: UK and US men. Arctic: a Scottish man. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
         section = generalSection,
         position = 1
     )
@@ -300,7 +300,7 @@ public interface CommonConfig extends Config {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyRestoredAt",
-        name = "Run Energy Restored At",
+        name = "Run Restored At",
         description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
         section = idleSection,
         position = 16

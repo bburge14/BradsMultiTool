@@ -34,6 +34,19 @@ final class SkillPlans {
     /** The plan exported to the Skilling Helper's tracker. */
     static final String TRACKED_KEY = "goalPlan.";
 
+    /** Some of a milestone's products set aside for another skill's plan (yew logs for Firemaking): not sold. */
+    static final class Supply {
+        final String skill;
+        final String item;
+        long quantity;
+
+        Supply(String skill, String item, long quantity) {
+            this.skill = skill;
+            this.item = item;
+            this.quantity = quantity;
+        }
+    }
+
     /** One milestone: train {@link #action} from level {@link #from} until level {@link #to}. */
     static final class Step {
         String action;
@@ -43,6 +56,40 @@ final class SkillPlans {
         String method;
         /** XP for one action (with the Calculator's bonuses when exported), 0 if unknown. */
         double xp;
+        /** What of its products is kept for other skills' plans (none: all of it's sold). */
+        final List<Supply> supplies = new ArrayList<>();
+        /** Why it's there, when it was added for something ("to reach 60 for the Firemaking supply"), or null. */
+        String note;
+        /**
+         * The pace its time is worked out at ({@link PlannerRates}: "Normal", "1-tick", "Wiki guide"...), or null for
+         * the wiki guide's rate where there is one, else the normal pace.
+         */
+        String pace;
+        /** What you've told it you did with what it made so far: sold on the GE, and high alched. */
+        long sold;
+        long alched;
+        /** What you got for each you sold, and for each alched (less the rune), when you said; 0: the prices now. */
+        double soldEach;
+        double alchedEach;
+        /** How many of what it made you dropped (worth nothing): seen as you drop them, or told. */
+        long dropped;
+        /** How its products count: "GE" or "ALCH" ({@link PlannerConfig.SellBy}), or null for the setting's way. */
+        String sellBy;
+        /**
+         * Not saved: where a supply milestone really ends, in XP (the Planner works it out from what's still to get each
+         * time it draws), so it runs exactly as far as its supplies, partway into its last level; 0: at level {@code to}.
+         */
+        transient long endXp;
+        /**
+         * Not saved: a supply milestone whose supplies you have all of (cut, bought or banked): it's done, takes no levels,
+         * and the milestone after it starts where the one before it ended. Worked out each time the Planner draws.
+         */
+        transient boolean gotAll;
+        /**
+         * Not saved: a level milestone the supply milestones before it take you past (its target level is reached
+         * getting them): done by them. Worked out each time the Planner draws.
+         */
+        transient boolean covered;
 
         Step(String action, int from, int to, String method, double xp) {
             this.action = action;
@@ -53,7 +100,28 @@ final class SkillPlans {
         }
 
         Step copy() {
-            return new Step(action, from, to, method, xp);
+            Step copy = new Step(action, from, to, method, xp);
+            copy.note = note;
+            copy.pace = pace;
+            copy.sold = sold;
+            copy.alched = alched;
+            copy.soldEach = soldEach;
+            copy.alchedEach = alchedEach;
+            copy.dropped = dropped;
+            copy.sellBy = sellBy;
+            for (Supply supply : supplies) {
+                copy.supplies.add(new Supply(supply.skill, supply.item, supply.quantity));
+            }
+            return copy;
+        }
+
+        /** How many of its products are kept for other plans, in all. */
+        long supplied() {
+            long total = 0;
+            for (Supply supply : supplies) {
+                total += supply.quantity;
+            }
+            return total;
         }
 
         /** Whether you train it at this level. */
@@ -68,6 +136,15 @@ final class SkillPlans {
         /** What you called it ("Darts to 99"), or null for an unnamed one. */
         String name;
         final List<Step> steps = new ArrayList<>();
+        /** Made from the Skilling Helper's goal: that goal's XP (0: not made from it) and the method it was set to then
+         *  (null: its suggestions), to tell when the goal changes after. */
+        int fromGoal;
+        String fromPick;
+        /**
+         * The plan you sent to the tracker (Export to tracker): your edits to it are a draft until you send them
+         * again. Copies don't carry it (a duplicate is a new plan).
+         */
+        boolean sent;
 
         Plan(int goal) {
             this.goal = goal;
@@ -76,6 +153,8 @@ final class SkillPlans {
         Plan copy() {
             Plan out = new Plan(goal);
             out.name = name;
+            out.fromGoal = fromGoal;
+            out.fromPick = fromPick;
             for (Step step : steps) {
                 out.steps.add(step.copy());
             }
@@ -100,6 +179,31 @@ final class SkillPlans {
             }
             Step next = null;
             for (Step step : steps) {
+                if (step.from > level && (next == null || step.from < next.from)) {
+                    next = step;
+                }
+            }
+            return next;
+        }
+
+        /**
+         * Like {@link #milestone(int)}, but past the supply milestones whose supplies you have all of ({@code got}: their
+         * actions, from {@link #suppliesGot}): those are done whatever your level, so it's the next one.
+         */
+        Step milestone(int level, Set<String> got) {
+            if (got == null || got.isEmpty()) {
+                return milestone(level);
+            }
+            Step next = null;
+            for (Step step : steps) {
+                String name = step.action.toLowerCase(Locale.ROOT);
+                // (a supply milestone you have all of, or a level one the supplies before it take you past)
+                if (step.supplies.isEmpty() ? got.contains(COVERED + name) : got.contains(name)) {
+                    continue;
+                }
+                if (step.covers(level)) {
+                    return step;
+                }
                 if (step.from > level && (next == null || step.from < next.from)) {
                     next = step;
                 }
@@ -206,13 +310,108 @@ final class SkillPlans {
 
     /**
      * Exports the plan to the tracker: its final goal becomes the skill's goal (as Set as goal does, keeping where
-     * a goal underway started) and its milestones replace any exported before. A method picked on the tracker card
-     * is cleared (the plan says what to train); a Track for goal pick stays and still comes first.
+     * a goal underway started) and its milestones replace any exported before. The goal then follows the plan (Follow:
+     * Plan); a Track for goal or method pick stays saved, to switch back to.
      */
     static void export(ConfigManager configManager, Skill skill, Plan plan, int xpNow) {
         SkillGoals.setGoal(configManager, skill, plan.goalXp(), xpNow);
         configManager.setRSProfileConfiguration(GROUP, TRACKED_KEY + skill.name(), encode(plan));
-        configManager.unsetRSProfileConfiguration(GROUP, "goalMethod." + skill.name());
+        SkillGoals.setFollow(configManager, skill, SkillGoals.Follow.PLAN);
+    }
+
+    static final String GOT_KEY = "goalPlanGot.";
+    /** In {@link #supplyStates}: a level milestone the supply milestones before it take you past ("covered:yew logs"). */
+    static final String COVERED = "covered:";
+
+    /** Where a supply milestone stands, as the Planner last worked it out from your bank and inventory. */
+    static final class SupplyState {
+        /** How many of its supplies are still to get (0: you have them all, it's done). */
+        final long toGet;
+        /** The XP getting them takes you to (it ends there, partway into a level), 0 when unknown. */
+        final long endXp;
+        /** How many the other plans want of them in all, and how many of those you have (0 and 0 when unknown). */
+        final long wanted;
+        final long have;
+
+        SupplyState(long toGet, long endXp) {
+            this(toGet, endXp, 0, 0);
+        }
+
+        SupplyState(long toGet, long endXp, long wanted, long have) {
+            this.toGet = toGet;
+            this.endXp = endXp;
+            this.wanted = wanted;
+            this.have = have;
+        }
+
+        /** How far through getting them you are, 0 to 1 (by count, not levels). */
+        double progress() {
+            return wanted <= 0 ? (toGet <= 0 ? 1 : 0) : Math.max(0, Math.min(1, (double) Math.min(have, wanted) / wanted));
+        }
+    }
+
+    /**
+     * Each supply milestone's state by its action (lower case), as the Planner last saved it for the Skilling Helper
+     * ("arctic pine logs=0:0|maple logs=227:1263000"); empty when none.
+     */
+    static Map<String, SupplyState> supplyStates(ConfigManager configManager, Skill skill) {
+        String text = configManager.getRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
+        Map<String, SupplyState> out = new java.util.HashMap<>();
+        if (text != null) {
+            for (String part : text.split("\\|")) {
+                String[] kv = part.split("=", 2);
+                String action = kv[0].trim().toLowerCase(Locale.ROOT);
+                if (action.isEmpty()) {
+                    continue;
+                }
+                long[] n = new long[4];
+                if (kv.length > 1) {
+                    String[] nums = kv[1].split(":");
+                    try {
+                        for (int i = 0; i < Math.min(4, nums.length); i++) {
+                            n[i] = Long.parseLong(nums[i].trim());
+                        }
+                    } catch (NumberFormatException e) {
+                        continue;
+                    }
+                }
+                out.put(action, new SupplyState(n[0], n[1], n[2], n[3]));
+            }
+        }
+        return out;
+    }
+
+    /** The supply milestones you have all the supplies of (their actions, lower case). */
+    static Set<String> suppliesGot(ConfigManager configManager, Skill skill) {
+        Set<String> out = new HashSet<>();
+        for (Map.Entry<String, SupplyState> e : supplyStates(configManager, skill).entrySet()) {
+            if (e.getValue().toGet <= 0) {
+                out.add(e.getKey());
+            }
+        }
+        return out;
+    }
+
+    /** Saves {@link #supplyStates} (only when it changed). */
+    static void setSupplyStates(ConfigManager configManager, Skill skill, Map<String, SupplyState> states) {
+        StringBuilder text = new StringBuilder();
+        for (Map.Entry<String, SupplyState> e : new java.util.TreeMap<>(states).entrySet()) {
+            if (text.length() > 0) {
+                text.append('|');
+            }
+            SupplyState v = e.getValue();
+            text.append(e.getKey()).append('=').append(v.toGet).append(':').append(v.endXp).append(':').append(v.wanted)
+                .append(':').append(v.have);
+        }
+        String old = configManager.getRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
+        if (text.toString().equals(old == null ? "" : old)) {
+            return;
+        }
+        if (text.length() == 0) {
+            configManager.unsetRSProfileConfiguration(GROUP, GOT_KEY + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(GROUP, GOT_KEY + skill.name(), text.toString());
+        }
     }
 
     /** Removes the exported plan (the goal stays). */
@@ -227,9 +426,35 @@ final class SkillPlans {
         if (plan.name != null && !plan.name.trim().isEmpty()) {
             out.append("name\t").append(clean(plan.name.trim())).append('\n');
         }
+        if (plan.sent) {
+            out.append("sent\t1\n");
+        }
+        if (plan.fromGoal > 0) {
+            out.append("from\t").append(plan.fromGoal).append('\t').append(plan.fromPick == null ? "" : clean(plan.fromPick)).append('\n');
+        }
         for (Step step : plan.steps) {
             out.append(step.from).append('\t').append(step.to).append('\t').append(clean(step.action)).append('\t')
-                .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp).append('\n');
+                .append(step.method == null ? "" : clean(step.method)).append('\t').append(step.xp);
+            // (its supplies for other plans, when it has any: "FIREMAKING|Yew logs|30000;...", then its note)
+            // (then its supplies for other plans, "FIREMAKING|Yew logs|30000;...", its note, pace, and what you've sold
+            // and alched: each column only when it or one after it has something)
+            StringBuilder supplies = new StringBuilder();
+            for (Supply supply : step.supplies) {
+                supplies.append(supply.skill).append('|').append(clean(supply.item).replace("|", " ").replace(";", " "))
+                    .append('|').append(supply.quantity).append(';');
+            }
+            List<String> more = new ArrayList<>(java.util.Arrays.asList(supplies.toString(),
+                step.note == null ? "" : clean(step.note), step.pace == null ? "" : clean(step.pace),
+                step.sold > 0 ? String.valueOf(step.sold) : "", step.alched > 0 ? String.valueOf(step.alched) : "",
+                step.soldEach > 0 ? String.valueOf(step.soldEach) : "", step.alchedEach > 0 ? String.valueOf(step.alchedEach) : "",
+                step.sellBy == null ? "" : step.sellBy, step.dropped > 0 ? String.valueOf(step.dropped) : ""));
+            while (!more.isEmpty() && more.get(more.size() - 1).isEmpty()) {
+                more.remove(more.size() - 1);
+            }
+            for (String column : more) {
+                out.append('\t').append(column);
+            }
+            out.append('\n');
         }
         return out.toString();
     }
@@ -247,13 +472,49 @@ final class SkillPlans {
                     plan.goal = Integer.parseInt(parts[1].trim());
                 } else if (parts.length >= 2 && parts[0].equals("name")) {
                     plan.name = parts[1].trim().isEmpty() ? null : parts[1].trim();
+                } else if (parts.length >= 2 && parts[0].equals("sent")) {
+                    plan.sent = "1".equals(parts[1].trim());
+                } else if (parts.length >= 2 && parts[0].equals("from")) {
+                    plan.fromGoal = Integer.parseInt(parts[1].trim());
+                    plan.fromPick = parts.length > 2 && !parts[2].trim().isEmpty() ? parts[2].trim() : null;
                 } else if (parts.length >= 3 && !parts[2].isEmpty()) {
                     int from = Integer.parseInt(parts[0].trim());
                     int to = Integer.parseInt(parts[1].trim());
                     String method = parts.length > 3 && !parts[3].isEmpty() ? parts[3] : null;
                     double xp = parts.length > 4 && !parts[4].isEmpty() ? Double.parseDouble(parts[4]) : 0;
                     if (from >= 1 && to > from) {
-                        plan.steps.add(new Step(parts[2], from, to, method, xp));
+                        Step step = new Step(parts[2], from, to, method, xp);
+                        for (String supply : parts.length > 5 ? parts[5].split(";") : new String[0]) {
+                            String[] bits = supply.split("\\|");
+                            if (bits.length == 3) {
+                                step.supplies.add(new Supply(bits[0], bits[1], Long.parseLong(bits[2].trim())));
+                            }
+                        }
+                        if (parts.length > 6 && !parts[6].trim().isEmpty()) {
+                            step.note = parts[6].trim();
+                        }
+                        if (parts.length > 7 && !parts[7].trim().isEmpty()) {
+                            step.pace = parts[7].trim();
+                        }
+                        if (parts.length > 8 && !parts[8].trim().isEmpty()) {
+                            step.sold = Math.max(0, Long.parseLong(parts[8].trim()));
+                        }
+                        if (parts.length > 9 && !parts[9].trim().isEmpty()) {
+                            step.alched = Math.max(0, Long.parseLong(parts[9].trim()));
+                        }
+                        if (parts.length > 10 && !parts[10].trim().isEmpty()) {
+                            step.soldEach = Math.max(0, Double.parseDouble(parts[10].trim()));
+                        }
+                        if (parts.length > 11 && !parts[11].trim().isEmpty()) {
+                            step.alchedEach = Math.max(0, Double.parseDouble(parts[11].trim()));
+                        }
+                        if (parts.length > 12 && !parts[12].trim().isEmpty()) {
+                            step.sellBy = parts[12].trim();
+                        }
+                        if (parts.length > 13 && !parts[13].trim().isEmpty()) {
+                            step.dropped = Math.max(0, Long.parseLong(parts[13].trim()));
+                        }
+                        plan.steps.add(step);
                     }
                 }
             } catch (NumberFormatException e) {

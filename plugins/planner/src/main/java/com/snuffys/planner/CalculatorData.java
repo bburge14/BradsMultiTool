@@ -45,6 +45,8 @@ class CalculatorData {
         final Set<String> noBonus = new HashSet<>();
         /** Members-only (RuneLite's Skill Calculator hides it on a free world). */
         boolean members;
+        /** A minigame (from the training guides), timed by the hour: one action is an hour's play at its level. */
+        boolean minigame;
 
         Action(String name, int level, double xp, int icon, int sprite) {
             this.name = name;
@@ -184,6 +186,35 @@ class CalculatorData {
     }
 
     /** The skill's actions and bonuses (empty when there are none). */
+    /**
+     * The training guides' minigames with the wiki's rates (Wintertodt, Tempoross...) as actions of their skills, so a
+     * plan can have one: an action is an hour's play (its XP that at its first level), no bonuses, members.
+     */
+    void addMinigames(TrainingData training) {
+        for (Map.Entry<Skill, Calc> e : skills.entrySet()) {
+            for (TrainingData.Method method : training.methods(e.getKey())) {
+                if (!method.minigame || method.xpHourAt(method.from) <= 0) {
+                    continue;
+                }
+                Calc calc = e.getValue();
+                boolean there = false;
+                for (Action a : calc.actions) {
+                    there |= a.name.equalsIgnoreCase(method.name);
+                }
+                if (there) {
+                    continue;
+                }
+                Action action = new Action(method.name, method.from, method.xpHourAt(method.from), -1, -1);
+                action.members = true;
+                action.minigame = true;
+                for (Bonus bonus : calc.bonuses) {
+                    action.noBonus.add(bonus.id);
+                }
+                calc.actions.add(action);
+            }
+        }
+    }
+
     Calc calc(Skill skill) {
         Calc calc = skills.get(skill);
         return calc != null ? calc : new Calc();

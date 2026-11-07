@@ -54,6 +54,21 @@ final class SkillGoals {
         return decodeBank(configManager.getRSProfileConfiguration(GROUP, BANK_KEY));
     }
 
+    /**
+     * What went from your inventory into the bank at a deposit box (it doesn't show the bank, so the bank as last seen
+     * would miss it): each item that left the inventory, and how many. Both plugins add it to the bank they keep.
+     */
+    static Map<String, Integer> deposited(Map<String, Integer> before, Map<String, Integer> after) {
+        Map<String, Integer> out = new java.util.HashMap<>();
+        for (Map.Entry<String, Integer> e : before.entrySet()) {
+            int less = e.getValue() - after.getOrDefault(e.getKey(), 0);
+            if (less > 0) {
+                out.put(e.getKey(), less);
+            }
+        }
+        return out;
+    }
+
     static void saveBank(ConfigManager configManager, Map<String, Integer> bank) {
         configManager.setRSProfileConfiguration(GROUP, BANK_KEY, encodeBank(bank));
     }
@@ -88,6 +103,40 @@ final class SkillGoals {
             return value == null ? 0 : Integer.parseInt(value);
         } catch (NumberFormatException e) {
             return 0;
+        }
+    }
+
+    /** What a skill's goal follows: the plan you sent, your pick (Track for goal or a method), or the wiki. */
+    enum Follow {
+        PLAN("Plan"),
+        PICK("My pick"),
+        WIKI("Wiki");
+
+        final String label;
+
+        Follow(String label) {
+            this.label = label;
+        }
+    }
+
+    /** The skill's Follow, or null for the usual order (a pick, then the plan, then the wiki). */
+    static Follow follow(ConfigManager configManager, Skill skill) {
+        String saved = configManager.getRSProfileConfiguration(GROUP, "goalFollow." + skill.name());
+        if (saved == null) {
+            return null;
+        }
+        try {
+            return Follow.valueOf(saved);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    static void setFollow(ConfigManager configManager, Skill skill, Follow follow) {
+        if (follow == null) {
+            configManager.unsetRSProfileConfiguration(GROUP, "goalFollow." + skill.name());
+        } else {
+            configManager.setRSProfileConfiguration(GROUP, "goalFollow." + skill.name(), follow.name());
         }
     }
 }

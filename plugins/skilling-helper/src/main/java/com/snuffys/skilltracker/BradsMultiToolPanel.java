@@ -67,13 +67,14 @@ public class BradsMultiToolPanel extends PluginPanel {
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Color ACCENT_COLOR = new Color(0, 220, 220);
     // Level progress bar: red under a third of the way, orange under two thirds, then green
-    static final Color BAR_LOW = new Color(190, 45, 40);
-    static final Color BAR_MID = new Color(225, 135, 25);
-    static final Color BAR_HIGH = new Color(15, 165, 105);
-    static final Color BAR_BACKGROUND = new Color(60, 60, 60);
-    static final Color GOAL_FILL = new Color(200, 160, 40);
+    // (bright, so they stand out on the dark card; the text on them is white with a black shadow)
+    static final Color BAR_LOW = new Color(232, 72, 60);
+    static final Color BAR_MID = new Color(250, 165, 40);
+    static final Color BAR_HIGH = new Color(40, 205, 130);
+    static final Color BAR_BACKGROUND = new Color(48, 48, 48);
+    static final Color GOAL_FILL = new Color(238, 192, 55);
     /** A skill plan's milestone bar (under the goal's gold). */
-    static final Color MILESTONE_FILL = new Color(70, 140, 200);
+    static final Color MILESTONE_FILL = new Color(90, 170, 240);
 
     private final SkillTracker plugin;
     private final SkillTrackerConfig config;
@@ -212,7 +213,7 @@ public class BradsMultiToolPanel extends PluginPanel {
         List<Skill> goals = plugin.getGoalSkills();
         List<Skill> session = new ArrayList<>();
         for (Skill skill : tracked) {
-            // Skills without a goal drop off after a while without XP (Drop Idle Skills After)
+            // Skills without a goal drop off after a while without XP (Drop Idle After)
             if (!goals.contains(skill) && plugin.isRecentlyTrained(skill)) {
                 session.add(skill);
             }
@@ -533,11 +534,16 @@ public class BradsMultiToolPanel extends PluginPanel {
         private final JMenuItem setGoalItem = new JMenuItem("Set goal...");
         private final JMenuItem modifyGoalItem = new JMenuItem("Modify goal...");
         private final JMenuItem clearGoalItem = new JMenuItem("Clear goal");
+        // The active goal (one at a time): with Highlight For on the active goal, only it is highlighted
+        private final JMenuItem activeItem = new JMenuItem();
         private boolean pinHover;
+        private boolean wasActive;
         // What this skill's goal suggestions aim for (its own choice, or the default)
         private final JMenu focusMenu = new JMenu("Suggest");
         // Pick the guide method the suggestion uses (filled in each time the menu opens, for your level)
         private final JMenu methodMenu = new JMenu("Method");
+        // What the goal follows: your plan, your pick, or the wiki (filled in each time the menu opens)
+        private final JMenu followMenu = new JMenu("Follow");
         private final Map<SkillTrackerConfig.TrainingFocus, JRadioButtonMenuItem> focusItems = new EnumMap<>(SkillTrackerConfig.TrainingFocus.class);
         private final JRadioButtonMenuItem defaultFocusItem = new JRadioButtonMenuItem();
 
@@ -592,6 +598,10 @@ public class BradsMultiToolPanel extends PluginPanel {
                     // Only one skill is pinned at a time: pinning this one moves the pin from the other
                     if (SwingUtilities.isLeftMouseButton(e) && pinBounds().contains(e.getPoint())) {
                         plugin.setPinnedSkill(pinned ? null : skill);
+                    } else if (SwingUtilities.isLeftMouseButton(e) && foldBounds().contains(e.getPoint())) {
+                        // (layout runs again so the folded rows come back)
+                        layout = "";
+                        plugin.setListCollapsed("card." + skill.name(), !folded());
                     }
                 }
 
@@ -607,12 +617,15 @@ public class BradsMultiToolPanel extends PluginPanel {
                 @Override
                 public void mouseMoved(MouseEvent e) {
                     boolean over = pinBounds().contains(e.getPoint());
+                    boolean overFold = foldBounds().contains(e.getPoint());
                     if (over != pinHover) {
                         pinHover = over;
                         repaint();
                     }
-                    setCursor(over ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
-                    setToolTipText(over ? pinTip() : skill.getName() + " - right-click for options");
+                    setCursor(over || overFold ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+                    setToolTipText(over ? pinTip() : overFold ? (folded() ? "Click to show this card in full" : "Click to fold "
+                        + "this card to its goal bar") : skill.getName() + (wasActive ? " (your active goal)" : "")
+                        + " - right-click for options");
                 }
             });
 
@@ -633,6 +646,8 @@ public class BradsMultiToolPanel extends PluginPanel {
             menu.add(setGoalItem);
             menu.add(modifyGoalItem);
             menu.add(clearGoalItem);
+            activeItem.addActionListener(e -> plugin.setActiveGoal(skill == plugin.getActiveGoal() ? null : skill));
+            menu.add(activeItem);
             ButtonGroup focusGroup = new ButtonGroup();
             defaultFocusItem.addActionListener(e -> plugin.setTrainingFocus(skill, null));
             focusGroup.add(defaultFocusItem);
@@ -645,12 +660,14 @@ public class BradsMultiToolPanel extends PluginPanel {
                 focusMenu.add(item);
                 focusItems.put(f, item);
             }
+            menu.add(followMenu);
             menu.add(focusMenu);
             menu.add(methodMenu);
             menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
                 @Override
                 public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
                     fillMethods();
+                    fillFollow();
                 }
 
                 @Override
@@ -760,6 +777,24 @@ public class BradsMultiToolPanel extends PluginPanel {
             g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha));
             g2.drawImage(PIN_IMAGE, at.x, at.y, null);
             g2.dispose();
+            // The active goal: a gold dot beside the fold button
+            if (wasActive) {
+                Graphics2D dot = (Graphics2D) g.create();
+                dot.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                dot.setColor(new Color(255, 200, 60));
+                dot.fillOval(14, 3, 7, 7);
+                dot.dispose();
+            }
+            // The fold button, top-left: "-" open, "+" folded (plain signs, like the list headings)
+            Rectangle fold = foldBounds();
+            Graphics2D g3 = (Graphics2D) g.create();
+            g3.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g3.setColor(folded() ? Color.WHITE : new Color(160, 160, 160));
+            g3.setFont(FontManager.getRunescapeBoldFont());
+            String sign = folded() ? "+" : "-";
+            FontMetrics metrics = g3.getFontMetrics();
+            g3.drawString(sign, fold.x + (fold.width - metrics.stringWidth(sign)) / 2, fold.y + metrics.getAscent() - 1);
+            g3.dispose();
         }
 
         // Only the fields switched on under Skill Tracker, two to a row
@@ -831,8 +866,13 @@ public class BradsMultiToolPanel extends PluginPanel {
                 int remaining = Math.max(0, goalXp - xp);
                 double progress = goalXp > start ? (double) (xp - start) / (goalXp - start) : 1;
                 int goalLevel = Experience.getLevelForXp(goalXp);
-                String target = goalXp == Experience.getXpForLevel(goalLevel) ? "Goal: Lvl " + goalLevel : "Goal: " + shortNumber(goalXp);
-                String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " left";
+                String target = "Goal: " + plugin.getGoalLabel(skill, goalXp);
+                String eta = remaining == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(remaining * 3600L / xpPerHour) : shortNumber(remaining) + " xp left";
+                // (a supplies goal counts what's still to get, as its step does)
+                SkillPlans.SupplyState supplies = plugin.getGoalSupplies(skill, goalXp);
+                if (supplies != null && remaining > 0 && (xpPerHour <= 0 || paused)) {
+                    eta = String.format("%,d", supplies.toGet) + " to get";
+                }
                 goalBar.set(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta);
             }
             updateMilestone(level, goalXp, xp, xpPerHour, paused);
@@ -847,6 +887,15 @@ public class BradsMultiToolPanel extends PluginPanel {
             setGoalItem.setVisible(!hasGoal);
             modifyGoalItem.setVisible(hasGoal);
             clearGoalItem.setVisible(hasGoal);
+            // (only with Highlight For on the active goal: otherwise there's nothing it changes)
+            boolean usesActive = config.highlightGoals() == SkillTrackerConfig.HighlightGoals.ACTIVE;
+            boolean active = usesActive && skill == plugin.getActiveGoal();
+            activeItem.setVisible(hasGoal && usesActive);
+            activeItem.setText(active ? "Stop being the active goal" : "Set as active goal");
+            if (active != wasActive) {
+                wasActive = active;
+                repaint();
+            }
             if (pinned != nowPinned) {
                 pinned = nowPinned;
                 repaint();
@@ -856,6 +905,53 @@ public class BradsMultiToolPanel extends PluginPanel {
             (own != null ? focusItems.get(own) : defaultFocusItem).setSelected(true);
             focusMenu.setVisible(skill != Skill.SLAYER);
             methodMenu.setVisible(skill != Skill.SLAYER && hasGoal);
+            followMenu.setVisible(skill != Skill.SLAYER && hasGoal);
+            applyFold(hasGoal);
+        }
+
+        // Folded (its - / + button, remembered per skill): only the goal bar (no goal: the level bar)
+        private boolean folded() {
+            return plugin.isListCollapsed("card." + skill.name());
+        }
+
+        private void applyFold(boolean hasGoal) {
+            if (!folded()) {
+                stats.setVisible(true);
+                return;
+            }
+            stats.setVisible(false);
+            for (JComponent row : new JComponent[]{milestoneBar, items, suggestion, offerRow}) {
+                row.setVisible(false);
+            }
+            levelBar.setVisible(!hasGoal);
+        }
+
+        private Rectangle foldBounds() {
+            // (the top-left corner, over the skill icon's: clear of the stats)
+            return new Rectangle(0, 0, 13, 13);
+        }
+
+        // Follow: the plan (when one's sent), your pick (when one's saved) or the wiki; the others stay saved
+        private void fillFollow() {
+            followMenu.removeAll();
+            SkillGoals.Follow now = plugin.getFollow(skill);
+            ButtonGroup group = new ButtonGroup();
+            String pick = plugin.getSavedPick(skill);
+            boolean plan = plugin.hasSentPlan(skill);
+            Object[][] choices = {
+                {null, "Usual order (pick, plan, wiki)", true},
+                {SkillGoals.Follow.PLAN, plan ? "Your plan" : "Your plan (none sent)", plan},
+                {SkillGoals.Follow.PICK, pick != null ? "Your pick: " + pick : "Your pick (none saved)", pick != null},
+                {SkillGoals.Follow.WIKI, "The wiki's suggestion", true},
+            };
+            for (Object[] choice : choices) {
+                SkillGoals.Follow follow = (SkillGoals.Follow) choice[0];
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem((String) choice[1], follow == now);
+                item.setEnabled((Boolean) choice[2]);
+                item.addActionListener(e -> plugin.setFollow(skill, follow));
+                group.add(item);
+                followMenu.add(item);
+            }
         }
 
         // The plan's milestone you're on: a bar from its start to its end, with the time to it
@@ -869,14 +965,9 @@ public class BradsMultiToolPanel extends PluginPanel {
             if (!show) {
                 return;
             }
-            int start = Experience.getXpForLevel(step.from);
-            int end = Experience.getXpForLevel(step.to);
-            double progress = end > start ? (double) (xp - start) / (end - start) : 1;
-            int left = Math.max(0, end - xp);
-            String eta = left == 0 ? "Done!" : xpPerHour > 0 && !paused ? formatDuration(left * 3600L / xpPerHour) : shortNumber(left) + " left";
-            milestoneBar.set(progress, "Step: Lvl " + step.to, String.format("%.1f%%", Math.max(0, Math.min(1, progress)) * 100), eta);
-            String tip = "<html>Your plan's milestone: level " + step.to + " with " + step.action + " (from " + step.from + ")"
-                + planTip(plugin.getSkillPlan(skill), level) + "</html>";
+            GoalLines.StepBar bar = GoalLines.stepBar(plugin, skill, step, xp, xpPerHour, paused);
+            milestoneBar.set(bar.progress, bar.label, String.format("%.1f%%", bar.progress * 100), bar.right);
+            String tip = "<html>" + bar.tip + planTip(plugin.getSkillPlan(skill), level) + "</html>";
             if (!Objects.equals(milestoneBar.getToolTipText(), tip)) {
                 milestoneBar.setToolTipText(tip);
             }
@@ -902,7 +993,7 @@ public class BradsMultiToolPanel extends PluginPanel {
             if (!Objects.equals(actions.getToolTipText(), count.tip)) {
                 actions.setToolTipText(count.tip);
             }
-            setStat(actions, count.name, count.value);
+            setStat(actions, count.name, count.shortValue());
         }
 
         // "Logs: 342 (1,050/hr)" for each kind of item counted (Show Items Gathered)
@@ -936,7 +1027,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                     if (!plan.isEmpty() && plan.get(0).suggestion.planStep != null) {
                         SkillPlans.Step step = plan.get(0).suggestion.planStep;
                         lines.add(label("Milestone:") + "level " + step.to + " " + label("(" + step.action + ")"));
-                        String where = GoalLines.where(plan.get(0).suggestion);
+                        String where = GoalLines.where(plugin, skill, plan.get(0).suggestion);
                         if (where != null) {
                             lines.add(label("Where:") + where);
                         }
@@ -944,7 +1035,7 @@ public class BradsMultiToolPanel extends PluginPanel {
                         TrainingAdvisor.Stage first = plan.get(0);
                         lines.add(label(first.suggestion.label) + first.suggestion.text
                             + (plan.size() > 1 ? " " + label("to " + first.to) : ""));
-                        String where = GoalLines.where(first.suggestion);
+                        String where = GoalLines.where(plugin, skill, first.suggestion);
                         if (where != null) {
                             lines.add(label("Where:") + where);
                         }

@@ -15,6 +15,8 @@ package is renamed (com.bradsmultitool -> com.snuffys.<plugin>) and it gets its 
 Hub's layout), runelite-plugin.properties, icon, licence and README, so each folder builds on its own. The
 folders are committed: regenerate them after changing src/, and don't edit them by hand.
 """
+import json
+import hashlib
 import os
 import re
 import shutil
@@ -46,6 +48,8 @@ DEV_ONLY_TEXT = {
     " * landed, rising and fading like an XP drop (green in the ideal zone, red late).": "the tick count.",
     "the metronome, click timing and its hotkeys.": "the metronome and its hotkeys.",
     "Volume of the metronome and the click sounds (0-100)": "Volume of the metronome (0-100)",
+    # (the published plugins ship four voices)
+    " Arctic: a Scottish man. Wise Old Man, TzHaar, Ghost: characters.": "",
 }
 
 
@@ -188,10 +192,8 @@ FEATURES = {
         "**Clue drops** from monsters and skilling",
     ],
     "planner": [
-        "**Today**: the daily rewards you've unlocked (battlestaves, herb boxes, essence, runes, sand, flax, bonemeal, "
-        "dynamite, ogre arrows), ticked off as you collect them, plus your own dailies, with the time to the reset",
-        "**Weekly**: Tears of Guthix, your own weeklies, the Kingdom of Miscellania's approval and coffer, and your "
-        "farming contract",
+        "**Today**: your own dailies, ticked off by you and due again at the daily reset",
+        "**Weekly**: your own weeklies; adding either can start from a preset task (name, where and picture filled in)",
         "**Timers**: every farming patch, compost bin and Hespori you've been to, bird houses and timers of your own, "
         "with ready alerts",
         "**Slayer**: your task, kills left, points and streak",
@@ -373,7 +375,8 @@ def build(plugin_id, out_root=OUT, quiet=False):
                     shutil.copytree(source, os.path.join(res_out, "voices", persona, folder))
     title, description, tags = descriptor(spec["class"])
     with open(os.path.join(out, "runelite-plugin.properties"), "w", encoding="utf-8") as f:
-        f.write("displayName=%s\nauthor=%s\ndescription=%s\ntags=%s\nplugins=%s.%s\n" % (
+        # build=standard: the Plugin Hub builds it with its standard build (ours only needs RuneLite and Lombok)
+        f.write("displayName=%s\nauthor=%s\ndescription=%s\ntags=%s\nplugins=%s.%s\nbuild=standard\n" % (
             title, AUTHOR, description, ",".join(tags), spec["package"], spec["class"]))
     with open(os.path.join(out, "build.gradle"), "w", encoding="utf-8") as f:
         f.write(BUILD_GRADLE % dict(spec, version=version()))
@@ -446,6 +449,309 @@ def check(wanted):
     print("plugins/ is up to date")
 
 
+# ---- The friends launcher: Snuffy's Launcher without the Dev tab, in a repository of its own, that downloads the
+# plugins' own repositories (not this one), builds them and starts RuneLite with them ----
+
+# The launcher's keys for each plugin (what .launch-choice holds), as the dev launcher uses them
+DISPLAY = {"multitool": "Snuffy's Toolbelt", "skilltracker": "Skilling Helper", "pvm": "PvM/Slayer",
+           "gemcrab": "GemCrab Tracker", "tickcounter": "Tick Counter", "planner": "Planner", "voices": "Alerts"}
+
+LAUNCH_KEYS = {"multitool": "toolbelt", "skilltracker": "skilling", "pvm": "pvm", "gemcrab": "gemcrab",
+               "tickcounter": "tick", "planner": "planner", "voices": "alerts"}
+
+LAUNCHER_BAT = r"""@echo off
+rem Opens Snuffy's Launcher (scripts\launcher.ps1): it downloads and updates Snuffy's plugins, checks your setup, lets
+rem you pick which plugins to load and starts RuneLite with them. The desktop shortcut it makes opens it with no window.
+cd /d "%~dp0"
+rem A script that can't be read (a broken update) opens its errors in Notepad instead of nothing happening. (Its path
+rem goes in through a variable: a folder named with an apostrophe, "Snuffy's Launcher", can't break the check.)
+set "SNUFFYS_SCRIPT=%~dp0scripts\launcher.ps1"
+set "SNUFFYS_ERRORS=%TEMP%\snuffys-launcher-error.log"
+if exist "%SNUFFYS_ERRORS%" del "%SNUFFYS_ERRORS%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile($env:SNUFFYS_SCRIPT, [ref]$null, [ref]$e); if ($e) { ($e | Out-String) | Set-Content $env:SNUFFYS_ERRORS }"
+if exist "%SNUFFYS_ERRORS%" (
+  start "" notepad "%SNUFFYS_ERRORS%"
+  exit /b 1
+)
+start "" /min powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%SNUFFYS_SCRIPT%"
+"""
+
+LAUNCHER_VBS = r'''' Opens Snuffy's Launcher with no window at all (scripts\launcher.ps1, hidden): double-click this.
+' If the launcher's script can't be read (a broken update) its errors open in Notepad instead. Its path goes to the
+' check through a variable, so a folder named with an apostrophe ("Snuffy's Launcher") can't break it; and Notepad only
+' opens when there are errors to show (if the check itself fails, it opens the launcher anyway).
+Set shell = CreateObject("WScript.Shell")
+Set files = CreateObject("Scripting.FileSystemObject")
+folder = files.GetParentFolderName(WScript.ScriptFullName)
+script = folder & "\scripts\launcher.ps1"
+errors = shell.ExpandEnvironmentStrings("%TEMP%") & "\snuffys-launcher-error.log"
+shell.Environment("Process")("SNUFFYS_SCRIPT") = script
+shell.Environment("Process")("SNUFFYS_ERRORS") = errors
+If files.FileExists(errors) Then files.DeleteFile errors, True
+ps = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden "
+check = ps & "-Command ""$e = $null; [void][System.Management.Automation.Language.Parser]::ParseFile($env:SNUFFYS_SCRIPT, " & _
+    "[ref]$null, [ref]$e); if ($e) { ($e | Out-String) | Set-Content $env:SNUFFYS_ERRORS }"""
+shell.Run check, 0, True
+If files.FileExists(errors) Then
+    If files.GetFile(errors).Size > 0 Then
+        shell.Run "notepad.exe """ & errors & """", 1, False
+        WScript.Quit 1
+    End If
+End If
+shell.Run ps & "-File """ & script & """", 0, False
+'''
+
+RUNNER_SETTINGS = """plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
+rootProject.name = 'snuffys-runner'
+"""
+
+RUNNER_BUILD = """// Builds the plugins the launcher downloaded (../plugins/<name>, each its own repository) together and starts a RuneLite
+// developer client with the ones chosen: gradlew runSnuffys -Pclasses=com.snuffys.planner.PlannerPlugin,...
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'https://repo.runelite.net'
+        content {
+            includeGroupByRegex("net\\\\.runelite.*")
+        }
+    }
+    mavenCentral()
+}
+
+def runeLiteVersion = 'latest.release'
+
+dependencies {
+    implementation group: 'net.runelite', name: 'client', version: runeLiteVersion
+    implementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+// Every downloaded plugin's code and resources (each in its own package, so they build side by side)
+def pluginsDir = file('../plugins')
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            if (pluginsDir.isDirectory()) {
+                pluginsDir.eachDir { srcDir new File(it, 'src/main/java') }
+            }
+        }
+        resources {
+            if (pluginsDir.isDirectory()) {
+                pluginsDir.eachDir { srcDir new File(it, 'src/main/resources') }
+            }
+        }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+tasks.withType(JavaExec).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release.set(11)
+}
+
+tasks.register('runSnuffys', JavaExec) {
+    group = 'application'
+    description = "Run RuneLite with Snuffy's plugins (-Pclasses=their plugin classes)"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.snuffys.launcher.SnuffysRunner'
+    args = ['--developer-mode']
+    // (RuneLite's developer client won't load plugins without assertions on)
+    jvmArgs '-ea'
+    systemProperty 'snuffys.classes', project.findProperty('classes') ?: ''
+}
+"""
+
+RUNNER_MAIN = """package com.snuffys.launcher;
+
+import java.util.ArrayList;
+import java.util.List;
+import net.runelite.client.RuneLite;
+import net.runelite.client.externalplugins.ExternalPluginManager;
+import net.runelite.client.plugins.Plugin;
+
+/**
+ * Starts RuneLite with Snuffy's plugins loaded (the launcher passes their classes in snuffys.classes, comma separated).
+ */
+public class SnuffysRunner {
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) throws Exception {
+        List<Class<? extends Plugin>> plugins = new ArrayList<>();
+        for (String name : System.getProperty("snuffys.classes", "").split(",")) {
+            if (!name.trim().isEmpty()) {
+                plugins.add((Class<? extends Plugin>) Class.forName(name.trim()));
+            }
+        }
+        System.out.println("Loading Snuffy's: " + plugins);
+        ExternalPluginManager.loadBuiltin(plugins.toArray(new Class[0]));
+        RuneLite.main(args);
+    }
+}
+"""
+
+LAUNCHER_README = """# Snuffy's Launcher
+
+Runs [Snuffy's plugins](https://github.com/bburge14/snuffys-toolbelt) in RuneLite before (or alongside) the Plugin Hub:
+it downloads each plugin, keeps them up to date, and starts RuneLite with the ones you pick. No commands to type and
+nothing else to install: it gets what it needs itself.
+
+## Getting it
+
+**Download [Snuffys-Launcher-Setup.exe](https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe)
+and double-click it.** It installs Snuffy's Launcher in your own folder (no admin rights needed), puts it on your
+desktop and opens it. ([All releases](https://github.com/bburge14/snuffys-launcher/releases).)
+
+Your browser and Windows may warn about it, because it's new and not code-signed (paid certificates are what make
+that go away): in **Edge**, "isn't commonly downloaded": hover the download, click **...** > **Keep** > **Show more** >
+**Keep anyway**; in **Chrome**, click **Keep**. When you open it, if Windows says "Windows protected your PC": **More
+info** > **Run anyway**. You only need to do this once: the launcher updates itself after that.
+
+Or without the installer: download the [zip](https://github.com/bburge14/snuffys-launcher/archive/refs/heads/main.zip),
+unzip it where you'd like to keep it, double-click **Snuffy's Launcher** in the folder, and click **Make a desktop
+shortcut** at the bottom of its window.
+
+You need **Windows** and **RuneLite** ([runelite.net](https://runelite.net/)). The first time, the launcher downloads
+the plugins and, if your PC has no Java, a Java of its own into its folder (about 190 MB, once). Nothing is installed
+in Windows.
+
+## Using it
+
+- Work down the **Setup** rows until they're ticked: RuneLite found, session saving turned on (the launcher can do it
+  for you), a Jagex session saved (log in once through the Jagex Launcher), Java.
+- Pick **Snuffy's Toolbelt** (everything in one) or the separate plugins you want (the ✕ beside one removes it; + adds
+  it back), and press **Launch RuneLite**. The first launch downloads RuneLite and builds the plugins, so it takes a
+  few minutes.
+- It updates the plugins (and itself) on its own while it's open. When the chip under its name says RuneLite is
+  behind, press **Relaunch** to get the update.
+
+Your settings and plans are kept in RuneLite, per account, as with any plugin.
+"""
+
+LAUNCHER_IGNORE = """plugins/
+runner/build/
+runner/.gradle/
+.gradle/
+.launch-choice
+.launcher-zoom
+.launch-runelite
+.running-commit
+.hub-seen
+.removed-plugins
+.plugin-state.json
+.update-result.json
+.java-download.txt
+java/
+"""
+
+
+SETUP_EXE = "Snuffys-Launcher-Setup.exe"
+
+
+def setup_fingerprint():
+    """The installer's source and icon, line endings evened out (a Windows checkout has CRLF): it's rebuilt when this changes."""
+    digest = hashlib.sha256()
+    for part in (os.path.join(ROOT, "scripts", "setup", "SnuffysSetup.cs"), os.path.join(ROOT, "assets", "launcher.ico")):
+        if os.path.exists(part):
+            with open(part, "rb") as f:
+                data = f.read()
+            digest.update(data.replace(b"\r\n", b"\n") if part.endswith(".cs") else data)
+    return digest.hexdigest()
+
+
+def compile_setup(source, target):
+    """Builds the installer with mcs (Mono) or csc (.NET Framework, in every Windows); leaves the old one if neither."""
+    icon = os.path.join(ROOT, "assets", "launcher.ico")
+    refs = ["System.Windows.Forms.dll", "System.Drawing.dll"]
+    csc = os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe")
+    if shutil.which("mcs"):
+        command = ["mcs", "-langversion:5", "-target:winexe", "-out:" + target] + ["-r:" + ref for ref in refs]
+    elif os.path.exists(csc):
+        command = [csc, "/nologo", "/target:winexe", "/out:" + target] + ["/r:" + ref for ref in refs]
+    else:
+        return
+    if os.path.exists(icon):
+        command.append(("-" if command[0] == "mcs" else "/") + "win32icon:" + icon)
+    command.append(source)
+    subprocess.run(command, check=True, stdout=subprocess.DEVNULL)
+
+
+def build_launcher(publish_path=os.path.join(ROOT, "publish.json")):
+    """plugins/launcher: the friends launcher (pushed to its own repository like the plugins)."""
+    out = os.path.join(OUT, "launcher")
+    shutil.rmtree(out, ignore_errors=True)
+    os.makedirs(os.path.join(out, "scripts"))
+    with open(os.path.join(out, "Launch-Snuffys.bat"), "w", newline="\r\n") as f:
+        f.write(LAUNCHER_BAT)
+    for name in ("launcher.ps1", "update-plugins.ps1", "get-java.ps1"):
+        shutil.copy2(os.path.join(ROOT, "scripts", name), os.path.join(out, "scripts", name))
+    # The double-click that opens it with no window at all (a .bat always flashes a console)
+    with open(os.path.join(out, "Snuffy's Launcher.vbs"), "w", newline="\r\n") as f:
+        f.write(LAUNCHER_VBS)
+    os.makedirs(os.path.join(out, "assets", "hub"))
+    for name in os.listdir(os.path.join(ROOT, "assets", "hub")):
+        if name.endswith(".png"):
+            shutil.copy2(os.path.join(ROOT, "assets", "hub", name), os.path.join(out, "assets", "hub", name))
+    icon = os.path.join(ROOT, "assets", "launcher.ico")
+    if os.path.exists(icon):
+        shutil.copy2(icon, os.path.join(out, "assets", "launcher.ico"))
+    # Each plugin: its repository (from publish.json), its plugin class, its launcher key
+    with open(publish_path, encoding="utf-8") as f:
+        repos = json.load(f)["plugins"]
+    plugins = []
+    for plugin_id, spec in PLUGINS.items():
+        entry = repos.get(spec["folder"])
+        if not entry or not entry.get("repo"):
+            continue
+        plugins.append({"key": LAUNCH_KEYS[plugin_id], "folder": spec["folder"], "name": DISPLAY.get(plugin_id, spec["name"]),
+                        "repo": entry["repo"], "branch": entry.get("branch", "master"),
+                        "class": spec["package"] + "." + spec["class"]})
+    launcher = repos.get("launcher", {})
+    with open(os.path.join(out, "friends.json"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump({"_about": "The plugins Snuffy's Launcher downloads (each its own repository) and the class it loads; "
+                             "launcher is its own repository (it updates itself from there)",
+                   "launcher": {"repo": launcher.get("repo", ""), "branch": launcher.get("branch", "main")},
+                   "plugins": plugins}, f, indent=2)
+        f.write("\n")
+    runner = os.path.join(out, "runner")
+    os.makedirs(os.path.join(runner, "src", "main", "java", "com", "snuffys", "launcher"))
+    for name, text in (("settings.gradle", RUNNER_SETTINGS), ("build.gradle", RUNNER_BUILD)):
+        with open(os.path.join(runner, name), "w", newline="\n") as f:
+            f.write(text)
+    with open(os.path.join(runner, "src", "main", "java", "com", "snuffys", "launcher", "SnuffysRunner.java"), "w",
+              newline="\n") as f:
+        f.write(RUNNER_MAIN)
+    for name in ("gradlew", "gradlew.bat"):
+        shutil.copy2(os.path.join(ROOT, name), os.path.join(runner, name))
+    shutil.copytree(os.path.join(ROOT, "gradle"), os.path.join(runner, "gradle"))
+    # The one-file installer to send friends (Snuffys-Launcher-Setup.exe) isn't kept here: Push to repos builds it into
+    # the launcher's own repository (publish_plugins.setup_installer), only when its source changed, so this repository
+    # never has a generated program in it (a rebuild or a locked copy blocked updating on Windows)
+    for name, text in (("README.md", LAUNCHER_README), (".gitignore", LAUNCHER_IGNORE)):
+        with open(os.path.join(out, name), "w", newline="\n") as f:
+            f.write(text)
+    return out
+
+
 def main():
     wanted = [a for a in sys.argv[1:] if not a.startswith("--")] or list(PLUGINS)
     if "--check" in sys.argv:
@@ -458,6 +764,9 @@ def main():
             print("%-12s compiles on its own" % plugin_id)
         if "--build" in sys.argv:
             release(plugin_id, out)
+    if wanted == list(PLUGINS):
+        out = build_launcher()
+        print("%-12s friends launcher written" % "launcher")
 
 
 if __name__ == "__main__":

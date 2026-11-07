@@ -1,0 +1,14 @@
+plugins/
+runner/build/
+runner/.gradle/
+.gradle/
+.launch-choice
+.launcher-zoom
+.launch-runelite
+.running-commit
+.hub-seen
+.removed-plugins
+.plugin-state.json
+.update-result.json
+.java-download.txt
+java/

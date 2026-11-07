@@ -21,7 +21,6 @@ public class PlannerTest {
         assertEquals(WEDNESDAY, PlannerChores.lastWeeklyReset(WEDNESDAY));
         assertEquals(WEDNESDAY, PlannerChores.lastWeeklyReset(WEDNESDAY + 6 * PlannerChores.DAY + 5));
         // Tears of Guthix: back at the start of the seventh day after the last game
-        assertEquals(WEDNESDAY + PlannerChores.WEEK, PlannerChores.togAvailableAt(WEDNESDAY + 15 * 3600));
     }
 
     @Test

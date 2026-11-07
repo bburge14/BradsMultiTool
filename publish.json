@@ -1,6 +1,9 @@
 {
   "_about": "Where each plugins/<folder> is published (scripts/publish_plugins.py). Make each repository on GitHub first (empty is fine). hubName is the plugin's file name in runelite/plugin-hub's plugins/ folder.",
   "pluginHubFork": "https://github.com/bburge14/plugin-hub.git",
+  "_aboutAuthor": "The name and email on the plugin repositories' commits when git has none set on this PC (GitHub's private no-reply address, so your real email isn't public).",
+  "authorName": "SgtSnufffy",
+  "authorEmail": "bburge14@users.noreply.github.com",
   "plugins": {
     "skilling-helper": {
       "repo": "https://github.com/bburge14/snuffys-skilling-helper.git",
@@ -42,7 +45,17 @@
       "repo": "https://github.com/bburge14/snuffys-toolbelt.git",
       "hubName": "snuffys-toolbelt",
       "publish": true,
-      "branch": "main"
+      "branch": "main",
+      "hub": false
+    },
+    "launcher": {
+      "repo": "https://github.com/bburge14/snuffys-launcher.git",
+      "hubName": "snuffys-launcher",
+      "publish": true,
+      "branch": "main",
+      "hub": false
     }
-  }
+  },
+  "_aboutHub": "\"hub\": false keeps a plugin out of Publish to RuneLite while Push to repos still updates its repository.",
+  "_aboutLauncher": "launcher is the friends launcher (plugins/launcher, made by split_plugins.py): Push to repos sends it to its own repository; never published to RuneLite."
 }

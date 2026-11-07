@@ -17,7 +17,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "About",
-        description = "<div width='300'>Snuffy's Planner: a sidebar tab with your dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, and a to-do list with notes. Clashes (a warning icon among the info boxes while they're on): RuneLite's Daily Task Indicator, Loot Tracker and Idle Notifier. Open the Guide for every feature and how to use it.",
+        description = "<div width='300'>Snuffy's Planner: a sidebar tab with your dailies and weeklies, farming, bird house and your own timers, your Slayer task, a drop tracker, and a to-do list with notes. Clashes (a warning icon among the info boxes while they're on): RuneLite's Loot Tracker and Idle Notifier. Open the Guide for every feature and how to use it.",
         position = -10
     )
     String aboutSection = "aboutSection";
@@ -73,7 +73,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Today",
-        description = "<div width='300'>The TODAY list: daily rewards to collect (from the game) and your own daily to-dos, and the voice line when there are some to do",
+        description = "<div width='300'>The TODAY list: your own daily to-dos (examples show until you add one), and the voice line when there are some to do",
         position = 70,
         closedByDefault = true
     )
@@ -81,7 +81,7 @@ public interface PlannerConfig extends CommonConfig {
 
     @ConfigSection(
         name = "Weekly",
-        description = "<div width='300'>The WEEKLY list: Tears of Guthix, your own weekly to-dos, the Kingdom of Miscellania and the farming contract",
+        description = "<div width='300'>The WEEKLY list: your own weekly to-dos (examples show until you add one)",
         position = 71,
         closedByDefault = true
     )
@@ -219,28 +219,6 @@ public interface PlannerConfig extends CommonConfig {
         return true;
     }
 
-    @ConfigItem(
-        keyName = "plannerShowKingdom",
-        name = "Kingdom of Miscellania",
-        description = "<div width='300'>Your kingdom's approval and coffer, as last seen (the game sends them while you're there, or once they've changed); after Throne of Miscellania",
-        section = plannerWeeklySection,
-        position = 4
-    )
-    default boolean plannerShowKingdom() {
-        return true;
-    }
-
-    @ConfigItem(
-        keyName = "plannerShowContract",
-        name = "Farming Contract",
-        description = "<div width='300'>Your farming contract from Guinevere at the Farming Guild: what it is, how the patch is doing (from TIMERS), or that it's done",
-        section = plannerWeeklySection,
-        position = 5
-    )
-    default boolean plannerShowContract() {
-        return true;
-    }
-
     // ---- Timers ----
 
     @ConfigItem(
@@ -331,6 +309,43 @@ public interface PlannerConfig extends CommonConfig {
         return true;
     }
 
+    /** What a plan's products are worth: sold on the GE, high alched, or whichever pays more. */
+    enum SellBy {
+        BEST("Best price"),
+        GE("Grand Exchange"),
+        ALCH("High alch"),
+        DROP("Drop (powerlevel)");
+
+        private final String label;
+
+        SellBy(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    /** Whether plans treat you as an ironman: from your account, or always, or never. */
+    enum IronmanPlans {
+        AUTO("From account"),
+        ALWAYS("Always"),
+        NEVER("Never");
+
+        private final String label;
+
+        IronmanPlans(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     /** How your own timers say they're done: the voice line, or a game sound. */
     enum TimerSound {
         VOICE("Voice line", -1),
@@ -396,6 +411,28 @@ public interface PlannerConfig extends CommonConfig {
         position = 11
     )
     default boolean chatTimerDone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "plannerGeLimits",
+        name = "GE Buy Limits",
+        description = "<div width='300'>In TIMERS: each item you've bought on the Grand Exchange in the last 4 hours, how much of its buy limit that's used and when it resets; for a buy offer that isn't filling, whether it's the limit or your price (yours against the current one). From your own offers as they fill (the game keeps no times for trades): fills while you were logged out count from when they were seen, so their reset is \"by\" that time. Information only",
+        section = plannerTimersSection,
+        position = 12
+    )
+    default boolean plannerGeLimits() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatGeLimitReset",
+        name = "Chat: Buy Limit Reset",
+        description = "<div width='300'>Chat message when an item's buy limit resets, for one you'd used up or still have a buy offer for",
+        section = plannerTimersSection,
+        position = 13
+    )
+    default boolean chatGeLimitReset() {
         return true;
     }
 
@@ -519,11 +556,88 @@ public interface PlannerConfig extends CommonConfig {
         return true;
     }
 
+    @ConfigItem(
+        keyName = "plannerPlanOverlay",
+        name = "Plan Overlay",
+        description = "<div width='300'>A card on the game screen for the plan of the skill you're training (the plan open in the Calculator): the milestone you're on, its method, a bar to its end with the XP and actions left, the next milestone and your materials for this one. Not for a plan linked to a Skilling Helper goal: its pinned skill card shows that one",
+        section = plannerCalculatorSection,
+        position = 3
+    )
+    default boolean plannerPlanOverlay() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "plannerIronman",
+        name = "Plan As Ironman",
+        description = "<div width='300'>Plans for an ironman: every material you can gather or make comes from the skill that gets it (logs from Woodcutting, bars from Smithing and their ore from Mining), listed in those skills' plans as supplies, and the money plan is left out. From your account: when the game says it's an ironman account",
+        section = plannerCalculatorSection,
+        position = 6
+    )
+    default IronmanPlans plannerIronman() {
+        return IronmanPlans.AUTO;
+    }
+
+    @ConfigItem(
+        keyName = "plannerHourWorth",
+        name = "Hour Worth (gp)",
+        description = "<div width='300'>For Suggest a plan's Balanced: what an hour of your time is worth in gp, so a faster method that costs more is picked only when the time it saves is worth what it costs",
+        section = plannerCalculatorSection,
+        position = 7
+    )
+    default int plannerHourWorth() {
+        return 3_000_000;
+    }
+
+    @ConfigItem(
+        keyName = "plannerSellBy",
+        name = "Sell By",
+        description = "<div width='300'>What a plan's products are worth: the Grand Exchange price after its 2% tax, high alchemy (the alch value less a nature rune), nothing when you drop them to powerlevel, or whichever pays more for each item (marked \"alch\" where alching wins). A milestone's Record sales... says what you really did with them",
+        section = plannerCalculatorSection,
+        position = 8
+    )
+    default SellBy plannerSellBy() {
+        return SellBy.BEST;
+    }
+
+    @ConfigItem(
+        keyName = "plannerYourPrices",
+        name = "Use Your Own Prices",
+        description = "<div width='300'>In plans and the money plan, an item you've bought or sold on the Grand Exchange in the last week goes at what you really paid or got (your trades' average, as they filled), not the GE price; marked \"your price\". Trades are seen while RuneLite runs with the Planner on",
+        section = plannerCalculatorSection,
+        position = 5
+    )
+    default boolean plannerYourPrices() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "chatPlanMilestone",
+        name = "Chat: Milestone Done",
+        description = "<div width='300'>A game chat message when you finish a milestone of your plan (the one open in the Calculator), naming the next one, and when you reach the plan's goal",
+        section = plannerCalculatorSection,
+        position = 4
+    )
+    default boolean chatPlanMilestone() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "compactOverlays",
+        name = "Compact Overlays",
+        description = "<div width='300'>The plan overlay shows only the essentials (the plan, the milestone's bar and the actions left). Off: everything</div>",
+        section = generalSection,
+        position = 90
+    )
+    default boolean compactOverlays() {
+        return false;
+    }
+
     // ---- Generated by scripts/generate_config_defaults.py: CommonConfig's settings as this plugin's own (don't edit) ----
     @ConfigItem(
         keyName = "voicePersona",
         name = "Voice Persona",
-        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
+        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, John: UK and US men. Random: a different one each alert",
         section = generalSection,
         position = 1
     )
@@ -812,7 +926,7 @@ public interface PlannerConfig extends CommonConfig {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyRestoredAt",
-        name = "Run Energy Restored At",
+        name = "Run Restored At",
         description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
         section = idleSection,
         position = 16

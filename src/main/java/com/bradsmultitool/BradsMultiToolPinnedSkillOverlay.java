@@ -96,28 +96,28 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
             int goalStart = Math.min(plugin.getSkillGoalStart(skill), xp);
             double progress = goalXp > goalStart ? (double) (xp - goalStart) / (goalXp - goalStart) : 1;
             int goalLevel = Experience.getLevelForXp(goalXp);
-            String target = goalXp == Experience.getXpForLevel(goalLevel) ? "Goal: Lvl " + goalLevel : "Goal: " + BradsMultiToolPanel.shortNumber(goalXp);
+            String target = "Goal: " + plugin.getGoalLabel(skill, goalXp);
             int left = Math.max(0, goalXp - xp);
-            String eta = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate) : BradsMultiToolPanel.shortNumber(left) + " left";
+            String eta = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate) : BradsMultiToolPanel.shortNumber(left) + " xp left";
+            // (a supplies goal counts what's still to get, as its step does)
+            SkillPlans.SupplyState supplies = plugin.getGoalSupplies(skill, goalXp);
+            if (supplies != null && left > 0 && (rate <= 0 || paused)) {
+                eta = String.format("%,d", supplies.toGet) + " to get";
+            }
             panelComponent.getChildren().add(bar(progress, target, String.format("%.1f%%", Math.min(1, progress) * 100), eta, BradsMultiToolPanel.GOAL_FILL));
             // Your skill plan's milestone (exported from the Planner): its own bar, from its start to its end
             SkillPlans.Step milestone = left > 0 ? plugin.getPlanMilestone(skill, level) : null;
             if (milestone != null) {
-                int from = Experience.getXpForLevel(milestone.from);
-                int to = Experience.getXpForLevel(milestone.to);
-                double done = to > from ? (double) (xp - from) / (to - from) : 1;
-                int toGo = Math.max(0, to - xp);
-                String when = toGo == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(toGo * 3600L / rate)
-                    : BradsMultiToolPanel.shortNumber(toGo) + " left";
+                GoalLines.StepBar step = GoalLines.stepBar(plugin, skill, milestone, xp, rate, paused);
                 // (a little room between it and the goal bar, as on the sidebar card)
                 panelComponent.getChildren().add(new Spacer(2));
-                panelComponent.getChildren().add(bar(done, "Step: Lvl " + milestone.to,
-                    String.format("%.1f%%", Math.max(0, Math.min(1, done)) * 100), when, BradsMultiToolPanel.MILESTONE_FILL));
+                panelComponent.getChildren().add(bar(step.progress, step.label, String.format("%.1f%%", step.progress * 100),
+                    step.right, BradsMultiToolPanel.MILESTONE_FILL));
             }
             String suggestion = suggestion(skill, level);
             if (suggestion != null) {
                 panelComponent.getChildren().add(new TextBlockComponent(suggestion, SOFT, false));
-                String where = plugin.getGoalTarget(skill) == null ? GoalLines.where(currentSuggestion(skill, level)) : null;
+                String where = plugin.getGoalTarget(skill) == null ? GoalLines.where(plugin, skill, currentSuggestion(skill, level)) : null;
                 if (where != null) {
                     panelComponent.getChildren().add(new TextBlockComponent("Where: " + where, SOFT, false));
                 }
@@ -151,7 +151,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         // Actions (or kills) left, as on the tracker card
         if (full && config.showTrackerActions() && (goalXp > 0 || !GoalLines.KILL_SKILLS.contains(skill))) {
             GoalLines.Actions count = GoalLines.actions(plugin, config, skill, xp, stepEndLevel(skill, level, goalXp));
-            line(count.name + ":", count.value, Color.WHITE);
+            line(count.longName() + ":", count.value, Color.WHITE);
         }
         return super.render(graphics);
     }
@@ -188,7 +188,7 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         }
         TrainingAdvisor.Suggestion now = plan.get(0).suggestion;
         if (now.planStep != null) {
-            return "Plan: " + now.text + " (to " + now.planStep.to + ")";
+            return "Plan: " + now.text + (now.planStep.supplies.isEmpty() ? " (to " + now.planStep.to + ")" : " (supplies)");
         }
         return now.label + " " + now.text + (plan.size() > 1 ? " (to " + plan.get(0).to + ")" : "");
     }
@@ -230,7 +230,9 @@ public class BradsMultiToolPinnedSkillOverlay extends OverlayPanel {
         bar.setValue(Math.max(0, Math.min(1, progress)) * 1000);
         bar.setLabelDisplayMode(ProgressBarComponent.LabelDisplayMode.TEXT_ONLY);
         bar.setLeftLabel(left);
-        bar.setCenterLabel(centre);
+        // (the overlay's bar puts its middle text in the middle whatever: a long left label ("Goal: Supplies") would run
+        // into it, so then it's left out, as the sidebar's bar does)
+        bar.setCenterLabel(left.length() > 12 || left.length() + right.length() > 20 ? "" : centre);
         bar.setRightLabel(right);
         bar.setForegroundColor(fill);
         bar.setBackgroundColor(BradsMultiToolPanel.BAR_BACKGROUND);

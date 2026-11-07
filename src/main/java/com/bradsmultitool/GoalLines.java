@@ -24,11 +24,29 @@ final class GoalLines {
         final String name;
         final String value;
         final String tip;
+        /** What it counts to ("lvl 60", "goal"), or null (supplies: the name says it). */
+        final String target;
 
         Actions(String name, String value, String tip) {
+            this(name, value, tip, null);
+        }
+
+        Actions(String name, String value, String tip, String target) {
             this.name = name;
             this.value = value;
             this.tip = tip;
+            this.target = target;
+        }
+
+        /** "Actions to lvl 60" (the pinned skill's full-width line). */
+        String longName() {
+            return target == null ? name : name + " to " + target;
+        }
+
+        /** "1,026 (60)" (the sidebar card's half-width cell). */
+        String shortValue() {
+            return target == null || "--".equals(value) ? value
+                : value + " (" + (target.startsWith("lvl ") ? target.substring(4) : target) + ")";
         }
     }
 
@@ -48,6 +66,51 @@ final class GoalLines {
     private GoalLines() {
     }
 
+    /** A plan milestone's bar: its name, how far through (0 to 1), the right-hand text and its tooltip. */
+    static final class StepBar {
+        final String label;
+        final double progress;
+        final String right;
+        final String tip;
+
+        StepBar(String label, double progress, String right, String tip) {
+            this.label = label;
+            this.progress = progress;
+            this.right = right;
+            this.tip = tip;
+        }
+    }
+
+    /**
+     * The bar for the plan milestone you're on. A supply milestone is the supplies, not levels: filled by how many you
+     * have of what the other plan wants, and done when you have them all, whatever level that is. Any other runs from
+     * its start level to its end level.
+     */
+    static StepBar stepBar(SkillTracker plugin, Skill skill, SkillPlans.Step step, int xp, int rate, boolean paused) {
+        SkillPlans.SupplyState supply = plugin.getSupplyState(skill, step);
+        if (supply != null && supply.wanted > 0) {
+            String consumer = step.supplies.get(0).skill;
+            try {
+                consumer = Skill.valueOf(consumer).getName();
+            } catch (IllegalArgumentException e) {
+                // (as saved)
+            }
+            String right = supply.toGet <= 0 ? "Done!" : String.format("%,d", supply.toGet) + " to get";
+            String tip = "Your plan's milestone: " + step.action + " for your " + consumer + " plan<br>You have "
+                + String.format("%,d", Math.min(supply.have, supply.wanted)) + " of the " + String.format("%,d", supply.wanted)
+                + " it wants (bank and inventory)<br>It ends when you have them all, whatever level that is";
+            return new StepBar("Supplies", supply.progress(), right, tip);
+        }
+        int start = Experience.getXpForLevel(Math.max(1, step.from));
+        int end = plugin.getMilestoneEndXp(skill, step);
+        double progress = end > start ? (double) (xp - start) / (end - start) : 1;
+        int left = Math.max(0, end - xp);
+        String right = left == 0 ? "Done!" : rate > 0 && !paused ? BradsMultiToolPanel.formatDuration(left * 3600L / rate)
+            : BradsMultiToolPanel.shortNumber(left) + " xp left";
+        return new StepBar("Step: Lvl " + step.to, Math.max(0, Math.min(1, progress)), right,
+            "Your plan's milestone: level " + step.to + " with " + step.action + " (from " + step.from + ")");
+    }
+
     /**
      * Actions left until the next level, or (with Actions Until Goal) until the goal or the end of the plan's
      * step you're on ({@code stepEndLevel}, 0 if the method doesn't change before the goal). Per action: your
@@ -62,8 +125,29 @@ final class GoalLines {
         boolean toGoal = (config.trackerActionsToGoal() || milestone != null) && goalXp > xp;
         int remaining = toGoal ? goalXp - xp : toNextLevel;
         String until = toGoal ? "until your goal" : "until the next level";
+        // A supply milestone counts its supplies still to get (what it's for), not the actions to its level
+        // (switching every few seconds with the actions to the next level, as the other counts do)
+        SkillPlans.SupplyState supply = toGoal ? plugin.getSupplyState(skill, milestone) : null;
+        boolean nextPhase = (System.currentTimeMillis() / 5000) % 2 == 1;
+        if (supply != null && supply.toGet > 0) {
+            if (!nextPhase || toNextLevel <= 0) {
+                String consumer = milestone.supplies.get(0).skill;
+                try {
+                    consumer = Skill.valueOf(consumer).getName();
+                } catch (IllegalArgumentException e) {
+                    // (as saved)
+                }
+                return new Actions("To get", String.format("%,d", supply.toGet), "<html>" + milestone.action + " still to get for your "
+                    + consumer + " plan (what's in your bank and inventory counted)<br>The Planner works this out as you go: buy or "
+                    + "bank some and it goes down<br>Switches with the actions to the next level</html>");
+            }
+            // The other half of the time: the actions to the next level
+            toGoal = false;
+            remaining = toNextLevel;
+            until = "until the next level";
+        }
         if (toGoal && milestone != null) {
-            int milestoneXp = Experience.getXpForLevel(Math.min(Experience.MAX_REAL_LEVEL, milestone.to));
+            int milestoneXp = plugin.getMilestoneEndXp(skill, milestone);
             if (milestoneXp > xp && milestoneXp < goalXp) {
                 remaining = milestoneXp - xp;
                 until = "until level " + milestone.to + ", your plan's milestone";
@@ -104,7 +188,16 @@ final class GoalLines {
                 : "the suggested method";
             tip += " (estimated from " + from + " until your first XP drop)";
         }
-        String value = perAction > 0 && remaining > 0 ? prefix + BradsMultiToolPanel.shortNumber((int) Math.ceil(remaining / perAction)) : "--";
+        // What it counts to, in its name ("Actions to lvl 60", "Kills to goal"); when that isn't the next level, it
+        // switches every few seconds between that and the next level, saying which
+        String target = until.startsWith("until your goal") ? "goal" : until.startsWith("until level ")
+            ? "lvl " + until.substring("until level ".length()).split("[ ,]")[0] : "lvl " + Math.min(Experience.MAX_REAL_LEVEL, level + 1);
+        int counted = remaining;
+        if (remaining != toNextLevel && toNextLevel > 0 && (System.currentTimeMillis() / 5000) % 2 == 1) {
+            counted = toNextLevel;
+            target = "lvl " + (level + 1);
+        }
+        String value = perAction > 0 && counted > 0 ? prefix + BradsMultiToolPanel.shortNumber((int) Math.ceil(counted / perAction)) : "--";
         // The hover names what the count is to, and with a goal gives the other count too
         if (perAction > 0 && goalXp > xp && toNextLevel > 0) {
             String noun = name.toLowerCase();
@@ -115,16 +208,27 @@ final class GoalLines {
                 + "<br>Your goal: " + goalCount + " " + noun + (toGoal && remaining == goalXp - xp ? " (shown)" : "")
                 + (toGoal && remaining != goalXp - xp ? "<br>Shown: " + shown : "") + "</html>";
         }
-        return new Actions(name, value, tip);
+        return new Actions(name, value, tip, target);
     }
 
-    /** Where to do the suggested method: "Prifddinas (+4 more)", or null when the guide doesn't say. */
-    static String where(TrainingAdvisor.Suggestion suggestion) {
+    /**
+     * Where to do the suggested method: where you've been training it, when that's one of its places, else the best
+     * of them ("Woodcutting Guild (17)"); null when there are none. (The rest are in the Planner's Where.)
+     */
+    static String where(SkillTracker plugin, Skill skill, TrainingAdvisor.Suggestion suggestion) {
         if (suggestion == null || suggestion.method == null || suggestion.method.places.isEmpty()) {
             return null;
         }
         List<String> places = suggestion.method.places;
-        return places.get(0) + (places.size() > 1 ? " (+" + (places.size() - 1) + " more)" : "");
+        String trained = plugin == null ? null : plugin.getTrainedAt(skill);
+        if (trained != null) {
+            for (String place : places) {
+                if (place.equals(trained) || place.startsWith(trained + " (") || place.startsWith(trained + ":")) {
+                    return place;
+                }
+            }
+        }
+        return places.get(0);
     }
 
     /**

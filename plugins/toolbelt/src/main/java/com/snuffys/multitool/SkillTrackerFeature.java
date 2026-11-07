@@ -23,6 +23,7 @@ class SkillTrackerFeature {
     @Inject private QuestProgress questProgress;
     @Inject private KillTracker killTracker;
     @Inject private GoalItems goalItems;
+    @Inject private LocationData locationData;
     @Inject private GoalTargetMenu goalTargetMenu;
     @Inject private MethodDetector methodDetector;
     @Inject private AgilityTracker agilityTracker;
@@ -65,7 +66,7 @@ class SkillTrackerFeature {
     @Inject private PluginIdentity identity;
 
     // The resource timers' on/off switches (and the one Timers When Not Training switch) became an Always /
-    // While training / Off choice per kind under new keys: carry your old choice over the first time
+    // Training / Off choice per kind under new keys: carry your old choice over the first time
     private static final String[][] TIMER_KEYS = {
         {"showTreeTimer", "treeTimers"}, {"showMiningTimer", "miningTimers"}, {"showFishingSpotTimer", "fishingSpotTimers"},
         {"showTrapTimer", "trapTimers"}, {"showFireTimer", "fireTimers"}, {"showCampfireTimer", "campfireTimers"},
@@ -104,11 +105,24 @@ class SkillTrackerFeature {
         }
     }
 
+    // Auto-pause went back to a minute (10 seconds paused between slow logs, a yew at 60): once, for players who still
+    // have the old 10 seconds
+    private void autoPauseMinute() {
+        String group = identity.configGroup;
+        if (configManager.getConfiguration(group, "autoPauseMinute") == null) {
+            configManager.setConfiguration(group, "autoPauseMinute", true);
+            if ("10".equals(configManager.getConfiguration(group, "autoPauseSeconds"))) {
+                configManager.setConfiguration(group, "autoPauseSeconds", 60);
+            }
+        }
+    }
+
     void start(Lifecycle lifecycle) {
         configDefaults.add(() -> {
             migrateTimerSettings();
             turnOnPillarChat();
             shortenAutoPause();
+            autoPauseMinute();
             SkillTrackerConfigDefaults.store(configDefaults, config);
         });
         // Kill counts use monster hitpoints; Slayer goals suggest a Slayer master
@@ -118,6 +132,7 @@ class SkillTrackerFeature {
         lifecycle.load(skillHelperData, skillHelperData::load);
         lifecycle.load(slayerData, slayerData::load);
         lifecycle.load(trainingData, trainingData::load);
+        lifecycle.load(locationData, locationData::load);
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(moneyData, moneyData::load);
         lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, arenaRoute, obstacleReps, skillingAlerts, forestryAlerts, motherlodeSack, wintertodtHelper,

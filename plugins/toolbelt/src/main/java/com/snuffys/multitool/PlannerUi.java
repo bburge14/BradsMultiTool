@@ -124,6 +124,123 @@ final class PlannerUi {
         return text == null ? "" : text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
+    /** About the widest a tooltip's line may be, in characters, before it's wrapped (at {@link #TIP_WIDTH}). */
+    private static final int TIP_CHARS = 46;
+    private static final int TIP_WIDTH = 225;
+
+    /**
+     * A tooltip that's never wider than about {@value #TIP_WIDTH} px: one with a line longer than that wraps (plain text
+     * too); short ones keep their own width. Every Planner tooltip goes through this.
+     */
+    static String fit(String tip) {
+        if (tip == null || tip.isEmpty()) {
+            return tip;
+        }
+        boolean html = tip.regionMatches(true, 0, "<html>", 0, 6);
+        String body = html ? tip.substring(6).replaceFirst("(?i)</html>\\s*$", "") : esc(tip).replace("\n", "<br>");
+        int longest = 0;
+        for (String line : body.split("(?i)<br>|</tr>|</table>|</div>|<table")) {
+            String text = line.replaceAll("<[^>]*>", "").replace("&nbsp;", " ").replaceAll("&[a-z]+;", "x");
+            longest = Math.max(longest, text.length());
+        }
+        if (longest <= TIP_CHARS) {
+            return html ? tip : tip;
+        }
+        return "<html><body style='width:" + TIP_WIDTH + "px'>" + body + "</body></html>";
+    }
+
+    /**
+     * A tooltip laid out like the game's: a bold title (and a muted line under it), gold section headers, rows of a
+     * label and its value lined up in columns (values coloured: gains green, losses red), plain lines, and a muted hint
+     * at the bottom. Text given is plain (escaped here); {@link #build} gives the HTML.
+     */
+    static final class Tip {
+        static final String GOOD = "#5ac85a";
+        static final String BAD = "#e66e64";
+        static final String WARN = "#f2b450";
+        static final String MUTED = "#a0a0a0";
+        static final String GOLD = "#ff981f";
+        static final String BLUE = "#8ab4f8";
+
+        private final StringBuilder out = new StringBuilder("<html>");
+        private boolean inTable;
+        private boolean afterTable;
+
+        Tip(String title, String under) {
+            out.append("<b><font color='#ffffff'>").append(esc(title)).append("</font></b>");
+            if (under != null && !under.isEmpty()) {
+                out.append("&nbsp;&nbsp;<font color='").append(MUTED).append("'>").append(esc(under)).append("</font>");
+            }
+        }
+
+        /** A gold header starting a group of rows. */
+        Tip section(String name) {
+            newLine();
+            out.append("<font color='").append(GOLD).append("'><b>").append(esc(name)).append("</b></font>");
+            return this;
+        }
+
+        /** A label and its value (coloured, or plain white with null). */
+        Tip row(String label, String value, String color) {
+            if (!inTable) {
+                afterTable = false;
+                out.append("<table cellpadding='0' cellspacing='0'>");
+                inTable = true;
+            }
+            // (the label column the same width in every section, so the values line up down the whole tip)
+            out.append("<tr><td width='105'><font color='#c8c8c8'>").append(esc(label).replace("  ", "&nbsp;&nbsp;")).append("</font></td>")
+                .append("<td align='right'><font color='").append(color == null ? "#ffffff" : color).append("'>")
+                .append(esc(value).replace("  ", "&nbsp;&nbsp;")).append("</font></td></tr>");
+            return this;
+        }
+
+        Tip row(String label, String value) {
+            return row(label, value, null);
+        }
+
+        /** A line of its own (coloured, or plain with null). */
+        Tip line(String text, String color) {
+            newLine();
+            if (color != null) {
+                out.append("<font color='").append(color).append("'>").append(esc(text)).append("</font>");
+            } else {
+                out.append("<font color='#dcdcdc'>").append(esc(text)).append("</font>");
+            }
+            return this;
+        }
+
+        Tip line(String text) {
+            return line(text, null);
+        }
+
+        /** What clicking does, muted, at the bottom. */
+        Tip hint(String text) {
+            return line(text, MUTED);
+        }
+
+        String build() {
+            close();
+            return out.append("</html>").toString();
+        }
+
+        // Ends a table of rows; the next line then starts below it without a <br> (a table is a block of its own)
+        private void close() {
+            if (inTable) {
+                out.append("</table>");
+                inTable = false;
+                afterTable = true;
+            }
+        }
+
+        private void newLine() {
+            close();
+            if (!afterTable) {
+                out.append("<br>");
+            }
+            afterTable = false;
+        }
+    }
+
     // ---- Headers ----
 
     /**
@@ -243,6 +360,44 @@ final class PlannerUi {
         JLabel last;
         JLabel lastRight;
 
+        /** A fifth line's left and right text (null until {@link #fifth} adds it). */
+        JLabel fifth;
+        JLabel fifthRight;
+
+        /** Adds a fifth line of muted text under the fourth (after {@link #fourth}). */
+        Card fifth(String leftText, String rightText) {
+            JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            info.setLayout(new java.awt.GridLayout(info.getComponentCount() + 1, 1));
+            fifth = label(leftText, MUTED);
+            fifth.setMinimumSize(new Dimension(0, 0));
+            fifthRight = label(rightText == null ? "" : rightText, MUTED);
+            fifthRight.setHorizontalAlignment(SwingConstants.RIGHT);
+            JPanel row = new JPanel(new BorderLayout(4, 0));
+            row.setOpaque(false);
+            row.add(fifth, BorderLayout.CENTER);
+            row.add(fifthRight, BorderLayout.EAST);
+            info.add(row);
+            return this;
+        }
+
+        /** Another line of text under the ones it has (any number): its left and right labels. */
+        JLabel[] line(String leftText, String rightText) {
+            JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            info.setLayout(new java.awt.GridLayout(info.getComponentCount() + 1, 1));
+            JLabel l = label(leftText, MUTED);
+            l.setMinimumSize(new Dimension(0, 0));
+            // (cut short with "..." on a narrow card: the whole of it on hover, unless the caller gives a tooltip)
+            l.setToolTipText(fit(leftText));
+            JLabel r = label(rightText == null ? "" : rightText, MUTED);
+            r.setHorizontalAlignment(SwingConstants.RIGHT);
+            JPanel row = new JPanel(new BorderLayout(4, 0));
+            row.setOpaque(false);
+            row.add(l, BorderLayout.CENTER);
+            row.add(r, BorderLayout.EAST);
+            info.add(row);
+            return new JLabel[] {l, r};
+        }
+
         /** Adds a fourth line of muted text under the third (after {@link #third}). */
         Card fourth(String leftText, String rightText) {
             JPanel info = (JPanel) ((BorderLayout) top.getLayout()).getLayoutComponent(BorderLayout.CENTER);
@@ -318,6 +473,10 @@ final class PlannerUi {
             if (last != null) {
                 last.setForeground(FAINT);
                 lastRight.setForeground(FAINT);
+            }
+            if (fifth != null) {
+                fifth.setForeground(FAINT);
+                fifthRight.setForeground(FAINT);
             }
             return this;
         }
@@ -454,7 +613,7 @@ final class PlannerUi {
             setPreferredSize(new Dimension(20, 20));
             setMinimumSize(new Dimension(20, 20));
             setMaximumSize(new Dimension(20, 20));
-            setToolTipText(tooltip);
+            setToolTipText(fit(tooltip));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             addMouseListener(new MouseAdapter() {
                 @Override
@@ -502,7 +661,7 @@ final class PlannerUi {
     /** The link's text alone, to put in a header. */
     static JLabel linkLabel(String text, String tooltip, Runnable action) {
         JLabel label = label(text, MUTED);
-        label.setToolTipText(tooltip);
+        label.setToolTipText(fit(tooltip));
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         label.addMouseListener(new MouseAdapter() {
             @Override
@@ -578,7 +737,7 @@ final class PlannerUi {
     static void tips(Container root, String tooltip) {
         everywhere(root, c -> {
             if (c instanceof JComponent && !(c instanceof IconButton)) {
-                ((JComponent) c).setToolTipText(tooltip);
+                ((JComponent) c).setToolTipText(fit(tooltip));
             }
         });
     }
@@ -624,7 +783,7 @@ final class PlannerUi {
 
     /** The drawn icons: the tabs', the header buttons' and the timer buttons'. */
     enum Shape {
-        PLUS, PLAY, STOP, AGAIN, TRASH, CHECKLIST, CLOCK, SKULL, BAG, NOTE, BACK, CALCULATOR, SEARCH
+        PLUS, PLAY, STOP, AGAIN, TRASH, CHECKLIST, CLOCK, SKULL, BAG, NOTE, BACK, CALCULATOR, SEARCH, PIN
     }
 
     static final class Glyph implements Icon {
@@ -752,6 +911,13 @@ final class PlannerUi {
                         }
                     }
                     break;
+                case PIN: {
+                    // A push pin leaning left: its round head, the collar, and the needle
+                    g.fill(new Ellipse2D.Double(8, 2, 6, 6));
+                    g.draw(new Line2D.Double(6, 6.5, 10.5, 11));
+                    g.draw(new Line2D.Double(8, 9, 3, 14));
+                    break;
+                }
                 case SEARCH:
                     g.draw(new Ellipse2D.Double(2.5, 2.5, 8, 8));
                     g.draw(new Line2D.Double(9.4, 9.4, 13.5, 13.5));
