@@ -1215,7 +1215,7 @@ class SkillTracker {
     }
 
     private void saveSession(boolean always) {
-        if (config.keepSessionMinutes() <= 0 || configManager.getRSProfileKey() == null) {
+        if (config.keepSessionHours() <= 0 || configManager.getRSProfileKey() == null) {
             return;
         }
         SavedSession session = currentSession(System.currentTimeMillis());
@@ -1239,7 +1239,7 @@ class SkillTracker {
         }
         SavedSession saved = decode(configManager.getRSProfileConfiguration(identity.configGroup, SESSION_KEY));
         long now = System.currentTimeMillis();
-        if (saved == null || !recentEnough(saved.savedAt, now, config.keepSessionMinutes())
+        if (saved == null || !recentEnough(saved.savedAt, now, config.keepSessionHours() * 60)
             || gainedSkillXp.values().stream().anyMatch(gained -> gained > 0) || !itemCounts.isEmpty()) {
             return;
         }

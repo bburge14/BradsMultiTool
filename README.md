@@ -188,7 +188,7 @@ work a resource.
 - Right-click to pause, reset the rate, reset or hide a skill.
 - Level-up alerts say the skill and level ("Woodcutting level... 45!").
 - **Items gathered**: logs, fish, ore and gems, food cooked and burnt this session, with how many an hour, on the card and the pinned skill.
-- **Keeps your session** after a restart: log back in within 30 minutes (**Keep Session For**) and the tracker carries on.
+- **Keeps your session** after a restart: log back in within a week (**Keep Session For**, in hours, up to 30 days) and the tracker carries on.
 - **Skills tab goal bars**: a thin gold bar on the game's Skills tab under each skill with a goal.
 - **Issues?** button (top-right of the tracker) opens a new GitHub issue.
 

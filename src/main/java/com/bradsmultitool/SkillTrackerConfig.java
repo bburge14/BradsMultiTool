@@ -1675,17 +1675,17 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
-    @Range(max = 240)
-    @Units(Units.MINUTES)
+    @Range(max = 720)
+    @Units(Units.HOURS)
     @ConfigItem(
-        keyName = "keepSessionMinutes",
+        keyName = "keepSessionHours",
         name = "Keep Session For",
-        description = "<div width='300'>When you restart the client and log back in to the same account within this long of logging out (or of your last XP, if the client closed without logging out), the tracker carries on with that session's XP, rates and items instead of starting again (0: always start again)",
+        description = "<div width='300'>When you restart the client and log back in to the same account within this long of logging out or closing it, the tracker carries on with that session's XP, rates and items instead of starting again (up to 30 days; 0: always start again). Reset rate or Reset all skills starts one fresh any time",
         section = trackerSection,
         position = 14
     )
-    default int keepSessionMinutes() {
-        return 30;
+    default int keepSessionHours() {
+        return 168;
     }
 
     @ConfigItem(
