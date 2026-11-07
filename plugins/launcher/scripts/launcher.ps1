@@ -693,7 +693,8 @@ namespace Snuffys
             Form.AutoScaleDimensions = new SizeF(96F, 96F);
             Form.AutoScaleMode = AutoScaleMode.Dpi;
             Form.Text = "Snuffy's Launcher";
-            Form.FormBorderStyle = FormBorderStyle.FixedSingle;
+            // Resizable: dragging an edge zooms the whole window (everything in it is placed by hand), kept for next time
+            Form.FormBorderStyle = FormBorderStyle.Sizable;
             Form.MaximizeBox = false;
             Form.StartPosition = FormStartPosition.CenterScreen;
             Form.ClientSize = new Size(480, 760);
@@ -727,6 +728,15 @@ namespace Snuffys
                 Form.Scale(new SizeF(scale / done, scale / done));
             }
             Theme.Px = scale;
+            fitWidth = Form.ClientSize.Width;
+            fitHeight = Form.ClientSize.Height;
+            // The size you last dragged it to (its zoom from the screen's own scale), then drags zoom it
+            float saved = SavedZoom();
+            if (saved > 0)
+            {
+                Zoom(saved);
+            }
+            Form.ResizeEnd += delegate { ZoomToWidth(); };
             // The focus on Launch (Enter launches), not on a text box with its text all selected
             Form.Shown += delegate { Form.ActiveControl = Launch; UpdateLog.Select(0, 0); };
         }
@@ -1237,6 +1247,99 @@ namespace Snuffys
             Dev.Controls.Add(output);
             Dev.Controls.Add(top);
             Form.Controls.Add(Dev);
+        }
+
+        // The window's size at its zoom now (its height follows its width, so it keeps its shape)
+        private int fitWidth;
+        private int fitHeight;
+
+        private string ZoomFile
+        {
+            get { return Path.Combine(root, ".launcher-zoom"); }
+        }
+
+        // The zoom you last chose (0.6 to 1.6, against the screen's scale), or 0 for none
+        private float SavedZoom()
+        {
+            try
+            {
+                if (File.Exists(ZoomFile))
+                {
+                    float z;
+                    if (float.TryParse(File.ReadAllText(ZoomFile).Trim(), System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out z) && z >= 0.6f && z <= 1.6f && Math.Abs(z - 1) > 0.02f)
+                    {
+                        return z;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // unreadable: the normal size
+            }
+            return 0;
+        }
+
+        // A drag ended: zoom everything to the new width (within 60%-160% of the normal size), and keep it
+        private void ZoomToWidth()
+        {
+            int width = Form.ClientSize.Width;
+            if (Math.Abs(width - fitWidth) < 4 && Math.Abs(Form.ClientSize.Height - fitHeight) < 4)
+            {
+                return;
+            }
+            if (Math.Abs(width - fitWidth) < 4)
+            {
+                // (only the height dragged: the shape stays)
+                Form.ClientSize = new Size(fitWidth, fitHeight);
+                return;
+            }
+            float normal = 480 * Form.CurrentAutoScaleDimensions.Width / 96f;
+            float target = Math.Max(0.6f, Math.Min(1.6f, width / normal));
+            Zoom(target * normal / fitWidth);
+            try
+            {
+                File.WriteAllText(ZoomFile, (fitWidth / normal).ToString("0.000", System.Globalization.CultureInfo.InvariantCulture));
+            }
+            catch (Exception)
+            {
+                // not kept: the normal size next time
+            }
+        }
+
+        // Everything bigger or smaller by this much: places, sizes and text
+        private void Zoom(float by)
+        {
+            Form.SuspendLayout();
+            // (the whole window at once, as WinForms scales it for the screen: its pages' cards stretch with them)
+            Form.Scale(new SizeF(by, by));
+            ZoomFonts(Form, by);
+            // (the setup checklist's buttons are taken off the window while it's folded: zoomed with it all the same)
+            foreach (SetupRow row in Rows.Values)
+            {
+                if (row.Button.Parent == null)
+                {
+                    row.Button.Scale(new SizeF(by, by));
+                    Font font = row.Button.Font;
+                    row.Button.Font = new Font(font.FontFamily, Math.Max(5f, font.SizeInPoints * by), font.Style, GraphicsUnit.Point);
+                }
+            }
+            fitWidth = (int) Math.Round(fitWidth * by);
+            fitHeight = (int) Math.Round(fitHeight * by);
+            Form.ClientSize = new Size(fitWidth, fitHeight);
+            Theme.Px *= by;
+            Form.ResumeLayout(true);
+            Form.Invalidate(true);
+        }
+
+        private static void ZoomFonts(Control control, float by)
+        {
+            foreach (Control child in control.Controls)
+            {
+                Font font = child.Font;
+                child.Font = new Font(font.FontFamily, Math.Max(5f, font.SizeInPoints * by), font.Style, GraphicsUnit.Point);
+                ZoomFonts(child, by);
+            }
         }
 
         // A dark window with some text in it, resizable, closed with Esc or its button

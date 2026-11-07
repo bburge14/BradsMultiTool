@@ -23,3 +23,4 @@ plugins/*/.gradle/
 .repo-state-git/
 # The friends installer: built by Push to repos into the launcher repository only
 Snuffys-Launcher-Setup.exe
+.launcher-zoom

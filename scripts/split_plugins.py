@@ -652,6 +652,7 @@ runner/build/
 runner/.gradle/
 .gradle/
 .launch-choice
+.launcher-zoom
 .launch-runelite
 .running-commit
 .hub-seen
