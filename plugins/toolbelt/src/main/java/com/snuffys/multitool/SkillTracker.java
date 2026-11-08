@@ -856,11 +856,31 @@ class SkillTracker {
         if (!config.clearReachedGoals() || goal <= 0 || xp < goal || configManager.getRSProfileKey() == null) {
             return;
         }
+        // A goal your plan sets that still has supplies to get isn't reached: the XP is only where they were
+        // expected to take you (XP bonuses get there sooner); the Planner moves it on as you get them
+        if (suppliesLeft(skill)) {
+            return;
+        }
         int level = Experience.getLevelForXp(goal);
         String target = goal == Experience.getXpForLevel(level) ? "level " + level : String.format("%,d XP", goal);
         setSkillGoal(skill, 0);
         client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName + "]</col> "
             + skill.getName() + " goal reached (" + target + "): cleared. Set Goal for your next one.", null);
+    }
+
+    // Whether the plan the goal follows still has a supply milestone with supplies to get
+    private boolean suppliesLeft(Skill skill) {
+        SkillPlans.Plan plan = getSkillPlan(skill);
+        if (plan == null) {
+            return false;
+        }
+        for (SkillPlans.Step step : plan.steps) {
+            SkillPlans.SupplyState state = getSupplyState(skill, step);
+            if (state != null && state.toGet > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Whether the tracker's "goals" or "session" list is folded away (kept between launches). */
