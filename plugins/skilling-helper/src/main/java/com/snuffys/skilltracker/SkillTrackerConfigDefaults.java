@@ -36,6 +36,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("chatTreeGone", config.chatTreeGone());
         defaults.store("voiceForestryEvent", config.voiceForestryEvent());
         defaults.store("chatForestryEvent", config.chatForestryEvent());
+        defaults.store("forestryHighlights", config.forestryHighlights());
         defaults.store("voiceBirdNest", config.voiceBirdNest());
         defaults.store("chatBirdNest", config.chatBirdNest());
         defaults.store("miningTimers", config.showMiningTimer());

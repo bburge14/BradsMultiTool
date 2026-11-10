@@ -104,7 +104,7 @@ fishing spot gets its tile outlined with a picture of what it gives, the outline
 
 | Skill | What you get |
 |---|---|
-| Woodcutting | Tree card (level, XP, your axe in its metal colour, best axe for you); a pie on every tree being chopped (Forestry timer, counting every player chopping, pulsing once it can fall on the next log); tree fallen alert |
+| Woodcutting | Tree card (level, XP, your axe: green when it's your best, orange when there's better, best axe for you); a status light on every tree being chopped (Forestry timer, counting every player chopping, flashing once it can fall on the next log; or a pie: Tree Timer); tree fallen alert; **Forestry events**: an alert saying which and what to do, and what to click outlined and labelled on screen (Chop the glowing root, the sapling's mulch in order, the bushes to pollinate, Disarm the fox trap, Take egg / Give egg, Build the hive, Stand here on the ritual circle, Bank logs at the rainbow; **Forestry Highlights**) |
 | Mining | Rock card; pies on Motherlode Mine veins, calcified rocks, Daeyalt essence and shooting stars (exact, from the star's layer health); rock depleted alert |
 | Prayer | Libation bowl card: your blessed bone shards, the XP they give, wine and prayer points needed, the level they reach; shards count as a Prayer goal item |
 | Fishing | Spot card for every kind of spot (net, bait, lure, cage, harpoon, karambwan, anglerfish, dark crab, eels, minnows, aerial, boat spots...): what each way of fishing it catches, level, XP, tool needed; timers on spots showing the window they move in (per spot type), how long ago each appeared, (optionally) a gold ring on the newest spot (the best one to fish) and your spot highlighted; fishing spot moved alert |

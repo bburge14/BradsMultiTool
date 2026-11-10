@@ -22,4 +22,15 @@ public class ForestryEventsTest {
         assertEquals("Leprechaun", ForestryAlerts.eventOfNpc(NpcID.GATHERING_EVENT_WOODCUTTING_LEPRECHAUN));
         assertEquals("Enchantment Ritual", ForestryAlerts.eventOfNpc(NpcID.GATHERING_EVENT_ENCHANTED_RITUAL_DRYAD));
     }
+
+    @Test
+    public void ritualCircleIsTheOddOneOut() {
+        // Two pairs of matching shapes and colours, and one circle whose shape and colour are both unpaired
+        int a1 = NpcID.GATHERING_EVENT_ENCHANTED_RITUAL_A_1;
+        int a2 = NpcID.GATHERING_EVENT_ENCHANTED_RITUAL_A_2;
+        int b1 = NpcID.GATHERING_EVENT_ENCHANTED_RITUAL_B_1;
+        int b2 = NpcID.GATHERING_EVENT_ENCHANTED_RITUAL_B_2;
+        int c3 = NpcID.GATHERING_EVENT_ENCHANTED_RITUAL_C_3;
+        assertEquals(4, ForestryGuide.solve(new int[] {a1, b2, a2, b1, c3}));
+    }
 }

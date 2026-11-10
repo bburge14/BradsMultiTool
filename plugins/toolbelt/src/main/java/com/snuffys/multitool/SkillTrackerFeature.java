@@ -34,6 +34,9 @@ class SkillTrackerFeature {
     @Inject private BradsMultiToolArenaMinimapOverlay arenaMinimapOverlay;
     @Inject private SkillingAlerts skillingAlerts;
     @Inject private ForestryAlerts forestryAlerts;
+    // What each Forestry event wants you to click, and its overlay
+    @Inject private ForestryGuide forestryGuide;
+    @Inject private ForestryOverlay forestryOverlay;
     @Inject private MotherlodeSack motherlodeSack;
     @Inject private WintertodtHelper wintertodtHelper;
     @Inject private TemporossHelper temporossHelper;
@@ -135,11 +138,11 @@ class SkillTrackerFeature {
         lifecycle.load(locationData, locationData::load);
         lifecycle.load(recipeData, recipeData::load);
         lifecycle.load(moneyData, moneyData::load);
-        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, arenaRoute, obstacleReps, skillingAlerts, forestryAlerts, motherlodeSack, wintertodtHelper,
+        lifecycle.subscribe(skillTracker, combatStyle, questProgress, killTracker, goalItems, goalTargetMenu, methodDetector, agilityTracker, arenaRoute, obstacleReps, skillingAlerts, forestryAlerts, forestryGuide, motherlodeSack, wintertodtHelper,
             temporossHelper, riftHelper, sailingAlerts,
             resourceTimers, farmingData, birdhouseTracker, hunterRumours, otherTimerPlugins, skillingOverlay, trainingOverlay);
         otherTimerPlugins.refresh();
-        lifecycle.overlay(skillingOverlay, resourceTimerOverlay, agilityOverlay, arenaOverlay, arenaMinimapOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay, minigameOverlay, skillsTabOverlay);
+        lifecycle.overlay(forestryOverlay, skillingOverlay, resourceTimerOverlay, agilityOverlay, arenaOverlay, arenaMinimapOverlay, trainingOverlay, goalItemOverlay, pinnedSkillOverlay, minigameOverlay, skillsTabOverlay);
         skillTracker.startUp();
         lifecycle.onStop(skillTracker::shutDown);
     }
