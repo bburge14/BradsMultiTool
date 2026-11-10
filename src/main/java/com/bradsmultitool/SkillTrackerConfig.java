@@ -434,7 +434,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "forestryHighlights",
         name = "Forestry Highlights",
-        description = "<div width='300'>Outline what each Forestry event wants you to click, with what to do: the glowing roots (Chop), the sapling's mulch (in order once it says), the flowering bushes to pollinate, the fox trap (Disarm), egg nests and the Freaky Forester, the unfinished beehive (Build), the ritual circle to stand on, the end of the rainbow. While RuneLite's Woodcutting plugin is on and highlights an event, that one's left to it",
+        description = "<div width='300'>Outline what each Forestry event wants you to click, with what to do: the glowing roots (Chop), the sapling's mulch (in order once it says), the flowering bushes to pollinate, the fox trap (Disarm), egg nests and the Freaky Forester, the unfinished beehive (Build), the ritual circle to stand on, the ends of the rainbow to stand under (luck) and the leprechaun (banks your logs). While RuneLite's Woodcutting plugin is on and highlights an event, that one's left to it",
         section = woodcuttingSection,
         position = 7
     )

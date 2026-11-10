@@ -54,7 +54,7 @@ class ForestryAlerts {
         HOW.put("Rising Roots", "chop the roots, the glowing ones first");
         HOW.put("Struggling Sapling", "mulch the sapling with the right ingredients from the bushes");
         HOW.put("Flowering Tree", "tend the flowering bushes, pairing the matching ones");
-        HOW.put("Leprechaun", "bank your logs free at the end of the rainbow");
+        HOW.put("Leprechaun", "stand under each end of the rainbow for luck; he banks your logs");
         HOW.put("Poachers", "disarm the fox traps the poachers lay");
         HOW.put("Pheasant Control", "take eggs from empty nests to the Freaky Forester");
         HOW.put("Bee Hive", "build the unfinished hives with your logs");

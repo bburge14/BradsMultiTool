@@ -47,6 +47,8 @@ class ForestryGuide {
     final List<GameObject> nests = new ArrayList<>();
     NPC forester;
     NPC unfinishedHive;
+    /** The Woodcutting Leprechaun: a free deposit box for your logs. */
+    NPC leprechaun;
     final List<NPC> circles = new ArrayList<>(5);
     final List<GameObject> rainbows = new ArrayList<>();
 
@@ -161,6 +163,8 @@ class ForestryGuide {
         int id = npc.getId();
         if (isFlower(id)) {
             flowers.add(npc);
+        } else if (id == NpcID.GATHERING_EVENT_WOODCUTTING_LEPRECHAUN) {
+            leprechaun = npc;
         } else if (id == NpcID.GATHERING_EVENT_POACHERS_TRAP) {
             foxTrap = npc;
         } else if (id == NpcID.GATHERING_EVENT_PHEASANT_FORESTER) {
@@ -185,6 +189,9 @@ class ForestryGuide {
         }
         if (foxTrap == npc) {
             foxTrap = null;
+        }
+        if (leprechaun == npc) {
+            leprechaun = null;
         }
         if (forester == npc) {
             forester = null;
@@ -258,6 +265,7 @@ class ForestryGuide {
                 flowers.clear();
                 activeFlowers.clear();
                 foxTrap = null;
+                leprechaun = null;
                 forester = null;
                 unfinishedHive = null;
                 circles.clear();

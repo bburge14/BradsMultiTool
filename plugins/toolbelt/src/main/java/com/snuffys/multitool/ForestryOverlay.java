@@ -123,12 +123,16 @@ class ForestryOverlay extends Overlay {
             tile(graphics, circle.getCanvasTilePoly(), GO);
             label(graphics, circle, "Stand here", GO);
         }
-        // Leprechaun: the end of the rainbow banks your logs
+        // Leprechaun: stand under each end of the rainbow for Leprechaun's luck (more XP and bark); he banks your logs
         if (!guide.theyHighlight("highlightLeprechaunRainbow")) {
             for (GameObject rainbow : guide.rainbows) {
                 tile(graphics, rainbow.getCanvasTilePoly(), GO);
-                label(graphics, rainbow, "Bank logs here", GO);
+                label(graphics, rainbow, "Stand here (luck)", GO);
             }
+        }
+        if (guide.leprechaun != null) {
+            tile(graphics, guide.leprechaun.getCanvasTilePoly(), GOLD);
+            label(graphics, guide.leprechaun, "Bank logs", GOLD);
         }
         return null;
     }
