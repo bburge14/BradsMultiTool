@@ -79,7 +79,9 @@ class ForestryOverlay extends Overlay {
                 }
                 Color colour = at.length() > 0 ? GO : GOLD;
                 tile(graphics, ingredient.getCanvasTilePoly(), colour);
-                label(graphics, ingredient, at.length() > 0 ? "Mulch " + at : "Try this", colour);
+                // (the sapling only says a pile's place when your mulch has it there: the ones not known yet say
+                // which places are still to find)
+                label(graphics, ingredient, at.length() > 0 ? "Mulch " + at : "Try for " + missing(), colour);
             }
         }
         // Flowering bushes: all, then the pair you're pollinating between
@@ -129,6 +131,17 @@ class ForestryOverlay extends Overlay {
             }
         }
         return null;
+    }
+
+    // "1st, 2nd": the places in the sapling's order no pile is known for yet
+    private String missing() {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < guide.order.length; i++) {
+            if (guide.order[i] == null) {
+                out.append(out.length() == 0 ? "" : ", ").append(i == 0 ? "1st" : i == 1 ? "2nd" : "3rd");
+            }
+        }
+        return out.toString();
     }
 
     private static void tile(Graphics2D graphics, Polygon poly, Color colour) {
