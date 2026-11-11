@@ -1213,7 +1213,7 @@ class PlannerCalculator {
                 }
                 // The action is one item; a recipe can make several at once (10 darts from 10 tips and 10 feathers)
                 cost /= per;
-                Sale sale = consumed(recipe) ? new Sale(0, 0, sell)
+                Sale sale = consumed(recipe) || RecipeData.builtInPlace(skill, recipe) ? new Sale(0, 0, sell)
                     : new Sale(price.applyAsInt(recipe.name), selling.alch(recipe.name), sell);
                 double worth = sale.worth();
                 double profit = worth - cost;

@@ -32,7 +32,12 @@ class ItemPrices {
 
     /** What making the recipe once earns (output less materials); negative when it costs. */
     double profit(RecipeData.Recipe recipe) {
-        double value = price(recipe.name);
+        return profit(null, recipe);
+    }
+
+    /** As above, for a skill: Construction's furniture is worth nothing (it's part of your house, not an item). */
+    double profit(net.runelite.api.Skill skill, RecipeData.Recipe recipe) {
+        double value = RecipeData.builtInPlace(skill, recipe) ? 0 : price(recipe.name);
         for (Map.Entry<String, Integer> material : recipe.materials.entrySet()) {
             value -= price(material.getKey()) * (double) material.getValue();
         }

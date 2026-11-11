@@ -203,4 +203,17 @@ class RecipeData {
         }
         return best;
     }
+    /**
+     * Construction you don't get to keep: furniture and the like become part of your house (or a ship, a camp), so
+     * they're worth nothing to sell, though many share a name with a flatpack that trades. Only what you make at a
+     * workbench or schematic, repair kits and hull parts are items.
+     */
+    static boolean builtInPlace(net.runelite.api.Skill skill, RecipeData.Recipe recipe) {
+        if (skill != net.runelite.api.Skill.CONSTRUCTION) {
+            return false;
+        }
+        String name = recipe.name.toLowerCase(java.util.Locale.ROOT);
+        return recipe.facility == null && !name.endsWith("repair kit") && !name.contains("hull parts");
+    }
+
 }

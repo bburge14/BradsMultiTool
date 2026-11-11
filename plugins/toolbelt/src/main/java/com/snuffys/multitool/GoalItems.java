@@ -401,7 +401,7 @@ class GoalItems {
                 double xp = xp(recipe);
                 PrayerMethod method = prayerMethod(recipe);
                 return total ? xp * recipe.makeable(have) / (method != null ? method.bonesUsedEach() : 1)
-                    : perXp ? prices.profit(recipe) / xp : byProfit ? prices.profit(recipe) : xp;
+                    : perXp ? prices.profit(skill, recipe) / xp : byProfit ? prices.profit(skill, recipe) : xp;
             };
             // Your "Track for goal" item: only what uses it, shown even when you've run out
             String target = plugin.getGoalTarget(skill);

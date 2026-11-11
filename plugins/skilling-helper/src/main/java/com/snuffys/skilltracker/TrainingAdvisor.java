@@ -146,7 +146,7 @@ class TrainingAdvisor {
             case CHEAPEST:
                 RecipeData.Recipe recipe = cheapest(skill, level);
                 if (recipe != null) {
-                    double gpPerXp = prices.profit(recipe) / recipe.xp;
+                    double gpPerXp = prices.profit(skill, recipe) / recipe.xp;
                     return new Suggestion("Cheapest:", recipe.name + " (" + String.format("%+.1f", gpPerXp) + " gp/xp)", null, recipe.xp,
                         recipe.tools);
                 }
@@ -674,7 +674,7 @@ class TrainingAdvisor {
             return null;
         }
         Object found = cheapest.computeIfAbsent(skill.name() + ":" + level, key -> {
-            RecipeData.Recipe recipe = recipes.best(skill, level, null, r -> prices.profit(r) / r.xp, prices::pricedMaterials);
+            RecipeData.Recipe recipe = recipes.best(skill, level, null, r -> prices.profit(skill, r) / r.xp, prices::pricedMaterials);
             return recipe != null ? recipe : NONE;
         });
         return found == NONE ? null : (RecipeData.Recipe) found;
