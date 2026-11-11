@@ -129,6 +129,14 @@ class PlannerMarket {
         return config.plannerMarketPrices() && itemId > 0 ? days.get(itemId) : null;
     }
 
+    /**
+     * Whether the wiki's day has come in (then an item it doesn't list didn't trade at all in it: the feed only
+     * lists what traded).
+     */
+    boolean loaded() {
+        return config.plannerMarketPrices() && !days.isEmpty();
+    }
+
     /** Changes when new prices come in (the Planner redraws). */
     int version() {
         return version;

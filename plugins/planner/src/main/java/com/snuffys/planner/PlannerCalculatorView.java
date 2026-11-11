@@ -847,8 +847,13 @@ final class PlannerCalculatorView {
             return day == null ? 0 : day.low;
         };
         PlannerCalculator.dailyVolume = name -> {
-            PlannerMarket.Day day = calc.marketDay(icons.itemId(name));
-            return day == null ? 0 : (int) Math.min(Integer.MAX_VALUE, day.volume);
+            int id = icons.itemId(name);
+            PlannerMarket.Day day = calc.marketDay(id);
+            if (day != null) {
+                return (int) Math.min(Integer.MAX_VALUE, day.volume);
+            }
+            // (a GE item the wiki's day doesn't list: nobody traded it; not a GE item, or no day yet: not known)
+            return id > 0 && calc.marketLoaded() ? 0 : -1;
         };
         Skill shown = skill();
         if (shown == null) {
@@ -3835,9 +3840,11 @@ final class PlannerCalculatorView {
         }
         if (s.sold < 0.99 && !s.done && s.row != null) {
             // (more than the market takes: the rest at its high alch value)
-            JLabel[] market = card.line("Market takes " + Math.max(1, Math.round(s.sold * 100)) + "%", "");
+            JLabel[] market = card.line(s.sold < 0.005 ? "Market takes none" : "Market takes " + Math.max(1, Math.round(s.sold * 100)) + "%", "");
             market[0].setForeground(HudColors.WARN);
-            market[0].setToolTipText(PlannerUi.fit("You'd make it faster than the Grand Exchange buys it: about a tenth of "
+            market[0].setToolTipText(PlannerUi.fit(s.sold < 0.005 ? "Nobody traded it on the Grand Exchange in the last day, "
+                + "so none of it is counted as sold there: it's at its high alch value. From the OSRS Wiki's prices"
+                : "You'd make it faster than the Grand Exchange buys it: about a tenth of "
                 + "a day's trading sells each day without moving the price, so " + Math.max(1, Math.round(s.sold * 100))
                 + "% sells there and the rest is counted at its high alch value. From the OSRS Wiki's prices"));
         }

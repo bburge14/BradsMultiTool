@@ -186,6 +186,11 @@ class PlannerCalculator {
         return market == null ? null : market.day(itemId);
     }
 
+    /** Whether the GE's last day is known (then an item not in it didn't trade at all). */
+    boolean marketLoaded() {
+        return market != null && market.loaded();
+    }
+
     /** Where an item you have came from, as far as it knows (null: nothing known). */
     PlannerOrigins.Origin origin(int itemId) {
         return origins == null || itemId <= 0 ? null : origins.of(itemId);
@@ -2477,7 +2482,8 @@ class PlannerCalculator {
     }
 
     /**
-     * How many of an item the market takes in a day, by name (0: not known: as many as you like), set by the Calculator
+     * How many of an item the market takes in a day, by name (-1: not known: as many as you like; 0: none traded), set
+     * by the Calculator
      * with {@link #buyAt}. You can sell about a tenth of it a day without moving the price.
      */
     static volatile ToIntFunction<String> dailyVolume;
@@ -2500,8 +2506,9 @@ class PlannerCalculator {
                 break;
             }
         }
+        // (-1: not known, as many as you like; 0: nobody traded it in the last day)
         long day = volume.applyAsInt(product);
-        if (day <= 0) {
+        if (day < 0) {
             return 1;
         }
         double perHour = row.xpHour * Math.max(0.01, Math.min(1, pace)) / row.xpEach;
