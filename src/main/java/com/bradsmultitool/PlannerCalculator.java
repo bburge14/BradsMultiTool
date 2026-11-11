@@ -1527,6 +1527,9 @@ class PlannerCalculator {
         long total;
         /** Its time is at your XP an hour from the Skilling Helper (the milestone you're on, its plan linked to your goal). */
         boolean yourRate;
+        /** How much of its pace the GE buy limits allow for its materials (1: all of it), and the scarcest material. */
+        double buyable = 1;
+        String scarce;
 
         StepRow(SkillPlans.Step step, CalculatorData.Action action, Row row, int xp, boolean done) {
             this.step = step;
@@ -2353,6 +2356,18 @@ class PlannerCalculator {
     static SkillPlans.Plan aimedPlan(Skill skill, List<CalculatorData.Action> actions, Collection<CalculatorData.Bonus> on,
                                      TrainingData training, RecipeData recipes, int level, int goal, PlanAim aim,
                                      long hourWorth, ToIntFunction<String> price, IntUnaryOperator itemPrice) {
+        return aimedPlan(skill, actions, on, training, recipes, level, goal, aim, hourWorth, price, itemPrice, name -> 0);
+    }
+
+    /**
+     * As above, with the GE buy limits (an item's every 4 hours by name, 0: not known): an action whose materials can't
+     * be bought as fast as you'd use them goes only as fast as they can (its XP and gp an hour scaled down), so a
+     * suggestion isn't 80,000 onyx you could never buy.
+     */
+    static SkillPlans.Plan aimedPlan(Skill skill, List<CalculatorData.Action> actions, Collection<CalculatorData.Bonus> on,
+                                     TrainingData training, RecipeData recipes, int level, int goal, PlanAim aim,
+                                     long hourWorth, ToIntFunction<String> price, IntUnaryOperator itemPrice,
+                                     ToIntFunction<String> limit) {
         if (aim == PlanAim.AFK || aim == PlanAim.GUIDE) {
             return suggestedPlan(skill, actions, on, training, level, goal, aim == PlanAim.AFK);
         }
@@ -2370,7 +2385,7 @@ class PlannerCalculator {
                     continue;
                 }
                 Row row = row(skill, action, on, from, to, at, recipes, training, nothing, price, itemPrice);
-                Double score = score(row, aim, hourWorth);
+                Double score = score(row, aim, hourWorth, buyable(skill, action, row, recipes, limit));
                 if (score != null && (best == null || score > bestScore)) {
                     best = action;
                     bestScore = score;
@@ -2400,8 +2415,42 @@ class PlannerCalculator {
         return plan;
     }
 
-    // How good an action is for an aim (higher is better), or null when it hasn't what the aim needs
-    private static Double score(Row row, PlanAim aim, long hourWorth) {
+    /**
+     * How much of an action's pace its materials can be bought at, 0 to 1: the scarcest material's GE buy limit (every
+     * 4 hours) against how many an hour it uses; 1 when nothing's limited (or the limits aren't known).
+     */
+    static double buyable(Skill skill, CalculatorData.Action action, Row row, RecipeData recipes, ToIntFunction<String> limit) {
+        if (recipes == null || row.xpHour <= 0 || row.xpEach <= 0) {
+            return 1;
+        }
+        double actionsHour = row.xpHour / row.xpEach;
+        double fraction = 1;
+        for (RecipeData.Recipe recipe : recipesFor(skill, action, recipes)) {
+            int per = perMake(recipe, action);
+            for (Map.Entry<String, Integer> material : recipe.materials.entrySet()) {
+                int every4h = limit.applyAsInt(material.getKey());
+                if (every4h <= 0) {
+                    continue;
+                }
+                double usedHour = actionsHour * material.getValue() / per;
+                fraction = Math.min(fraction, every4h / 4.0 / usedHour);
+            }
+            // (the first recipe is the action's own)
+            break;
+        }
+        return Math.max(0, Math.min(1, fraction));
+    }
+
+    // How good an action is for an aim (higher is better), or null when it hasn't what the aim needs; {@code buyable}:
+    // how much of its pace the GE buy limits allow
+    private static Double score(Row row, PlanAim aim, long hourWorth, double buyable) {
+        if (buyable < 1 && row.xpHour > 0) {
+            // (only as fast as its materials can be bought: a trickle isn't a plan)
+            if (buyable < 0.05) {
+                return null;
+            }
+            row.xpHour = (int) Math.round(row.xpHour * buyable);
+        }
         Double perXp = row.perXp();
         if (perXp == null && row.earnEach != null && row.xpEach > 0) {
             // (gathering: what it sells for is its gain)

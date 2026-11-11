@@ -1584,6 +1584,7 @@ final class PlannerCalculatorView {
         List<PlannerCalculator.StepRow> steps = PlannerCalculator.stepRows(shown, skillCalc, on, plan, now, recipes, training,
             this::price, calc::itemPrice);
         yourRate(shown, plan, steps, level);
+        buyLimited(shown, steps);
         PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, steps, now);
 
         int endLevel = Math.min(plan.goal, Math.max(totals.endLevel, level));
@@ -3181,6 +3182,41 @@ final class PlannerCalculatorView {
         return note;
     }
 
+    // Milestones whose materials you buy (not gather) faster than the GE buy limits let you: timed only as fast as
+    // they can be bought, and they say so
+    private void buyLimited(Skill shown, List<PlannerCalculator.StepRow> steps) {
+        if (calc.ironman()) {
+            return;
+        }
+        for (PlannerCalculator.StepRow s : steps) {
+            if (s.done || s.row == null || s.action == null || s.row.xpHour <= 0 || s.yourRate) {
+                continue;
+            }
+            // (what you get yourself isn't bought)
+            java.util.function.ToIntFunction<String> limit = name -> calc.gathers(shown, name) ? 0 : buyLimitOf(name);
+            double f = PlannerCalculator.buyable(shown, s.action, s.row, recipes, limit);
+            if (f < 0.99) {
+                s.buyable = f;
+                s.row.xpHour = (int) Math.max(1, Math.round(s.row.xpHour * f));
+                s.row.seconds = (long) Math.ceil(s.row.seconds / Math.max(0.01, f));
+                for (RecipeData.Recipe recipe : PlannerCalculator.recipesFor(shown, s.action, recipes)) {
+                    for (String material : recipe.materials.keySet()) {
+                        if (s.scarce == null || buyLimitOf(material) > 0 && buyLimitOf(material) < buyLimitOf(s.scarce)) {
+                            s.scarce = buyLimitOf(material) > 0 ? material : s.scarce;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // An item's GE buy limit every 4 hours, by name (0: not known yet; asked for, so it's known next time)
+    private int buyLimitOf(String name) {
+        int id = icons.itemId(name);
+        return id > 0 ? calc.buyLimit(id) : 0;
+    }
+
     // Whether the plan ends with a supply milestone, its goal where that ends (the goal is the supplies, not a level)
     private static boolean endsInSupplies(SkillPlans.Plan plan) {
         SkillPlans.Step last = null;
@@ -3773,6 +3809,15 @@ final class PlannerCalculatorView {
                 priceLines(card, row.cost(row.needed), row.earn(row.needed));
             }
         }
+        if (s.buyable < 0.99 && !s.done) {
+            // (its materials can't be bought as fast as you'd use them: timed as fast as they can)
+            JLabel[] limited = card.line("GE limit: " + Math.round(s.buyable * 100) + "% pace", "");
+            limited[0].setForeground(HudColors.WARN);
+            limited[0].setToolTipText(PlannerUi.fit((s.scarce != null ? s.scarce + "'s buy limit is " + String.format("%,d",
+                buyLimitOf(s.scarce)) + " every 4 hours" : "Its materials' buy limits") + ": you'd use them faster than you can buy "
+                + "them, so it goes at " + Math.round(s.buyable * 100) + "% of its pace and its time is that much longer. "
+                + "Gathering them yourself, or buying them ahead, isn't limited"));
+        }
         if (step.note != null) {
             JLabel[] noteLine = card.line(shortNote(step.note), "");
             noteLine[0].setToolTipText(PlannerUi.fit(step.note));
@@ -4277,7 +4322,7 @@ final class PlannerCalculatorView {
         Map<javax.swing.JRadioButton, String[]> texts = new java.util.HashMap<>();
         for (PlannerCalculator.PlanAim aim : aims) {
             SkillPlans.Plan suggested = PlannerCalculator.aimedPlan(shown, actions, on, training, recipes, level, to, aim,
-                calc.hourWorth(), this::price, calc::itemPrice);
+                calc.hourWorth(), this::price, calc::itemPrice, this::buyLimitOf);
             SkillPlans.Plan replace = suggested;
             if (old != null) {
                 // (its supply milestones stay as they are: the suggestions make room for them)
