@@ -469,17 +469,21 @@ class TrainingAdvisor {
     static final class KillEstimate {
         final String monster;
         final double xpEach;
+        /** From your own kills of it (else its hitpoints at your style's XP). */
+        final boolean seen;
 
-        KillEstimate(String monster, double xpEach) {
+        KillEstimate(String monster, double xpEach, boolean seen) {
             this.monster = monster;
             this.xpEach = xpEach;
+            this.seen = seen;
         }
     }
 
     /**
      * XP per kill for a melee, Ranged or Hitpoints goal (XP per damage by your style, see
      * {@link CombatStyle#xpPerDamage}), on the monster you picked with "Track for goal", else the one you
-     * last fought, else the suggested one. Null if none of them has known hitpoints (a Gemstone Crab doesn't die).
+     * last fought, else the suggested one: what a kill really gives you once you've killed it twice, until then its
+     * hitpoints; null when what you're fighting isn't known (a Gemstone crab: from its kills only).
      */
     KillEstimate killEstimate(Skill skill) {
         // By your current style: Controlled splits the XP three ways, Longrange two
@@ -497,10 +501,24 @@ class TrainingAdvisor {
             // The guide names them in the plural ("Sulphur Naguas")
             monsters.add(suggestion.method.name.replaceAll("s$", ""));
         }
+        // What a kill really gives you, once you've killed it twice (your pick, else what you're fighting)
+        KillTracker kills = plugin.getKillTracker();
+        for (String monster : monsters.subList(0, Math.min(2, monsters.size()))) {
+            double seen = kills == null ? 0 : kills.xpPerKill(monster, skill);
+            if (seen > 0) {
+                return new KillEstimate(monster, seen, true);
+            }
+        }
+        // Until then its hitpoints at your style's XP (not for one you're fighting that isn't known: another
+        // monster's would be wrong)
+        String fighting = combatStyle.getLastTargetName();
         for (String monster : monsters) {
             MonsterData.Stats stats = monsterData.statsFor(monster);
             if (stats != null && stats.hitpoints > 0) {
-                return new KillEstimate(monster, stats.hitpoints * perDamage);
+                return new KillEstimate(monster, stats.hitpoints * perDamage, false);
+            }
+            if (monster != null && monster.equals(fighting)) {
+                return null;
             }
         }
         return null;

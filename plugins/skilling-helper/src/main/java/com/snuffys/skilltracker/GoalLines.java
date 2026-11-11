@@ -179,7 +179,11 @@ final class GoalLines {
             prefix = "~";
             name = "Kills";
             tip = kill != null ? "Kills of " + kill.monster + " " + until + " (" + BradsMultiToolPanel.shortNumber((int) kill.xpEach)
-                + " " + skill.getName() + " XP each with your combat style)" : "Kills " + until;
+                + " " + skill.getName() + " XP each, " + (kill.seen ? "what your recent kills of it gave" : "its hitpoints with your "
+                + "combat style, until you've killed it twice") + ")" : "Kills " + until + " (once you've killed it twice)";
+            if (kill != null && kill.seen) {
+                prefix = "";
+            }
         } else if (perAction <= 0 && goalXp > xp) {
             perAction = plugin.getTrainingAdvisor().estimatedXpEach(skill, level);
             prefix = "~";

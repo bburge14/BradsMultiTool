@@ -45,10 +45,13 @@ class KillTracker {
     private static final class Kill {
         final String monster;
         final long millis;
+        /** Your XP in each skill when it died (for the XP a kill really gives). */
+        final int[] xp;
 
-        Kill(String monster, long millis) {
+        Kill(String monster, long millis, int[] xp) {
             this.monster = monster;
             this.millis = millis;
+            this.xp = xp;
         }
     }
 
@@ -78,7 +81,11 @@ class KillTracker {
         Integer hit = lastHit.remove(npc);
         if (hit != null && client.getTickCount() - hit <= HIT_MEMORY_TICKS && npc.getName() != null) {
             synchronized (kills) {
-                kills.addLast(new Kill(npc.getName(), System.currentTimeMillis()));
+                int[] xp = new int[net.runelite.api.Skill.values().length];
+                for (net.runelite.api.Skill skill : net.runelite.api.Skill.values()) {
+                    xp[skill.ordinal()] = client.getSkillExperience(skill);
+                }
+                kills.addLast(new Kill(npc.getName(), System.currentTimeMillis(), xp));
                 prune();
             }
             lastKilled = npc.getName();
@@ -129,6 +136,35 @@ class KillTracker {
             }
         }
         return pace(count, first, last);
+    }
+
+    /**
+     * The XP a kill of this monster really gives you in a skill, from your recent kills of it (what you gained between
+     * the first and the last, over the kills between): your misses, damage and style, and monsters that don't die of
+     * their hitpoints (a Gemstone crab burrows after ten minutes) counted as they are. 0 until you've killed it twice.
+     */
+    double xpPerKill(String monster, net.runelite.api.Skill skill) {
+        if (monster == null) {
+            return 0;
+        }
+        Kill first = null;
+        Kill last = null;
+        int count = 0;
+        synchronized (kills) {
+            prune();
+            for (Kill kill : kills) {
+                if (kill.monster.equalsIgnoreCase(monster)) {
+                    first = first == null ? kill : first;
+                    last = kill;
+                    count++;
+                }
+            }
+        }
+        return xpPerKill(count, first == null ? 0 : first.xp[skill.ordinal()], last == null ? 0 : last.xp[skill.ordinal()]);
+    }
+
+    static double xpPerKill(int count, int firstXp, int lastXp) {
+        return count < 2 || lastXp <= firstXp ? 0 : (double) (lastXp - firstXp) / (count - 1);
     }
 
     static Pace pace(int count, long firstMillis, long lastMillis) {
