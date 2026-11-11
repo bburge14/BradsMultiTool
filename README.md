@@ -271,7 +271,7 @@ each can be hidden in the settings; everything is saved per account.
     list, links to your other skills' plans. A plan is a goal and milestones on the way, each with its own method
     ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"): **Suggest a plan...** compares six ways there side by side
     (time, gp, milestones) and fills it with the one you pick (with milestones already in the plan, **Keep my
-    milestones** fills only the levels yours leave open, before, between and after them; untick it to replace them): **Fastest**, **Cheapest**, **Money maker**, **Balanced**
+    milestones** fills only the levels yours leave open, before, between and after them; untick it to replace them): **Fastest**, **Best gp per XP** (the most gp kept for each XP, however slow), **Best gp per hour**, **Balanced**
     (gp and time together, at **Hour Worth (gp)**), **AFK** or the **Wiki guide**; or right-click an action >
     **Add to plan** (it goes in at its own level: Atlatl darts at 74 inside Adamant darts 67-81 makes Adamant 67-74
     and Atlatl 74-81; when the plan's full it asks to raise its goal), or **+** to add one at levels you type (the

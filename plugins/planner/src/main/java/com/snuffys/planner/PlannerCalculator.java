@@ -2365,8 +2365,8 @@ class PlannerCalculator {
     /** What a suggested plan aims for. */
     enum PlanAim {
         FASTEST("Fastest", "the most XP an hour at each level"),
-        CHEAPEST("Cheapest", "the fewest gp lost for each XP"),
-        MONEY("Money maker", "the most profit (an hour where there's a rate)"),
+        CHEAPEST("Best gp per XP", "the most gp kept for each XP, however slow (cheapest where it costs)"),
+        MONEY("Best gp per hour", "the most gp each hour you play"),
         BALANCED("Balanced", "the least gp and time together (your time at what you say an hour's worth)"),
         AFK("AFK", "the wiki's AFK and other methods"),
         GUIDE("Wiki guide", "the wiki's training guide's fastest methods");

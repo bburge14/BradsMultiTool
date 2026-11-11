@@ -792,7 +792,7 @@ same actions, levels, XP and bonuses, and the same sums (XP to a tenth, rounded 
 - **Plan**: the open plan: a final goal (level 99, or your target) and milestones on the way, each with its
   own method ("1-20 Logs, 20-50 Willow logs, 50-99 Teak logs"). **Suggest a plan...** works out a plan from your level to
   the goal six ways and shows them side by side (time, gp after sales, milestones): **Fastest** (the most XP an hour
-  at each level), **Cheapest** (the fewest gp lost per XP), **Money maker** (the most profit), **Balanced** (the least
+  at each level), **Best gp per XP** (the most gp kept per XP, however slow), **Best gp per hour** (the most gp an hour), **Balanced** (the least
   gp and time together, an hour counted at **Hour Worth (gp)**), **AFK** and **Wiki guide** (the wiki's training
   guides, as before); an ironman gets Fastest, AFK and Wiki guide. Pick one and it fills the milestones (supply
   milestones stay), each an ordinary milestone to change. When the plan has milestones already, **Keep my milestones,
