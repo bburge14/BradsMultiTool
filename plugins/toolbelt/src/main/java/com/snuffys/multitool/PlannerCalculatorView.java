@@ -828,6 +828,28 @@ final class PlannerCalculatorView {
     String key() {
         // (how products are counted, alched or sold, for everything worked out from here)
         PlannerCalculator.selling = new PlannerCalculator.Selling(calc.sellBy(), this::alch, price("Nature rune"));
+        // (and the GE as it really trades: buying at what it costs, selling at what it gets, as much as it takes;
+        // your own trades' prices first)
+        PlannerCalculator.buyAt = name -> {
+            Long yours = calc.yourPrice(name);
+            if (yours != null && yours > 0) {
+                return (int) Math.min(Integer.MAX_VALUE, yours);
+            }
+            PlannerMarket.Day day = calc.marketDay(icons.itemId(name));
+            return day == null ? 0 : day.high;
+        };
+        PlannerCalculator.sellAt = name -> {
+            Long yours = calc.yourPrice(name);
+            if (yours != null && yours > 0) {
+                return (int) Math.min(Integer.MAX_VALUE, yours);
+            }
+            PlannerMarket.Day day = calc.marketDay(icons.itemId(name));
+            return day == null ? 0 : day.low;
+        };
+        PlannerCalculator.dailyVolume = name -> {
+            PlannerMarket.Day day = calc.marketDay(icons.itemId(name));
+            return day == null ? 0 : (int) Math.min(Integer.MAX_VALUE, day.volume);
+        };
         Skill shown = skill();
         if (shown == null) {
             return "none";
@@ -3195,6 +3217,8 @@ final class PlannerCalculatorView {
             // (what you get yourself isn't bought)
             java.util.function.ToIntFunction<String> limit = name -> calc.gathers(shown, name) ? 0 : buyLimitOf(name);
             double f = PlannerCalculator.buyable(shown, s.action, s.row, recipes, limit);
+            // (what it makes: as much as the market takes sells, the rest at its alch value)
+            s.sold = PlannerCalculator.marketShare(shown, s.action, s.row, recipes, f);
             if (f < 0.99) {
                 s.buyable = f;
                 s.row.xpHour = (int) Math.max(1, Math.round(s.row.xpHour * f));
@@ -3808,6 +3832,14 @@ final class PlannerCalculatorView {
             if (calc.showPrices()) {
                 priceLines(card, row.cost(row.needed), row.earn(row.needed));
             }
+        }
+        if (s.sold < 0.99 && !s.done && s.row != null) {
+            // (more than the market takes: the rest at its high alch value)
+            JLabel[] market = card.line("Market takes " + Math.max(1, Math.round(s.sold * 100)) + "%", "");
+            market[0].setForeground(HudColors.WARN);
+            market[0].setToolTipText(PlannerUi.fit("You'd make it faster than the Grand Exchange buys it: about a tenth of "
+                + "a day's trading sells each day without moving the price, so " + Math.max(1, Math.round(s.sold * 100))
+                + "% sells there and the rest is counted at its high alch value. From the OSRS Wiki's prices"));
         }
         if (s.buyable < 0.99 && !s.done) {
             // (its materials can't be bought as fast as you'd use them: timed as fast as they can)

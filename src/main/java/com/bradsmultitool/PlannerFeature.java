@@ -55,6 +55,8 @@ class PlannerFeature {
     @Inject private PlannerGeLimits geLimits;
     // Where your items came from (bought, traded, got yourself), for the plans' money
     @Inject private PlannerOrigins origins;
+    // The GE as it really trades (the wiki's prices and volumes)
+    @Inject private PlannerMarket market;
 
     private NavigationButton navButton;
     private PlannerPanel panel;
@@ -84,7 +86,7 @@ class PlannerFeature {
         calculatorData.addMinigames(trainingData);
         // (BirdhouseTracker notes when you seed a bird house, for the TIMERS line and its alert; the Skilling
         // Helper's hover card uses it too, and in the Toolbelt it's subscribed once)
-        lifecycle.subscribe(questProgress, farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, geLimits, origins, this);
+        lifecycle.subscribe(questProgress, farmingTracker, birdhouseTracker, chores, timers, slayer, drops, plannerSound, calculator, geLimits, origins, market, this);
         // The plan on the game screen (unless it's linked to a Skilling Helper goal: its pinned card shows the plan then)
         lifecycle.overlay(planOverlay);
         // What you sell, alch and drop counts on your plan's milestones, as Record sales... does by hand

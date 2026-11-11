@@ -612,6 +612,17 @@ public interface PlannerConfig extends CommonConfig {
     }
 
     @ConfigItem(
+        keyName = "plannerMarketPrices",
+        name = "Real GE Prices",
+        description = "<div width='300'>Plans use the Grand Exchange as it really trades, from the OSRS Wiki's prices (fetched every half hour): materials at what buying costs, products at what selling gets, and only as many sold as the market takes (about a tenth of a day's trading each day; the rest at its high alch value). Off: RuneLite's single GE price, any amount sold",
+        section = plannerCalculatorSection,
+        position = 9
+    )
+    default boolean plannerMarketPrices() {
+        return true;
+    }
+
+    @ConfigItem(
         keyName = "chatPlanMilestone",
         name = "Chat: Milestone Done",
         description = "<div width='300'>A game chat message when you finish a milestone of your plan (the one open in the Calculator), naming the next one, and when you reach the plan's goal",

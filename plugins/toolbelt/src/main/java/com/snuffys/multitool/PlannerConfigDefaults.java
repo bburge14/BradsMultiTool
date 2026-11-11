@@ -49,6 +49,7 @@ final class PlannerConfigDefaults {
         defaults.store("plannerHourWorth", config.plannerHourWorth());
         defaults.store("plannerSellBy", config.plannerSellBy());
         defaults.store("plannerYourPrices", config.plannerYourPrices());
+        defaults.store("plannerMarketPrices", config.plannerMarketPrices());
         defaults.store("chatPlanMilestone", config.chatPlanMilestone());
         defaults.store("compactOverlays", config.compactOverlays());
     }

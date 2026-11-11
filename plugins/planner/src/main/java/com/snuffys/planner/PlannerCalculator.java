@@ -169,12 +169,22 @@ class PlannerCalculator {
 
     /** Changes when a trade is recorded (or where an item came from). */
     int tradesVersion() {
-        return (geLimits == null ? 0 : geLimits.tradesVersion()) * 31 + (origins == null ? 0 : origins.version());
+        return ((geLimits == null ? 0 : geLimits.tradesVersion()) * 31 + (origins == null ? 0 : origins.version())) * 31
+            + (market == null ? 0 : market.version());
     }
 
     // Where your items came from (bought, traded, got yourself); null in the preview
     @Inject
     private PlannerOrigins origins;
+
+    // The GE as it really trades (the wiki's prices and volumes); null in the preview
+    @Inject
+    private PlannerMarket market;
+
+    /** An item's last day on the GE (what buying costs, selling gets, how many traded), or null. */
+    PlannerMarket.Day marketDay(int itemId) {
+        return market == null ? null : market.day(itemId);
+    }
 
     /** Where an item you have came from, as far as it knows (null: nothing known). */
     PlannerOrigins.Origin origin(int itemId) {
@@ -1214,7 +1224,7 @@ class PlannerCalculator {
                 // The action is one item; a recipe can make several at once (10 darts from 10 tips and 10 feathers)
                 cost /= per;
                 Sale sale = consumed(recipe) || RecipeData.builtInPlace(skill, recipe) ? new Sale(0, 0, sell)
-                    : new Sale(price.applyAsInt(recipe.name), selling.alch(recipe.name), sell);
+                    : new Sale(selling(recipe.name, price.applyAsInt(recipe.name)), selling.alch(recipe.name), sell);
                 double worth = sale.worth();
                 double profit = worth - cost;
                 if (row.profit == null || profit > row.profit) {
@@ -1231,6 +1241,7 @@ class PlannerCalculator {
                 if (worth <= 0) {
                     worth = price.applyAsInt(action.name);
                 }
+                worth = selling(action.name, worth);
                 Sale sale = new Sale(worth, selling.alch(action.name), sell);
                 row.earnEach = sale.worth() > 0 ? sale.worth() : null;
                 sale.fill(row);
@@ -1314,6 +1325,25 @@ class PlannerCalculator {
     /** The Calculator's selling now ({@link Selling}). */
     static volatile Selling selling = Selling.GE_ONLY;
 
+    /**
+     * The GE as it really trades, set by the Calculator before it works things out (null: RuneLite's one price): what
+     * buying an item costs and selling it gets, by name (0: not known, the usual price then).
+     */
+    static volatile ToIntFunction<String> buyAt;
+    static volatile ToIntFunction<String> sellAt;
+
+    private static int buying(String name, ToIntFunction<String> price) {
+        ToIntFunction<String> at = buyAt;
+        int p = at == null ? 0 : at.applyAsInt(name);
+        return p > 0 ? p : price.applyAsInt(name);
+    }
+
+    private static int selling(String name, int usual) {
+        ToIntFunction<String> at = sellAt;
+        int p = at == null ? 0 : at.applyAsInt(name);
+        return p > 0 ? p : usual;
+    }
+
     // One product's sale both ways, and which counts
     private static final class Sale {
         final double ge;
@@ -1391,7 +1421,8 @@ class PlannerCalculator {
     private static Double cost(RecipeData.Recipe recipe, ToIntFunction<String> price) {
         double cost = 0;
         for (Map.Entry<String, Integer> material : recipe.materials.entrySet()) {
-            int each = price.applyAsInt(material.getKey());
+            // (what buying it costs, where the GE as it trades is known)
+            int each = buying(material.getKey(), price);
             if (each <= 0) {
                 return null;
             }
@@ -1530,6 +1561,8 @@ class PlannerCalculator {
         /** How much of its pace the GE buy limits allow for its materials (1: all of it), and the scarcest material. */
         double buyable = 1;
         String scarce;
+        /** How much of what it makes the market takes at its pace (1: all; the rest at its high alch value). */
+        double sold = 1;
 
         StepRow(SkillPlans.Step step, CalculatorData.Action action, Row row, int xp, boolean done) {
             this.step = step;
@@ -2385,7 +2418,9 @@ class PlannerCalculator {
                     continue;
                 }
                 Row row = row(skill, action, on, from, to, at, recipes, training, nothing, price, itemPrice);
-                Double score = score(row, aim, hourWorth, buyable(skill, action, row, recipes, limit));
+                double buys = buyable(skill, action, row, recipes, limit);
+                marketShare(skill, action, row, recipes, buys);
+                Double score = score(row, aim, hourWorth, buys);
                 if (score != null && (best == null || score > bestScore)) {
                     best = action;
                     bestScore = score;
@@ -2439,6 +2474,47 @@ class PlannerCalculator {
             break;
         }
         return Math.max(0, Math.min(1, fraction));
+    }
+
+    /**
+     * How many of an item the market takes in a day, by name (0: not known: as many as you like), set by the Calculator
+     * with {@link #buyAt}. You can sell about a tenth of it a day without moving the price.
+     */
+    static volatile ToIntFunction<String> dailyVolume;
+    static final double MARKET_SHARE = 0.1;
+
+    /**
+     * What a product's worth when there's more of it than the market takes: as many as about a tenth of a day's trading
+     * a day sell at the GE price, the rest go at their high alch value (always takes them). {@code pace}: how much of
+     * its pace it goes at (the buy limits). Changes the row's worth each; returns the share sold (1: all).
+     */
+    static double marketShare(Skill skill, CalculatorData.Action action, Row row, RecipeData recipes, double pace) {
+        ToIntFunction<String> volume = dailyVolume;
+        if (volume == null || row.earnEach == null || row.xpHour <= 0 || row.xpEach <= 0) {
+            return 1;
+        }
+        String product = action.name;
+        if (recipes != null) {
+            for (RecipeData.Recipe recipe : recipesFor(skill, action, recipes)) {
+                product = recipe.name;
+                break;
+            }
+        }
+        long day = volume.applyAsInt(product);
+        if (day <= 0) {
+            return 1;
+        }
+        double perHour = row.xpHour * Math.max(0.01, Math.min(1, pace)) / row.xpEach;
+        double share = Math.min(1, MARKET_SHARE * day / 24.0 / perHour);
+        if (share < 1) {
+            double alch = row.alchEach != null ? row.alchEach : 0;
+            double sold = row.earnEach;
+            row.earnEach = share * sold + (1 - share) * Math.min(sold, alch);
+            if (row.profit != null) {
+                row.profit = row.profit - (sold - row.earnEach);
+            }
+        }
+        return share;
     }
 
     // How good an action is for an aim (higher is better), or null when it hasn't what the aim needs; {@code buyable}:
