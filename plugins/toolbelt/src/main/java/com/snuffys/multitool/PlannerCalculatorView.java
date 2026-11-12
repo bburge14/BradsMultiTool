@@ -4359,6 +4359,8 @@ final class PlannerCalculatorView {
         // Each aim's two plans: [0] replacing yours (supply milestones kept), [1] filling around yours
         Map<javax.swing.JRadioButton, SkillPlans.Plan[]> picks = new java.util.LinkedHashMap<>();
         Map<javax.swing.JRadioButton, String[]> texts = new java.util.HashMap<>();
+        // Each plan's milestones, for the preview under the choices ([0] replacing, [1] filling)
+        Map<javax.swing.JRadioButton, String[]> previews = new java.util.HashMap<>();
         for (PlannerCalculator.PlanAim aim : aims) {
             SkillPlans.Plan suggested = PlannerCalculator.aimedPlan(shown, actions, on, training, recipes, level, to, aim,
                 calc.hourWorth(), this::price, calc::itemPrice, this::buyLimitOf);
@@ -4374,11 +4376,15 @@ final class PlannerCalculatorView {
             SkillPlans.Plan fill = mine ? PlannerCalculator.keepAndFill(suggested, old) : replace;
             SkillPlans.Plan[] both = {replace, fill};
             String[] about = new String[2];
+            String[] preview = new String[2];
             for (int i = 0; i < 2; i++) {
                 SkillPlans.Plan plan = both[i];
                 List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(shown, skillCalc, on, plan, xp, recipes, training,
                     this::price, calc::itemPrice);
+                // (timed and priced as the plan itself will be: buy limits and what the market takes)
+                buyLimited(shown, rows);
                 PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, rows, xp);
+                preview[i] = planPreview(rows, prices, i == 1 ? old : null);
                 StringBuilder text = new StringBuilder("<html><b>").append(aim.label).append("</b>: ");
                 text.append(totals.seconds > 0 ? duration(totals.seconds, totals.estimated > 0) + (totals.untimed > 0
                     ? " (+" + totals.untimed + " without a rate)" : "") : "no XP rates");
@@ -4400,7 +4406,31 @@ final class PlannerCalculatorView {
             group.add(choice);
             picks.put(choice, both);
             texts.put(choice, about);
+            previews.put(choice, preview);
             form.add(choice);
+        }
+        // The picked plan's milestones, before you choose it
+        JLabel previewText = new JLabel();
+        previewText.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        previewText.setBorder(new EmptyBorder(4, 6, 4, 6));
+        javax.swing.JScrollPane previewScroll = new javax.swing.JScrollPane(previewText);
+        previewScroll.setPreferredSize(new Dimension(440, 170));
+        previewScroll.getVerticalScrollBar().setUnitIncrement(16);
+        previewScroll.setBorder(BorderFactory.createTitledBorder("Its milestones"));
+        JPanel whole = new JPanel(new BorderLayout(0, 8));
+        whole.add(form, BorderLayout.NORTH);
+        whole.add(previewScroll, BorderLayout.CENTER);
+        Runnable showPreview = () -> {
+            int which = keep.isSelected() && mine ? 1 : 0;
+            for (Map.Entry<javax.swing.JRadioButton, String[]> entry : previews.entrySet()) {
+                if (entry.getKey().isSelected()) {
+                    previewText.setText(entry.getValue()[which]);
+                    javax.swing.SwingUtilities.invokeLater(() -> previewScroll.getVerticalScrollBar().setValue(0));
+                }
+            }
+        };
+        for (javax.swing.JRadioButton choice : picks.keySet()) {
+            choice.addActionListener(e -> showPreview.run());
         }
         String planLabel = old != null && !old.steps.isEmpty() ? PlannerUi.esc(planName(old, calc.openIndex(shown))) : null;
         Runnable show = () -> {
@@ -4425,14 +4455,18 @@ final class PlannerCalculatorView {
                 first.setSelected(true);
             }
         };
-        keep.addActionListener(e -> show.run());
+        keep.addActionListener(e -> {
+            show.run();
+            showPreview.run();
+        });
         show.run();
+        showPreview.run();
         if (picks.keySet().stream().noneMatch(java.awt.Component::isEnabled) && !mine) {
             JOptionPane.showMessageDialog(list, "Nothing to suggest for " + shown.getName() + " here: add milestones from the "
                 + "actions instead.", "Suggest a plan", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-        if (JOptionPane.showConfirmDialog(list, form, "Suggest a plan", JOptionPane.OK_CANCEL_OPTION,
+        if (JOptionPane.showConfirmDialog(list, whole, "Suggest a plan", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
             return;
         }
@@ -4453,6 +4487,34 @@ final class PlannerCalculatorView {
         }
         calc.savePlan(shown, plan);
         redraw.run();
+    }
+
+    // A suggested plan's milestones, one a line: "46 → 54  Ruby bracelet  ~43m  +537K" (yours kept marked as yours)
+    private String planPreview(List<PlannerCalculator.StepRow> rows, boolean prices, SkillPlans.Plan yours) {
+        StringBuilder out = new StringBuilder("<html><table cellspacing='0' cellpadding='1'>");
+        for (PlannerCalculator.StepRow s : rows) {
+            boolean kept = yours != null && yours.steps.stream().anyMatch(st -> st.from == s.step.from && st.to == s.step.to
+                && st.action.equals(s.step.action));
+            String time = s.done ? "done" : s.row != null && s.row.seconds > 0 ? "~" + PlannerPanel.formatDuration(s.row.seconds) : "";
+            String gp = "";
+            if (prices && s.row != null && !s.done) {
+                Double cost = s.row.cost(s.row.needed);
+                Double earn = s.row.earn(s.row.needed);
+                if (cost != null || earn != null) {
+                    double net = (earn == null ? 0 : earn) - (cost == null ? 0 : cost);
+                    gp = "<font color='" + (net < 0 ? "#e08070" : "#70d070") + "'>" + signed(net) + "</font>";
+                }
+            }
+            String note = !s.step.supplies.isEmpty() ? " <font color='#b48ce6'>(supplies)</font>"
+                : kept ? " <font color='#a0a0a0'>(yours)</font>"
+                : s.buyable < 0.99 ? " <font color='#e0a040'>(GE limit)</font>"
+                : s.sold < 0.99 ? " <font color='#e0a040'>(market " + Math.round(s.sold * 100) + "%)</font>" : "";
+            out.append("<tr><td><font color='#a0a0a0'>").append(s.step.from).append("&ndash;").append(s.step.to)
+                .append("</font>&nbsp;</td><td>").append(PlannerUi.esc(s.step.action)).append(note)
+                .append("&nbsp;</td><td align='right'>").append(time).append("&nbsp;</td><td align='right'>").append(gp)
+                .append("</td></tr>");
+        }
+        return out.append("</table></html>").toString();
     }
 
     private void changeGoal(Skill shown) {
