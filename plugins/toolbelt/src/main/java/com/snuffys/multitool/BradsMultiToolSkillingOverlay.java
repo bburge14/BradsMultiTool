@@ -78,6 +78,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     private final ItemIcons itemIcons;
     @Inject
     private ArenaRoute arenaRoute;
+    @Inject
+    private net.runelite.client.ui.overlay.OverlayManager overlayManager;
 
     @Inject
     public BradsMultiToolSkillingOverlay(Client client, SkillTracker plugin, SkillTrackerConfig config,
@@ -104,7 +106,8 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
     @Override
     public Dimension render(Graphics2D graphics) {
         HudColors.theme(panel, runeLiteConfig.overlayBackgroundColor());
-        if (client.getGameState() != GameState.LOGGED_IN) {
+        // (not over another panel: the game's hover text names what's behind it, but you're pointing at the panel)
+        if (client.getGameState() != GameState.LOGGED_IN || CursorTooltip.covered(client, overlayManager, this)) {
             return null;
         }
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -1125,9 +1128,12 @@ public class BradsMultiToolSkillingOverlay extends Overlay {
         }
         SkillingData.Tool owned = SkillingData.bestOwnedTool(tools, ownedItemNames());
         SkillingData.Tool best = SkillingData.bestToolForLevel(tools, client.getRealSkillLevel(skill));
-        // Each tool in its metal's colour
-        line("Your Tool:", owned != null ? owned.name : "None", owned != null ? owned.color : HudColors.BAD);
-        if (best != null && best != owned) {
+        // Yours: green when it's the best you can use, orange when there's a better one for your level, red only when
+        // you have none (a tool's metal colour read as a warning: dragon is red); the better one in its metal's colour
+        boolean better = best != null && (owned == null || best.level > owned.level);
+        line("Your Tool:", owned != null ? owned.name : "None", owned == null ? HudColors.BAD : better ? HudColors.WARN : HudColors.GOOD);
+        // (only a better tier: a felling or gilded axe of the same tier is as good)
+        if (best != null && (owned == null || best.level > owned.level)) {
             line("Best For You:", best.name, best.color);
         }
     }

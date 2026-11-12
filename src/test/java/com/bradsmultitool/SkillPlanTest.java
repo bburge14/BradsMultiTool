@@ -197,11 +197,12 @@ public class SkillPlanTest {
         int count = (int) Math.ceil(need / 120.0);
         assertEquals(count, step.row.needed);
         assertEquals(200.0 * count, step.row.cost(count), 0);
-        assertEquals(250.0 * count, step.row.earn(count), 0);
+        // (sold at 250 gp, less the 2% tax: 245)
+        assertEquals(245.0 * count, step.row.earn(count), 0);
         PlannerCalculator.Totals totals = PlannerCalculator.totals(plan, rows, xp);
         assertEquals(need, totals.xp);
         assertEquals(200.0 * count, totals.cost, 0);
-        assertEquals(250.0 * count, totals.earn, 0);
+        assertEquals(245.0 * count, totals.earn, 0);
         assertEquals(50, totals.endLevel);
         // Halfway: only what's left counts; past the end it's done
         int half = Experience.getXpForLevel(45);
@@ -219,7 +220,7 @@ public class SkillPlanTest {
             new HashMap<>(), name -> 0, id -> id == yew.icon ? 300 : 0);
         PlannerCalculator.Row row = rows.stream().filter(r -> r.action == yew).findFirst().orElse(null);
         assertNotNull(row);
-        assertEquals(300, row.earnEach, 0);
+        assertEquals(294, row.earnEach, 0);
         assertNull(row.costEach);
         // Earnings alone give no net gp/xp (that needs a cost)
         assertNull(row.perXp());
@@ -273,5 +274,323 @@ public class SkillPlanTest {
         assertNotNull(method);
         assertTrue(SkillPlans.matches(method, "Teak logs"));
         assertTrue(PlannerCalculator.matches(method, "Teak logs"));
+    }
+
+    @Test
+    public void milestonesTickOffAsYouGo() {
+        CalculatorData.Calc fletching = DATA.calc(Skill.FLETCHING);
+        SkillPlans.Plan plan = new SkillPlans.Plan(90);
+        plan.steps.add(new SkillPlans.Step("Adamant dart", 67, 81, null, 15));
+        plan.steps.add(new SkillPlans.Step("Rune dart", 81, 90, null, 18.8));
+        int at70 = Experience.getXpForLevel(70);
+        List<PlannerCalculator.StepRow> before = PlannerCalculator.stepRows(Skill.FLETCHING, fletching, Collections.emptyList(),
+            plan, at70, RECIPES, TRAINING, n -> 0, id -> 0);
+        // 3,000 darts later: 3,000 fewer to go, and they count as done
+        List<PlannerCalculator.StepRow> after = PlannerCalculator.stepRows(Skill.FLETCHING, fletching, Collections.emptyList(),
+            plan, at70 + 45_000, RECIPES, TRAINING, n -> 0, id -> 0);
+        assertEquals(before.get(0).row.needed - 3000, after.get(0).row.needed);
+        assertEquals(before.get(0).made() + 3000, after.get(0).made());
+        assertEquals(before.get(0).total, after.get(0).total);
+        assertTrue(after.get(0).progress > before.get(0).progress);
+        assertEquals(0, after.get(1).progress, 0);
+        // Past 81: the first is done (and full), and passing it says so, with the next
+        int at81 = Experience.getXpForLevel(81);
+        PlannerCalculator.StepRow done = PlannerCalculator.stepRows(Skill.FLETCHING, fletching, Collections.emptyList(), plan,
+            at81, RECIPES, TRAINING, n -> 0, id -> 0).get(0);
+        assertTrue(done.done);
+        assertEquals(1, done.progress, 0);
+        List<String> said = PlannerCalculator.milestoneMessages(Skill.FLETCHING, plan, at81 - 10, at81 + 10);
+        assertEquals(1, said.size());
+        assertTrue(said.get(0), said.get(0).contains("Adamant dart") && said.get(0).contains("Next: Rune dart to 90"));
+        assertTrue(PlannerCalculator.milestoneMessages(Skill.FLETCHING, plan, at81 + 10, at81 + 20).isEmpty());
+        List<String> end = PlannerCalculator.milestoneMessages(Skill.FLETCHING, plan, Experience.getXpForLevel(90) - 1,
+            Experience.getXpForLevel(90));
+        assertEquals(1, end.size());
+        assertTrue(end.get(0), end.get(0).contains("plan complete"));
+    }
+
+    @Test
+    public void insertingInsideAMilestoneSplitsIt() {
+        // Adamant 67-74, Onyx 74-99: Atlatl 74-81 goes in, Onyx carries on from 81
+        SkillPlans.Plan plan = new SkillPlans.Plan(99);
+        plan.steps.add(new SkillPlans.Step("Adamant dart", 67, 74, null, 15));
+        plan.steps.add(new SkillPlans.Step("Onyx bolts", 74, 99, null, 9.4));
+        PlannerCalculator.insertStep(plan, new SkillPlans.Step("Atlatl dart", 74, 81, null, 12));
+        assertEquals(3, plan.steps.size());
+        assertEquals("Adamant dart", plan.steps.get(0).action);
+        assertEquals(74, plan.steps.get(0).to);
+        assertEquals("Atlatl dart", plan.steps.get(1).action);
+        assertEquals(81, plan.steps.get(1).to);
+        assertEquals("Onyx bolts", plan.steps.get(2).action);
+        assertEquals(81, plan.steps.get(2).from);
+        assertEquals(99, plan.steps.get(2).to);
+        // In the middle of one: split around it
+        PlannerCalculator.insertStep(plan, new SkillPlans.Step("Rune dart", 85, 90, null, 18.8));
+        assertEquals(5, plan.steps.size());
+        assertEquals(85, plan.steps.get(2).to);
+        assertEquals("Rune dart", plan.steps.get(3).action);
+        assertEquals("Onyx bolts", plan.steps.get(4).action);
+        assertEquals(90, plan.steps.get(4).from);
+    }
+
+    @Test
+    public void geTaxIsTwoPercentRoundedDownAndCapped() {
+        assertEquals(49, PlannerCalculator.afterTax(49), 0);
+        assertEquals(49, PlannerCalculator.afterTax(50), 0);
+        assertEquals(294, PlannerCalculator.afterTax(300), 0);
+        // at most 5M an item
+        assertEquals(1_495_000_000, PlannerCalculator.afterTax(1_500_000_000), 0);
+    }
+
+    @Test
+    public void moneyPlanCyclesWithinTheBudget() {
+        // Lobsters 40-50: raw lobsters at 200 each, cooked sell at 250 (245 after tax): a gain, so 1M covers it in rounds
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        SkillPlans.Plan plan = new SkillPlans.Plan(50);
+        plan.steps.add(new SkillPlans.Step("Lobster", 40, 50, null, 120));
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("raw lobster", 200);
+        prices.put("lobster", 250);
+        int xp = Experience.getXpForLevel(40);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.COOKING, cooking, Collections.emptyList(), plan,
+            xp, RECIPES, TRAINING, name -> prices.getOrDefault(name.toLowerCase(), 0), id -> 0);
+        long count = rows.get(0).row.needed;
+        Map<String, Integer> owned = new HashMap<>();
+        owned.put("raw lobster", 100);
+        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, owned, 100_000,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0);
+        PlannerCalculator.MoneyStep step = money.steps.get(0);
+        // The 100 you own aren't bought
+        assertEquals(count - 100, step.buys.get(0).quantity);
+        assertEquals((count - 100) * 200, step.cost);
+        // A round at a time: no round needs more than the budget
+        assertTrue(step.perRound <= 100_000);
+        assertEquals((step.cost + 99_999) / 100_000, step.rounds);
+        assertTrue(money.runsOut == null);
+        assertEquals(100_000 - step.loss(), money.end());
+        // A buy limit of 1,000 every 4 hours makes it more rounds, and takes time
+        PlannerCalculator.MoneyPlan limited = PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, owned, 100_000_000,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 1000);
+        assertEquals((count - 100 + 999) / 1000, limited.steps.get(0).rounds);
+        assertEquals((limited.steps.get(0).rounds - 1) * 4, limited.limitHours);
+    }
+
+    @Test
+    public void moneyPlanSaysWhereTheBudgetRunsOut() {
+        // Something that loses: sharks bought at 1,000 and sold at 500
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        SkillPlans.Plan plan = new SkillPlans.Plan(85);
+        plan.steps.add(new SkillPlans.Step("Shark", 80, 85, null, 210));
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("raw shark", 1000);
+        prices.put("shark", 500);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.COOKING, cooking, Collections.emptyList(), plan,
+            Experience.getXpForLevel(80), RECIPES, TRAINING, name -> prices.getOrDefault(name.toLowerCase(), 0), id -> 0);
+        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, new HashMap<>(), 10_000,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0);
+        assertNotNull(money.runsOut);
+        assertTrue(money.runsOut.runsOut);
+        // The budget it needs carries it; a bit less doesn't
+        long needed = PlannerCalculator.budgetNeeded(Skill.COOKING, rows, RECIPES, new HashMap<>(),
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0);
+        assertNull(PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, new HashMap<>(), needed,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0).runsOut);
+        assertNotNull(PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, new HashMap<>(), needed * 9 / 10,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0).runsOut);
+    }
+
+    @Test
+    public void budgetAmountsAreRead() {
+        assertEquals(50_000_000, PlannerCalculatorView.parseGp("50m"));
+        assertEquals(1_200_000_000, PlannerCalculatorView.parseGp("1.2B"));
+        assertEquals(750_000, PlannerCalculatorView.parseGp("750k"));
+        assertEquals(1_000_000, PlannerCalculatorView.parseGp("1,000,000 gp"));
+        assertEquals(0, PlannerCalculatorView.parseGp(" "));
+        assertEquals(-1, PlannerCalculatorView.parseGp("lots"));
+    }
+
+    @Test
+    public void materialsKnowWhereToGetThemYourself() {
+        // Logs from Woodcutting (not Firemaking, which burns them), fish from Fishing, bars made in Smithing
+        PlannerCalculator.Source logs = PlannerCalculator.sourceOf("Yew logs", Skill.FIREMAKING, DATA, RECIPES);
+        assertNotNull(logs);
+        assertEquals(Skill.WOODCUTTING, logs.skill);
+        assertTrue(logs.gathered);
+        assertEquals(Skill.FISHING, PlannerCalculator.sourceOf("Raw shark", Skill.COOKING, DATA, RECIPES).skill);
+        PlannerCalculator.Source bars = PlannerCalculator.sourceOf("Adamantite bar", Skill.CRAFTING, DATA, RECIPES);
+        assertNotNull(bars);
+        assertEquals(Skill.SMITHING, bars.skill);
+        assertFalse(bars.gathered);
+    }
+
+    @Test
+    public void gatheredMaterialsAreNotBought() {
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        SkillPlans.Plan plan = new SkillPlans.Plan(50);
+        plan.steps.add(new SkillPlans.Step("Lobster", 40, 50, null, 120));
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("raw lobster", 200);
+        prices.put("lobster", 250);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.COOKING, cooking, Collections.emptyList(), plan,
+            Experience.getXpForLevel(40), RECIPES, TRAINING, name -> prices.getOrDefault(name.toLowerCase(), 0), id -> 0);
+        PlannerCalculator.MoneyPlan money = PlannerCalculator.moneyPlan(Skill.COOKING, rows, RECIPES, new HashMap<>(), 1_000_000,
+            name -> prices.getOrDefault(name.toLowerCase(), 0), name -> 0, Collections.singleton("raw lobster"));
+        assertTrue(money.steps.get(0).buys.isEmpty());
+        assertEquals(0, money.steps.get(0).cost);
+        // ...so selling them is all gain
+        assertTrue(money.end() > 1_000_000);
+    }
+
+    @Test
+    public void ironmanChainsGoAllTheWayDown() {
+        // 1,000 adamant dart tips for Fletching: made in Smithing from adamantite bars, made there from ore and coal mined
+        List<PlannerCalculator.Link> links = PlannerCalculator.chain("Adamant dart tip", 1000, Skill.FLETCHING, DATA, RECIPES,
+            new HashMap<>(), (skill, item) -> true);
+        assertEquals(Skill.SMITHING, links.get(0).skill);
+        assertEquals("Adamant dart tip", links.get(0).item);
+        PlannerCalculator.Link bars = links.stream().filter(l -> l.item.equalsIgnoreCase("Adamantite bar")).findFirst().orElse(null);
+        assertNotNull(bars);
+        assertEquals(Skill.SMITHING, bars.skill);
+        assertEquals(1, bars.depth);
+        PlannerCalculator.Link ore = links.stream().filter(l -> l.item.equalsIgnoreCase("Adamantite ore")).findFirst().orElse(null);
+        assertNotNull(ore);
+        assertEquals(Skill.MINING, ore.skill);
+        assertTrue(ore.gathered);
+        assertTrue(links.stream().anyMatch(l -> l.item.equalsIgnoreCase("Coal") && l.skill == Skill.MINING));
+        // What you own counts first
+        Map<String, Integer> pool = new HashMap<>();
+        pool.put("adamantite bar", 1_000_000);
+        List<PlannerCalculator.Link> owned = PlannerCalculator.chain("Adamant dart tip", 1000, Skill.FLETCHING, DATA, RECIPES,
+            pool, (skill, item) -> true);
+        assertTrue(owned.stream().noneMatch(l -> l.item.equalsIgnoreCase("Adamantite ore")));
+    }
+
+    @Test
+    public void suppliesAreSavedAndLeftOutOfSales() {
+        SkillPlans.Plan plan = new SkillPlans.Plan(75);
+        SkillPlans.Step yews = new SkillPlans.Step("Yew logs", 60, 75, null, 175);
+        yews.supplies.add(new SkillPlans.Supply("FIREMAKING", "Yew logs", 1000));
+        plan.steps.add(yews);
+        // Saved and read back (and a plan saved before supplies existed still reads)
+        SkillPlans.Plan back = SkillPlans.decode(SkillPlans.encode(plan));
+        assertEquals(1, back.steps.get(0).supplies.size());
+        assertEquals("FIREMAKING", back.steps.get(0).supplies.get(0).skill);
+        assertEquals(1000, back.steps.get(0).supplied());
+        assertEquals(1, SkillPlans.decode("goal\t75\n60\t75\tYew logs\t\t175.0\n").steps.size());
+        // The kept logs aren't sold: the milestone's sales are for the rest
+        CalculatorData.Calc woodcutting = DATA.calc(Skill.WOODCUTTING);
+        List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.WOODCUTTING, woodcutting, Collections.emptyList(),
+            back, Experience.getXpForLevel(60), RECIPES, TRAINING, n -> 0, id -> 300);
+        PlannerCalculator.Row row = rows.get(0).row;
+        assertEquals(1000, row.kept);
+        assertEquals(row.earnEach * (row.needed - 1000), row.earn(row.needed), 0.01);
+    }
+
+    @Test
+    public void supplyMilestonesAreFixed() {
+        // Logs 1-15, then a supply of yew logs 60-70: a new milestone over 50-80 fits around the supply, never over it
+        SkillPlans.Plan plan = new SkillPlans.Plan(99);
+        SkillPlans.Step supply = new SkillPlans.Step("Yew logs", 60, 70, null, 175);
+        supply.supplies.add(new SkillPlans.Supply("FIREMAKING", "Yew logs", 5000));
+        plan.steps.add(supply);
+        PlannerCalculator.insertStep(plan, new SkillPlans.Step("Maple logs", 50, 80, null, 100));
+        assertTrue(plan.steps.contains(supply));
+        assertEquals(60, supply.from);
+        assertEquals(70, supply.to);
+        assertTrue(plan.steps.stream().noneMatch(s -> s != supply && s.from < 70 && s.to > 60));
+        // Add to plan where it starts goes past it
+        CalculatorData.Action magic = DATA.calc(Skill.WOODCUTTING).actions.stream().filter(a -> a.name.equals("Magic logs"))
+            .findFirst().orElse(null);
+        PlannerCalculator.addStep(plan, magic, 250, null, 60);
+        assertEquals(60, supply.from);
+        assertEquals(70, supply.to);
+        // The goal can't go below it
+        PlannerCalculator.raiseGoal(plan, 65);
+        assertEquals(70, plan.goal);
+        assertEquals(70, supply.to);
+    }
+
+    @Test
+    public void theClimbToASupplyFillsOnlyEmptyLevels() {
+        // You're 50, a supply of yew logs at 60-70, and your own Willow logs 52-55 already planned
+        SkillPlans.Plan plan = new SkillPlans.Plan(70);
+        SkillPlans.Step supply = new SkillPlans.Step("Yew logs", 60, 70, null, 175);
+        supply.supplies.add(new SkillPlans.Supply("FIREMAKING", "Yew logs", 5000));
+        plan.steps.add(supply);
+        SkillPlans.Step mine = new SkillPlans.Step("Willow logs", 52, 55, null, 67.5);
+        plan.steps.add(mine);
+        SkillPlans.Plan suggestions = new SkillPlans.Plan(60);
+        suggestions.steps.add(new SkillPlans.Step("Maple logs", 45, 60, null, 100));
+        int added = PlannerCalculator.fillGaps(plan, suggestions, 50, 60, "to reach 60 for the Firemaking supply");
+        assertEquals(2, added);
+        // 50-52 and 55-60 filled, Willow and the supply as they were, every level from 50 to 70 covered
+        assertEquals(52, mine.from);
+        assertEquals(55, mine.to);
+        for (int level = 50; level < 70; level++) {
+            int at = level;
+            assertEquals("level " + level, 1, plan.steps.stream().filter(st -> st.covers(at)).count());
+        }
+        SkillPlans.Step first = plan.steps.get(0);
+        assertEquals("Maple logs", first.action);
+        assertEquals("to reach 60 for the Firemaking supply", first.note);
+        // The note is saved with it
+        assertEquals("to reach 60 for the Firemaking supply", SkillPlans.decode(SkillPlans.encode(plan)).steps.get(0).note);
+    }
+
+    @Test
+    public void aPlanRemembersTheGoalItWasMadeFrom() {
+        SkillPlans.Plan plan = new SkillPlans.Plan(99);
+        plan.fromGoal = Experience.getXpForLevel(99);
+        plan.fromPick = "Blessed bone shards";
+        SkillPlans.Plan back = SkillPlans.decode(SkillPlans.encode(plan));
+        assertEquals(plan.fromGoal, back.fromGoal);
+        assertEquals("Blessed bone shards", back.fromPick);
+        // (made from its suggestions: no method)
+        plan.fromPick = null;
+        assertNull(SkillPlans.decode(SkillPlans.encode(plan)).fromPick);
+        // A plan not made from a goal says nothing of one
+        assertEquals(0, SkillPlans.decode(SkillPlans.encode(new SkillPlans.Plan(50))).fromGoal);
+    }
+
+    @Test
+    public void suggestedPlansAimForWhatYouPick() {
+        CalculatorData.Calc cooking = DATA.calc(Skill.COOKING);
+        List<CalculatorData.Action> actions = cooking.actions;
+        // Raw food costs, cooked sells; sharks lose money, lobsters make a little
+        Map<String, Integer> prices = new HashMap<>();
+        prices.put("raw lobster", 200);
+        prices.put("lobster", 260);
+        prices.put("raw shark", 1000);
+        prices.put("shark", 700);
+        prices.put("raw swordfish", 300);
+        prices.put("swordfish", 330);
+        java.util.function.ToIntFunction<String> price = n -> prices.getOrDefault(n.toLowerCase(), 0);
+        int xp = Experience.getXpForLevel(80);
+        Map<PlannerCalculator.PlanAim, PlannerCalculator.Totals> totals = new java.util.EnumMap<>(PlannerCalculator.PlanAim.class);
+        for (PlannerCalculator.PlanAim aim : new PlannerCalculator.PlanAim[] {PlannerCalculator.PlanAim.FASTEST,
+            PlannerCalculator.PlanAim.CHEAPEST, PlannerCalculator.PlanAim.MONEY, PlannerCalculator.PlanAim.BALANCED}) {
+            SkillPlans.Plan plan = PlannerCalculator.aimedPlan(Skill.COOKING, actions, Collections.emptyList(), TRAINING, RECIPES,
+                80, 90, aim, 3_000_000, price, id -> 0);
+            assertFalse(aim.label, plan.steps.isEmpty());
+            // Every level 80-90 covered once, each by an action you can do there
+            for (int level = 80; level < 90; level++) {
+                int at = level;
+                assertEquals(aim.label + " " + level, 1, plan.steps.stream().filter(st -> st.covers(at)).count());
+            }
+            for (SkillPlans.Step step : plan.steps) {
+                CalculatorData.Action action = CalculatorData.named(cooking, step.action);
+                assertTrue(aim.label + " " + step.action, action == null || action.level <= step.from);
+            }
+            List<PlannerCalculator.StepRow> rows = PlannerCalculator.stepRows(Skill.COOKING, cooking, Collections.emptyList(),
+                plan, xp, RECIPES, TRAINING, price, id -> 0);
+            totals.put(aim, PlannerCalculator.totals(plan, rows, xp));
+        }
+        // Cheapest loses no more than Fastest; Fastest takes no longer than Cheapest (where both have rates)
+        PlannerCalculator.Totals fast = totals.get(PlannerCalculator.PlanAim.FASTEST);
+        PlannerCalculator.Totals cheap = totals.get(PlannerCalculator.PlanAim.CHEAPEST);
+        assertTrue((cheap.earn - cheap.cost) >= (fast.earn - fast.cost) - 1);
+        if (fast.untimed == 0 && cheap.untimed == 0) {
+            assertTrue(fast.seconds <= cheap.seconds);
+        }
     }
 }

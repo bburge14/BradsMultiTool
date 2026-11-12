@@ -47,6 +47,21 @@ class ForestryAlerts {
         this.itemManager = itemManager;
     }
 
+    // What each event wants you to do (OSRS Wiki, Forestry), said with it in chat
+    private static final Map<String, String> HOW = new HashMap<>();
+
+    static {
+        HOW.put("Rising Roots", "chop the roots, the glowing ones first");
+        HOW.put("Struggling Sapling", "mulch the sapling with the right ingredients from the bushes");
+        HOW.put("Flowering Tree", "tend the flowering bushes, pairing the matching ones");
+        HOW.put("Leprechaun", "stand under each end of the rainbow for luck; he banks your logs");
+        HOW.put("Poachers", "disarm the fox traps the poachers lay");
+        HOW.put("Pheasant Control", "take eggs from empty nests to the Freaky Forester");
+        HOW.put("Bee Hive", "build the unfinished hives with your logs");
+        HOW.put("Enchantment Ritual", "stand on the ritual circle that's unlike the others");
+        HOW.put("Friendly Ent", "prune the entlings the way each one asks");
+    }
+
     /** The Forestry event this object starts, or null. */
     static String eventOfObject(int id) {
         switch (id) {
@@ -76,19 +91,33 @@ class ForestryAlerts {
             case NpcID.GATHERING_EVENT_FLOWERING_TREE_BUSH_COL06:
             case NpcID.GATHERING_EVENT_FLOWERING_TREE_BUSH_COL07:
             case NpcID.GATHERING_EVENT_FLOWERING_TREE_BUSH_COL08:
+            case NpcID.GATHERING_EVENT_FLOWERING_TREE_BEES:
                 return "Flowering Tree";
             case NpcID.GATHERING_EVENT_WOODCUTTING_LEPRECHAUN:
                 return "Leprechaun";
             case NpcID.GATHERING_EVENT_POACHERS_FOX_OUTDOORS:
             case NpcID.GATHERING_EVENT_POACHERS_FOX_INDOORS:
+            case NpcID.GATHERING_EVENT_POACHERS_POACHER01_OUTDOORS:
+            case NpcID.GATHERING_EVENT_POACHERS_POACHER01_INDOORS:
+            case NpcID.GATHERING_EVENT_POACHERS_POACHER02_OUTDOORS:
+            case NpcID.GATHERING_EVENT_POACHERS_POACHER02_INDOORS:
+            case NpcID.GATHERING_EVENT_POACHERS_POACHER03_OUTDOORS:
+            case NpcID.GATHERING_EVENT_POACHERS_POACHER03_INDOORS:
                 return "Poachers";
             case NpcID.GATHERING_EVENT_PHEASANT_FORESTER:
+            case NpcID.GATHERING_EVENT_PHEASANT:
                 return "Pheasant Control";
+            case NpcID.GATHERING_EVENT_BEES_BEEKEEPER:
+            case NpcID.GATHERING_EVENT_BEES_BEEBOX_1:
+            case NpcID.GATHERING_EVENT_BEES_BEEBOX_2:
+            case NpcID.GATHERING_EVENT_BEES_BEEBOX_3:
             case NpcID.GATHERING_EVENT_BEES_BEEBOX_4:
                 return "Bee Hive";
             case NpcID.GATHERING_EVENT_ENCHANTED_RITUAL_DRYAD:
                 return "Enchantment Ritual";
             case NpcID.GATHERING_EVENT_ENTLINGS_NPC_01:
+            case NpcID.GATHERING_EVENT_ENT_STUMP_01:
+            case NpcID.GATHERING_EVENT_ENT_STUMP_02:
                 return "Friendly Ent";
             default:
                 return null;
@@ -119,7 +148,8 @@ class ForestryAlerts {
         if (last != null && now - last < REPEAT_TICKS) {
             return;
         }
-        alerts.alert(VoiceAlertService.VoiceLine.FORESTRY_EVENT, event);
+        String how = HOW.get(event);
+        alerts.alert(VoiceAlertService.VoiceLine.FORESTRY_EVENT, how == null ? event : event + " (" + how + ")");
     }
 
     @Subscribe

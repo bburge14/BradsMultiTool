@@ -20,8 +20,6 @@ final class PlannerConfigDefaults {
         defaults.store("plannerWeekliesAlert", config.plannerWeekliesAlert());
         defaults.store("voiceWeeklies", config.voiceWeeklies());
         defaults.store("chatWeeklies", config.chatWeeklies());
-        defaults.store("plannerShowKingdom", config.plannerShowKingdom());
-        defaults.store("plannerShowContract", config.plannerShowContract());
         defaults.store("plannerShowTimers", config.plannerShowTimers());
         defaults.store("farmingPatchList", config.farmingPatchList());
         defaults.store("farmingReadyAlert", config.farmingReadyAlert());
@@ -34,6 +32,8 @@ final class PlannerConfigDefaults {
         defaults.store("timerSoundRepeats", config.timerSoundRepeats());
         defaults.store("voiceTimerDone", config.voiceTimerDone());
         defaults.store("chatTimerDone", config.chatTimerDone());
+        defaults.store("plannerGeLimits", config.plannerGeLimits());
+        defaults.store("chatGeLimitReset", config.chatGeLimitReset());
         defaults.store("plannerShowSlayer", config.plannerShowSlayer());
         defaults.store("plannerShowDrops", config.plannerShowDrops());
         defaults.store("plannerOtherLoot", config.plannerOtherLoot());
@@ -44,5 +44,13 @@ final class PlannerConfigDefaults {
         defaults.store("plannerShowCalculator", config.plannerShowCalculator());
         defaults.store("plannerCalcPrices", config.plannerCalcPrices());
         defaults.store("plannerCalcHideMembers", config.plannerCalcHideMembers());
+        defaults.store("plannerPlanOverlay", config.plannerPlanOverlay());
+        defaults.store("plannerIronman", config.plannerIronman());
+        defaults.store("plannerHourWorth", config.plannerHourWorth());
+        defaults.store("plannerSellBy", config.plannerSellBy());
+        defaults.store("plannerYourPrices", config.plannerYourPrices());
+        defaults.store("plannerMarketPrices", config.plannerMarketPrices());
+        defaults.store("chatPlanMilestone", config.chatPlanMilestone());
+        defaults.store("compactOverlays", config.compactOverlays());
     }
 }

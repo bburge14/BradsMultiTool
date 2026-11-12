@@ -175,7 +175,7 @@ Verdicts: Same, Ours better, Theirs better, Missing (we don't have it), Not allo
 | Pause on logout | Rate auto-pauses after 10 s without XP, so it pauses anyway | Same | None. |
 | Show intermediate level markers | Not found | Missing | Draw level ticks on the goal bar when the goal is several levels away. |
 | Auto pause after | Auto-Pause Idle Skills and After | Same | None. |
-| Auto reset after | Drop Idle Skills After hides the card but keeps its numbers | Theirs better | Option to reset the rate instead of keeping it. |
+| Auto reset after | Drop Idle After hides the card but keeps its numbers | Theirs better | Option to reset the rate instead of keeping it. |
 | Add skill tab canvas menu option | Pin from the card only | Theirs better | Add "Pin to screen" to the skill tab's right-click menu. |
 | On-screen tracker (top/bottom) and XP info box labels (4 corners) | One pinned skill with fixed fields | Theirs better | Allow more than one pinned skill and let players pick its fields. |
 | Progress bar label / Tooltip label (time to goal or %) | Bar shows progress; time to level is a field | Same | None. |
@@ -255,7 +255,7 @@ Verdicts: Same, Ours better, Theirs better, Missing (we don't have it), Not allo
 | Idle notification delay | AFK Alert After | Same | None. |
 | Idle logout notifications | Warn Before Logout, with repeats | Ours better | None. |
 | Six hour logout notification | Not found | Missing | Add a warning before the six-hour logout. |
-| Low energy notification (threshold) | Run Energy Alert Below, only while training Agility | Theirs better | Allow it outside Agility too. |
+| Low energy notification (threshold) | Run Alert Below, only while training Agility | Theirs better | Allow it outside Agility too. |
 | High energy notification | Not found | Missing | Alert when run energy is back to a set level. |
 | Oxygen notification | Not found | Missing | Low priority (underwater Fossil Island). |
 | Hitpoints / Prayer / Spec notifications | In PvM/Slayer, not skilling | Not relevant | None for the Skilling Helper. |
@@ -1055,7 +1055,7 @@ Repo: runelite/runelite `plugins/idlenotifier`, BSD-2. Popularity: core.
 | Idle notification delay (5s) | AFK Alert After (10s default) | Same | None. |
 | Hitpoints threshold (absolute points) | PvM Low Health Alert as %, orb flash, repeats | Ours better | None. |
 | Prayer threshold | PvM Low Prayer Alert as %, orb flash, OUT OF PRAYER overhead, repeats | Ours better | None. |
-| Low run energy threshold | Only while training Agility (Run Energy Alert Below) | Theirs better | Make it work everywhere (Best additions #7). |
+| Low run energy threshold | Only while training Agility (Run Alert Below) | Theirs better | Make it work everywhere (Best additions #7). |
 | High run energy (restored) | None | Missing | Add with #7. |
 | Low oxygen (Fossil Island underwater) | None | Missing | Low priority: one threshold alert, but it needs a voice line. |
 | Spec energy reached threshold | PvM Spec Alert At (only after you've used spec) | Same | None. |

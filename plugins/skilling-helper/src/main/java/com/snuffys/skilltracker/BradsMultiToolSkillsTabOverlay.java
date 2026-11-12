@@ -25,12 +25,13 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 @Singleton
 public class BradsMultiToolSkillsTabOverlay extends Overlay {
 
-    private static final int BAR_HEIGHT = 2;
+    private static final int BAR_HEIGHT = 3;
     // The goal bar's width, up the left edge
-    private static final int GOAL_WIDTH = 2;
+    private static final int GOAL_WIDTH = 3;
     // The skill stone's border, so the bar sits inside it
     private static final int INDENT = 4;
-    private static final Color BACKGROUND = new Color(0, 0, 0, 170);
+    // (nearly solid, so the bars read clearly over the stone)
+    private static final Color BACKGROUND = new Color(0, 0, 0, 225);
 
     private final Client client;
     private final SkillTracker tracker;
@@ -154,8 +155,8 @@ public class BradsMultiToolSkillsTabOverlay extends Overlay {
 
     // Orange at the start of a level to green near the next one
     private static Color levelColour(double progress) {
-        Color from = new Color(230, 120, 30);
-        Color to = new Color(60, 200, 60);
+        Color from = new Color(255, 140, 30);
+        Color to = new Color(70, 235, 80);
         return new Color((int) (from.getRed() + (to.getRed() - from.getRed()) * progress),
             (int) (from.getGreen() + (to.getGreen() - from.getGreen()) * progress),
             (int) (from.getBlue() + (to.getBlue() - from.getBlue()) * progress));

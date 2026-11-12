@@ -16,6 +16,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("showSkillingHover", config.showSkillingHover());
         defaults.store("showSkillingRates", config.showSkillingRates());
         defaults.store("deferToOtherTimerPlugins", config.deferToOtherTimerPlugins());
+        defaults.store("treeTimerStyle", config.treeTimerStyle());
         defaults.store("pieStyle", config.pieStyle());
         defaults.store("timerOpacity", config.timerOpacity());
         defaults.store("timerText", config.timerText());
@@ -35,6 +36,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("chatTreeGone", config.chatTreeGone());
         defaults.store("voiceForestryEvent", config.voiceForestryEvent());
         defaults.store("chatForestryEvent", config.chatForestryEvent());
+        defaults.store("forestryHighlights", config.forestryHighlights());
         defaults.store("voiceBirdNest", config.voiceBirdNest());
         defaults.store("chatBirdNest", config.chatBirdNest());
         defaults.store("miningTimers", config.showMiningTimer());
@@ -122,6 +124,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("showTrainingSuggestion", config.showTrainingSuggestion());
         defaults.store("trainingFocus", config.trainingFocus());
         defaults.store("highlightSuggestedTraining", config.highlightSuggestedTraining());
+        defaults.store("highlightGoals", config.highlightGoals());
         defaults.store("highlightGoalItems", config.highlightGoalItems());
         defaults.store("hideOutlinesWhileWorking", config.hideOutlinesWhileWorking());
         defaults.store("trainingHighlightColor", config.trainingHighlightColor());
@@ -134,7 +137,7 @@ final class SkillTrackerConfigDefaults {
         defaults.store("skillsTabGoalBars", config.skillsTabGoalBars());
         defaults.store("skillsTabLevelBars", config.skillsTabLevelBars());
         defaults.store("showTrackerItems", config.showTrackerItems());
-        defaults.store("keepSessionMinutes", config.keepSessionMinutes());
+        defaults.store("keepSessionHours", config.keepSessionHours());
         defaults.store("showMaterialsValue", config.showMaterialsValue());
         defaults.store("ignoredSkills", config.ignoredSkills());
         defaults.store("voiceLevelUp", config.voiceLevelUp());

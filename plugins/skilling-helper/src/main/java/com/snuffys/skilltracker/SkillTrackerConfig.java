@@ -128,11 +128,20 @@ public interface SkillTrackerConfig extends CommonConfig {
     /** When a kind of resource timer shows: always, only while you train its skill, or never. */
     enum TimerShow {
         ALWAYS("Always"),
-        TRAINING("While training"),
+        TRAINING("Training"),
         OFF("Off");
 
         private final String name;
         TimerShow(String name) { this.name = name; }
+        @Override public String toString() { return name; }
+    }
+
+    enum TreeTimerStyle {
+        LIGHT("Status light"),
+        TIMER("Timer");
+
+        private final String name;
+        TreeTimerStyle(String name) { this.name = name; }
         @Override public String toString() { return name; }
     }
 
@@ -184,6 +193,17 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     default boolean deferToOtherTimerPlugins() {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "treeTimerStyle",
+        name = "Tree Timer",
+        description = "<div width='300'>Status light: a full circle on each tree being chopped, green, then yellow, then red as it nears falling, flashing red once it can fall with the next log (a tree's real timer can't be seen, so this doesn't pretend to the second). Timer: a pie that empties as it runs down",
+        section = resourceTimersSection,
+        position = 0
+    )
+    default TreeTimerStyle treeTimerStyle() {
+        return TreeTimerStyle.LIGHT;
     }
 
     @ConfigItem(
@@ -408,6 +428,17 @@ public interface SkillTrackerConfig extends CommonConfig {
         position = 4
     )
     default boolean chatForestryEvent() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "forestryHighlights",
+        name = "Forestry Highlights",
+        description = "<div width='300'>Outline what each Forestry event wants you to click, with what to do: the glowing roots (Chop), the sapling's mulch (in order once it says), the flowering bushes to pollinate, the fox trap (Disarm), egg nests and the Freaky Forester, the unfinished beehive (Build), the ritual circle to stand on, the ends of the rainbow to stand under (luck) and the leprechaun (banks your logs). While RuneLite's Woodcutting plugin is on and highlights an event, that one's left to it",
+        section = woodcuttingSection,
+        position = 7
+    )
+    default boolean forestryHighlights() {
         return true;
     }
 
@@ -897,7 +928,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyBelow",
-        name = "Run Energy Alert Below",
+        name = "Run Alert Below",
         description = "<div width='300'>While you're training Agility, alert when your run energy drops below this (0: off). Quiet while the Idle section's Run Energy Low Below is on (that one alerts anywhere, Agility included)",
         section = agilitySection,
         position = 11
@@ -1489,6 +1520,33 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
+    enum HighlightGoals {
+        ALL("All goals"),
+        ACTIVE("Active goal");
+
+        private final String label;
+
+        HighlightGoals(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    @ConfigItem(
+        keyName = "highlightGoals",
+        name = "Highlight For",
+        description = "<div width='300'>Which goals the outlines and item highlights are for: every goal, or only the one you set active (right-click a goal's card > Set as active goal; with none set, every goal)",
+        section = goalsSection,
+        position = 6
+    )
+    default HighlightGoals highlightGoals() {
+        return HighlightGoals.ALL;
+    }
+
     @ConfigItem(
         keyName = "highlightGoalItems",
         name = "Highlight Goal Items",
@@ -1544,7 +1602,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     )
     @Units(Units.SECONDS)
     default int autoPauseSeconds() {
-        return 10;
+        return 60;
     }
 
     @Range(max
@@ -1553,7 +1611,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Units(Units.MINUTES)
     @ConfigItem(
         keyName = "dropIdleSkillsAfter",
-        name = "Drop Idle Skills After",
+        name = "Drop Idle After",
         description = "<div width='300'>A skill without a goal leaves the tracker after this long without XP (0: never), and comes back with its session numbers when you gain XP in it again. Skills with a goal and the pinned skill always stay",
         section = trackerSection,
         position = 9
@@ -1628,17 +1686,17 @@ public interface SkillTrackerConfig extends CommonConfig {
         return true;
     }
 
-    @Range(max = 240)
-    @Units(Units.MINUTES)
+    @Range(max = 720)
+    @Units(" hrs")
     @ConfigItem(
-        keyName = "keepSessionMinutes",
-        name = "Keep Session After Restart",
-        description = "<div width='300'>When you restart the client and log back in to the same account within this long of logging out (or of your last XP, if the client closed without logging out), the tracker carries on with that session's XP, rates and items instead of starting again (0: always start again)",
+        keyName = "keepSessionHours",
+        name = "Keep Session For",
+        description = "<div width='300'>When you restart the client and log back in to the same account within this long of logging out or closing it, the tracker carries on with that session's XP, rates and items instead of starting again (up to 30 days; 0: always start again). Reset rate or Reset all skills starts one fresh any time",
         section = trackerSection,
         position = 14
     )
-    default int keepSessionMinutes() {
-        return 30;
+    default int keepSessionHours() {
+        return 168;
     }
 
     @ConfigItem(
@@ -1689,7 +1747,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @ConfigItem(
         keyName = "voicePersona",
         name = "Voice Persona",
-        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, Ryan, John: UK and US men. Arctic: a Scottish man. L2 Arctic: a man with a Mandarin Chinese accent. Wise Old Man, TzHaar, Ghost: characters. Random: a different one each alert",
+        description = "<div width='300'>Voice used for spoken alerts; changing it plays a sample. Amy, Cori: US and UK women. Alan, John: UK and US men. Random: a different one each alert",
         section = generalSection,
         position = 1
     )
@@ -1978,7 +2036,7 @@ public interface SkillTrackerConfig extends CommonConfig {
     @Units(Units.PERCENT)
     @ConfigItem(
         keyName = "runEnergyRestoredAt",
-        name = "Run Energy Restored At",
+        name = "Run Restored At",
         description = "<div width='300'>Alert when your run energy is back up to this, after it had dropped at least 10 below it (100: full again; 0: off)",
         section = idleSection,
         position = 16

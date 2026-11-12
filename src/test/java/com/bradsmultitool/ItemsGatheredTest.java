@@ -70,4 +70,12 @@ public class ItemsGatheredTest {
         assertEquals(20, BradsMultiToolSkillsTabOverlay.theirHeight(20, true));
         assertTrue(BradsMultiToolSkillsTabOverlay.component(Skill.SAILING) > 0);
     }
+
+    @Test
+    public void xpPerKillFromRealKills() {
+        // Three Gemstone crabs, 30,000 Defence XP between the first and third: 15,000 a crab
+        assertEquals(15_000, KillTracker.xpPerKill(3, 1_000_000, 1_030_000), 0.001);
+        // One kill: not known yet
+        assertEquals(0, KillTracker.xpPerKill(1, 1_000_000, 1_000_000), 0.001);
+    }
 }

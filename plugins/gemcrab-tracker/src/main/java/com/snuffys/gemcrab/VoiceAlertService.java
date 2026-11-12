@@ -1,19 +1,14 @@
 package com.snuffys.gemcrab;
 
-import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.LineEvent;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Skill;
+import net.runelite.client.audio.AudioPlayer;
 
 /**
  * Plays pre-recorded voice alerts bundled with the plugin (generated with Piper TTS by
@@ -260,12 +255,19 @@ public class VoiceAlertService {
         }
     }
 
-    // One clip at a time so overlapping alerts queue instead of talking over each other: the next clip
-    // starts when the current one reports it has stopped (no sleeping threads, per Plugin Hub rules)
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final Deque<String[]> queue = new ArrayDeque<>();
-    private boolean playing;
-    private Clip current;
+    // Played through RuneLite's AudioPlayer (the Plugin Hub doesn't allow javax.sound in plugins). Clips are 8-bit
+    // PCM WAV, which it plays as they are. An alert's clips are joined into one sound; alerts that overlap wait
+    // their turn: each is scheduled for when the one before ends (its length from its size), never with a sleep
+    private final AudioPlayer audioPlayer;
+    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    // When the sound already queued finishes (System.currentTimeMillis)
+    private long busyUntil;
+    // A short pause between one alert and the next
+    private static final long GAP_MILLIS = 150;
+
+    public VoiceAlertService(AudioPlayer audioPlayer) {
+        this.audioPlayer = audioPlayer;
+    }
 
     /**
      * @param volumePercent 0-100
@@ -280,17 +282,33 @@ public class VoiceAlertService {
     }
 
     /** Plays several clips back to back as one alert (nothing else can cut in between). */
-    public void speakClipsAsync(VoicePersona persona, int volumePercent, String... fileNames) {
-        synchronized (queue) {
-            for (String fileName : fileNames) {
-                queue.add(new String[]{clipResource(persona, fileName), String.valueOf(volumePercent)});
-            }
-            if (playing) {
-                return;
-            }
-            playing = true;
+    public synchronized void speakClipsAsync(VoicePersona persona, int volumePercent, String... fileNames) {
+        if (volumePercent <= 0) {
+            return;
         }
-        executor.execute(this::playNext);
+        Wav joined = null;
+        for (String fileName : fileNames) {
+            Wav clip = read(clipResource(persona, fileName));
+            joined = clip == null ? joined : joined == null ? clip : joined.then(clip);
+        }
+        if (joined == null) {
+            return;
+        }
+        if (executor.isShutdown()) {
+            executor = Executors.newSingleThreadScheduledExecutor();
+        }
+        long now = System.currentTimeMillis();
+        long start = Math.max(now, busyUntil);
+        busyUntil = start + joined.millis() + GAP_MILLIS;
+        byte[] sound = joined.bytes();
+        float gainDb = (float) (20 * Math.log10(Math.min(100, volumePercent) / 100.0));
+        executor.schedule(() -> {
+            try {
+                audioPlayer.play(new ByteArrayInputStream(sound), gainDb);
+            } catch (Exception e) {
+                log.warn("Could not play a voice alert: {}", e.getMessage());
+            }
+        }, start - now, TimeUnit.MILLISECONDS);
     }
 
     /** "Woodcutting level", then "45". */
@@ -306,77 +324,109 @@ public class VoiceAlertService {
         return new String[]{skillClip, "tens_" + (level / 10 * 10), "num_" + (level % 10)};
     }
 
-    private void playNext() {
-        String[] next;
-        synchronized (queue) {
-            next = queue.poll();
-            if (next == null) {
-                playing = false;
-                current = null;
-                return;
-            }
+    /** A WAV's format chunk and its samples, to join clips of one voice (they share a format) into one sound. */
+    static final class Wav {
+        final byte[] format;
+        final byte[] data;
+
+        Wav(byte[] format, byte[] data) {
+            this.format = format;
+            this.data = data;
         }
-        if (!start(next[0], Integer.parseInt(next[1]))) {
-            playNext();
+
+        Wav then(Wav next) {
+            byte[] both = new byte[data.length + next.data.length];
+            System.arraycopy(data, 0, both, 0, data.length);
+            System.arraycopy(next.data, 0, both, data.length, next.data.length);
+            return new Wav(format, both);
+        }
+
+        /** How long it plays: the data's bytes over the bytes a second (in the format chunk). */
+        long millis() {
+            long perSecond = format.length >= 12 ? (format[8] & 0xFFL) | (format[9] & 0xFFL) << 8
+                | (format[10] & 0xFFL) << 16 | (format[11] & 0xFFL) << 24 : 0;
+            return perSecond > 0 ? data.length * 1000L / perSecond : 0;
+        }
+
+        /** As a WAV file. */
+        byte[] bytes() {
+            ByteArrayOutputStream out = new ByteArrayOutputStream(44 + data.length);
+            int pad = data.length & 1;
+            out.write('R');
+            out.write('I');
+            out.write('F');
+            out.write('F');
+            int32(out, 4 + 8 + format.length + 8 + data.length + pad);
+            out.write('W');
+            out.write('A');
+            out.write('V');
+            out.write('E');
+            out.write('f');
+            out.write('m');
+            out.write('t');
+            out.write(' ');
+            int32(out, format.length);
+            out.write(format, 0, format.length);
+            out.write('d');
+            out.write('a');
+            out.write('t');
+            out.write('a');
+            int32(out, data.length);
+            out.write(data, 0, data.length);
+            if (pad == 1) {
+                out.write(0);
+            }
+            return out.toByteArray();
+        }
+
+        private static void int32(ByteArrayOutputStream out, int value) {
+            out.write(value);
+            out.write(value >> 8);
+            out.write(value >> 16);
+            out.write(value >> 24);
         }
     }
 
-    // Starts the clip; when it stops, it closes itself and the next one in the queue starts
-    private boolean start(String resource, int volumePercent) {
-        try (InputStream raw = VoiceAlertService.class.getResourceAsStream(resource)) {
-            if (raw == null) {
+    /** A bundled clip's format and samples, or null when it's missing or unreadable. */
+    static Wav read(String resource) {
+        try (InputStream in = VoiceAlertService.class.getResourceAsStream(resource)) {
+            if (in == null) {
                 log.warn("Missing voice clip {}", resource);
-                return false;
+                return null;
             }
-            try (AudioInputStream audio = toPcm(AudioSystem.getAudioInputStream(new BufferedInputStream(raw)))) {
-                Clip clip = AudioSystem.getClip();
-                clip.open(audio);
-                setVolume(clip, volumePercent);
-                clip.addLineListener(event -> {
-                    if (event.getType() == LineEvent.Type.STOP) {
-                        clip.close();
-                        executor.execute(this::playNext);
-                    }
-                });
-                current = clip;
-                clip.start();
-                return true;
-            }
+            return parse(in.readAllBytes());
         } catch (Exception e) {
-            log.warn("Could not play voice clip {}: {}", resource, e.getMessage());
-            return false;
+            log.warn("Could not read voice clip {}: {}", resource, e.getMessage());
+            return null;
         }
     }
 
-    /** Clips are stored as 16 kHz mu-law to keep the plugin small; decode to 16-bit PCM for playback. */
-    static AudioInputStream toPcm(AudioInputStream in) {
-        AudioFormat f = in.getFormat();
-        if (AudioFormat.Encoding.PCM_SIGNED.equals(f.getEncoding())) {
-            return in;
+    /** The "fmt " and "data" chunks of a RIFF WAV, or null when it isn't one. */
+    static Wav parse(byte[] wav) {
+        if (wav.length < 12 || wav[0] != 'R' || wav[1] != 'I' || wav[2] != 'F' || wav[3] != 'F') {
+            return null;
         }
-        AudioFormat pcm = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, f.getSampleRate(), 16,
-            f.getChannels(), f.getChannels() * 2, f.getSampleRate(), false);
-        return AudioSystem.getAudioInputStream(pcm, in);
+        byte[] format = null;
+        int at = 12;
+        while (at + 8 <= wav.length) {
+            String id = new String(wav, at, 4, java.nio.charset.StandardCharsets.US_ASCII);
+            int size = (wav[at + 4] & 0xFF) | (wav[at + 5] & 0xFF) << 8 | (wav[at + 6] & 0xFF) << 16 | (wav[at + 7] & 0xFF) << 24;
+            int body = at + 8;
+            if (size < 0 || body + size > wav.length) {
+                size = wav.length - body;
+            }
+            if (id.equals("fmt ")) {
+                format = java.util.Arrays.copyOfRange(wav, body, body + size);
+            } else if (id.equals("data") && format != null) {
+                return new Wav(format, java.util.Arrays.copyOfRange(wav, body, body + size));
+            }
+            at = body + size + (size & 1);
+        }
+        return null;
     }
 
-    private static void setVolume(Clip clip, int volumePercent) {
-        if (!clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-            return;
-        }
-        FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        float linear = Math.max(0.0001f, Math.min(100, volumePercent) / 100f);
-        float db = (float) (20 * Math.log10(linear));
-        gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), db)));
-    }
-
-    public void shutdown() {
-        synchronized (queue) {
-            queue.clear();
-        }
-        Clip clip = current;
-        if (clip != null) {
-            clip.stop();
-        }
-        executor.shutdown();
+    public synchronized void shutdown() {
+        executor.shutdownNow();
+        busyUntil = 0;
     }
 }

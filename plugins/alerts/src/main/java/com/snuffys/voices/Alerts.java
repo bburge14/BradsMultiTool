@@ -28,11 +28,12 @@ class Alerts {
     private final InGame inGame;
     private final VoiceSync voiceSync;
     private final ClientUI clientUI;
-    private final VoiceAlertService voice = new VoiceAlertService();
+    private final VoiceAlertService voice;
 
     @Inject
     Alerts(Client client, CommonConfig config, ConfigManager configManager, PluginFamily family, PluginIdentity identity, InGame inGame,
-           VoiceSync voiceSync, ClientUI clientUI) {
+           VoiceSync voiceSync, ClientUI clientUI, net.runelite.client.audio.AudioPlayer audioPlayer) {
+        this.voice = new VoiceAlertService(audioPlayer);
         this.client = client;
         this.config = config;
         this.configManager = configManager;
@@ -86,10 +87,19 @@ class Alerts {
 
     /** Posts an alert in chat, if you're in game and its chat message is turned on. */
     void chat(AlertType type, String message) {
-        if (config.sendChatMessages() && ready() && toggle(type.chatKey)) {
+        chat(type.chatKey, type.reminder, message);
+    }
+
+    /** A chat-only message under its own switch ({@code chatKey}), to the game chat. */
+    void chat(String chatKey, String message) {
+        chat(chatKey, false, message);
+    }
+
+    private void chat(String chatKey, boolean reminder, String message) {
+        if (config.sendChatMessages() && ready() && toggle(chatKey)) {
             // The Planner's reminders go where friends' logins show: the split private chat (when that's on in the
             // game's settings), which fades after a while, instead of staying in the chat box
-            ChatMessageType channel = type.reminder ? ChatMessageType.LOGINLOGOUTNOTIFICATION : ChatMessageType.GAMEMESSAGE;
+            ChatMessageType channel = reminder ? ChatMessageType.LOGINLOGOUTNOTIFICATION : ChatMessageType.GAMEMESSAGE;
             client.addChatMessage(channel, "", "<col=00ffff>[" + identity.chatName + "]</col> " + message, null);
         }
     }

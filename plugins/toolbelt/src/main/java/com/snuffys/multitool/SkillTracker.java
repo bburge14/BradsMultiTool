@@ -60,10 +60,17 @@ class SkillTracker {
     private Provider<GoalItems> goalItems;
     @Inject
     private KillTracker killTracker;
+    // Which of Snuffy's plugins run alongside (a plan from the Planner is followed only while it runs)
+    @Inject
+    private PluginFamily family;
     @Inject
     private Provider<MethodDetector> methodDetector;
     @Inject
     private Provider<HunterRumours> hunterRumours;
+    // Where to train each thing (the wiki's places with their areas), for where you train
+    @Inject
+    private LocationData locationData;
+    private static final String TRAINED_AT = "trainedAt.";
 
 
     private final Map<Skill, Integer> baseSkillXp = new EnumMap<>(Skill.class);
@@ -148,8 +155,9 @@ class SkillTracker {
     @Subscribe
     public void onChatMessage(net.runelite.api.events.ChatMessage event) {
         ItemsGathered.Kind kind = ItemsGathered.of(event.getType(), event.getMessage());
-        // Not while the skill's clock is paused: the per-hour rate leaves that time out
-        if (kind != null && !isSkillIgnored(kind.skill) && !isSkillPaused(kind.skill)) {
+        // Not while you've paused the skill yourself; auto-paused it counts (the log's message comes just before its
+        // XP drop, which is what wakes the skill: a slow log after a pause was missed)
+        if (kind != null && !isSkillIgnored(kind.skill) && !(isSkillPaused(kind.skill) && !isSkillAutoPaused(kind.skill))) {
             itemCounts.merge(kind, 1, Integer::sum);
         }
     }
@@ -191,6 +199,15 @@ class SkillTracker {
         actionCounts.remove(skill);
     }
 
+    // Closing RuneLite while logged in (it doesn't turn plugins off first): the session as of now, so Keep Session For
+    // counts from closing, not from your last XP (an idle half hour before closing lost it)
+    @Subscribe
+    public void onClientShutdown(net.runelite.client.events.ClientShutdown event) {
+        if (client.getGameState() == GameState.LOGGED_IN) {
+            saveSession(true);
+        }
+    }
+
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
         if (event.getGameState() == GameState.LOGIN_SCREEN) {
@@ -224,7 +241,7 @@ class SkillTracker {
             }
             restoreSession();
         }
-        // Kept with your profile every half a minute, for Keep Session After Restart
+        // Kept with your profile every half a minute, for Keep Session For
         if (reachedChecked && client.getTickCount() % SAVE_TICKS == 0) {
             saveSession();
         }
@@ -232,6 +249,13 @@ class SkillTracker {
             if (gainedSkillXp.get(s) > 0 && !isSkillPaused(s) && !isSkillIgnored(s)) {
                 long current = skillActiveTicks.getOrDefault(s, 0L);
                 skillActiveTicks.put(s, current + 1);
+                // Your XP an hour, for the Planner to time your plan by (every few seconds, while it counts)
+                if (family != null && client.getTickCount() % 5 == 0) {
+                    int rate = getSkillXpPerHour(s);
+                    if (rate > 0) {
+                        family.shareXpRate(s, rate);
+                    }
+                }
             }
         }
         updatePanelUI();
@@ -251,6 +275,9 @@ class SkillTracker {
         }
 
         int gained = currentXp - baseSkillXp.get(skill);
+        if (gained > 0 && currentXp > lastXp(skill)) {
+            noteWhereTrained(skill);
+        }
         if (gained > 0) {
             int previousGained = gainedSkillXp.getOrDefault(skill, 0);
             int drop = gained - previousGained;
@@ -279,7 +306,9 @@ class SkillTracker {
      * group, so its goals stay where they were; bird houses and compost are kept there too.)
      */
     static final String SHARED_GROUP = SkillGoals.GROUP;
-    private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "goalMethod.", "trainingFocus.", "prayerMethod."};
+    private static final String[] SHARED_PREFIXES = {"goal.", "goalStart.", "goalTarget.", "goalMethod.", "trainingFocus.", "prayerMethod.", "goalFollow."};
+    // The goal you set active (one at a time): with Highlight For on the active goal, only it is highlighted
+    private static final String ACTIVE_GOAL_KEY = "goalActive";
 
     // Goals are kept with your RuneScape profile, which RuneLite only knows a moment after login (and
     // which changes when synced settings arrive), so redraw the tracker then
@@ -428,7 +457,9 @@ class SkillTracker {
      * {@link SkillPlans}), or null: none, Follow Skill Plans off, or no goal to follow it to.
      */
     public SkillPlans.Plan getSkillPlan(Skill skill) {
-        if (!config.followSkillPlans() || configManager.getRSProfileKey() == null || getSkillGoal(skill) <= 0) {
+        // Plans are the Planner's: followed only while it runs too (installed and on)
+        if (!config.followSkillPlans() || configManager.getRSProfileKey() == null || getSkillGoal(skill) <= 0
+            || family == null || !family.hasPlanner() || !following(skill, SkillGoals.Follow.PLAN)) {
             return null;
         }
         return SkillPlans.tracked(configManager, skill);
@@ -437,7 +468,91 @@ class SkillTracker {
     /** The plan's milestone you're on at this level (else the next one ahead), or null without a plan or past it. */
     public SkillPlans.Step getPlanMilestone(Skill skill, int level) {
         SkillPlans.Plan plan = getSkillPlan(skill);
-        return plan == null ? null : plan.milestone(level);
+        return plan == null ? null : plan.milestone(level, SkillPlans.suppliesGot(configManager, skill));
+    }
+
+    /**
+     * Where a plan's supply milestone stands (its supplies still to get and where they take you), as the Planner
+     * worked it out from your bank and inventory; null for an ordinary milestone or when the Planner hasn't said.
+     */
+    public SkillPlans.SupplyState getSupplyState(Skill skill, SkillPlans.Step step) {
+        if (step == null || step.supplies.isEmpty() || configManager.getRSProfileKey() == null) {
+            return null;
+        }
+        return SkillPlans.supplyStates(configManager, skill).get(step.action.toLowerCase(java.util.Locale.ROOT));
+    }
+
+    /**
+     * The XP a plan milestone ends at: a supply milestone where getting its supplies takes you (partway into a level),
+     * any other at its end level.
+     */
+    public int getMilestoneEndXp(Skill skill, SkillPlans.Step step) {
+        SkillPlans.SupplyState state = getSupplyState(skill, step);
+        if (state != null && state.endXp > 0) {
+            return (int) Math.min(Experience.MAX_SKILL_XP, state.endXp);
+        }
+        return Experience.getXpForLevel(Math.min(Experience.MAX_REAL_LEVEL, step.to));
+    }
+
+    /**
+     * The goal's name on its bar: "Supplies" when it's where your plan's last supply milestone ends (a plan that ends
+     * getting supplies for another skill's plan: the goal is those, not a level), else "Lvl 57" or the XP.
+     */
+    public String getGoalLabel(Skill skill, int goalXp) {
+        if (getGoalSupplies(skill, goalXp) != null) {
+            return "Supplies";
+        }
+        int goalLevel = Experience.getLevelForXp(goalXp);
+        return goalXp == Experience.getXpForLevel(goalLevel) ? "Lvl " + goalLevel : BradsMultiToolPanel.shortNumber(goalXp);
+    }
+
+    /**
+     * When the goal is your plan's last supply milestone (it ends where getting them takes you), where that stands;
+     * null for any other goal.
+     */
+    public SkillPlans.SupplyState getGoalSupplies(Skill skill, int goalXp) {
+        SkillPlans.Plan plan = getSkillPlan(skill);
+        SkillPlans.Step last = null;
+        if (plan != null) {
+            for (SkillPlans.Step step : plan.steps) {
+                if (last == null || step.to >= last.to) {
+                    last = step;
+                }
+            }
+        }
+        SkillPlans.SupplyState state = getSupplyState(skill, last);
+        return state != null && state.endXp > 0 && Math.abs(state.endXp - goalXp) <= 1 ? state : null;
+    }
+
+    // The XP each skill was at when its place was last looked at (only a real gain counts, not the login's report)
+    private final java.util.Map<Skill, Integer> placeXp = new java.util.EnumMap<>(Skill.class);
+
+    private int lastXp(Skill skill) {
+        Integer at = placeXp.put(skill, client.getSkillExperience(skill));
+        return at == null ? Integer.MAX_VALUE : at;
+    }
+
+    // You gained XP: if you're at one of the skill's places (the wiki's, by their areas on the map), that's where you
+    // train it now, kept until you train it somewhere else
+    private void noteWhereTrained(Skill skill) {
+        Player player = client.getLocalPlayer();
+        if (player == null || locationData == null || configManager.getRSProfileKey() == null) {
+            return;
+        }
+        WorldPoint at = WorldPoint.fromLocalInstance(client, player.getLocalLocation());
+        if (at == null) {
+            return;
+        }
+        String place = locationData.placeAt(skill.getName(), at.getX(), at.getY(), at.getPlane());
+        if (place != null && !place.equals(getTrainedAt(skill))) {
+            configManager.setRSProfileConfiguration(SHARED_GROUP, TRAINED_AT + skill.name(), place);
+        }
+    }
+
+    /** Where you last trained a skill at one of its places ("Woodcutting Guild"), or null. */
+    public String getTrainedAt(Skill skill) {
+        return configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, TRAINED_AT + skill.name());
     }
 
     /** What to train for a goal, by the Training Focus setting. */
@@ -487,13 +602,52 @@ class SkillTracker {
      * "object:Teak tree", see {@link GoalTarget}), or null to follow the suggestion.
      */
     public String getGoalTarget(Skill skill) {
-        return configManager.getRSProfileKey() == null ? null
-            : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+        if (configManager.getRSProfileKey() == null || !following(skill, SkillGoals.Follow.PICK)) {
+            return null;
+        }
+        return configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
     }
 
     /** The guide method you picked for this skill's suggestion (its name), or null to have it picked for you. */
     public String getChosenMethod(Skill skill) {
-        return configManager.getRSProfileKey() == null ? null
+        if (configManager.getRSProfileKey() == null || !following(skill, SkillGoals.Follow.PICK)) {
+            return null;
+        }
+        return configManager.getRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name());
+    }
+
+    /**
+     * What the goal follows (Follow on the goal card): your plan, your pick (Track for goal or a picked method) or the
+     * wiki's suggestion; null for the usual order (a pick, then the plan, then the wiki). The others stay saved.
+     */
+    public SkillGoals.Follow getFollow(Skill skill) {
+        return configManager.getRSProfileKey() == null ? null : SkillGoals.follow(configManager, skill);
+    }
+
+    public void setFollow(Skill skill, SkillGoals.Follow follow) {
+        SkillGoals.setFollow(configManager, skill, follow);
+        updatePanelUI();
+    }
+
+    // Whether the goal may use this kind of suggestion (always, with Follow on its usual order)
+    private boolean following(Skill skill, SkillGoals.Follow kind) {
+        SkillGoals.Follow follow = SkillGoals.follow(configManager, skill);
+        return follow == null || follow == kind;
+    }
+
+    /** Whether a plan was sent to the tracker for this skill (whatever Follow says), with the Planner running. */
+    public boolean hasSentPlan(Skill skill) {
+        return configManager.getRSProfileKey() != null && family != null && family.hasPlanner()
+            && SkillPlans.tracked(configManager, skill) != null;
+    }
+
+    /** The Track for goal pick or picked method saved for the skill, whatever Follow says (for the Follow menu). */
+    public String getSavedPick(Skill skill) {
+        if (configManager.getRSProfileKey() == null) {
+            return null;
+        }
+        String target = configManager.getRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+        return target != null ? describeTarget(skill, target)
             : configManager.getRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name());
     }
 
@@ -504,6 +658,8 @@ class SkillTracker {
         } else {
             configManager.setRSProfileConfiguration(SHARED_GROUP, "goalMethod." + skill.name(), method);
             configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
+            // (picking it means following it, for now: Follow > Plan goes back)
+            SkillGoals.setFollow(configManager, skill, SkillGoals.Follow.PICK);
         }
         updatePanelUI();
     }
@@ -513,6 +669,7 @@ class SkillTracker {
             configManager.unsetRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name());
         } else {
             configManager.setRSProfileConfiguration(SHARED_GROUP, "goalTarget." + skill.name(), target);
+            SkillGoals.setFollow(configManager, skill, SkillGoals.Follow.PICK);
         }
         updatePanelUI();
     }
@@ -699,11 +856,31 @@ class SkillTracker {
         if (!config.clearReachedGoals() || goal <= 0 || xp < goal || configManager.getRSProfileKey() == null) {
             return;
         }
+        // A goal your plan sets that still has supplies to get isn't reached: the XP is only where they were
+        // expected to take you (XP bonuses get there sooner); the Planner moves it on as you get them
+        if (suppliesLeft(skill)) {
+            return;
+        }
         int level = Experience.getLevelForXp(goal);
         String target = goal == Experience.getXpForLevel(level) ? "level " + level : String.format("%,d XP", goal);
         setSkillGoal(skill, 0);
         client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=00ffff>[" + identity.chatName + "]</col> "
             + skill.getName() + " goal reached (" + target + "): cleared. Set Goal for your next one.", null);
+    }
+
+    // Whether the plan the goal follows still has a supply milestone with supplies to get
+    private boolean suppliesLeft(Skill skill) {
+        SkillPlans.Plan plan = getSkillPlan(skill);
+        if (plan == null) {
+            return false;
+        }
+        for (SkillPlans.Step step : plan.steps) {
+            SkillPlans.SupplyState state = getSupplyState(skill, step);
+            if (state != null && state.toGet > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Whether the tracker's "goals" or "session" list is folded away (kept between launches). */
@@ -725,7 +902,7 @@ class SkillTracker {
         return lastXpMillis.getOrDefault(skill, 0L);
     }
 
-    /** Whether a skill gained XP recently enough to stay in the tracker (see Drop Idle Skills After). */
+    /** Whether a skill gained XP recently enough to stay in the tracker (see Drop Idle After). */
     public boolean isRecentlyTrained(Skill skill) {
         int minutes = config.dropIdleSkillsAfter();
         Long last = lastXpMillis.get(skill);
@@ -926,6 +1103,42 @@ class SkillTracker {
     }
 
     /** Skills you've set a goal for, in skill order. */
+    /** The goal set active, or null. */
+    public Skill getActiveGoal() {
+        String saved = configManager.getRSProfileKey() == null ? null
+            : configManager.getRSProfileConfiguration(SHARED_GROUP, ACTIVE_GOAL_KEY);
+        if (saved == null) {
+            return null;
+        }
+        try {
+            Skill skill = Skill.valueOf(saved);
+            return getSkillGoal(skill) > 0 ? skill : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    public void setActiveGoal(Skill skill) {
+        if (skill == null) {
+            configManager.unsetRSProfileConfiguration(SHARED_GROUP, ACTIVE_GOAL_KEY);
+        } else {
+            configManager.setRSProfileConfiguration(SHARED_GROUP, ACTIVE_GOAL_KEY, skill.name());
+        }
+        updatePanelUI();
+    }
+
+    /**
+     * The goals the outlines and item highlights are for: every goal, or with Highlight For on the active goal, only
+     * that one (every goal while none is set active).
+     */
+    public List<Skill> getHighlightSkills() {
+        Skill active = getActiveGoal();
+        if (config.highlightGoals() == SkillTrackerConfig.HighlightGoals.ACTIVE && active != null) {
+            return java.util.Collections.singletonList(active);
+        }
+        return getGoalSkills();
+    }
+
     public List<Skill> getGoalSkills() {
         List<Skill> skills = new ArrayList<>();
         if (configManager.getRSProfileKey() == null) {
@@ -939,7 +1152,7 @@ class SkillTracker {
         return skills;
     }
 
-    // ---- Keep Session After Restart (like RuneLite's XP Tracker keeping its session) ----
+    // ---- Keep Session For (like RuneLite's XP Tracker keeping its session) ----
 
     static final String SESSION_KEY = "trackerSession";
     private static final int SAVE_TICKS = 50;
@@ -997,7 +1210,7 @@ class SkillTracker {
         }
     }
 
-    /** Whether a session saved then can be carried on now (Keep Session After Restart, 0: never). */
+    /** Whether a session saved then can be carried on now (Keep Session For, 0: never). */
     static boolean recentEnough(long savedAt, long now, int minutes) {
         return minutes > 0 && savedAt <= now && now - savedAt <= minutes * 60_000L;
     }
@@ -1022,7 +1235,7 @@ class SkillTracker {
     }
 
     private void saveSession(boolean always) {
-        if (config.keepSessionMinutes() <= 0 || configManager.getRSProfileKey() == null) {
+        if (config.keepSessionHours() <= 0 || configManager.getRSProfileKey() == null) {
             return;
         }
         SavedSession session = currentSession(System.currentTimeMillis());
@@ -1046,7 +1259,7 @@ class SkillTracker {
         }
         SavedSession saved = decode(configManager.getRSProfileConfiguration(identity.configGroup, SESSION_KEY));
         long now = System.currentTimeMillis();
-        if (saved == null || !recentEnough(saved.savedAt, now, config.keepSessionMinutes())
+        if (saved == null || !recentEnough(saved.savedAt, now, config.keepSessionHours() * 60)
             || gainedSkillXp.values().stream().anyMatch(gained -> gained > 0) || !itemCounts.isEmpty()) {
             return;
         }

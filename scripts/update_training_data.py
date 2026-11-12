@@ -508,6 +508,51 @@ def single_obstacles(skill, out):
     return out
 
 
+# Minigames the Planner times by the hour: the wiki's XP an hour at the levels it gives them, each from a sentence on
+# a wiki page (checked to still be there each run: a rate whose sentence has gone is left out). Between two levels the
+# Planner goes in a straight line; below the first it scales down by level where the minigame's XP does (Wintertodt's
+# points and Hunters' Rumours' turn-ins pay by level), else stays at the first.
+MINIGAMES = {
+    ("FIREMAKING", "Wintertodt"): ("Guide:Efficient Wintertodt",
+        "At level 99 Firemaking, expect 235k Firemaking experience per hour", [[99, 235000]], True),
+    ("FISHING", "Tempoross"): ("Tempoross/Strategies",
+        "or about 20,000 experience per hour at level 35 and 45,000 at level 99", [[35, 20000], [99, 45000]], False),
+    ("HUNTER", "Hunters' Rumours"): ("Hunters' Rumours/Strategies",
+        "players can achieve up to 235,000 Hunter experience and 24 rumour completions per hour at level 99",
+        [[99, 235000]], True),
+    ("THIEVING", "Pyramid Plunder"): ("Pyramid Plunder",
+        "up to 120,000 Thieving experience can be gained per hour at level 71, and upwards of 275,000 experience at level 91",
+        [[71, 120000], [91, 275000]], False),
+    ("MINING", "Volcanic Mine"): ("Pay-to-play Mining training",
+        "players can gain around 52,000 experience per hour", [[90, 52000]], False),
+}
+
+
+def plain(text):
+    """Wiki text as read: links, templates' plain values and markup gone, spaces collapsed."""
+    text = re.sub(r"\{\{(?:NoCoins|Coins|formatnum)\|([^}]*)\}\}", r"\1", text)
+    text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", text)
+    text = re.sub(r"<[^>]+>|'{2,}", "", text)
+    return re.sub(r"\s+", " ", text)
+
+
+def minigame_rates(skills):
+    """Each minigame's rates by level onto its method (its XP an hour the best of them), where its sentence still is."""
+    for (skill, name), (page, quote, rates, by_level) in MINIGAMES.items():
+        method = next((m for m in skills.get(skill, []) if m["name"] == name), None)
+        if method is None:
+            print("  %s: no %s method in its guide; skipped" % (skill, name))
+            continue
+        if quote not in plain(wikitext(page)):
+            print("  %s: the rate's sentence isn't on %s any more; left out" % (name, page))
+            continue
+        method["rates"] = rates
+        method["ratesByLevel"] = by_level
+        method["xpHour"] = max(r[1] for r in rates)
+        method["minigame"] = True
+        method["rateSource"] = page
+
+
 def main():
     with open(os.path.join(RESOURCES, "skilling.json")) as f:
         skilling = json.load(f)
@@ -518,6 +563,7 @@ def main():
         npcs += list(json.load(f)["hunter"])
     data = {"source": "oldschool.runescape.wiki (Pay-to-play training guides)",
             "skills": {skill.upper(): single_obstacles(skill, methods(skill, objects, npcs)) for skill in SKILLS}}
+    minigame_rates(data["skills"])
     with open(OUT, "w") as f:
         json.dump(data, f, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     total = sum(len(v) for v in data["skills"].values())

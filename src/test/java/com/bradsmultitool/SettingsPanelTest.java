@@ -157,13 +157,18 @@ public class SettingsPanelTest {
         Method init = panelClass.getDeclaredMethod("init", descriptorClass);
         init.setAccessible(true);
         Throwable[] failure = new Throwable[1];
+        java.util.List<String> clipped = new java.util.ArrayList<>();
         SwingUtilities.invokeAndWait(() -> {
             try {
-                init.invoke(panelConstructor.newInstance(args), pluginConfig);
+                Object panel = panelConstructor.newInstance(args);
+                init.invoke(panel, pluginConfig);
+                clipped.addAll(clipped((java.awt.Container) panel));
             } catch (Throwable t) {
                 failure[0] = t.getCause() != null ? t.getCause() : t;
             }
         });
+        // Every setting's name and choice fit the sidebar: nothing cut short ("Sell Pro..." beside its drop-down)
+        org.junit.Assert.assertTrue(type.getSimpleName() + ": clipped in the settings panel: " + clipped, clipped.isEmpty());
         if (failure[0] != null) {
             throw new AssertionError(type.getSimpleName() + "'s settings panel failed to open", failure[0]);
         }
@@ -174,6 +179,54 @@ public class SettingsPanelTest {
                 + " in <div width='300'>", text.length() <= 60 || text.startsWith("<div width='300'>"));
         }
         return descriptor;
+    }
+
+    // The settings panel laid out at the sidebar's width with every section open: the labels and drop-downs (and the
+    // choices in them) drawn narrower than their text
+    private static java.util.List<String> clipped(java.awt.Container panel) {
+        showAll(panel);
+        panel.setSize(net.runelite.client.ui.PluginPanel.PANEL_WIDTH + net.runelite.client.ui.PluginPanel.SCROLLBAR_WIDTH, 20000);
+        layoutAll(panel);
+        java.util.List<String> out = new java.util.ArrayList<>();
+        collect(panel, out);
+        return out;
+    }
+
+    private static void showAll(java.awt.Component c) {
+        c.setVisible(true);
+        if (c instanceof java.awt.Container) {
+            for (java.awt.Component child : ((java.awt.Container) c).getComponents()) {
+                showAll(child);
+            }
+        }
+    }
+
+    private static void layoutAll(java.awt.Component c) {
+        if (c instanceof java.awt.Container) {
+            ((java.awt.Container) c).doLayout();
+            for (java.awt.Component child : ((java.awt.Container) c).getComponents()) {
+                layoutAll(child);
+            }
+        }
+    }
+
+    private static void collect(java.awt.Component c, java.util.List<String> out) {
+        if (c instanceof javax.swing.JLabel) {
+            javax.swing.JLabel label = (javax.swing.JLabel) c;
+            String text = label.getText();
+            if (text != null && !text.isEmpty() && !text.startsWith("<html") && label.getWidth() > 0
+                && label.getWidth() + 1 < label.getPreferredSize().width) {
+                out.add("label \"" + text + "\" " + label.getWidth() + "<" + label.getPreferredSize().width);
+            }
+        }
+        if (c instanceof javax.swing.JComboBox && c.getWidth() > 0 && c.getWidth() + 1 < c.getPreferredSize().width) {
+            out.add("choice " + ((javax.swing.JComboBox<?>) c).getSelectedItem() + " " + c.getWidth() + "<" + c.getPreferredSize().width);
+        }
+        if (c instanceof java.awt.Container && !(c instanceof javax.swing.JComboBox)) {
+            for (java.awt.Component child : ((java.awt.Container) c).getComponents()) {
+                collect(child, out);
+            }
+        }
     }
 
     // RuneLite's ConfigManager with an empty settings file instead of a profile

@@ -78,8 +78,15 @@ public class PlannerPreview {
                     // A Woodcutting plan with four milestones and its totals, exported to the tracker
                     panel.showCalculator(Skill.WOODCUTTING, PlannerCalculator.Mode.PLAN, "");
                     write(render(panel, 0), out + "-plan.png");
-                    panel.showCalculator(Skill.COOKING, PlannerCalculator.Mode.PLAN, "");
+                    // Choosing a better method for its third milestone: the best picks first
+                    panel.showCalculatorPicking(Skill.WOODCUTTING, 2);
+                    write(render(panel, 760), out + "-plan-pick.png");
+                    // The Cooking plan with its Shark milestone opened to its breakdown
+                    panel.showCalculatorBreakdown(Skill.COOKING, 1);
                     write(render(panel, 0), out + "-plan-cooking.png");
+                    // Fishing's Plan view: the raw sharks the Cooking plan gets from it
+                    panel.showCalculator(Skill.FISHING, PlannerCalculator.Mode.PLAN, "");
+                    write(render(panel, 0), out + "-supplies.png");
                     // Fishing's prices (what the catch is worth) at the sidebar's height
                     panel.showCalculator(Skill.FISHING, PlannerCalculator.Mode.ACTIONS, "");
                     write(render(panel, 760), out + "-fishing.png");
@@ -91,6 +98,12 @@ public class PlannerPreview {
                     full.calculator.setSampleWorld(true, false);
                     panel.showCalculator(Skill.WOODCUTTING, PlannerCalculator.Mode.PLAN, "");
                     write(render(panel, 0), out + "-plan-alone.png");
+                    // The plan overlay (no Skilling Helper): training Woodcutting at 61, full and compact
+                    full.calculator.setSampleTrained(Skill.WOODCUTTING);
+                    write(planOverlay(full, false), out + "-plan-overlay.png");
+                    full.configManager.setConfiguration("snuffysplanner", "compactOverlays", true);
+                    write(planOverlay(full, true), out + "-plan-overlay-compact.png");
+                    full.configManager.unsetConfiguration("snuffysplanner", "compactOverlays");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -147,6 +160,33 @@ public class PlannerPreview {
         System.exit(0);
     }
 
+    // The Planner's plan overlay drawn on a game-coloured background, with a client that's logged in at the sample's XP
+    private static BufferedImage planOverlay(Sample sample, boolean compact) {
+        net.runelite.api.Client client = (net.runelite.api.Client) java.lang.reflect.Proxy.newProxyInstance(
+            PlannerPreview.class.getClassLoader(), new Class<?>[]{net.runelite.api.Client.class}, (proxy, method, args) -> {
+                switch (method.getName()) {
+                    case "getGameState":
+                        return net.runelite.api.GameState.LOGGED_IN;
+                    case "getSkillExperience":
+                        return sample.calculator.xp((Skill) args[0]);
+                    default:
+                        Class<?> type = method.getReturnType();
+                        return type == boolean.class ? false : type == int.class ? 0 : type == long.class ? 0L : null;
+                }
+            });
+        PlannerPlanOverlay overlay = new PlannerPlanOverlay(client, sample.config, sample.calculator, sample.calculatorData,
+            sample.recipes, sample.training);
+        BufferedImage image = new BufferedImage(420, compact ? 140 : 260, BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D g = image.createGraphics();
+        g.scale(2, 2);
+        g.setColor(new java.awt.Color(90, 80, 60));
+        g.fillRect(0, 0, 210, 130);
+        g.translate(5, 5);
+        overlay.render(g);
+        g.dispose();
+        return image;
+    }
+
     private static void write(BufferedImage image, String path) throws java.io.IOException {
         ImageIO.write(image, "png", new File(path));
         System.out.println("Wrote " + path);
@@ -196,6 +236,7 @@ public class PlannerPreview {
         final DropTracker drops;
         final PlannerNotes notes;
         final PlannerCalculator calculator;
+        final PlannerGeLimits geLimits;
         final CalculatorData calculatorData = new CalculatorData();
         final RecipeData recipes = new RecipeData();
         final TrainingData training = new TrainingData();
@@ -216,13 +257,14 @@ public class PlannerPreview {
             config = configManager.getConfig(PlannerConfig.class);
             farmingData = new FarmingData(null, configManager);
             farmingData.load(gson);
-            chores = new PlannerChores(null, configManager, config, null, view, farmingData, gson);
+            chores = new PlannerChores(null, configManager, config, null, view, gson);
             timers = new PlannerTimers(configManager, config, null, new BirdhouseTracker(null, configManager), view, gson);
             farming = new FarmingTracker(null, configManager, farmingData, config, null, view);
             slayer = new PlannerSlayer(null, configManager, null, view);
             drops = new DropTracker(configManager, null, config, view, gson);
             notes = new PlannerNotes(configManager, view, gson);
-            calculator = new PlannerCalculator(null, configManager, null, view, config, null);
+            geLimits = new PlannerGeLimits(null, configManager, null, view, null, config);
+            calculator = new PlannerCalculator(null, configManager, null, view, config, null, null, geLimits);
             calculatorData.load(gson);
             recipes.load(gson);
             training.load(gson);
@@ -242,8 +284,8 @@ public class PlannerPreview {
             if (icons instanceof WikiIcons) {
                 ((WikiIcons) icons).add(calculatorData);
             }
-            return new PlannerPanel(config, configManager, chores, timers, farming, slayer, drops, notes, icons,
-                new PlannerCalculatorView(calculator, calculatorData, recipes, training, icons));
+            return new PlannerPanel(config, configManager, chores, timers, farming, slayer, drops, notes, geLimits, icons,
+                new PlannerCalculatorView(calculator, calculatorData, recipes, training, null, null, icons));
         }
 
         void set(String key, Object value) {
@@ -252,21 +294,41 @@ public class PlannerPreview {
 
         void fill() {
             long now = System.currentTimeMillis() / 1000;
-            // TODAY: the rewards as the game last said (one done, the rest due), one hidden, one of your own ticked
-            set("planner.choresSeen", "{\"presets\":{"
-                + seen("staves", PlannerChores.DONE, now) + "," + seen("herbBoxes", PlannerChores.DUE, now).replace("\"claimValue\":0", "\"claimValue\":3")
-                + "," + seen("essence", PlannerChores.DUE, now) + "," + seen("sand", PlannerChores.DONE, now)
-                + "," + seen("flax", PlannerChores.DUE, now) + "," + seen("bonemeal", PlannerChores.DUE, now)
-                + "," + seen("dynamite", PlannerChores.DUE, now) + "," + seen("arrows", PlannerChores.DUE, now) + "}}");
-            chores.remove("arrows");
-            chores.add("Herb run", false, "Catherby, Ardougne, Falador and the Farming Guild");
+            // GE buy limits: adamant dart tips at their limit (an offer still open), feathers under it but priced low,
+            // and mithril bars bought while away
+            long ms = now * 1000;
+            int tips = net.runelite.api.gameval.ItemID.ADAMANT_DART_TIP;
+            int feather = net.runelite.api.gameval.ItemID.FEATHER;
+            int bars = net.runelite.api.gameval.ItemID.MITHRIL_BAR;
+            java.util.Map<Integer, String> geNames = new java.util.HashMap<>();
+            geNames.put(tips, "Adamant dart tip");
+            geNames.put(feather, "Feather");
+            geNames.put(bars, "Mithril bar");
+            java.util.Map<Integer, Integer> geLimitsOf = new java.util.HashMap<>();
+            geLimitsOf.put(tips, 7000);
+            geLimitsOf.put(feather, 30000);
+            geLimitsOf.put(bars, 10000);
+            java.util.Map<Integer, Long> gePrices = new java.util.HashMap<>();
+            gePrices.put(tips, 182L);
+            gePrices.put(feather, 3L);
+            gePrices.put(bars, 410L);
+            PlannerGeLimits.Slot[] geSlots = new PlannerGeLimits.Slot[8];
+            geSlots[0] = new PlannerGeLimits.Slot(tips, 7000, 20000, 185, net.runelite.api.GrandExchangeOfferState.BUYING);
+            geSlots[1] = new PlannerGeLimits.Slot(feather, 12000, 40000, 2, net.runelite.api.GrandExchangeOfferState.BUYING);
+            geLimits.setSample(java.util.Arrays.asList(
+                new PlannerGeLimits.Buy(tips, 4000, ms - 72 * 60000L, true),
+                new PlannerGeLimits.Buy(tips, 3000, ms - 40 * 60000L, true),
+                new PlannerGeLimits.Buy(feather, 12000, ms - 15 * 60000L, true),
+                new PlannerGeLimits.Buy(bars, 2500, ms - 130 * 60000L, false)), geSlots, geNames, geLimitsOf, gePrices);
+            // TODAY: dailies and weeklies of your own (from the preset tasks, with their pictures), one ticked
+            chores.add("Battlestaves", false, "Zaff in Varrock (Varrock easy diary)", net.runelite.api.gameval.ItemID.BATTLESTAFF);
+            chores.add("Herb run", false, "Catherby, Ardougne, Falador and the Farming Guild",
+                net.runelite.api.gameval.ItemID.UNIDENTIFIED_RANARR);
             String herbRun = chores.rows(false).get(chores.rows(false).size() - 1).id;
             chores.setDone(herbRun, true);
-            chores.add("Penguin hunting", true, "Spy on the penguins for Larry");
-            // Tears of Guthix two days ago; the kingdom and a contract
-            set("planner.togLastPlayed", now - 2 * PlannerChores.DAY);
-            set("planner.kingdom", "110|742000|" + (now - 3600));
-            set("planner.contract", "27");
+            chores.add("Buckets of sand", false, "Bert in Yanille", net.runelite.api.gameval.ItemID.BUCKET_SAND);
+            chores.add("Tears of Guthix", true, "Juna in the Lumbridge Swamp caves", net.runelite.api.gameval.ItemID.TOG_BOWL);
+            chores.add("Penguin hunting", true, "Spy on the penguins for Larry", net.runelite.api.gameval.ItemID.PENGUIN_MASK);
 
             // TIMERS: patches as last seen, bird houses seeded 20 minutes ago, three of your own timers
             patch("farmPatch.11061.4774", "Catherby: Herb patch", "Ranarr", FarmingData.GROWING, now + 25 * 60);
@@ -333,6 +395,14 @@ public class PlannerPreview {
             calculator.setBonuses(Skill.WOODCUTTING, java.util.Collections.singleton("LUMBERJACK_OUTFIT"));
             calculator.setBonuses(Skill.PRAYER, java.util.Collections.singleton("LIT_GILDED_ALTAR"));
             Map<String, Integer> bank = new HashMap<>();
+            bank.put("coins", 18_500_000);
+            // The Cooking plan's budget, and trades since: raw sharks bought, cooked ones sold
+            calculator.setPlanBudget(Skill.COOKING, 20_000_000);
+            // The Cooking plan's raw sharks caught yourself (a supply in the Fishing plan view)
+            calculator.setGathers(Skill.COOKING, "Raw shark", true);
+            long soon = System.currentTimeMillis() + 1000;
+            geLimits.addSampleTrade(net.runelite.api.gameval.ItemID.RAW_SHARK, "Raw shark", 2000, 1_480_000, soon, false);
+            geLimits.addSampleTrade(net.runelite.api.gameval.ItemID.SHARK, "Shark", 1500, 1_170_000, soon, true);
             bank.put("raw lobster", 1_240);
             bank.put("raw swordfish", 455);
             bank.put("raw monkfish", 310);
@@ -371,9 +441,6 @@ public class PlannerPreview {
             set(key, new FarmingTracker.Record(key, title, crop, state, grownAt, false, 2, 0).encode());
         }
 
-        private static String seen(String id, int state, long now) {
-            return "\"" + id + "\":{\"state\":" + state + ",\"at\":" + now + ",\"claimValue\":0}";
-        }
 
         // A source as saved: its kills, kills since a valuable drop, when it last dropped, and items as
         // name, quantity, value, times dropped

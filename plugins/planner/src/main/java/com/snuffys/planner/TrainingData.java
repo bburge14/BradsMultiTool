@@ -56,6 +56,33 @@ class TrainingData {
         boolean shared;
         /** The guide's table of what to make or use by level (Herblore's potions), or empty. */
         final List<Option> options = new ArrayList<>();
+        /** A minigame (Wintertodt, Tempoross...): the Planner times it by the hour. */
+        boolean minigame;
+        /** Its XP an hour at the levels the wiki gives ({level, xp}), lowest first, or empty. */
+        final List<int[]> rates = new ArrayList<>();
+        /** Below the first of those, its XP scales down by level (its points or turn-ins pay by level). */
+        boolean ratesByLevel;
+        /** The wiki page its rates are from, or null. */
+        String rateSource;
+
+        /** Its XP an hour at this level: the wiki's rates, in a straight line between them; else {@link #xpHour}. */
+        int xpHourAt(int level) {
+            if (rates.isEmpty()) {
+                return xpHour;
+            }
+            int[] first = rates.get(0);
+            if (level <= first[0]) {
+                return ratesByLevel ? (int) Math.round((double) first[1] * Math.max(1, level) / first[0]) : first[1];
+            }
+            for (int i = 1; i < rates.size(); i++) {
+                int[] a = rates.get(i - 1);
+                int[] b = rates.get(i);
+                if (level <= b[0]) {
+                    return (int) Math.round(a[1] + (double) (b[1] - a[1]) * (level - a[0]) / (b[0] - a[0]));
+                }
+            }
+            return rates.get(rates.size() - 1)[1];
+        }
 
         Method(JsonObject o) {
             name = o.get("name").getAsString();
@@ -98,6 +125,14 @@ class TrainingData {
                 }
             }
             about = o.has("about") ? o.get("about").getAsString() : null;
+            minigame = o.has("minigame") && o.get("minigame").getAsBoolean();
+            ratesByLevel = o.has("ratesByLevel") && o.get("ratesByLevel").getAsBoolean();
+            rateSource = o.has("rateSource") ? o.get("rateSource").getAsString() : null;
+            if (o.has("rates")) {
+                for (JsonElement e : o.getAsJsonArray("rates")) {
+                    rates.add(new int[] {e.getAsJsonArray().get(0).getAsInt(), e.getAsJsonArray().get(1).getAsInt()});
+                }
+            }
             xpHour = o.has("xpHour") ? o.get("xpHour").getAsInt() : 0;
             if (o.has("places")) {
                 for (JsonElement e : o.getAsJsonArray("places")) {
@@ -285,6 +320,11 @@ class TrainingData {
     }
 
     /** The skill's method with this name, or null. */
+    /** All of a skill's methods, as its guide lists them. */
+    List<Method> methods(Skill skill) {
+        return methods.getOrDefault(skill.name(), Collections.emptyList());
+    }
+
     Method named(Skill skill, String name) {
         for (Method method : methods.getOrDefault(skill.name(), Collections.emptyList())) {
             if (method.name.equals(name)) {

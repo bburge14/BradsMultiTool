@@ -9,6 +9,51 @@ For people working on the plugin. Players only need the [README](../README.md).
 
 ## Running a development client
 
+### The dev launcher (this repository)
+
+The owner runs Snuffy's from this repository; friends use the friends launcher instead (below). On Windows:
+
+```powershell
+New-Item -ItemType Directory -Force C:\dev | Out-Null
+Set-Location C:\dev
+git clone https://github.com/bburge14/bradsmultitool.git BradsMultiTool
+Set-Location C:\dev\BradsMultiTool
+```
+
+Then double-click `Launch-BradsMultiTool.bat` (its **Make a desktop shortcut** link puts it on the desktop). It's the
+same launcher friends get, built from `src/` (it updates from this repository) and with a Play | Dev switch.
+Its **Dev** tab (only in this repository's copy): **Push to repos** copies the plugins to their own GitHub repositories with
+  new versions for the ones that changed (**Check (dry run)** first shows what would change; the Patch / Minor / Major
+  choice gets a dot on the one the changes since each plugin's last push call for, picked for you when that changes:
+  **major** when a setting's `keyName` is gone, since players lose that saved value, **minor** for a new setting, a new
+  class or over 150 new lines, else **patch**; hover it for why), and **Publish to
+  RuneLite** gets the Plugin Hub pull requests ready. Its **Plugin Hub** sub-tab keeps a card for each plugin's pull
+  request (the Publish sub-tab has a summary card: how many in each state, how many new), checked in the background while the launcher is open (every 10 minutes when git is signed in to GitHub,
+  else hourly; **Check now** any time): in review, building, build failed, changes asked, approved or published,
+  the earlier ones it replaced, and the latest comment. A comment you haven't opened marks the card "1 new" (and the
+  Dev tab), with a Windows notification; clicking the card opens it and clears it. See docs/ROLLOUT.md;
+
+### The friends launcher (its own repository)
+
+`split_plugins.py` also writes `plugins/launcher`: Snuffy's Launcher without the Dev tab, for
+[snuffys-launcher](https://github.com/bburge14/snuffys-launcher) (in `publish.json` as `launcher`, `"hub": false`;
+**Push to repos** sends it there with no version). It has `Launch-Snuffys.bat`, the same `scripts/launcher.ps1`
+(which switches to friends mode when `friends.json` is beside it), `friends.json` (each plugin's repository, branch and
+plugin class, from `publish.json` and the split's `PLUGINS`), and `runner/`: a Gradle project that compiles the
+plugin repositories the launcher downloaded into `plugins/` (each in its own package) and starts RuneLite with the
+chosen classes (`runSnuffys -Pclasses=...`). In friends mode the launcher clones or pulls each plugin repository (and
+fetches them every minute in the background), shows each repository's `build.gradle` version, and its "what's new" and
+"RuneLite is behind" come from those repositories' commits. `Snuffys-Launcher-Setup.exe` (built from `scripts/setup/SnuffysSetup.cs` by Push to repos straight into the launcher's own repository, with mcs or Windows' csc, and only when its source changed: it's never kept in this repository) installs it into `%LOCALAPPDATA%\\Snuffy's Launcher` and makes the desktop shortcut; pushing the launcher also makes a GitHub release with it attached (git's GitHub login), so `https://github.com/bburge14/snuffys-launcher/releases/latest/download/Snuffys-Launcher-Setup.exe` is always the newest. Friends get only what's been pushed to the plugin
+repositories (which are public anyway, as the Plugin Hub needs), not this repository. The launcher updates itself
+from its repository too (when opened and every 15 minutes); a new launcher shows **Restart launcher** on its What's new
+card (it closes and opens again silently, RuneLite stays open). The parts of `scripts/launcher.ps1` only the Dev tab
+uses sit between `dev only` / `end dev only` comments: when those are all that changed since the last push, the Dev
+tab leaves the launcher's switch off (nothing friends see changed, so no needless update or release; switch it on to
+send it anyway). Keep new Dev-only code inside them. To test it all the way to playing on a clean Windows, see
+[TESTING-LAUNCHER.md](TESTING-LAUNCHER.md).
+
+### Gradle
+
 `.\gradlew.bat runBrad` (Windows) or `./gradlew runBrad` launches RuneLite in developer mode with the plugin
 loaded; see the README for the first-time setup and logging in with a Jagex Account. `-Pload=` picks the
 separate plugins instead (`skilling`, `pvm`, `gemcrab`, `tick`, `planner`, `alerts`, or `separate` for all of them;
@@ -42,7 +87,8 @@ Python 3). Re-run them after a game update rather than editing the JSON by hand.
 | `farming_patches.json` | `update_farming_patches.py` | RuneLite Time Tracking: every patch (compost bins and Hespori too) and its states, and each crop's farming contract value |
 | `recipes.json` | `update_recipe_data.py` | Wiki: recipes for the production skills, Firemaking logs, Prayer bones and ashes |
 | `money.json` | `update_money_data.py` | Wiki: money making guides (skill, requirements, profit) |
-| `training.json` | `update_training_data.py` | Wiki: training guides' methods by level, each with what it trains on (its section's Main links), the guide's first sentences about it, and its table by level (level, item, ingredients, XP) where it has one; where the guide says to do it (links to the wiki's location pages in its list of spots or in "located in"/"at the" sentences, not ones about buying, rewards or requirements); the quests each method and row needs (finished, or "started" where the guide says partial completion; a row's from the item's infobox quest) |
+| `locations.json` | `update_training_locations.py` | Wiki: where to train, for every tree, rock and stall in `skilling.json` and creature and pickpocket in `skill_helpers.json`/`skilling.json`, and every fish (the Fishing spot page's table of spot kinds and what each catches, each kind's own location rows, merged by catch): its page's location rows (place, how many, members, the note on what you need), merged by place; the training guides' picks first with why (`BEST` in the script), and their places for pages with no rows (`FALLBACK`: oaks, chinchompas, salamanders, elves, vyres); the quests each place needs, from its notes (the wiki's quest and miniquest names; "partially"/"started": started is enough) and its area (`REGIONS`: Prifddinas, Fossil Island, Varlamore...), which the plugins check against your quests (`QuestProgress`) to put reachable places first. CC BY-NC-SA 3.0 |
+| `training.json` | `update_training_data.py` | Wiki: training guides' methods by level, each with what it trains on (its section's Main links), the guide's first sentences about it, and its table by level (level, item, ingredients, XP) where it has one; where the guide says to do it (links to the wiki's location pages in its list of spots or in "located in"/"at the" sentences, not ones about buying, rewards or requirements); the quests each method and row needs (finished, or "started" where the guide says partial completion; a row's from the item's infobox quest); minigames' XP an hour by level (`MINIGAMES`: each rate from a sentence on a wiki page, checked to still be there each run; the Planner adds them as actions timed by the hour) |
 | `calculator.json` | `update_calculator_data.py` | RuneLite's Skill Calculator (BSD-2): each skill's actions (name, level, XP, item picture or spell sprite) and XP bonuses (multiplier, which they can be ticked with, which actions they don't apply to), read from the plugin's `CalculatorType` and `skills/*Action`/`*Bonus` source (its rules run by a small interpreter in the script); item names from the wiki's infobox_item bucket. `--cache DIR` keeps the downloads |
 | `slayer.json` | `update_slayer_data.py` | Wiki: Slayer masters, task locations, travel to each place |
 | `skill_helpers.json` | `update_skill_helpers.py` | Wiki + RuneLite: Hunter (and Hunters' Rumours: locations, method, pity threshold; `--only hunter rumours` refreshes just those), Runecraft, burn levels, cooking and smithing recipes, Agility (and the Brimhaven Arena's obstacles), Sailing, fishing spots (every spot type by NPC id) |
@@ -101,6 +147,10 @@ number the order ("01-dailies-and-weeklies.png"). The Planner's and the Slayer c
 (`plannerPreview`, `calculatorPreview`, `slayerPreview`); the rest are taken in game.
 
 Rules that keep the split working:
+- A plugin only reads or writes another plugin's data while that plugin runs (installed and on: `PluginFamily`
+  `hasSkillTracker()` / `hasPlanner()`), never from what it saved earlier: the Planner leaves goals alone without the
+  Skilling Helper, and the Skilling Helper follows an exported plan only while the Planner runs. Standalone, each
+  plugin acts as if the other had never existed.
 - A separate plugin has every feature its part has in the Toolbelt: nothing it shows may depend on another
   plugin running. When two parts have the same thing (potion buffs and their alerts on the PvM HUD and the crab
   card), each has it itself through shared classes (`PotionBuffs`, `PotionAlerts`, `BuffConfig`); with both

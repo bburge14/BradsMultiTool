@@ -131,18 +131,28 @@ class SkillingData {
     private static final List<Tool> AXES = tiers("axe");
     private static final List<Tool> PICKAXES = tiers("pickaxe");
 
+    // Each metal's tier, and for axes its felling axe (Forestry: the same tier, a bit slower, more XP with rations);
+    // the special ones at the tier they chop or mine like (infernal and 3rd age as dragon, gilded as rune)
     private static List<Tool> tiers(String kind) {
         String k = " " + kind;
-        return Arrays.asList(
-            new Tool("Bronze" + k, "bronze" + k, 1, new Color(196, 128, 62)),
-            new Tool("Iron" + k, "iron" + k, 1, new Color(160, 160, 160)),
-            new Tool("Steel" + k, "steel" + k, 6, new Color(215, 222, 230)),
-            new Tool("Black" + k, "black" + k, 11, new Color(125, 125, 135)),
-            new Tool("Mithril" + k, "mithril" + k, 21, new Color(110, 125, 220)),
-            new Tool("Adamant" + k, "adamant" + k, 31, new Color(90, 180, 95)),
-            new Tool("Rune" + k, "rune" + k, 41, new Color(80, 200, 220)),
-            new Tool("Dragon" + k, "dragon" + k, 61, new Color(230, 55, 45)),
-            new Tool("Crystal" + k, "crystal" + k, 71, new Color(190, 240, 255)));
+        boolean axe = "axe".equals(kind);
+        String[][] metals = {
+            {"Bronze", "1", "196,128,62"}, {"Iron", "1", "160,160,160"}, {"Steel", "6", "215,222,230"},
+            {"Black", "11", "125,125,135"}, {"Mithril", "21", "110,125,220"}, {"Adamant", "31", "90,180,95"},
+            {"Rune", "41", "80,200,220"}, {"Gilded", "41", "230,190,60"}, {"Dragon", "61", "230,55,45"},
+            {"Infernal", "61", "240,120,40"}, {"3rd age", "61", "220,220,220"}, {"Crystal", "71", "190,240,255"},
+        };
+        List<Tool> out = new java.util.ArrayList<>();
+        for (String[] metal : metals) {
+            String[] rgb = metal[2].split(",");
+            Color color = new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2]));
+            int level = Integer.parseInt(metal[1]);
+            out.add(new Tool(metal[0] + k, metal[0].toLowerCase() + k, level, color));
+            if (axe && !"Gilded".equals(metal[0])) {
+                out.add(new Tool(metal[0] + " felling axe", metal[0].toLowerCase() + " felling axe", level, color));
+            }
+        }
+        return out;
     }
 
     private final Map<Integer, Resource> objects = new HashMap<>();
@@ -182,6 +192,17 @@ class SkillingData {
             resource = objectsByName.get(objectName.toLowerCase());
         }
         return resource;
+    }
+
+    /** Every object of a skill whose name passes the test ("Maple tree" for a plan's "Maple logs"). */
+    Set<Integer> objectIds(String skill, java.util.function.Predicate<String> name) {
+        Set<Integer> out = new HashSet<>();
+        for (Map.Entry<Integer, Resource> e : objects.entrySet()) {
+            if (skill.equalsIgnoreCase(e.getValue().skill) && name.test(e.getValue().name)) {
+                out.add(e.getKey());
+            }
+        }
+        return out;
     }
 
     Pickpocket pickpocket(String npcName) {
@@ -283,8 +304,9 @@ class SkillingData {
     /** Best tool tier usable at {@code level}, or null. */
     static Tool bestToolForLevel(List<Tool> tools, int level) {
         Tool best = null;
+        // (the plain metal of the best tier: the first of it in the list)
         for (Tool tool : tools) {
-            if (tool.level <= level) {
+            if (tool.level <= level && (best == null || tool.level > best.level)) {
                 best = tool;
             }
         }
@@ -296,7 +318,7 @@ class SkillingData {
         Tool best = null;
         for (Tool tool : tools) {
             for (String name : itemNames) {
-                if (name.startsWith(tool.keyword)) {
+                if (name.startsWith(tool.keyword) && (best == null || tool.level >= best.level)) {
                     best = tool;
                 }
             }

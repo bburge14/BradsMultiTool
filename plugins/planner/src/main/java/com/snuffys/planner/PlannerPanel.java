@@ -84,18 +84,6 @@ class PlannerPanel extends PluginPanel {
     // A diseased patch's bar (a sicklier yellow than the growing orange)
     private static final Color DISEASED = new Color(190, 175, 50);
 
-    // The daily rewards' items, for their pictures
-    private static final Map<String, Integer> PRESET_ITEMS = Map.of(
-        "staves", ItemID.BATTLESTAFF,
-        "herbBoxes", ItemID.NZONE_HERBBOX,
-        "essence", ItemID.BLANKRUNE_HIGH,
-        "runes", ItemID.CHAOSRUNE,
-        "sand", ItemID.BUCKET_SAND,
-        "flax", ItemID.BOW_STRING,
-        "bonemeal", ItemID.BUCKET_ECTOPLASM,
-        "dynamite", ItemID.LOVAKENGJ_DYNAMITE_FUSED,
-        "arrows", ItemID.OGRE_ARROW,
-        PlannerChores.TOG, ItemID.TOG_BOWL);
 
     private final PlannerConfig config;
     private final ConfigManager configManager;
@@ -131,10 +119,13 @@ class PlannerPanel extends PluginPanel {
     private final Timer notesSave = new Timer(1000, e -> saveNotes());
     private String notesProfile;
 
+    private final PlannerGeLimits geLimits;
+
     PlannerPanel(PlannerConfig config, ConfigManager configManager, PlannerChores chores, PlannerTimers timers,
-                 FarmingTracker farming, PlannerSlayer slayer, DropTracker drops, PlannerNotes notes, Icons icons,
-                 PlannerCalculatorView calculator) {
+                 FarmingTracker farming, PlannerSlayer slayer, DropTracker drops, PlannerNotes notes, PlannerGeLimits geLimits,
+                 Icons icons, PlannerCalculatorView calculator) {
         super(false);
+        this.geLimits = geLimits;
         this.config = config;
         this.configManager = configManager;
         this.chores = chores;
@@ -187,6 +178,10 @@ class PlannerPanel extends PluginPanel {
             tabsLayout = layout.toString();
             buildTabs(profile != null);
         }
+        if (profile != null) {
+            // (the supply milestones follow your bank and inventory whichever tab is open, for the Skilling Helper too)
+            calcPage.view.followSupplies();
+        }
         if (selected != null && profile != null) {
             selected.refresh();
         }
@@ -217,7 +212,7 @@ class PlannerPanel extends PluginPanel {
             for (Page page : shown) {
                 MaterialTab tab = new MaterialTab(tabIcon(page.shape), group, page.body);
                 tab.setPreferredSize(new Dimension(30, 27));
-                tab.setToolTipText(page.name);
+                tab.setToolTipText(PlannerUi.fit(page.name));
                 tab.setOnSelectEvent(() -> {
                     selected = page;
                     if (!page.id.equals(configManager.getConfiguration(GROUP, TAB_KEY))) {
@@ -271,6 +266,20 @@ class PlannerPanel extends PluginPanel {
     /** Package-private for the preview: the Calculator on this skill, in this view, with this search. */
     void showCalculator(Skill skill, PlannerCalculator.Mode mode, String search) {
         calcPage.view.preview(skill, mode, search);
+        showTab("calculator");
+    }
+
+    /** Package-private for the preview: a milestone of the skill's plan opened to its breakdown. */
+    void showCalculatorBreakdown(Skill skill, int milestone) {
+        calcPage.view.preview(skill, PlannerCalculator.Mode.PLAN, "");
+        calcPage.view.previewBreakdown(skill, milestone);
+        showTab("calculator");
+    }
+
+    /** Package-private for the preview: the Calculator choosing a method for this milestone of the open plan. */
+    void showCalculatorPicking(Skill skill, int milestone) {
+        calcPage.view.preview(skill, PlannerCalculator.Mode.PLAN, "");
+        calcPage.view.previewPicking(milestone);
         showTab("calculator");
     }
 
@@ -375,14 +384,9 @@ class PlannerPanel extends PluginPanel {
             boolean weekly = config.plannerShowWeekly();
             List<PlannerChores.Row> days = daily ? chores.rows(false) : new ArrayList<>();
             List<PlannerChores.Row> weeks = weekly ? chores.rows(true) : new ArrayList<>();
-            int hiddenDays = daily ? chores.hiddenCount(false) : 0;
-            int hiddenWeeks = weekly ? chores.hiddenCount(true) : 0;
-            long[] kingdom = weekly && config.plannerShowKingdom() ? chores.kingdom() : null;
-            String contract = weekly && config.plannerShowContract() ? chores.contract() : null;
-            FarmingTracker.Record contractPatch = contract == null || "done".equals(contract) ? null : contractPatch(contract);
             String dailySummary = summary(days, PlannerChores.lastDailyReset(now) + PlannerChores.DAY - now);
             String weeklySummary = summary(weeks, PlannerChores.lastWeeklyReset(now) + PlannerChores.WEEK - now);
-            StringBuilder key = new StringBuilder().append(daily).append(weekly).append(hiddenDays).append(hiddenWeeks)
+            StringBuilder key = new StringBuilder().append(daily).append(weekly)
                 .append(dailySummary).append(weeklySummary).append('|');
             for (PlannerChores.Row row : days) {
                 rowKey(key, row);
@@ -390,52 +394,46 @@ class PlannerPanel extends PluginPanel {
             for (PlannerChores.Row row : weeks) {
                 rowKey(key, row);
             }
-            if (kingdom != null) {
-                key.append(kingdom[0]).append(kingdom[1]).append(daysAgo(kingdom[2], now));
-            }
-            key.append(contract).append(contractPatch == null ? "" : patchStatus(contractPatch, now));
             return new Built(key.toString(), () -> {
                 if (daily) {
                     add(PlannerUi.header("Dailies", tip(new JLabel(dailySummary), "The daily reset is at 00:00 UTC"),
-                        plus("Add your own daily or weekly", () -> addChore(false))));
+                        plus("Add a daily", () -> addChore(false, null))));
                     for (PlannerChores.Row row : days) {
                         card(choreCard(row));
                     }
                     if (days.isEmpty()) {
-                        add(PlannerUi.empty("No dailies yet. The rewards you've unlocked show here once you're in game, "
-                            + "or press + to add your own."));
-                    }
-                    if (hiddenDays > 0) {
-                        add(PlannerUi.link("Show hidden (" + hiddenDays + ")", "Bring back the dailies you hid",
-                            () -> chores.showHidden(false)));
+                        examples(false);
                     }
                 }
                 if (weekly) {
                     JLabel summary = tip(new JLabel(weeklySummary), "The weekly reset is on Wednesday at 00:00 UTC");
-                    JComponent add = plus("Add your own weekly", () -> addChore(true));
+                    JComponent add = plus("Add a weekly", () -> addChore(true, null));
                     add(daily ? PlannerUi.section("Weeklies", summary, add) : PlannerUi.header("Weeklies", summary, add));
                     for (PlannerChores.Row row : weeks) {
                         card(choreCard(row));
                     }
-                    if (kingdom != null) {
-                        card(kingdomCard(kingdom, now));
-                    }
-                    if (contract != null) {
-                        card(contractCard(contract, contractPatch, now));
-                    }
-                    if (weeks.isEmpty() && kingdom == null && contract == null) {
-                        add(PlannerUi.empty("No weeklies yet. Press + to add your own."));
-                    }
-                    if (hiddenWeeks > 0) {
-                        add(PlannerUi.link("Show hidden (" + hiddenWeeks + ")", "Bring back the weeklies you hid",
-                            () -> chores.showHidden(true)));
+                    if (weeks.isEmpty()) {
+                        examples(true);
                     }
                 }
             });
         }
 
+        // Nothing of yours on a list yet: a few preset tasks as examples (greyed, not tracked); click one to add it
+        private void examples(boolean weekly) {
+            add(PlannerUi.empty("No " + (weekly ? "weeklies" : "dailies") + " yet: press + to add your own (or start from a "
+                + "preset). They untick at the " + (weekly ? "weekly" : "daily") + " reset. For example:"));
+            int shown = 0;
+            for (PlannerChores.Template template : PlannerChores.TEMPLATES) {
+                if (template.weekly == weekly && shown < 4) {
+                    card(exampleCard(template));
+                    shown++;
+                }
+            }
+        }
+
         private void rowKey(StringBuilder key, PlannerChores.Row row) {
-            key.append(row.id).append(row.name).append(row.note).append(row.done).append(row.detail).append(';');
+            key.append(row.id).append(row.name).append(row.note).append(row.done).append(row.icon).append(';');
         }
     }
 
@@ -452,30 +450,34 @@ class PlannerPanel extends PluginPanel {
         return (left > 0 ? left + " left" : "All done") + " \u00b7 " + reset;
     }
 
+    private JComponent exampleCard(PlannerChores.Template template) {
+        PlannerUi.Card card = new PlannerUi.Card(template.name, shortNote(template.note), "example");
+        image(card.icon, icons.item(template.icon, 1, false), 0.4f);
+        card.dim();
+        return card.interactive(() -> addChore(template.weekly, template), null, "<html>An example, not tracked: "
+            + PlannerUi.esc(template.name) + "<br><font color='#a0a0a0'>Click to add it (or + for your own)</font></html>");
+    }
+
     private JComponent choreCard(PlannerChores.Row row) {
-        String second = row.detail != null ? row.detail : row.custom
-            ? (row.note != null ? row.note : "Your own " + (row.weekly ? "weekly" : "daily")) : shortNote(row.note);
+        String second = row.note != null ? shortNote(row.note) : "Your " + (row.weekly ? "weekly" : "daily");
         PlannerUi.Card card = new PlannerUi.Card(row.name, second, null).east(new PlannerUi.Tick(row.done));
-        Integer item = PRESET_ITEMS.get(row.id);
         float alpha = row.done ? 0.35f : 1f;
-        if (item != null) {
-            image(card.icon, icons.item(item, 1, false), alpha);
+        if (row.icon > 0) {
+            image(card.icon, icons.item(row.icon, 1, false), alpha);
         } else {
             image(card.icon, PlannerUi.picture(new PlannerUi.Glyph(PlannerUi.Shape.NOTE, 18, PlannerUi.MUTED)), alpha);
         }
         if (row.done) {
             card.dim();
         }
-        String how = row.custom ? "Your own: click to tick it; it unticks at the " + (row.weekly ? "weekly" : "daily") + " reset"
-            : row.fromGame ? "Ticks itself as you collect it (or click to tick it)" : "Click to tick it";
         JPopupMenu menu = new JPopupMenu();
         menu.add(item(row.done ? "Untick" : "Tick", () -> chores.setDone(row.id, !row.done)));
         menu.add(item("Edit...", () -> editChore(row)));
-        menu.add(item(row.custom ? "Delete" : "Hide", () -> chores.remove(row.id)));
+        menu.add(item("Delete", () -> chores.remove(row.id)));
         return card.interactive(() -> chores.setDone(row.id, !row.done), menu,
             "<html><b>" + PlannerUi.esc(row.name) + "</b>" + (row.note != null ? "<br>" + PlannerUi.esc(row.note) : "")
-                + "<br><font color='#a0a0a0'>" + how + ". Right-click to edit or " + (row.custom ? "delete" : "hide")
-                + ".</font></html>");
+                + "<br><font color='#a0a0a0'>Click to tick it; it unticks at the " + (row.weekly ? "weekly" : "daily")
+                + " reset. Right-click to edit or delete.</font></html>");
     }
 
     // "Zaff in Varrock (Varrock easy diary)" -> "Zaff in Varrock"; "Nightmare Zone: 9,500..." -> "Nightmare Zone"
@@ -493,59 +495,103 @@ class PlannerPanel extends PluginPanel {
         return note.substring(0, cut);
     }
 
-    private JComponent kingdomCard(long[] kingdom, long now) {
-        int percent = PlannerChores.approvalPercent(kingdom[0]);
-        Color colour = percent < 50 ? HudColors.WARN : PlannerUi.READY;
-        PlannerUi.Card card = new PlannerUi.Card("Kingdom of Miscellania", "Coffer " + gp(kingdom[1]) + " gp",
-            percent + "% approval");
-        card.right.setForeground(colour);
-        card.bar(new PlannerUi.Bar(percent / 100.0, colour));
-        image(card.icon, icons.item(ItemID.COINS, 10_000, false), 1f);
-        return card.interactive(null, null, "<html>Approval " + percent + "% and coffer " + String.format("%,d", kingdom[1])
-            + " gp, " + daysAgo(kingdom[2], now) + ".<br><font color='#a0a0a0'>Approval drops each day you "
-            + "don't help out in the kingdom.</font></html>");
-    }
-
-    private JComponent contractCard(String contract, FarmingTracker.Record patch, long now) {
-        boolean done = "done".equals(contract);
-        String status = done ? "Done" : patch == null ? "not planted" : patchStatus(patch, now);
-        PlannerUi.Card card = new PlannerUi.Card("Farming contract", done ? "Claim from Guinevere" : contract, status);
-        card.right.setForeground(statusColour(done ? "ready" : status));
-        if (patch != null) {
-            card.bar(patchBar(patch, now));
+    // Adding one: start from a preset task (its name, note and picture filled in) or your own; pick its picture
+    private void addChore(boolean weeklyList, PlannerChores.Template start) {
+        JComboBox<Object> preset = new JComboBox<>();
+        preset.addItem("Your own");
+        for (PlannerChores.Template template : PlannerChores.TEMPLATES) {
+            preset.addItem(template);
         }
-        BufferedImage picture = done ? null : cropPicture(contract);
-        image(card.icon, picture != null ? picture : icons.skill(Skill.FARMING, false), 1f);
-        return card.interactive(null, null, "Guinevere's contract at the Farming Guild; the patch as you last saw it");
-    }
-
-    // The contract crop's patch at the Farming Guild, as last seen in Timers
-    private FarmingTracker.Record contractPatch(String crop) {
-        for (FarmingTracker.Record patch : farming.records()) {
-            if (patch.title.startsWith("Farming Guild") && patch.crop.equalsIgnoreCase(crop)) {
-                return patch;
-            }
-        }
-        return null;
-    }
-
-    private void addChore(boolean weeklyList) {
         JTextField name = new JTextField();
         JTextField note = new JTextField();
         JComboBox<String> when = new JComboBox<>(new String[]{"Daily", "Weekly"});
         when.setSelectedIndex(weeklyList ? 1 : 0);
-        if (form("Add a daily or weekly", new String[]{"Name", "Resets", "Note (optional)"}, name, when, note)
-            && !name.getText().trim().isEmpty()) {
-            chores.add(name.getText().trim(), when.getSelectedIndex() == 1, note.getText());
+        JComboBox<Integer> icon = iconChoice(0);
+        preset.setRenderer(templateRenderer());
+        preset.addActionListener(e -> {
+            Object picked = preset.getSelectedItem();
+            if (picked instanceof PlannerChores.Template) {
+                PlannerChores.Template template = (PlannerChores.Template) picked;
+                name.setText(template.name);
+                note.setText(template.note);
+                when.setSelectedIndex(template.weekly ? 1 : 0);
+                icon.setSelectedItem(template.icon);
+            }
+        });
+        if (start != null) {
+            preset.setSelectedItem(start);
+        }
+        if (form(weeklyList ? "Add a weekly" : "Add a daily", new String[]{"Start from", "Name", "Resets", "Note (optional)",
+            "Picture"}, preset, name, when, note, icon) && !name.getText().trim().isEmpty()) {
+            chores.add(name.getText().trim(), when.getSelectedIndex() == 1, note.getText(), (Integer) icon.getSelectedItem());
         }
     }
 
     private void editChore(PlannerChores.Row row) {
         JTextField name = new JTextField(row.name);
         JTextField note = new JTextField(row.note == null ? "" : row.note);
-        if (form("Edit " + row.name, new String[]{"Name", "Note"}, name, note) && !name.getText().trim().isEmpty()) {
-            chores.edit(row.id, name.getText().trim(), note.getText());
+        JComboBox<Integer> icon = iconChoice(row.icon);
+        if (form("Edit " + row.name, new String[]{"Name", "Note", "Picture"}, name, note, icon)
+            && !name.getText().trim().isEmpty()) {
+            chores.edit(row.id, name.getText().trim(), note.getText(), (Integer) icon.getSelectedItem());
         }
+    }
+
+    // The pictures to pick from: none, then each preset task's (shown as the item)
+    private JComboBox<Integer> iconChoice(int current) {
+        JComboBox<Integer> box = new JComboBox<>();
+        box.addItem(0);
+        for (PlannerChores.Template template : PlannerChores.TEMPLATES) {
+            if (((javax.swing.DefaultComboBoxModel<Integer>) box.getModel()).getIndexOf(template.icon) < 0) {
+                box.addItem(template.icon);
+            }
+        }
+        if (current > 0 && ((javax.swing.DefaultComboBoxModel<Integer>) box.getModel()).getIndexOf(current) < 0) {
+            box.addItem(current);
+        }
+        box.setSelectedItem(current);
+        box.setRenderer(new javax.swing.DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index,
+                                                                  boolean selected, boolean focus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, "", index, selected, focus);
+                int id = value == null ? 0 : (Integer) value;
+                label.setText(id > 0 ? iconName(id) : "None");
+                label.setIcon(id > 0 && icons.item(id, 1, false) != null ? new ImageIcon(icons.item(id, 1, false)) : null);
+                return label;
+            }
+        });
+        return box;
+    }
+
+    // A preset task's picture's name (the task it's from)
+    private static String iconName(int id) {
+        for (PlannerChores.Template template : PlannerChores.TEMPLATES) {
+            if (template.icon == id) {
+                return template.name;
+            }
+        }
+        return "Picture";
+    }
+
+    // Preset tasks in the list with their pictures and when they reset
+    private javax.swing.ListCellRenderer<Object> templateRenderer() {
+        return new javax.swing.DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> list, Object value, int index,
+                                                                  boolean selected, boolean focus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, selected, focus);
+                if (value instanceof PlannerChores.Template) {
+                    PlannerChores.Template template = (PlannerChores.Template) value;
+                    label.setText(template.name + (template.weekly ? " (weekly)" : " (daily)"));
+                    BufferedImage picture = icons.item(template.icon, 1, false);
+                    label.setIcon(picture != null ? new ImageIcon(picture) : null);
+                } else {
+                    label.setIcon(null);
+                }
+                return label;
+            }
+        };
     }
 
     // ---- Timers: farming patches, bird houses and your own ----
@@ -591,11 +637,36 @@ class PlannerPanel extends PluginPanel {
             if (running > 0) {
                 parts.add(running + " running");
             }
+            // Grand Exchange buy limits: each item bought in the last 4 hours, and each buy offer (to the minute)
+            long nowMillis = System.currentTimeMillis();
+            List<PlannerGeLimits.Window> limits = config.plannerGeLimits() && geLimits != null ? geLimits.windows()
+                : new ArrayList<>();
+            int atLimit = 0;
+            for (PlannerGeLimits.Window w : limits) {
+                atLimit += w.atLimit() ? 1 : 0;
+                key.append(w.item).append(w.name).append(w.bought).append('/').append(w.limit).append('@').append(w.resetsAt)
+                    .append(w.price);
+                if (w.offer != null) {
+                    key.append(w.offer.state).append(w.offer.sold).append('/').append(w.offer.total).append(w.offer.price);
+                }
+                key.append(';');
+            }
+            key.append(nowMillis / 60000);
             String summary = String.join(" \u00b7 ", parts);
             key.append(summary);
+            int limitCount = atLimit;
             return new Built(key.toString(), () -> {
                 add(PlannerUi.header("Timers", new JLabel(summary), plus("Add a timer", PlannerPanel.this::addTimer)));
+                if (!limits.isEmpty()) {
+                    add(PlannerUi.group("GE buy limits", limitCount > 0 ? limitCount + " at the limit" : "4-hour windows"));
+                    for (PlannerGeLimits.Window w : limits) {
+                        card(limitCard(w, nowMillis));
+                    }
+                }
                 if (patches.isEmpty() && birdhouses == 0 && list.isEmpty()) {
+                    if (!limits.isEmpty()) {
+                        return;
+                    }
                     add(PlannerUi.empty("No timers yet. Visit a farming patch, seed your bird houses or press + to add "
                         + "one."));
                     return;
@@ -617,6 +688,83 @@ class PlannerPanel extends PluginPanel {
                 }
             });
         }
+    }
+
+    // An item's buy limit: how much of it this window has used and when it resets; for a buy offer, whether it's the
+    // limit or the price keeping it from filling
+    private JComponent limitCard(PlannerGeLimits.Window w, long now) {
+        String used = w.limit > 0 ? String.format("%,d / %,d bought", w.bought, w.limit)
+            : String.format("%,d bought", w.bought) + (w.bought > 0 ? " (limit unknown)" : "");
+        PlannerUi.Card card = new PlannerUi.Card(w.name, used, "");
+        // The reset time in the corner ("by" when the window's first buy came in while you were away)
+        card.corner.setText(w.resetsAt > 0 ? (w.exact ? "" : "by ") + clock(w.resetsAt) : "");
+        PlannerGeLimits.Slot offer = w.offer;
+        String until = w.resetsAt > now ? formatDuration((w.resetsAt - now + 59999) / 60000 * 60) : "";
+        String verdict;
+        Color tone;
+        if (w.atLimit()) {
+            verdict = "At the limit: more " + (w.exact ? "in " : "within ") + until;
+            tone = COSTS_RED;
+        } else if (offer != null && offer.buying() && offer.sold < offer.total) {
+            if (w.price > 0 && offer.price < w.price) {
+                verdict = "Under the limit: it's your price";
+                tone = HudColors.WARN;
+            } else if (w.limit > 0) {
+                verdict = String.format("Under the limit: %,d more can fill", w.left());
+                tone = PlannerUi.READY;
+            } else {
+                verdict = "Buying (limit unknown)";
+                tone = PlannerUi.MUTED;
+            }
+        } else {
+            verdict = w.limit > 0 ? String.format("%,d more can be bought now", w.left()) : "";
+            tone = PlannerUi.MUTED;
+        }
+        card.third(verdict, "");
+        card.lower.setForeground(tone);
+        if (offer != null) {
+            String state = offer.buying() ? "Buying" : offer.state == net.runelite.api.GrandExchangeOfferState.BOUGHT ? "Bought"
+                : "Cancelled";
+            card.fourth(String.format("%s %,d/%,d", state, offer.sold, offer.total),
+                offer.buying() && w.price > 0 && offer.price < w.price ? gp(offer.price) + " vs " + gp(w.price) : "@ " + gp(offer.price));
+            if (offer.buying() && w.price > 0 && offer.price < w.price) {
+                card.lastRight.setForeground(HudColors.WARN);
+            }
+        }
+        if (w.limit > 0) {
+            card.bar(new PlannerUi.Bar(Math.max(0.02, Math.min(1, (double) w.bought / w.limit)),
+                w.atLimit() ? COSTS_RED : PlannerUi.GROWING));
+        }
+        image(card.icon, icons.item(w.item, 1, false), 1f);
+        StringBuilder tip = new StringBuilder("<html><b>").append(PlannerUi.esc(w.name)).append("</b>");
+        if (w.limit > 0) {
+            tip.append("<br>Buy limit: ").append(String.format("%,d", w.limit)).append(" every 4 hours");
+        }
+        if (w.resetsAt > 0) {
+            tip.append("<br>Bought in this window: ").append(String.format("%,d", w.bought)).append("; it ")
+                .append(w.exact ? "resets at " : "resets by ").append(clock(w.resetsAt)).append(" (4 hours from its first buy)");
+            if (!w.exact) {
+                tip.append("<br><font color='#a0a0a0'>Its first buy filled while you were away (or before this was on), so "
+                    + "it may reset sooner</font>");
+            }
+        }
+        if (offer != null) {
+            tip.append("<br>Your offer: ").append(String.format("%,d", offer.total)).append(" at ").append(String.format("%,d", offer.price))
+                .append(" gp each, ").append(String.format("%,d", offer.sold)).append(" filled");
+        }
+        if (w.price > 0) {
+            tip.append("<br>Grand Exchange price now: ").append(String.format("%,d", w.price)).append(" gp");
+        }
+        tip.append("<br><font color='#a0a0a0'>From your offers as they fill (the game keeps no times for trades)</font></html>");
+        return card.interactive(null, null, tip.toString());
+    }
+
+    private static final Color COSTS_RED = new Color(230, 110, 100);
+
+    // "3:42 PM", today's clock
+    private static String clock(long millis) {
+        return java.time.format.DateTimeFormatter.ofPattern("h:mm a").format(java.time.LocalDateTime.ofInstant(
+            java.time.Instant.ofEpochMilli(millis), java.time.ZoneId.systemDefault()));
     }
 
     private static String birdhouseStatus(long fullAt, long now) {
@@ -1307,7 +1455,7 @@ class PlannerPanel extends PluginPanel {
             todoField.setCaretColor(Color.WHITE);
             todoField.setFont(FontManager.getRunescapeSmallFont());
             todoField.setBorder(new EmptyBorder(6, 8, 6, 4));
-            todoField.setToolTipText("A new to-do: type it and press Enter");
+            todoField.setToolTipText(PlannerUi.fit("A new to-do: type it and press Enter"));
             todoField.addActionListener(e -> addTodo());
             focusBorder(todoField, row);
             row.add(todoField, BorderLayout.CENTER);
@@ -1328,7 +1476,7 @@ class PlannerPanel extends PluginPanel {
             notesBox.setForeground(Color.WHITE);
             notesBox.setCaretColor(Color.WHITE);
             notesBox.setBorder(new EmptyBorder(6, 8, 6, 8));
-            notesBox.setToolTipText("Notes for this account (saved as you type)");
+            notesBox.setToolTipText(PlannerUi.fit("Notes for this account (saved as you type)"));
             notesBox.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
                 public void insertUpdate(DocumentEvent e) {
@@ -1486,15 +1634,20 @@ class PlannerPanel extends PluginPanel {
     /** The CALCULATOR tab: its parts above the list stay while you type ({@link PlannerCalculatorView}). */
     private final class CalculatorPage extends Page {
         final PlannerCalculatorView view;
+        // The parts above the list, which don't scroll
+        final PlannerUi.Column top = new PlannerUi.Column();
 
         CalculatorPage(PlannerCalculatorView view) {
             super("calculator", "Calculator: actions to your target level", PlannerUi.Shape.CALCULATOR);
             this.view = view;
             target = view.list;
-            view.addTo(column, this::refresh);
-            // The plan bar stays under the scrolling list, so you can compare while you scroll
+            // The skill, its target, bonuses and the Actions | Banked | Plan tabs stay put at the top; only the list
+            // under them scrolls; the plan bar stays under it, so you can compare while you scroll
+            top.setBackground(PlannerUi.BACKGROUND);
+            view.addTo(top, column, this::refresh);
             JPanel both = new JPanel(new BorderLayout(0, 6));
             both.setBackground(PlannerUi.BACKGROUND);
+            both.add(top, BorderLayout.NORTH);
             both.add(scroll, BorderLayout.CENTER);
             both.add(view.dock, BorderLayout.SOUTH);
             body = both;
@@ -1509,6 +1662,8 @@ class PlannerPanel extends PluginPanel {
         void refresh() {
             view.update();
             super.refresh();
+            top.revalidate();
+            top.repaint();
             column.revalidate();
             column.repaint();
         }
@@ -1526,7 +1681,7 @@ class PlannerPanel extends PluginPanel {
     }
 
     private static JLabel tip(JLabel label, String tooltip) {
-        label.setToolTipText(tooltip);
+        label.setToolTipText(PlannerUi.fit(tooltip));
         return label;
     }
 

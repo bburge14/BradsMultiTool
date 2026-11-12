@@ -53,6 +53,9 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
     private final MethodDetector methods;
     private final net.runelite.client.game.SkillIconManager skillIcons;
 
+    @javax.inject.Inject
+    private net.runelite.client.ui.overlay.OverlayManager overlayManager;
+
     @Inject
     public BradsMultiToolResourceTimerOverlay(Client client, SkillTrackerConfig config, ResourceTimers timers,
                                               OtherTimerPlugins otherPlugins, SkillTracker plugin,
@@ -127,6 +130,15 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 alpha = (int) (60 + 140 * (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0)));
                 left = 1;
             }
+            // A tree as a status light: a full circle, green, yellow, red by thirds, flashing red once it's due (its
+            // timer can't be seen exactly, so no countdown to the second)
+            if (timer.kind == ResourceTimers.Kind.TREE && config.treeTimerStyle() == SkillTrackerConfig.TreeTimerStyle.LIGHT) {
+                if (!timer.due()) {
+                    color = left > 2 / 3.0 ? HudColors.GOOD : left > 1 / 3.0 ? HudColors.WARN : HudColors.BAD;
+                    alpha = 170;
+                }
+                left = 1;
+            }
             drawPie(graphics, at, left, color, color, alpha);
             if (!plain) {
                 drawLabels(graphics, timer, at);
@@ -143,7 +155,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         drawPie(graphics, at, safe ? (double) timer.ticksToEarliest() / timer.minTicks : timer.windowPassed(),
             color, border != null ? border : safe ? color : HudColors.WARN, 150);
         net.runelite.api.Point mouse = client.getMouseCanvasPosition();
-        if (mouse != null && Math.hypot(mouse.getX() - at.getX(), mouse.getY() - at.getY()) <= DIAMETER / 2.0 + 2) {
+        if (mouse != null && Math.hypot(mouse.getX() - at.getX(), mouse.getY() - at.getY()) <= DIAMETER / 2.0 + 2
+            && !CursorTooltip.covered(client, overlayManager, this)) {
             tooltips.add(new Tooltip(windowText(timer)));
         }
     }
@@ -230,6 +243,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
                 // Sprung with nothing in it: reset it
                 return timer.trapState == ResourceTimers.TrapState.FAILED ? "Empty" : clock(timer.ticksToLatest());
             case TREE:
+                // (to about when it falls: its timer, then your next log)
+                return timer.due() ? "Due" : clock(Math.max(0, (int) Math.round(timer.ticksLeft + timer.nextLogTicks())));
             case CALCIFIED:
             case CAMPFIRE:
                 return timer.due() ? "Due" : clock(Math.max(0, timer.ticksLeft));
@@ -404,7 +419,8 @@ public class BradsMultiToolResourceTimerOverlay extends Overlay {
         }
         Polygon poly = timer.npc != null ? timer.npc.getCanvasTilePoly() : timer.object.getCanvasTilePoly();
         net.runelite.api.Point mouse = client.getMouseCanvasPosition();
-        if (poly != null && mouse != null && poly.contains(mouse.getX(), mouse.getY())) {
+        if (poly != null && mouse != null && poly.contains(mouse.getX(), mouse.getY())
+            && !CursorTooltip.covered(client, overlayManager, this)) {
             tooltips.add(new Tooltip(windowText(timer)));
         }
     }
